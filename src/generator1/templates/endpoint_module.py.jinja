@@ -1,0 +1,122 @@
+from http import HTTPStatus
+from typing import Any, Optional, Union, cast
+
+import httpx
+
+import Errors.from_dict
+from ...types import Response, UNSET
+from ... import errors
+from .client_serv import AuthenticatedClient
+from .logger_setup import setup_logging
+
+{% for relative in endpoint.relative_imports | sort %}
+{{ relative }}
+{% endfor %}
+
+{% from "endpoint_macros.py.jinja" import header_params, cookie_params, query_params,
+    arguments, client, kwargs, parse_response, docstring, body_to_kwarg %}
+
+{% set return_string = endpoint.response_type() %}
+{% set parsed_responses = (endpoint.responses | length > 0) and return_string != "Any" %}
+
+async def _get_kwargs_{{ endpoint.name }}(self,
+    {{ arguments(endpoint, include_client=False) | indent(4) }}
+) -> dict[str, Any]:
+    {{ header_params(endpoint) | indent(4) }}
+    
+    {{ cookie_params(endpoint) | indent(4) }}
+    
+    {{ query_params(endpoint) | indent(4) }}
+
+    _kwargs: dict[str, Any] = {
+        "method": "{{ endpoint.method }}",
+        {% if endpoint.path_parameters %}
+        "url": "{{ endpoint.path }}".format(
+        {%- for parameter in endpoint.path_parameters -%}
+        {{parameter.python_name}}={{parameter.python_name}},
+        {%- endfor -%}
+        ),
+        {% else %}
+        "url": "{{ endpoint.path }}",
+        {% endif %}
+        {% if endpoint.query_parameters %}
+        "params": params,
+        {% endif %}
+        {% if endpoint.cookie_parameters %}
+        "cookies": cookies,
+        {% endif %}
+    }
+
+{% if endpoint.bodies | length > 1 %}
+{% for body in endpoint.bodies %}
+    if isinstance(body, {{body.prop.get_type_string() }}):
+        {% set destination = "_" + body.body_type + "_body" %}
+        {{ body_to_kwarg(body, destination) | indent(8) }}
+        _kwargs["{{ body.body_type.value }}"] = {{ destination }}
+        headers["Content-Type"] = "{{ body.content_type }}"
+{% endfor %}
+{% elif endpoint.bodies | length == 1 %}
+{% set body = endpoint.bodies[0] %}
+    {{ body_to_kwarg(body, "_body") | indent(4) }}
+    _kwargs["{{ body.body_type.value }}"] = _body
+    {% if body.content_type != "multipart/form-data" %}{# Need httpx to set the boundary automatically #}
+    headers["Content-Type"] = "{{ body.content_type }}"
+    {% endif %}
+{% endif %}
+
+{% if endpoint.header_parameters or endpoint.bodies | length > 0 %}
+    _kwargs["headers"] = headers
+{% endif %}
+    self.logger.debug("Создание параметров {{ endpoint.name }}.")
+    return _kwargs
+
+
+async def _parse_response_{{ endpoint.name }}(self, response: httpx.Response) -> Optional[{{ return_string }}]:
+    {% for response in endpoint.responses %}
+    self.logger.info(f"Получен ответ с кодом: {response.status_code} для {{ endpoint.name }}")
+    if response.status_code == {{ response.status_code.value }}:
+        {% if parsed_responses %}{% import "property_templates/" + response.prop.template as prop_template %}
+        {% if prop_template.construct %}
+        {{ prop_template.construct(response.prop, response.source.attribute) | indent(8) }}
+        {% elif response.source.return_type == response.prop.get_type_string()  %}
+        {{ response.prop.python_name }} = {{ response.source.attribute }}
+        {% else %}
+        {{ response.prop.python_name }} = cast({{ response.prop.get_type_string() }}, {{ response.source.attribute }})
+        {% endif %}
+        return {{ response.prop.python_name }}
+        {% else %}
+        return None
+        {% endif %}
+    {% endfor %}
+    else:
+        response_error = Errors.from_dict(response.json())
+        return response_error
+
+
+async def _build_response_{{ endpoint.name }}(self, response: httpx.Response) -> Response[{{ return_string }}]:
+    self.logger.debug("Преобразование JSON в Python для {{ endpoint.name }}.")
+    return Response(
+        status_code=HTTPStatus(response.status_code),
+        content=response.content,
+        headers=response.headers,
+        parsed= await self._parse_response_{{ endpoint.name }}(response=response),
+    )
+
+
+async def {{ endpoint.name }}(self,
+    {{ arguments(endpoint) | indent(4) }}
+) -> Optional[{{ return_string }}]:
+    {{ docstring(endpoint, return_string, is_detailed=false) | indent(4) }}
+    self.logger.info("Начинаем создание ответа на запрос.")
+
+    kwargs = await self._get_kwargs_{{ endpoint.name }}(
+        {{ kwargs(endpoint, include_client=False) }}
+    )
+
+    response = await (
+        await self.client.get_async_httpx_client()
+    ).request(**kwargs)
+
+    return (await self._build_response_{{ endpoint.name }}(
+        response=response)).parsed
+

@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+anyio = "==4.7.0"
+attrs = "==24.3.0"
+httpcore = "==1.0.7"
+httpx = "==0.27.2"
+jinja2 = "==3.1.4"
+openapi-python-client = "==0.22.0"
+pyyaml = "==6.0.2"
+"ruamel.yaml" = "==0.18.6"
+"ruamel.yaml.clib" = "==0.2.12"
+typing-extensions = "==4.12.2"
+black = "==24.10.0"
+isort = "==5.13.2"
+pydantic = "==2.10.4"
+pydantic-core = "==2.27.2"
+requests = "==2.32.3"
+python-dotenv = "==1.0.1"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"

@@ -1,0 +1,2361 @@
+openapi: 3.0.3
+info:
+  title: PachcaAPI - OpenAPI 3.0
+  description: Документация к открытому API пачки
+  version: 3.0.3
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+
+tags:
+  - name: common methods
+    description: Everything about common methods
+  - name: employees
+    description: Everything about employees
+  - name: status
+    description: Everything about
+      status
+  - name: tags
+    description: Everything about
+      tags
+  - name: chats and channels
+    description: Everything about
+      chats and channels
+  - name: talk and channel participants
+    description: Everything about
+      talk and channel participants
+  - name: comments
+    description: Everything about
+      comments
+  - name: messages
+    description: Everything about
+      messages
+  - name: reactions to messages
+    description: Everything about
+      reactions to messages
+  - name: reminders
+    description: Everything about
+      reminders
+
+paths:
+  /custom_properties:
+    get:
+      tags:
+        - common methods
+      summary: получение списка актульных полей сущности
+      description: |
+        Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей компании. Тело запроса отсутствует, параметры передаются в URL (например, /custom_properties?entity_type=User)
+      operationId: getCommonMethods
+      parameters:
+        - name: entity_type
+          in: query
+          description: Тип сущности
+          required: true
+          schema:
+            type: string
+            enum:
+              - User
+              - Task
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CommonMethods'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: blank
+                        payload: {}
+                inclusion:
+                  description: Поле имеет непредусмотренное значение
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: inclusion
+                        payload: {}
+  /uploads:
+    post:
+      tags:
+        - common methods
+      summary: получения подписи и ключа для загрузки файла
+      description: |
+        Данный метод необходимо использовать для загрузки каждого файла.
+        
+        Данный метод позволяет получить уникальный набор параметров для загрузки файла. Параметры запроса отсутствуют.
+      operationId: getUploads
+      responses:
+        '200':
+          description: Успешный ответ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileResponse'
+  /direct_url:
+    post:
+      tags:
+        - common methods
+      summary: (полученный в ответе на запрос /uploads) загрузка файла
+      description: |
+        Данный метод не требует авторизации.
+        
+        Получив все параметры, вам необходимо сделать POST запрос в формате multipart/form-data на адрес, который был указан в поле direct_url, отправив полученные параметры и сам файл.
+      operationId: getDirectUrl
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DirectResponse'
+      responses:
+        '204':
+          description: При безошибочном выполнении запроса тело ответа отсутствует.
+  /users:
+    get:
+      tags:
+        - employees
+      summary: получение актуального списка всех сотрудников компании
+      description: |
+        Метод для получения актуального списка сотрудников вашей компании.
+        Тело запроса отсутствует, параметры передаются в URL (например, /users?per=50&page=2&query=example.com)
+      operationId: getEmployees
+      parameters:
+        - $ref: '#/components/parameters/perParameter50'
+        - $ref: '#/components/parameters/pageParameter'
+        - $ref: '#/components/parameters/queryParameter'
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+  /users/{id}:
+    get:
+      tags:
+        - employees
+      summary: получение информации о сотруднике
+      description: |
+        Метод для получения информации о сотруднике.
+        Для получения сотрудника вам необходимо знать его id и указать его в URL запроса.
+      operationId: getEmployee
+      parameters:
+        - name: id
+          in: path
+          description: Уникальный идентификатор сотрудкика
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Employee'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                not_found:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+  /profile/status:
+    get:
+      tags:
+        - status
+      summary: получение информации о своем статусе
+      description: |
+        Метод для получения информации о своем статусе. Параметры запроса отсутствуют.
+      operationId: getStatus
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Status'
+    put:
+      tags:
+        - status
+      summary: новый статус
+      description: |
+        Метод для установки себе нового статуса.
+      operationId: putStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/Status'
+      responses:
+        '201':
+          description: Объект создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Status'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Обязательное поле (не может быть пустым)
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: blank
+                        payload: {}
+                too_long:
+                  description: Слишком длинное значение (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: too_long
+                        payload: {}
+                invalid:
+                  description: Поле не соответствует правилам (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: invalid
+                        payload: {}
+                wrong_emoji:
+                  description: Emoji статуса не может содержать значения отличные от Emoji символа
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: wrong_emoji
+                        payload: {}
+    delete:
+      tags:
+        - status
+      summary: удаление своего статуса
+      description: |
+        Метод для удаления своего статуса. Параметры запроса отсутствуют.
+      operationId: delStatus
+      responses:
+        '204':
+          description: При безошибочном выполнении запроса тело ответа отсутствует
+          content: {}
+  /group_tags/{id}:
+    get:
+      tags:
+        - tags
+      summary: получение информации о теге
+      description: |
+        Метод для получения информации о теге. Названия тегов являются уникальными в компании.
+
+        Для получения тега вам необходимо знать его id и указать его в URL запроса. Параметры запроса отсутствуют
+      operationId: getTag
+      parameters:
+          - name: id
+            in: path
+            description: Уникальный идентификатор тега
+            required: true
+            schema:
+              type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Tag'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                not_found:
+                  description:  Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+  /group_tags:
+    get:
+      tags:
+        - tags
+      summary: получение актуального списка тегов сотрудников
+      description: |
+        Метод для получения актуального списка тегов сотрудников.
+        
+        Названия тегов являются уникальными в компании. Тело запроса отсутствует, параметры передаются в URL (например, /group_tags?per=10&page=2)
+      operationId: getTags
+      parameters:
+        - $ref: '#/components/parameters/perParameter50'
+        - $ref: '#/components/parameters/pageParameter'
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                exclusion:
+                  description: Поле имеет непредусмотренное значение
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: exclusion
+                        payload: {}
+  /group_tags/{id}/users:
+    get:
+      tags:
+        - tags
+      operationId: getTagsEmployees
+      summary: получение актуального списка сотрудников тега
+      description: |
+        Метод для получения актуального списка сотрудников тега.
+        
+        Идентификатор тега, список сотрудников которого необходимо получить, и другие параметры передаются в URL (например, /group_tags/877650/users?per=3&page=2)
+      parameters:
+        - name: id
+          in: path
+          description: Уникальный идентификатор сотрудкика
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/perParameter25'
+        - $ref: '#/components/parameters/pageParameter'
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BaseEmployee'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                exclusion:
+                  description: Поле имеет непредусмотренное значение
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: exclusion
+                        payload: {}
+  /chats:
+    post:
+      tags:
+        - chats and channels
+      operationId: createChat
+      summary: создание новой беседы или канала
+      description: |
+        Метод для создания новой беседы или нового канала.
+        При создании беседы или канала вы автоматически становитесь участником.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chat:
+                  $ref: '#/components/schemas/BaseChat'
+      responses:
+        '201':
+          description: Запрос отработал успешно, сущность создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Обязательное поле (не может быть пустым)
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                too_long:
+                  description: Слишком длинное значение (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: long_name
+                        message: message
+                        code: too_long
+                        payload: {}
+                invalid:
+                  description: Поле не соответствует правилам (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: invalid
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+        '422':
+          description: С запросом все хорошо, но правила сервиса не позволяют его обработать (например, при попытке создания контакта с уже существующим номером телефона в базе)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                invalid:
+                  description: Поле имеет неверный формат (идентификатор поля вы получите в поле payload)
+                  value:
+                    errors:
+                      - key: name
+                        value: name
+                        message: message
+                        code: invalid
+                        payload: {}
+    get:
+      tags:
+        - chats and channels
+      operationId: getChats
+      summary: получение списка бесед и каналов
+      description: |
+        Метод для получения списка бесед и каналов по заданным параметрам.
+      
+        Тело запроса отсутствует, параметры передаются в URL (например, /chats?per=2&sort[id]=desc)
+      parameters:
+        - $ref: '#/components/parameters/sortParameter'
+        - $ref: '#/components/parameters/perParameter25'
+        - $ref: '#/components/parameters/pageParameter'
+        - $ref: '#/components/parameters/availabilityParameter'
+        - $ref: '#/components/parameters/last_message_at_afterParameter'
+        - $ref: '#/components/parameters/last_message_at_beforeParameter'
+      responses:
+        '200':
+          description: Запрос отработал как положено, без ошибок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Chat'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                too_long:
+                  description: Слишком длинное значение (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: long_name
+                        message: message
+                        code: too_long
+                        payload: {}
+                invalid:
+                  description: Поле не соответствует правилам (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: invalid
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+        '422':
+          description: С запросом все хорошо, но правила сервиса не позволяют его обработать (например, при попытке создания контакта с уже существующим номером телефона в базе)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                invalid:
+                  description: Поле имеет неверный формат (идентификатор поля вы получите в поле payload)
+                  value:
+                    errors:
+                      - key: name
+                        value: name
+                        message: message
+                        code: invalid
+                        payload: {}
+  /chats/{id}:
+    get:
+      tags:
+        - chats and channels
+      operationId: getChat
+      summary: получение информации о беседе или канале
+      description: |
+        Получения информации о беседе или канале.
+        Для получения беседы или канала вам необходимо знать её id и указать его в URL запроса.
+      parameters:
+        - name: id
+          description: Идентификатор беседы или канала
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+  /chats/{id}/members:
+    post:
+      tags:
+         - talk and channel participants
+      summary: добавление пользователей в состав участников
+      description: |
+        Метод для добавления пользователей в состав участников беседы или канала.
+      operationId: postMembersToChats
+      parameters:
+        - name: id
+          in: path
+          description: Идентификатор беседы/канала
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 533
+      requestBody:
+        description: |
+          Идентификатор беседы/канала передаётся в URL (например, /chats/553/members)
+          Массив идентификаторов пользователей, которые станут участниками, передается в теле запроса
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MembersChat'
+      responses:
+        '201':
+          description: Пользователи добавлены
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Обязательное поле (не может быть пустым)
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                too_long:
+                  description: Слишком длинное значение (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: long_name
+                        message: message
+                        code: too_long
+                        payload: {}
+                invalid:
+                  description: Поле не соответствует правилам (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: invalid
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+        '422':
+          description: С запросом все хорошо, но правила сервиса не позволяют его обработать (например, при попытке создания контакта с уже существующим номером телефона в базе)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                invalid:
+                  description: Поле имеет неверный формат (идентификатор поля вы получите в поле payload)
+                  value:
+                    errors:
+                      - key: name
+                        value: name
+                        message: message
+                        code: invalid
+                        payload: {}
+  /chats/{id}/group_tags:
+    post:
+      tags:
+         - talk and channel participants
+      summary: добавление тегов в состав участников беседы или канала
+      description: |
+        Метод для добавления тегов в состав участников беседы или канала.
+      operationId: postTagsToChats
+      parameters:
+        - name: id
+          in: path
+          description: Идентификатор беседы/канала
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 533
+      requestBody:
+        description: |
+          Идентификатор беседы/канала передаётся в URL (например, /chats/553/group_tags)
+          Массив идентификаторов тегов, которые станут участниками, передается в теле запроса
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupTag'
+      responses:
+        '201':
+          description: Тег(и) добавлен(ы)
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Обязательное поле (не может быть пустым)
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                too_long:
+                  description: Слишком длинное значение (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: long_name
+                        message: message
+                        code: too_long
+                        payload: {}
+                invalid:
+                  description: Поле не соответствует правилам (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: invalid
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+        '422':
+          description: С запросом все хорошо, но правила сервиса не позволяют его обработать (например, при попытке создания контакта с уже существующим номером телефона в базе)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                invalid:
+                  description: Поле имеет неверный формат (идентификатор поля вы получите в поле payload)
+                  value:
+                    errors:
+                      - key: name
+                        value: name
+                        message: message
+                        code: invalid
+                        payload: {}
+  /chats/{id}/leave:
+    delete:
+      tags:
+        - talk and channel participants
+      operationId: leaveChat
+      summary: выход из беседы или канала
+      description: |-
+        Метод для самостоятельного выхода из беседы или канала. Параметры запроса отсутствуют/
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор беседы или канала.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: При безошибочном выполнении запроса тело ответа отсутствуе
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+                personal_chat:
+                  description: Нельзя покинуть персональный чат
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: personal_chat
+                        payload: {}
+  /messages/{id}/thread:
+    post:
+      tags:
+        - comments
+      summary: создание нового треда
+      description: |
+        Метод для создания нового треда к сообщению. Если у сообщения уже был создан тред, то в ответе вернётся информация об уже созданном ранее треде.
+      operationId: createThread
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор сообщения, к которому создается тред.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Тред успешно создан или возвращены данные существующего треда.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Thread'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                exclusion:
+                  description: Поле имеет недопустимое значение
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: exclusion
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+  /messages:
+    post:
+      tags:
+        - messages
+      summary: создание нового сообщения
+      description: |
+        Метод для отправки сообщения в беседу или канал,
+        личного сообщения пользователю или комментария в тред.
+
+        При использовании entity_type: "discussion" (или просто без указания entity_type)
+        допускается отправка любого chat_id в поле entity_id.
+        То есть, сообщение можно отправить зная только идентификатор чата.
+        При этом, вы имеете возможность отправить сообщение в тред по его идентификатору
+        или личное сообщение по идентификатору пользователя.
+
+        Для отправки личного сообщения пользователю создавать чат не требуется. 
+        Достаточно указать entity_type: "user" и идентификатор пользователя. 
+        Чат будет создан автоматически, если между вами ещё не было переписки.
+        Между двумя пользователями может быть только один личный чат.
+      operationId: createMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  $ref: '#/components/schemas/CreateMessage'
+      responses:
+        '201':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+              example:
+                data:
+                  id: 194275
+                  entity_type: discussion
+                  entity_id: 198
+                  chat_id: 198
+                  content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
+                  user_id: 12
+                  created_at: 2020-06-08T09:32:57.000Z
+                  files: []
+                  buttons: []
+                  thread: null
+                  forwarding: null
+                  parent_message_id: null
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                exclusion:
+                  description: Поле имеет недопустимое значение
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: exclusion
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+    get:
+      tags:
+        - messages
+      summary: получение списка сообщений чата
+      description: |
+        Метод для получения списка сообщений бесед, каналов, тредов и личных сообщений.
+
+        Для получения сообщений вам необходимо знать chat_id требуемой беседы, канала,
+        треда или диалога, и указать его в URL запроса. Сообщения будут возвращены
+        в порядке убывания даты отправки (то есть, сначала будут идти последние сообщения чата).
+        Для получения более ранних сообщений чата доступны параметры per и page.
+        Тело запроса отсутствует, параметры передаются в URL (например, /messages?chat_id=198&per=3)
+      operationId: getListMessage
+      parameters:
+        - $ref: '#/components/parameters/chatParameter'
+        - $ref: '#/components/parameters/perParameter25'
+        - $ref: '#/components/parameters/pageParameter'
+      responses:
+        '200':
+          description: Successful
+          content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Message'
+                example:
+                  data:
+                    - id: 1194277
+                      entity_type: discussion
+                      entity_id: 198
+                      chat_id: 198
+                      content: Это сообщение тоже попадёт в экспорт
+                      user_id: 12
+                      created_at: 2023-09-18T13:43:32.000Z
+                      files: []
+                      buttons: []
+                      thread:
+                        id: 2633
+                        chat_id: 44997
+                      forwarding: null
+                      parent_message_id: null
+                    - id: 1194276
+                      entity_type: discussion
+                      entity_id: 198
+                      chat_id: 198
+                      content: "**Andrew** добавил **Export bot** в беседу"
+                      user_id: 12
+                      created_at: 2023-09-18T13:43:27.000Z
+                      files: []
+                      buttons: []
+                      thread: null
+                      forwarding: null
+                      parent_message_id: null
+                    - id: 1194275
+                      entity_type: discussion
+                      entity_id: 198
+                      chat_id: 198
+                      content: "**Andrew** создал беседу"
+                      user_id: 12
+                      created_at: 2023-09-18T13:43:19.000Z
+                      files: []
+                      buttons: []
+                      thread: null
+                      forwarding: null
+                      parent_message_id: null
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                exclusion:
+                  description: Поле имеет недопустимое значение
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: exclusion
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+  /messages/{id}:
+    get:
+      tags:
+        - messages
+      summary: получение информации о сообщении
+      description: |
+        Метод для получения информации о сообщении.
+
+        Для получения сообщения вам необходимо знать его id и указать его в URL запроса.
+      operationId: getMessage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            title: id
+            type: integer
+      responses:
+        '200':
+          description: Successfull
+          content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/Message'
+                example:
+                  data:
+                    id: 194275
+                    entity_type: discussion
+                    entity_id: 198
+                    chat_id: 198
+                    content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
+                    user_id: 12
+                    created_at: 2020-06-08T09:32:57.000Z
+                    files: 
+                        - id: 3560
+                          key: attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png
+                          name: congrat.png
+                          file_type: file
+                          url: |
+                            https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-
+                            02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-
+                              age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC
+                              -SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_
+                              request&X-Amz-Date=20231107T160412Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=
+                              host&X-Amz-Signature=98765asgfadsfdsaDSd4sdfg35asdf67sadf8
+                    buttons: []
+                    thread:
+                      id: 29873
+                      chat_id: 1949863
+                    forwarding: null
+                    parent_message_id: 194274
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+    put:
+      tags:
+        - messages
+      operationId: editMessage
+      summary: редактирование сообщения по указанному идентификатору
+      description: Метод для редактирования сообщения или комментария.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор беседы или канала.
+          schema:
+            type: integer
+      requestBody:
+        description: Массив идентификаторов тегов, которые станут участниками
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  $ref: '#/components/schemas/EditMessages'
+      responses:
+        '200':
+          description: Успешно отредактировано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Message'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                exclusion:
+                  description: Поле имеет недопустимое значение
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: exclusion
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+  /messages/{id}/reactions:
+    post:
+      tags:
+        - reactions to messages
+      operationId: postMessageReactions
+      summary: добавление реакции
+      description: >
+        Метод для добавления реакции на сообщение.
+        **Лимиты реакций:**
+        - Каждый пользователь может установить не более 20 уникальных реакций на сообщение.
+        - Сообщение может иметь не более 30 уникальных реакций.
+        - Сообщение может иметь не более 1000 реакций.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор сообщения.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeReaction'
+      responses:
+        "204":
+          description: Успешное выполнение запроса, тело ответа отсутствует.
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                exclusion:
+                  description: Поле имеет недопустимое значение
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: exclusion
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+                user_limit:
+                  description: Превышен лимит уникальных реакций пользователя
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: Вы можете добавить не более 20 уникальных реакций.
+                        code: user_limit
+                        payload: {}
+                unique_limit:
+                  description: Превышен лимит уникальных реакций на сообщение
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: Сообщение может содержать не более 30 уникальных реакций.
+                        code: unique_limit
+                        payload: {}
+                general_limit:
+                  description: Превышен общий лимит реакций на сообщение
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: Сообщение может содержать не более 1000 реакций.
+                        code: general_limit
+                        payload: {}
+    delete:
+      tags:
+        - reactions to messages
+      operationId: deleteMessageReactions
+      summary: удаление реакции
+      description: >
+        Метод для удаления реакции на сообщение. 
+        Удалить можно только те реакции, которые были поставлены авторизованным пользователем.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор сообщения.
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/reactionParameter'
+      responses:
+        "204":
+          description: При безошибочном выполнении запроса тело ответа отсутствует
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: name
+                        value: ''
+                        message: message
+                        code: blank
+                        payload: {}
+                exclusion:
+                  description: Поле имеет недопустимое значение
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: exclusion
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+    get:
+      tags:
+        - reactions to messages
+      operationId: getMessageReactions
+      summary: получение актуального списка реакций
+      description: |
+        Метод для получения актуального списка реакций на сообщение.
+        
+        Идентификатор сообщения, список реакций на которое необходимо получить, передается в URL (например, /messages/7231942/reactions). Количество возвращаемых сущностей и страница выборки указываются в теле запроса
+      parameters:
+        - name: id
+          in: path
+          description: Уникальный идентификатор сообщения
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/perParameter50'
+        - $ref: '#/components/parameters/pageParameter'
+      responses:
+        '200':
+          description: Список реакций успешно получен.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reaction'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                exclusion:
+                  description: Поле имеет недопустимое значение
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: exclusion
+                        payload: {}
+                not_found:
+                  description: Не удалось найти
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: not_found
+                        payload: {}
+  /tasks:
+    post:
+      tags:
+        - reminders
+      operationId: createTask
+      summary: создание нового напоминания
+      description: |
+        Метод для создания нового напоминания.
+      
+        При создании напоминания обязательным условием является указания типа напоминания: звонок, встреча, простое напоминание, событие или письмо. 
+        При этом не требуется дополнительное описание - вы просто создадите напоминание с соответствующим текстом.
+        Если вы укажите описание напоминания - то именно оно и станет текстом напоминания.
+        У напоминания должны быть ответственные, если их не указывать - ответственным назначаетесь вы.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task:
+                  $ref: '#/components/schemas/BaseTask'
+      responses:
+        '201':
+          description: Напоминание успешно создано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '400':
+          description: Пояснения ошибки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    $ref: '#/components/schemas/Errors'
+              examples:
+                blank:
+                  description: Поле не может быть пустым
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: blank
+                        payload: {}
+                too_long:
+                  description: Слишком длинное значение (пояснения вы получите в поле message)
+                  value:
+                    errors:
+                      - key: name
+                        value: long_name
+                        message: message
+                        code: too_long
+                        payload: {}
+                inclusion:
+                  description: Поле имеет непредусмотренное значение
+                  value:
+                    errors:
+                      - key: string
+                        value: string
+                        message: message
+                        code: inclusion
+                        payload: {}
+                invalid:
+                  description: Поле имеет неверное значение (например, указаны недопустимые ответственные)
+                  value:
+                    errors:
+                      - key: name
+                        value: 1234
+                        message: message
+                        code: invalid
+                        payload: {}
+components:
+  parameters:
+    perParameter50:
+      name: per
+      in: query
+      description: Количество возвращаемых сущностей за один запрос (по умолчанию 50, максимум 50)
+      required: false
+      schema:
+        type: integer
+        default: 50
+        maximum: 50
+    perParameter25:
+      name: per
+      in: query
+      description: Количество возвращаемых сущностей за один запрос (по умолчанию 25, максимум 50)
+      required: false
+      schema:
+        type: integer
+        default: 25
+        maximum: 50
+    pageParameter:
+      name: page
+      in: query
+      description: Страница выборки (по умолчанию 1)
+      required: false
+      schema:
+        type: integer
+        default: 1
+    queryParameter:
+      name: query
+      in: query
+      description: |
+        Поисковая фраза для фильтрации результатов (поиск идет по полям first_name (имя), last_name (фамилия), email (электронная почта), phone_number (телефон) и nickname (никнейм))
+      required: false
+      schema:
+        type: string
+    chatParameter:
+      name: chat_id
+      in: query
+      description: Идентификатор чата (беседа, канал, диалог или чат треда)
+      required: true
+      schema:
+        title: chat_id
+        type: integer
+    sortParameter:
+      name: 'sort[id]'
+      in: query
+      required: false
+      description: |
+        Составной параметр сортировки сущностей выборки.
+        Варианты значений: по умолчанию desc (по убыванию) или asc (по возрастанию).
+        На данный момент сортировка доступна только по полю ({field}) id (идентификатор бесед и каналов).
+      schema:
+        type: string
+        enum:
+          - desc
+          - asc
+        default: desc
+    availabilityParameter:
+      name: availability
+      in: query
+      required: false
+      description: |
+        Параметр, который отвечает за доступность и выборку бесед и каналов для пользователя.
+        Варианты значений: по умолчанию is_member (беседы и каналы, где пользователь является участником)
+        или public (все открытые беседы и каналы компании, вне зависимости от участия в них пользователя).
+      schema:
+        type: string
+        enum:
+          - is_member
+          - public
+        default: is_member
+    last_message_at_afterParameter:
+      name: last_message_at_after
+      in: query
+      required: false
+      description: |
+        Фильтрация по времени создания последнего сообщения.
+        Будут возвращены те беседы/каналы, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+      schema:
+        type: string
+        format: date-time
+    last_message_at_beforeParameter:
+      name: last_message_at_before
+      in: query
+      required: false
+      description: |
+        Фильтрация по времени создания последнего сообщения.
+        Будут возвращены те беседы/каналы, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+      schema:
+        type: string
+        format: date-time
+    reactionParameter:
+      name: code
+      in: query
+      description: Emoji в строковом формате для добавления реакции.
+      schema:
+        type: string
+        example: "👍"
+  schemas:
+    MembersChat:
+      title: Members Chat
+      required:
+        - member_ids
+      type: object
+      properties:
+        member_ids:
+          type: array
+          description: Массив идентификаторов пользователей, которые станут участниками
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+          example: [186, 187]
+        silent:
+          type: boolean
+          description: Не создавать в чате системное сообщение о добавлении участника
+    GroupTag:
+      title: Group Tag
+      required:
+        - group_tag_ids
+      type: object
+      properties:
+        group_tag_ids:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+          example: [86, 18]
+          description: Массив идентификаторов тегов, которые станут участниками
+    CodeReaction:  
+      title: Code Reaction
+      type: object
+      properties:
+        code:
+          type: string
+          example: "👍"
+          description: Emoji в строковом формате для добавления реакции.
+      required:
+        - code
+    BaseEmployee:
+      title: Base Employee
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: Идентификатор пользователя
+        first_name:
+          type: string
+          description: Имя
+        last_name:
+          type: string
+          description: Фамилия
+        nickname:
+          type: string
+          description: Имя пользователя
+        email:
+          type: string
+          description: Электронная почта
+        phone_number:
+          type: string
+          description: Телефон
+        department:
+          type: string
+          description: Департамент
+        role:
+          type: string
+          enum:
+            - admin
+            - user
+            - multi_guest
+          description: |
+            Уровень доступа: admin (администратор), user (сотрудник), multi_guest (мульти-гость)
+        suspended:
+          type: boolean
+          description: |
+            Деактивация пользователя. При значении true пользователь является деактивированным.
+        invite_status:
+          type: string
+          enum:
+            - confirmed
+            - sent
+          description: |
+              Статус приглашения: confirmed (принято), sent (отправлено)
+        list_tags:
+          type: array
+          items:
+            type: string
+          description: Массив тегов, привязанных к сотруднику
+        custom_properties:
+          type: array
+          description: Дополнительные поля сотрудника
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Идентификатор поля
+              name:
+                type: string
+                description: Название поля
+              data_type:
+                type: string
+                enum:
+                  - string
+                  - number
+                  - date
+                  - link
+                description: Тип поля (string, number, date или link)
+              value:
+                type: string
+                description: Значение
+        bot:
+          type: boolean
+          description: |
+            Тип: пользователь (false) или бот (true)
+      description: Базовый класс сотрудника.
+    Employee:
+      allOf:
+        - $ref: '#/components/schemas/BaseEmployee'
+        - type: object
+          properties:
+            user_status:
+              $ref: '#/components/schemas/Status'
+            title:
+              type: string
+              description: Должность
+            created_at:
+              type: string
+              format: date-time
+              description: |
+                Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+            time_zone:
+              type: string
+              description: Часовой пояс пользователя
+            image_url:
+              type: string
+              nullable: true
+              description: Ссылка на скачивание аватарки
+          description: Расширенный класс сотрудника.
+    BaseResponse:
+      title: Base Response
+      type: object
+      properties:
+        Content-Disposition:
+          type: string
+          description: Используемый заголовок
+          default: attachment
+        acl:
+          type: string
+          description: Уровень безопасности
+          default: private
+        policy:
+          type: string
+          description: Уникальный policy для загрузки файла
+        x-amz-credential:
+          type: string
+          description: x-amz-credential для загрузки файла
+        x-amz-algorithm:
+          type: string
+          description: Используемый алгоритм
+          default: AWS4-HMAC-SHA256
+        x-amz-date:
+          type: string
+          description: Уникальный x-amz-date для загрузки файла
+        x-amz-signature:
+          type: string
+          description: Уникальная подпись для загрузки файла
+        key:
+          type: string
+          description: Уникальный ключ для загрузки файла
+    FileResponse:
+      title: File Response
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            direct_url:
+              type: string
+              description: Адрес для загрузки файла
+    DirectResponse:
+      title: Direct Response
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            file:
+              type: string
+              description: Адрес для загрузки файла
+    Status:
+      type: object
+      nullable: true
+      description: Статус. Возвращается как null, если статус не установлен.
+      properties:
+        emoji:
+          type: string
+          description: Emoji символ статуса
+        title:
+          type: string
+          description: Текст статуса
+        expires_at:
+            type: string
+            format: date-time
+            nullable: true
+            description: |
+              Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Возвращается как null, если срок не установлен.
+    CommonMethods:
+      title: Common Methods
+      type: object
+      description: получение списка актульных полей сущности.
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: Название поля
+        name:
+          type: string
+          example: Дата рождения
+          description: Идентификатор поля
+        data_type:
+          type: string
+          enum:
+            - string
+            - number
+            - date
+            - link
+          example: number
+          description: тип поля
+    Errors:
+      type: array
+      items:
+        title: Error
+        type: object
+        properties:
+          key:
+            title: key
+            type: string
+            description: Ключ параметра, в котором произошла ошибка
+          value:
+            title: value
+            type: string
+            description: Значение ключа, которое вызвало ошибку
+          message:
+            title: message
+            type: string
+            description: Ошибка текстом, который вы можете вывести пользователю
+          code:
+            title: code
+            type: string
+            description: Внутренний код ошибки (коды ошибок представлены в описании каждого метода)
+          payload:
+            title: payload
+            type: object
+            description: Объект, который предоставляет любую дополнительную информацию (возможные дополнения представлены в описании каждого метода)
+    Buttons:
+      title: Message Buttons
+      type: array
+      maxItems: 100
+      items:
+        title: Row Buttons
+        type: array
+        maxItems: 8
+        items:
+          type: object
+          title: Button
+          required:
+            - text
+          minProperties: 2
+          properties:
+            text:
+              title: Text
+              type: string
+              maxLength: 255
+            url:
+              title: Url
+              type: string
+            data:
+              title: Data
+              type: string
+              maxLength: 255
+    BaseThread:
+      title: Base Thread
+      type: object
+      nullable: true
+      properties:
+        id:
+          title: Id
+          type: integer
+        chat_id:
+          title: Chat Id
+          type: integer
+    Thread:
+      allOf:
+        - $ref: '#/components/schemas/BaseThread'
+        - type: object
+          properties:
+            message_id:
+              type: integer
+              description: Идентификатор сообщения, к которому был создан тред.
+            message_chat_id:
+              type: integer
+              description: Идентификатор чата сообщения.
+            updated_at:
+              type: string
+              format: date-time
+              description: |
+                Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ.
+    BaseFiles:
+      title: Base Files
+      type: array
+      items:
+        type: object
+        required:
+          - key
+          - name
+          - file_type
+          - size
+        properties:
+          key:
+            title: Key
+            type: string
+            description: Путь к файлу, полученный в результате загрузки файла (каждый файл в каждом сообщении должен иметь свой уникальный key, не допускается использование одного и того же key в разных сообщениях)
+          name:
+            title: Name
+            type: string
+            description: Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)
+          file_type:
+            title: File Type
+            type: string
+            enum:
+              - 'file'
+              - 'image'
+    CreateEditFiles:
+      title: Create&Edit Files
+      allOf:
+        - $ref: '#/components/schemas/BaseFiles'
+        - type: array
+          items:
+            type: object
+            properties:
+              size:
+                title: Size
+                type: integer
+                description:  Размер файла в байтах, отображаемый пользователю
+    Files:
+      allOf:
+        - $ref: '#/components/schemas/BaseFiles'
+        - type: array
+          items:
+            type: object
+            properties:
+              id:
+                title: Id
+                type: integer
+              url:
+                title: Url
+                type: string
+                description:  Прямая временная ссылка на скачивание файла
+    BeforeBaseMessages:
+      title: Before Base Messages
+      type: object
+      description: Для получения сообщения вам необходимо знать его id и указать его в URL запроса.
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: Текст сообщения
+          default: Текст сообщения
+        buttons:
+          allOf:
+            - $ref: '#/components/schemas/Buttons'
+          title: buttons
+    EditMessages:
+      title: Edit Messages
+      allOf:
+        - $ref: '#/components/schemas/BeforeBaseMessages'
+        - type: object
+          description: Для получения сообщения вам необходимо знать его id и указать его в URL запроса.
+          required:
+            - content
+          properties:
+            files:
+              allOf:
+                - $ref: '#/components/schemas/CreateEditFiles'
+              title: files
+    BaseMessages:
+      title: Base Messages
+      allOf:
+        - $ref: '#/components/schemas/BeforeBaseMessages'
+        - type: object
+          required:
+            - entity_id
+          properties:
+            entity_type:
+              title: Entity Type
+              type: string
+              enum:
+                - 'discussion'
+                - 'user'
+                - 'thread'
+              default: 'discussion'
+            entity_id:
+              title: Entity Id
+              type: integer
+            parent_message_id:
+              title: Parent Massage Id
+              type: integer
+              nullable: true
+              default: null
+              description: Идентификатор сообщения, к которому написан ответ. Возвращается как null, если сообщение не является ответом.
+    CreateMessage:
+      title: Create Messages
+      allOf:
+        - $ref: '#/components/schemas/BaseMessages'
+        - type: object
+          properties:
+            files:
+              allOf:
+                - $ref: '#/components/schemas/CreateEditFiles'
+              title: files
+            skip_invite_mentions:
+              title: Skip Invite Mentions
+              type: boolean
+              default: false
+            link_preview:
+              title: Link Preview
+              type: boolean
+              default: false    
+    Message:
+      allOf:
+        - $ref: '#/components/schemas/BaseMessages'
+        - type: object
+          properties:
+            id:
+              title: Id
+              type: integer
+            chat_id:
+              title: Chat Id
+              type: integer
+            user_id:
+              title: User Id
+              type: integer
+            created_at:
+              title: Created At
+              type: string
+              format: date-time
+            files:
+              allOf:
+                - $ref: '#/components/schemas/Files'
+              title: files
+            thread:
+              allOf:
+                - $ref: '#/components/schemas/BaseThread'
+            forwarding:
+              title: Forwarding
+              type: object
+              nullable: true
+              default: null
+              properties:
+                original_message_id:
+                  title: Origin Message Id
+                  type: integer
+                  description: Идентификатор оригинального сообщения
+                original_chat_id:
+                  title: Original Chat Id
+                  type: integer
+                  description: Идентификатор чата, в котором находится оригинальное сообщение
+                author_id:
+                  title: Author Id
+                  type: integer
+                  description: Идентификатор чата, в котором находится оригинальное сообщение
+                original_created_at:
+                  title: Original Created At
+                  type: integer
+                  description: Дата и время создания оригинального сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+                original_thread_id:
+                  title: Original Thread Id
+                  type: integer
+                  nullable: true
+                  description: Идентификатор треда, в котором находится оригинальное сообщение. Возвращается как null, если оригинальное сообщение не является комментарием в треде.
+                original_thread_message_id:
+                  title: Original Thread Message Id
+                  type: integer
+                  nullable: true
+                  description: Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Возвращается как null, если оригинальное сообщение не является комментарием в треде.
+                original_thread_parent_chat_id:
+                  title: Original Thread Parent Chat Id
+                  type: integer
+                  nullable: true
+                  description: Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение. Возвращается как null, если оригинальное сообщение не является комментарием в треде.
+    Reaction:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: |
+            Идентификатор пользователя, оставившего реакцию.
+        created_at:
+          type: string
+          format: date-time
+          description: |
+            Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ.
+        code:
+          type: string
+          description: |
+            Emoji символ реакции.
+    BaseChat:
+      title: Base Chat
+      type: object
+      description: Собранный объект параметров создаваемой беседы или канала
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название
+          example: 🤿 aqua
+        member_ids:
+          type: array
+          description: Массив идентификаторов пользователей, которые станут участниками
+          items:
+            type: integer
+          example:
+            - 186
+            - 187
+        group_tag_ids:
+              type: array
+              description: Массив идентификаторов тегов, участников
+              items:
+                type: integer
+              example: []
+        channel:
+          type: boolean
+          description: 'Тип: беседа (по умолчанию, false) или канал (true)'
+          example: true
+        public:
+          type: boolean
+          description: 'Доступ: закрытый (по умолчанию, false) или открытый (true)'
+          example: false
+    Chat:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: Идентификатор беседы или канала
+              example: 334
+            owner_id:
+              type: integer
+              description: Идентификатор пользователя, создавшего беседу или канал
+              example: 185
+            created_at:
+              type: string
+              format: date-time
+              description: Дата и время создания беседы или канала (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+              example: '2021-08-28T15:56:53.000Z'
+            last_message_at:
+              type: string
+              format: date-time
+              description: Дата и время создания последнего сообщения в беседе/канале (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+              example: '2021-08-28T15:58:13.000Z'
+            meet_room_url:
+              type: string
+              description: Ссылка на Видеочат
+              example: 'https://meet.pachca.com/aqua-94bb21b5'
+        - $ref: '#/components/schemas/BaseChat'
+    Tag:
+      type: object
+      description: Для получения тега вам необходимо знать его id и указать его в URL запроса.
+      properties:
+        id:
+          type: integer
+          description: Идентификатор тега
+        name:
+          type: string
+          description:   Название тега
+        users_count:
+          description: Количество сотрудников, которые имеют этот тег
+          type: integer
+    BaseCustomProperties:
+      title: Base Custom Properties
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: Идентификатор поля
+          value:
+            type: string
+            description: Значение поля
+    CustomProperties:
+      title: Custom Properties
+      allOf:
+        - $ref: '#/components/schemas/BaseCustomProperties'
+        - type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Название поля
+              data_type:
+                type: string
+                enum:
+                  - string
+                  - number
+                  - date
+                  - link
+                description: Тип поля (string, number, date или link)
+    BaseTask:
+      title: Base Task
+      type: object
+      required:
+        - kind
+        - content
+        - due_at
+      properties:
+        kind:
+          type: string
+          description: Тип напоминания
+          enum:
+            - call
+            - meeting
+            - reminder
+            - event
+            - email        
+        content:
+          type: string
+          description: Описание напоминания
+        due_at:
+          type: string
+          format: date-time
+          description: Срок выполнения напоминания (ISO-8601)
+        priority:
+          type: integer
+          description: Приоритет (1 - по умолчанию, 2 - важно, 3 - очень важно)
+          enum:
+            - 1
+            - 2
+            - 3
+        performer_ids:
+          type: array
+          items:
+            type: integer
+          description: Массив идентификаторов пользователей
+        custom_properties:
+          allOf:
+            - $ref: '#/components/schemas/BaseCustomProperties'
+    Task:
+      allOf:
+        - $ref: '#/components/schemas/BaseTask'
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: Идентификатор созданного напоминания
+            user_id:
+              type: integer
+              description: Идентификатор пользователя-создателя
+            status:
+              type: string
+              description: Статус напоминания
+            created_at:
+              type: string
+              format: date-time
+              description: Дата и время создания
+            custom_properties:
+              allOf:
+                - $ref: '#/components/schemas/CustomProperties'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []

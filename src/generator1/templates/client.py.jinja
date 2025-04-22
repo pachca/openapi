@@ -1,0 +1,24 @@
+import datetime
+import logging
+import ssl
+from typing import Any, Union, Optional, cast
+
+from attrs import define, field, evolve
+import httpx
+from .client_serv import AuthenticatedClient
+from .logger_setup import setup_logging
+
+{% from "macros/client_macros.py.jinja" import httpx_args_docstring %}
+
+
+class Pachca:
+    """Главный класс библиотеки."""
+
+    def __init__(self, token):
+        self.client = AuthenticatedClient(token=token)
+        self.logger = setup_logging(__name__)
+    {% if endpoints %}
+    {% for endpoint in endpoints %}
+    {{ endpoint | indent(4, first=Fasle) }}
+    {% endfor %}
+    {% endif %}

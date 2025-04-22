@@ -1,0 +1,2 @@
+project_name_override: PachcaAPIClient
+package_name_override: pachca_api

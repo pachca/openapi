@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "knip": "knip",
     "format": "prettier --write .",
@@ -43,6 +43,9 @@
     "@pachca/spec": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/react-dom": "^19.2.3",
+    "eslint": "^9",
+    "eslint-config-next": "^16",
+    "eslint-config-prettier": "^10",
     "knip": "^5",
     "prettier": "^3",
     "tailwindcss": "^4"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { Endpoint, Response, Schema } from '@/lib/openapi/types';
+import type { Endpoint, Schema } from '@/lib/openapi/types';
 import { SectionHeader } from './section-header';
 import { SchemaTree } from './schema-tree';
 import { InlineCodeText } from './inline-code-text';
@@ -133,7 +133,6 @@ export function ResponseSection({ endpoint }: ResponseSectionProps) {
       <SectionHeader title="Ответы">
         {codes.map((code) => {
           const isActive = activeCode === code;
-          const codeIsError = !code.startsWith('2');
           const label = getResponseCodeLabel(code);
 
           return (

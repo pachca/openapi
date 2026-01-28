@@ -88,7 +88,6 @@ function extractActionFromEndpoint(endpoint: Endpoint): string {
 
   // Get the last static segment (action indicator)
   const lastStaticSegment = staticSegments[staticSegments.length - 1];
-  const firstStaticSegment = staticSegments[0]; // The resource name
 
   // If we have more than one static segment, it means we have a sub-resource or action
   if (staticSegments.length > 1) {

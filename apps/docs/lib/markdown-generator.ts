@@ -1,4 +1,4 @@
-import type { Endpoint, Schema } from './openapi/types';
+import type { Endpoint, Schema, Response } from './openapi/types';
 import { generateRequestExample, generateResponseExample } from './openapi/example-generator';
 import { generateCurl } from './code-generators/curl';
 import { generateJavaScript } from './code-generators/javascript';
@@ -13,12 +13,12 @@ import { expandMdxComponents } from './mdx-expander';
 /**
  * Resolve property schema - unwrap allOf and get the actual schema
  */
-function resolveSchema(schema: any): any {
+function resolveSchema(schema: Schema): Schema {
   if (!schema) return schema;
 
   // If schema has allOf with items, merge them
   if (schema.allOf && schema.allOf.length > 0) {
-    let merged: any = {};
+    let merged: Schema = {};
     for (const subSchema of schema.allOf) {
       const resolved = resolveSchema(subSchema);
       merged = { ...merged, ...resolved };
@@ -60,7 +60,7 @@ export function schemaToMarkdown(
     const variants = resolvedSchema.anyOf || resolvedSchema.oneOf;
     const variantType = resolvedSchema.anyOf ? 'anyOf' : 'oneOf';
     content += `${indent}**${variantType}** - один из вариантов:\n\n`;
-    variants?.forEach((variant: any, index: number) => {
+    variants?.forEach((variant: Schema, index: number) => {
       const resolvedVariant = resolveSchema(variant);
       const variantName = variant.$ref
         ? variant.$ref.split('/').pop()
@@ -80,7 +80,7 @@ export function schemaToMarkdown(
   // Handle object properties
   if ((resolvedSchema.type === 'object' || !resolvedSchema.type) && resolvedSchema.properties) {
     for (const [propName, propSchema] of Object.entries(resolvedSchema.properties)) {
-      const rawProp = propSchema as any;
+      const rawProp = propSchema as Schema;
       const prop = resolveSchema(rawProp);
       const isRequired =
         requiredFields.includes(propName) || resolvedSchema.required?.includes(propName);
@@ -96,7 +96,7 @@ export function schemaToMarkdown(
       } else if (Array.isArray(prop.type)) {
         typeInfo = prop.type.join(' | ');
       } else if (prop.type === 'array' && prop.items) {
-        const items = prop.items as any;
+        const items = prop.items;
         if (items.anyOf || items.oneOf) {
           typeInfo = 'array (union)';
         } else {
@@ -108,10 +108,11 @@ export function schemaToMarkdown(
       }
 
       // Handle enum - will add descriptions below if available
-      const hasEnum = prop.enum && prop.enum.length > 0;
+      const enumValues = prop.enum as unknown[] | undefined;
+      const hasEnum = enumValues && enumValues.length > 0;
       if (hasEnum && !prop['x-enum-descriptions']) {
         // Only inline enum if no descriptions
-        typeInfo += ` (enum: ${prop.enum.join(', ')})`;
+        typeInfo += ` (enum: ${enumValues.join(', ')})`;
       }
       if (prop.format) {
         typeInfo += `, ${prop.format}`;
@@ -159,22 +160,23 @@ export function schemaToMarkdown(
       if (hasEnum && prop['x-enum-descriptions']) {
         const enumDescriptions = prop['x-enum-descriptions'] as Record<string, string>;
         content += `${indent}  - **Возможные значения:**\n`;
-        for (const enumValue of prop.enum) {
-          const enumDesc = enumDescriptions[enumValue] || '';
+        for (const enumValue of enumValues) {
+          const enumKey = String(enumValue);
+          const enumDesc = enumDescriptions[enumKey] || '';
           if (enumDesc) {
-            content += `${indent}    - \`${enumValue}\`: ${enumDesc}\n`;
+            content += `${indent}    - \`${enumKey}\`: ${enumDesc}\n`;
           } else {
-            content += `${indent}    - \`${enumValue}\`\n`;
+            content += `${indent}    - \`${enumKey}\`\n`;
           }
         }
       } else if (hasEnum) {
         // List enum values without descriptions
-        content += `${indent}  - **Возможные значения:** ${prop.enum.map((v: string) => `\`${v}\``).join(', ')}\n`;
+        content += `${indent}  - **Возможные значения:** ${enumValues.map((v) => `\`${String(v)}\``).join(', ')}\n`;
       }
 
       // Handle anyOf/oneOf on property level
       if (hasUnion) {
-        const variants = prop.anyOf || prop.oneOf;
+        const variants = prop.anyOf ?? prop.oneOf ?? [];
         content += `${indent}  **Возможные варианты:**\n\n`;
         for (const variant of variants) {
           const resolvedVariant = resolveSchema(variant);
@@ -197,11 +199,11 @@ export function schemaToMarkdown(
       }
       // Handle arrays
       else if (prop.type === 'array' && prop.items) {
-        const items = prop.items as any;
+        const items = prop.items;
 
         // Check if items has anyOf/oneOf (union type)
         if (items.anyOf || items.oneOf) {
-          const variants = items.anyOf || items.oneOf;
+          const variants = items.anyOf ?? items.oneOf ?? [];
           content += `${indent}  **Возможные типы элементов:**\n\n`;
           for (const variant of variants) {
             const resolvedVariant = resolveSchema(variant);
@@ -354,7 +356,7 @@ function formatResponses(endpoint: Endpoint): string {
   let content = '\n## Ответы\n\n';
 
   for (const [statusCode, response] of Object.entries(endpoint.responses)) {
-    const resp = response as any;
+    const resp = response as Response;
     content += `### ${statusCode}: ${resp.description}\n\n`;
 
     const jsonContent = resp.content?.['application/json'];

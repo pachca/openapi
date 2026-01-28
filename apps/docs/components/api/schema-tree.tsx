@@ -84,11 +84,9 @@ function generateEnumId(fieldPath: string, enumValue: string): string {
 
 // Компонент для отображения возможных значений enum
 function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string }) {
-  if (!schema.enum) return null;
-
   // Скролл к enum значению при загрузке страницы или после переключения таба
   useEffect(() => {
-    if (typeof window === 'undefined' || !fieldPath) return;
+    if (typeof window === 'undefined' || !fieldPath || !schema.enum) return;
 
     const scrollToEnumIfNeeded = () => {
       const hash = window.location.hash.slice(1); // убираем #
@@ -130,6 +128,8 @@ function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string 
     window.addEventListener('hashchange', scrollToEnumIfNeeded);
     return () => window.removeEventListener('hashchange', scrollToEnumIfNeeded);
   }, [fieldPath, schema.enum]);
+
+  if (!schema.enum) return null;
 
   return (
     <div className="mt-3 mb-1 border border-background-border rounded-lg w-full">
@@ -197,7 +197,7 @@ async function copyToClipboard(value: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(value);
     return true;
-  } catch (clipboardError) {
+  } catch {
     // Fallback to older method if clipboard API fails
     const textArea = document.createElement('textarea');
     textArea.value = value;
@@ -602,7 +602,6 @@ function VariantSection({
   title,
   schema,
   level,
-  index,
   parentPath,
 }: {
   title: string;

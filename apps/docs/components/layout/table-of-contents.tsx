@@ -69,10 +69,8 @@ export function TableOfContents() {
       };
     });
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- initializing state based on DOM reading
     setToc(items);
     if (items.length > 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- initializing state based on DOM reading
       setActiveId(items[0].id);
     }
 

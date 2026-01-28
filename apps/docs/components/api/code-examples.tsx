@@ -13,7 +13,7 @@ import { generateJava } from '@/lib/code-generators/java';
 import { generateNodeJS } from '@/lib/code-generators/nodejs';
 import { generateGo } from '@/lib/code-generators/go';
 import { generateDotNet } from '@/lib/code-generators/dotnet';
-import { generateResponseExample, generateRequestExample } from '@/lib/openapi/example-generator';
+import { generateResponseExample } from '@/lib/openapi/example-generator';
 import { CopyButton } from './copy-button';
 import { CodeBlock } from './code-block';
 import { MethodBadge } from './method-badge';

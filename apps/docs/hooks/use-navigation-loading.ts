@@ -1,19 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 
 export function useNavigationLoading(href: string, delay: number = 200) {
   const [isLoading, setIsLoading] = useState(false);
   const pathname = usePathname();
-  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const pendingHrefRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (pendingHref && pathname === pendingHref) {
+    if (pendingHrefRef.current && pathname === pendingHrefRef.current) {
+      // Reset loading state when navigation is complete
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing with navigation state
       setIsLoading(false);
-      setPendingHref(null);
+      pendingHrefRef.current = null;
     }
-  }, [pathname, pendingHref]);
+  }, [pathname]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (href === pathname) {
@@ -23,11 +25,12 @@ export function useNavigationLoading(href: string, delay: number = 200) {
     // Устанавливаем загрузку с задержкой
     const timeoutId = setTimeout(() => {
       setIsLoading(true);
-      setPendingHref(href);
+      pendingHrefRef.current = href;
     }, delay);
 
     // Сохраняем таймер для возможной отмены
-    (e.currentTarget as any).__loadingTimeout = timeoutId;
+    const target = e.currentTarget as HTMLAnchorElement & { __loadingTimeout?: ReturnType<typeof setTimeout> };
+    target.__loadingTimeout = timeoutId;
   };
 
   return { isLoading, handleClick };

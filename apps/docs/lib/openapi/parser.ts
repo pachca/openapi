@@ -9,7 +9,12 @@ import type {
   RequestBody,
   Response,
   Example,
+  MediaType,
 } from './types';
+import { isRecord, getString, getBoolean, getArray, getRecord } from '../utils/type-guards';
+
+// Type for raw OpenAPI document data from YAML parsing
+type OpenAPIData = Record<string, unknown>;
 
 const OPENAPI_PATH = path.join(process.cwd(), '..', '..', 'packages', 'spec', 'openapi.yaml');
 
@@ -22,25 +27,31 @@ export async function parseOpenAPI(): Promise<ParsedAPI> {
 
   // Read and parse YAML file
   const fileContents = fs.readFileSync(OPENAPI_PATH, 'utf8');
-  const openapi = yaml.load(fileContents) as any;
+  const openapi = yaml.load(fileContents) as OpenAPIData;
+
+  const info = getRecord(openapi, 'info');
+  const components = getRecord(openapi, 'components');
 
   const parsed: ParsedAPI = {
     info: {
-      title: openapi.info?.title || 'API Documentation',
-      version: openapi.info?.version || '1.0.0',
-      description: openapi.info?.description,
+      title: (info && getString(info, 'title')) || 'API Documentation',
+      version: (info && getString(info, 'version')) || '1.0.0',
+      description: info ? getString(info, 'description') : undefined,
     },
-    servers: openapi.servers || [],
-    tags: openapi.tags || [],
+    servers: (getArray(openapi, 'servers') || []) as ParsedAPI['servers'],
+    tags: (getArray(openapi, 'tags') || []) as ParsedAPI['tags'],
     endpoints: [],
-    schemas: openapi.components?.schemas || {},
+    schemas: ((components && getRecord(components, 'schemas')) || {}) as Record<string, Schema>,
   };
 
   // Parse endpoints from paths
-  if (openapi.paths) {
-    for (const [pathStr, pathItem] of Object.entries(openapi.paths)) {
-      for (const [method, operation] of Object.entries(pathItem as any)) {
+  const paths = getRecord(openapi, 'paths');
+  if (paths) {
+    for (const [pathStr, pathItem] of Object.entries(paths)) {
+      if (!isRecord(pathItem)) continue;
+      for (const [method, operation] of Object.entries(pathItem)) {
         if (['get', 'post', 'put', 'delete', 'patch'].includes(method.toLowerCase())) {
+          if (!isRecord(operation)) continue;
           const endpoint = parseEndpoint(pathStr, method.toUpperCase(), operation, openapi);
           parsed.endpoints.push(endpoint);
         }
@@ -52,233 +63,284 @@ export async function parseOpenAPI(): Promise<ParsedAPI> {
   return parsed;
 }
 
-function parseEndpoint(path: string, method: string, operation: any, openapi: any): Endpoint {
+function parseEndpoint(
+  path: string,
+  method: string,
+  operation: Record<string, unknown>,
+  openapi: OpenAPIData
+): Endpoint {
   const endpoint: Endpoint = {
-    id: operation.operationId || `${method}_${path}`,
-    method: method as any,
+    id: getString(operation, 'operationId') || `${method}_${path}`,
+    method: method as Endpoint['method'],
     path,
-    tags: operation.tags || [],
-    summary: operation.summary,
-    description: operation.description,
+    tags: (getArray(operation, 'tags') || []) as string[],
+    summary: getString(operation, 'summary'),
+    description: getString(operation, 'description'),
     parameters: [],
     responses: {},
-    security: operation.security,
+    security: getArray(operation, 'security') as Endpoint['security'],
   };
 
   // Parse parameters
-  if (operation.parameters) {
-    endpoint.parameters = operation.parameters.map((param: any) => parseParameter(param, openapi));
+  const parameters = getArray(operation, 'parameters');
+  if (parameters) {
+    endpoint.parameters = parameters
+      .filter((param): param is Record<string, unknown> => isRecord(param))
+      .map((param) => parseParameter(param, openapi));
   }
 
   // Parse request body
-  if (operation.requestBody) {
-    endpoint.requestBody = parseRequestBody(operation.requestBody, openapi);
+  const requestBody = getRecord(operation, 'requestBody');
+  if (requestBody) {
+    endpoint.requestBody = parseRequestBody(requestBody, openapi);
   }
 
   // Parse responses
-  if (operation.responses) {
-    for (const [statusCode, response] of Object.entries(operation.responses)) {
-      endpoint.responses[statusCode] = parseResponse(response as any, openapi);
+  const responses = getRecord(operation, 'responses');
+  if (responses) {
+    for (const [statusCode, response] of Object.entries(responses)) {
+      if (isRecord(response)) {
+        endpoint.responses[statusCode] = parseResponse(response, openapi);
+      }
     }
   }
 
   return endpoint;
 }
 
-function parseParameter(param: any, openapi: any): Parameter {
-  const resolved = param.$ref ? resolveRef(param.$ref, openapi) : param;
+function parseParameter(param: Record<string, unknown>, openapi: OpenAPIData): Parameter {
+  const ref = getString(param, '$ref');
+  const resolved = ref ? resolveRef(ref, openapi) : param;
+
+  const schema = getRecord(resolved, 'schema');
 
   return {
-    name: resolved.name,
-    in: resolved.in,
-    description: resolved.description,
-    required: resolved.required || false,
-    deprecated: resolved.deprecated,
-    allowEmptyValue: resolved.allowEmptyValue,
-    schema: resolved.schema ? parseSchema(resolved.schema, openapi) : { type: 'string' },
+    name: getString(resolved, 'name') || '',
+    in: (getString(resolved, 'in') || 'query') as Parameter['in'],
+    description: getString(resolved, 'description'),
+    required: getBoolean(resolved, 'required') || false,
+    deprecated: getBoolean(resolved, 'deprecated'),
+    allowEmptyValue: getBoolean(resolved, 'allowEmptyValue'),
+    schema: schema ? parseSchema(schema, openapi) : { type: 'string' },
     example: resolved.example,
-    examples: parseExamples(resolved.examples, openapi),
-    explode: resolved.explode,
-    style: resolved.style,
+    examples: parseExamples(getRecord(resolved, 'examples'), openapi),
+    explode: getBoolean(resolved, 'explode'),
+    style: getString(resolved, 'style'),
   };
 }
 
 /**
  * Парсит объект examples из OpenAPI
  */
-function parseExamples(examples: any, openapi: any): Record<string, Example> | undefined {
+function parseExamples(
+  examples: Record<string, unknown> | undefined,
+  openapi: OpenAPIData
+): Record<string, Example> | undefined {
   if (!examples) {
     return undefined;
   }
 
   const parsed: Record<string, Example> = {};
   for (const [exampleName, exampleObj] of Object.entries(examples)) {
-    const resolved = (exampleObj as any).$ref
-      ? resolveRef((exampleObj as any).$ref, openapi)
-      : exampleObj;
+    if (!isRecord(exampleObj)) continue;
+
+    const ref = getString(exampleObj, '$ref');
+    const resolved = ref ? resolveRef(ref, openapi) : exampleObj;
 
     parsed[exampleName] = {
-      summary: resolved.summary,
-      description: resolved.description,
+      summary: getString(resolved, 'summary'),
+      description: getString(resolved, 'description'),
       value: resolved.value,
-      externalValue: resolved.externalValue,
+      externalValue: getString(resolved, 'externalValue'),
     };
   }
 
   return Object.keys(parsed).length > 0 ? parsed : undefined;
 }
 
-function parseRequestBody(body: any, openapi: any): RequestBody {
-  const resolved = body.$ref ? resolveRef(body.$ref, openapi) : body;
+function parseRequestBody(body: Record<string, unknown>, openapi: OpenAPIData): RequestBody {
+  const ref = getString(body, '$ref');
+  const resolved = ref ? resolveRef(ref, openapi) : body;
 
-  const content: Record<string, any> = {};
-  if (resolved.content) {
-    for (const [mediaType, mediaTypeObj] of Object.entries(resolved.content)) {
-      const mediaObj = mediaTypeObj as any;
-      const parsedSchema = parseSchema(mediaObj.schema, openapi);
+  const content: Record<string, MediaType> = {};
+  const resolvedContent = getRecord(resolved, 'content');
+  if (resolvedContent) {
+    for (const [mediaType, mediaTypeObj] of Object.entries(resolvedContent)) {
+      if (!isRecord(mediaTypeObj)) continue;
+      const schema = getRecord(mediaTypeObj, 'schema');
+      const parsedSchema = schema ? parseSchema(schema, openapi) : { type: 'object' };
 
       content[mediaType] = {
         schema: parsedSchema,
-        example: mediaObj.example,
-        examples: parseExamples(mediaObj.examples, openapi),
-        encoding: mediaObj.encoding,
+        example: mediaTypeObj.example,
+        examples: parseExamples(getRecord(mediaTypeObj, 'examples'), openapi),
+        encoding: getRecord(mediaTypeObj, 'encoding'),
       };
     }
   }
 
   return {
-    description: resolved.description,
-    required: resolved.required,
+    description: getString(resolved, 'description'),
+    required: getBoolean(resolved, 'required'),
     content,
   };
 }
 
-function parseResponse(response: any, openapi: any): Response {
-  const resolved = response.$ref ? resolveRef(response.$ref, openapi) : response;
+function parseResponse(response: Record<string, unknown>, openapi: OpenAPIData): Response {
+  const ref = getString(response, '$ref');
+  const resolved = ref ? resolveRef(ref, openapi) : response;
 
-  const content: Record<string, any> = {};
-  if (resolved.content) {
-    for (const [mediaType, mediaTypeObj] of Object.entries(resolved.content)) {
-      const mediaObj = mediaTypeObj as any;
-      const parsedSchema = parseSchema(mediaObj.schema, openapi);
+  const content: Record<string, MediaType> = {};
+  const resolvedContent = getRecord(resolved, 'content');
+  if (resolvedContent) {
+    for (const [mediaType, mediaTypeObj] of Object.entries(resolvedContent)) {
+      if (!isRecord(mediaTypeObj)) continue;
+      const schema = getRecord(mediaTypeObj, 'schema');
+      const parsedSchema = schema ? parseSchema(schema, openapi) : { type: 'object' };
 
       content[mediaType] = {
         schema: parsedSchema,
-        example: mediaObj.example,
-        examples: parseExamples(mediaObj.examples, openapi),
-        encoding: mediaObj.encoding,
+        example: mediaTypeObj.example,
+        examples: parseExamples(getRecord(mediaTypeObj, 'examples'), openapi),
+        encoding: getRecord(mediaTypeObj, 'encoding'),
       };
     }
   }
 
   // Парсим заголовки ответа
-  const headers: Record<string, any> = {};
-  if (resolved.headers) {
-    for (const [headerName, headerObj] of Object.entries(resolved.headers)) {
-      const header = headerObj as any;
+  const headers: Record<string, { description?: string; schema?: Schema }> = {};
+  const resolvedHeaders = getRecord(resolved, 'headers');
+  if (resolvedHeaders) {
+    for (const [headerName, headerObj] of Object.entries(resolvedHeaders)) {
+      if (!isRecord(headerObj)) continue;
+      const headerSchema = getRecord(headerObj, 'schema');
       headers[headerName] = {
-        description: header.description,
-        required: header.required,
-        deprecated: header.deprecated,
-        schema: header.schema ? parseSchema(header.schema, openapi) : undefined,
-        example: header.example,
+        description: getString(headerObj, 'description'),
+        schema: headerSchema ? parseSchema(headerSchema, openapi) : undefined,
       };
     }
   }
 
   return {
-    description: resolved.description,
+    description: getString(resolved, 'description') || '',
     content: Object.keys(content).length > 0 ? content : undefined,
     headers: Object.keys(headers).length > 0 ? headers : undefined,
   };
 }
 
-function parseSchema(schema: any, openapi: any, depth = 0): Schema {
+function parseSchema(schema: Record<string, unknown>, openapi: OpenAPIData, depth = 0): Schema {
   // Защита от бесконечной рекурсии
   if (!schema || depth > 20) {
     return { type: 'object' };
   }
 
   // Разрешаем $ref ссылки
-  if (schema.$ref) {
-    const resolved = resolveRef(schema.$ref, openapi);
+  const ref = getString(schema, '$ref');
+  if (ref) {
+    const resolved = resolveRef(ref, openapi);
     const parsed = parseSchema(resolved, openapi, depth + 1);
     // Всегда сохраняем $ref для отображения названий вариантов и компонентов
-    parsed.$ref = schema.$ref;
+    parsed.$ref = ref;
     return parsed;
   }
 
+  const schemaType = schema.type;
   const parsed: Schema = {
-    type: schema.type,
-    format: schema.format,
-    description: schema.description,
-    required: schema.required,
-    enum: schema.enum,
-    'x-enum-descriptions': schema['x-enum-descriptions'],
+    type: typeof schemaType === 'string' || Array.isArray(schemaType) ? schemaType : undefined,
+    format: getString(schema, 'format'),
+    description: getString(schema, 'description'),
+    required: getArray(schema, 'required') as string[] | undefined,
+    enum: getArray(schema, 'enum'),
+    'x-enum-descriptions': getRecord(schema, 'x-enum-descriptions') as
+      | Record<string, string>
+      | undefined,
     default: schema.default,
     example: schema.example,
-    nullable: schema.nullable,
-    title: schema.title,
-    minLength: schema.minLength,
-    maxLength: schema.maxLength,
-    minimum: schema.minimum,
-    maximum: schema.maximum,
-    minItems: schema.minItems,
-    maxItems: schema.maxItems,
-    pattern: schema.pattern,
-    readOnly: schema.readOnly,
-    writeOnly: schema.writeOnly,
-    deprecated: schema.deprecated,
+    nullable: getBoolean(schema, 'nullable'),
+    title: getString(schema, 'title'),
+    minLength: schema.minLength as number | undefined,
+    maxLength: schema.maxLength as number | undefined,
+    minimum: schema.minimum as number | undefined,
+    maximum: schema.maximum as number | undefined,
+    minItems: schema.minItems as number | undefined,
+    maxItems: schema.maxItems as number | undefined,
+    pattern: getString(schema, 'pattern'),
+    readOnly: getBoolean(schema, 'readOnly'),
+    writeOnly: getBoolean(schema, 'writeOnly'),
+    deprecated: getBoolean(schema, 'deprecated'),
   };
 
   // Обрабатываем свойства объекта
-  if (schema.properties) {
+  const properties = getRecord(schema, 'properties');
+  if (properties) {
     parsed.properties = {};
-    for (const [propName, propSchema] of Object.entries(schema.properties)) {
-      parsed.properties[propName] = parseSchema(propSchema, openapi, depth + 1);
+    for (const [propName, propSchema] of Object.entries(properties)) {
+      if (isRecord(propSchema)) {
+        parsed.properties[propName] = parseSchema(propSchema, openapi, depth + 1);
+      }
     }
   }
 
   // Обрабатываем items для массивов
-  if (schema.items) {
-    parsed.items = parseSchema(schema.items, openapi, depth + 1);
+  const items = getRecord(schema, 'items');
+  if (items) {
+    parsed.items = parseSchema(items, openapi, depth + 1);
   }
 
   // Обрабатываем allOf (слияние схем)
-  if (schema.allOf) {
-    parsed.allOf = schema.allOf.map((s: any) => parseSchema(s, openapi, depth + 1));
+  const allOf = getArray(schema, 'allOf');
+  if (allOf) {
+    parsed.allOf = allOf
+      .filter((s): s is Record<string, unknown> => isRecord(s))
+      .map((s) => parseSchema(s, openapi, depth + 1));
   }
 
   // Обрабатываем oneOf (одна из схем)
-  if (schema.oneOf) {
-    parsed.oneOf = schema.oneOf.map((s: any) => parseSchema(s, openapi, depth + 1));
+  const oneOf = getArray(schema, 'oneOf');
+  if (oneOf) {
+    parsed.oneOf = oneOf
+      .filter((s): s is Record<string, unknown> => isRecord(s))
+      .map((s) => parseSchema(s, openapi, depth + 1));
   }
 
   // Обрабатываем anyOf (любая из схем)
-  if (schema.anyOf) {
-    parsed.anyOf = schema.anyOf.map((s: any) => parseSchema(s, openapi, depth + 1));
+  const anyOf = getArray(schema, 'anyOf');
+  if (anyOf) {
+    parsed.anyOf = anyOf
+      .filter((s): s is Record<string, unknown> => isRecord(s))
+      .map((s) => parseSchema(s, openapi, depth + 1));
   }
 
   // Обрабатываем additionalProperties
-  if (schema.additionalProperties !== undefined) {
+  const additionalProperties = schema.additionalProperties;
+  if (additionalProperties !== undefined) {
     parsed.additionalProperties =
-      typeof schema.additionalProperties === 'boolean'
-        ? schema.additionalProperties
-        : parseSchema(schema.additionalProperties, openapi, depth + 1);
+      typeof additionalProperties === 'boolean'
+        ? additionalProperties
+        : isRecord(additionalProperties)
+          ? parseSchema(additionalProperties, openapi, depth + 1)
+          : undefined;
   }
 
   return parsed;
 }
 
-function resolveRef(ref: string, openapi: any): any {
+function resolveRef(ref: string, openapi: OpenAPIData): Record<string, unknown> {
   const parts = ref.replace('#/', '').split('/');
-  let current = openapi;
+  let current: unknown = openapi;
 
   for (const part of parts) {
+    if (!isRecord(current)) {
+      throw new Error(`Could not resolve reference: ${ref}`);
+    }
     current = current[part];
     if (!current) {
       throw new Error(`Could not resolve reference: ${ref}`);
     }
+  }
+
+  if (!isRecord(current)) {
+    throw new Error(`Resolved reference is not an object: ${ref}`);
   }
 
   return current;
@@ -326,9 +388,11 @@ export async function getSchemaByName(schemaName: string): Promise<Schema | unde
   if (rawSchema) {
     // Загружаем YAML снова для доступа к полному openapi объекту
     const fileContents = fs.readFileSync(OPENAPI_PATH, 'utf8');
-    const openapi = yaml.load(fileContents) as any;
+    const openapi = yaml.load(fileContents) as OpenAPIData;
 
-    const parsed = parseSchema(rawSchema, openapi);
+    // Convert Schema to Record<string, unknown> for parseSchema
+    const schemaAsRecord = rawSchema as unknown as Record<string, unknown>;
+    const parsed = parseSchema(schemaAsRecord, openapi);
     if (!parsed.title) {
       parsed.title = schemaName;
     }

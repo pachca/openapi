@@ -74,7 +74,7 @@ export interface Response {
 
 export interface Header {
   description?: string;
-  schema: Schema;
+  schema?: Schema;
 }
 
 export interface Schema {

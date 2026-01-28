@@ -17,7 +17,7 @@ export function CopyButton({ text }: CopyButtonProps) {
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (clipboardError) {
+    } catch {
       // Fallback to older method if clipboard API fails
       const textArea = document.createElement('textarea');
       textArea.value = text;

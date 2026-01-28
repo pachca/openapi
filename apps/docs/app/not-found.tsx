@@ -1,4 +1,3 @@
-import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

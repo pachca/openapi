@@ -100,7 +100,6 @@ export function MarkdownPre({ children }: { children: React.ReactNode }) {
 export function MarkdownCode({
   className,
   children,
-  ...props
 }: {
   className?: string;
   children: React.ReactNode;

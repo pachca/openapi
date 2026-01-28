@@ -1,0 +1,428 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors - Light Mode */
+  --color-primary: #525cda;
+  --color-primary-dark: #4852d0;
+  
+  --color-text-primary: #1a1f36;
+  --color-text-secondary: #4f566b;
+  --color-text-tertiary: #6f777b;
+  
+  --color-background: #ffffff;
+  --color-background-secondary: #f6f9fc;
+  --color-background-tertiary: #f6f9fc;
+  --color-background-border: #e3e8ee;
+
+  --color-callout-info-bg: #f8f9ff;
+  --color-callout-info-border: #e2e4ff;
+  --color-callout-info-header-bg: #f0f2ff;
+  --color-callout-info-text: #525cda;
+
+  --color-callout-warning-bg: #fffdf2;
+  --color-callout-warning-border: #fbedbb;
+  --color-callout-warning-header-bg: #fef9e1;
+  --color-callout-warning-text: #92400e;
+  
+  --color-method-get: #4078f2;
+  --color-method-post: #50a14f;
+  --color-method-put: #986801;
+  --color-method-delete: #e45649;
+  --color-method-patch: #a626a4;
+
+  --boxed-header-height: 40px;
+  --mobile-header-height: 56px;
+
+  /* Font Families */
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+  --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Dark Mode - ручное переключение */
+html.dark {
+  --color-primary: #525cda;
+  --color-text-primary: #ededed;
+  --color-text-secondary: #9ba1a6;
+  --color-text-tertiary: #63696c;
+  
+  --color-background: #1a1e1f;
+  --color-background-secondary: #1a1e1f;
+  --color-background-tertiary: #1f2324;
+  --color-background-border: #2b3039;
+
+  --color-callout-info-bg: rgba(82, 92, 218, 0.05);
+  --color-callout-info-border: rgba(82, 92, 218, 0.15);
+  --color-callout-info-header-bg: rgba(82, 92, 218, 0.1);
+  --color-callout-info-text: #8b92ff;
+
+  --color-callout-warning-bg: rgba(234, 179, 8, 0.03);
+  --color-callout-warning-border: rgba(234, 179, 8, 0.08);
+  --color-callout-warning-header-bg: rgba(234, 179, 8, 0.05);
+  --color-callout-warning-text: #e2b31a;
+
+  --color-method-delete: #e06c75;
+  --color-method-patch: #c678dd;
+}
+
+/* Dark Mode - системная тема (только если НЕ установлен класс .light) */
+@media (prefers-color-scheme: dark) {
+  html:not(.light):not(.dark) {
+    --color-primary: #525cda;
+    --color-text-primary: #ededed;
+    --color-text-secondary: #9ba1a6;
+    --color-text-tertiary: #63696c;
+      
+    --color-background: #1a1e1f;
+    --color-background-secondary: #1a1e1f;
+    --color-background-tertiary: #1f2324;
+    --color-background-border: #2b3039;
+
+    --color-callout-info-bg: rgba(82, 92, 218, 0.05);
+    --color-callout-info-border: rgba(82, 92, 218, 0.15);
+    --color-callout-info-header-bg: rgba(82, 92, 218, 0.1);
+    --color-callout-info-text: #8b92ff;
+
+    --color-callout-warning-bg: rgba(234, 179, 8, 0.03);
+    --color-callout-warning-border: rgba(234, 179, 8, 0.08);
+    --color-callout-warning-header-bg: rgba(234, 179, 8, 0.05);
+    --color-callout-warning-text: #e2b31a;
+
+    --color-method-delete: #e06c75;
+    --color-method-patch: #c678dd;
+  }
+}
+
+@layer base {
+  .bg-callout-info-bg a,
+  .bg-callout-info-bg\! a {
+    @apply text-callout-info-text! font-semibold underline decoration-callout-info-text/50! underline-offset-4 decoration-1 hover:decoration-callout-info-text!;
+    transition: text-decoration-color 0.2s, text-decoration-thickness 0.2s !important;
+  }
+
+  .bg-callout-info-bg code,
+  .bg-callout-info-bg\! code {
+    @apply bg-callout-info-header-bg! text-callout-info-text! border-callout-info-text/20!;
+  }
+
+  .bg-callout-warning-bg a,
+  .bg-callout-warning-bg\! a {
+    @apply text-callout-warning-text! font-semibold underline decoration-callout-warning-text/60! underline-offset-4 decoration-1 hover:decoration-callout-warning-text!;
+    transition: text-decoration-color 0.2s, text-decoration-thickness 0.2s !important;
+  }
+
+  .bg-callout-warning-bg code,
+  .bg-callout-warning-bg\! code {
+    @apply bg-callout-warning-header-bg! text-callout-warning-text! border-callout-warning-text/20!;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Disable transitions during theme switch */
+.disable-transitions *,
+.disable-transitions *::before,
+.disable-transitions *::after {
+  transition: none !important;
+}
+
+/* Main container padding - mobile header offset */
+.main-container-padding {
+  padding-top: var(--mobile-header-height);
+  height: 100vh;
+}
+
+/* На мобильных используем dvh для лучшей поддержки */
+@supports (height: 100dvh) {
+  .main-container-padding {
+    height: 100dvh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-container-padding {
+    padding-top: 0;
+    height: 100vh;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-background-border);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-background-border) transparent;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+
+.prose h1 {
+  @apply text-[32px] font-bold tracking-tight text-text-primary mt-0 mb-8 leading-[1.15];
+}
+
+.prose h2 {
+  @apply text-[22px] font-bold tracking-tight text-text-primary mt-12 mb-6 leading-tight;
+}
+
+.prose h3 {
+  @apply text-[17px] font-bold tracking-tight text-text-primary mt-10 mb-5 leading-[1.35];
+}
+
+.prose p {
+  @apply text-[15px] text-text-primary leading-[1.6] mb-6;
+}
+
+.prose ul {
+  @apply list-none pl-6 mb-6;
+}
+
+.prose ol {
+  @apply list-none pl-8 mb-6;
+  counter-reset: item;
+}
+
+/* Уменьшаем отступ, если список идет сразу за текстом */
+.prose p + ul, 
+.prose p + ol {
+  @apply -mt-3;
+}
+
+.prose ul li {
+  @apply relative mb-1.5 text-[15px] text-text-primary leading-[1.6];
+}
+
+.prose ul li::before {
+  content: "";
+  @apply absolute -left-5 top-[0.65em] w-1 h-1 rounded-full bg-text-tertiary/60;
+}
+
+.prose ol li {
+  @apply relative mb-1.5 text-[15px] text-text-primary leading-[1.6];
+  counter-increment: item;
+}
+
+.prose ol li::before {
+  content: counter(item) ".";
+  @apply absolute h-[24px] -left-8 text-text-secondary font-normal font-mono text-[14px] top-0 leading-[24px] w-6 text-right;
+}
+
+.prose li strong {
+  @apply text-text-primary font-semibold!;
+}
+
+
+.prose code:not(pre code) {
+  @apply bg-background-secondary text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-background-border wrap-break-word;
+}
+
+.prose table {
+  @apply w-full text-left border-collapse mb-8;
+}
+
+.prose th {
+  @apply py-3 px-4 border-b border-background-border text-sm font-bold text-text-primary uppercase tracking-wider bg-background-secondary;
+}
+
+.prose td {
+  @apply py-3 px-4 border-b border-background-border text-sm text-text-primary;
+}
+
+/* Code Block Styling */
+.code-block-container {
+  --shiki-background: transparent;
+}
+
+/* Переключение тем Shiki */
+.code-block-container .shiki,
+.code-block-container .shiki span {
+  outline: none;
+  color: var(--shiki-light);
+}
+
+html.dark .code-block-container .shiki,
+html.dark .code-block-container .shiki span {
+  color: var(--shiki-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .code-block-container .shiki,
+  html:not(.light) .code-block-container .shiki span {
+    color: var(--shiki-dark);
+  }
+}
+
+.code-block-container pre.shiki {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-family: var(--font-mono) !important;
+  line-height: inherit !important;
+}
+
+.code-block-container pre.shiki code {
+  background: transparent !important;
+  padding: 0 !important;
+  display: block;
+  width: fit-content;
+  min-width: 100%;
+}
+
+.code-block-container pre {
+  counter-reset: line;
+  padding: 1.25rem 0 !important;
+  margin: 0 !important;
+  display: block;
+}
+
+.code-block-container .line {
+  display: flex;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  width: fit-content;
+  min-width: 100%;
+}
+
+/* Номера строк - фон для светлой темы */
+.code-block-container .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  align-self: stretch;
+  width: 2.8rem;
+  padding-right: 0.8rem;
+  user-select: none;
+  font-size: 11px;
+  line-height: 1;
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-tertiary);
+}
+
+.code-block-container .line > span {
+  display: inline;
+  line-height: inherit;
+}
+
+.code-block-container .line span {
+  font-size: 13px;
+}
+
+@layer utilities {
+  .text-code-key { color: var(--color-syntax-key); }
+  .text-code-string { color: var(--color-syntax-string); }
+  .text-code-number { color: var(--color-syntax-number); }
+  .text-code-boolean { color: var(--color-syntax-number); }
+  .text-code-null { color: var(--color-syntax-number); }
+  .text-code-keyword { color: var(--color-syntax-keyword); }
+  .text-code-comment { color: var(--color-syntax-comment); }
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
+}
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes tooltip-out {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to { opacity: 0; transform: scale(0.96) translateY(4px); }
+}
+
+.animate-tooltip[data-state='open'],
+.animate-tooltip[data-side='top'] {
+  animation: tooltip-in 0.2s ease-out forwards;
+}
+
+.animate-tooltip[data-state='closed'] {
+  animation: tooltip-out 0.15s ease-in forwards;
+}
+
+/* Стили для активного элемента сайдбара */
+.bg-primary.text-white {
+  color: white !important;
+}
+
+/* Плавная прокрутка для всех ссылок-якорей */
+/* Стили ссылок в тексте */
+.prose a, 
+.prose a:link, 
+.prose a:visited {
+  color: var(--color-text-primary) !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 4px !important;
+  text-decoration-thickness: 1px !important;
+  text-decoration-color: color-mix(in srgb, var(--color-text-primary), transparent 70%) !important;
+  transition: text-decoration-color 0.2s, text-decoration-thickness 0.2s !important;
+}
+
+.prose a:hover {
+  text-decoration-color: var(--color-text-primary) !important;
+  text-decoration-thickness: 1.5px !important;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Main uses auto by default, smooth scroll is handled programmatically */
+main {
+  scroll-behavior: auto;
+}
+

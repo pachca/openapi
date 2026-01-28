@@ -1,0 +1,54 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "generate:openapi": {
+      "inputs": ["openapi-source/**"],
+      "outputs": ["openapi-source/openapi.yaml"],
+      "cache": true
+    },
+    "check-urls": {
+      "dependsOn": ["generate:openapi"],
+      "inputs": ["scripts/check-url-conflicts.mjs", "openapi-source/openapi.yaml"],
+      "cache": true
+    },
+    "build": {
+      "dependsOn": ["generate:openapi", "check-urls"],
+      "inputs": [
+        "app/**",
+        "components/**",
+        "content/**",
+        "hooks/**",
+        "lib/**",
+        "public/**",
+        "next.config.ts",
+        "tsconfig.json",
+        "postcss.config.mjs",
+        "tailwind.config.*"
+      ],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "cache": true
+    },
+    "lint": {
+      "inputs": [
+        "app/**",
+        "components/**",
+        "hooks/**",
+        "lib/**",
+        "*.ts",
+        "*.tsx",
+        "*.mjs"
+      ],
+      "cache": true
+    },
+    "dev": {
+      "dependsOn": ["generate:openapi"],
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

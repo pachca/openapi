@@ -1,0 +1,119 @@
+{
+  "title": "Структура правила DLP",
+  "schema": {
+    "type": "object",
+    "required": ["conditions", "action"],
+    "properties": {
+      "scope": {
+        "type": "object",
+        "description": "Объект контекста применения правила",
+        "properties": {
+          "to_external": {
+            "type": "boolean",
+            "description": "Применимость правила к внешним контактам. При значении true правило работает только при наличии гостей или мульти-гостей в чате.",
+            "default": false
+          },
+          "channel_type": {
+            "type": "array",
+            "description": "Массив типов чата, для которых будет работать правило",
+            "items": {
+              "type": "string",
+              "enum": ["personal", "discussion", "channel", "thread"],
+              "x-enum-descriptions": {
+                "personal": "личные сообщения",
+                "discussion": "беседы",
+                "channel": "каналы",
+                "thread": "треды"
+              }
+            }
+          },
+          "user_role": {
+            "type": "array",
+            "description": "Массив ролей пользователя в чате, для которых будет работать правило",
+            "items": {
+              "type": "string",
+              "enum": ["owner", "admin", "editor", "member", "subscriber", "not_member"],
+              "x-enum-descriptions": {
+                "owner": "создатель",
+                "admin": "админ",
+                "editor": "редактор",
+                "member": "участник (для бесед)",
+                "subscriber": "подписчик (для каналов)",
+                "not_member": "не состоит в чате"
+              }
+            }
+          }
+        }
+      },
+      "conditions": {
+        "type": "object",
+        "description": "Объект условия срабатывания правила. Можно указать all, any или оба.",
+        "properties": {
+          "all": {
+            "type": "array",
+            "description": "Массив условий (все должны совпасть)",
+            "items": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Тип условия",
+                  "enum": ["regex", "keyword"],
+                  "x-enum-descriptions": {
+                    "regex": "регулярное выражение",
+                    "keyword": "ключевое слово"
+                  }
+                },
+                "max_hits": { "type": "integer", "description": "Максимальное количество совпадений" },
+                "min_hits": { "type": "integer", "description": "Минимальное количество совпадений", "default": 1 },
+                "pattern": { "type": "string", "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex." },
+                "value": { "type": "string", "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword." }
+              }
+            }
+          },
+          "any": {
+            "type": "array",
+            "description": "Массив условий (хотя бы одно должно совпасть)",
+            "items": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Тип условия",
+                  "enum": ["regex", "keyword"],
+                  "x-enum-descriptions": {
+                    "regex": "регулярное выражение",
+                    "keyword": "ключевое слово"
+                  }
+                },
+                "max_hits": { "type": "integer", "description": "Максимальное количество совпадений" },
+                "min_hits": { "type": "integer", "description": "Минимальное количество совпадений", "default": 1 },
+                "pattern": { "type": "string", "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex." },
+                "value": { "type": "string", "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword." }
+              }
+            }
+          }
+        }
+      },
+      "action": {
+        "type": "object",
+        "description": "Объект действия при срабатывании правила",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Тип действия",
+            "enum": ["BLOCK", "AUDIT_LOG"],
+            "x-enum-descriptions": {
+              "BLOCK": "удалить текст сообщения",
+              "AUDIT_LOG": "добавить запись в журнал событий"
+            }
+          },
+          "message": { "type": "string", "description": "Текст сообщения для пользователя", "example": "Сообщение заблокировано политикой безопасности" }
+        }
+      }
+    }
+  }
+}

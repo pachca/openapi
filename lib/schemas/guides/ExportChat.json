@@ -1,0 +1,35 @@
+{
+  "title": "Структура объекта чата в массиве файла chats.json",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "integer", "description": "Идентификатор чата", "example": 67890 },
+      "personal": {
+        "type": "boolean",
+        "description": "Тип чата",
+        "enum": [true, false],
+        "x-enum-descriptions": { "true": "личный чат", "false": "групповой чат" }
+      },
+      "name": { "type": "string", "description": "Название", "example": "Рабочий чат" },
+      "owner_id": { "type": "integer", "description": "Идентификатор пользователя, создавшего чат", "example": 123 },
+      "members": {
+        "type": "array",
+        "description": "Массив объектов участников чата",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "integer", "description": "Идентификатор пользователя" },
+            "role": {
+              "type": "string",
+              "description": "Роль в чате",
+              "enum": ["owner", "admin", "editor", "member"],
+              "x-enum-descriptions": { "owner": "создатель", "admin": "админ", "editor": "редактор", "member": "участник/подписчик" }
+            }
+          }
+        }
+      },
+      "created_at": { "type": "string", "format": "date-time", "description": "Дата и время создания чата (ISO-8601, UTC+0)", "example": "2024-01-10T08:00:00.000Z" },
+      "updated_at": { "type": "string", "format": "date-time", "description": "Дата и время обновления чата (ISO-8601, UTC+0)", "example": "2024-01-15T12:00:00.000Z" }
+    }
+  }
+}

@@ -1,0 +1,190 @@
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import { Callout } from './callout';
+import { GuideCodeBlock } from './guide-code-block';
+import { InternalLink } from './smooth-scroll-link';
+import { replaceSpecialTagsForMDX } from '@/lib/replace-special-tags';
+import type { Endpoint } from '@/lib/openapi/types';
+import { generateUrlFromOperation } from '@/lib/openapi/mapper';
+import { parseOpenAPI } from '@/lib/openapi/parser';
+import { 
+  SchemaBlock, 
+  HttpCodes, 
+  ErrorSchema,
+  MarkdownSyntaxTable,
+  CodeBlock,
+  Limit, 
+  Updates,
+  Image,
+  Warning,
+  Info 
+} from '@/components/mdx/mdx-components';
+
+/**
+ * Convert special link syntax to standard markdown links
+ * Syntax: [description](METHOD /path) -> [description](/resolved-url)
+ */
+function resolveEndpointLinks(text: string, allEndpoints?: Endpoint[]): string {
+  return text.replace(
+    /\[([^\]]+)\]\((GET|POST|PUT|DELETE|PATCH)\s+(\/[^\)]+)\)/g,
+    (match, description, method, path) => {
+      // Check if it's a guide path
+      if (path.startsWith('/guides/')) {
+        return `[${description.trim()}](${path})`;
+      }
+      
+      // If allEndpoints provided, try to resolve the URL
+      if (allEndpoints) {
+        const endpoint = allEndpoints.find(ep => 
+          ep.method.toUpperCase() === method.toUpperCase() && ep.path === path
+        );
+        
+        if (endpoint) {
+          const url = generateUrlFromOperation(endpoint);
+          return `[${description.trim()}](${url})`;
+        }
+      }
+      
+      // If endpoint not found, return description without link
+      // Escape curly braces to prevent {id} from being interpreted as JSX
+      const escapedPath = path.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
+      return `${description.trim()} (${method} ${escapedPath})`;
+    }
+  );
+}
+
+// Simple markdown components for server rendering
+const components = {
+  // Blockquote -> Callout (for regular blockquotes in markdown)
+  blockquote: ({ children }: { children: React.ReactNode }) => {
+    const text = String(children);
+    const isWarning = text.toLowerCase().includes('внимание');
+    return <Callout type={isWarning ? 'warning' : 'info'}>{children}</Callout>;
+  },
+  
+  // Code blocks
+  pre: ({ children }: { children: React.ReactNode }) => (
+    <div className="my-4">{children}</div>
+  ),
+  
+  code: ({ className, children, title }: { className?: string; children: React.ReactNode; title?: string }) => {
+    const match = /language-(\w+)/.exec(className || '');
+    if (match) {
+      const language = match[1] === 'bash' || match[1] === 'shell' ? 'curl' : match[1];
+      const code = String(children).replace(/\n$/, '');
+      return <GuideCodeBlock language={language} code={code} title={title} />;
+    }
+    return (
+      <code className="bg-background-secondary border border-background-border px-1.5 py-0.5 rounded text-[13px] font-mono text-primary">
+        {children}
+      </code>
+    );
+  },
+  
+  // Headings - skip H1 since StaticPageHeader provides it
+  h1: () => null,
+  h2: ({ id, children }: { id?: string; children: React.ReactNode }) => {
+    // Generate id that supports Cyrillic characters
+    const text = String(children);
+    const generatedId = id || text.toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
+      .replace(/-+/g, '-') // Remove multiple dashes
+      .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+    return (
+      <h2 id={generatedId} className="text-2xl font-bold text-text-primary mt-12 mb-6 scroll-mt-20">
+        {children}
+      </h2>
+    );
+  },
+  h3: ({ id, children }: { id?: string; children: React.ReactNode }) => {
+    // Generate id that supports Cyrillic characters
+    const text = String(children);
+    const generatedId = id || text.toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
+      .replace(/-+/g, '-') // Remove multiple dashes
+      .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+    return (
+      <h3 id={generatedId} className="text-xl font-bold text-text-primary mt-8 mb-4 scroll-mt-20">
+        {children}
+      </h3>
+    );
+  },
+  
+  // Links - use InternalLink for client-side navigation
+  a: InternalLink,
+  
+  // Lists
+  ul: ({ children }: { children: React.ReactNode }) => (
+    <ul className="list-disc list-outside ml-2 space-y-2 my-4 text-text-primary">
+      {children}
+    </ul>
+  ),
+  li: ({ children }: { children: React.ReactNode }) => (
+    <li className="text-text-primary leading-relaxed">{children}</li>
+  ),
+  
+  // Paragraph
+  p: ({ children }: { children: React.ReactNode }) => (
+    <p className="text-text-primary leading-relaxed mb-4">{children}</p>
+  ),
+  
+  // Other
+  hr: () => <hr className="my-8 border-background-border" />,
+  em: ({ children }: { children: React.ReactNode }) => (
+    <em className="text-text-secondary italic">{children}</em>
+  ),
+  strong: ({ children }: { children: React.ReactNode }) => (
+    <strong className="font-semibold">{children}</strong>
+  ),
+  
+  // Custom MDX components for dynamic content
+  SchemaBlock,
+  HttpCodes,
+  ErrorSchema,
+  MarkdownSyntaxTable,
+  CodeBlock,
+  Limit,
+  Updates,
+  Image,
+  Warning,
+  Info,
+  Callout,
+};
+
+interface MarkdownContentProps {
+  /** Raw markdown content string */
+  content: string;
+  /** Optional: all endpoints for resolving [description](METHOD /path) links */
+  allEndpoints?: Endpoint[];
+  /** Optional: custom class name for wrapper */
+  className?: string;
+}
+
+/**
+ * Unified component for rendering markdown content
+ * Used for both guide pages and API method descriptions
+ * 
+ * Features:
+ * - Renders markdown with MDXRemote
+ * - Supports custom MDX components (SchemaBlock, Warning, Info, etc.)
+ * - Resolves special link syntax [description](METHOD /path) to actual URLs
+ * - Converts special tags (#corporation_price_only, etc.) to styled blocks
+ * - Auto-loads endpoints for link resolution if not provided
+ */
+export async function MarkdownContent({ content, allEndpoints, className = "markdown-content" }: MarkdownContentProps) {
+  // Load endpoints if not provided (for resolving API links)
+  const endpoints = allEndpoints ?? (await parseOpenAPI()).endpoints;
+  
+  // 1. Replace special tags with MDX components (<Warning>, <Info>)
+  let processedContent = replaceSpecialTagsForMDX(content);
+  
+  // 2. Resolve endpoint links: [description](METHOD /path) -> [description](/url)
+  processedContent = resolveEndpointLinks(processedContent, endpoints);
+  
+  return (
+    <div className={className}>
+      <MDXRemote source={processedContent} components={components} />
+    </div>
+  );
+}

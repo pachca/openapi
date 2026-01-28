@@ -1,0 +1,19 @@
+{
+  "title": "Тело ответа с указанием текста ошибки для каждого поля",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "errors": {
+        "type": "object",
+        "description": "JSON карта ошибок для полей, где каждый ключ - name поля представления.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Текст ошибки, который отобразится под полем красным цветом",
+            "maxLength": 2000
+          }
+        }
+      }
+    }
+  }
+}

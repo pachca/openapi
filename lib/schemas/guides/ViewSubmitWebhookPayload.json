@@ -1,0 +1,34 @@
+{
+  "title": "Структура исходящего вебхука о заполнении формы",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "description": "Тип объекта (для представлений всегда view)",
+        "enum": ["view"],
+        "x-enum-descriptions": { "view": "представление" }
+      },
+      "event": {
+        "type": "string",
+        "description": "Тип события (для отправки пользователем формы всегда submit)",
+        "enum": ["submit"],
+        "x-enum-descriptions": { "submit": "отправка формы" }
+      },
+      "private_metadata": { "type": "string", "description": "Строка, заданная при отправке представления", "example": "{\"order_id\": 123}" },
+      "callback_id": { "type": "string", "description": "Идентификатор для распознавания этого представления, заданный при отправке представления", "example": "feedback_form" },
+      "user_id": { "type": "integer", "description": "Идентификатор пользователя, который заполнил форму", "example": 456 },
+      "data": {
+        "type": "object",
+        "description": "JSON карта заполненных полей представления, где каждый ключ - значение поля name.",
+        "properties": {
+          "name": {
+            "type": ["string", "array of strings", "array of objects", "null", "[]"],
+            "description": "Значение, которое указал пользователь в поле (или массив значений, если это был множественный выбор или загруженные пользователем файлы). Если пользователь не указал значение, тогда null (или пустой массив, если это поле файлов или чекбоксов)"
+          }
+        }
+      },
+      "webhook_timestamp": { "type": "integer", "description": "Дата и время отправки вебхука (UTC+0) в формате UNIX", "example": 1705312200 }
+    }
+  }
+}

@@ -1,199 +1,82 @@
 # Пачка API Documentation
 
-Современный сайт документации API на Next.js с автоматической генерацией страниц из OpenAPI спецификации.
+Turborepo монорепозиторий с документацией API.
 
-## Быстрый старт
+## Структура
 
-```bash
-npm install
-npm run dev
+```
+├── apps/docs/         # Next.js сайт (@pachca/docs)
+├── packages/spec/     # TypeSpec спецификация (@pachca/spec)
+└── turbo.json         # Turborepo конфиг
 ```
 
-Откройте http://localhost:3000.
+## Установка
 
-## Главная особенность: все динамическое
+```bash
+bun install
+```
 
-Проект **полностью автоматический** — не нужно ручное обновление навигации, маршрутов или индексов.
+## Команды
 
-### OpenAPI → автоматическая генерация
+```bash
+bun turbo dev          # Разработка (localhost:3000)
+bun turbo build        # Production сборка
+bun turbo start        # Запуск production
+```
 
-| Что делаете | Что происходит автоматически |
-|-------------|------------------------------|
-| Добавляете endpoint в OpenAPI | Появляется страница метода + пункт в навигации |
-| Удаляете endpoint | Страница и навигация исчезают |
-| Добавляете тег | Новая секция в навигации |
-| Меняете порядок тегов | Меняется порядок секций |
-| Меняете `servers[0].url` | Обновляются все примеры кода |
+### Проверки
 
-## Как добавить новый гайд
+```bash
+bun turbo check        # Все проверки (lint + typecheck + knip + format)
+bun turbo lint         # ESLint
+bun turbo typecheck    # TypeScript
+bun turbo knip         # Неиспользуемый код
+bun turbo format:check # Prettier
+bun turbo check-urls   # Конфликты URL
+```
 
-### Создайте файл `content/guides/{slug}.mdx`
+### Генерация
+
+```bash
+bun turbo generate     # TypeSpec → openapi.yaml
+```
+
+## Фильтрация
+
+```bash
+bun turbo dev --filter=@pachca/docs    # Только docs
+bun turbo generate --filter=@pachca/spec
+```
+
+## Как работает
+
+1. `@pachca/spec` генерирует `openapi.yaml` из TypeSpec
+2. `@pachca/docs` читает OpenAPI и строит сайт
+3. Turborepo кеширует результаты и управляет зависимостями
+
+## Добавить гайд
+
+Создать `apps/docs/content/guides/{slug}.mdx`:
 
 ```mdx
 ---
-title: Название гайда
-description: Краткое описание для SEO
+title: Название
 ---
 
-# Название гайда
+# Название
 
-Ваш контент в Markdown/MDX формате.
-
-<SchemaBlock name="SomeSchema" />
+Контент...
 ```
 
-### Опционально: frontmatter параметры
+Автоматически появится в навигации, поиске и llms.txt.
 
-| Параметр | Обязательный | Описание |
-|----------|--------------|----------|
-| `title` | Да | Заголовок для навигации и SEO |
-| `description` | Нет | Описание для SEO |
-| `hideTableOfContents` | Нет | Скрыть оглавление (`true`/`false`) |
+## Добавить обновление
 
-### (Опционально) Настройте порядок в `lib/guides-config.ts`
-
-```ts
-const GUIDES_ORDER = [
-  '/',
-  '/guides/webhook',
-  '/guides/{slug}',  // ← ваш новый гайд
-];
-```
-
-### Готово!
-
-После этого гайд автоматически появится в:
-- ✅ Навигации сайта
-- ✅ `/llms.txt` (со ссылкой и описанием)
-- ✅ `/llms-full.txt` (с полным контентом)
-- ✅ Поиске (все содержимое индексируется)
-
-## Как добавить обновление API (changelog)
-
-Откройте `content/guides/updates.mdx` и добавьте новое обновление после вступительного текста:
+В `apps/docs/content/guides/updates.mdx`:
 
 ```md
 <!-- update:2025-12-01 -->
-## Название обновления
+## Название
 
-Описание изменений.
-
-- [Новый метод](POST /messages)
+Описание.
 ```
-
-**Всё!** Обновление автоматически:
-- ✅ Появится на странице `/guides/updates`
-- ✅ Попадет в `/llms-full.txt`
-- ✅ Получит badge "Новое" в навигации (если < 14 дней)
-
-## Как добавить кастомную схему
-
-Создайте файл `lib/schemas/guides/MySchema.json`:
-
-```json
-{
-  "title": "Заголовок схемы",
-  "schema": {
-    "type": "object",
-    "properties": {
-      "field1": { 
-        "type": "string", 
-        "description": "Описание"
-      }
-    }
-  }
-}
-```
-
-Используйте в MDX:
-
-```mdx
-<SchemaBlock name="MySchema" />
-```
-
-**Никакой дополнительной регистрации не требуется!**
-
-Схема автоматически:
-- ✅ Отобразится на странице
-- ✅ Индексируется для поиска
-- ✅ Попадет в `/llms-full.txt`
-
-## Компоненты для MDX
-
-### Схемы данных
-
-```mdx
-<!-- Из OpenAPI -->
-<SchemaBlock name="MessageWebhookPayload" />
-
-<!-- Кастомная схема -->
-<SchemaBlock name="MyCustomSchema" />
-
-<!-- С кастомным заголовком -->
-<SchemaBlock name="ExportMessage" title="Структура в экспорте" />
-```
-
-### Блоки кода
-
-```mdx
-<CodeBlock language="json" title="Пример">
-{`{
-  "message": "Hello"
-}`}
-</CodeBlock>
-```
-
-### Callout
-
-```mdx
-<Info>Информация</Info>
-<Warning>Предупреждение</Warning>
-```
-
-### Ссылки
-
-Ссылки на API методы (работают везде: OpenAPI, MDX, обновления):
-
-```mdx
-[Название метода](POST /messages)
-[Редактирование](PUT /chats/{id})
-```
-
-Ссылки на гайды (обычный markdown):
-
-```mdx
-[Название гайда](/guides/errors)
-```
-
-## Полезные команды
-
-```bash
-npm run dev          # Dev-режим (порт 3000)
-npm run build        # Production сборка
-npm run check-urls   # Проверка конфликтов URL
-npm run lint         # Проверка кода
-```
-
-## Что происходит автоматически
-
-- ✅ **Навигация** — строится из OpenAPI тегов + гайдов
-- ✅ **Поиск** — индексирует весь контент, схемы, поля
-- ✅ **llms.txt** — генерируется из всех страниц
-- ✅ **Примеры кода** — генерируются из схем или используют примеры из OpenAPI
-- ✅ **Схемы** — читаются из OpenAPI и кастомных JSON файлов
-- ✅ **Обновления** — парсятся из MDX с badge "Новое"
-
-## Никаких ручных обновлений
-
-Вам **не нужно**:
-- ❌ Регистрировать новые страницы
-- ❌ Обновлять навигацию вручную
-- ❌ Перестраивать поисковый индекс
-- ❌ Обновлять маршруты
-- ❌ Регистрировать схемы
-
-Всё работает автоматически из:
-- `openapi-source/openapi.yaml` — для API методов
-- `app/guides/*/page.tsx` — для гайдов
-- `content/guides/*.mdx` — для контента
-- `lib/schemas/guides/*.json` — для кастомных схем

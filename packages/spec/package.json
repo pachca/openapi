@@ -1,0 +1,15 @@
+{
+  "name": "@pachca/spec",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "generate": "tsp compile typespec.tsp --config tspconfig.yaml"
+  },
+  "devDependencies": {
+    "@typespec/compiler": "^1.7.1",
+    "@typespec/http": "^1.7.0",
+    "@typespec/openapi": "^1.7.0",
+    "@typespec/openapi3": "^1.7.0",
+    "@typespec/rest": "^0.77.0"
+  }
+}

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { ParsedAPI, Endpoint, Parameter, Schema, RequestBody, Response, Example } from './types';
 
-const OPENAPI_PATH = path.join(process.cwd(), 'openapi-source', 'openapi.yaml');
+const OPENAPI_PATH = path.join(process.cwd(), '..', '..', 'packages', 'spec', 'openapi.yaml');
 
 let cachedAPI: ParsedAPI | null = null;
 

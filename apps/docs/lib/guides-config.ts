@@ -87,7 +87,7 @@ export function getGuideByPath(guidePath: string): GuideConfig | undefined {
  * Tags are sorted in the order they appear in the OpenAPI tags array.
  */
 export function getTagOrderFromOpenAPI(): string[] {
-  const openapiPath = path.join(process.cwd(), 'openapi-source', 'openapi.yaml');
+  const openapiPath = path.join(process.cwd(), '..', '..', 'packages', 'spec', 'openapi.yaml');
   
   if (!fs.existsSync(openapiPath)) {
     return [];

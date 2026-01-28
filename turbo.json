@@ -1,49 +1,27 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
-    "generate:openapi": {
-      "inputs": ["openapi-source/**"],
-      "outputs": ["openapi-source/openapi.yaml"],
-      "cache": true
-    },
-    "check-urls": {
-      "dependsOn": ["generate:openapi"],
-      "inputs": ["scripts/check-url-conflicts.mjs", "openapi-source/openapi.yaml"],
+    "generate": {
+      "inputs": ["typespec.tsp", "tspconfig.yaml"],
+      "outputs": ["openapi.yaml"],
       "cache": true
     },
     "build": {
-      "dependsOn": ["generate:openapi", "check-urls"],
-      "inputs": [
-        "app/**",
-        "components/**",
-        "content/**",
-        "hooks/**",
-        "lib/**",
-        "public/**",
-        "next.config.ts",
-        "tsconfig.json",
-        "postcss.config.mjs",
-        "tailwind.config.*"
-      ],
+      "dependsOn": ["@pachca/spec#generate"],
       "outputs": [".next/**", "!.next/cache/**"],
       "cache": true
     },
-    "lint": {
-      "inputs": [
-        "app/**",
-        "components/**",
-        "hooks/**",
-        "lib/**",
-        "*.ts",
-        "*.tsx",
-        "*.mjs"
-      ],
-      "cache": true
-    },
     "dev": {
-      "dependsOn": ["generate:openapi"],
+      "dependsOn": ["@pachca/spec#generate"],
       "cache": false,
       "persistent": true
+    },
+    "lint": {
+      "cache": true
+    },
+    "check-urls": {
+      "dependsOn": ["@pachca/spec#generate"],
+      "cache": true
     },
     "start": {
       "dependsOn": ["build"],

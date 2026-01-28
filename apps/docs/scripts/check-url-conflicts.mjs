@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Читаем OpenAPI файл
-const openapiPath = path.join(__dirname, '..', 'openapi-source', 'openapi.yaml');
+const openapiPath = path.join(__dirname, '..', '..', '..', 'packages', 'spec', 'openapi.yaml');
 const fileContents = fs.readFileSync(openapiPath, 'utf8');
 const openapi = yaml.load(fileContents);
 

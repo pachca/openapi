@@ -55,11 +55,11 @@ export function parseUpdatesFromMdx(mdxContent: string): ParsedUpdate[] {
     if (!date || !rawContent) continue;
 
     // Extract title from ## heading
-    const titleMatch = rawContent.match(/^[\s\n]*##\s+(.+?)[\s\n]/);
+    const titleMatch = rawContent.match(/^[\s\n]*##\s+(.+)$/m);
     const title = titleMatch ? titleMatch[1].trim() : 'Обновление';
 
     // Get content after the title line
-    const contentAfterTitle = rawContent.replace(/^[\s\n]*##\s+.+?\n/, '').trim();
+    const contentAfterTitle = rawContent.replace(/^[\s\n]*##\s+.+$/m, '').trim();
 
     updates.push({
       date,

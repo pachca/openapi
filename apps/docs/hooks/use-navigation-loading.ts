@@ -29,7 +29,9 @@ export function useNavigationLoading(href: string, delay: number = 200) {
     }, delay);
 
     // Сохраняем таймер для возможной отмены
-    const target = e.currentTarget as HTMLAnchorElement & { __loadingTimeout?: ReturnType<typeof setTimeout> };
+    const target = e.currentTarget as HTMLAnchorElement & {
+      __loadingTimeout?: ReturnType<typeof setTimeout>;
+    };
     target.__loadingTimeout = timeoutId;
   };
 

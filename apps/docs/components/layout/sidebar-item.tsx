@@ -48,8 +48,8 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
   // Check if item has new badge (set by server in navigation.ts)
   const hasNewBadge = item.badge === 'new';
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    handleClick(e);
+  const handleLinkClick = () => {
+    handleClick();
     onItemClick?.();
   };
 

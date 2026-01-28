@@ -117,140 +117,14 @@ bun turbo generate --filter=@pachca/spec
 | Меняете порядок тегов | Меняется порядок секций |
 | Меняете `servers[0].url` | Обновляются все примеры кода |
 
-## Как добавить новый гайд
+## Что происходит автоматически
 
-### Создайте файл `content/guides/{slug}.mdx`
-
-```mdx
----
-title: Название гайда
-description: Краткое описание для SEO
----
-
-# Название гайда
-
-Ваш контент в Markdown/MDX формате.
-
-<SchemaBlock name="SomeSchema" />
-```
-
-### Опционально: frontmatter параметры
-
-| Параметр | Обязательный | Описание |
-|----------|--------------|----------|
-| `title` | Да | Заголовок для навигации и SEO |
-| `description` | Нет | Описание для SEO |
-| `hideTableOfContents` | Нет | Скрыть оглавление (`true`/`false`) |
-
-### (Опционально) Настройте порядок в `lib/guides-config.ts`
-
-```ts
-const GUIDES_ORDER = [
-  '/',
-  '/guides/webhook',
-  '/guides/{slug}',  // ← ваш новый гайд
-];
-```
-
-### Готово!
-
-После этого гайд автоматически появится в:
-- ✅ Навигации сайта
-- ✅ `/llms.txt` (со ссылкой и описанием)
-- ✅ `/llms-full.txt` (с полным контентом)
-- ✅ Поиске (все содержимое индексируется)
-
-## Как добавить обновление API (changelog)
-
-Откройте `content/guides/updates.mdx` и добавьте новое обновление после вступительного текста:
-
-```md
-<!-- update:2025-12-01 -->
-## Название обновления
-
-Описание изменений.
-
-- [Новый метод](POST /messages)
-```
-
-**Всё!** Обновление автоматически:
-- ✅ Появится на странице `/guides/updates`
-- ✅ Попадет в `/llms-full.txt`
-- ✅ Получит badge "Новое" в навигации (если < 14 дней)
-
-## Как добавить кастомную схему
-
-Создайте файл `lib/schemas/guides/MySchema.json`:
-
-```json
-{
-  "title": "Заголовок схемы",
-  "schema": {
-    "type": "object",
-    "properties": {
-      "field1": { 
-        "type": "string", 
-        "description": "Описание"
-      }
-    }
-  }
-}
-```
-
-Используйте в MDX:
-
-```mdx
-<SchemaBlock name="MySchema" />
-```
-
-**Никакой дополнительной регистрации не требуется!**
-
-## Компоненты для MDX
-
-### Схемы данных
-
-```mdx
-<!-- Из OpenAPI -->
-<SchemaBlock name="MessageWebhookPayload" />
-
-<!-- Кастомная схема -->
-<SchemaBlock name="MyCustomSchema" />
-
-<!-- С кастомным заголовком -->
-<SchemaBlock name="ExportMessage" title="Структура в экспорте" />
-```
-
-### Блоки кода
-
-```mdx
-<CodeBlock language="json" title="Пример">
-{`{
-  "message": "Hello"
-}`}
-</CodeBlock>
-```
-
-### Callout
-
-```mdx
-<Info>Информация</Info>
-<Warning>Предупреждение</Warning>
-```
-
-### Ссылки
-
-Ссылки на API методы (работают везде: OpenAPI, MDX, обновления):
-
-```mdx
-[Название метода](POST /messages)
-[Редактирование](PUT /chats/{id})
-```
-
-Ссылки на гайды (обычный markdown):
-
-```mdx
-[Название гайда](/guides/errors)
-```
+- ✅ **Навигация** — строится из OpenAPI тегов + гайдов
+- ✅ **Поиск** — индексирует весь контент, схемы, поля
+- ✅ **llms.txt** — генерируется из всех страниц
+- ✅ **Примеры кода** — генерируются из схем или используют примеры из OpenAPI
+- ✅ **Схемы** — читаются из OpenAPI и кастомных JSON файлов
+- ✅ **Обновления** — парсятся из MDX с badge "Новое"
 
 ## Структура apps/docs
 
@@ -271,14 +145,235 @@ apps/docs/
 └── scripts/                  # Вспомогательные скрипты
 ```
 
-## Что происходит автоматически
+---
 
-- ✅ **Навигация** — строится из OpenAPI тегов + гайдов
-- ✅ **Поиск** — индексирует весь контент, схемы, поля
-- ✅ **llms.txt** — генерируется из всех страниц
-- ✅ **Примеры кода** — генерируются из схем или используют примеры из OpenAPI
-- ✅ **Схемы** — читаются из OpenAPI и кастомных JSON файлов
-- ✅ **Обновления** — парсятся из MDX с badge "Новое"
+# Поиск
+
+Поиск использует [FlexSearch](https://github.com/nextapps-de/flexsearch) с `tokenize: 'forward'` (находит по началу слова: "web" → "webhook").
+
+## Что индексируется
+
+| Источник | Индексируемые данные |
+|----------|----------------------|
+| API методы | Заголовок, описание, URL, все поля из request/response/параметров, enum значения |
+| Гайды | Заголовок, описание, значения в backticks, поля из `<SchemaBlock>` |
+
+## Скоринг результатов
+
+| Критерий | Очки |
+|----------|------|
+| Schema field match | +12 |
+| Exact title match | +10 |
+| Title field match | +5 |
+| Code value match | +4 |
+| Description field match | +3 |
+| Guide type | +2 |
+| Keywords field match | +1 |
+
+## Code-like запросы
+
+Поиск определяет "code-like" запросы (`snake_case`, `camelCase`, `object.property`) и для них:
+- Показывает только страницы с реальным совпадением
+- Отключает приблизительный поиск
+
+## Навигация к параметру
+
+При клике на результат с `matchedValue.path`:
+1. Переход на страницу
+2. Hash с ID параметра (`#param-data-display_avatar_url`)
+3. Скролл к параметру
+
+---
+
+# Ссылки и спец-теги
+
+## Ссылки на API методы
+
+Специальный формат (работает в OpenAPI, MDX, обновлениях):
+
+```md
+[Список сотрудников](GET /users)
+[Новое сообщение](POST /messages)
+[Редактирование чата](PUT /chats/{id})
+```
+
+## Ссылки на гайды
+
+Обычный markdown:
+
+```md
+[Ошибки и лимиты](/guides/errors)
+```
+
+## Специальные теги
+
+Превращаются в callout-блоки:
+
+- `#admin_access_token_required`
+- `#owner_access_token_required`
+- `#corporation_price_only`
+- `#files_not_supported`
+- `#unfurling_bot_access_token_required`
+- `#bot_access_token_required`
+- `#access_token_not_required`
+
+---
+
+# MDX компоненты
+
+## SchemaBlock
+
+```mdx
+<SchemaBlock name="MessageWebhookPayload" />
+<SchemaBlock name="ExportMessage" title="Кастомный заголовок" />
+```
+
+## CodeBlock
+
+```mdx
+<CodeBlock language="json" title="Пример">
+{`{ "message": "Hello" }`}
+</CodeBlock>
+```
+
+## Callout
+
+```mdx
+<Info>Информация</Info>
+<Warning>Предупреждение</Warning>
+```
+
+## Image
+
+```mdx
+<Image src="/images/example.png" alt="Описание" />
+<Image src="/images/example.png" alt="Описание" maxWidth={500} />
+```
+
+## Limit
+
+```mdx
+<Limit 
+  title="Название" 
+  limit="~4" 
+  period="1 сек"
+  entity="chat_id"
+  howItWorks="Описание"
+/>
+```
+
+## HttpCodes / ErrorSchema
+
+```mdx
+<HttpCodes />
+<ErrorSchema />
+```
+
+---
+
+# Как добавить контент
+
+## Новый гайд
+
+Создайте файл `content/guides/{slug}.mdx`:
+
+```mdx
+---
+title: Название гайда
+description: Краткое описание для SEO
+---
+
+# Название гайда
+
+Ваш контент в Markdown/MDX формате.
+
+<SchemaBlock name="SomeSchema" />
+```
+
+### Frontmatter параметры
+
+| Параметр | Обязательный | Описание |
+|----------|--------------|----------|
+| `title` | Да | Заголовок для навигации и SEO |
+| `description` | Нет | Описание для SEO |
+| `hideTableOfContents` | Нет | Скрыть оглавление (`true`/`false`) |
+
+### Порядок в навигации
+
+По умолчанию гайд появится в конце. Для изменения порядка добавьте путь в `lib/guides-config.ts`:
+
+```ts
+const GUIDES_ORDER = [
+  '/',
+  '/guides/webhook',
+  '/guides/{slug}',  // ← ваш новый гайд
+];
+```
+
+После создания гайд автоматически появится в навигации, `/llms.txt`, `/llms-full.txt` и поиске.
+
+---
+
+## Обновление API (changelog)
+
+Откройте `content/guides/updates.mdx` и добавьте:
+
+```md
+<!-- update:2025-12-01 -->
+## Название обновления
+
+Описание изменений.
+
+- [Новый метод](POST /messages)
+```
+
+Обновление автоматически появится на `/guides/updates`, в `/llms-full.txt` и получит badge "Новое" (если < 14 дней).
+
+---
+
+## Кастомная схема
+
+Создайте JSON в `lib/schemas/guides/{Name}.json`:
+
+```json
+{
+  "title": "Заголовок схемы",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "field": { 
+        "type": "string", 
+        "description": "Описание"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["pending", "completed"],
+        "x-enum-descriptions": {
+          "pending": "в обработке",
+          "completed": "завершен"
+        }
+      }
+    },
+    "required": ["field"]
+  }
+}
+```
+
+Используйте в MDX: `<SchemaBlock name="Name" />`
+
+Схема автоматически отобразится на странице, проиндексируется для поиска и попадёт в `/llms-full.txt`.
+
+### Существующие схемы
+
+| Файл | Используется в |
+|------|----------------|
+| `DlpRule.json` | dlp.mdx |
+| `ExportMessage.json` | export.mdx |
+| `ExportChat.json` | export.mdx |
+| `ViewSubmitWebhookPayload.json` | forms.mdx |
+| `ViewErrorsResponse.json` | forms.mdx |
+
+---
 
 ## Контакты
 

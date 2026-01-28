@@ -207,6 +207,7 @@ export function Image({ src, alt, maxWidth }: ImageProps) {
       className="my-8 rounded-lg overflow-hidden border border-background-border mx-auto"
       style={maxWidth ? { maxWidth: `${maxWidth}px` } : undefined}
     >
+    {/* eslint-disable-next-line @next/next/no-img-element -- using standard img for MDX content with external URLs */}
       <img 
         src={src} 
         alt={alt} 
@@ -219,11 +220,6 @@ export function Image({ src, alt, maxWidth }: ImageProps) {
 // ============================================
 // Warning/Info Callouts for explicit use
 // ============================================
-
-interface CalloutProps {
-  type?: 'info' | 'warning';
-  children: React.ReactNode;
-}
 
 export function Warning({ children }: { children: React.ReactNode }) {
   return <Callout type="warning">{children}</Callout>;
@@ -247,8 +243,8 @@ interface CodeBlockProps {
   children: React.ReactNode;
 }
 
-export function CodeBlock({ language = 'text', title, children }: CodeBlockProps) {
-  const { GuideCodeBlock } = require('@/components/api/guide-code-block');
+export async function CodeBlock({ language = 'text', title, children }: CodeBlockProps) {
+  const { GuideCodeBlock } = await import('@/components/api/guide-code-block');
   const code = String(children).replace(/\n$/, '');
   const mappedLanguage = language === 'bash' || language === 'shell' ? 'curl' : language;
   return <GuideCodeBlock language={mappedLanguage} code={code} title={title} />;

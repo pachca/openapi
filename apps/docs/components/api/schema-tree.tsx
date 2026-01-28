@@ -579,6 +579,7 @@ function VariantSection({ title, schema, level, index, parentPath }: { title: st
   // Обновляем состояние раскрытия при изменении targetPath
   useEffect(() => {
     if (shouldAutoExpand && !isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- auto-expand based on URL hash navigation
       setIsOpen(true);
     }
   }, [shouldAutoExpand, isOpen]);
@@ -653,6 +654,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
   // Обновляем состояние раскрытия при изменении targetPath
   useEffect(() => {
     if (shouldAutoExpand && !isExpanded) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- auto-expand based on URL hash navigation
       setIsExpanded(true);
     }
   }, [shouldAutoExpand, isExpanded]);
@@ -829,6 +831,7 @@ export function SchemaTree({ schema, level = 0, name, required = false, parentPa
       const hash = window.location.hash;
       if (hash && hash.startsWith('#param-')) {
         const path = getPathFromParamId(hash.slice(1));
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- initializing state from URL hash
         setTargetPath(path);
       }
 

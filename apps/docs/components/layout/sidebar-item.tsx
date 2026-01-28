@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import type { NavigationItem } from '@/lib/openapi/types';
 import { useNavigationLoading } from '@/hooks/use-navigation-loading';
 import { Loader2 } from 'lucide-react';

@@ -35,7 +35,6 @@ export function TableOfContents() {
         if (!isVisible) {
           // Вычисляем позицию элемента относительно контейнера
           const linkOffsetTop = activeLink.offsetTop;
-          const navScrollTop = navContainer.scrollTop;
           const navHeight = navContainer.clientHeight;
           const linkHeight = activeLink.clientHeight;
           
@@ -70,8 +69,10 @@ export function TableOfContents() {
       };
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initializing state based on DOM reading
     setToc(items);
     if (items.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- initializing state based on DOM reading
       setActiveId(items[0].id);
     }
 
@@ -124,6 +125,7 @@ export function TableOfContents() {
       headings.forEach((heading) => observer.unobserve(heading));
       mainContent?.removeEventListener('scroll', handleScroll);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude activeId to avoid infinite loop
   }, []);
 
   if (toc.length === 0) return null;

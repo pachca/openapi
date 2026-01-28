@@ -20,6 +20,7 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
 
   // Закрываем меню при смене маршрута
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- closing menu on route change is intentional
     setIsOpen(false);
   }, [pathname]);
 

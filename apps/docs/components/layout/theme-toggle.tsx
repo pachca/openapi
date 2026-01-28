@@ -8,7 +8,6 @@ type Theme = 'light' | 'dark' | 'system';
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>('system');
   const [mounted, setMounted] = useState(false);
-  const [systemIsDark, setSystemIsDark] = useState(false);
 
   // Применяем тему к документу
   const applyTheme = (newTheme: Theme, disableTransitions = true) => {
@@ -34,11 +33,11 @@ export function ThemeToggle() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- required for hydration safety
     setMounted(true);
     
     // Проверяем системную тему
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setSystemIsDark(mediaQuery.matches);
     
     // Получаем сохраненную тему, по умолчанию 'system'
     const savedTheme = localStorage.getItem('theme') as Theme | null;
@@ -54,9 +53,7 @@ export function ThemeToggle() {
     applyTheme(initialTheme);
 
     // Слушаем изменения системной темы
-    const handleChange = (e: MediaQueryListEvent) => {
-      setSystemIsDark(e.matches);
-      
+    const handleChange = () => {
       // Применяем изменение только если выбран режим 'system'
       const currentTheme = localStorage.getItem('theme') as Theme | null;
       if (!currentTheme || currentTheme === 'system') {

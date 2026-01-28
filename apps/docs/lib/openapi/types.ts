@@ -47,7 +47,7 @@ export interface Parameter {
   deprecated?: boolean;
   allowEmptyValue?: boolean;
   schema: Schema;
-  example?: any;
+  example?: unknown;
   examples?: Record<string, Example>;
   explode?: boolean;
   style?: string;
@@ -61,9 +61,9 @@ export interface RequestBody {
 
 export interface MediaType {
   schema: Schema;
-  example?: any;
+  example?: unknown;
   examples?: Record<string, Example>;
-  encoding?: Record<string, any>;
+  encoding?: Record<string, unknown>;
 }
 
 export interface Response {
@@ -85,10 +85,10 @@ export interface Schema {
   properties?: Record<string, Schema>;
   items?: Schema;
   required?: string[];
-  enum?: any[];
+  enum?: unknown[];
   'x-enum-descriptions'?: Record<string, string>;
-  default?: any;
-  example?: any;
+  default?: unknown;
+  example?: unknown;
   nullable?: boolean;
   readOnly?: boolean;
   writeOnly?: boolean;
@@ -110,7 +110,7 @@ export interface Schema {
 export interface Example {
   summary?: string;
   description?: string;
-  value?: any;
+  value?: unknown;
   externalValue?: string;
 }
 

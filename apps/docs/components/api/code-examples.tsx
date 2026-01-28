@@ -126,7 +126,7 @@ export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
       </BoxedPanel>
 
       {/* Response Section */}
-      {responseExample && (
+      {responseExample !== undefined && (
         <BoxedPanel
           id="response-examples"
           className="my-0"

@@ -1,9 +1,9 @@
-import type { Schema, MediaType, Example } from './types';
+import type { Schema, MediaType, RequestBody, Response, Parameter } from './types';
 
 /**
  * Generate example JSON from OpenAPI schema
  */
-export function generateExample(schema: Schema | undefined, depth = 0): any {
+export function generateExample(schema: Schema | undefined, depth = 0): unknown {
   if (!schema || depth > 5) {
     return undefined;
   }
@@ -15,7 +15,7 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
 
   // Handle allOf - слияние всех схем
   if (schema.allOf) {
-    const merged: any = {};
+    const merged: Record<string, unknown> = {};
     for (const subSchema of schema.allOf) {
       const example = generateExample(subSchema as Schema, depth + 1);
       if (example && typeof example === 'object' && !Array.isArray(example)) {
@@ -37,7 +37,7 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
   switch (schema.type) {
     case 'object':
       if (schema.properties) {
-        const example: any = {};
+        const example: Record<string, unknown> = {};
         const requiredFields = schema.required || [];
 
         for (const [propName, propSchema] of Object.entries(schema.properties)) {
@@ -225,12 +225,12 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
  * Использует ТОЛЬКО явные примеры из OpenAPI метода (example/examples)
  * НЕ генерирует примеры из схемы
  */
-export function generateRequestExample(requestBody: any): any {
+export function generateRequestExample(requestBody: RequestBody | undefined): unknown {
   if (!requestBody) {
     return undefined;
   }
 
-  const jsonContent = requestBody.content?.['application/json'];
+  const jsonContent = requestBody.content['application/json'];
   if (!jsonContent) {
     return undefined;
   }
@@ -260,7 +260,7 @@ export function generateRequestExample(requestBody: any): any {
  * Использует ТОЛЬКО явные примеры из OpenAPI метода (example/examples)
  * НЕ генерирует примеры из схемы
  */
-export function generateResponseExample(response: any): any {
+export function generateResponseExample(response: Response | undefined): unknown {
   if (!response) {
     return undefined;
   }
@@ -293,7 +293,7 @@ export function generateResponseExample(response: any): any {
 /**
  * Generate parameter example from Parameter object
  */
-export function generateParameterExample(parameter: any): any {
+export function generateParameterExample(parameter: Parameter | undefined): unknown {
   if (!parameter) {
     return 'value';
   }
@@ -332,8 +332,8 @@ export function generateParameterExample(parameter: any): any {
  * Возвращает ТОЛЬКО явные примеры из OpenAPI метода
  * НЕ генерирует примеры из схемы
  */
-export function getAllExamples(mediaType: MediaType): Record<string, any> {
-  const examples: Record<string, any> = {};
+export function getAllExamples(mediaType: MediaType): Record<string, unknown> {
+  const examples: Record<string, unknown> = {};
 
   // Добавляем одиночный example
   if (mediaType.example !== undefined) {

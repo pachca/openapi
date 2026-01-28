@@ -1,9 +1,10 @@
-import type { Endpoint, Schema } from '../openapi/types';
+import type { Endpoint } from '../openapi/types';
 import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
 } from '../openapi/example-generator';
+import { isRecord } from './utils';
 
 export function generatePython(
   endpoint: Endpoint,
@@ -65,7 +66,7 @@ export function generatePython(
   return code;
 }
 
-function pythonRepr(obj: any, indent: number = 0): string {
+function pythonRepr(obj: unknown, indent: number = 0): string {
   const indentStr = '    '.repeat(indent);
   const nextIndentStr = '    '.repeat(indent + 1);
 
@@ -91,7 +92,7 @@ function pythonRepr(obj: any, indent: number = 0): string {
     return `[\n${items}\n${indentStr}]`;
   }
 
-  if (typeof obj === 'object') {
+  if (isRecord(obj)) {
     const keys = Object.keys(obj);
     if (keys.length === 0) return '{}';
     const items = keys

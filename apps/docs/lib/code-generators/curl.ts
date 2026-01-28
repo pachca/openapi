@@ -1,4 +1,4 @@
-import type { Endpoint, Parameter, Schema } from '../openapi/types';
+import type { Endpoint } from '../openapi/types';
 import {
   generateExample,
   generateParameterExample,

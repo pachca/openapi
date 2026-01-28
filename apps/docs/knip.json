@@ -3,5 +3,5 @@
   "project": ["**/*.{ts,tsx}"],
   "next": true,
   "ignore": ["**/*.d.ts"],
-  "ignoreDependencies": []
+  "ignoreDependencies": ["tailwindcss", "@pachca/spec", "postcss"]
 }

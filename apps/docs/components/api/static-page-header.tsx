@@ -11,10 +11,7 @@ export function StaticPageHeader({ title, pageUrl, className = '' }: StaticPageH
     <div className={className}>
       <h1 className="text-4xl font-extrabold text-text-primary mb-2! tracking-tight">{title}</h1>
       <div className="mb-8">
-        <MarkdownActions 
-          pageUrl={pageUrl}
-          pageTitle={title}
-        />
+        <MarkdownActions pageUrl={pageUrl} pageTitle={title} />
       </div>
     </div>
   );

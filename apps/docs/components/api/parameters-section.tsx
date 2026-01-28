@@ -12,9 +12,9 @@ export function ParametersSection({ endpoint }: ParametersSectionProps) {
     return null;
   }
 
-  const pathParams = parameters.filter(p => p.in === 'path');
-  const queryParams = parameters.filter(p => p.in === 'query');
-  const headerParams = parameters.filter(p => p.in === 'header');
+  const pathParams = parameters.filter((p) => p.in === 'path');
+  const queryParams = parameters.filter((p) => p.in === 'query');
+  const headerParams = parameters.filter((p) => p.in === 'header');
 
   return (
     <div className="mb-0">
@@ -24,14 +24,14 @@ export function ParametersSection({ endpoint }: ParametersSectionProps) {
           <ParametersList parameters={pathParams} />
         </div>
       )}
-      
+
       {queryParams.length > 0 && (
         <div className="border-t border-background-border py-6">
           <SectionHeader title="Query-параметры" />
           <ParametersList parameters={queryParams} />
         </div>
       )}
-      
+
       {headerParams.length > 0 && (
         <div className="border-t border-background-border py-6">
           <SectionHeader title="Headers" />

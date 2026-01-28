@@ -16,7 +16,7 @@ description: Формат запросов, авторизация, пагина
 При выполнении запроса, `access_token` необходимо поместить в заголовки (ключ `Authorization` с указанием типа `Bearer`), а в теле запроса указать все необходимые параметры метода. При этом не забудьте, что сервер ожидает перечисление параметров в формате `JSON`, кодировке `UTF-8` и по протоколу `HTTPS`.
 
 <CodeBlock language="http" title="Базовый URL">
-{`https://api.pachca.com/api/shared/v1`}
+  {`https://api.pachca.com/api/shared/v1`}
 </CodeBlock>
 
 <CodeBlock language="http" title="Пример запроса">
@@ -29,21 +29,22 @@ User-Agent: Paw/3.1.10 (Macintosh; OS X/10.15.3) GCDHTTPRequest
 Content-Length: 219
 
 {
-  "user": {
-    "first_name": "Олег",
-    "last_name": "Петров",
-    "email": "olegp@example.com",
-    "department": "Продукт",
-    "list_tags": ["Product", "Design"],
-    "custom_properties": [
-      {
-        "id": 1678,
-        "value": "Санкт-Петербург"
-      }
-    ]
-  },
-  "skip_email_notify": true
+"user": {
+"first_name": "Олег",
+"last_name": "Петров",
+"email": "olegp@example.com",
+"department": "Продукт",
+"list_tags": ["Product", "Design"],
+"custom_properties": [
+{
+"id": 1678,
+"value": "Санкт-Петербург"
+}
+]
+},
+"skip_email_notify": true
 }`}
+
 </CodeBlock>
 
 ## Обработка ответа метода API
@@ -71,26 +72,27 @@ Vary: Origin
 X-Rack-CORS: miss; no-origin
 
 {
-  "data": {
-    "id": 12,
-    "first_name": "Олег",
-    "last_name": "Петров",
-    "nickname": "",
-    "email": "olegp@example.com",
-    "phone_number": "",
-    "department": "Продукт",
-    "role": "admin",
-    "suspended": false,
-    "invite_status": "confirmed",
-    "list_tags": ["Product", "Design"],
-    "custom_properties": [
-      {
-        "id": 1678,
-        "name": "Город",
-        "data_type": "string",
-        "value": "Санкт-Петербург"
-      }
-    ]
-  }
+"data": {
+"id": 12,
+"first_name": "Олег",
+"last_name": "Петров",
+"nickname": "",
+"email": "olegp@example.com",
+"phone_number": "",
+"department": "Продукт",
+"role": "admin",
+"suspended": false,
+"invite_status": "confirmed",
+"list_tags": ["Product", "Design"],
+"custom_properties": [
+{
+"id": 1678,
+"name": "Город",
+"data_type": "string",
+"value": "Санкт-Петербург"
+}
+]
+}
 }`}
+
 </CodeBlock>

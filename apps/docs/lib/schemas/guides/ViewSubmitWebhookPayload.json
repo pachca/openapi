@@ -15,9 +15,21 @@
         "enum": ["submit"],
         "x-enum-descriptions": { "submit": "отправка формы" }
       },
-      "private_metadata": { "type": "string", "description": "Строка, заданная при отправке представления", "example": "{\"order_id\": 123}" },
-      "callback_id": { "type": "string", "description": "Идентификатор для распознавания этого представления, заданный при отправке представления", "example": "feedback_form" },
-      "user_id": { "type": "integer", "description": "Идентификатор пользователя, который заполнил форму", "example": 456 },
+      "private_metadata": {
+        "type": "string",
+        "description": "Строка, заданная при отправке представления",
+        "example": "{\"order_id\": 123}"
+      },
+      "callback_id": {
+        "type": "string",
+        "description": "Идентификатор для распознавания этого представления, заданный при отправке представления",
+        "example": "feedback_form"
+      },
+      "user_id": {
+        "type": "integer",
+        "description": "Идентификатор пользователя, который заполнил форму",
+        "example": 456
+      },
       "data": {
         "type": "object",
         "description": "JSON карта заполненных полей представления, где каждый ключ - значение поля name.",
@@ -28,7 +40,11 @@
           }
         }
       },
-      "webhook_timestamp": { "type": "integer", "description": "Дата и время отправки вебхука (UTC+0) в формате UNIX", "example": 1705312200 }
+      "webhook_timestamp": {
+        "type": "integer",
+        "description": "Дата и время отправки вебхука (UTC+0) в формате UNIX",
+        "example": 1705312200
+      }
     }
   }
 }

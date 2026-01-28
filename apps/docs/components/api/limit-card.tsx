@@ -20,23 +20,27 @@ export function LimitCard({ title, howItWorks, limit, period, entity }: LimitCar
       )}
       {howItWorks && (
         <div className="px-4 py-4 border-b border-background-border/60">
-          <div className="text-[14px] text-text-primary leading-relaxed">
-            {howItWorks}
-          </div>
+          <div className="text-[14px] text-text-primary leading-relaxed">{howItWorks}</div>
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-background-border/60">
         <div className="px-4 py-4">
-          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1.5">Лимит</div>
+          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1.5">
+            Лимит
+          </div>
           <div className="text-[14px] text-text-primary font-mono">{limit}</div>
         </div>
         <div className="px-4 py-4">
-          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1.5">Период</div>
+          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1.5">
+            Период
+          </div>
           <div className="text-[14px] text-text-primary font-mono">{period}</div>
         </div>
         {entity && (
           <div className="px-4 py-4">
-            <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1.5">Сущность</div>
+            <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1.5">
+              Сущность
+            </div>
             <div className="text-[14px] text-text-primary font-mono">{entity}</div>
           </div>
         )}

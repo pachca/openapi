@@ -19,7 +19,7 @@ export interface GuideConfig {
  */
 export function getGuidePages(): GuideConfig[] {
   const guides: GuideConfig[] = [];
-  
+
   // Add overview page (homepage) from content/home.mdx
   const homeData = getGuideData('home');
   if (homeData) {
@@ -29,7 +29,7 @@ export function getGuidePages(): GuideConfig[] {
       description: homeData.frontmatter.description || 'Документация API',
     });
   }
-  
+
   // Collect all guides from content/guides/*.mdx
   const allGuides = getAllGuidesWithFrontmatter();
   for (const guide of allGuides) {
@@ -39,7 +39,7 @@ export function getGuidePages(): GuideConfig[] {
       description: guide.frontmatter.description || '',
     });
   }
-  
+
   return guides;
 }
 
@@ -64,7 +64,7 @@ const GUIDES_ORDER = [
  */
 export function getOrderedGuidePages(): GuideConfig[] {
   const guides = getGuidePages();
-  
+
   return guides.sort((a, b) => {
     const aIndex = GUIDES_ORDER.indexOf(a.path);
     const bIndex = GUIDES_ORDER.indexOf(b.path);
@@ -79,7 +79,7 @@ export function getOrderedGuidePages(): GuideConfig[] {
  * Get guide config by path.
  */
 export function getGuideByPath(guidePath: string): GuideConfig | undefined {
-  return getGuidePages().find(guide => guide.path === guidePath);
+  return getGuidePages().find((guide) => guide.path === guidePath);
 }
 
 /**
@@ -88,24 +88,26 @@ export function getGuideByPath(guidePath: string): GuideConfig | undefined {
  */
 export function getTagOrderFromOpenAPI(): string[] {
   const openapiPath = path.join(process.cwd(), '..', '..', 'packages', 'spec', 'openapi.yaml');
-  
+
   if (!fs.existsSync(openapiPath)) {
     return [];
   }
-  
+
   const content = fs.readFileSync(openapiPath, 'utf-8');
-  
+
   // Parse tags from YAML - they appear as "  - name: TagName"
   const tagMatches = content.match(/^tags:\s*\n((?:\s+-\s+name:\s+.+\n?)+)/m);
   if (!tagMatches) {
     return [];
   }
-  
+
   const tagLines = tagMatches[1].match(/-\s+name:\s+(.+)/g) || [];
-  return tagLines.map(line => {
-    const match = line.match(/-\s+name:\s+(.+)/);
-    return match ? match[1].trim() : '';
-  }).filter(Boolean);
+  return tagLines
+    .map((line) => {
+      const match = line.match(/-\s+name:\s+(.+)/);
+      return match ? match[1].trim() : '';
+    })
+    .filter(Boolean);
 }
 
 /**
@@ -113,7 +115,7 @@ export function getTagOrderFromOpenAPI(): string[] {
  */
 export function sortTagsByOrder(tags: string[]): string[] {
   const sectionOrder = getTagOrderFromOpenAPI();
-  
+
   return [...tags].sort((a, b) => {
     const aIndex = sectionOrder.indexOf(a);
     const bIndex = sectionOrder.indexOf(b);

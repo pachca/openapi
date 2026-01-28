@@ -18,12 +18,24 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
       try {
         // Dynamic import to avoid SSR issues with ESM-only module
         const { createHighlighter } = await import('shiki');
-        
+
         const highlighter = await createHighlighter({
           themes: ['one-dark-pro', 'one-light'],
-          langs: ['json', 'javascript', 'python', 'bash', 'shell', 'http', 'ruby', 'php', 'java', 'go', 'csharp'],
+          langs: [
+            'json',
+            'javascript',
+            'python',
+            'bash',
+            'shell',
+            'http',
+            'ruby',
+            'php',
+            'java',
+            'go',
+            'csharp',
+          ],
         });
-        
+
         // Map languages
         let lang = language || 'json';
         if (lang === 'curl') lang = 'bash';
@@ -55,7 +67,9 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     }
 
     highlight();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [code, language]);
 
   if (!highlightedHtml) {
@@ -67,9 +81,6 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   }
 
   return (
-    <div 
-      className="code-block-container"
-      dangerouslySetInnerHTML={{ __html: highlightedHtml }} 
-    />
+    <div className="code-block-container" dangerouslySetInnerHTML={{ __html: highlightedHtml }} />
   );
 }

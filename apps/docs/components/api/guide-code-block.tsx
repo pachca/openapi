@@ -19,7 +19,9 @@ export function GuideCodeBlock({ code, language, title }: GuideCodeBlockProps) {
             <span className="py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary">
               {title}
             </span>
-          ) : <div />}
+          ) : (
+            <div />
+          )}
           <CopyButton text={code} />
         </>
       }

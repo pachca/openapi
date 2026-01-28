@@ -12,7 +12,9 @@ const METHOD_COLORS = {
 
 export function MethodBadge({ method }: MethodBadgeProps) {
   return (
-    <span className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${METHOD_COLORS[method]}`}>
+    <span
+      className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${METHOD_COLORS[method]}`}
+    >
       {method}
     </span>
   );

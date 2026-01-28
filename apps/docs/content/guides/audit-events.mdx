@@ -54,7 +54,7 @@ description: Отслеживание событий безопасности
 ## Примеры использования
 
 <CodeBlock language="bash" title="Получение всех событий входа в систему за определенный период">
-{`curl --location 'https://api.pachca.com/api/shared/v1/audit_events' \\
+  {`curl --location 'https://api.pachca.com/api/shared/v1/audit_events' \\
 --header 'Authorization: ••••••' \\
 --data-urlencode 'start_time=2025-05-01T00:00:00Z' \\
 --data-urlencode 'end_time=2025-05-02T00:00:00Z' \\
@@ -63,7 +63,7 @@ description: Отслеживание событий безопасности
 </CodeBlock>
 
 <CodeBlock language="bash" title="Получение всех событий, связанных с конкретным пользователем">
-{`curl --location 'https://api.pachca.com/api/shared/v1/audit_events' \\
+  {`curl --location 'https://api.pachca.com/api/shared/v1/audit_events' \\
 --header 'Authorization: ••••••' \\
 --data-urlencode 'actor_id=133321' \\
 --data-urlencode 'actor_type=User' \\
@@ -72,7 +72,7 @@ description: Отслеживание событий безопасности
 </CodeBlock>
 
 <CodeBlock language="bash" title="Получение всех изменений прав доступа к чатам">
-{`curl --location 'https://api.pachca.com/api/shared/v1/audit_events' \\
+  {`curl --location 'https://api.pachca.com/api/shared/v1/audit_events' \\
 --header 'Authorization: ••••••' \\
 --data-urlencode 'event_key=chat_permission_changed' \\
 --data-urlencode 'start_time=2025-05-01T00:00:00Z' \\

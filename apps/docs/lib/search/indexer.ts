@@ -1,5 +1,9 @@
 import { parseOpenAPI } from '../openapi/parser';
-import { generateUrlFromOperation, generateTitle, getDescriptionWithoutTitle } from '../openapi/mapper';
+import {
+  generateUrlFromOperation,
+  generateTitle,
+  getDescriptionWithoutTitle,
+} from '../openapi/mapper';
 import type { Schema, Endpoint } from '../openapi/types';
 import { loadUpdates } from '../updates-parser';
 import { GUIDE_SCHEMAS } from '../schemas/guide-schemas';
@@ -76,10 +80,14 @@ interface SchemaFieldsResult {
 /**
  * Extract field names and descriptions from a schema recursively
  */
-function extractSchemaFields(schema: Schema | undefined, depth = 0, parentPath = ''): SchemaFieldsResult {
+function extractSchemaFields(
+  schema: Schema | undefined,
+  depth = 0,
+  parentPath = ''
+): SchemaFieldsResult {
   const fields = new Map<string, SchemaFieldInfo>();
   const keywords: string[] = [];
-  
+
   if (!schema || depth > 10) {
     return { fields, keywords };
   }
@@ -89,21 +97,26 @@ function extractSchemaFields(schema: Schema | undefined, depth = 0, parentPath =
     const enumDescriptions = schema['x-enum-descriptions'] || {};
     for (const enumValue of schema.enum) {
       if (typeof enumValue === 'string' && enumValue.length <= 100) {
-        const desc = enumDescriptions[enumValue] 
-          ? stripMarkdown(enumDescriptions[enumValue]).slice(0, 100) 
+        const desc = enumDescriptions[enumValue]
+          ? stripMarkdown(enumDescriptions[enumValue]).slice(0, 100)
           : undefined;
         // Use -- as separator for enum values (will be preserved in param ID)
         const enumPath = parentPath ? `${parentPath}--${enumValue}` : enumValue;
-        
+
         // Store enum value as a field
         const existing = fields.get(enumValue);
         if (!existing || enumPath.length < existing.path.length) {
           fields.set(enumValue, { description: desc, path: enumPath, isEnum: true });
         }
-        
+
         keywords.push(enumValue.toLowerCase());
         if (desc) {
-          keywords.push(...desc.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+          keywords.push(
+            ...desc
+              .toLowerCase()
+              .split(/\s+/)
+              .filter((w) => w.length > 2)
+          );
         }
       }
     }
@@ -112,20 +125,27 @@ function extractSchemaFields(schema: Schema | undefined, depth = 0, parentPath =
   // Extract from properties
   if (schema.properties) {
     for (const [propName, propSchema] of Object.entries(schema.properties)) {
-      const desc = propSchema.description ? stripMarkdown(propSchema.description).slice(0, 100) : undefined;
+      const desc = propSchema.description
+        ? stripMarkdown(propSchema.description).slice(0, 100)
+        : undefined;
       const fieldPath = parentPath ? `${parentPath}.${propName}` : propName;
-      
+
       // Store with full path - prefer shorter paths for the same field name
       const existing = fields.get(propName);
       if (!existing || fieldPath.length < existing.path.length) {
         fields.set(propName, { description: desc, path: fieldPath });
       }
-      
+
       keywords.push(propName.toLowerCase());
       if (desc) {
-        keywords.push(...desc.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+        keywords.push(
+          ...desc
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length > 2)
+        );
       }
-      
+
       // Recursively extract nested fields
       const nested = extractSchemaFields(propSchema, depth + 1, fieldPath);
       for (const [name, nestedInfo] of nested.fields) {
@@ -221,9 +241,14 @@ function extractEndpointSchemaFields(endpoint: Endpoint): EndpointSchemaResult {
     }
     allKeywords.push(param.name.toLowerCase());
     if (desc) {
-      allKeywords.push(...desc.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+      allKeywords.push(
+        ...desc
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 2)
+      );
     }
-    
+
     const result = extractSchemaFields(param.schema, 0, param.name);
     for (const [name, info] of result.fields) {
       const existing = allFields.get(name);
@@ -240,7 +265,7 @@ function extractEndpointSchemaFields(endpoint: Endpoint): EndpointSchemaResult {
     fields.push({ value, description: info.description, path: info.path, isEnum: info.isEnum });
   }
 
-  return { 
+  return {
     fields,
     keywords: [...new Set(allKeywords)],
   };
@@ -267,7 +292,7 @@ interface MdxExtractResult {
 function extractKeywordsFromMdx(content: string): MdxExtractResult {
   const keywords: string[] = [];
   const codeValuesMap = new Map<string, string | undefined>();
-  
+
   // Extract code values with descriptions from list items: `- \`value\` - description`
   const listItemWithCodeMatches = content.match(/^-\s+`([^`]+)`\s*[-–—]\s*(.+)$/gm);
   if (listItemWithCodeMatches) {
@@ -280,74 +305,93 @@ function extractKeywordsFromMdx(content: string): MdxExtractResult {
           codeValuesMap.set(value, description.trim());
           keywords.push(value.toLowerCase());
           // Also add description words to keywords
-          const descWords = description.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+          const descWords = description
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length > 2);
           keywords.push(...descWords);
         }
       }
     }
   }
-  
+
   // Extract standalone inline code values (not in list items with descriptions)
   const inlineCodeMatches = content.match(/`([^`]+)`/g);
   if (inlineCodeMatches) {
     for (const match of inlineCodeMatches) {
       const code = match.slice(1, -1);
       // Only add short, single-line values that aren't already in the map
-      if (code.length <= 50 && !code.includes('\n') && !code.includes('{') && !codeValuesMap.has(code)) {
+      if (
+        code.length <= 50 &&
+        !code.includes('\n') &&
+        !code.includes('{') &&
+        !codeValuesMap.has(code)
+      ) {
         codeValuesMap.set(code, undefined);
         keywords.push(code.toLowerCase());
       }
     }
   }
-  
+
   // Extract words from list items (- item)
   const listItemMatches = content.match(/^-\s+(.+)$/gm);
   if (listItemMatches) {
     for (const match of listItemMatches) {
       const text = match.replace(/^-\s+/, '').replace(/`[^`]+`/g, '');
-      const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      const words = text
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 2);
       keywords.push(...words);
     }
   }
-  
+
   // Extract headings
   const headingMatches = content.match(/^#{1,6}\s+(.+)$/gm);
   if (headingMatches) {
     for (const match of headingMatches) {
       const text = match.replace(/^#{1,6}\s+/, '');
-      const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      const words = text
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 2);
       keywords.push(...words);
     }
   }
-  
+
   // Extract words from regular paragraphs (lines that are not headings, list items, or special markup)
   const lines = content.split('\n');
   for (const line of lines) {
     const trimmedLine = line.trim();
     // Skip empty lines, headings, list items, HTML/JSX tags, and comments
-    if (!trimmedLine || 
-        trimmedLine.startsWith('#') || 
-        trimmedLine.startsWith('-') || 
-        trimmedLine.startsWith('<') ||
-        trimmedLine.startsWith('<!--') ||
-        trimmedLine.startsWith('```') ||
-        trimmedLine.startsWith('|')) {
+    if (
+      !trimmedLine ||
+      trimmedLine.startsWith('#') ||
+      trimmedLine.startsWith('-') ||
+      trimmedLine.startsWith('<') ||
+      trimmedLine.startsWith('<!--') ||
+      trimmedLine.startsWith('```') ||
+      trimmedLine.startsWith('|')
+    ) {
       continue;
     }
     // Extract words from regular paragraph text (remove inline code and links)
     const cleanedText = trimmedLine
       .replace(/`[^`]+`/g, '') // Remove inline code
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // Replace links with link text
-    const words = cleanedText.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const words = cleanedText
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2);
     keywords.push(...words);
   }
-  
+
   // Convert map to array
   const codeValues: CodeValueWithDescription[] = [];
   for (const [value, description] of codeValuesMap) {
     codeValues.push({ value, description });
   }
-  
+
   return {
     keywords: [...new Set(keywords)],
     codeValues,
@@ -360,11 +404,10 @@ function extractKeywordsFromMdx(content: string): MdxExtractResult {
 function readContentFile(filePath: string): string | null {
   try {
     // Try .mdx first, then .md
-    const mdxPath = filePath.endsWith('.mdx') || filePath.endsWith('.md') 
-      ? filePath 
-      : `${filePath}.mdx`;
+    const mdxPath =
+      filePath.endsWith('.mdx') || filePath.endsWith('.md') ? filePath : `${filePath}.mdx`;
     const mdPath = filePath.replace(/\.mdx$/, '.md');
-    
+
     if (fs.existsSync(mdxPath)) {
       return fs.readFileSync(mdxPath, 'utf8');
     }
@@ -394,18 +437,18 @@ interface GuideMetadata {
  */
 function extractSchemaNames(content: string): string[] {
   const schemaNames: string[] = [];
-  
+
   // Match <SchemaBlock name="..." /> patterns - единственный универсальный паттерн
   const schemaBlockMatches = content.matchAll(/<SchemaBlock\s+name=["']([^"']+)["']/g);
   for (const match of schemaBlockMatches) {
     schemaNames.push(match[1]);
   }
-  
+
   // ErrorSchema - особый случай (2 схемы из OpenAPI)
   if (content.includes('<ErrorSchema')) {
     schemaNames.push('ApiError', 'OAuthError');
   }
-  
+
   return [...new Set(schemaNames)];
 }
 
@@ -415,9 +458,9 @@ function extractSchemaNames(content: string): string[] {
 function extractGuideMetadata(content: string, id: string, url: string): GuideMetadata {
   // Parse frontmatter if present
   const { data: frontmatter, content: mdxContent } = matter(content);
-  
+
   const lines = mdxContent.split('\n');
-  
+
   // Extract title from frontmatter or first # heading
   let title = frontmatter.title || id;
   if (!frontmatter.title) {
@@ -426,30 +469,30 @@ function extractGuideMetadata(content: string, id: string, url: string): GuideMe
       title = titleMatch[1].trim();
     }
   }
-  
+
   // Extract description from frontmatter or first paragraph after title
   let description = frontmatter.description || '';
   if (!description) {
     let foundTitle = false;
     for (const line of lines) {
       const trimmedLine = line.trim();
-      
+
       // Skip empty lines and title
       if (!trimmedLine || trimmedLine.startsWith('# ')) {
         foundTitle = trimmedLine.startsWith('# ');
         continue;
       }
-      
+
       // Skip tag lines (e.g., #corporation_price_only #owner_access_token_required)
       if (trimmedLine.match(/^#\w+(\s+#\w+)*$/)) {
         continue;
       }
-      
+
       // Skip component tags like <Info>, <Image>, etc.
       if (trimmedLine.startsWith('<') && !trimmedLine.startsWith('</')) {
         continue;
       }
-      
+
       // Found first real paragraph
       if (foundTitle || !trimmedLine.startsWith('#')) {
         description = stripMarkdown(trimmedLine).slice(0, 200);
@@ -457,17 +500,20 @@ function extractGuideMetadata(content: string, id: string, url: string): GuideMe
       }
     }
   }
-  
+
   // Extract keywords and code values
   const mdxData = extractKeywordsFromMdx(mdxContent);
-  
+
   // Add title words to keywords
-  const titleWords = title.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
+  const titleWords = title
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w: string) => w.length > 2);
   mdxData.keywords.push(...titleWords);
-  
+
   // Extract schema names from MDX
   const schemaNames = extractSchemaNames(mdxContent);
-  
+
   return {
     id,
     title,
@@ -484,18 +530,18 @@ function extractGuideMetadata(content: string, id: string, url: string): GuideMe
  */
 function buildUpdatesContent(): string {
   const updates = loadUpdates();
-  
+
   // Build searchable content from updates
   const contentParts: string[] = [
     '# Последние обновления',
     'Новые методы в API и дополнения в уже существующих',
   ];
-  
+
   for (const update of updates) {
     contentParts.push(`## ${update.title}`);
     contentParts.push(update.content);
   }
-  
+
   return contentParts.join('\n\n');
 }
 
@@ -506,23 +552,23 @@ function loadAllGuides(): GuideMetadata[] {
   const guides: GuideMetadata[] = [];
   const contentDir = path.join(process.cwd(), 'content');
   const guidesDir = path.join(contentDir, 'guides');
-  
+
   // Add home page
   const homeContent = readContentFile(path.join(contentDir, 'home'));
   if (homeContent) {
     guides.push(extractGuideMetadata(homeContent, 'home', '/'));
   }
-  
+
   // Scan guides directory
   try {
     if (fs.existsSync(guidesDir)) {
       const files = fs.readdirSync(guidesDir);
-      
+
       for (const file of files) {
         if (file.endsWith('.mdx') || file.endsWith('.md')) {
           const id = file.replace(/\.(mdx?|md)$/, '');
           const filePath = path.join(guidesDir, file);
-          
+
           // Special handling for updates page - use parsed updates content
           if (id === 'updates') {
             const updatesContent = buildUpdatesContent();
@@ -539,7 +585,7 @@ function loadAllGuides(): GuideMetadata[] {
   } catch (error) {
     console.error('Error scanning guides directory:', error);
   }
-  
+
   return guides;
 }
 
@@ -548,30 +594,32 @@ function loadAllGuides(): GuideMetadata[] {
  */
 function stripMarkdown(text: string): string {
   if (!text) return '';
-  
-  return text
-    // Remove bold (**text** or __text__)
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/__([^_]+)__/g, '$1')
-    // Remove italic (*text* or _text_)
-    // Note: Only remove underscores used for markdown, not within words like access_token
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/(?<!\w)_([^_]+)_(?!\w)/g, '$1')
-    // Remove inline code (`code`)
-    .replace(/`([^`]+)`/g, '$1')
-    // Remove links [text](url)
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    // Remove blockquotes (> text)
-    .replace(/^>\s+/gm, '')
-    // Remove headings (# text)
-    .replace(/^#+\s+/gm, '')
-    // Remove horizontal rules
-    .replace(/^[-*_]{3,}\s*$/gm, '')
-    // Remove strikethrough (~~text~~)
-    .replace(/~~([^~]+)~~/g, '$1')
-    // Clean up extra whitespace
-    .replace(/\s+/g, ' ')
-    .trim();
+
+  return (
+    text
+      // Remove bold (**text** or __text__)
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      // Remove italic (*text* or _text_)
+      // Note: Only remove underscores used for markdown, not within words like access_token
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/(?<!\w)_([^_]+)_(?!\w)/g, '$1')
+      // Remove inline code (`code`)
+      .replace(/`([^`]+)`/g, '$1')
+      // Remove links [text](url)
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // Remove blockquotes (> text)
+      .replace(/^>\s+/gm, '')
+      // Remove headings (# text)
+      .replace(/^#+\s+/gm, '')
+      // Remove horizontal rules
+      .replace(/^[-*_]{3,}\s*$/gm, '')
+      // Remove strikethrough (~~text~~)
+      .replace(/~~([^~]+)~~/g, '$1')
+      // Clean up extra whitespace
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /**
@@ -579,7 +627,7 @@ function stripMarkdown(text: string): string {
  */
 function resolveSchemaRefs(schema: Schema, allSchemas: Record<string, Schema>, depth = 0): Schema {
   if (!schema || depth > 15) return schema;
-  
+
   // Resolve $ref
   if (schema.$ref) {
     const refName = schema.$ref.replace('#/components/schemas/', '');
@@ -588,10 +636,10 @@ function resolveSchemaRefs(schema: Schema, allSchemas: Record<string, Schema>, d
       return resolveSchemaRefs(referencedSchema, allSchemas, depth + 1);
     }
   }
-  
+
   // Create a copy to avoid mutating original
   const resolved: Schema = { ...schema };
-  
+
   // Resolve properties
   if (resolved.properties) {
     const resolvedProps: Record<string, Schema> = {};
@@ -600,23 +648,23 @@ function resolveSchemaRefs(schema: Schema, allSchemas: Record<string, Schema>, d
     }
     resolved.properties = resolvedProps;
   }
-  
+
   // Resolve array items
   if (resolved.items) {
     resolved.items = resolveSchemaRefs(resolved.items, allSchemas, depth + 1);
   }
-  
+
   // Resolve allOf/oneOf/anyOf
   if (resolved.allOf) {
-    resolved.allOf = resolved.allOf.map(s => resolveSchemaRefs(s, allSchemas, depth + 1));
+    resolved.allOf = resolved.allOf.map((s) => resolveSchemaRefs(s, allSchemas, depth + 1));
   }
   if (resolved.oneOf) {
-    resolved.oneOf = resolved.oneOf.map(s => resolveSchemaRefs(s, allSchemas, depth + 1));
+    resolved.oneOf = resolved.oneOf.map((s) => resolveSchemaRefs(s, allSchemas, depth + 1));
   }
   if (resolved.anyOf) {
-    resolved.anyOf = resolved.anyOf.map(s => resolveSchemaRefs(s, allSchemas, depth + 1));
+    resolved.anyOf = resolved.anyOf.map((s) => resolveSchemaRefs(s, allSchemas, depth + 1));
   }
-  
+
   return resolved;
 }
 
@@ -624,12 +672,12 @@ function resolveSchemaRefs(schema: Schema, allSchemas: Record<string, Schema>, d
  * Extract schema fields (including enums) from a guide's referenced schemas
  */
 function extractGuideSchemaFields(
-  schemaNames: string[], 
+  schemaNames: string[],
   schemas: Record<string, Schema>
 ): { fields: CodeValueWithDescription[]; keywords: string[] } {
   const allFields = new Map<string, SchemaFieldInfo>();
   const allKeywords: string[] = [];
-  
+
   for (const schemaName of schemaNames) {
     // First try OpenAPI schemas, then fall back to guide-specific schemas
     const guideSchemaEntry = GUIDE_SCHEMAS[schemaName];
@@ -653,15 +701,20 @@ function extractGuideSchemaFields(
       allKeywords.push(...result.keywords);
     }
   }
-  
+
   // Convert map to array
   const fields: CodeValueWithDescription[] = [];
   for (const [uniqueKey, info] of allFields) {
     // uniqueKey is "SchemaName:fieldName", extract just the field name for display
     const fieldName = uniqueKey.split(':')[1] || uniqueKey;
-    fields.push({ value: fieldName, description: info.description, path: info.path, isEnum: info.isEnum });
+    fields.push({
+      value: fieldName,
+      description: info.description,
+      path: info.path,
+      isEnum: info.isEnum,
+    });
   }
-  
+
   return { fields, keywords: [...new Set(allKeywords)] };
 }
 
@@ -672,20 +725,20 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
 
   const api = await parseOpenAPI();
   const index: SearchIndex[] = [];
-  
+
   // Initialize FlexSearch index
   flexIndex = createFlexSearchIndex();
 
   // Dynamically load all guide pages from content directory
   const guides = loadAllGuides();
-  
+
   for (const guide of guides) {
     // Extract schema fields from referenced schemas
     const schemaData = extractGuideSchemaFields(guide.schemaNames, api.schemas);
-    
+
     // Merge schema keywords with existing keywords
     const allKeywords = [...guide.keywords, ...schemaData.keywords];
-    
+
     const guideDoc: SearchIndex = {
       id: guide.id,
       title: guide.title,
@@ -696,9 +749,9 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
       codeValues: guide.codeValues,
       schemaFields: schemaData.fields.length > 0 ? schemaData.fields : undefined,
     };
-    
+
     index.push(guideDoc);
-    
+
     // Add to FlexSearch index with keywords as space-separated string for better matching
     flexIndex!.add({
       ...guideDoc,
@@ -711,11 +764,11 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
     const title = generateTitle(endpoint);
     const url = generateUrlFromOperation(endpoint);
     const tag = endpoint.tags[0] || 'API';
-    
+
     // Get description without the title (first line) and strip markdown
     const rawDescription = getDescriptionWithoutTitle(endpoint) || endpoint.summary || '';
     const description = stripMarkdown(rawDescription);
-    
+
     // Build comprehensive keywords for better search
     const keywords = [
       title.toLowerCase(),
@@ -724,26 +777,31 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
       tag.toLowerCase(),
       endpoint.id.toLowerCase(),
     ];
-    
+
     // Add words from title
     keywords.push(...title.toLowerCase().split(/\s+/));
-    
+
     // Add words from description/summary (already stripped of markdown)
     if (description) {
       // Split by whitespace and filter out empty strings and very short words
-      keywords.push(...description.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+      keywords.push(
+        ...description
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 2)
+      );
     }
-    
+
     // Add path segments (without {params})
     const pathSegments = endpoint.path
       .split('/')
-      .filter(seg => seg && !seg.startsWith('{'))
-      .map(seg => seg.toLowerCase());
+      .filter((seg) => seg && !seg.startsWith('{'))
+      .map((seg) => seg.toLowerCase());
     keywords.push(...pathSegments);
 
     // Extract schema field names and descriptions for search
     const schemaResult = extractEndpointSchemaFields(endpoint);
-    
+
     // Add schema keywords
     keywords.push(...schemaResult.keywords);
 
@@ -757,9 +815,9 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
       keywords: [...new Set(keywords)], // Remove duplicates
       schemaFields: schemaResult.fields, // Store fields with descriptions for highlighting
     };
-    
+
     index.push(endpointDoc);
-    
+
     // Add to FlexSearch index with keywords as space-separated string for better matching
     flexIndex!.add({
       ...endpointDoc,
@@ -788,40 +846,40 @@ interface MatchedValueResult {
  * Find matching schema field or code value for highlighting in search results
  */
 function findMatchedValue(
-  item: SearchIndex, 
-  lowerQuery: string, 
+  item: SearchIndex,
+  lowerQuery: string,
   queryWords: string[]
 ): MatchedValueResult | undefined {
   // Check for schema field match (for both API endpoints and guides)
   // This is a real API parameter - highest priority
-  const matchedField = item.schemaFields?.find(f => {
+  const matchedField = item.schemaFields?.find((f) => {
     const lowerValue = f.value.toLowerCase();
     const lowerDesc = f.description?.toLowerCase() || '';
     return (
       lowerValue.includes(lowerQuery) ||
       lowerDesc.includes(lowerQuery) ||
-      queryWords.some(word => lowerValue.includes(word)) ||
-      (queryWords.length > 1 && queryWords.every(word => lowerDesc.includes(word)))
+      queryWords.some((word) => lowerValue.includes(word)) ||
+      (queryWords.length > 1 && queryWords.every((word) => lowerDesc.includes(word)))
     );
   });
-  
+
   if (matchedField) return { value: matchedField, isSchemaField: true };
-  
+
   // Check for code value match (for guides)
   // This is just a mention in text - lower priority
-  const matchedCodeValue = item.codeValues?.find(v => {
+  const matchedCodeValue = item.codeValues?.find((v) => {
     const lowerValue = v.value.toLowerCase();
     const lowerDesc = v.description?.toLowerCase() || '';
     return (
       lowerValue.includes(lowerQuery) ||
       lowerDesc.includes(lowerQuery) ||
-      queryWords.some(word => lowerValue.includes(word)) ||
-      (queryWords.length > 1 && queryWords.every(word => lowerDesc.includes(word)))
+      queryWords.some((word) => lowerValue.includes(word)) ||
+      (queryWords.length > 1 && queryWords.every((word) => lowerDesc.includes(word)))
     );
   });
-  
+
   if (matchedCodeValue) return { value: matchedCodeValue, isSchemaField: false };
-  
+
   return undefined;
 }
 
@@ -849,11 +907,11 @@ function itemContainsExactQuery(item: SearchIndex, lowerQuery: string): boolean 
   // Check description
   if (item.description.toLowerCase().includes(lowerQuery)) return true;
   // Check keywords
-  if (item.keywords.some(k => k.includes(lowerQuery))) return true;
+  if (item.keywords.some((k) => k.includes(lowerQuery))) return true;
   // Check schema fields
-  if (item.schemaFields?.some(f => f.value.toLowerCase().includes(lowerQuery))) return true;
+  if (item.schemaFields?.some((f) => f.value.toLowerCase().includes(lowerQuery))) return true;
   // Check code values
-  if (item.codeValues?.some(v => v.value.toLowerCase().includes(lowerQuery))) return true;
+  if (item.codeValues?.some((v) => v.value.toLowerCase().includes(lowerQuery))) return true;
   return false;
 }
 
@@ -866,8 +924,8 @@ export async function search(query: string): Promise<SearchResult[]> {
   }
 
   // Split query into words for multi-word search
-  const queryWords = lowerQuery.split(/\s+/).filter(w => w.length > 1);
-  
+  const queryWords = lowerQuery.split(/\s+/).filter((w) => w.length > 1);
+
   // Detect if this is a code-like query (variable name, field name, etc.)
   const isCodeQuery = isCodeLikeQuery(query);
 
@@ -881,13 +939,13 @@ export async function search(query: string): Promise<SearchResult[]> {
   // Collect unique document IDs from all field results
   const matchedIds = new Set<string>();
   const idToFieldMatches = new Map<string, string[]>(); // Track which fields matched
-  
+
   for (const fieldResult of searchResults) {
     const field = fieldResult.field as string;
     for (const id of fieldResult.result) {
       const docId = String(id);
       matchedIds.add(docId);
-      
+
       // Track field matches for scoring
       if (!idToFieldMatches.has(docId)) {
         idToFieldMatches.set(docId, []);
@@ -897,43 +955,43 @@ export async function search(query: string): Promise<SearchResult[]> {
   }
 
   // Build index map for fast lookup
-  const indexMap = new Map(index.map(item => [item.id, item]));
+  const indexMap = new Map(index.map((item) => [item.id, item]));
 
   // Build results with matched values for highlighting
   const results: SearchResult[] = [];
-  
+
   for (const id of matchedIds) {
     const item = indexMap.get(id);
     if (!item) continue;
-    
+
     const matchResult = findMatchedValue(item, lowerQuery, queryWords);
     const fieldMatches = idToFieldMatches.get(id) || [];
-    
+
     // For code-like queries, only include results that actually contain the query
     if (isCodeQuery) {
       const hasExactMatch = matchResult || itemContainsExactQuery(item, lowerQuery);
       if (!hasExactMatch) continue; // Skip results without exact match
     }
-    
+
     // Calculate score based on match quality (not type)
     let score = 0;
-    
+
     // Exact title match is strongest signal
     if (item.title.toLowerCase().includes(lowerQuery)) score += 10;
-    
+
     // Matched in schema fields (actual API parameter) - highest priority
     if (matchResult?.isSchemaField) score += 12;
     // Matched in code values (just mentioned in text) - lower priority
     else if (matchResult) score += 4;
-    
+
     // Field match priority
     if (fieldMatches.includes('title')) score += 5;
     if (fieldMatches.includes('description')) score += 3;
     if (fieldMatches.includes('keywords')) score += 1;
-    
+
     // Small bonus for guides (but not dominant)
     if (item.type === 'guide') score += 2;
-    
+
     results.push({
       ...item,
       matchedValue: matchResult?.value,

@@ -23,7 +23,7 @@ export function SidebarScrollWrapper({ children }: SidebarScrollWrapperProps) {
       // Проверяем начальное состояние
       handleScroll();
     }
-    
+
     return () => {
       if (currentNav) {
         currentNav.removeEventListener('scroll', handleScroll);
@@ -33,12 +33,12 @@ export function SidebarScrollWrapper({ children }: SidebarScrollWrapperProps) {
 
   return (
     <div className="relative flex-1 overflow-hidden flex flex-col min-h-0">
-      <div 
+      <div
         className={`absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background-secondary via-background-secondary/80 to-transparent z-20 pointer-events-none transition-opacity duration-200 ${
           scrolled ? 'opacity-100' : 'opacity-0'
-        }`} 
+        }`}
       />
-      <nav 
+      <nav
         ref={navRef}
         id="sidebar-scroll-container"
         className="px-4 pb-4 flex-1 overflow-y-auto min-h-0 custom-scrollbar"

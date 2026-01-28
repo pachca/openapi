@@ -22,8 +22,8 @@ export function InlineCode({ children }: { children: React.ReactNode }) {
 export function MarkdownLink({ href, children }: { href?: string; children: React.ReactNode }) {
   const isExternal = href?.startsWith('http');
   return (
-    <a 
-      href={href} 
+    <a
+      href={href}
       className="text-primary hover:underline"
       {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     >
@@ -35,60 +35,60 @@ export function MarkdownLink({ href, children }: { href?: string; children: Reac
 // Blockquote - determines if it's a warning or info callout
 export function MarkdownBlockquote({ children }: { children: React.ReactNode }) {
   const text = React.Children.toArray(children)
-    .map(child => {
+    .map((child) => {
       if (typeof child === 'string') return child;
-      if (React.isValidElement(child) && typeof child.props === 'object' && child.props !== null && 'children' in child.props) {
+      if (
+        React.isValidElement(child) &&
+        typeof child.props === 'object' &&
+        child.props !== null &&
+        'children' in child.props
+      ) {
         return String(child.props.children);
       }
       return '';
     })
     .join('');
-  
-  const isWarning = text.toLowerCase().includes('внимание') || 
-                    text.toLowerCase().includes('warning') ||
-                    text.toLowerCase().includes('важно');
-  
+
+  const isWarning =
+    text.toLowerCase().includes('внимание') ||
+    text.toLowerCase().includes('warning') ||
+    text.toLowerCase().includes('важно');
+
   return <Callout type={isWarning ? 'warning' : 'info'}>{children}</Callout>;
 }
 
 // Code block component
-export function MarkdownCodeBlock({ 
-  className, 
+export function MarkdownCodeBlock({
+  className,
   children,
-  title 
-}: { 
-  className?: string; 
+  title,
+}: {
+  className?: string;
   children: React.ReactNode;
   title?: string;
 }) {
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : 'text';
   const code = String(children).replace(/\n$/, '');
-  
+
   // Map common language names
   const languageMap: Record<string, string> = {
-    'bash': 'curl',
-    'shell': 'curl',
-    'sh': 'curl',
-    'javascript': 'javascript',
-    'js': 'javascript',
-    'typescript': 'typescript',
-    'ts': 'typescript',
-    'python': 'python',
-    'py': 'python',
-    'json': 'json',
-    'http': 'http',
+    bash: 'curl',
+    shell: 'curl',
+    sh: 'curl',
+    javascript: 'javascript',
+    js: 'javascript',
+    typescript: 'typescript',
+    ts: 'typescript',
+    python: 'python',
+    py: 'python',
+    json: 'json',
+    http: 'http',
   };
-  
+
   const mappedLanguage = languageMap[language] || language;
-  
-  return (
-    <GuideCodeBlock
-      language={mappedLanguage}
-      code={code}
-      title={title}
-    />
-  );
+
+  return <GuideCodeBlock language={mappedLanguage} code={code} title={title} />;
 }
 
 // Pre wrapper for code blocks
@@ -97,35 +97,41 @@ export function MarkdownPre({ children }: { children: React.ReactNode }) {
 }
 
 // Code - handles both inline and block
-export function MarkdownCode({ className, children, ...props }: { className?: string; children: React.ReactNode }) {
+export function MarkdownCode({
+  className,
+  children,
+  ...props
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   const match = /language-(\w+)/.exec(className || '');
-  
+
   // If it's a code block (has language class), render as block
   if (match) {
     return <MarkdownCodeBlock className={className}>{children}</MarkdownCodeBlock>;
   }
-  
+
   // Otherwise render as inline code
   return <InlineCode>{children}</InlineCode>;
 }
 
 // Headings
 export function MarkdownH1({ children }: { children: React.ReactNode }) {
-  return (
-    <h1 className="text-3xl font-bold text-text-primary mb-6">
-      {children}
-    </h1>
-  );
+  return <h1 className="text-3xl font-bold text-text-primary mb-6">{children}</h1>;
 }
 
 export function MarkdownH2({ id, children }: { id?: string; children: React.ReactNode }) {
   // Generate id that supports Cyrillic characters
   const text = String(children);
-  const generatedId = id || text.toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
-    .replace(/-+/g, '-') // Remove multiple dashes
-    .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+  const generatedId =
+    id ||
+    text
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
+      .replace(/-+/g, '-') // Remove multiple dashes
+      .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
   return (
     <h2 id={generatedId} className="text-2xl font-bold text-text-primary mt-12 mb-6 scroll-mt-20">
       {children}
@@ -136,11 +142,14 @@ export function MarkdownH2({ id, children }: { id?: string; children: React.Reac
 export function MarkdownH3({ id, children }: { id?: string; children: React.ReactNode }) {
   // Generate id that supports Cyrillic characters
   const text = String(children);
-  const generatedId = id || text.toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
-    .replace(/-+/g, '-') // Remove multiple dashes
-    .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+  const generatedId =
+    id ||
+    text
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
+      .replace(/-+/g, '-') // Remove multiple dashes
+      .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
   return (
     <h3 id={generatedId} className="text-xl font-bold text-text-primary mt-8 mb-4 scroll-mt-20">
       {children}
@@ -159,35 +168,23 @@ export function MarkdownH4({ id, children }: { id?: string; children: React.Reac
 // Lists
 export function MarkdownUl({ children }: { children: React.ReactNode }) {
   return (
-    <ul className="list-disc list-outside ml-2 space-y-2 my-4 text-text-primary">
-      {children}
-    </ul>
+    <ul className="list-disc list-outside ml-2 space-y-2 my-4 text-text-primary">{children}</ul>
   );
 }
 
 export function MarkdownOl({ children }: { children: React.ReactNode }) {
   return (
-    <ol className="list-decimal list-outside ml-6 space-y-2 my-4 text-text-primary">
-      {children}
-    </ol>
+    <ol className="list-decimal list-outside ml-6 space-y-2 my-4 text-text-primary">{children}</ol>
   );
 }
 
 export function MarkdownLi({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="text-text-primary leading-relaxed">
-      {children}
-    </li>
-  );
+  return <li className="text-text-primary leading-relaxed">{children}</li>;
 }
 
 // Paragraph
 export function MarkdownP({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-text-primary leading-relaxed mb-4">
-      {children}
-    </p>
-  );
+  return <p className="text-text-primary leading-relaxed mb-4">{children}</p>;
 }
 
 // Horizontal rule
@@ -237,9 +234,7 @@ export function MarkdownTh({ children }: { children: React.ReactNode }) {
 
 export function MarkdownTd({ children }: { children: React.ReactNode }) {
   return (
-    <td className="px-4 py-3 text-text-primary border border-background-border">
-      {children}
-    </td>
+    <td className="px-4 py-3 text-text-primary border border-background-border">{children}</td>
   );
 }
 
@@ -257,17 +252,17 @@ export const mdxComponents = {
   pre: MarkdownPre,
   code: MarkdownCode,
   hr: MarkdownHr,
-  
+
   // Lists
   ul: MarkdownUl,
   ol: MarkdownOl,
   li: MarkdownLi,
-  
+
   // Inline elements
   a: MarkdownLink,
   em: MarkdownEm,
   strong: MarkdownStrong,
-  
+
   // Tables
   table: MarkdownTable,
   thead: MarkdownThead,
@@ -275,7 +270,7 @@ export const mdxComponents = {
   tr: MarkdownTr,
   th: MarkdownTh,
   td: MarkdownTd,
-  
+
   // Custom components that can be used in MDX
   Callout,
   GuideCodeBlock,

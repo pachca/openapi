@@ -14,17 +14,17 @@ export function ThemeToggle() {
     if (disableTransitions) {
       document.documentElement.classList.add('disable-transitions');
     }
-    
+
     // Удаляем оба класса
     document.documentElement.classList.remove('dark', 'light');
-    
+
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else if (newTheme === 'light') {
       document.documentElement.classList.add('light');
     }
     // Если 'system' - классы уже удалены, работает @media
-    
+
     if (disableTransitions) {
       setTimeout(() => {
         document.documentElement.classList.remove('disable-transitions');
@@ -35,19 +35,19 @@ export function ThemeToggle() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- required for hydration safety
     setMounted(true);
-    
+
     // Проверяем системную тему
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     // Получаем сохраненную тему, по умолчанию 'system'
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     const initialTheme = savedTheme || 'system';
-    
+
     // Если темы нет, устанавливаем 'system' по умолчанию
     if (!savedTheme) {
       localStorage.setItem('theme', 'system');
     }
-    
+
     setTheme(initialTheme);
     // Применяем тему после гидратации React (React перезаписывает className)
     applyTheme(initialTheme);
@@ -71,7 +71,7 @@ export function ThemeToggle() {
     const themeOrder: Theme[] = ['light', 'dark', 'system'];
     const currentIndex = themeOrder.indexOf(theme);
     const newTheme = themeOrder[(currentIndex + 1) % themeOrder.length];
-    
+
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     applyTheme(newTheme);
@@ -82,11 +82,11 @@ export function ThemeToggle() {
     if (theme === 'system') {
       return <SunMoon className="w-5 h-5" />;
     }
-    
+
     if (theme === 'light') {
       return <Sun className="w-5 h-5" />;
     }
-    
+
     return <Moon className="w-5 h-5" />;
   };
 

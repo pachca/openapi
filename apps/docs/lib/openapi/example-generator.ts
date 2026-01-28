@@ -39,7 +39,7 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
       if (schema.properties) {
         const example: any = {};
         const requiredFields = schema.required || [];
-        
+
         for (const [propName, propSchema] of Object.entries(schema.properties)) {
           const propExample = generateExample(propSchema as Schema, depth + 1);
           // Включаем свойство если оно обязательное или имеет пример
@@ -49,15 +49,15 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
         }
         return Object.keys(example).length > 0 ? example : {};
       }
-      
+
       // Если есть additionalProperties
       if (schema.additionalProperties && typeof schema.additionalProperties !== 'boolean') {
         const additionalExample = generateExample(schema.additionalProperties as Schema, depth + 1);
         if (additionalExample !== undefined) {
-          return { 'key': additionalExample };
+          return { key: additionalExample };
         }
       }
-      
+
       return {};
 
     case 'array':
@@ -105,17 +105,17 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
       if (schema.format === 'password') {
         return '********';
       }
-      
+
       // Проверяем enum
       if (schema.enum && schema.enum.length > 0) {
         return schema.enum[0];
       }
-      
+
       // Проверяем default
       if (schema.default !== undefined) {
         return schema.default;
       }
-      
+
       // Генерация на основе описания (только для полей без format)
       if (schema.description) {
         const desc = schema.description.toLowerCase();
@@ -153,12 +153,12 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
           return '+7 (999) 123-45-67';
         }
       }
-      
+
       // Fallback значения
       if (schema.minLength && schema.minLength > 0) {
         return 'x'.repeat(schema.minLength);
       }
-      
+
       return 'string';
 
     case 'number':
@@ -172,7 +172,7 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
       if (schema.minimum !== undefined) {
         return schema.minimum;
       }
-      
+
       // Генерация на основе описания
       if (schema.description) {
         const desc = schema.description.toLowerCase();
@@ -195,7 +195,7 @@ export function generateExample(schema: Schema | undefined, depth = 0): any {
           return 99.99;
         }
       }
-      
+
       return schema.type === 'integer' ? 100 : 123.45;
 
     case 'boolean':
@@ -318,7 +318,7 @@ export function generateParameterExample(parameter: any): any {
     // Если у схемы нет описания, но есть описание параметра, используем его
     const schemaWithDescription = {
       ...parameter.schema,
-      description: parameter.schema.description || parameter.description
+      description: parameter.schema.description || parameter.description,
     };
     const example = generateExample(schemaWithDescription);
     return example !== undefined ? example : 'value';
@@ -352,4 +352,3 @@ export function getAllExamples(mediaType: MediaType): Record<string, any> {
   // НЕ генерируем из схемы - возвращаем только явные примеры
   return examples;
 }
-

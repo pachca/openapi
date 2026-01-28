@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getEndpointByUrl, parseOpenAPI } from '@/lib/openapi/parser';
-import { generateEndpointMarkdown, generateStaticPageMarkdownAsync } from '@/lib/markdown-generator';
+import {
+  generateEndpointMarkdown,
+  generateStaticPageMarkdownAsync,
+} from '@/lib/markdown-generator';
 import { getOrderedGuidePages } from '@/lib/guides-config';
 
 export const dynamic = 'force-static';
@@ -8,9 +11,9 @@ export const dynamic = 'force-static';
 export async function generateStaticParams() {
   const api = await parseOpenAPI();
   const { generateUrlFromOperation } = await import('@/lib/openapi/mapper');
-  
+
   // Generate params for all API endpoints
-  const endpointParams = api.endpoints.map(endpoint => {
+  const endpointParams = api.endpoints.map((endpoint) => {
     const url = generateUrlFromOperation(endpoint);
     // Remove leading slash and split into path segments
     const path = url.slice(1).split('/');
@@ -19,7 +22,7 @@ export async function generateStaticParams() {
 
   // Add static pages from guides config
   const guidePages = getOrderedGuidePages();
-  const staticPages = guidePages.map(guide => {
+  const staticPages = guidePages.map((guide) => {
     if (guide.path === '/') {
       return { path: ['index'] };
     }
@@ -31,13 +34,10 @@ export async function generateStaticParams() {
   return [...staticPages, ...endpointParams];
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   const pathSegments = resolvedParams.path;
-  
+
   // Handle index (home page)
   if (pathSegments.length === 1 && pathSegments[0] === 'index') {
     const markdown = await generateStaticPageMarkdownAsync('/');
@@ -52,7 +52,7 @@ export async function GET(
 
   // Build the path
   const pagePath = '/' + pathSegments.join('/');
-  
+
   // Try static page first (async)
   const staticMarkdown = await generateStaticPageMarkdownAsync(pagePath);
   if (staticMarkdown) {

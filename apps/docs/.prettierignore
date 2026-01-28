@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+.turbo/
+
+# Lock files (they have their own formatting)
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated files
+packages/spec/openapi.yaml
+
+# Cache and misc
+.vercel/
+*.tsbuildinfo
+
+# TypeSpec files (Prettier doesn't understand them)
+*.tsp

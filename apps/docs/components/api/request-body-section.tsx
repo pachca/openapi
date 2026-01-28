@@ -53,13 +53,13 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
           </>
         )}
       </SectionHeader>
-      
+
       {requestBody.description && (
         <div className="mt-4 mb-0 text-[14px] text-text-secondary leading-relaxed">
           <InlineCodeText text={requestBody.description} />
         </div>
       )}
-      
+
       <div className="pt-1">
         {activeTab === 'schema' || !hasExample ? (
           <SchemaTree schema={jsonContent.schema} />

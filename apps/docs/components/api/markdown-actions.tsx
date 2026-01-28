@@ -31,7 +31,7 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
         document.execCommand('copy');
         setCopied(true);
@@ -47,10 +47,8 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
   const handleCopyMarkdown = async () => {
     try {
       // Fetch markdown content from the .md route
-      const mdUrl = pageUrl.endsWith('/') 
-        ? `${pageUrl.slice(0, -1)}.md` 
-        : `${pageUrl}.md`;
-      
+      const mdUrl = pageUrl.endsWith('/') ? `${pageUrl.slice(0, -1)}.md` : `${pageUrl}.md`;
+
       const response = await fetch(mdUrl);
       if (response.ok) {
         const markdown = await response.text();
@@ -77,9 +75,7 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
   };
 
   const handleOpenMarkdown = () => {
-    const mdUrl = pageUrl.endsWith('/') 
-      ? `${pageUrl.slice(0, -1)}.md` 
-      : `${pageUrl}.md`;
+    const mdUrl = pageUrl.endsWith('/') ? `${pageUrl.slice(0, -1)}.md` : `${pageUrl}.md`;
     window.open(mdUrl, '_blank');
   };
 
@@ -89,7 +85,24 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
         onClick={handleOpenMarkdown}
         className="flex h-7 items-center gap-1 text-text-secondary font-medium hover:text-text-primary transition-colors cursor-pointer text-nowrap overflow-hidden outline-none"
       >
-        <svg className='shrink-0' height="16" viewBox="0 0 208 128" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" clipRule="evenodd" d="m15 10a5 5 0 0 0 -5 5v98a5 5 0 0 0 5 5h178a5 5 0 0 0 5-5v-98a5 5 0 0 0 -5-5zm-15 5c0-8.284 6.716-15 15-15h178c8.284 0 15 6.716 15 15v98c0 8.284-6.716 15-15 15h-178c-8.284 0-15-6.716-15-15z" fillRule="evenodd"/><path fill="currentColor" d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z"/></svg>
+        <svg
+          className="shrink-0"
+          height="16"
+          viewBox="0 0 208 128"
+          width="20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill="currentColor"
+            clipRule="evenodd"
+            d="m15 10a5 5 0 0 0 -5 5v98a5 5 0 0 0 5 5h178a5 5 0 0 0 5-5v-98a5 5 0 0 0 -5-5zm-15 5c0-8.284 6.716-15 15-15h178c8.284 0 15 6.716 15 15v98c0 8.284-6.716 15-15 15h-178c-8.284 0-15-6.716-15-15z"
+            fillRule="evenodd"
+          />
+          <path
+            fill="currentColor"
+            d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z"
+          />
+        </svg>
         <span className="text-ellipsis overflow-hidden block w-full">Открыть как Markdown</span>
       </button>
 
@@ -100,11 +113,12 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
           <div>
             <DropdownMenu.Root open={dropdownOpen} onOpenChange={setDropdownOpen}>
               <DropdownMenu.Trigger asChild>
-                <button
-                  className="h-7 outline-none flex items-center gap-1 text-text-secondary font-medium hover:text-text-primary transition-colors cursor-pointer text-nowrap overflow-hidden"
-                >
+                <button className="h-7 outline-none flex items-center gap-1 text-text-secondary font-medium hover:text-text-primary transition-colors cursor-pointer text-nowrap overflow-hidden">
                   {copied ? (
-                    <Check className="w-3.5 h-3.5 text-[#50A14F] dark:text-[#98C379] shrink-0" strokeWidth={2.5} />
+                    <Check
+                      className="w-3.5 h-3.5 text-[#50A14F] dark:text-[#98C379] shrink-0"
+                      strokeWidth={2.5}
+                    />
                   ) : (
                     <Copy className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
                   )}
@@ -114,7 +128,7 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
               </DropdownMenu.Trigger>
 
               <DropdownMenu.Portal>
-                <DropdownMenu.Content 
+                <DropdownMenu.Content
                   className="z-50 min-w-[220px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-100"
                   align="start"
                 >
@@ -124,7 +138,7 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
                   >
                     Версию страницы для LLM
                   </DropdownMenu.Item>
-                  
+
                   {pageTitle && method && path && (
                     <DropdownMenu.Item
                       onClick={handleCopyMethodPath}
@@ -133,7 +147,7 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
                       Название метода и путь
                     </DropdownMenu.Item>
                   )}
-                  
+
                   <DropdownMenu.Item
                     onClick={handleCopyPageUrl}
                     className="flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"

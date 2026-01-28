@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const api = await parseOpenAPI();
-  
+
   // Group endpoints by tag
   const grouped = new Map<string, typeof api.endpoints>();
   for (const endpoint of api.endpoints) {
@@ -25,10 +25,10 @@ export async function GET() {
   // Generate markdown content
   const now = new Date();
   const localDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-  
+
   let content = '# Пачка API Documentation\n\n';
   content += `> Сгенерировано: ${localDateTime}\n\n`;
-  
+
   // Add guides section (dynamically collected from page.tsx files)
   const guidePages = getOrderedGuidePages();
   content += '## Руководства\n';
@@ -41,16 +41,16 @@ export async function GET() {
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
     const categoryTitle = tag;
-    
+
     content += `## ${categoryTitle}\n`;
-    
+
     for (const endpoint of endpoints) {
       const title = generateTitle(endpoint);
       const url = generateUrlFromOperation(endpoint);
-      
+
       content += `- [${title}](${url}): ${endpoint.method} ${endpoint.path}\n`;
     }
-    
+
     content += '\n';
   }
 

@@ -23,16 +23,14 @@ export function ResponseCodesList({ title, items }: ResponseCodesListProps) {
         {items.map((item, index) => (
           <div key={index} className="px-4 py-4 flex flex-col gap-1">
             <div className="flex items-baseline gap-2">
-              <span className="text-[14px] font-mono text-text-primary">
-                {item.code}
-              </span>
+              <span className="text-[14px] font-mono text-text-primary">{item.code}</span>
               {item.message && (
                 <span className="text-[14px] font-mono font-bold text-text-primary">
                   {item.message}
                 </span>
               )}
             </div>
-            <div 
+            <div
               className="text-[14px] text-text-secondary leading-relaxed [&_code]:bg-background-secondary [&_code]:text-text-primary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_code]:font-mono [&_code]:font-medium [&_code]:border [&_code]:border-background-border"
               dangerouslySetInnerHTML={{ __html: item.description }}
             />

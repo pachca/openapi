@@ -17,16 +17,16 @@ interface WebhookSchemaSectionProps {
 // Проверяет, содержит ли схема параметр с указанным путём
 function schemaContainsPath(schema: Schema, targetPath: string, currentPath: string = ''): boolean {
   if (!targetPath) return false;
-  
+
   // Нормализуем пути для сравнения
   const normalizedTarget = targetPath.replace(/\./g, '-');
   const normalizedCurrent = currentPath.replace(/\[\]/g, '').replace(/\./g, '-');
-  
+
   // Проверяем совпадение текущего пути
   if (normalizedCurrent && normalizedTarget.startsWith(normalizedCurrent)) {
     return true;
   }
-  
+
   // Рекурсивно проверяем свойства объекта
   if (schema.properties) {
     for (const propName of Object.keys(schema.properties)) {
@@ -39,7 +39,7 @@ function schemaContainsPath(schema: Schema, targetPath: string, currentPath: str
       }
     }
   }
-  
+
   // Проверяем элементы массива
   if (schema.items) {
     const arrayPath = currentPath ? `${currentPath}` : '';
@@ -47,7 +47,7 @@ function schemaContainsPath(schema: Schema, targetPath: string, currentPath: str
       return true;
     }
   }
-  
+
   // Проверяем anyOf/oneOf/allOf
   const variants = schema.anyOf || schema.oneOf || schema.allOf;
   if (variants) {
@@ -57,7 +57,7 @@ function schemaContainsPath(schema: Schema, targetPath: string, currentPath: str
       }
     }
   }
-  
+
   return false;
 }
 
@@ -80,8 +80,8 @@ function parseSchemaPath(path: string): { schemaName: string | null; fieldPath: 
   return { schemaName: null, fieldPath: path };
 }
 
-export function WebhookSchemaSection({ 
-  schema, 
+export function WebhookSchemaSection({
+  schema,
   title: propTitle,
   initialOpen = false,
   hideHeader = false,
@@ -89,24 +89,31 @@ export function WebhookSchemaSection({
 }: WebhookSchemaSectionProps) {
   const [isOpen, setIsOpen] = useState(initialOpen || hideHeader);
   const hasAutoOpened = useRef(false);
-  
-  const title = propTitle || schema.title || (schema.$ref ? schema.$ref.split('/').pop() : 'Payload');
-  const type = Array.isArray(schema.type) ? schema.type.join(' | ') : (schema.type || (schema.properties ? 'object' : 'any'));
+
+  const title =
+    propTitle || schema.title || (schema.$ref ? schema.$ref.split('/').pop() : 'Payload');
+  const type = Array.isArray(schema.type)
+    ? schema.type.join(' | ')
+    : schema.type || (schema.properties ? 'object' : 'any');
 
   // Проверяем hash при монтировании и при его изменении
   useEffect(() => {
     if (typeof window === 'undefined' || hideHeader) return;
-    
+
     const checkAndOpen = () => {
       const hash = window.location.hash;
       if (hash && hash.startsWith('#param-')) {
         const targetPath = getPathFromParamId(hash.slice(1));
         const { schemaName: targetSchemaName, fieldPath } = parseSchemaPath(targetPath);
-        
+
         // Если в пути указано имя схемы, проверяем совпадение
         if (targetSchemaName) {
           // Открываем только если имя схемы совпадает
-          if (schemaName && targetSchemaName === schemaName && schemaContainsPath(schema, fieldPath)) {
+          if (
+            schemaName &&
+            targetSchemaName === schemaName &&
+            schemaContainsPath(schema, fieldPath)
+          ) {
             setIsOpen(true);
             hasAutoOpened.current = true;
           }
@@ -119,10 +126,10 @@ export function WebhookSchemaSection({
         }
       }
     };
-    
+
     // Проверяем при монтировании
     checkAndOpen();
-    
+
     // Слушаем изменения hash
     window.addEventListener('hashchange', checkAndOpen);
     // Слушаем событие навигации к параметру (из поиска)
@@ -134,27 +141,27 @@ export function WebhookSchemaSection({
   }, [schema, hideHeader, schemaName]);
 
   return (
-    <div className={`not-prose ${hideHeader ? 'mt-0 mb-6' : 'my-6'} border border-background-border rounded-lg overflow-hidden overflow-visible`}>
+    <div
+      className={`not-prose ${hideHeader ? 'mt-0 mb-6' : 'my-6'} border border-background-border rounded-lg overflow-hidden overflow-visible`}
+    >
       {!hideHeader && (
-        <div 
+        <div
           onClick={() => setIsOpen(!isOpen)}
           className={` w-full flex items-center gap-2 px-3 py-2 bg-background-tertiary transition-colors text-left min-h-(--boxed-header-height) group/variant cursor-pointer select-none ${
-              isOpen ? 'rounded-t-lg' : 'rounded-lg'
-            }`}
+            isOpen ? 'rounded-t-lg' : 'rounded-lg'
+          }`}
         >
-          <ChevronDown 
+          <ChevronDown
             className={`w-3.5 h-3.5 text-text-secondary group-hover/variant:text-text-primary transition-all duration-200 shrink-0 ${
               isOpen ? 'rotate-0' : '-rotate-90'
-            }`} 
-            strokeWidth={2.5} 
+            }`}
+            strokeWidth={2.5}
           />
           <span className="font-mono text-[13px] font-bold text-text-primary">{title}</span>
-          <span className="text-[11px] text-text-secondary ml-auto">
-            {type}
-          </span>
+          <span className="text-[11px] text-text-secondary ml-auto">{type}</span>
         </div>
       )}
-      
+
       {(isOpen || hideHeader) && (
         <div className={`px-4 py-0 ${!hideHeader ? 'border-t border-background-border' : ''}`}>
           <SchemaTree schema={schema} />

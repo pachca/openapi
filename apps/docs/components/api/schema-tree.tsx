@@ -12,7 +12,10 @@ const ExpandToPathContext = createContext<string | null>(null);
 
 // Глобальное хранилище для отслеживания уже подсвеченных параметров на текущей странице
 // Ключ: pathname, значение: Set параметров которые уже были подсвечены
-let highlightedParams: { pathname: string; params: Set<string> } = { pathname: '', params: new Set() };
+let highlightedParams: { pathname: string; params: Set<string> } = {
+  pathname: '',
+  params: new Set(),
+};
 
 // Функция для сброса истории подсвеченных параметров (вызывается при навигации)
 function resetHighlightedParams() {
@@ -29,19 +32,19 @@ function getPathFromParamId(paramId: string): string {
   // param-data-accounts-name -> data.accounts.name
   // param-data-accounts-name -> убираем 'param-' и заменяем '-' на '.'
   let path = paramId.replace(/^param-/, '');
-  
+
   // Если путь содержит имя схемы (формат SchemaName___fieldPath), извлекаем только путь к полю
   const schemaSeparatorIndex = path.indexOf('___');
   if (schemaSeparatorIndex !== -1) {
     path = path.substring(schemaSeparatorIndex + 3);
   }
-  
+
   // Для enum значений (содержат --), берём только путь до enum
   const enumSeparatorIndex = path.indexOf('--');
   if (enumSeparatorIndex !== -1) {
     path = path.substring(0, enumSeparatorIndex);
   }
-  
+
   // Заменяем одиночные дефисы на точки (но не двойные)
   return path.replace(/-/g, '.');
 }
@@ -52,7 +55,9 @@ function isPathPrefix(currentPath: string, targetPath: string): boolean {
   // Нормализуем пути для сравнения
   const normalizedCurrent = currentPath.replace(/\[\]/g, '').replace(/\./g, '-');
   const normalizedTarget = targetPath.replace(/\[\]/g, '').replace(/\./g, '-');
-  return normalizedTarget.startsWith(normalizedCurrent + '-') || normalizedTarget === normalizedCurrent;
+  return (
+    normalizedTarget.startsWith(normalizedCurrent + '-') || normalizedTarget === normalizedCurrent
+  );
 }
 
 interface SchemaTreeProps {
@@ -64,50 +69,49 @@ interface SchemaTreeProps {
 }
 
 function RequiredBadge() {
-  return (
-    <span className="text-[13px] font-medium text-method-delete ml-0">
-      Обязательно
-    </span>
-  );
+  return <span className="text-[13px] font-medium text-method-delete ml-0">Обязательно</span>;
 }
 
 // Генерация ID для enum значения (для ссылок из поиска)
 // Использует -- как разделитель между путём поля и значением enum
 function generateEnumId(fieldPath: string, enumValue: string): string {
   const path = `${fieldPath}--${enumValue}`;
-  return `param-${path.replace(/\./g, '-').replace(/\[\]/g, '').replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  return `param-${path
+    .replace(/\./g, '-')
+    .replace(/\[\]/g, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
 
 // Компонент для отображения возможных значений enum
 function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string }) {
   if (!schema.enum) return null;
-  
+
   // Скролл к enum значению при загрузке страницы или после переключения таба
   useEffect(() => {
     if (typeof window === 'undefined' || !fieldPath) return;
-    
+
     const scrollToEnumIfNeeded = () => {
       const hash = window.location.hash.slice(1); // убираем #
       if (!hash) return;
-      
+
       // Проверяем, есть ли в enum значение, соответствующее hash
       for (const v of schema.enum!) {
         const enumId = generateEnumId(fieldPath, String(v));
         if (hash === enumId) {
           const currentPathname = window.location.pathname;
-          
+
           // Если pathname изменился, очищаем историю подсвеченных параметров
           if (highlightedParams.pathname !== currentPathname) {
             highlightedParams = { pathname: currentPathname, params: new Set() };
           }
-          
+
           // Проверяем, не был ли этот параметр уже подсвечен
           if (highlightedParams.params.has(enumId)) {
             return;
           }
-          
+
           highlightedParams.params.add(enumId);
-          
+
           setTimeout(() => {
             const element = document.getElementById(enumId);
             if (element) {
@@ -118,15 +122,15 @@ function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string 
         }
       }
     };
-    
+
     // Выполняем при монтировании
     scrollToEnumIfNeeded();
-    
+
     // Слушаем hashchange (может прийти после переключения таба)
     window.addEventListener('hashchange', scrollToEnumIfNeeded);
     return () => window.removeEventListener('hashchange', scrollToEnumIfNeeded);
   }, [fieldPath, schema.enum]);
-  
+
   return (
     <div className="mt-3 mb-1 border border-background-border rounded-lg w-full">
       <div className="px-3 flex items-center border-b bg-background-tertiary border-background-border min-h-(--boxed-header-height) rounded-t-lg">
@@ -140,9 +144,9 @@ function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string 
           const enumDescription = schema['x-enum-descriptions']?.[String(v)];
           const isLast = i === schema.enum!.length - 1;
           const enumId = fieldPath ? generateEnumId(fieldPath, String(v)) : undefined;
-          
+
           return (
-            <div 
+            <div
               key={i}
               id={enumId}
               className={`px-3 py-3 flex flex-col gap-2 scroll-mt-20 transition-colors duration-500 ${
@@ -150,8 +154,8 @@ function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string 
               }`}
             >
               <div className="flex">
-                <CopyableCode 
-                  value={String(v)} 
+                <CopyableCode
+                  value={String(v)}
                   displayValue={enumValue}
                   className="text-[13px]! font-medium"
                 />
@@ -183,7 +187,8 @@ function formatRange(min?: number, max?: number, suffix?: string): string {
 
 // Проверка, является ли items объектом с properties
 function isItemsObjectWithProperties(items: Schema): boolean {
-  const isObject = items.type === 'object' || (Array.isArray(items.type) && items.type.includes('object'));
+  const isObject =
+    items.type === 'object' || (Array.isArray(items.type) && items.type.includes('object'));
   return isObject && !!items.properties && Object.keys(items.properties).length > 0;
 }
 
@@ -202,7 +207,7 @@ async function copyToClipboard(value: string): Promise<boolean> {
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
       document.execCommand('copy');
       return true;
@@ -222,13 +227,21 @@ function generateParamId(name: string, parentPath?: string): string {
   return `param-${path.replace(/\./g, '-').replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
 
-function CopyableCode({ value, displayValue, className }: { value: string, displayValue?: string, className?: string }) {
+function CopyableCode({
+  value,
+  displayValue,
+  className,
+}: {
+  value: string;
+  displayValue?: string;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const success = await copyToClipboard(value);
     if (success) {
       setCopied(true);
@@ -238,7 +251,7 @@ function CopyableCode({ value, displayValue, className }: { value: string, displ
 
   return (
     <CopiedTooltip open={copied}>
-      <code 
+      <code
         onClick={handleCopy}
         className={`bg-background-secondary border border-background-border px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary cursor-pointer hover:bg-background-tertiary transition-colors inline-block truncate ${className || ''}`}
         title="Нажмите, чтобы скопировать"
@@ -256,7 +269,7 @@ function CopyableName({ name }: { name: string }) {
   const handleCopy = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const success = await copyToClipboard(name);
     if (success) {
       setCopied(true);
@@ -266,7 +279,7 @@ function CopyableName({ name }: { name: string }) {
 
   return (
     <CopiedTooltip open={copied}>
-      <span 
+      <span
         onClick={handleCopy}
         className="font-bold font-mono text-[14px] text-text-primary break-all inline-block max-w-full cursor-pointer hover:text-accent-emphasis transition-colors"
         title="Нажмите, чтобы скопировать"
@@ -278,7 +291,7 @@ function CopyableName({ name }: { name: string }) {
 }
 
 // Компонент для копирования ссылки на параметр
-function CopyLinkButton({ paramId, hasChevron }: { paramId: string, hasChevron?: boolean }) {
+function CopyLinkButton({ paramId, hasChevron }: { paramId: string; hasChevron?: boolean }) {
   const [copied, setCopied] = useState(false);
   const [showCheck, setShowCheck] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -286,7 +299,7 @@ function CopyLinkButton({ paramId, hasChevron }: { paramId: string, hasChevron?:
   const handleCopyLink = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const url = `${window.location.origin}${window.location.pathname}#${paramId}`;
     const success = await copyToClipboard(url);
     if (success) {
@@ -308,9 +321,15 @@ function CopyLinkButton({ paramId, hasChevron }: { paramId: string, hasChevron?:
         type="button"
       >
         {showCheck ? (
-          <Check className="w-3.5 h-3.5 text-[#50A14F] dark:text-[#98C379] transition-colors" strokeWidth={2.5} />
+          <Check
+            className="w-3.5 h-3.5 text-[#50A14F] dark:text-[#98C379] transition-colors"
+            strokeWidth={2.5}
+          />
         ) : (
-          <LinkIcon className="w-3.5 h-3.5 text-text-secondary transition-colors" strokeWidth={2.5} />
+          <LinkIcon
+            className="w-3.5 h-3.5 text-text-secondary transition-colors"
+            strokeWidth={2.5}
+          />
         )}
       </button>
     </CopiedTooltip>
@@ -329,22 +348,26 @@ interface SchemaHeaderProps {
   paramId?: string;
 }
 
-function SchemaHeader({ 
-  name, 
-  schema, 
-  required, 
-  isComplex, 
-  isExpanded, 
-  onToggle, 
+function SchemaHeader({
+  name,
+  schema,
+  required,
+  isComplex,
+  isExpanded,
+  onToggle,
   variantType,
   typeOverride,
-  paramId
+  paramId,
 }: SchemaHeaderProps) {
-  const hasMultipleVariants = !!(schema.anyOf || schema.oneOf || (schema.allOf && schema.allOf.length > 1));
+  const hasMultipleVariants = !!(
+    schema.anyOf ||
+    schema.oneOf ||
+    (schema.allOf && schema.allOf.length > 1)
+  );
   const showChevron = isComplex && !hasMultipleVariants;
 
   return (
-    <div 
+    <div
       className={`flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1 group/header group/param-name ${
         showChevron ? 'cursor-pointer select-none' : ''
       }`}
@@ -352,73 +375,75 @@ function SchemaHeader({
     >
       {showChevron && (
         <div className="shrink-0 self-center flex items-center justify-center">
-          <ChevronDown 
+          <ChevronDown
             className={`w-3.5 h-3.5 text-text-secondary group-hover/header:text-text-primary transition-all duration-200 ${
               isExpanded ? 'rotate-0' : '-rotate-90'
-            }`} 
-            strokeWidth={2.5} 
+            }`}
+            strokeWidth={2.5}
           />
         </div>
       )}
-      
+
       {name && (
         <div className="relative inline-flex items-center">
           {paramId && (
             <>
               <CopyLinkButton paramId={paramId} hasChevron={showChevron} />
               {/* Невидимая зона для сохранения hover между кнопкой и названием */}
-              <div className={`absolute right-full ${showChevron ? 'w-[28px]' : 'w-[6px]'} h-full`} />
+              <div
+                className={`absolute right-full ${showChevron ? 'w-[28px]' : 'w-[6px]'} h-full`}
+              />
             </>
           )}
           <CopyableName name={name} />
         </div>
       )}
-      
+
       <div className="flex items-baseline gap-x-1">
-        {schema.nullable && (
-          <span className="text-[13px] text-text-secondary">
-            nullable
-          </span>
-        )}
+        {schema.nullable && <span className="text-[13px] text-text-secondary">nullable</span>}
 
         {!hasMultipleVariants && (
           <span className="text-[13px] text-text-secondary">
-            {typeOverride || (Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type) || 'any'}
+            {typeOverride ||
+              (Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type) ||
+              'any'}
             {schema.format && `, (${schema.format})`}
           </span>
         )}
-        
+
         {hasMultipleVariants && (
           <span className="text-[13px] text-text-secondary font-medium">
             {variantType || (schema.anyOf ? 'anyOf' : schema.oneOf ? 'oneOf' : 'allOf')}
           </span>
         )}
       </div>
-      
+
       {required && <RequiredBadge />}
     </div>
   );
 }
 
 // Внутренний компонент SchemaTree без провайдера контекста
-function SchemaTreeInner({ schema, level = 0, name, required = false, parentPath }: SchemaTreeProps) {
+function SchemaTreeInner({
+  schema,
+  level = 0,
+  name,
+  required = false,
+  parentPath,
+}: SchemaTreeProps) {
   // Обработка anyOf/oneOf/allOf
   // Но если allOf содержит только один элемент - это не полиморфизм, а просто расширение
-  const shouldShowVariants = (schema.anyOf || schema.oneOf || (schema.allOf && schema.allOf.length > 1));
-  
+  const shouldShowVariants =
+    schema.anyOf || schema.oneOf || (schema.allOf && schema.allOf.length > 1);
+
   if (shouldShowVariants) {
     const variants = schema.anyOf || schema.oneOf || schema.allOf;
     const variantType = schema.anyOf ? 'anyOf' : schema.oneOf ? 'oneOf' : 'allOf';
-    
+
     return (
       <div className="flex flex-col not-prose">
         {name && (
-          <SchemaHeader 
-            name={name} 
-            schema={schema} 
-            required={required} 
-            variantType={variantType}
-          />
+          <SchemaHeader name={name} schema={schema} required={required} variantType={variantType} />
         )}
         {/* Описание показывается только для множественных вариантов */}
         {schema.description && (
@@ -429,10 +454,10 @@ function SchemaTreeInner({ schema, level = 0, name, required = false, parentPath
         <div className="space-y-3">
           {variants?.map((variant, index) => {
             // Если вариант - это $ref, показываем название
-            const variantName = variant.$ref 
-              ? variant.$ref.split('/').pop() 
+            const variantName = variant.$ref
+              ? variant.$ref.split('/').pop()
               : `Вариант ${index + 1}`;
-            
+
             return (
               <VariantSection
                 key={index}
@@ -448,7 +473,7 @@ function SchemaTreeInner({ schema, level = 0, name, required = false, parentPath
       </div>
     );
   }
-  
+
   // Если allOf с одним элементом - просто рендерим этот элемент напрямую
   if (schema.allOf && schema.allOf.length === 1) {
     const singleSchema = schema.allOf[0];
@@ -456,22 +481,28 @@ function SchemaTreeInner({ schema, level = 0, name, required = false, parentPath
     // (это означает, что описание уже показано выше)
     const mergedSchema = {
       ...singleSchema,
-      description: name ? singleSchema.description : (schema.description || singleSchema.description),
+      description: name ? singleSchema.description : schema.description || singleSchema.description,
       nullable: schema.nullable !== undefined ? schema.nullable : singleSchema.nullable,
     };
-    return <SchemaTreeInner schema={mergedSchema} level={level} name={name} required={required} parentPath={parentPath} />;
+    return (
+      <SchemaTreeInner
+        schema={mergedSchema}
+        level={level}
+        name={name}
+        required={required}
+        parentPath={parentPath}
+      />
+    );
   }
 
-  if ((schema.type === 'object' || (Array.isArray(schema.type) && schema.type.includes('object'))) && schema.properties) {
+  if (
+    (schema.type === 'object' || (Array.isArray(schema.type) && schema.type.includes('object'))) &&
+    schema.properties
+  ) {
     return (
       <div className="flex flex-col not-prose">
         {name && (
-          <SchemaHeader 
-            name={name} 
-            schema={schema} 
-            required={required} 
-            typeOverride="object"
-          />
+          <SchemaHeader name={name} schema={schema} required={required} typeOverride="object" />
         )}
         <div className="divide-y divide-background-border/60">
           {Object.entries(schema.properties).map(([propName, propSchema]) => (
@@ -489,27 +520,25 @@ function SchemaTreeInner({ schema, level = 0, name, required = false, parentPath
     );
   }
 
-  if ((schema.type === 'array' || (Array.isArray(schema.type) && schema.type.includes('array'))) && schema.items) {
+  if (
+    (schema.type === 'array' || (Array.isArray(schema.type) && schema.type.includes('array'))) &&
+    schema.items
+  ) {
     // Проверяем, является ли items объектом с properties
     const itemsIsObject = isItemsObjectWithProperties(schema.items);
-    const arrayPath = parentPath ? `${parentPath}[]` : (name ? `${name}[]` : '[]');
-    
+    const arrayPath = parentPath ? `${parentPath}[]` : name ? `${name}[]` : '[]';
+
     return (
       <div className="flex flex-col not-prose">
         {name && (
-          <SchemaHeader 
-            name={name} 
-            schema={schema} 
-            required={required} 
-            typeOverride="array"
-          />
+          <SchemaHeader name={name} schema={schema} required={required} typeOverride="array" />
         )}
         {schema.description && (
           <div className="text-[14px] text-text-secondary leading-relaxed mb-2 mt-1">
             <InlineCodeText text={schema.description} />
           </div>
         )}
-        
+
         {/* Метаданные массива */}
         {(schema.minItems !== undefined || schema.maxItems !== undefined) && (
           <div className="text-[13px] text-text-secondary flex items-center gap-1 mb-2 mt-1">
@@ -519,9 +548,11 @@ function SchemaTreeInner({ schema, level = 0, name, required = false, parentPath
             </code>
           </div>
         )}
-        
-        <div className={itemsIsObject ? "" : "pl-4 border-l border-background-border/60"}>
-          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">Array items</div>
+
+        <div className={itemsIsObject ? '' : 'pl-4 border-l border-background-border/60'}>
+          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">
+            Array items
+          </div>
           {itemsIsObject && schema.items ? (
             // Если items - это объект с properties, рендерим его как таблицу свойств
             <div className="divide-y divide-background-border/60 mt-2">
@@ -567,15 +598,27 @@ function SchemaTreeInner({ schema, level = 0, name, required = false, parentPath
   );
 }
 
-function VariantSection({ title, schema, level, index, parentPath }: { title: string; schema: Schema; level: number; index: number; parentPath?: string }) {
+function VariantSection({
+  title,
+  schema,
+  level,
+  index,
+  parentPath,
+}: {
+  title: string;
+  schema: Schema;
+  level: number;
+  index: number;
+  parentPath?: string;
+}) {
   const targetPath = useContext(ExpandToPathContext);
-  
+
   // Проверяем, нужно ли автоматически раскрыть этот вариант
   // Для вариантов сложнее определить путь, поэтому раскрываем все варианты если есть targetPath в этой ветке
   const shouldAutoExpand = targetPath && parentPath ? isPathPrefix(parentPath, targetPath) : false;
-  
+
   const [isOpen, setIsOpen] = useState(shouldAutoExpand);
-  
+
   // Обновляем состояние раскрытия при изменении targetPath
   useEffect(() => {
     if (shouldAutoExpand && !isOpen) {
@@ -586,22 +629,24 @@ function VariantSection({ title, schema, level, index, parentPath }: { title: st
 
   return (
     <div className="border border-background-border rounded-lg overflow-hidden">
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center gap-2 px-3 py-2 bg-background-secondary hover:bg-background-tertiary transition-colors text-left group/variant cursor-pointer select-none"
       >
-        <ChevronDown 
+        <ChevronDown
           className={`w-3.5 h-3.5 text-text-secondary group-hover/variant:text-text-primary transition-all duration-200 shrink-0 ${
             isOpen ? 'rotate-0' : '-rotate-90'
-          }`} 
-          strokeWidth={2.5} 
+          }`}
+          strokeWidth={2.5}
         />
         <span className="font-mono text-[13px] font-bold text-text-primary">{title}</span>
         <span className="text-[11px] text-text-secondary ml-auto">
-          {(Array.isArray(schema.type) ? schema.type.join(' | ') : (schema.type || (schema.properties ? 'object' : 'any')))}
+          {Array.isArray(schema.type)
+            ? schema.type.join(' | ')
+            : schema.type || (schema.properties ? 'object' : 'any')}
         </span>
       </div>
-      
+
       {isOpen && (
         <div className="p-3 border-t border-background-border">
           <SchemaTreeInner schema={schema} level={level + 1} parentPath={parentPath} />
@@ -642,15 +687,15 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
   // Генерируем уникальный ID для параметра
   const paramId = generateParamId(name, parentPath);
   const currentPath = parentPath ? `${parentPath}.${name}` : name;
-  
+
   // Получаем целевой путь из контекста
   const targetPath = useContext(ExpandToPathContext);
-  
+
   // Проверяем, нужно ли автоматически раскрыть этот блок
   const shouldAutoExpand = targetPath ? isPathPrefix(currentPath, targetPath) : false;
-  
+
   const [isExpanded, setIsExpanded] = useState(shouldAutoExpand);
-  
+
   // Обновляем состояние раскрытия при изменении targetPath
   useEffect(() => {
     if (shouldAutoExpand && !isExpanded) {
@@ -662,11 +707,11 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
   // Скролл к параметру при загрузке страницы или при навигации из поиска
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const tryScrollToParam = () => {
       const hash = window.location.hash;
       if (!hash) return;
-      
+
       // Извлекаем путь из хеша, убирая префикс схемы если есть
       // Хеш может быть: #param-url или #param-MessageWebhookPayload___url
       let hashParamId = hash.slice(1); // убираем #
@@ -676,9 +721,9 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         const fieldPath = hashParamId.substring(schemaSeparatorIndex + 3);
         hashParamId = `param-${fieldPath}`;
       }
-      
+
       if (hashParamId !== paramId) return;
-      
+
       // Скролл к элементу с задержкой для открытия секций
       setTimeout(() => {
         const element = document.getElementById(paramId);
@@ -687,10 +732,10 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         }
       }, 150);
     };
-    
+
     // Проверяем сразу при монтировании
     tryScrollToParam();
-    
+
     // Также слушаем событие навигации из поиска (для клиентской навигации)
     window.addEventListener('param-navigation', tryScrollToParam);
     return () => window.removeEventListener('param-navigation', tryScrollToParam);
@@ -698,15 +743,21 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
 
   // allOf с одним элементом - не полиморфизм, а просто расширение
   const hasMultipleVariants = !!(
-    schema.anyOf || 
-    schema.oneOf || 
+    schema.anyOf ||
+    schema.oneOf ||
     (schema.allOf && schema.allOf.length > 1)
   );
-  
-  const isObjectType = schema.type === 'object' || (Array.isArray(schema.type) && schema.type.includes('object'));
-  const isArrayType = schema.type === 'array' || (Array.isArray(schema.type) && schema.type.includes('array'));
 
-  const hasProperties = !!(isObjectType && schema.properties && Object.keys(schema.properties).length > 0);
+  const isObjectType =
+    schema.type === 'object' || (Array.isArray(schema.type) && schema.type.includes('object'));
+  const isArrayType =
+    schema.type === 'array' || (Array.isArray(schema.type) && schema.type.includes('array'));
+
+  const hasProperties = !!(
+    isObjectType &&
+    schema.properties &&
+    Object.keys(schema.properties).length > 0
+  );
   const hasItems = !!(isArrayType && schema.items);
   const isComplex = hasProperties || hasItems || hasMultipleVariants;
 
@@ -719,13 +770,21 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
       nullable: schema.nullable !== undefined ? schema.nullable : singleSchema.nullable,
       example: schema.example !== undefined ? schema.example : singleSchema.example,
     };
-    return <PropertyRow name={name} schema={mergedSchema} required={required} level={level} parentPath={parentPath} />;
+    return (
+      <PropertyRow
+        name={name}
+        schema={mergedSchema}
+        required={required}
+        level={level}
+        parentPath={parentPath}
+      />
+    );
   }
 
   return (
     <div className="py-3 scroll-mt-20" id={paramId}>
       <div className="flex flex-col min-w-0">
-        <SchemaHeader 
+        <SchemaHeader
           name={name}
           schema={schema}
           required={required}
@@ -734,28 +793,34 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
           onToggle={() => setIsExpanded(!isExpanded)}
           paramId={paramId}
         />
-        
+
         {/* Описание показывается только если нет вариантов (anyOf/oneOf/allOf) */}
         {schema.description && !hasMultipleVariants && (
           <div className="text-[14px] text-text-primary leading-relaxed mb-0 mt-1">
             <InlineCodeText text={schema.description} />
           </div>
         )}
-        
+
         <div className="flex flex-col gap-1 mt-1">
           {schema.example !== undefined && !hasMultipleVariants && (
             <MetadataRow label="Пример">
-              <CopyableCode 
-                value={typeof schema.example === 'string' ? schema.example : JSON.stringify(schema.example)} 
+              <CopyableCode
+                value={
+                  typeof schema.example === 'string'
+                    ? schema.example
+                    : JSON.stringify(schema.example)
+                }
               />
             </MetadataRow>
           )}
-          
+
           <EnumValues schema={schema} fieldPath={currentPath} />
           {schema.default !== undefined && (
             <MetadataRow label="По умолчанию">
               <CodeBadge>
-                {typeof schema.default === 'string' ? schema.default : JSON.stringify(schema.default)}
+                {typeof schema.default === 'string'
+                  ? schema.default
+                  : JSON.stringify(schema.default)}
               </CodeBadge>
             </MetadataRow>
           )}
@@ -781,22 +846,24 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
           )}
         </div>
       </div>
-      
+
       {hasMultipleVariants && (
         <div className="mt-2">
           <SchemaTreeInner schema={schema} level={level + 1} />
         </div>
       )}
-      
+
       {!hasMultipleVariants && isComplex && isExpanded && isObjectType && schema.properties && (
         <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
           <SchemaTreeInner schema={schema} level={level + 1} parentPath={currentPath} />
         </div>
       )}
-      
+
       {!hasMultipleVariants && isComplex && isExpanded && isArrayType && schema.items && (
         <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
-          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">Array items</div>
+          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">
+            Array items
+          </div>
           {isItemsObjectWithProperties(schema.items) && schema.items.properties ? (
             // Если items - это объект с properties, показываем его свойства напрямую
             <div className="divide-y divide-background-border/60 mt-2">
@@ -813,7 +880,11 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
             </div>
           ) : (
             // Иначе рендерим как обычную схему
-            <SchemaTreeInner schema={schema.items} level={level + 1} parentPath={`${currentPath}[]`} />
+            <SchemaTreeInner
+              schema={schema.items}
+              level={level + 1}
+              parentPath={`${currentPath}[]`}
+            />
           )}
         </div>
       )}
@@ -822,7 +893,13 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
 }
 
 // Экспортируемый компонент SchemaTree с провайдером контекста
-export function SchemaTree({ schema, level = 0, name, required = false, parentPath }: SchemaTreeProps) {
+export function SchemaTree({
+  schema,
+  level = 0,
+  name,
+  required = false,
+  parentPath,
+}: SchemaTreeProps) {
   const [targetPath, setTargetPath] = useState<string | null>(null);
 
   // Извлекаем целевой путь из URL hash при загрузке
@@ -855,11 +932,25 @@ export function SchemaTree({ schema, level = 0, name, required = false, parentPa
   if (level === 0) {
     return (
       <ExpandToPathContext.Provider value={targetPath}>
-        <SchemaTreeInner schema={schema} level={level} name={name} required={required} parentPath={parentPath} />
+        <SchemaTreeInner
+          schema={schema}
+          level={level}
+          name={name}
+          required={required}
+          parentPath={parentPath}
+        />
       </ExpandToPathContext.Provider>
     );
   }
 
   // Для вложенных уровней просто используем внутренний компонент
-  return <SchemaTreeInner schema={schema} level={level} name={name} required={required} parentPath={parentPath} />;
+  return (
+    <SchemaTreeInner
+      schema={schema}
+      level={level}
+      name={name}
+      required={required}
+      parentPath={parentPath}
+    />
+  );
 }

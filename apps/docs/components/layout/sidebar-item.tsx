@@ -14,23 +14,23 @@ interface SidebarItemProps {
 const METHOD_COLORS = {
   GET: {
     ghost: 'bg-method-get/10 text-method-get',
-    active: 'bg-white text-primary'
+    active: 'bg-white text-primary',
   },
   POST: {
     ghost: 'bg-method-post/10 text-method-post',
-    active: 'bg-white text-primary'
+    active: 'bg-white text-primary',
   },
   PUT: {
     ghost: 'bg-method-put/10 text-method-put',
-    active: 'bg-white text-primary'
+    active: 'bg-white text-primary',
   },
   DELETE: {
     ghost: 'bg-method-delete/10 text-method-delete',
-    active: 'bg-white text-primary'
+    active: 'bg-white text-primary',
   },
   PATCH: {
     ghost: 'bg-method-patch/10 text-method-patch',
-    active: 'bg-white text-primary'
+    active: 'bg-white text-primary',
   },
 };
 
@@ -66,16 +66,16 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
         }`}
       >
         <span className="truncate flex-1">{item.title}</span>
-        {isLoading && (
-          <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-        )}
+        {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
         {!isLoading && hasNewBadge && (
           <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
             <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-primary'}`} />
           </div>
         )}
         {!isLoading && item.method && (
-          <span className={`text-[10px] font-bold uppercase tracking-wider ml-auto px-1.5 py-0.5 rounded-full transition-colors duration-200 ${isActive ? METHOD_COLORS[item.method].active : METHOD_COLORS[item.method].ghost}`}>
+          <span
+            className={`text-[10px] font-bold uppercase tracking-wider ml-auto px-1.5 py-0.5 rounded-full transition-colors duration-200 ${isActive ? METHOD_COLORS[item.method].active : METHOD_COLORS[item.method].ghost}`}
+          >
             {item.method}
           </span>
         )}

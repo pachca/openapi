@@ -1,17 +1,24 @@
 import type { Endpoint, Schema } from '../openapi/types';
-import { generateExample, generateParameterExample, generateRequestExample } from '../openapi/example-generator';
+import {
+  generateExample,
+  generateParameterExample,
+  generateRequestExample,
+} from '../openapi/example-generator';
 
-export function generatePython(endpoint: Endpoint, baseUrl: string = 'https://api.pachca.com/api/shared/v1'): string {
+export function generatePython(
+  endpoint: Endpoint,
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+): string {
   const url = `${baseUrl}${endpoint.path}`;
   const method = endpoint.method.toLowerCase();
-  
+
   let code = `import requests\n\n`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter(p => p.in === 'query');
+  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
   if (queryParams.length > 0) {
     code += `params = {\n`;
-    queryParams.forEach(p => {
+    queryParams.forEach((p) => {
       const example = generateParameterExample(p);
       code += `    '${p.name}': ${pythonRepr(example)},\n`;
     });
@@ -22,10 +29,12 @@ export function generatePython(endpoint: Endpoint, baseUrl: string = 'https://ap
   if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
     // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
-    const body = requestExample || (endpoint.requestBody.content['application/json']?.schema 
-      ? generateExample(endpoint.requestBody.content['application/json'].schema) 
-      : null);
-    
+    const body =
+      requestExample ||
+      (endpoint.requestBody.content['application/json']?.schema
+        ? generateExample(endpoint.requestBody.content['application/json'].schema)
+        : null);
+
     if (body) {
       code += `data = ${pythonRepr(body)}\n\n`;
     }
@@ -39,7 +48,7 @@ export function generatePython(endpoint: Endpoint, baseUrl: string = 'https://ap
 
   code += `response = requests.${method}(\n`;
   code += `    '${url}'`;
-  
+
   if (queryParams.length > 0) {
     code += `,\n    params=params`;
   }
@@ -78,14 +87,16 @@ function pythonRepr(obj: any, indent: number = 0): string {
 
   if (Array.isArray(obj)) {
     if (obj.length === 0) return '[]';
-    const items = obj.map(item => `${nextIndentStr}${pythonRepr(item, indent + 1)}`).join(',\n');
+    const items = obj.map((item) => `${nextIndentStr}${pythonRepr(item, indent + 1)}`).join(',\n');
     return `[\n${items}\n${indentStr}]`;
   }
 
   if (typeof obj === 'object') {
     const keys = Object.keys(obj);
     if (keys.length === 0) return '{}';
-    const items = keys.map(key => `${nextIndentStr}'${key}': ${pythonRepr(obj[key], indent + 1)}`).join(',\n');
+    const items = keys
+      .map((key) => `${nextIndentStr}'${key}': ${pythonRepr(obj[key], indent + 1)}`)
+      .join(',\n');
     return `{\n${items}\n${indentStr}}`;
   }
 

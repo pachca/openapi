@@ -15,7 +15,7 @@ import { expandMdxComponents } from './mdx-expander';
  */
 function resolveSchema(schema: any): any {
   if (!schema) return schema;
-  
+
   // If schema has allOf with items, merge them
   if (schema.allOf && schema.allOf.length > 0) {
     let merged: any = {};
@@ -40,14 +40,18 @@ function resolveSchema(schema: any): any {
  * Convert OpenAPI Schema to markdown format
  * Unified function used for both API methods and guide pages
  */
-export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFields: string[] = []): string {
+export function schemaToMarkdown(
+  schema: Schema,
+  depth: number = 0,
+  requiredFields: string[] = []
+): string {
   if (!schema || depth > 5) {
     return '';
   }
 
   // Resolve allOf at top level
   const resolvedSchema = resolveSchema(schema);
-  
+
   let content = '';
   const indent = '  '.repeat(depth);
 
@@ -58,9 +62,9 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
     content += `${indent}**${variantType}** - один из вариантов:\n\n`;
     variants?.forEach((variant: any, index: number) => {
       const resolvedVariant = resolveSchema(variant);
-      const variantName = variant.$ref 
-        ? variant.$ref.split('/').pop() 
-        : (resolvedVariant.title || `Вариант ${index + 1}`);
+      const variantName = variant.$ref
+        ? variant.$ref.split('/').pop()
+        : resolvedVariant.title || `Вариант ${index + 1}`;
       content += `${indent}- **${variantName}**`;
       if (resolvedVariant.description) {
         content += `: ${resolvedVariant.description}`;
@@ -78,12 +82,13 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
     for (const [propName, propSchema] of Object.entries(resolvedSchema.properties)) {
       const rawProp = propSchema as any;
       const prop = resolveSchema(rawProp);
-      const isRequired = requiredFields.includes(propName) || resolvedSchema.required?.includes(propName);
+      const isRequired =
+        requiredFields.includes(propName) || resolvedSchema.required?.includes(propName);
       const requiredLabel = isRequired ? '**обязательный**' : 'опциональный';
-      
+
       // Check for anyOf/oneOf on property level
       const hasUnion = prop.anyOf || prop.oneOf;
-      
+
       // Determine type info
       let typeInfo = '';
       if (hasUnion) {
@@ -101,7 +106,7 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
       } else {
         typeInfo = prop.type || 'object';
       }
-      
+
       // Handle enum - will add descriptions below if available
       const hasEnum = prop.enum && prop.enum.length > 0;
       if (hasEnum && !prop['x-enum-descriptions']) {
@@ -111,26 +116,28 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
       if (prop.format) {
         typeInfo += `, ${prop.format}`;
       }
-      
+
       const description = prop.description || rawProp.description || '';
       content += `${indent}- \`${propName}\` (${typeInfo}, ${requiredLabel})`;
       if (description) {
         content += `: ${description}`;
       }
       content += '\n';
-      
+
       // Add example if available
       if (prop.example !== undefined) {
-        const exampleStr = typeof prop.example === 'string' ? prop.example : JSON.stringify(prop.example);
+        const exampleStr =
+          typeof prop.example === 'string' ? prop.example : JSON.stringify(prop.example);
         content += `${indent}  - Пример: \`${exampleStr}\`\n`;
       }
-      
+
       // Add default value if available
       if (prop.default !== undefined) {
-        const defaultStr = typeof prop.default === 'string' ? prop.default : JSON.stringify(prop.default);
+        const defaultStr =
+          typeof prop.default === 'string' ? prop.default : JSON.stringify(prop.default);
         content += `${indent}  - По умолчанию: \`${defaultStr}\`\n`;
       }
-      
+
       // Add constraints
       if (prop.maxLength !== undefined) {
         content += `${indent}  - Максимальная длина: ${prop.maxLength} символов\n`;
@@ -147,7 +154,7 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
       if (prop.maximum !== undefined) {
         content += `${indent}  - Максимум: ${prop.maximum}\n`;
       }
-      
+
       // Add enum values with descriptions
       if (hasEnum && prop['x-enum-descriptions']) {
         const enumDescriptions = prop['x-enum-descriptions'] as Record<string, string>;
@@ -164,14 +171,16 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
         // List enum values without descriptions
         content += `${indent}  - **Возможные значения:** ${prop.enum.map((v: string) => `\`${v}\``).join(', ')}\n`;
       }
-      
+
       // Handle anyOf/oneOf on property level
       if (hasUnion) {
         const variants = prop.anyOf || prop.oneOf;
         content += `${indent}  **Возможные варианты:**\n\n`;
         for (const variant of variants) {
           const resolvedVariant = resolveSchema(variant);
-          const variantName = variant.$ref ? variant.$ref.split('/').pop() : (resolvedVariant.title || 'Вариант');
+          const variantName = variant.$ref
+            ? variant.$ref.split('/').pop()
+            : resolvedVariant.title || 'Вариант';
           content += `${indent}  - **${variantName}**`;
           if (resolvedVariant.description) {
             content += `: ${resolvedVariant.description}`;
@@ -189,21 +198,27 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
       // Handle arrays
       else if (prop.type === 'array' && prop.items) {
         const items = prop.items as any;
-        
+
         // Check if items has anyOf/oneOf (union type)
         if (items.anyOf || items.oneOf) {
           const variants = items.anyOf || items.oneOf;
           content += `${indent}  **Возможные типы элементов:**\n\n`;
           for (const variant of variants) {
             const resolvedVariant = resolveSchema(variant);
-            const variantName = variant.$ref ? variant.$ref.split('/').pop() : (resolvedVariant.title || 'Тип');
+            const variantName = variant.$ref
+              ? variant.$ref.split('/').pop()
+              : resolvedVariant.title || 'Тип';
             content += `${indent}  - **${variantName}**`;
             if (resolvedVariant.description) {
               content += `: ${resolvedVariant.description}`;
             }
             content += '\n';
             if (resolvedVariant.properties) {
-              content += schemaToMarkdown(resolvedVariant, depth + 2, resolvedVariant.required || []);
+              content += schemaToMarkdown(
+                resolvedVariant,
+                depth + 2,
+                resolvedVariant.required || []
+              );
             }
           }
         } else if (items.type === 'object' && items.properties) {
@@ -212,7 +227,7 @@ export function schemaToMarkdown(schema: Schema, depth: number = 0, requiredFiel
       }
     }
   }
-  
+
   return content;
 }
 
@@ -225,12 +240,12 @@ function formatParameters(endpoint: Endpoint): string {
   }
 
   let content = '\n## Параметры\n\n';
-  
+
   // Group by location
   const pathParams = endpoint.parameters.filter((p) => p.in === 'path');
   const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
   const headerParams = endpoint.parameters.filter((p) => p.in === 'header');
-  
+
   if (pathParams.length > 0) {
     content += '### Path параметры\n\n';
     for (const param of pathParams) {
@@ -244,7 +259,7 @@ function formatParameters(endpoint: Endpoint): string {
     }
     content += '\n';
   }
-  
+
   if (queryParams.length > 0) {
     content += '### Query параметры\n\n';
     for (const param of queryParams) {
@@ -264,7 +279,7 @@ function formatParameters(endpoint: Endpoint): string {
     }
     content += '\n';
   }
-  
+
   if (headerParams.length > 0) {
     content += '### Header параметры\n\n';
     for (const param of headerParams) {
@@ -278,7 +293,7 @@ function formatParameters(endpoint: Endpoint): string {
     }
     content += '\n';
   }
-  
+
   return content;
 }
 
@@ -291,26 +306,30 @@ function formatRequestBody(endpoint: Endpoint): string {
   }
 
   let content = '\n## Тело запроса\n\n';
-  
+
   const jsonContent = endpoint.requestBody.content?.['application/json'];
   if (jsonContent?.schema) {
     const required = endpoint.requestBody.required ? '**Обязательно**' : '**Опционально**';
     content += `${required}\n\n`;
-    
+
     if (endpoint.requestBody.description) {
       content += `${endpoint.requestBody.description}\n\n`;
     }
-    
+
     content += 'Формат: `application/json`\n\n';
-    
+
     // Format schema structure
     content += '### Схема\n\n';
-    const schemaFormatted = schemaToMarkdown(jsonContent.schema, 0, jsonContent.schema.required || []);
+    const schemaFormatted = schemaToMarkdown(
+      jsonContent.schema,
+      0,
+      jsonContent.schema.required || []
+    );
     if (schemaFormatted) {
       content += schemaFormatted;
       content += '\n';
     }
-    
+
     // Generate example
     const example = generateRequestExample(endpoint.requestBody);
     if (example) {
@@ -320,7 +339,7 @@ function formatRequestBody(endpoint: Endpoint): string {
       content += '\n```\n';
     }
   }
-  
+
   return content;
 }
 
@@ -333,25 +352,29 @@ function formatResponses(endpoint: Endpoint): string {
   }
 
   let content = '\n## Ответы\n\n';
-  
+
   for (const [statusCode, response] of Object.entries(endpoint.responses)) {
     const resp = response as any;
     content += `### ${statusCode}: ${resp.description}\n\n`;
-    
+
     const jsonContent = resp.content?.['application/json'];
-    
+
     // Add response schema and example for success codes (2xx)
     if (statusCode.startsWith('2')) {
       // Format schema
       if (jsonContent?.schema) {
         content += '**Схема ответа:**\n\n';
-        const schemaFormatted = schemaToMarkdown(jsonContent.schema, 0, jsonContent.schema.required || []);
+        const schemaFormatted = schemaToMarkdown(
+          jsonContent.schema,
+          0,
+          jsonContent.schema.required || []
+        );
         if (schemaFormatted) {
           content += schemaFormatted;
           content += '\n';
         }
       }
-      
+
       // Add example
       const example = generateResponseExample(resp);
       if (example) {
@@ -366,12 +389,16 @@ function formatResponses(endpoint: Endpoint): string {
       // Format error schema if available
       if (jsonContent?.schema) {
         content += '**Схема ответа при ошибке:**\n\n';
-        const schemaFormatted = schemaToMarkdown(jsonContent.schema, 0, jsonContent.schema.required || []);
+        const schemaFormatted = schemaToMarkdown(
+          jsonContent.schema,
+          0,
+          jsonContent.schema.required || []
+        );
         if (schemaFormatted) {
           content += schemaFormatted;
           content += '\n';
         }
-        
+
         // Add example for error response
         const example = generateResponseExample(resp);
         if (example) {
@@ -383,7 +410,7 @@ function formatResponses(endpoint: Endpoint): string {
       }
     }
   }
-  
+
   return content;
 }
 
@@ -396,34 +423,34 @@ function formatResponses(endpoint: Endpoint): string {
 export function generateEndpointMarkdown(endpoint: Endpoint, baseUrl?: string): string {
   const title = generateTitle(endpoint);
   const description = getDescriptionWithoutTitle(endpoint);
-  
+
   let content = `# ${title}\n\n`;
   content += `**Метод**: \`${endpoint.method}\`\n\n`;
   content += `**Путь**: \`${endpoint.path}\`\n\n`;
-  
+
   if (description) {
     // Use original description from OpenAPI without transforming special tags
     content += description + '\n';
   }
-  
+
   content += formatParameters(endpoint);
   content += formatRequestBody(endpoint);
-  
+
   // Add code examples in multiple languages
   content += '\n## Примеры запроса\n\n';
-  
+
   // cURL
   content += '### cURL\n\n';
   content += '```bash\n';
   content += generateCurl(endpoint, baseUrl);
   content += '\n```\n\n';
-  
+
   // JavaScript
   content += '### JavaScript\n\n';
   content += '```javascript\n';
   content += generateJavaScript(endpoint, baseUrl);
   content += '\n```\n\n';
-  
+
   // Python
   content += '### Python\n\n';
   content += '```python\n';
@@ -447,9 +474,8 @@ export function generateEndpointMarkdown(endpoint: Endpoint, baseUrl?: string): 
   content += '```php\n';
   content += generatePHP(endpoint, baseUrl);
   content += '\n```\n';
-  
-  content += formatResponses(endpoint);
 
+  content += formatResponses(endpoint);
 
   return content;
 }
@@ -467,13 +493,13 @@ export async function generateStaticPageMarkdownAsync(path: string): Promise<str
   } else if (path.startsWith('/guides/')) {
     contentPath = path.replace('/guides/', '');
   }
-  
+
   // Load markdown/mdx file for this path
   const fileContent = getGuideContent(contentPath);
   if (fileContent) {
     // Expand MDX components to their markdown representation
     return await expandMdxComponents(fileContent);
   }
-  
+
   return null;
 }

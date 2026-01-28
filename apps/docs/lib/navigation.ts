@@ -6,18 +6,18 @@ import { loadUpdates, isNewUpdate } from './updates-parser';
 
 export async function generateNavigation(): Promise<NavigationSection[]> {
   const api = await parseOpenAPI();
-  
+
   const sections: NavigationSection[] = [];
 
   // Check if there are new updates (within last 14 days)
   const updates = loadUpdates();
-  const hasNewUpdates = updates.some(update => isNewUpdate(update.date));
+  const hasNewUpdates = updates.some((update) => isNewUpdate(update.date));
 
   // Add "Getting Started" section (dynamically collected from page.tsx files)
   const guidePages = getOrderedGuidePages();
   sections.push({
     title: 'Начало работы',
-    items: guidePages.map(guide => ({
+    items: guidePages.map((guide) => ({
       title: guide.title,
       href: guide.path,
       // Add badge for updates page if there are new updates
@@ -39,7 +39,7 @@ export async function generateNavigation(): Promise<NavigationSection[]> {
 
     sections.push({
       title,
-      items: endpoints.map(endpoint => ({
+      items: endpoints.map((endpoint) => ({
         title: generateTitle(endpoint),
         href: generateUrlFromOperation(endpoint),
         method: endpoint.method,
@@ -52,8 +52,8 @@ export async function generateNavigation(): Promise<NavigationSection[]> {
 
 export async function getAdjacentItems(currentHref: string) {
   const sections = await generateNavigation();
-  const allItems = sections.flatMap(s => s.items);
-  const currentIndex = allItems.findIndex(item => item.href === currentHref);
+  const allItems = sections.flatMap((s) => s.items);
+  const currentIndex = allItems.findIndex((item) => item.href === currentHref);
 
   return {
     prev: currentIndex > 0 ? allItems[currentIndex - 1] : null,

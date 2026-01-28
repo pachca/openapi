@@ -9,7 +9,10 @@ import type { SearchResult } from '@/lib/search/indexer';
 // Генерация param ID из пути (аналогично schema-tree.tsx)
 // Путь может содержать -- как разделитель для enum значений
 function generateParamId(path: string): string {
-  return `param-${path.replace(/\./g, '-').replace(/\[\]/g, '').replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  return `param-${path
+    .replace(/\./g, '-')
+    .replace(/\[\]/g, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
 
 interface SearchDialogProps {
@@ -26,7 +29,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   // Handle navigation with optional param hash
   const handleResultClick = (result: SearchResult) => {
     onClose();
-    
+
     // If we have a matched field with a path, navigate with hash
     if (result.matchedValue?.path) {
       const paramId = generateParamId(result.matchedValue.path);
@@ -100,11 +103,11 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   }
 
   const dialogContent = (
-    <div 
+    <div
       className="fixed inset-0 bg-black/60 z-[9999] flex items-start justify-center pt-[60px] pb-[60px] px-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-background rounded-lg shadow-2xl w-full max-w-2xl max-h-[calc(100vh-120px)] overflow-hidden border border-background-border"
         onClick={(e) => e.stopPropagation()}
       >
@@ -118,7 +121,9 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
             className="flex-1 outline-none text-lg bg-transparent text-text-primary font-medium text-[15px]"
             autoFocus
           />
-          <kbd className="px-2 py-1 text-xs bg-background-secondary rounded text-text-tertiary">ESC</kbd>
+          <kbd className="px-2 py-1 text-xs bg-background-secondary rounded text-text-tertiary">
+            ESC
+          </kbd>
         </div>
 
         <div className="overflow-y-auto  max-h-[calc(100vh-168px)] custom-scrollbar">
@@ -161,7 +166,10 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
                               {result.matchedValue.value}
                             </code>
                             {result.matchedValue.description && (
-                              <span className="text-[13px] text-nowrap overflow-hidden text-ellipsis"> {result.matchedValue.description.toLowerCase()}</span>
+                              <span className="text-[13px] text-nowrap overflow-hidden text-ellipsis">
+                                {' '}
+                                {result.matchedValue.description.toLowerCase()}
+                              </span>
                             )}
                           </span>
                         </div>

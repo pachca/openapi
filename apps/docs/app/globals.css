@@ -1,14 +1,14 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   /* Colors - Light Mode */
   --color-primary: #525cda;
   --color-primary-dark: #4852d0;
-  
+
   --color-text-primary: #1a1f36;
   --color-text-secondary: #4f566b;
   --color-text-tertiary: #6f777b;
-  
+
   --color-background: #ffffff;
   --color-background-secondary: #f6f9fc;
   --color-background-tertiary: #f6f9fc;
@@ -23,7 +23,7 @@
   --color-callout-warning-border: #fbedbb;
   --color-callout-warning-header-bg: #fef9e1;
   --color-callout-warning-text: #92400e;
-  
+
   --color-method-get: #4078f2;
   --color-method-post: #50a14f;
   --color-method-put: #986801;
@@ -34,8 +34,11 @@
   --mobile-header-height: 56px;
 
   /* Font Families */
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
-  --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Ubuntu, sans-serif;
+  --font-mono:
+    'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
 /* Dark Mode - ручное переключение */
@@ -44,7 +47,7 @@ html.dark {
   --color-text-primary: #ededed;
   --color-text-secondary: #9ba1a6;
   --color-text-tertiary: #63696c;
-  
+
   --color-background: #1a1e1f;
   --color-background-secondary: #1a1e1f;
   --color-background-tertiary: #1f2324;
@@ -71,7 +74,7 @@ html.dark {
     --color-text-primary: #ededed;
     --color-text-secondary: #9ba1a6;
     --color-text-tertiary: #63696c;
-      
+
     --color-background: #1a1e1f;
     --color-background-secondary: #1a1e1f;
     --color-background-tertiary: #1f2324;
@@ -96,7 +99,9 @@ html.dark {
   .bg-callout-info-bg a,
   .bg-callout-info-bg\! a {
     @apply text-callout-info-text! font-semibold underline decoration-callout-info-text/50! underline-offset-4 decoration-1 hover:decoration-callout-info-text!;
-    transition: text-decoration-color 0.2s, text-decoration-thickness 0.2s !important;
+    transition:
+      text-decoration-color 0.2s,
+      text-decoration-thickness 0.2s !important;
   }
 
   .bg-callout-info-bg code,
@@ -107,7 +112,9 @@ html.dark {
   .bg-callout-warning-bg a,
   .bg-callout-warning-bg\! a {
     @apply text-callout-warning-text! font-semibold underline decoration-callout-warning-text/60! underline-offset-4 decoration-1 hover:decoration-callout-warning-text!;
-    transition: text-decoration-color 0.2s, text-decoration-thickness 0.2s !important;
+    transition:
+      text-decoration-color 0.2s,
+      text-decoration-thickness 0.2s !important;
   }
 
   .bg-callout-warning-bg code,
@@ -181,10 +188,9 @@ body {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
-
 
 .prose h1 {
   @apply text-[32px] font-bold tracking-tight text-text-primary mt-0 mb-8 leading-[1.15];
@@ -212,7 +218,7 @@ body {
 }
 
 /* Уменьшаем отступ, если список идет сразу за текстом */
-.prose p + ul, 
+.prose p + ul,
 .prose p + ol {
   @apply -mt-3;
 }
@@ -222,7 +228,7 @@ body {
 }
 
 .prose ul li::before {
-  content: "";
+  content: '';
   @apply absolute -left-5 top-[0.65em] w-1 h-1 rounded-full bg-text-tertiary/60;
 }
 
@@ -232,14 +238,13 @@ body {
 }
 
 .prose ol li::before {
-  content: counter(item) ".";
+  content: counter(item) '.';
   @apply absolute h-[24px] -left-8 text-text-secondary font-normal font-mono text-[14px] top-0 leading-[24px] w-6 text-right;
 }
 
 .prose li strong {
   @apply text-text-primary font-semibold!;
 }
-
 
 .prose code:not(pre code) {
   @apply bg-background-secondary text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-background-border wrap-break-word;
@@ -347,23 +352,45 @@ html.dark .code-block-container .shiki span {
 }
 
 @layer utilities {
-  .text-code-key { color: var(--color-syntax-key); }
-  .text-code-string { color: var(--color-syntax-string); }
-  .text-code-number { color: var(--color-syntax-number); }
-  .text-code-boolean { color: var(--color-syntax-number); }
-  .text-code-null { color: var(--color-syntax-number); }
-  .text-code-keyword { color: var(--color-syntax-keyword); }
-  .text-code-comment { color: var(--color-syntax-comment); }
+  .text-code-key {
+    color: var(--color-syntax-key);
+  }
+  .text-code-string {
+    color: var(--color-syntax-string);
+  }
+  .text-code-number {
+    color: var(--color-syntax-number);
+  }
+  .text-code-boolean {
+    color: var(--color-syntax-number);
+  }
+  .text-code-null {
+    color: var(--color-syntax-number);
+  }
+  .text-code-keyword {
+    color: var(--color-syntax-keyword);
+  }
+  .text-code-comment {
+    color: var(--color-syntax-comment);
+  }
 }
 
 @keyframes accordion-down {
-  from { height: 0; }
-  to { height: var(--radix-accordion-content-height); }
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
 }
 
 @keyframes accordion-up {
-  from { height: var(--radix-accordion-content-height); }
-  to { height: 0; }
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
 }
 
 .animate-accordion-down {
@@ -375,13 +402,25 @@ html.dark .code-block-container .shiki span {
 }
 
 @keyframes tooltip-in {
-  from { opacity: 0; transform: scale(0.96) translateY(4px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes tooltip-out {
-  from { opacity: 1; transform: scale(1) translateY(0); }
-  to { opacity: 0; transform: scale(0.96) translateY(4px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
 }
 
 .animate-tooltip[data-state='open'],
@@ -400,8 +439,8 @@ html.dark .code-block-container .shiki span {
 
 /* Плавная прокрутка для всех ссылок-якорей */
 /* Стили ссылок в тексте */
-.prose a, 
-.prose a:link, 
+.prose a,
+.prose a:link,
 .prose a:visited {
   color: var(--color-text-primary) !important;
   font-weight: 600 !important;
@@ -409,7 +448,9 @@ html.dark .code-block-container .shiki span {
   text-underline-offset: 4px !important;
   text-decoration-thickness: 1px !important;
   text-decoration-color: color-mix(in srgb, var(--color-text-primary), transparent 70%) !important;
-  transition: text-decoration-color 0.2s, text-decoration-thickness 0.2s !important;
+  transition:
+    text-decoration-color 0.2s,
+    text-decoration-thickness 0.2s !important;
 }
 
 .prose a:hover {
@@ -425,4 +466,3 @@ html {
 main {
   scroll-behavior: auto;
 }
-

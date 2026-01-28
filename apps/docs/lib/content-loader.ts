@@ -19,25 +19,25 @@ export interface GuideData {
 /**
  * Get MDX content and frontmatter for a guide page or special page
  * Returns the content without frontmatter and parsed frontmatter data
- * 
+ *
  * For guides: getGuideData('audit-events') -> content/guides/audit-events.mdx
  * For home: getGuideData('home') -> content/home.mdx
  */
 export function getGuideData(guidePath: string): GuideData | null {
   // Remove leading slash and 'guides/' prefix if present
   let fileName = guidePath.replace(/^\//, '').replace(/^guides\//, '');
-  
+
   // Remove extension if present
   fileName = fileName.replace(/\.(mdx?|md)$/, '');
-  
+
   // Special case for home page - it's in content/home.mdx, not content/guides/
   const isHomePage = fileName === 'home';
   const baseDir = isHomePage ? CONTENT_DIR : path.join(CONTENT_DIR, 'guides');
-  
+
   // Try .mdx first, then .md for backwards compatibility
   const mdxPath = path.join(baseDir, `${fileName}.mdx`);
   const mdPath = path.join(baseDir, `${fileName}.md`);
-  
+
   try {
     let filePath: string | null = null;
     if (fs.existsSync(mdxPath)) {
@@ -45,11 +45,11 @@ export function getGuideData(guidePath: string): GuideData | null {
     } else if (fs.existsSync(mdPath)) {
       filePath = mdPath;
     }
-    
+
     if (filePath) {
       const fileContent = fs.readFileSync(filePath, 'utf-8');
       const { data, content } = matter(fileContent);
-      
+
       return {
         content,
         frontmatter: {
@@ -63,14 +63,14 @@ export function getGuideData(guidePath: string): GuideData | null {
   } catch (error) {
     console.error(`Error reading guide content: ${fileName}`, error);
   }
-  
+
   return null;
 }
 
 /**
  * Get MDX content for a guide page or special page (legacy function)
  * Returns the raw MDX content from the file (without frontmatter)
- * 
+ *
  * For guides: getGuideContent('audit-events') -> content/guides/audit-events.mdx
  * For home: getGuideContent('home') -> content/home.mdx
  */
@@ -84,18 +84,18 @@ export function getGuideContent(guidePath: string): string | null {
  */
 export function getAllGuideSlugs(): string[] {
   const guidesDir = path.join(CONTENT_DIR, 'guides');
-  
+
   try {
     if (fs.existsSync(guidesDir)) {
       const files = fs.readdirSync(guidesDir);
       return files
-        .filter(file => file.endsWith('.mdx') || file.endsWith('.md'))
-        .map(file => file.replace(/\.(mdx?|md)$/, ''));
+        .filter((file) => file.endsWith('.mdx') || file.endsWith('.md'))
+        .map((file) => file.replace(/\.(mdx?|md)$/, ''));
     }
   } catch (error) {
     console.error('Error reading guides directory', error);
   }
-  
+
   return [];
 }
 
@@ -103,16 +103,20 @@ export function getAllGuideSlugs(): string[] {
  * Get all available guide paths
  */
 export function getAllGuidePaths(): string[] {
-  return getAllGuideSlugs().map(slug => `/guides/${slug}`);
+  return getAllGuideSlugs().map((slug) => `/guides/${slug}`);
 }
 
 /**
  * Get all guides with their frontmatter data
  */
-export function getAllGuidesWithFrontmatter(): Array<{ slug: string; path: string; frontmatter: GuideFrontmatter }> {
+export function getAllGuidesWithFrontmatter(): Array<{
+  slug: string;
+  path: string;
+  frontmatter: GuideFrontmatter;
+}> {
   const slugs = getAllGuideSlugs();
   const guides: Array<{ slug: string; path: string; frontmatter: GuideFrontmatter }> = [];
-  
+
   for (const slug of slugs) {
     const data = getGuideData(slug);
     if (data) {
@@ -123,7 +127,7 @@ export function getAllGuidesWithFrontmatter(): Array<{ slug: string; path: strin
       });
     }
   }
-  
+
   return guides;
 }
 

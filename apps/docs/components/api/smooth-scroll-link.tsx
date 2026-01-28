@@ -12,11 +12,11 @@ interface SmoothScrollLinkProps {
 export function SmoothScrollLink({ href, children }: SmoothScrollLinkProps) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    
+
     const targetId = href.replace('#', '');
     const target = document.getElementById(targetId);
     const mainContent = document.querySelector('main');
-    
+
     if (target && mainContent) {
       // Стандартный скролл браузера обычно длится ~500-800мс
       // Делаем его быстрым (300мс) с приятным ускорением/замедлением
@@ -25,7 +25,7 @@ export function SmoothScrollLink({ href, children }: SmoothScrollLinkProps) {
         scrollTop: target.offsetTop - 80, // 80px отступ сверху (scroll-mt-20)
         ease: 'power2.out',
       });
-      
+
       // Обновляем URL без прыжка
       window.history.pushState(null, '', href);
     }
@@ -48,25 +48,24 @@ interface InternalLinkProps {
   className?: string;
 }
 
-export function InternalLink({ href, children, className = "text-primary hover:underline" }: InternalLinkProps) {
+export function InternalLink({
+  href,
+  children,
+  className = 'text-primary hover:underline',
+}: InternalLinkProps) {
   const isExternal = href?.startsWith('http');
   const isAnchor = href?.startsWith('#');
   const isDownloadable = href?.endsWith('.txt') || href?.endsWith('.md');
-  
+
   // External links or downloadable files - use regular <a> with target="_blank"
   if (isExternal || isDownloadable) {
     return (
-      <a 
-        href={href} 
-        className={className}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a href={href} className={className} target="_blank" rel="noopener noreferrer">
         {children}
       </a>
     );
   }
-  
+
   // Anchor links - handled globally by TransitionProvider
   // No href - use regular <a>
   if (isAnchor || !href) {
@@ -76,7 +75,7 @@ export function InternalLink({ href, children, className = "text-primary hover:u
       </a>
     );
   }
-  
+
   // Internal links - use Next.js Link for client-side navigation
   return (
     <Link href={href} className={className}>

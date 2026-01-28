@@ -11,9 +11,7 @@ interface CopiedTooltipProps {
 export function CopiedTooltip({ children, open }: CopiedTooltipProps) {
   return (
     <Tooltip.Root open={open}>
-      <Tooltip.Trigger asChild>
-        {children}
-      </Tooltip.Trigger>
+      <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content
           side="top"

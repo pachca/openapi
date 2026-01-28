@@ -1,48 +1,40 @@
-import yaml from "js-yaml";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import yaml from 'js-yaml';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Читаем OpenAPI файл
-const openapiPath = path.join(
-  __dirname,
-  "..",
-  "..",
-  "..",
-  "packages",
-  "spec",
-  "openapi.yaml",
-);
-const fileContents = fs.readFileSync(openapiPath, "utf8");
+const openapiPath = path.join(__dirname, '..', '..', '..', 'packages', 'spec', 'openapi.yaml');
+const fileContents = fs.readFileSync(openapiPath, 'utf8');
 const openapi = yaml.load(fileContents);
 
 // Tag to URL segment mapping (synchronized with lib/openapi/mapper.ts)
 const TAG_URL_MAPPING = {
-  Сообщения: "messages",
-  Сотрудники: "users",
-  Чаты: "chats",
-  "Участники чатов": "chat-members",
-  Треды: "threads",
-  Теги: "tags",
-  Профиль: "profile",
-  Общее: "common",
-  Боты: "bots",
-  Формы: "forms",
-  Прочитавшие: "read-members",
-  Реакции: "reactions",
-  "Превью ссылок": "link-previews",
-  Задачи: "tasks",
-  Безопасность: "security",
+  Сообщения: 'messages',
+  Сотрудники: 'users',
+  Чаты: 'chats',
+  'Участники чатов': 'chat-members',
+  Треды: 'threads',
+  Теги: 'tags',
+  Профиль: 'profile',
+  Общее: 'common',
+  Боты: 'bots',
+  Формы: 'forms',
+  Прочитавшие: 'read-members',
+  Реакции: 'reactions',
+  'Превью ссылок': 'link-previews',
+  Задачи: 'tasks',
+  Безопасность: 'security',
 };
 
 function tagToUrlSegment(tag) {
   if (TAG_URL_MAPPING[tag]) {
     return TAG_URL_MAPPING[tag];
   }
-  return tag.toLowerCase().replace(/\s+/g, "-");
+  return tag.toLowerCase().replace(/\s+/g, '-');
 }
 
 // Функция для генерации URL (synchronized with lib/openapi/mapper.ts)
@@ -62,27 +54,26 @@ function extractActionFromEndpoint(endpoint) {
   const path = endpoint.path;
 
   // Split path into segments
-  const segments = path.split("/").filter((seg) => seg);
+  const segments = path.split('/').filter((seg) => seg);
 
   // Separate parameter segments (like {id}) from static segments
-  const staticSegments = segments.filter((seg) => !seg.startsWith("{"));
-  const hasIdParameter = segments.some((seg) => seg.startsWith("{"));
+  const staticSegments = segments.filter((seg) => !seg.startsWith('{'));
+  const hasIdParameter = segments.some((seg) => seg.startsWith('{'));
 
   // Get the last static segment (action indicator)
   const lastStaticSegment = staticSegments[staticSegments.length - 1];
 
   // If we have more than one static segment, it means we have a sub-resource or action
   if (staticSegments.length > 1) {
-    const subResource = lastStaticSegment.replace(/_/g, "-");
+    const subResource = lastStaticSegment.replace(/_/g, '-');
 
     // Check if there's a parameter between the resource and sub-resource
     const lastSegmentIndex = segments.lastIndexOf(lastStaticSegment);
-    const hasPreviousParam =
-      lastSegmentIndex > 0 && segments[lastSegmentIndex - 1].startsWith("{");
+    const hasPreviousParam = lastSegmentIndex > 0 && segments[lastSegmentIndex - 1].startsWith('{');
 
     // Special case: /messages/{id}/pin with POST/DELETE should be pin/unpin
-    if (subResource === "pin") {
-      return method === "POST" ? "pin" : "unpin";
+    if (subResource === 'pin') {
+      return method === 'POST' ? 'pin' : 'unpin';
     }
 
     // If there's a parameter after the sub-resource (e.g., /chats/{chatId}/members/{userId})
@@ -94,7 +85,7 @@ function extractActionFromEndpoint(endpoint) {
         GET: `get-${subResource}`,
         PUT: `update-${subResource}`,
         PATCH: `update-${subResource}`,
-        DELETE: `remove-${subResource.replace(/s$/, "")}`, // Remove trailing 's'
+        DELETE: `remove-${subResource.replace(/s$/, '')}`, // Remove trailing 's'
         POST: `add-${subResource}`,
       };
       return actionMap[method] || subResource;
@@ -111,13 +102,8 @@ function extractActionFromEndpoint(endpoint) {
       // If no previous param, it might be a special action (like /chats/exports)
       if (!hasPreviousParam) {
         const specialActionMap = {
-          GET: subResource.endsWith("s")
-            ? `list-${subResource}`
-            : `get-${subResource}`,
-          POST:
-            subResource === "exports"
-              ? "request-export"
-              : `create-${subResource}`,
+          GET: subResource.endsWith('s') ? `list-${subResource}` : `get-${subResource}`,
+          POST: subResource === 'exports' ? 'request-export' : `create-${subResource}`,
           PUT: `update-${subResource}`,
           DELETE: `delete-${subResource}`,
         };
@@ -129,20 +115,20 @@ function extractActionFromEndpoint(endpoint) {
   }
 
   // Single-segment paths - check if it's a standard CRUD resource or action-only endpoint
-  const isStandardResource = lastStaticSegment.endsWith("s") || hasIdParameter;
+  const isStandardResource = lastStaticSegment.endsWith('s') || hasIdParameter;
 
   if (!isStandardResource && !hasIdParameter) {
     // Special action-only endpoint (e.g., /direct_url, /uploads)
-    return lastStaticSegment.replace(/_/g, "-");
+    return lastStaticSegment.replace(/_/g, '-');
   }
 
   // Standard CRUD operations on the main resource
   const crudActions = {
-    GET: (hasParam) => (hasParam ? "get" : "list"),
-    POST: () => "create",
-    PUT: () => "update",
-    PATCH: () => "update",
-    DELETE: () => "delete",
+    GET: (hasParam) => (hasParam ? 'get' : 'list'),
+    POST: () => 'create',
+    PUT: () => 'update',
+    PATCH: () => 'update',
+    DELETE: () => 'delete',
   };
 
   const actionFn = crudActions[method];
@@ -151,21 +137,19 @@ function extractActionFromEndpoint(endpoint) {
   }
 
   // Fallback
-  return "operation";
+  return 'operation';
 }
 
 // Парсим эндпоинты
 const endpoints = [];
 for (const [pathStr, pathItem] of Object.entries(openapi.paths)) {
   for (const [method, operation] of Object.entries(pathItem)) {
-    if (
-      ["get", "post", "put", "delete", "patch"].includes(method.toLowerCase())
-    ) {
+    if (['get', 'post', 'put', 'delete', 'patch'].includes(method.toLowerCase())) {
       const endpoint = {
         id: operation.operationId || `${method}_${pathStr}`,
         method: method.toUpperCase(),
         path: pathStr,
-        tags: operation.tags || ["Common"],
+        tags: operation.tags || ['Common'],
         description: operation.description || operation.summary,
         operationId: operation.operationId || `${method}_${pathStr}`,
       };
@@ -197,13 +181,13 @@ for (const [url, endpointList] of urlMap.entries()) {
   }
 }
 
-console.log("=== URL ANALYSIS ===\n");
+console.log('=== URL ANALYSIS ===\n');
 console.log(`Total endpoints: ${endpoints.length}`);
 console.log(`Unique URLs: ${urlMap.size}`);
 console.log(`Conflicts: ${conflicts.length}\n`);
 
 if (conflicts.length > 0) {
-  console.log("=== ⚠️  CONFLICTS FOUND ===\n");
+  console.log('=== ⚠️  CONFLICTS FOUND ===\n');
   conflicts.forEach(({ url, endpoints }) => {
     console.log(`❌ URL: ${url}`);
     endpoints.forEach((e) => {
@@ -211,18 +195,16 @@ if (conflicts.length > 0) {
       console.log(`     ID: ${e.id}`);
       console.log(`     Description: ${e.description}`);
     });
-    console.log("");
+    console.log('');
   });
-  console.error(
-    "\n❌ Build failed: URL conflicts detected. Please fix the conflicts above.\n",
-  );
+  console.error('\n❌ Build failed: URL conflicts detected. Please fix the conflicts above.\n');
   process.exit(1);
 } else {
-  console.log("✅ No conflicts found!\n");
+  console.log('✅ No conflicts found!\n');
 }
 
 // Показываем все URL по тегам
-console.log("=== ALL ENDPOINTS BY TAG ===\n");
+console.log('=== ALL ENDPOINTS BY TAG ===\n');
 const byTag = new Map();
 for (const endpoint of endpoints) {
   const tag = endpoint.tags[0];
@@ -237,5 +219,5 @@ for (const [tag, tagEndpoints] of byTag.entries()) {
   tagEndpoints.forEach((e) => {
     console.log(`   ${e.url.padEnd(40)} ${e.method.padEnd(6)} ${e.path}`);
   });
-  console.log("");
+  console.log('');
 }

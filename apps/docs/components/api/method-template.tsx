@@ -6,7 +6,11 @@ import { ResponseSection } from './response-section';
 import { RequestBodySection } from './request-body-section';
 import { Footer } from '../layout/footer';
 import { MarkdownContent } from './markdown-content';
-import { generateTitle, getDescriptionWithoutTitle, generateUrlFromOperation } from '@/lib/openapi/mapper';
+import {
+  generateTitle,
+  getDescriptionWithoutTitle,
+  generateUrlFromOperation,
+} from '@/lib/openapi/mapper';
 
 interface ApiMethodTemplateProps {
   endpoint: Endpoint;
@@ -18,9 +22,14 @@ interface ApiMethodTemplateProps {
   baseUrl?: string;
 }
 
-export function ApiMethodTemplate({ endpoint, adjacent, allEndpoints, baseUrl }: ApiMethodTemplateProps) {
+export function ApiMethodTemplate({
+  endpoint,
+  adjacent,
+  allEndpoints,
+  baseUrl,
+}: ApiMethodTemplateProps) {
   const fullDescription = getDescriptionWithoutTitle(endpoint);
-  
+
   return (
     <div className="flex flex-col flex-1 min-h-full">
       <div className="grid grid-cols-1 xl:grid-cols-2 flex-1">
@@ -37,8 +46,8 @@ export function ApiMethodTemplate({ endpoint, adjacent, allEndpoints, baseUrl }:
 
               {fullDescription && (
                 <div className="pb-3">
-                  <MarkdownContent 
-                    content={fullDescription} 
+                  <MarkdownContent
+                    content={fullDescription}
                     allEndpoints={allEndpoints}
                     className="method-description"
                   />
@@ -70,4 +79,3 @@ export function ApiMethodTemplate({ endpoint, adjacent, allEndpoints, baseUrl }:
     </div>
   );
 }
-

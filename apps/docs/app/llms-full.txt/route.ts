@@ -1,5 +1,8 @@
 import { parseOpenAPI } from '@/lib/openapi/parser';
-import { generateEndpointMarkdown, generateStaticPageMarkdownAsync } from '@/lib/markdown-generator';
+import {
+  generateEndpointMarkdown,
+  generateStaticPageMarkdownAsync,
+} from '@/lib/markdown-generator';
 import { NextResponse } from 'next/server';
 import { getOrderedGuidePages, sortTagsByOrder } from '@/lib/guides-config';
 
@@ -9,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const api = await parseOpenAPI();
   const baseUrl = api.servers[0]?.url;
-  
+
   // Group endpoints by tag
   const grouped = new Map<string, typeof api.endpoints>();
   for (const endpoint of api.endpoints) {
@@ -26,11 +29,11 @@ export async function GET() {
   // Generate markdown content
   const now = new Date();
   const localDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-  
+
   let content = '# Пачка API - Полная документация\n\n';
   content += `> Сгенерировано: ${localDateTime}\n`;
   content += '> Полная версия документации API в формате Markdown\n\n';
-  
+
   // Get guides dynamically from page.tsx files
   const guidePages = getOrderedGuidePages();
 
@@ -42,7 +45,7 @@ export async function GET() {
     content += `- [${guide.title}](#${anchor})\n`;
   }
   content += '\n';
-  
+
   content += '### API Методы\n';
   for (const tag of sortedTags) {
     const categoryTitle = tag;
@@ -52,7 +55,7 @@ export async function GET() {
 
   // Guide pages content
   content += '# Руководства\n\n';
-  
+
   for (const guide of guidePages) {
     const guideContent = await generateStaticPageMarkdownAsync(guide.path);
     if (guideContent) {
@@ -63,13 +66,13 @@ export async function GET() {
 
   // API Methods by category
   content += '# API Методы\n\n';
-  
+
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
     const categoryTitle = tag;
-    
+
     content += `## API: ${categoryTitle}\n\n`;
-    
+
     for (const endpoint of endpoints) {
       // Use the shared markdown generator with baseUrl from OpenAPI
       const endpointMarkdown = generateEndpointMarkdown(endpoint, baseUrl);

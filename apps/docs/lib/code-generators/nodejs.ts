@@ -1,17 +1,24 @@
 import type { Endpoint, Schema } from '../openapi/types';
-import { generateExample, generateParameterExample, generateRequestExample } from '../openapi/example-generator';
+import {
+  generateExample,
+  generateParameterExample,
+  generateRequestExample,
+} from '../openapi/example-generator';
 
-export function generateNodeJS(endpoint: Endpoint, baseUrl: string = 'https://api.pachca.com/api/shared/v1'): string {
+export function generateNodeJS(
+  endpoint: Endpoint,
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+): string {
   const url = `${baseUrl}${endpoint.path}`;
   const method = endpoint.method.toLowerCase();
-  
+
   let code = `const https = require('https');\n\n`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter(p => p.in === 'query');
+  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
   let path = new URL(url).pathname;
   if (queryParams.length > 0) {
-    const params = queryParams.map(p => `${p.name}=${generateParameterExample(p)}`).join('&');
+    const params = queryParams.map((p) => `${p.name}=${generateParameterExample(p)}`).join('&');
     path = `${path}?${params}`;
   }
 
@@ -40,10 +47,12 @@ export function generateNodeJS(endpoint: Endpoint, baseUrl: string = 'https://ap
   if (['post', 'put', 'patch'].includes(method) && endpoint.requestBody) {
     // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
-    const body = requestExample || (endpoint.requestBody.content['application/json']?.schema 
-      ? generateExample(endpoint.requestBody.content['application/json'].schema) 
-      : null);
-    
+    const body =
+      requestExample ||
+      (endpoint.requestBody.content['application/json']?.schema
+        ? generateExample(endpoint.requestBody.content['application/json'].schema)
+        : null);
+
     if (body) {
       code += `req.write(JSON.stringify(${JSON.stringify(body, null, 4)}));\n`;
     }

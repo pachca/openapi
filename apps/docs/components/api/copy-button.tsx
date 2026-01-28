@@ -27,7 +27,7 @@ export function CopyButton({ text }: CopyButtonProps) {
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
         document.execCommand('copy');
         setCopied(true);

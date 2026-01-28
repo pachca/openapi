@@ -15,7 +15,7 @@ function SidebarClient({ navigation }: SidebarClientProps) {
     <>
       {/* Мобильная версия */}
       <MobileSidebar navigation={navigation} />
-      
+
       {/* Десктопная версия */}
       <aside className="hidden lg:flex w-[320px] min-w-[320px] h-screen bg-background-secondary border-r border-background-border flex-col shrink-0 z-40">
         <SidebarHeader />
@@ -28,4 +28,3 @@ function SidebarClient({ navigation }: SidebarClientProps) {
 }
 
 export { SidebarClient };
-

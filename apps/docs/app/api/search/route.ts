@@ -10,8 +10,8 @@ export async function GET(request: Request) {
   }
 
   const results = await search(query);
-  
-  return NextResponse.json({ 
-    results: results.slice(0, 20) // Limit to 20 results
+
+  return NextResponse.json({
+    results: results.slice(0, 20), // Limit to 20 results
   });
 }

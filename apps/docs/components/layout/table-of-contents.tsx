@@ -20,27 +20,27 @@ export function TableOfContents() {
     if (isScrollingRef.current) {
       return;
     }
-    
+
     if (activeId) {
       const navContainer = document.querySelector('nav.sticky') as HTMLElement;
       const activeLink = document.querySelector(`a[href="#${activeId}"]`) as HTMLElement;
-      
+
       if (activeLink && navContainer) {
         const navRect = navContainer.getBoundingClientRect();
         const linkRect = activeLink.getBoundingClientRect();
-        
+
         // Проверяем, виден ли элемент в навигации
         const isVisible = linkRect.top >= navRect.top && linkRect.bottom <= navRect.bottom;
-        
+
         if (!isVisible) {
           // Вычисляем позицию элемента относительно контейнера
           const linkOffsetTop = activeLink.offsetTop;
           const navHeight = navContainer.clientHeight;
           const linkHeight = activeLink.clientHeight;
-          
+
           // Центрируем элемент в контейнере
           const targetScrollTop = linkOffsetTop - navHeight / 2 + linkHeight / 2;
-          
+
           navContainer.scrollTo({
             top: targetScrollTop,
             behavior: 'smooth',
@@ -56,7 +56,7 @@ export function TableOfContents() {
     if (!container) return;
 
     const headings = Array.from(container.querySelectorAll('h2, h3'));
-    
+
     const items: TocItem[] = headings.map((heading, index) => {
       // Если у заголовка нет id, создаем его
       if (!heading.id) {
@@ -100,7 +100,7 @@ export function TableOfContents() {
     const mainContent = document.querySelector('main');
     const handleScroll = () => {
       if (!mainContent) return;
-      
+
       // Если страница прокручена в начало и активный не первый - сбрасываем навигацию
       if (mainContent.scrollTop < 100 && items.length > 0) {
         const firstItemId = items[0].id;
@@ -112,8 +112,9 @@ export function TableOfContents() {
           }
         }
       }
-      
-      const isAtBottom = mainContent.scrollTop + mainContent.clientHeight >= mainContent.scrollHeight - 10;
+
+      const isAtBottom =
+        mainContent.scrollTop + mainContent.clientHeight >= mainContent.scrollHeight - 10;
       if (isAtBottom && items.length > 0) {
         setActiveId(items[items.length - 1].id);
       }
@@ -125,7 +126,7 @@ export function TableOfContents() {
       headings.forEach((heading) => observer.unobserve(heading));
       mainContent?.removeEventListener('scroll', handleScroll);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude activeId to avoid infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude activeId to avoid infinite loop
   }, []);
 
   if (toc.length === 0) return null;
@@ -142,7 +143,7 @@ export function TableOfContents() {
               isScrollingRef.current = true;
               const element = document.getElementById(item.id);
               const mainContent = document.querySelector('main');
-              
+
               if (element && mainContent) {
                 gsap.to(mainContent, {
                   duration: 0.4,
@@ -153,7 +154,7 @@ export function TableOfContents() {
                     setTimeout(() => {
                       isScrollingRef.current = false;
                     }, 100);
-                  }
+                  },
                 });
                 window.history.pushState(null, '', `#${item.id}`);
               }
@@ -161,9 +162,10 @@ export function TableOfContents() {
             className={`
               block py-1 text-[13px] transition-all duration-200 border-l-2 -ml-[2px] font-medium
               ${item.level === 3 ? 'pl-6' : 'pl-4'}
-              ${activeId === item.id 
-                ? 'text-text-primary border-primary' 
-                : 'text-text-secondary border-transparent hover:text-text-primary'
+              ${
+                activeId === item.id
+                  ? 'text-text-primary border-primary'
+                  : 'text-text-secondary border-transparent hover:text-text-primary'
               }
             `}
           >

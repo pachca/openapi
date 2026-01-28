@@ -19,11 +19,7 @@ export const metadata: Metadata = {
   description: 'Создавайте уникальные решения на одной платформе',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru" className={`h-full ${inter.variable}`} suppressHydrationWarning>
       <head>
@@ -49,7 +45,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="h-full m-0 overflow-hidden font-sans text-text-primary antialiased bg-background" suppressHydrationWarning>
+      <body
+        className="h-full m-0 overflow-hidden font-sans text-text-primary antialiased bg-background"
+        suppressHydrationWarning
+      >
         <Tooltip.Provider delayDuration={0}>
           <TransitionProvider />
           <div className="flex w-full overflow-hidden main-container-padding">

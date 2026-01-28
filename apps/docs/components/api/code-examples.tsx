@@ -24,7 +24,16 @@ interface CodeExamplesProps {
   baseUrl?: string;
 }
 
-type Language = 'curl' | 'javascript' | 'python' | 'ruby' | 'php' | 'java' | 'nodejs' | 'go' | 'dotnet';
+type Language =
+  | 'curl'
+  | 'javascript'
+  | 'python'
+  | 'ruby'
+  | 'php'
+  | 'java'
+  | 'nodejs'
+  | 'go'
+  | 'dotnet';
 
 export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
   const [activeTab, setActiveTab] = useState<Language>('curl');
@@ -54,7 +63,7 @@ export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
   };
 
   const successCodes = ['200', '201', '204'];
-  const successCode = successCodes.find(code => endpoint.responses[code]) || '200';
+  const successCode = successCodes.find((code) => endpoint.responses[code]) || '200';
   const successResponse = endpoint.responses[successCode];
   const responseExample = generateResponseExample(successResponse);
 
@@ -72,39 +81,42 @@ export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
                 {endpoint.path}
               </code>
             </div>
-            
-            <div className="flex items-center gap-0 shrink-0">
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                <button className="flex items-center gap-1 px-2 h-7 rounded-md text-[13px] font-medium text-text-secondary hover:text-text-primary transition-all outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 select-none cursor-pointer group">
-                  {languages[activeTab]}
-                  <ChevronDown className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors" strokeWidth={2.5} />
-                </button>
-              </DropdownMenu.Trigger>
 
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content 
-                  className="z-50 min-w-[140px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-100"
-                  align="end"
-                >
-                  {(Object.keys(languages) as Language[]).map((lang) => (
-                    <DropdownMenu.Item
-                      key={lang}
-                      onClick={() => setActiveTab(lang)}
-                      className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
-                        activeTab === lang
-                          ? 'bg-primary text-white'
-                          : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
-                      }`}
-                    >
-                      {languages[lang]}
-                    </DropdownMenu.Item>
-                  ))}
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu.Root>
-            
-            <CopyButton text={examples[activeTab]} />
+            <div className="flex items-center gap-0 shrink-0">
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button className="flex items-center gap-1 px-2 h-7 rounded-md text-[13px] font-medium text-text-secondary hover:text-text-primary transition-all outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 select-none cursor-pointer group">
+                    {languages[activeTab]}
+                    <ChevronDown
+                      className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors"
+                      strokeWidth={2.5}
+                    />
+                  </button>
+                </DropdownMenu.Trigger>
+
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="z-50 min-w-[140px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-100"
+                    align="end"
+                  >
+                    {(Object.keys(languages) as Language[]).map((lang) => (
+                      <DropdownMenu.Item
+                        key={lang}
+                        onClick={() => setActiveTab(lang)}
+                        className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
+                          activeTab === lang
+                            ? 'bg-primary text-white'
+                            : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
+                        }`}
+                      >
+                        {languages[lang]}
+                      </DropdownMenu.Item>
+                    ))}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
+
+              <CopyButton text={examples[activeTab]} />
             </div>
           </>
         }

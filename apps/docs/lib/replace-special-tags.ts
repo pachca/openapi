@@ -1,7 +1,7 @@
 /**
  * Replace special tags with MDX components
  * Used for guide pages (markdown-content.tsx) where MDXRemote is used
- * 
+ *
  * Tags are replaced with <Warning> and <Info> MDX component calls
  * Note: Content must be on single line for MDX to parse correctly
  */
@@ -50,6 +50,6 @@ export function replaceSpecialTagsForMDX(text: string): string {
 
   // Clean up multiple consecutive newlines (more than 2) to avoid huge gaps
   text = text.replace(/\n{3,}/g, '\n\n');
-  
+
   return text;
 }

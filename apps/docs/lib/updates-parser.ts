@@ -34,33 +34,33 @@ function formatDateRu(isoDate: string): string {
 
 /**
  * Parse updates from markdown file with HTML comment markers:
- * 
+ *
  * &lt;!-- update:YYYY-MM-DD --&gt;
  * ## Title
  * Content...
  */
 export function parseUpdatesFromMdx(mdxContent: string): ParsedUpdate[] {
   const updates: ParsedUpdate[] = [];
-  
+
   // Split by update markers (HTML comment format)
   const updatePattern = /<!--\s*update:(\d{4}-\d{2}-\d{2})\s*-->/g;
   const parts = mdxContent.split(updatePattern);
-  
+
   // Parts will be: [intro, date1, content1, date2, content2, ...]
   // Skip intro (index 0), then process pairs of (date, content)
   for (let i = 1; i < parts.length; i += 2) {
     const date = parts[i];
     const rawContent = parts[i + 1];
-    
+
     if (!date || !rawContent) continue;
-    
+
     // Extract title from ## heading
     const titleMatch = rawContent.match(/^[\s\n]*##\s+(.+?)[\s\n]/);
     const title = titleMatch ? titleMatch[1].trim() : 'Обновление';
-    
+
     // Get content after the title line
     const contentAfterTitle = rawContent.replace(/^[\s\n]*##\s+.+?\n/, '').trim();
-    
+
     updates.push({
       date,
       displayDate: formatDateRu(date),
@@ -68,7 +68,7 @@ export function parseUpdatesFromMdx(mdxContent: string): ParsedUpdate[] {
       content: contentAfterTitle,
     });
   }
-  
+
   return updates;
 }
 
@@ -77,7 +77,7 @@ export function parseUpdatesFromMdx(mdxContent: string): ParsedUpdate[] {
  */
 export function loadUpdates(): ParsedUpdate[] {
   const updatesPath = path.join(process.cwd(), 'content', 'guides', 'updates.mdx');
-  
+
   try {
     const content = fs.readFileSync(updatesPath, 'utf-8');
     return parseUpdatesFromMdx(content);

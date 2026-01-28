@@ -65,10 +65,23 @@
                     "keyword": "ключевое слово"
                   }
                 },
-                "max_hits": { "type": "integer", "description": "Максимальное количество совпадений" },
-                "min_hits": { "type": "integer", "description": "Минимальное количество совпадений", "default": 1 },
-                "pattern": { "type": "string", "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex." },
-                "value": { "type": "string", "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword." }
+                "max_hits": {
+                  "type": "integer",
+                  "description": "Максимальное количество совпадений"
+                },
+                "min_hits": {
+                  "type": "integer",
+                  "description": "Минимальное количество совпадений",
+                  "default": 1
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword."
+                }
               }
             }
           },
@@ -88,10 +101,23 @@
                     "keyword": "ключевое слово"
                   }
                 },
-                "max_hits": { "type": "integer", "description": "Максимальное количество совпадений" },
-                "min_hits": { "type": "integer", "description": "Минимальное количество совпадений", "default": 1 },
-                "pattern": { "type": "string", "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex." },
-                "value": { "type": "string", "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword." }
+                "max_hits": {
+                  "type": "integer",
+                  "description": "Максимальное количество совпадений"
+                },
+                "min_hits": {
+                  "type": "integer",
+                  "description": "Минимальное количество совпадений",
+                  "default": 1
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Ключевое слово для поиска в тексте. Обязательно, если type указано как keyword."
+                }
               }
             }
           }
@@ -111,7 +137,11 @@
               "AUDIT_LOG": "добавить запись в журнал событий"
             }
           },
-          "message": { "type": "string", "description": "Текст сообщения для пользователя", "example": "Сообщение заблокировано политикой безопасности" }
+          "message": {
+            "type": "string",
+            "description": "Текст сообщения для пользователя",
+            "example": "Сообщение заблокировано политикой безопасности"
+          }
         }
       }
     }

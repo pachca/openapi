@@ -1,7 +1,15 @@
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import * as path from 'path';
-import type { ParsedAPI, Endpoint, Parameter, Schema, RequestBody, Response, Example } from './types';
+import type {
+  ParsedAPI,
+  Endpoint,
+  Parameter,
+  Schema,
+  RequestBody,
+  Response,
+  Example,
+} from './types';
 
 const OPENAPI_PATH = path.join(process.cwd(), '..', '..', 'packages', 'spec', 'openapi.yaml');
 
@@ -44,12 +52,7 @@ export async function parseOpenAPI(): Promise<ParsedAPI> {
   return parsed;
 }
 
-function parseEndpoint(
-  path: string,
-  method: string,
-  operation: any,
-  openapi: any
-): Endpoint {
+function parseEndpoint(path: string, method: string, operation: any, openapi: any): Endpoint {
   const endpoint: Endpoint = {
     id: operation.operationId || `${method}_${path}`,
     method: method as any,
@@ -84,7 +87,7 @@ function parseEndpoint(
 
 function parseParameter(param: any, openapi: any): Parameter {
   const resolved = param.$ref ? resolveRef(param.$ref, openapi) : param;
-  
+
   return {
     name: resolved.name,
     in: resolved.in,
@@ -110,10 +113,10 @@ function parseExamples(examples: any, openapi: any): Record<string, Example> | u
 
   const parsed: Record<string, Example> = {};
   for (const [exampleName, exampleObj] of Object.entries(examples)) {
-    const resolved = (exampleObj as any).$ref 
-      ? resolveRef((exampleObj as any).$ref, openapi) 
+    const resolved = (exampleObj as any).$ref
+      ? resolveRef((exampleObj as any).$ref, openapi)
       : exampleObj;
-    
+
     parsed[exampleName] = {
       summary: resolved.summary,
       description: resolved.description,
@@ -127,13 +130,13 @@ function parseExamples(examples: any, openapi: any): Record<string, Example> | u
 
 function parseRequestBody(body: any, openapi: any): RequestBody {
   const resolved = body.$ref ? resolveRef(body.$ref, openapi) : body;
-  
+
   const content: Record<string, any> = {};
   if (resolved.content) {
     for (const [mediaType, mediaTypeObj] of Object.entries(resolved.content)) {
       const mediaObj = mediaTypeObj as any;
       const parsedSchema = parseSchema(mediaObj.schema, openapi);
-      
+
       content[mediaType] = {
         schema: parsedSchema,
         example: mediaObj.example,
@@ -152,13 +155,13 @@ function parseRequestBody(body: any, openapi: any): RequestBody {
 
 function parseResponse(response: any, openapi: any): Response {
   const resolved = response.$ref ? resolveRef(response.$ref, openapi) : response;
-  
+
   const content: Record<string, any> = {};
   if (resolved.content) {
     for (const [mediaType, mediaTypeObj] of Object.entries(resolved.content)) {
       const mediaObj = mediaTypeObj as any;
       const parsedSchema = parseSchema(mediaObj.schema, openapi);
-      
+
       content[mediaType] = {
         schema: parsedSchema,
         example: mediaObj.example,
@@ -258,7 +261,7 @@ function parseSchema(schema: any, openapi: any, depth = 0): Schema {
 
   // Обрабатываем additionalProperties
   if (schema.additionalProperties !== undefined) {
-    parsed.additionalProperties = 
+    parsed.additionalProperties =
       typeof schema.additionalProperties === 'boolean'
         ? schema.additionalProperties
         : parseSchema(schema.additionalProperties, openapi, depth + 1);
@@ -270,41 +273,37 @@ function parseSchema(schema: any, openapi: any, depth = 0): Schema {
 function resolveRef(ref: string, openapi: any): any {
   const parts = ref.replace('#/', '').split('/');
   let current = openapi;
-  
+
   for (const part of parts) {
     current = current[part];
     if (!current) {
       throw new Error(`Could not resolve reference: ${ref}`);
     }
   }
-  
+
   return current;
 }
 
 export function getEndpointByOperation(operationId: string): Promise<Endpoint | undefined> {
-  return parseOpenAPI().then(api => 
-    api.endpoints.find(e => e.id === operationId)
-  );
+  return parseOpenAPI().then((api) => api.endpoints.find((e) => e.id === operationId));
 }
 
 export async function getEndpointByUrl(url: string): Promise<Endpoint | undefined> {
   const api = await parseOpenAPI();
   const { generateUrlFromOperation } = await import('./mapper');
-  
+
   for (const endpoint of api.endpoints) {
     const endpointUrl = generateUrlFromOperation(endpoint);
     if (endpointUrl === url) {
       return endpoint;
     }
   }
-  
+
   return undefined;
 }
 
 export function getEndpointsByTag(tag: string): Promise<Endpoint[]> {
-  return parseOpenAPI().then(api =>
-    api.endpoints.filter(e => e.tags.includes(tag))
-  );
+  return parseOpenAPI().then((api) => api.endpoints.filter((e) => e.tags.includes(tag)));
 }
 
 /**
@@ -323,26 +322,26 @@ export function clearCache() {
 export async function getSchemaByName(schemaName: string): Promise<Schema | undefined> {
   const api = await parseOpenAPI();
   const rawSchema = api.schemas[schemaName];
-  
+
   if (rawSchema) {
     // Загружаем YAML снова для доступа к полному openapi объекту
     const fileContents = fs.readFileSync(OPENAPI_PATH, 'utf8');
     const openapi = yaml.load(fileContents) as any;
-    
+
     const parsed = parseSchema(rawSchema, openapi);
     if (!parsed.title) {
       parsed.title = schemaName;
     }
     return parsed;
   }
-  
+
   // Fallback to guide schemas (custom schemas not in OpenAPI)
   const { getGuideSchema } = await import('../schemas/guide-schemas');
   const guideSchemaEntry = getGuideSchema(schemaName);
-  
+
   if (guideSchemaEntry) {
     return guideSchemaEntry.schema;
   }
-  
+
   return undefined;
 }

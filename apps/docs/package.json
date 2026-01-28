@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "knip": "knip",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "check-urls": "node scripts/check-url-conflicts.mjs"
   },
   "dependencies": {
@@ -39,6 +43,8 @@
     "@pachca/spec": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/react-dom": "^19.2.3",
+    "knip": "^5",
+    "prettier": "^3",
     "tailwindcss": "^4"
   }
 }

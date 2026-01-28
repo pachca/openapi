@@ -1,0 +1,7 @@
+{
+  "entry": ["app/**/*.{ts,tsx}", "lib/**/*.ts", "components/**/*.tsx"],
+  "project": ["**/*.{ts,tsx}"],
+  "next": true,
+  "ignore": ["**/*.d.ts"],
+  "ignoreDependencies": []
+}

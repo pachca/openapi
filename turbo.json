@@ -19,6 +19,19 @@
     "lint": {
       "cache": true
     },
+    "typecheck": {
+      "cache": true
+    },
+    "knip": {
+      "cache": true
+    },
+    "format:check": {
+      "cache": true
+    },
+    "check": {
+      "dependsOn": ["lint", "typecheck", "knip", "format:check"],
+      "cache": false
+    },
     "check-urls": {
       "dependsOn": ["@pachca/spec#generate"],
       "cache": true

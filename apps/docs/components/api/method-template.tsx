@@ -11,6 +11,7 @@ import {
   getDescriptionWithoutTitle,
   generateUrlFromOperation,
 } from '@/lib/openapi/mapper';
+import { resolveEndpointDescriptionLinks } from '@/lib/openapi/resolve-links';
 
 interface ApiMethodTemplateProps {
   endpoint: Endpoint;
@@ -28,7 +29,8 @@ export function ApiMethodTemplate({
   allEndpoints,
   baseUrl,
 }: ApiMethodTemplateProps) {
-  const fullDescription = getDescriptionWithoutTitle(endpoint);
+  const processedEndpoint = resolveEndpointDescriptionLinks(endpoint, allEndpoints);
+  const fullDescription = getDescriptionWithoutTitle(processedEndpoint);
 
   return (
     <div className="flex flex-col flex-1 min-h-full">
@@ -55,9 +57,9 @@ export function ApiMethodTemplate({
               )}
 
               <div className="space-y-8">
-                <ParametersSection endpoint={endpoint} />
-                <RequestBodySection endpoint={endpoint} />
-                <ResponseSection endpoint={endpoint} />
+                <ParametersSection endpoint={processedEndpoint} />
+                <RequestBodySection endpoint={processedEndpoint} />
+                <ResponseSection endpoint={processedEndpoint} />
               </div>
             </div>
           </div>

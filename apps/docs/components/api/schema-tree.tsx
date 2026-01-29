@@ -520,6 +520,62 @@ function SchemaTreeInner({
     );
   }
 
+  // Record<T> / additionalProperties
+  if (
+    (schema.type === 'object' || (Array.isArray(schema.type) && schema.type.includes('object'))) &&
+    schema.additionalProperties &&
+    typeof schema.additionalProperties !== 'boolean'
+  ) {
+    const valueSchema = schema.additionalProperties;
+    // Если есть properties — это объект (даже без явного type: object)
+    const valueIsObject =
+      valueSchema.properties && Object.keys(valueSchema.properties).length > 0;
+
+    return (
+      <div className="flex flex-col not-prose">
+        {name && (
+          <SchemaHeader
+            name={name}
+            schema={schema}
+            required={required}
+            typeOverride="Record<string, object>"
+          />
+        )}
+        {/* description показывается только на root-уровне (когда есть name) */}
+        {name && schema.description && (
+          <div className="text-[14px] text-text-secondary leading-relaxed mb-2 mt-1">
+            <InlineCodeText text={schema.description} />
+          </div>
+        )}
+        <div className={valueIsObject ? '' : 'pl-4 border-l border-background-border/60'}>
+          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">
+            Record value
+          </div>
+          {valueIsObject && valueSchema.properties ? (
+            <div className="divide-y divide-background-border/60 mt-2">
+              {Object.entries(valueSchema.properties).map(([propName, propSchema]) => (
+                <PropertyRow
+                  key={propName}
+                  name={propName}
+                  schema={propSchema as Schema}
+                  required={valueSchema.required?.includes(propName)}
+                  level={level}
+                  parentPath={parentPath ? `${parentPath}[*]` : '[*]'}
+                />
+              ))}
+            </div>
+          ) : (
+            <SchemaTreeInner
+              schema={valueSchema}
+              level={level + 1}
+              parentPath={parentPath ? `${parentPath}[*]` : '[*]'}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (
     (schema.type === 'array' || (Array.isArray(schema.type) && schema.type.includes('array'))) &&
     schema.items
@@ -757,8 +813,13 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
     schema.properties &&
     Object.keys(schema.properties).length > 0
   );
+  const hasAdditionalProperties = !!(
+    isObjectType &&
+    schema.additionalProperties &&
+    typeof schema.additionalProperties !== 'boolean'
+  );
   const hasItems = !!(isArrayType && schema.items);
-  const isComplex = hasProperties || hasItems || hasMultipleVariants;
+  const isComplex = hasProperties || hasAdditionalProperties || hasItems || hasMultipleVariants;
 
   // Если allOf с одним элементом, обрабатываем особо
   if (schema.allOf && schema.allOf.length === 1 && !schema.anyOf && !schema.oneOf) {
@@ -780,6 +841,8 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
     );
   }
 
+  const typeOverride = hasAdditionalProperties && !hasProperties ? 'Record<string, object>' : undefined;
+
   return (
     <div className="py-3 scroll-mt-20" id={paramId}>
       <div className="flex flex-col min-w-0">
@@ -791,6 +854,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
           isExpanded={isExpanded}
           onToggle={() => setIsExpanded(!isExpanded)}
           paramId={paramId}
+          typeOverride={typeOverride}
         />
 
         {/* Описание показывается только если нет вариантов (anyOf/oneOf/allOf) */}
@@ -852,11 +916,21 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         </div>
       )}
 
-      {!hasMultipleVariants && isComplex && isExpanded && isObjectType && schema.properties && (
+      {!hasMultipleVariants && isComplex && isExpanded && hasProperties && (
         <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
           <SchemaTreeInner schema={schema} level={level + 1} parentPath={currentPath} />
         </div>
       )}
+
+      {!hasMultipleVariants &&
+        isComplex &&
+        isExpanded &&
+        hasAdditionalProperties &&
+        !hasProperties && (
+          <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
+            <SchemaTreeInner schema={schema} level={level + 1} parentPath={currentPath} />
+          </div>
+        )}
 
       {!hasMultipleVariants && isComplex && isExpanded && isArrayType && schema.items && (
         <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">

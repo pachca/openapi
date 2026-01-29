@@ -89,10 +89,18 @@ export function schemaToMarkdown(
       // Check for anyOf/oneOf on property level
       const hasUnion = prop.anyOf || prop.oneOf;
 
+      // Check for Record type (additionalProperties)
+      const hasAdditionalProperties =
+        prop.type === 'object' &&
+        prop.additionalProperties &&
+        typeof prop.additionalProperties !== 'boolean';
+
       // Determine type info
       let typeInfo = '';
       if (hasUnion) {
         typeInfo = prop.anyOf ? 'anyOf' : 'oneOf';
+      } else if (hasAdditionalProperties) {
+        typeInfo = 'Record<string, object>';
       } else if (Array.isArray(prop.type)) {
         typeInfo = prop.type.join(' | ');
       } else if (prop.type === 'array' && prop.items) {
@@ -196,6 +204,22 @@ export function schemaToMarkdown(
       // Handle nested objects
       else if (prop.type === 'object' && prop.properties) {
         content += schemaToMarkdown(prop, depth + 1, prop.required || []);
+      }
+      // Handle Record types (additionalProperties)
+      else if (hasAdditionalProperties) {
+        const valueSchema = prop.additionalProperties as Schema;
+        content += `${indent}  **Структура значений Record:**\n`;
+        if (valueSchema.properties) {
+          content += schemaToMarkdown(valueSchema, depth + 1, valueSchema.required || []);
+        } else if (valueSchema.type) {
+          content += `${indent}  - Тип значения: \`${valueSchema.type}\`\n`;
+          if (valueSchema.description) {
+            content += `${indent}    ${valueSchema.description}\n`;
+          }
+        } else {
+          // Record<unknown> или пустой additionalProperties
+          content += `${indent}  - Тип значения: \`any\`\n`;
+        }
       }
       // Handle arrays
       else if (prop.type === 'array' && prop.items) {

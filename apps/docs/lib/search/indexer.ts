@@ -171,6 +171,19 @@ function extractSchemaFields(
     keywords.push(...nested.keywords);
   }
 
+  // Extract from additionalProperties (Record types)
+  if (schema.additionalProperties && typeof schema.additionalProperties !== 'boolean') {
+    const recordPath = parentPath ? `${parentPath}[*]` : '[*]';
+    const nested = extractSchemaFields(schema.additionalProperties, depth + 1, recordPath);
+    for (const [name, info] of nested.fields) {
+      const existing = fields.get(name);
+      if (!existing || info.path.length < existing.path.length) {
+        fields.set(name, info);
+      }
+    }
+    keywords.push(...nested.keywords);
+  }
+
   // Extract from allOf, oneOf, anyOf
   for (const compositeKey of ['allOf', 'oneOf', 'anyOf'] as const) {
     const compositeSchemas = schema[compositeKey];
@@ -652,6 +665,15 @@ function resolveSchemaRefs(schema: Schema, allSchemas: Record<string, Schema>, d
   // Resolve array items
   if (resolved.items) {
     resolved.items = resolveSchemaRefs(resolved.items, allSchemas, depth + 1);
+  }
+
+  // Resolve additionalProperties (Record types)
+  if (resolved.additionalProperties && typeof resolved.additionalProperties !== 'boolean') {
+    resolved.additionalProperties = resolveSchemaRefs(
+      resolved.additionalProperties,
+      allSchemas,
+      depth + 1
+    );
   }
 
   // Resolve allOf/oneOf/anyOf

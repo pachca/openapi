@@ -45,21 +45,31 @@ export function ParametersSection({ endpoint }: ParametersSectionProps) {
 function ParametersList({ parameters }: { parameters: Parameter[] }) {
   return (
     <div className="divide-y divide-background-border/60">
-      {parameters.map((param, idx) => (
-        <PropertyRow
-          key={idx}
-          name={param.name}
-          schema={{
-            ...param.schema,
-            description: param.description || param.schema.description,
-            example: param.example !== undefined ? param.example : param.schema.example,
-            default: param.schema.default,
-            enum: param.schema.enum,
-          }}
-          required={param.required}
-          level={0}
-        />
-      ))}
+      {parameters.map((param, idx) => {
+        // Приоритет: param.example > первый из param.examples > schema.example
+        let example = param.example;
+        if (example === undefined && param.examples) {
+          const firstKey = Object.keys(param.examples)[0];
+          if (firstKey) example = param.examples[firstKey].value;
+        }
+        if (example === undefined) example = param.schema.example;
+
+        return (
+          <PropertyRow
+            key={idx}
+            name={param.name}
+            schema={{
+              ...param.schema,
+              description: param.description || param.schema.description,
+              example,
+              default: param.schema.default,
+              enum: param.schema.enum,
+            }}
+            required={param.required}
+            level={0}
+          />
+        );
+      })}
     </div>
   );
 }

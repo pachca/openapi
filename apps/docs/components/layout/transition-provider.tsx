@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef } from 'react';
+import { toSlug } from '@/lib/utils/transliterate';
 
 // Хранилище позиций скролла по URL
 const scrollPositions = new Map<string, number>();
@@ -88,8 +89,7 @@ export function TransitionProvider() {
       if (href?.startsWith('#')) {
         e.preventDefault();
         e.stopPropagation();
-        // Decode URL-encoded characters (e.g., Cyrillic)
-        const targetId = decodeURIComponent(href.slice(1));
+        const targetId = toSlug(decodeURIComponent(href.slice(1)));
         const element = document.getElementById(targetId);
 
         if (element && mainContent) {
@@ -98,7 +98,7 @@ export function TransitionProvider() {
             top: targetPosition,
             behavior: 'smooth',
           });
-          window.history.pushState(null, '', href);
+          window.history.pushState(null, '', `#${targetId}`);
         }
         return;
       }

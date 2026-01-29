@@ -69,7 +69,7 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
         {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
         {!isLoading && hasNewBadge && (
           <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
-            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-primary'}`} />
+            <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-primary'}`} />
           </div>
         )}
         {!isLoading && item.method && (

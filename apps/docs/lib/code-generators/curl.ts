@@ -42,8 +42,18 @@ export function generateCurl(
   // Add query parameters if any
   const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
   if (queryParams.length > 0) {
-    const params = queryParams.map((p) => `${p.name}=${generateParameterExample(p)}`).join('&');
-    curl = curl.replace(url, `${url}?${params}`);
+    const paramParts: string[] = [];
+    for (const p of queryParams) {
+      const example = generateParameterExample(p);
+      if (Array.isArray(example)) {
+        for (const val of example) {
+          paramParts.push(`${p.name}[]=${encodeURIComponent(String(val))}`);
+        }
+      } else {
+        paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
+      }
+    }
+    curl = curl.replace(url, `${url}?${paramParts.join('&')}`);
   }
 
   return curl;

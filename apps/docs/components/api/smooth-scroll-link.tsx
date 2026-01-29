@@ -3,6 +3,7 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import gsap from 'gsap';
+import { toSlug } from '@/lib/utils/transliterate';
 
 interface SmoothScrollLinkProps {
   href: string;
@@ -13,7 +14,7 @@ export function SmoothScrollLink({ href, children }: SmoothScrollLinkProps) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
-    const targetId = href.replace('#', '');
+    const targetId = toSlug(decodeURIComponent(href.replace('#', '')));
     const target = document.getElementById(targetId);
     const mainContent = document.querySelector('main');
 
@@ -27,12 +28,13 @@ export function SmoothScrollLink({ href, children }: SmoothScrollLinkProps) {
       });
 
       // Обновляем URL без прыжка
-      window.history.pushState(null, '', href);
+      window.history.pushState(null, '', `#${targetId}`);
     }
   };
 
+  const transliteratedHref = `#${toSlug(decodeURIComponent(href.replace('#', '')))}`;
   return (
-    <a href={href} onClick={handleClick}>
+    <a href={transliteratedHref} onClick={handleClick}>
       {children}
     </a>
   );
@@ -66,9 +68,19 @@ export function InternalLink({
     );
   }
 
-  // Anchor links - handled globally by TransitionProvider
+  // Anchor links - transliterate Cyrillic anchors
+  if (isAnchor && href) {
+    const anchor = href.slice(1);
+    const transliteratedHref = `#${toSlug(decodeURIComponent(anchor))}`;
+    return (
+      <a href={transliteratedHref} className={className}>
+        {children}
+      </a>
+    );
+  }
+
   // No href - use regular <a>
-  if (isAnchor || !href) {
+  if (!href) {
     return (
       <a href={href} className={className}>
         {children}

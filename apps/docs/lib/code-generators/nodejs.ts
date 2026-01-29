@@ -18,8 +18,18 @@ export function generateNodeJS(
   const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
   let path = new URL(url).pathname;
   if (queryParams.length > 0) {
-    const params = queryParams.map((p) => `${p.name}=${generateParameterExample(p)}`).join('&');
-    path = `${path}?${params}`;
+    const paramParts: string[] = [];
+    for (const p of queryParams) {
+      const example = generateParameterExample(p);
+      if (Array.isArray(example)) {
+        for (const val of example) {
+          paramParts.push(`${p.name}[]=${encodeURIComponent(String(val))}`);
+        }
+      } else {
+        paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
+      }
+    }
+    path = `${path}?${paramParts.join('&')}`;
   }
 
   code += `const options = {\n`;

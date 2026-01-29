@@ -20,13 +20,18 @@ export function generateJava(
   const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
   let fullUrl = url;
   if (queryParams.length > 0) {
-    const params = queryParams
-      .map((p) => {
-        const example = generateParameterExample(p);
-        return `${p.name}=${example}`;
-      })
-      .join('&');
-    fullUrl = `${url}?${params}`;
+    const paramParts: string[] = [];
+    for (const p of queryParams) {
+      const example = generateParameterExample(p);
+      if (Array.isArray(example)) {
+        for (const val of example) {
+          paramParts.push(`${p.name}[]=${encodeURIComponent(String(val))}`);
+        }
+      } else {
+        paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
+      }
+    }
+    fullUrl = `${url}?${paramParts.join('&')}`;
   }
 
   // Build request body for POST/PUT/PATCH

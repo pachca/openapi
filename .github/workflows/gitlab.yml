@@ -1,0 +1,20 @@
+name: Gitlab sync
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync_gitlab:
+    name: push github/main to gitlab/main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitHub repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to GitLab
+        run: |
+          git remote add gitlab https://maximov:${{ secrets.GITLAB_TOKEN }}@gitlab.primaverahq.com/mp/docs.git
+          git push gitlab main

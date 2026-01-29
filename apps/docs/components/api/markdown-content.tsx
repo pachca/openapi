@@ -4,8 +4,8 @@ import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';
 import { replaceSpecialTagsForMDX } from '@/lib/replace-special-tags';
 import type { Endpoint } from '@/lib/openapi/types';
-import { generateUrlFromOperation } from '@/lib/openapi/mapper';
 import { parseOpenAPI } from '@/lib/openapi/parser';
+import { resolveEndpointLinks } from '@/lib/openapi/resolve-links';
 import {
   SchemaBlock,
   HttpCodes,
@@ -18,39 +18,6 @@ import {
   Warning,
   Info,
 } from '@/components/mdx/mdx-components';
-
-/**
- * Convert special link syntax to standard markdown links
- * Syntax: [description](METHOD /path) -> [description](/resolved-url)
- */
-function resolveEndpointLinks(text: string, allEndpoints?: Endpoint[]): string {
-  return text.replace(
-    /\[([^\]]+)\]\((GET|POST|PUT|DELETE|PATCH)\s+(\/[^\)]+)\)/g,
-    (match, description, method, path) => {
-      // Check if it's a guide path
-      if (path.startsWith('/guides/')) {
-        return `[${description.trim()}](${path})`;
-      }
-
-      // If allEndpoints provided, try to resolve the URL
-      if (allEndpoints) {
-        const endpoint = allEndpoints.find(
-          (ep) => ep.method.toUpperCase() === method.toUpperCase() && ep.path === path
-        );
-
-        if (endpoint) {
-          const url = generateUrlFromOperation(endpoint);
-          return `[${description.trim()}](${url})`;
-        }
-      }
-
-      // If endpoint not found, return description without link
-      // Escape curly braces to prevent {id} from being interpreted as JSX
-      const escapedPath = path.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
-      return `${description.trim()} (${method} ${escapedPath})`;
-    }
-  );
-}
 
 // Simple markdown components for server rendering
 const components = {

@@ -33,7 +33,7 @@ export function replaceSpecialTagsForMDX(text: string): string {
   // #unfurling_bot_access_token_required tag
   text = text.replace(
     /#unfurling_bot_access_token_required/g,
-    `\n\n<Info>Данный метод доступен для работы только с \`access_token\` unfurl бота. Подробнее о том, как получить такой токен и о том, как получать события об отправке ссылок в сообщении, вы можете прочитать в статье **Unfurling ссылок в Пачке**</Info>\n\n`
+    `\n\n<Info>Данный метод доступен для работы только с \`access_token\` unfurl бота. Подробнее о том, как получить такой токен и о том, как получать события об отправке ссылок в сообщении, вы можете прочитать в статье [Unfurling ссылок в Пачке](https://www.pachca.com/articles/unfurling-ssylok-v-pachce)</Info>\n\n`
   );
 
   // #bot_access_token_required tag

@@ -3,6 +3,7 @@ import { Callout } from './callout';
 import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';
 import { replaceSpecialTagsForMDX } from '@/lib/replace-special-tags';
+import { toSlug } from '@/lib/utils/transliterate';
 import type { Endpoint } from '@/lib/openapi/types';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { resolveEndpointLinks } from '@/lib/openapi/resolve-links';
@@ -56,16 +57,7 @@ const components = {
   // Headings - skip H1 since StaticPageHeader provides it
   h1: () => null,
   h2: ({ id, children }: { id?: string; children: React.ReactNode }) => {
-    // Generate id that supports Cyrillic characters
-    const text = String(children);
-    const generatedId =
-      id ||
-      text
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
-        .replace(/-+/g, '-') // Remove multiple dashes
-        .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+    const generatedId = id || toSlug(String(children));
     return (
       <h2 id={generatedId} className="text-2xl font-bold text-text-primary mt-12 mb-6 scroll-mt-20">
         {children}
@@ -73,16 +65,7 @@ const components = {
     );
   },
   h3: ({ id, children }: { id?: string; children: React.ReactNode }) => {
-    // Generate id that supports Cyrillic characters
-    const text = String(children);
-    const generatedId =
-      id ||
-      text
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\p{L}\p{N}-]/gu, '') // Keep Unicode letters and numbers
-        .replace(/-+/g, '-') // Remove multiple dashes
-        .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+    const generatedId = id || toSlug(String(children));
     return (
       <h3 id={generatedId} className="text-xl font-bold text-text-primary mt-8 mb-4 scroll-mt-20">
         {children}

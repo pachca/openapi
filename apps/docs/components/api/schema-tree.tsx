@@ -595,6 +595,13 @@ function SchemaTreeInner({
           </div>
         )}
 
+        {/* Пример массива */}
+        {schema.example !== undefined && (
+          <MetadataRow label="Пример">
+            <CopyableCode value={JSON.stringify(schema.example)} />
+          </MetadataRow>
+        )}
+
         {/* Метаданные массива */}
         {(schema.minItems !== undefined || schema.maxItems !== undefined) && (
           <div className="text-[13px] text-text-secondary flex items-center gap-1 mb-2 mt-1">

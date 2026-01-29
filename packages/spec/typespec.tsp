@@ -15,6 +15,14 @@ using OpenAPI;
 namespace PachcaAPI;
 
 // ============================================================================
+// Common Types
+// ============================================================================
+
+/** Массив названий тегов */
+@example(#["Design", "iOS"])
+model TagNamesFilter is string[];
+
+// ============================================================================
 // Authentication
 // ============================================================================
 
@@ -2855,6 +2863,9 @@ interface GroupTagOperations {
 """)
   @get
   @opExample(#{
+    parameters: #{
+      names: #["Design", "iOS"]
+    },
     returnType: #{
       _: 200,
       body: #{
@@ -2868,27 +2879,15 @@ interface GroupTagOperations {
             id: 9113,
             name: "iOS",
             users_count: 4
-          },
-          #{
-            id: 9114,
-            name: "Android",
-            users_count: 36
-          },
-          #{
-            id: 9115,
-            name: "Backend",
-            users_count: 15
-          },
-          #{
-            id: 9510,
-            name: "Frontend",
-            users_count: 5
           }
         ]
       }
     }
   })
   listTags(
+    @doc("Массив названий тегов, по которым вы хотите отфильтровать список")
+    @query(#{ explode: true })
+    names?: TagNamesFilter,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query 
     @minValue(1)

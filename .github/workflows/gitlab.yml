@@ -17,4 +17,4 @@ jobs:
       - name: Push to GitLab
         run: |
           git remote add gitlab https://maximov:${{ secrets.GITLAB_TOKEN }}@gitlab.primaverahq.com/mp/docs.git
-          git push --force gitlab main:main
+          git push gitlab main:main

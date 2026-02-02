@@ -528,8 +528,7 @@ function SchemaTreeInner({
   ) {
     const valueSchema = schema.additionalProperties;
     // Если есть properties — это объект (даже без явного type: object)
-    const valueIsObject =
-      valueSchema.properties && Object.keys(valueSchema.properties).length > 0;
+    const valueIsObject = valueSchema.properties && Object.keys(valueSchema.properties).length > 0;
 
     return (
       <div className="flex flex-col not-prose">
@@ -848,7 +847,8 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
     );
   }
 
-  const typeOverride = hasAdditionalProperties && !hasProperties ? 'Record<string, object>' : undefined;
+  const typeOverride =
+    hasAdditionalProperties && !hasProperties ? 'Record<string, object>' : undefined;
 
   return (
     <div className="py-3 scroll-mt-20" id={paramId}>

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "setup": "true",
     "generate": "tsp compile typespec.tsp --config tspconfig.yaml"
   },
   "devDependencies": {

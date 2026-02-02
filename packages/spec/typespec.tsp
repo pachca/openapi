@@ -906,7 +906,7 @@ model UserCreateRequest {
   user: {
     @doc("Имя")
     @example("Олег")
-    first_name: string;
+    first_name?: string;
     
     @doc("Фамилия")
     @example("Петров")

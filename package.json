@@ -7,6 +7,6 @@
     "packages/*"
   ],
   "devDependencies": {
-    "turbo": "^2.7.6"
+    "turbo": "^2.8.1"
   }
 }

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "pipx install openapi-python-client || python3 -m pip install --user openapi-python-client",
-    "generate": "openapi-python-client generate --path ../../packages/spec/openapi.yaml --output-path generated --overwrite --config openapi-python-client.yaml"
+    "generate": "openapi-python-client generate --path ../../../packages/spec/openapi.yaml --output-path generated --overwrite --config openapi-python-client.yaml"
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*"

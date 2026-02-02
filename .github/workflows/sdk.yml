@@ -3,8 +3,6 @@ name: SDK
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -35,19 +33,13 @@ jobs:
       - run: bun install
       - run: bun turbo run generate
 
-      - name: Copy Swift Package.swift to root
-        if: github.event_name == 'push'
-        run: cp sdk/swift/Package.swift Package.swift
-
       - name: Extract version
-        if: github.event_name == 'push'
         id: version
         run: |
           VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit
-        if: github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -55,22 +47,14 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: regenerate SDK v${{ steps.version.outputs.version }}"
 
       - name: Tag
-        if: github.event_name == 'push'
-        run: |
-          git tag "v${{ steps.version.outputs.version }}"
-          git tag "sdk/go/generated/v${{ steps.version.outputs.version }}"
+        run: git tag "v${{ steps.version.outputs.version }}"
 
       - name: Push
-        if: github.event_name == 'push'
-        run: git push && git push --tags
+        run: git push --follow-tags
 
   publish-npm:
-    if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -79,17 +63,12 @@ jobs:
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
-      - run: npm install
-        working-directory: sdk/typescript
-      - run: npm run build
-        working-directory: sdk/typescript
-      - run: npm publish --provenance --access public
-        working-directory: sdk/typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          package: apps/sdk/typescript/package.json
+          token: ${{ secrets.NPM_TOKEN }}
 
   publish-pypi:
-    if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest
     steps:
@@ -99,19 +78,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install build twine
+      - run: pip install build
       - run: python -m build
-        working-directory: sdk/python/generated
-      - run: twine upload sdk/python/generated/dist/*
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-
-  publish-jitpack:
-    if: github.event_name == 'push'
-    needs: generate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: badasintended/autojitpack@v1
+        working-directory: apps/sdk/python/generated
+      - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          version: v${{ needs.generate.outputs.version }}
+          packages-dir: apps/sdk/python/generated/dist/
+          password: ${{ secrets.PYPI_TOKEN }}

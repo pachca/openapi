@@ -16,6 +16,7 @@ export function useNavigationLoading(href: string, delay: number = 200) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowLoader(false);
     }
   }, [pathname]);

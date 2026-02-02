@@ -2,9 +2,13 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "generate": {
+      "dependsOn": ["setup", "^generate"],
       "inputs": ["typespec.tsp", "tspconfig.yaml"],
-      "outputs": ["openapi.yaml"],
+      "outputs": ["openapi.yaml", "generated/**"],
       "cache": true
+    },
+    "setup": {
+      "cache": false
     },
     "build": {
       "dependsOn": ["@pachca/spec#generate"],

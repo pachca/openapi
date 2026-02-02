@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest",
-    "generate": "mkdir -p generated && $(go env GOPATH)/bin/oapi-codegen -package pachca -generate types,client ../../packages/spec/openapi.yaml > generated/client.go"
+    "generate": "$(go env GOPATH)/bin/oapi-codegen -package pachca -generate types,client ../../../packages/spec/openapi.yaml > generated/client.go"
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*"

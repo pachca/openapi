@@ -5,8 +5,7 @@
   "workspaces": [
     "apps/*",
     "apps/*/*",
-    "packages/*",
-    "sdk/*"
+    "packages/*"
   ],
   "devDependencies": {
     "turbo": "^2.8.1"

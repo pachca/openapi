@@ -6,6 +6,7 @@ COPY apps/docs/package.json apps/docs/package.json
 COPY packages/spec/package.json packages/spec/package.json
 
 RUN bun install
+RUN npm install -g turbo
 
 COPY . .
 

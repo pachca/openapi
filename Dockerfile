@@ -9,8 +9,8 @@ RUN bun install
 
 COPY . .
 
-RUN bun turbo check
-RUN bun turbo build --filter=@pachca/docs
+RUN turbo check
+RUN turbo build --filter=@pachca/docs
 
 FROM oven/bun:1.3.4 AS runner
 WORKDIR /app

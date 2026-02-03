@@ -2,27 +2,27 @@
 
 @theme {
   /* Colors - Light Mode */
-  --color-primary: #525cda;
-  --color-primary-dark: #4852d0;
+  --color-primary: oklch(54.82% 0.2498 270.55);
+  --color-primary-dark: oklch(49.82% 0.2498 270.55);
 
-  --color-text-primary: #1a1f36;
-  --color-text-secondary: #4f566b;
-  --color-text-tertiary: #6f777b;
+  --color-text-primary: oklch(32.81% 0.006 274.97);
+  --color-text-secondary: oklch(56.38% 0.011 274.97);
+  --color-text-tertiary: oklch(64.98% 0.007 274.97);
 
-  --color-background: #ffffff;
-  --color-background-secondary: #f6f9fc;
-  --color-background-tertiary: #f6f9fc;
-  --color-background-border: #e3e8ee;
+  --color-background: oklch(100% 0.003 274.97);
+  --color-background-secondary: oklch(97.95% 0.0054 274.97);
+  --color-background-tertiary: oklch(97.95% 0.0054 274.97);
+  --color-background-border: oklch(91.92% 0.006 274.97);
 
-  --color-callout-info-bg: #f8f9ff;
-  --color-callout-info-border: #e2e4ff;
-  --color-callout-info-header-bg: #f0f2ff;
-  --color-callout-info-text: #525cda;
+  --color-callout-info-bg: oklch(97% 0.015 270);
+  --color-callout-info-border: oklch(91% 0.025 270);
+  --color-callout-info-header-bg: oklch(95% 0.02 270);
+  --color-callout-info-text: oklch(54.82% 0.2498 270.55);
 
-  --color-callout-warning-bg: #fffdf2;
-  --color-callout-warning-border: #fbedbb;
-  --color-callout-warning-header-bg: #fef9e1;
-  --color-callout-warning-text: #92400e;
+  --color-callout-warning-bg: oklch(98% 0.02 85);
+  --color-callout-warning-border: oklch(92% 0.04 85);
+  --color-callout-warning-header-bg: oklch(96% 0.03 85);
+  --color-callout-warning-text: oklch(55% 0.14 85);
 
   --color-method-get: #4078f2;
   --color-method-post: #50a14f;
@@ -43,25 +43,26 @@
 
 /* Dark Mode - ручное переключение */
 html.dark {
-  --color-primary: #525cda;
-  --color-text-primary: #ededed;
-  --color-text-secondary: #9ba1a6;
-  --color-text-tertiary: #63696c;
+  --color-primary: oklch(53.91% 0.19 270);
+  --color-primary-dark: oklch(59.32% 0.179 270);
+  --color-text-primary: oklch(95% 0.005 240);
+  --color-text-secondary: oklch(75% 0.01 240);
+  --color-text-tertiary: oklch(62.84% 0.01 240);
 
-  --color-background: #1a1e1f;
-  --color-background-secondary: #1a1e1f;
-  --color-background-tertiary: #1f2324;
-  --color-background-border: #2b3039;
+  --color-background: oklch(22.7% 0.0063 240);
+  --color-background-secondary: oklch(22.7% 0.0063 240);
+  --color-background-tertiary: oklch(27.77% 0.0068 240);
+  --color-background-border: oklch(34% 0.0077 240);
 
-  --color-callout-info-bg: rgba(82, 92, 218, 0.05);
-  --color-callout-info-border: rgba(82, 92, 218, 0.15);
-  --color-callout-info-header-bg: rgba(82, 92, 218, 0.1);
-  --color-callout-info-text: #8b92ff;
+  --color-callout-info-bg: oklch(53.91% 0.19 270 / 12%);
+  --color-callout-info-border: oklch(53.91% 0.19 270 / 20%);
+  --color-callout-info-header-bg: oklch(53.91% 0.19 270 / 10%);
+  --color-callout-info-text: oklch(68.4% 0.16 270);
 
-  --color-callout-warning-bg: rgba(234, 179, 8, 0.03);
-  --color-callout-warning-border: rgba(234, 179, 8, 0.08);
-  --color-callout-warning-header-bg: rgba(234, 179, 8, 0.05);
-  --color-callout-warning-text: #e2b31a;
+  --color-callout-warning-bg: oklch(81.1% 0.154 70.7 / 12%);
+  --color-callout-warning-border: oklch(81.1% 0.154 70.7 / 20%);
+  --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
+  --color-callout-warning-text: oklch(81.1% 0.154 70.7);
 
   --color-method-delete: #e06c75;
   --color-method-patch: #c678dd;
@@ -70,25 +71,26 @@ html.dark {
 /* Dark Mode - системная тема (только если НЕ установлен класс .light) */
 @media (prefers-color-scheme: dark) {
   html:not(.light):not(.dark) {
-    --color-primary: #525cda;
-    --color-text-primary: #ededed;
-    --color-text-secondary: #9ba1a6;
-    --color-text-tertiary: #63696c;
+    --color-primary: oklch(53.91% 0.19 270);
+    --color-primary-dark: oklch(59.32% 0.179 270);
+    --color-text-primary: oklch(95% 0.005 240);
+    --color-text-secondary: oklch(75% 0.01 240);
+    --color-text-tertiary: oklch(62.84% 0.01 240);
 
-    --color-background: #1a1e1f;
-    --color-background-secondary: #1a1e1f;
-    --color-background-tertiary: #1f2324;
-    --color-background-border: #2b3039;
+    --color-background: oklch(22.7% 0.0063 240);
+    --color-background-secondary: oklch(22.7% 0.0063 240);
+    --color-background-tertiary: oklch(27.77% 0.0068 240);
+    --color-background-border: oklch(34% 0.0077 240);
 
-    --color-callout-info-bg: rgba(82, 92, 218, 0.05);
-    --color-callout-info-border: rgba(82, 92, 218, 0.15);
-    --color-callout-info-header-bg: rgba(82, 92, 218, 0.1);
-    --color-callout-info-text: #8b92ff;
+    --color-callout-info-bg: oklch(53.91% 0.19 270 / 12%);
+    --color-callout-info-border: oklch(53.91% 0.19 270 / 20%);
+    --color-callout-info-header-bg: oklch(53.91% 0.19 270 / 10%);
+    --color-callout-info-text: oklch(68.4% 0.16 270);
 
-    --color-callout-warning-bg: rgba(234, 179, 8, 0.03);
-    --color-callout-warning-border: rgba(234, 179, 8, 0.08);
-    --color-callout-warning-header-bg: rgba(234, 179, 8, 0.05);
-    --color-callout-warning-text: #e2b31a;
+    --color-callout-warning-bg: oklch(81.1% 0.154 70.7 / 12%);
+    --color-callout-warning-border: oklch(81.1% 0.154 70.7 / 20%);
+    --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
+    --color-callout-warning-text: oklch(81.1% 0.154 70.7);
 
     --color-method-delete: #e06c75;
     --color-method-patch: #c678dd;

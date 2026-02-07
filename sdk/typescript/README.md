@@ -5,13 +5,13 @@
 ## Установка
 
 ```bash
-npm install @pachca/sdk
+npm install @pachca/typescript
 ```
 
 ## Использование
 
 ```typescript
-import { createClient } from '@pachca/sdk';
+import { createClient } from '@pachca/typescript';
 
 const client = createClient({
   baseUrl: 'https://api.pachca.com/api/v1',

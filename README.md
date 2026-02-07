@@ -2,6 +2,14 @@
 
 Turborepo монорепозиторий с документацией API.
 
+## SDK
+
+- [TypeScript](sdk/typescript/README.md)
+- [Python](sdk/python/README.md)
+- [Go](sdk/go/README.md)
+- [Kotlin](sdk/kotlin/README.md)
+- [Swift](sdk/swift/README.md)
+
 ## Структура монорепозитория
 
 ```
@@ -9,6 +17,7 @@ Turborepo монорепозиторий с документацией API.
 │   └── docs/          # Next.js сайт документации (@pachca/docs)
 ├── packages/
 │   └── spec/          # TypeSpec спецификация (@pachca/spec)
+├── sdk/               # SDK для разных языков
 ├── turbo.json         # Конфигурация Turborepo
 └── package.json       # Корневой package.json (workspaces)
 ```

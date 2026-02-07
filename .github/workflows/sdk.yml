@@ -53,6 +53,9 @@ jobs:
   publish-npm:
     needs: generate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,14 +64,20 @@ jobs:
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
-      - uses: JS-DevTools/npm-publish@v3
-        with:
-          package: apps/sdk/typescript/package.json
-          token: ${{ secrets.NPM_TOKEN }}
+      - run: npm ci
+        working-directory: sdk/typescript
+      - run: npm run build
+        working-directory: sdk/typescript
+      - run: npm publish --provenance --access public
+        working-directory: sdk/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-pypi:
     needs: generate
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,8 +87,7 @@ jobs:
           python-version: "3.12"
       - run: pip install build
       - run: python -m build
-        working-directory: apps/sdk/python/generated
+        working-directory: sdk/python/generated
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: apps/sdk/python/generated/dist/
-          password: ${{ secrets.PYPI_TOKEN }}
+          packages-dir: sdk/python/generated/dist/

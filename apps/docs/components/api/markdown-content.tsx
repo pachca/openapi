@@ -19,6 +19,7 @@ import {
   Warning,
   Info,
 } from '@/components/mdx/mdx-components';
+import { CopyableInlineCode } from './copyable-inline-code';
 
 // Simple markdown components for server rendering
 const components = {
@@ -47,11 +48,7 @@ const components = {
       const code = String(children).replace(/\n$/, '');
       return <GuideCodeBlock language={language} code={code} title={title} />;
     }
-    return (
-      <code className="bg-background-secondary border border-background-border px-1.5 py-0.5 rounded text-[13px] font-mono text-primary">
-        {children}
-      </code>
-    );
+    return <CopyableInlineCode>{String(children)}</CopyableInlineCode>;
   },
 
   // Headings - skip H1 since StaticPageHeader provides it

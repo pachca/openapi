@@ -26,7 +26,7 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
   const hasExample = requestExample !== undefined;
 
   return (
-    <div className="border-t border-background-border py-6 pb-6 mb-0">
+    <div className="py-6 pb-6 mb-0">
       <SectionHeader title="Тело запроса" subtitle="application/json">
         {hasExample && (
           <>
@@ -60,7 +60,7 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
         </div>
       )}
 
-      <div className="pt-1">
+      <div className="pt-3">
         {activeTab === 'schema' || !hasExample ? (
           <SchemaTree schema={jsonContent.schema} />
         ) : (

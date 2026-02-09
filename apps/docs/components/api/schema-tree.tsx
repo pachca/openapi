@@ -4,6 +4,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import type { MouseEvent } from 'react';
 import { ChevronDown, Link as LinkIcon, Check } from 'lucide-react';
 import type { Schema } from '@/lib/openapi/types';
+import { displayConfig } from '@/lib/display-config';
 import { CopiedTooltip } from './copied-tooltip';
 import { InlineCodeText } from './inline-code-text';
 
@@ -69,7 +70,7 @@ interface SchemaTreeProps {
 }
 
 function RequiredBadge() {
-  return <span className="text-[13px] font-medium text-method-delete ml-0">Обязательно</span>;
+  return <span className="text-[14px] font-bold text-method-delete ml-0">*</span>;
 }
 
 // Генерация ID для enum значения (для ссылок из поиска)
@@ -595,7 +596,7 @@ function SchemaTreeInner({
         )}
 
         {/* Пример массива */}
-        {schema.example !== undefined && (
+        {displayConfig.showSchemaExamples && schema.example !== undefined && (
           <MetadataRow label="Пример">
             <CopyableCode value={JSON.stringify(schema.example)} />
           </MetadataRow>
@@ -871,18 +872,20 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
           </div>
         )}
 
-        <div className="flex flex-col gap-1 mt-1">
-          {schema.example !== undefined && !hasMultipleVariants && (
-            <MetadataRow label="Пример">
-              <CopyableCode
-                value={
-                  typeof schema.example === 'string'
-                    ? schema.example
-                    : JSON.stringify(schema.example)
-                }
-              />
-            </MetadataRow>
-          )}
+        <div className="flex flex-col gap-1 mt-1 empty:hidden">
+          {displayConfig.showSchemaExamples &&
+            schema.example !== undefined &&
+            !hasMultipleVariants && (
+              <MetadataRow label="Пример">
+                <CopyableCode
+                  value={
+                    typeof schema.example === 'string'
+                      ? schema.example
+                      : JSON.stringify(schema.example)
+                  }
+                />
+              </MetadataRow>
+            )}
 
           <EnumValues schema={schema} fieldPath={currentPath} />
           {schema.default !== undefined && (

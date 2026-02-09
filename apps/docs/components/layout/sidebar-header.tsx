@@ -20,7 +20,7 @@ export function SidebarHeader() {
         </Link>
         <ThemeToggle />
       </div>
-      <div className="px-4 pb-4">
+      <div className="px-2.5 pb-4">
         <SearchButton />
       </div>
     </div>

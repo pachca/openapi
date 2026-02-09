@@ -34,9 +34,9 @@ export function ApiMethodTemplate({
 
   return (
     <div className="flex flex-col flex-1 min-h-full">
-      <div className="grid grid-cols-1 xl:grid-cols-2 flex-1">
+      <div className="grid grid-cols-1 xl:grid-cols-7 flex-1">
         {/* Left Column: Documentation */}
-        <div className="flex flex-col">
+        <div className="flex flex-col xl:col-span-4">
           <div className="p-8 pt-10 xl:p-10 flex-1">
             <div className="xl:mx-0 prose prose-slate">
               <EndpointHeader
@@ -47,7 +47,7 @@ export function ApiMethodTemplate({
               />
 
               {fullDescription && (
-                <div className="pb-3">
+                <div className="pb-0">
                   <MarkdownContent
                     content={fullDescription}
                     allEndpoints={allEndpoints}
@@ -69,7 +69,7 @@ export function ApiMethodTemplate({
         </div>
 
         {/* Right Column: Code Examples (Sticky) */}
-        <div className="relative bg-background border-t border-background-border/50 xl:border-t-0">
+        <div className="relative bg-background border-t border-background-border/50 xl:border-t-0 xl:col-span-3">
           <div className="xl:sticky xl:top-0 p-8 xl:py-10 xl:pr-10 xl:pl-0 h-fit xl:h-screen xl:overflow-y-auto custom-scrollbar">
             <CodeExamples endpoint={endpoint} baseUrl={baseUrl} />
           </div>

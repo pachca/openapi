@@ -129,8 +129,8 @@ export function ResponseSection({ endpoint }: ResponseSectionProps) {
       schema.enum);
 
   return (
-    <div className="border-t border-background-border py-6 pb-0">
-      <SectionHeader title="Ответы">
+    <div className="py-6 pb-0">
+      <SectionHeader title="Ответ">
         {codes.map((code) => {
           const isActive = activeCode === code;
           const label = getResponseCodeLabel(code);

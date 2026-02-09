@@ -19,21 +19,21 @@ export function ParametersSection({ endpoint }: ParametersSectionProps) {
   return (
     <div className="mb-0">
       {pathParams.length > 0 && (
-        <div className="border-t border-background-border py-6">
+        <div className="py-6">
           <SectionHeader title="Параметры пути" />
           <ParametersList parameters={pathParams} />
         </div>
       )}
 
       {queryParams.length > 0 && (
-        <div className="border-t border-background-border py-6">
-          <SectionHeader title="Query-параметры" />
+        <div className="py-6">
+          <SectionHeader title="Параметры строки запроса" />
           <ParametersList parameters={queryParams} />
         </div>
       )}
 
       {headerParams.length > 0 && (
-        <div className="border-t border-background-border py-6">
+        <div className="py-6">
           <SectionHeader title="Headers" />
           <ParametersList parameters={headerParams} />
         </div>

@@ -59,7 +59,7 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
         href={item.href}
         ref={itemRef}
         onClick={handleLinkClick}
-        className={`flex items-center gap-2 px-2 py-1.5 text-[14px] leading-[1.4] rounded-md font-medium group transition-colors duration-200 ${
+        className={`flex items-center gap-2 px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md font-medium group transition-colors duration-200 ${
           isActive
             ? 'bg-primary text-white'
             : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'

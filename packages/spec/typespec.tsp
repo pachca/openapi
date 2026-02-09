@@ -2584,14 +2584,14 @@ interface UserOperations {
     }
   })
   listUsers(
-    @doc("Поисковая фраза для фильтрации результатов (поиск идет по полям first_name (имя), last_name (фамилия), email (электронная почта), phone_number (телефон) и nickname (никнейм))")
+    @doc("Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).")
     @query query?: string,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query 
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @query cursor?: string
   ): {
     @statusCode _: 200;

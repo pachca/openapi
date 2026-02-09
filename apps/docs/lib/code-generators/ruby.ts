@@ -3,8 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord } from './utils';
+import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
 
 export function generateRuby(
   endpoint: Endpoint,
@@ -30,13 +31,60 @@ export function generateRuby(
     code += `uri.query = URI.encode_www_form(params)\n\n`;
   }
 
+  // Multipart form-data
+  if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
+
+    code = `require 'net/http'\nrequire 'uri'\n\n`;
+    code += `uri = URI('${url}')\n\n`;
+
+    code += `boundary = "----FormBoundary#{rand(1_000_000)}"\n\n`;
+
+    code += `body = []\n`;
+    if (fields) {
+      for (const field of fields) {
+        if (field.isFile) {
+          code += `body << "--#{boundary}\\r\\n"\n`;
+          code += `body << "Content-Disposition: form-data; name=\\"${field.name}\\"; filename=\\"${field.value}\\"\\r\\n"\n`;
+          code += `body << "Content-Type: application/octet-stream\\r\\n\\r\\n"\n`;
+          code += `body << File.read('${field.value}')\n`;
+          code += `body << "\\r\\n"\n`;
+        } else {
+          code += `body << "--#{boundary}\\r\\n"\n`;
+          code += `body << "Content-Disposition: form-data; name=\\"${field.name}\\"\\r\\n\\r\\n"\n`;
+          code += `body << "${field.value}\\r\\n"\n`;
+        }
+      }
+    }
+    code += `body << "--#{boundary}--\\r\\n"\n\n`;
+
+    const methodCapitalized = method.charAt(0).toUpperCase() + method.slice(1);
+    code += `request = Net::HTTP::${methodCapitalized}.new(uri)\n`;
+    if (requiresAuth(endpoint)) {
+      code += `request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'\n`;
+    }
+    code += `request['Content-Type'] = "multipart/form-data; boundary=#{boundary}"\n`;
+    code += `request.body = body.join\n`;
+
+    code += `\nresponse = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|\n`;
+    code += `  http.request(request)\n`;
+    code += `end\n\n`;
+    code += `puts response.code`;
+
+    return code;
+  }
+
   // Create request
   const methodCapitalized = method.charAt(0).toUpperCase() + method.slice(1);
   code += `request = Net::HTTP::${methodCapitalized}.new(uri)\n`;
 
   // Add authentication
-  code += `request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'\n`;
-  code += `request['Content-Type'] = 'application/json'\n`;
+  if (requiresAuth(endpoint)) {
+    code += `request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'\n`;
+  }
+  if (hasJsonContent(endpoint)) {
+    code += `request['Content-Type'] = 'application/json'\n`;
+  }
 
   // Add request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {

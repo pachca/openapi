@@ -230,21 +230,22 @@ export function generateRequestExample(requestBody: RequestBody | undefined): un
     return undefined;
   }
 
-  const jsonContent = requestBody.content['application/json'];
-  if (!jsonContent) {
+  // Проверяем application/json и multipart/form-data
+  const content = requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
+  if (!content) {
     return undefined;
   }
 
   // Приоритет 1: явный example на уровне метода
-  if (jsonContent.example !== undefined) {
-    return jsonContent.example;
+  if (content.example !== undefined) {
+    return content.example;
   }
 
   // Приоритет 2: первый из examples на уровне метода
-  if (jsonContent.examples) {
-    const exampleKeys = Object.keys(jsonContent.examples);
+  if (content.examples) {
+    const exampleKeys = Object.keys(content.examples);
     if (exampleKeys.length > 0) {
-      const firstExample = jsonContent.examples[exampleKeys[0]];
+      const firstExample = content.examples[exampleKeys[0]];
       if (firstExample.value !== undefined) {
         return firstExample.value;
       }
@@ -351,4 +352,80 @@ export function getAllExamples(mediaType: MediaType): Record<string, unknown> {
 
   // НЕ генерируем из схемы - возвращаем только явные примеры
   return examples;
+}
+
+/**
+ * Multipart form field descriptor
+ */
+export interface MultipartField {
+  name: string;
+  value: string;
+  isFile: boolean;
+}
+
+/**
+ * Extract wire name from description pattern "Параметр X, полученный..."
+ * Falls back to the schema property name if no match.
+ */
+function extractWireName(description: string | undefined, fallback: string): string {
+  if (description) {
+    const match = description.match(/^Параметр\s+(\S+?)(?:,|\s|$)/);
+    if (match) return match[1];
+  }
+  return fallback;
+}
+
+// Example values for upload parameters (from POST /uploads response).
+// Needed because TypeSpec @opExample / @example don't work with HttpPart<T>.
+const UPLOAD_FIELD_EXAMPLES: Record<string, string> = {
+  'Content-Disposition': 'attachment',
+  'acl': 'private',
+  'policy': 'eyJloNBpcmF0aW9u...',
+  'x-amz-credential': '286471_server/20211122/kz-6x/s3/aws4_request',
+  'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+  'x-amz-date': '20211122T065734Z',
+  'x-amz-signature': '87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475',
+  'key': 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename',
+};
+
+/**
+ * Generate multipart form-data field list from request body schema.
+ * Returns field descriptors with wire names, example values, and file flags.
+ */
+export function generateMultipartExample(requestBody: RequestBody | undefined): MultipartField[] | undefined {
+  if (!requestBody) return undefined;
+
+  const multipartContent = requestBody.content['multipart/form-data'];
+  const properties = multipartContent?.schema?.properties;
+  if (!properties) return undefined;
+
+  const fields: MultipartField[] = [];
+
+  for (const [propName, propSchema] of Object.entries(properties)) {
+    const schema = propSchema as Schema;
+    const isFile = schema.format === 'binary';
+
+    if (isFile) {
+      fields.push({ name: propName, value: 'filename.png', isFile: true });
+      continue;
+    }
+
+    // Wire name: schema.example description "Параметр X" → X, fallback to propName
+    const wireName = extractWireName(schema.description, propName);
+
+    // Value priority: schema.example > known upload examples > generateExample
+    let value: string;
+    if (schema.example !== undefined) {
+      value = String(schema.example);
+    } else if (UPLOAD_FIELD_EXAMPLES[wireName]) {
+      value = UPLOAD_FIELD_EXAMPLES[wireName];
+    } else {
+      const ex = generateExample(schema);
+      value = String(ex ?? 'string');
+    }
+
+    fields.push({ name: wireName, value, isFile: false });
+  }
+
+  return fields.length > 0 ? fields : undefined;
 }

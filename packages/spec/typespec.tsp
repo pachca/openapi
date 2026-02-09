@@ -747,41 +747,46 @@ model Task {
   @doc("Идентификатор напоминания")
   @example(22283)
   id: int32;
-  
+
   @doc("Тип")
   kind: TaskKind;
-  
+
   @doc("Описание")
   @example("Забрать со склада 21 заказ")
   content: string;
-  
+
   @doc("Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2020-06-05T09:00:00.000Z"))
-  due_at: utcDateTime;
-  
+  due_at: utcDateTime | null;
+
   @doc("Приоритет")
   @example(2)
   priority: int32;
-  
+
   @doc("Идентификатор пользователя-создателя напоминания")
   @example(12)
   user_id: int32;
-  
+
   @doc("Статус напоминания")
   @example("undone")
   @extension("x-enum-descriptions", #{
-    undone: "Активная"
+    done: "Выполнено",
+    undone: "Активно"
   })
-  status: "undone";
-  
+  status: "done" | "undone";
+
   @doc("Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2020-06-04T10:37:57.000Z"))
   created_at: utcDateTime;
-  
+
   @doc("Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные»")
   @example(#[12])
   performer_ids: int32[];
-  
+
+  @doc("Напоминание на весь день (без указания времени)")
+  @example(false)
+  all_day: boolean;
+
   @doc("Дополнительные поля напоминания")
   custom_properties: CustomProperty[];
 }
@@ -1272,21 +1277,70 @@ model TaskCreateRequest {
     
     @doc("Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени).")
     @example(utcDateTime.fromISO("2020-06-05T12:00:00.000+03:00"))
-    due_at: utcDateTime;
-    
+    due_at?: utcDateTime;
+
     @doc("Приоритет: 1, 2 (важно) или 3 (очень важно).")
     @example(2)
     priority?: int32 = 1;
     
     @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)")
     performer_ids?: int32[];
-    
+
+    @doc("Напоминание на весь день (без указания времени)")
+    all_day?: boolean;
+
     @doc("Задаваемые дополнительные поля")
     custom_properties?: {
       @doc("Идентификатор поля")
       @example(78)
       id: int32;
-      
+
+      @doc("Устанавливаемое значение")
+      @example("Синий склад")
+      value: string;
+    }[];
+  };
+}
+
+@doc("Запрос на обновление напоминания")
+model TaskUpdateRequest {
+  @doc("Собранный объект параметров обновляемого напоминания")
+  task: {
+    @doc("Тип")
+    kind?: TaskKind;
+
+    @doc("Описание")
+    @example("Забрать со склада 21 заказ")
+    content?: string;
+
+    @doc("Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени).")
+    @example(utcDateTime.fromISO("2020-06-05T12:00:00.000+03:00"))
+    due_at?: utcDateTime;
+
+    @doc("Приоритет: 1, 2 (важно) или 3 (очень важно).")
+    @example(2)
+    priority?: int32;
+
+    @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»")
+    performer_ids?: int32[];
+
+    @doc("Статус")
+    @example("done")
+    @extension("x-enum-descriptions", #{
+      done: "Выполнено",
+      undone: "Не выполнено"
+    })
+    status?: "done" | "undone";
+
+    @doc("Напоминание на весь день (без указания времени)")
+    all_day?: boolean;
+
+    @doc("Задаваемые дополнительные поля")
+    custom_properties?: {
+      @doc("Идентификатор поля")
+      @example(78)
+      id: int32;
+
       @doc("Устанавливаемое значение")
       @example("Синий склад")
       value: string;
@@ -4519,6 +4573,7 @@ interface TaskOperations {
           status: "undone",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
+          all_day: false,
           custom_properties: #[#{
             id: 78,
             name: "Место",
@@ -4540,6 +4595,211 @@ interface TaskOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @doc("""
+Список напоминаний
+
+Метод для получения списка напоминаний.
+""")
+  @get
+  @opExample(#{
+    parameters: #{
+      per: 2,
+      page: 1
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #[
+        #{
+          id: 22283,
+          kind: TaskKind.reminder,
+          content: "Забрать со склада 21 заказ",
+          due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
+          priority: 2,
+          user_id: 12,
+          status: "undone",
+          created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
+          performer_ids: #[12],
+          all_day: false,
+          custom_properties: #[#{
+            id: 78,
+            name: "Место",
+            data_type: CustomPropertyDataType.string,
+            value: "Синий склад"
+          }]
+        },
+        #{
+          id: 22284,
+          kind: TaskKind.call,
+          content: "Позвонить клиенту",
+          due_at: utcDateTime.fromISO("2020-06-06T14:00:00.000Z"),
+          priority: 3,
+          user_id: 12,
+          status: "done",
+          created_at: utcDateTime.fromISO("2020-06-04T11:20:00.000Z"),
+          performer_ids: #[12, 13],
+          all_day: false,
+          custom_properties: #[]
+        }
+      ]
+      }
+    }
+  })
+  listTasks(
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @minValue(1)
+    @maxValue(50)
+    per?: int32 = 50,
+    @doc("Страница выборки")
+    @query page?: int32 = 1
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<Task[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  };
+
+  @doc("""
+Информация о напоминании
+
+Метод для получения информации о напоминании.
+
+Для получения напоминания вам необходимо знать его `id` и указать его в `URL` запроса.
+""")
+  @route("/{id}")
+  @get
+  @opExample(#{
+    parameters: #{
+      id: 22283
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 22283,
+          kind: TaskKind.reminder,
+          content: "Забрать со склада 21 заказ",
+          due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
+          priority: 2,
+          user_id: 12,
+          status: "undone",
+          created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
+          performer_ids: #[12],
+          all_day: false,
+          custom_properties: #[#{
+            id: 78,
+            name: "Место",
+            data_type: CustomPropertyDataType.string,
+            value: "Синий склад"
+          }]
+        }
+      }
+    }
+  })
+  getTask(
+    @doc("Идентификатор напоминания")
+    @path id: int32
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<Task>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  };
+
+  @doc("""
+Редактирование напоминания
+
+Метод для редактирования напоминания.
+
+Для редактирования напоминания вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры напоминания указываются в теле запроса.
+""")
+  @put
+  @opExample(#{
+    parameters: #{
+      id: 22283,
+      request: #{
+        task: #{
+          status: "done"
+        }
+      }
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 22283,
+          kind: TaskKind.reminder,
+          content: "Забрать со склада 21 заказ",
+          due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
+          priority: 2,
+          user_id: 12,
+          status: "done",
+          created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
+          performer_ids: #[12],
+          all_day: false,
+          custom_properties: #[#{
+            id: 78,
+            name: "Место",
+            data_type: CustomPropertyDataType.string,
+            value: "Синий склад"
+          }]
+        }
+      }
+    }
+  })
+  updateTask(
+    @doc("Идентификатор напоминания")
+    @path id: int32,
+    @body request: TaskUpdateRequest
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<Task>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @doc("""
+Удаление напоминания
+
+Метод для удаления напоминания.
+
+Для удаления напоминания вам необходимо знать его `id` и указать его в `URL` запроса.
+""")
+  @delete
+
+  deleteTask(
+    @doc("Идентификатор напоминания")
+    @path id: int32
+  ): {
+    @statusCode _: 204;
+    @body body: EmptyResponse;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
     @body body: ApiError;
   };
 }

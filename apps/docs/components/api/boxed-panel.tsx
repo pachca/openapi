@@ -23,7 +23,7 @@ export function BoxedPanel({
       className={`bg-background-tertiary rounded-lg border border-background-border overflow-hidden flex flex-col h-fit not-prose ${className}`}
     >
       <div
-        className={`flex items-center justify-between px-3 border-b border-background-border min-h-[var(--boxed-header-height)] ${headerClassName}`}
+        className={`flex gap-2 items-center justify-between px-3 border-b border-background-border min-h-[var(--boxed-header-height)] ${headerClassName}`}
       >
         {header}
       </div>

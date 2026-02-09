@@ -3,7 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
+import { requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
 
 export function generateJava(
   endpoint: Endpoint,
@@ -11,6 +13,56 @@ export function generateJava(
 ): string {
   const url = `${baseUrl}${endpoint.path}`;
   const method = endpoint.method;
+
+  // Multipart form-data
+  if (['POST', 'PUT', 'PATCH'].includes(method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
+
+    let code = `import java.net.http.*;\nimport java.net.URI;\nimport java.nio.file.*;\nimport java.util.*;\n\n`;
+    code += `public class ApiRequest {\n`;
+    code += `    public static void main(String[] args) throws Exception {\n`;
+    code += `        String boundary = UUID.randomUUID().toString();\n\n`;
+
+    code += `        var parts = new ArrayList<byte[]>();\n`;
+    if (fields) {
+      for (const field of fields) {
+        if (field.isFile) {
+          code += `        parts.add(("--" + boundary + "\\r\\nContent-Disposition: form-data; name=\\"${field.name}\\"; filename=\\"${field.value}\\"\\r\\nContent-Type: application/octet-stream\\r\\n\\r\\n").getBytes());\n`;
+          code += `        parts.add(Files.readAllBytes(Path.of("${field.value}")));\n`;
+          code += `        parts.add("\\r\\n".getBytes());\n`;
+        } else {
+          code += `        parts.add(("--" + boundary + "\\r\\nContent-Disposition: form-data; name=\\"${field.name}\\"\\r\\n\\r\\n${field.value}\\r\\n").getBytes());\n`;
+        }
+      }
+    }
+    code += `        parts.add(("--" + boundary + "--\\r\\n").getBytes());\n\n`;
+
+    code += `        var body = parts.stream()\n`;
+    code += `            .reduce(new byte[0], (a, b) -> {\n`;
+    code += `                var result = new byte[a.length + b.length];\n`;
+    code += `                System.arraycopy(a, 0, result, 0, a.length);\n`;
+    code += `                System.arraycopy(b, 0, result, a.length, b.length);\n`;
+    code += `                return result;\n`;
+    code += `            });\n\n`;
+
+    code += `        HttpClient client = HttpClient.newHttpClient();\n`;
+    code += `        HttpRequest request = HttpRequest.newBuilder()\n`;
+    code += `            .uri(URI.create("${url}"))\n`;
+    if (requiresAuth(endpoint)) {
+      code += `            .header("Authorization", "Bearer YOUR_ACCESS_TOKEN")\n`;
+    }
+    code += `            .header("Content-Type", "multipart/form-data; boundary=" + boundary)\n`;
+    code += `            .method("${method}", HttpRequest.BodyPublishers.ofByteArray(body))\n`;
+    code += `            .build();\n\n`;
+
+    code += `        HttpResponse<String> response = client.send(request,\n`;
+    code += `            HttpResponse.BodyHandlers.ofString());\n\n`;
+    code += `        System.out.println(response.statusCode());\n`;
+    code += `    }\n`;
+    code += `}`;
+
+    return code;
+  }
 
   let code = `import java.net.http.*;\nimport java.net.URI;\n\n`;
   code += `public class ApiRequest {\n`;
@@ -56,8 +108,12 @@ export function generateJava(
   code += `        HttpClient client = HttpClient.newHttpClient();\n`;
   code += `        HttpRequest request = HttpRequest.newBuilder()\n`;
   code += `            .uri(URI.create("${fullUrl}"))\n`;
-  code += `            .header("Authorization", "Bearer YOUR_ACCESS_TOKEN")\n`;
-  code += `            .header("Content-Type", "application/json")\n`;
+  if (requiresAuth(endpoint)) {
+    code += `            .header("Authorization", "Bearer YOUR_ACCESS_TOKEN")\n`;
+  }
+  if (hasJsonContent(endpoint)) {
+    code += `            .header("Content-Type", "application/json")\n`;
+  }
   code += `            .method("${method}", HttpRequest.BodyPublishers.ofString(${requestBody}))\n`;
   code += `            .build();\n\n`;
 

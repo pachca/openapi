@@ -3,7 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
+import { requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
 
 export function generateNodeJS(
   endpoint: Endpoint,
@@ -11,6 +13,44 @@ export function generateNodeJS(
 ): string {
   const url = `${baseUrl}${endpoint.path}`;
   const method = endpoint.method.toLowerCase();
+
+  // Multipart form-data
+  if (['post', 'put', 'patch'].includes(method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
+
+    let code = `const FormData = require('form-data');\nconst fs = require('fs');\nconst https = require('https');\n\n`;
+    code += `const form = new FormData();\n`;
+
+    if (fields) {
+      for (const field of fields) {
+        if (field.isFile) {
+          code += `form.append('${field.name}', fs.createReadStream('${field.value}'));\n`;
+        } else {
+          code += `form.append('${field.name}', '${field.value}');\n`;
+        }
+      }
+    }
+
+    code += `\nconst options = {\n`;
+    code += `    hostname: 'api.pachca.com',\n`;
+    code += `    port: 443,\n`;
+    code += `    path: '${new URL(url).pathname}',\n`;
+    code += `    method: '${method.toUpperCase()}',\n`;
+    code += `    headers: {\n`;
+    code += `        ...form.getHeaders()`;
+    if (requiresAuth(endpoint)) {
+      code += `,\n        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'`;
+    }
+    code += `\n    }\n`;
+    code += `};\n\n`;
+
+    code += `const req = https.request(options, (res) => {\n`;
+    code += `    console.log('Status:', res.statusCode);\n`;
+    code += `});\n\n`;
+    code += `form.pipe(req);`;
+
+    return code;
+  }
 
   let code = `const https = require('https');\n\n`;
 
@@ -38,8 +78,12 @@ export function generateNodeJS(
   code += `    path: '${path}',\n`;
   code += `    method: '${method.toUpperCase()}',\n`;
   code += `    headers: {\n`;
-  code += `        'Content-Type': 'application/json',\n`;
-  code += `        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'\n`;
+  if (hasJsonContent(endpoint)) {
+    code += `        'Content-Type': 'application/json'${requiresAuth(endpoint) ? ',' : ''}\n`;
+  }
+  if (requiresAuth(endpoint)) {
+    code += `        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'\n`;
+  }
   code += `    }\n`;
   code += `};\n\n`;
 

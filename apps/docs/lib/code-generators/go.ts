@@ -3,8 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord } from './utils';
+import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
 
 export function generateGo(
   endpoint: Endpoint,
@@ -12,6 +13,52 @@ export function generateGo(
 ): string {
   const url = `${baseUrl}${endpoint.path}`;
   const method = endpoint.method;
+
+  // Multipart form-data
+  if (['POST', 'PUT', 'PATCH'].includes(method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
+
+    let code = `package main\n\n`;
+    code += `import (\n`;
+    code += `    "bytes"\n`;
+    code += `    "fmt"\n`;
+    code += `    "io"\n`;
+    code += `    "mime/multipart"\n`;
+    code += `    "net/http"\n`;
+    code += `    "os"\n`;
+    code += `)\n\n`;
+    code += `func main() {\n`;
+    code += `    var buf bytes.Buffer\n`;
+    code += `    writer := multipart.NewWriter(&buf)\n\n`;
+
+    if (fields) {
+      for (const field of fields) {
+        if (field.isFile) {
+          code += `    file, _ := os.Open("${field.value}")\n`;
+          code += `    defer file.Close()\n`;
+          code += `    part, _ := writer.CreateFormFile("${field.name}", "${field.value}")\n`;
+          code += `    io.Copy(part, file)\n\n`;
+        } else {
+          code += `    writer.WriteField("${field.name}", "${field.value}")\n`;
+        }
+      }
+    }
+
+    code += `    writer.Close()\n\n`;
+    code += `    req, _ := http.NewRequest("${method}", "${url}", &buf)\n`;
+    code += `    req.Header.Set("Content-Type", writer.FormDataContentType())\n`;
+    if (requiresAuth(endpoint)) {
+      code += `    req.Header.Set("Authorization", "Bearer YOUR_ACCESS_TOKEN")\n`;
+    }
+    code += `\n`;
+    code += `    client := &http.Client{}\n`;
+    code += `    resp, _ := client.Do(req)\n`;
+    code += `    defer resp.Body.Close()\n\n`;
+    code += `    fmt.Println(resp.StatusCode)\n`;
+    code += `}`;
+
+    return code;
+  }
 
   let code = `package main\n\n`;
   code += `import (\n`;
@@ -64,8 +111,13 @@ export function generateGo(
     code += `    req, _ := http.NewRequest("${method}", url, nil)\n`;
   }
 
-  code += `    req.Header.Set("Authorization", "Bearer YOUR_ACCESS_TOKEN")\n`;
-  code += `    req.Header.Set("Content-Type", "application/json")\n\n`;
+  if (requiresAuth(endpoint)) {
+    code += `    req.Header.Set("Authorization", "Bearer YOUR_ACCESS_TOKEN")\n`;
+  }
+  if (hasJsonContent(endpoint)) {
+    code += `    req.Header.Set("Content-Type", "application/json")\n`;
+  }
+  code += `\n`;
 
   code += `    client := &http.Client{}\n`;
   code += `    resp, _ := client.Do(req)\n`;

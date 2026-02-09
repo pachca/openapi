@@ -99,10 +99,15 @@ export function SidebarNav({ navigation }: SidebarNavProps) {
               className="navigation-section overflow-hidden"
             >
               <Accordion.Header>
-                <Accordion.Trigger className="flex w-full items-center justify-between px-2 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-primary hover:bg-background-tertiary transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none group">
-                  <span className="truncate">{section.title}</span>
+                <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-primary hover:bg-background-tertiary transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none group">
+                  <span className="min-w-0 flex items-center gap-1.5">
+                    <span className="truncate">{section.title}</span>
+                    {section.originalTitle && (
+                      <span className="shrink-0 text-text-secondary">{section.originalTitle}</span>
+                    )}
+                  </span>
                   <ChevronDown
-                    className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]:rotate-0"
+                    className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]:rotate-0 shrink-0"
                     strokeWidth={2.5}
                   />
                 </Accordion.Trigger>

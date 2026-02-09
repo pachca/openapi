@@ -120,6 +120,7 @@ export interface SecurityRequirement {
 
 export interface NavigationSection {
   title: string;
+  originalTitle?: string;
   items: NavigationItem[];
 }
 

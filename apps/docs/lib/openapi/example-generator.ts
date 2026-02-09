@@ -231,7 +231,8 @@ export function generateRequestExample(requestBody: RequestBody | undefined): un
   }
 
   // Проверяем application/json и multipart/form-data
-  const content = requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
+  const content =
+    requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
   if (!content) {
     return undefined;
   }
@@ -379,20 +380,22 @@ function extractWireName(description: string | undefined, fallback: string): str
 // Needed because TypeSpec @opExample / @example don't work with HttpPart<T>.
 const UPLOAD_FIELD_EXAMPLES: Record<string, string> = {
   'Content-Disposition': 'attachment',
-  'acl': 'private',
-  'policy': 'eyJloNBpcmF0aW9u...',
+  acl: 'private',
+  policy: 'eyJloNBpcmF0aW9u...',
   'x-amz-credential': '286471_server/20211122/kz-6x/s3/aws4_request',
   'x-amz-algorithm': 'AWS4-HMAC-SHA256',
   'x-amz-date': '20211122T065734Z',
   'x-amz-signature': '87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475',
-  'key': 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename',
+  key: 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename',
 };
 
 /**
  * Generate multipart form-data field list from request body schema.
  * Returns field descriptors with wire names, example values, and file flags.
  */
-export function generateMultipartExample(requestBody: RequestBody | undefined): MultipartField[] | undefined {
+export function generateMultipartExample(
+  requestBody: RequestBody | undefined
+): MultipartField[] | undefined {
   if (!requestBody) return undefined;
 
   const multipartContent = requestBody.content['multipart/form-data'];

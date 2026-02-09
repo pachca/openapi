@@ -127,7 +127,7 @@ description: Представления с набором полей для по
 />
 
 <CodeBlock language="json" title="Пример вебхука о заполнении формы">
-{`{
+  {`{
     "type": "view",
     "event": "submit",
     "private_metadata": "{'timeoff_id':4378}",
@@ -171,7 +171,7 @@ description: Представления с набором полей для по
 Если вы хотите просто закрыть пользователю представление (нет необходимости отображать ошибки), то ответ должен быть `HTTP 200 OK`. Никакое тело ответа не требуется.
 
 <CodeBlock language="http" title="Пример ответа на вебхук для закрытия представления">
-{`HTTP/1.1 200 OK
+  {`HTTP/1.1 200 OK
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2025 12:32:29 GMT
 Content-Type: text/plain; charset=utf-8`}

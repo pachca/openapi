@@ -3,7 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
+import { requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
 
 export function generateJavaScript(
   endpoint: Endpoint,
@@ -33,30 +35,67 @@ export function generateJavaScript(
 
   code += `, {\n  method: '${method}',`;
 
-  // Add headers
-  code += `\n  headers: {`;
-  code += `\n    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',`;
-  code += `\n    'Content-Type': 'application/json'`;
-  code += `\n  }`;
+  // Multipart form-data
+  if (['POST', 'PUT', 'PATCH'].includes(method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
 
-  // Add body for POST/PUT/PATCH
-  if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-    // Используем явные примеры из OpenAPI (example/examples)
-    const requestExample = generateRequestExample(endpoint.requestBody);
-    const body =
-      requestExample ||
-      (endpoint.requestBody.content['application/json']?.schema
-        ? generateExample(endpoint.requestBody.content['application/json'].schema)
-        : null);
-
-    if (body) {
-      code += `,\n  body: JSON.stringify(${JSON.stringify(body, null, 4).replace(/\n/g, '\n  ')})`;
+    // headers — no Content-Type for multipart (browser sets it with boundary)
+    code += `\n  headers: {`;
+    if (requiresAuth(endpoint)) {
+      code += `\n    'Authorization': 'Bearer YOUR_ACCESS_TOKEN'`;
     }
-  }
+    code += `\n  }`;
 
-  code += `\n});\n\n`;
-  code += `const data = await response.json();\n`;
-  code += `console.log(data);`;
+    if (fields) {
+      code += `,\n  body: formData`;
+    }
+    code += `\n});\n\n`;
+
+    // FormData before fetch
+    if (fields) {
+      let formCode = `const formData = new FormData();\n`;
+      for (const field of fields) {
+        if (field.isFile) {
+          formCode += `formData.append('${field.name}', fileInput.files[0]);\n`;
+        } else {
+          formCode += `formData.append('${field.name}', '${field.value}');\n`;
+        }
+      }
+      formCode += `\n`;
+      code = formCode + code;
+    }
+
+    code += `console.log(response.status);`;
+  } else {
+    // Add headers
+    code += `\n  headers: {`;
+    if (requiresAuth(endpoint)) {
+      code += `\n    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',`;
+    }
+    if (hasJsonContent(endpoint)) {
+      code += `\n    'Content-Type': 'application/json'`;
+    }
+    code += `\n  }`;
+
+    // Add body for POST/PUT/PATCH
+    if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
+      // Используем явные примеры из OpenAPI (example/examples)
+      const requestExample = generateRequestExample(endpoint.requestBody);
+      const body =
+        requestExample ||
+        (endpoint.requestBody.content['application/json']?.schema
+          ? generateExample(endpoint.requestBody.content['application/json'].schema)
+          : null);
+
+      if (body) {
+        code += `,\n  body: JSON.stringify(${JSON.stringify(body, null, 4).replace(/\n/g, '\n  ')})`;
+      }
+    }
+
+    code += `\n});\n\n`;
+    code += `const data = await response.json();\n`;
+    code += `console.log(data);`;
+  }
 
   return code;
 }

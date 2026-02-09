@@ -128,26 +128,28 @@ description: Представления с набором полей для по
 
 <CodeBlock language="json" title="Пример вебхука о заполнении формы">
   {`{
-  "type": "view",
-  "event": "submit",
-  "private_metadata": "{'timeoff_id':4378}",
-  "callback_id": "timeoff_reguest_form",
-  "user_id": 1235523,
-  "data": {
-    "date_start": "2025-07-01",
-    "date_end": "2025-07-14",
-    "request_doc": [{
-      "name": "request.png",
-      "size": 19153,
-      "url": "<url>"
-    }], 
-    "accessibility": "phone_only",
-    "info": "Поеду в сибирь на свадьбу лучшего друга",
-    "newsletters": ["new_tasks", "project_updates"],
-    "team": "success",
-    "time": "22:00"
-  },
-  "webhook_timestamp": 1755075544
+    "type": "view",
+    "event": "submit",
+    "private_metadata": "{'timeoff_id':4378}",
+    "callback_id": "timeoff_reguest_form",
+    "user_id": 1235523,
+    "data": {
+        "date_start": "2025-07-01",
+        "date_end": "2025-07-14",
+        "request_doc": [
+            {
+                "name": "request.png",
+                "size": 19153,
+                "url": "<url>"
+            }
+        ],
+        "accessibility": "phone_only",
+        "info": "Поеду в сибирь на свадьбу лучшего друга",
+        "newsletters": ["new_tasks", "project_updates"],
+        "team": "success",
+        "time": "22:00"
+    },
+    "webhook_timestamp": 1755075544
 }`}
 </CodeBlock>
 

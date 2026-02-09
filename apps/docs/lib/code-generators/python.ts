@@ -3,8 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord } from './utils';
+import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
 
 export function generatePython(
   endpoint: Endpoint,
@@ -26,42 +27,93 @@ export function generatePython(
     code += `}\n\n`;
   }
 
-  // Add request body for POST/PUT/PATCH
-  if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
-    // Используем явные примеры из OpenAPI (example/examples)
-    const requestExample = generateRequestExample(endpoint.requestBody);
-    const body =
-      requestExample ||
-      (endpoint.requestBody.content['application/json']?.schema
-        ? generateExample(endpoint.requestBody.content['application/json'].schema)
-        : null);
+  // Multipart form-data
+  if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
 
-    if (body) {
-      code += `data = ${pythonRepr(body)}\n\n`;
+    if (fields) {
+      const fileFields = fields.filter((f) => f.isFile);
+      const textFields = fields.filter((f) => !f.isFile);
+
+      if (textFields.length > 0) {
+        code += `data = {\n`;
+        for (const field of textFields) {
+          code += `    '${field.name}': '${field.value}',\n`;
+        }
+        code += `}\n\n`;
+      }
+
+      if (fileFields.length > 0) {
+        code += `files = {\n`;
+        for (const field of fileFields) {
+          code += `    '${field.name}': open('${field.value}', 'rb'),\n`;
+        }
+        code += `}\n\n`;
+      }
     }
+
+    code += `headers = {\n`;
+    if (requiresAuth(endpoint)) {
+      code += `    'Authorization': 'Bearer YOUR_ACCESS_TOKEN'\n`;
+    }
+    code += `}\n\n`;
+
+    code += `response = requests.${method}(\n`;
+    code += `    '${url}'`;
+    if (queryParams.length > 0) {
+      code += `,\n    params=params`;
+    }
+    code += `,\n    headers=headers`;
+    if (fields) {
+      const hasText = fields.some((f) => !f.isFile);
+      const hasFile = fields.some((f) => f.isFile);
+      if (hasText) code += `,\n    data=data`;
+      if (hasFile) code += `,\n    files=files`;
+    }
+    code += `\n)\n\n`;
+    code += `print(response.status_code)`;
+  } else {
+    // Add request body for POST/PUT/PATCH
+    if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
+      // Используем явные примеры из OpenAPI (example/examples)
+      const requestExample = generateRequestExample(endpoint.requestBody);
+      const body =
+        requestExample ||
+        (endpoint.requestBody.content['application/json']?.schema
+          ? generateExample(endpoint.requestBody.content['application/json'].schema)
+          : null);
+
+      if (body) {
+        code += `data = ${pythonRepr(body)}\n\n`;
+      }
+    }
+
+    // Make the request
+    code += `headers = {\n`;
+    if (requiresAuth(endpoint)) {
+      code += `    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',\n`;
+    }
+    if (hasJsonContent(endpoint)) {
+      code += `    'Content-Type': 'application/json'\n`;
+    }
+    code += `}\n\n`;
+
+    code += `response = requests.${method}(\n`;
+    code += `    '${url}'`;
+
+    if (queryParams.length > 0) {
+      code += `,\n    params=params`;
+    }
+
+    code += `,\n    headers=headers`;
+
+    if (['post', 'put', 'patch'].includes(method) && endpoint.requestBody) {
+      code += `,\n    json=data`;
+    }
+
+    code += `\n)\n\n`;
+    code += `print(response.json())`;
   }
-
-  // Make the request
-  code += `headers = {\n`;
-  code += `    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',\n`;
-  code += `    'Content-Type': 'application/json'\n`;
-  code += `}\n\n`;
-
-  code += `response = requests.${method}(\n`;
-  code += `    '${url}'`;
-
-  if (queryParams.length > 0) {
-    code += `,\n    params=params`;
-  }
-
-  code += `,\n    headers=headers`;
-
-  if (['post', 'put', 'patch'].includes(method) && endpoint.requestBody) {
-    code += `,\n    json=data`;
-  }
-
-  code += `\n)\n\n`;
-  code += `print(response.json())`;
 
   return code;
 }

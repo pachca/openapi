@@ -3,7 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
+import { requiresAuth, hasMultipartContent } from './utils';
 
 export function generateDotNet(
   endpoint: Endpoint,
@@ -18,8 +20,10 @@ export function generateDotNet(
   code += `        using var client = new HttpClient();\n\n`;
 
   // Add authentication
-  code += `        client.DefaultRequestHeaders.Authorization = \n`;
-  code += `            new AuthenticationHeaderValue("Bearer", "YOUR_ACCESS_TOKEN");\n\n`;
+  if (requiresAuth(endpoint)) {
+    code += `        client.DefaultRequestHeaders.Authorization = \n`;
+    code += `            new AuthenticationHeaderValue("Bearer", "YOUR_ACCESS_TOKEN");\n\n`;
+  }
 
   // Add query parameters if any
   const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
@@ -39,8 +43,29 @@ export function generateDotNet(
     fullUrl = `${url}?${paramParts.join('&')}`;
   }
 
-  // Build request body for POST/PUT/PATCH
-  if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
+  // Multipart form-data
+  if (['POST', 'PUT', 'PATCH'].includes(method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
+
+    code += `        using var content = new MultipartFormDataContent();\n`;
+    if (fields) {
+      for (const field of fields) {
+        if (field.isFile) {
+          code += `        var fileStream = File.OpenRead("${field.value}");\n`;
+          code += `        content.Add(new StreamContent(fileStream), "${field.name}", "${field.value}");\n`;
+        } else {
+          code += `        content.Add(new StringContent("${field.value}"), "${field.name}");\n`;
+        }
+      }
+    }
+    code += `\n`;
+
+    const methodLower = method.toLowerCase();
+    const methodCapitalized = methodLower.charAt(0).toUpperCase() + methodLower.slice(1);
+    code += `        var response = await client.${methodCapitalized}Async(\n`;
+    code += `            "${fullUrl}", content);\n`;
+  } else if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
+    // Build request body for POST/PUT/PATCH
     // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
     const body =

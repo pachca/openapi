@@ -3,8 +3,9 @@ import {
   generateExample,
   generateParameterExample,
   generateRequestExample,
+  generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord } from './utils';
+import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
 
 export function generatePHP(
   endpoint: Endpoint,
@@ -31,13 +32,52 @@ export function generatePHP(
 
   code += `$curl = curl_init();\n\n`;
 
+  // Multipart form-data
+  if (['POST', 'PUT', 'PATCH'].includes(method) && hasMultipartContent(endpoint)) {
+    const fields = generateMultipartExample(endpoint.requestBody);
+
+    code += `curl_setopt_array($curl, [\n`;
+    code += `    CURLOPT_URL => '${fullUrl}',\n`;
+    code += `    CURLOPT_RETURNTRANSFER => true,\n`;
+    code += `    CURLOPT_CUSTOMREQUEST => '${method}',\n`;
+    code += `    CURLOPT_HTTPHEADER => [\n`;
+    if (requiresAuth(endpoint)) {
+      code += `        'Authorization: Bearer YOUR_ACCESS_TOKEN',\n`;
+    }
+    code += `    ],\n`;
+
+    if (fields) {
+      code += `    CURLOPT_POSTFIELDS => [\n`;
+      for (const field of fields) {
+        if (field.isFile) {
+          code += `        '${field.name}' => new CURLFile('${field.value}'),\n`;
+        } else {
+          code += `        '${field.name}' => '${field.value}',\n`;
+        }
+      }
+      code += `    ],\n`;
+    }
+
+    code += `]);\n\n`;
+    code += `$response = curl_exec($curl);\n`;
+    code += `curl_close($curl);\n\n`;
+    code += `echo $response;\n`;
+    code += `?>`;
+
+    return code;
+  }
+
   code += `curl_setopt_array($curl, [\n`;
   code += `    CURLOPT_URL => '${fullUrl}',\n`;
   code += `    CURLOPT_RETURNTRANSFER => true,\n`;
   code += `    CURLOPT_CUSTOMREQUEST => '${method}',\n`;
   code += `    CURLOPT_HTTPHEADER => [\n`;
-  code += `        'Authorization: Bearer YOUR_ACCESS_TOKEN',\n`;
-  code += `        'Content-Type: application/json',\n`;
+  if (requiresAuth(endpoint)) {
+    code += `        'Authorization: Bearer YOUR_ACCESS_TOKEN',\n`;
+  }
+  if (hasJsonContent(endpoint)) {
+    code += `        'Content-Type: application/json',\n`;
+  }
   code += `    ],\n`;
 
   // Add request body for POST/PUT/PATCH

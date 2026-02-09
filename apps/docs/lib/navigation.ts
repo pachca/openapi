@@ -4,6 +4,26 @@ import type { NavigationSection } from './openapi/types';
 import { getOrderedGuidePages, sortTagsByOrder } from './guides-config';
 import { loadUpdates, isNewUpdate } from './updates-parser';
 
+const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
+
+const TAG_TRANSLATIONS: Record<string, string> = {
+  Common: 'Общие методы',
+  Profile: 'Профиль и статус',
+  Users: 'Сотрудники',
+  'Group tags': 'Теги',
+  Chats: 'Чаты',
+  Members: 'Участники чатов',
+  Thread: 'Комментарии',
+  Messages: 'Сообщения',
+  'Read member': 'Прочтение сообщения',
+  Reactions: 'Реакции на сообщения',
+  'Link Previews': 'Ссылки',
+  Tasks: 'Напоминания',
+  Views: 'Формы',
+  Bots: 'Боты и Webhook',
+  Security: 'Безопасность',
+};
+
 export async function generateNavigation(): Promise<NavigationSection[]> {
   const api = await parseOpenAPI();
 
@@ -34,11 +54,13 @@ export async function generateNavigation(): Promise<NavigationSection[]> {
   // Create sections from tags
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
-    // Tags are already in Russian in OpenAPI
-    const title = tag;
+    endpoints.sort((a, b) => (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99));
+    const translation = TAG_TRANSLATIONS[tag];
+    const title = translation || tag;
 
     sections.push({
       title,
+      originalTitle: translation ? tag : undefined,
       items: endpoints.map((endpoint) => ({
         title: generateTitle(endpoint),
         href: generateUrlFromOperation(endpoint),

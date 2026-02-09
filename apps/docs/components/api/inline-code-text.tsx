@@ -56,11 +56,7 @@ export function InlineCodeText({ text, className }: InlineCodeTextProps) {
       {parts.map((part, index) => {
         if (part.startsWith('`') && part.endsWith('`')) {
           const codeContent = part.slice(1, -1);
-          return (
-            <CopyableInlineCode key={index}>
-              {codeContent}
-            </CopyableInlineCode>
-          );
+          return <CopyableInlineCode key={index}>{codeContent}</CopyableInlineCode>;
         }
         return <React.Fragment key={index}>{renderTextWithLinks(part)}</React.Fragment>;
       })}

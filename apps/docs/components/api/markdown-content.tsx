@@ -48,11 +48,7 @@ const components = {
       const code = String(children).replace(/\n$/, '');
       return <GuideCodeBlock language={language} code={code} title={title} />;
     }
-    return (
-      <CopyableInlineCode>
-        {String(children)}
-      </CopyableInlineCode>
-    );
+    return <CopyableInlineCode>{String(children)}</CopyableInlineCode>;
   },
 
   // Headings - skip H1 since StaticPageHeader provides it

@@ -873,17 +873,19 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         )}
 
         <div className="flex flex-col gap-1 mt-1 empty:hidden">
-          {displayConfig.showSchemaExamples && schema.example !== undefined && !hasMultipleVariants && (
-            <MetadataRow label="Пример">
-              <CopyableCode
-                value={
-                  typeof schema.example === 'string'
-                    ? schema.example
-                    : JSON.stringify(schema.example)
-                }
-              />
-            </MetadataRow>
-          )}
+          {displayConfig.showSchemaExamples &&
+            schema.example !== undefined &&
+            !hasMultipleVariants && (
+              <MetadataRow label="Пример">
+                <CopyableCode
+                  value={
+                    typeof schema.example === 'string'
+                      ? schema.example
+                      : JSON.stringify(schema.example)
+                  }
+                />
+              </MetadataRow>
+            )}
 
           <EnumValues schema={schema} fieldPath={currentPath} />
           {schema.default !== undefined && (

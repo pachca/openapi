@@ -12,11 +12,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://dev.pachca.com'),
   title: {
-    default: 'Обзор | Пачка API',
-    template: '%s | Пачка API',
+    default: 'Обзор - Пачка для разработчиков',
+    template: '%s - Пачка для разработчиков',
   },
   description: 'Создавайте уникальные решения на одной платформе',
+  openGraph: {
+    siteName: 'Пачка',
+    locale: 'ru_RU',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

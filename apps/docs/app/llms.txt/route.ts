@@ -22,7 +22,8 @@ export async function GET() {
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
 
   let content = '# Пачка API Documentation\n\n';
-  content += '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
+  content +=
+    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
 
   // Add guides section (dynamically collected from page.tsx files)
   const guidePages = getOrderedGuidePages();

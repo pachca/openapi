@@ -16,7 +16,8 @@ export async function GET(): Promise<Response> {
 
   const updates = loadUpdates();
 
-  const lastBuildDate = updates.length > 0 ? new Date(updates[0].date).toUTCString() : new Date().toUTCString();
+  const lastBuildDate =
+    updates.length > 0 ? new Date(updates[0].date).toUTCString() : new Date().toUTCString();
 
   const items = updates.map((update) => {
     const slug = update.title

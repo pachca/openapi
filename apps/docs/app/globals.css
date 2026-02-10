@@ -344,8 +344,8 @@ html.dark .code-block-container .shiki span {
   color: var(--color-text-tertiary);
 }
 
-.code-block-container .line::after{
-  content: "";
+.code-block-container .line::after {
+  content: '';
   display: inline;
   width: 10px;
   height: auto;

@@ -39,7 +39,8 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Пачка для разработчиков',
-  description: 'REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.',
+  description:
+    'REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.',
   url: 'https://dev.pachca.com',
   inLanguage: 'ru',
   publisher: {
@@ -60,7 +61,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#36373d" media="(prefers-color-scheme: dark)" />
-        <link rel="alternate" type="application/rss+xml" title="Пачка API — Обновления" href="/feed.xml" />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Пачка API — Обновления"
+          href="/feed.xml"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -101,7 +107,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <TransitionProvider />
           <div className="flex w-full overflow-hidden main-container-padding">
             <Sidebar />
-            <main id="main-content" className="flex-1 overflow-y-auto bg-background custom-scrollbar flex flex-col min-w-0">
+            <main
+              id="main-content"
+              className="flex-1 overflow-y-auto bg-background custom-scrollbar flex flex-col min-w-0"
+            >
               {children}
             </main>
           </div>

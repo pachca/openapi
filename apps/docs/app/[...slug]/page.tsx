@@ -34,7 +34,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   endpoint.title = generateTitle(endpoint);
 
   const description = endpoint.description || endpoint.summary;
-  const descriptionBody = getDescriptionWithoutTitle(endpoint) || '';
+  const descriptionBody = (getDescriptionWithoutTitle(endpoint) || '')
+    .split('\n')
+    .filter((line) => line.trim() && !line.trim().startsWith('#'))
+    .join(' ')
+    .trim();
   const ogDescription =
     `${endpoint.method} ${endpoint.path}` + (descriptionBody ? `\n${descriptionBody}` : '');
 

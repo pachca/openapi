@@ -19,7 +19,12 @@ export function Header() {
             <SearchButton variant="header" />
           </div>
 
-          <a href="https://pachca.com" className="text-sm hover:text-primary transition-colors">
+          <a
+            href="https://pachca.com"
+            className="text-sm hover:text-primary transition-colors"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Вернуться на сайт
           </a>
         </div>

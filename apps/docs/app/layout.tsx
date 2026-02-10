@@ -18,9 +18,39 @@ export const metadata: Metadata = {
     template: '%s - Пачка для разработчиков',
   },
   description: 'Создавайте уникальные решения на одной платформе',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
+    type: 'website',
     siteName: 'Пачка',
     locale: 'ru_RU',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Пачка для разработчиков',
+  description: 'REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.',
+  url: 'https://dev.pachca.com',
+  inLanguage: 'ru',
+  publisher: {
+    '@type': 'Organization',
+    name: 'Пачка',
+    url: 'https://pachca.com',
+  },
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://dev.pachca.com/?search={search_term_string}',
+    'query-input': 'required name=search_term_string',
   },
 };
 
@@ -28,6 +58,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru" className={`h-full ${inter.variable}`} suppressHydrationWarning>
       <head>
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#36373d" media="(prefers-color-scheme: dark)" />
+        <link rel="alternate" type="application/rss+xml" title="Пачка API — Обновления" href="/feed.xml" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -54,11 +91,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="h-full m-0 overflow-hidden font-sans text-text-primary antialiased bg-background"
         suppressHydrationWarning
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:text-sm"
+        >
+          Перейти к содержимому
+        </a>
         <Tooltip.Provider delayDuration={0}>
           <TransitionProvider />
           <div className="flex w-full overflow-hidden main-container-padding">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto bg-background custom-scrollbar flex flex-col min-w-0">
+            <main id="main-content" className="flex-1 overflow-y-auto bg-background custom-scrollbar flex flex-col min-w-0">
               {children}
             </main>
           </div>

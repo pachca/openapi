@@ -45,7 +45,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: endpoint.title,
     description,
+    alternates: {
+      canonical: path,
+    },
     openGraph: {
+      type: 'article',
       siteName: 'Пачка',
       locale: 'ru_RU',
       description: ogDescription,
@@ -73,12 +77,32 @@ export default async function ApiMethodPage({ params }: { params: Promise<{ slug
   const api = await parseOpenAPI();
   const baseUrl = api.servers[0]?.url;
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: endpoint.title,
+    description: endpoint.description || endpoint.summary,
+    url: `https://dev.pachca.com${path}`,
+    inLanguage: 'ru',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Пачка',
+      url: 'https://pachca.com',
+    },
+  };
+
   return (
-    <ApiMethodTemplate
-      endpoint={endpoint}
-      adjacent={adjacent}
-      allEndpoints={api.endpoints}
-      baseUrl={baseUrl}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ApiMethodTemplate
+        endpoint={endpoint}
+        adjacent={adjacent}
+        allEndpoints={api.endpoints}
+        baseUrl={baseUrl}
+      />
+    </>
   );
 }

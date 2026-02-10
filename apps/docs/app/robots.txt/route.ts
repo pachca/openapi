@@ -1,28 +1,21 @@
-import { headers } from 'next/headers';
+const BASE_URL = 'https://dev.pachca.com';
 
 export async function GET(): Promise<Response> {
-  const headersList = await headers();
-  const host = headersList.get('host') || '';
-
-  // Block all crawlers on Vercel preview domain
-  if (host.includes('vercel.app')) {
-    const blockedRobots = `User-agent: *
-Disallow: /
-`;
-    return new Response(blockedRobots, {
-      headers: { 'Content-Type': 'text/plain' },
-    });
-  }
-
   // Production robots.txt
   const productionRobots = `User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /openapi.yaml
+Disallow: /llms.txt
+Disallow: /llms-full.txt
 
-Sitemap: https://${host}/sitemap.xml
+Sitemap: ${BASE_URL}/sitemap.xml
 `;
 
   return new Response(productionRobots, {
-    headers: { 'Content-Type': 'text/plain' },
+    headers: {
+      'Content-Type': 'text/plain',
+      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+    },
   });
 }

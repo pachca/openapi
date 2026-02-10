@@ -86,7 +86,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
 
     const oauthError = await getSchemaByName('OAuthError');
     if (oauthError) {
-      errorSchemaMarkdown += formatSchemaWithTitle(oauthError, 'OAuthError (401)');
+      errorSchemaMarkdown += formatSchemaWithTitle(oauthError, 'OAuthError (401, 403)');
     }
 
     result = result.replace(/<ErrorSchema\s*\/>/g, errorSchemaMarkdown);

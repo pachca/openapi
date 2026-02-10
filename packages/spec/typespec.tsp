@@ -315,6 +315,19 @@ enum SearchEntityType {
   unhandled: "Ошибка выполнения запроса (пояснения вы получите в поле message)",
   trigger_not_found: "Не удалось найти идентификатор события",
   trigger_expired: "Время жизни идентификатора события истекло",
+  required: "Обязательный параметр не передан",
+  in: "Недопустимое значение (не входит в список допустимых)",
+  not_applicable: "Значение неприменимо в данном контексте (пояснения вы получите в поле message)",
+  self_update: "Нельзя изменить свои собственные данные",
+  owner_protected: "Нельзя изменить данные владельца",
+  already_assigned: "Значение уже назначено",
+  forbidden: "Недостаточно прав для выполнения действия (пояснения вы получите в поле message)",
+  permission_denied: "Доступ запрещён (недостаточно прав)",
+  access_denied: "Доступ запрещён",
+  wrong_params: "Некорректные параметры запроса (пояснения вы получите в поле message)",
+  payment_required: "Требуется оплата",
+  min_length: "Значение слишком короткое (пояснения вы получите в поле message)",
+  max_length: "Значение слишком длинное (пояснения вы получите в поле message)",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -382,6 +395,45 @@ enum ValidationErrorCode {
   
   @doc("Время жизни идентификатора события истекло")
   trigger_expired: "trigger_expired",
+
+  @doc("Обязательный параметр не передан")
+  required: "required",
+
+  @doc("Недопустимое значение (не входит в список допустимых)")
+  in: "in",
+
+  @doc("Значение неприменимо в данном контексте (пояснения вы получите в поле message)")
+  not_applicable: "not_applicable",
+
+  @doc("Нельзя изменить свои собственные данные")
+  self_update: "self_update",
+
+  @doc("Нельзя изменить данные владельца")
+  owner_protected: "owner_protected",
+
+  @doc("Значение уже назначено")
+  already_assigned: "already_assigned",
+
+  @doc("Недостаточно прав для выполнения действия (пояснения вы получите в поле message)")
+  forbidden: "forbidden",
+
+  @doc("Доступ запрещён (недостаточно прав)")
+  permission_denied: "permission_denied",
+
+  @doc("Доступ запрещён")
+  access_denied: "access_denied",
+
+  @doc("Некорректные параметры запроса (пояснения вы получите в поле message)")
+  wrong_params: "wrong_params",
+
+  @doc("Требуется оплата")
+  payment_required: "payment_required",
+
+  @doc("Значение слишком короткое (пояснения вы получите в поле message)")
+  min_length: "min_length",
+
+  @doc("Значение слишком длинное (пояснения вы получите в поле message)")
+  max_length: "max_length",
 }
 
 // ============================================================================
@@ -850,7 +902,7 @@ model ApiErrorItem {
   payload: string | null;
 }
 
-@doc("Ошибка OAuth авторизации")
+@doc("Ошибка OAuth авторизации (используется для 401 и 403)")
 model OAuthError {
   @doc("Код ошибки")
   @example("invalid_token")
@@ -2143,6 +2195,9 @@ interface CommonOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 422;
     @body body: ApiError;
   } | {
@@ -2183,6 +2238,9 @@ interface UploadOperations {
     @body body: UploadParams;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   };
 }
@@ -2274,7 +2332,7 @@ interface ExportOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError;
+    @body body: ApiError | OAuthError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -2306,11 +2364,14 @@ interface ExportOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
     @statusCode _: 403;
-    @body body: ApiError;
+    @body body: ApiError | OAuthError;
   };
 }
 
@@ -2367,6 +2428,9 @@ interface ProfileOperations {
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
   };
   
   @doc("""
@@ -2393,6 +2457,9 @@ interface ProfileOperations {
     @body body: DataResponse<UserStatus | null>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   };
   
@@ -2431,6 +2498,9 @@ interface ProfileOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
@@ -2451,6 +2521,9 @@ interface ProfileOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   };
 }
@@ -2527,6 +2600,9 @@ interface UserOperations {
     @body body: DataResponse<User>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 422;
@@ -2666,6 +2742,9 @@ interface UserOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
@@ -2727,6 +2806,9 @@ interface UserOperations {
     @body body: DataResponse<User>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -2800,6 +2882,9 @@ interface UserOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -2829,6 +2914,9 @@ interface UserOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -2877,6 +2965,9 @@ interface GroupTagOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 422;
     @body body: ApiError;
   } | {
@@ -2916,6 +3007,9 @@ interface GroupTagOperations {
     @body body: DataResponse<GroupTag>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -2966,6 +3060,9 @@ interface GroupTagOperations {
     @body body: DataResponse<GroupTag[]>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 400;
@@ -3106,6 +3203,9 @@ interface GroupTagOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -3157,6 +3257,9 @@ interface GroupTagOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -3186,6 +3289,9 @@ interface GroupTagOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -3247,6 +3353,9 @@ interface ChatOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
@@ -3294,6 +3403,9 @@ interface ChatOperations {
     @body body: DataResponse<Chat>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -3375,6 +3487,9 @@ interface ChatOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
@@ -3430,6 +3545,9 @@ interface ChatOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -3460,6 +3578,9 @@ interface ChatOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   };
@@ -3482,6 +3603,9 @@ interface ChatOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -3569,6 +3693,9 @@ interface ChatMemberOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -3607,6 +3734,9 @@ interface ChatMemberOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -3637,6 +3767,9 @@ interface ChatMemberOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -3670,6 +3803,9 @@ interface ChatMemberOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -3700,6 +3836,9 @@ interface ChatMemberOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -3740,6 +3879,9 @@ interface ChatMemberOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -3766,6 +3908,9 @@ interface ChatMemberOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -3821,6 +3966,9 @@ interface ThreadOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   };
@@ -3859,6 +4007,9 @@ interface ThreadOperations {
     @body body: DataResponse<Thread>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -3921,6 +4072,9 @@ interface MessageOperations {
     @body body: DataResponse<Message>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 400;
@@ -3991,6 +4145,9 @@ interface MessageOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   };
@@ -4047,6 +4204,9 @@ interface MessageOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -4080,6 +4240,9 @@ interface MessageOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   };
@@ -4102,6 +4265,9 @@ interface MessageOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -4129,6 +4295,9 @@ interface MessageOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -4237,6 +4406,9 @@ interface ChatMessageOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -4287,6 +4459,9 @@ interface ReadMemberOperations {
     @body body: DataResponse<int32[]>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -4351,6 +4526,9 @@ interface ReactionOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -4393,6 +4571,9 @@ interface ReactionOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -4483,6 +4664,9 @@ interface ReactionOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -4528,6 +4712,9 @@ Unfurl (разворачивание ссылок)
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -4608,6 +4795,9 @@ interface TaskOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
@@ -4680,6 +4870,9 @@ interface TaskOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   };
@@ -4729,6 +4922,9 @@ interface TaskOperations {
     @body body: DataResponse<Task>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -4787,6 +4983,9 @@ interface TaskOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
@@ -4814,6 +5013,9 @@ interface TaskOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -4994,6 +5196,9 @@ interface FormOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
@@ -5054,6 +5259,9 @@ interface BotOperations {
     @body body: DataResponse<BotResponse>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -5158,6 +5366,9 @@ interface BotOperations {
     @statusCode _: 401;
     @body body: OAuthError;
   } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
     @statusCode _: 400;
     @body body: ApiError;
   } | {
@@ -5185,6 +5396,9 @@ interface BotOperations {
     @body body: EmptyResponse;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
@@ -5278,6 +5492,9 @@ interface SecurityOperations {
     @body body: PaginatedDataResponse<AuditEvent[]>;
   } | {
     @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
     @body body: OAuthError;
   } | {
     @statusCode _: 400;

@@ -62,7 +62,7 @@ function OgHeader() {
         style={{
           width: '2px',
           height: '56px',
-          backgroundColor: OG_COLORS.textSecondary,
+          backgroundColor: '#4a4e57',
         }}
       />
       <span

@@ -1,5 +1,5 @@
 import { parseOpenAPI, getEndpointByUrl } from '@/lib/openapi/parser';
-import { generateUrlFromOperation, generateTitle } from '@/lib/openapi/mapper';
+import { generateUrlFromOperation, generateTitle, getDescriptionWithoutTitle } from '@/lib/openapi/mapper';
 import { ApiMethodTemplate } from '@/components/api/method-template';
 import { getAdjacentItems } from '@/lib/navigation';
 import { notFound } from 'next/navigation';
@@ -29,9 +29,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Enhance endpoint with generated title
   endpoint.title = generateTitle(endpoint);
 
+  const description = endpoint.description || endpoint.summary;
+  const descriptionBody = getDescriptionWithoutTitle(endpoint) || '';
+  const ogDescription = `${endpoint.method} ${endpoint.path}` + (descriptionBody ? `\n${descriptionBody}` : '');
+
   return {
     title: endpoint.title,
-    description: endpoint.description || endpoint.summary,
+    description,
+    openGraph: {
+      siteName: 'Пачка',
+      locale: 'ru_RU',
+      description: ogDescription,
+      images: [`/api/og?type=method&path=${path}`],
+    },
   };
 }
 

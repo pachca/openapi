@@ -7,9 +7,12 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Обзор | Пачка API',
+    absolute: 'Обзор - Пачка для разработчиков',
   },
   description: 'Создавайте уникальные решения на одной платформе',
+  openGraph: {
+    images: ['/api/og'],
+  },
 };
 
 export default function HomePage() {

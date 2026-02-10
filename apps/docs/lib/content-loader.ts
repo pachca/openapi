@@ -137,3 +137,44 @@ export function getAllGuidesWithFrontmatter(): Array<{
 export function hasGuideContent(guidePath: string): boolean {
   return getGuideData(guidePath) !== null;
 }
+
+/**
+ * Extract the first meaningful paragraph from MDX content.
+ * Skips headings, hashtag annotations, HTML/JSX components, and code blocks.
+ * Strips inline markdown formatting (links, code, bold, italic).
+ */
+export function extractFirstParagraph(content: string): string {
+  const lines = content.split('\n');
+  const paragraphLines: string[] = [];
+  let inCodeBlock = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) continue;
+
+    if (trimmed.startsWith('#')) continue;
+    if (trimmed.startsWith('<')) continue;
+
+    if (!trimmed) {
+      if (paragraphLines.length > 0) break;
+      continue;
+    }
+
+    paragraphLines.push(trimmed);
+  }
+
+  if (paragraphLines.length === 0) return '';
+
+  return paragraphLines
+    .join(' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1');
+}

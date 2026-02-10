@@ -3,7 +3,7 @@ import { getAdjacentItems } from '@/lib/navigation';
 import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { UpdatesList } from '@/components/api/updates-list';
-import { getGuideData, getAllGuideSlugs } from '@/lib/content-loader';
+import { getGuideData, getAllGuideSlugs, extractFirstParagraph } from '@/lib/content-loader';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -26,9 +26,18 @@ export async function generateMetadata({
     };
   }
 
+  const firstParagraph = extractFirstParagraph(data.content);
+  const description = firstParagraph || data.frontmatter.description;
+
   return {
     title: data.frontmatter.title,
-    description: data.frontmatter.description,
+    description,
+    openGraph: {
+      siteName: 'Пачка',
+      locale: 'ru_RU',
+      description,
+      images: [`/api/og?type=guide&slug=${slug}`],
+    },
   };
 }
 

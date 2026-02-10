@@ -4,20 +4,47 @@ import { generateTitle } from '@/lib/openapi/mapper';
 import { getGuideData } from '@/lib/content-loader';
 import { type NextRequest } from 'next/server';
 
+// In-memory cache: URL → PNG buffer (max 50 entries)
+const MAX_CACHE_SIZE = 50;
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+};
+const imageCache = new Map<string, { buffer: ArrayBuffer; contentType: string }>();
+
+async function cacheAndRespond(key: string, response: Response): Promise<Response> {
+  const buffer = await response.arrayBuffer();
+  const contentType = response.headers.get('content-type') || 'image/png';
+
+  if (imageCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = imageCache.keys().next().value!;
+    imageCache.delete(firstKey);
+  }
+  imageCache.set(key, { buffer, contentType });
+
+  return new Response(buffer, { headers: { 'Content-Type': contentType, ...CACHE_HEADERS } });
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
+  const cacheKey = searchParams.toString();
+
+  const cached = imageCache.get(cacheKey);
+  if (cached) {
+    return new Response(cached.buffer, {
+      headers: { 'Content-Type': cached.contentType, ...CACHE_HEADERS },
+    });
+  }
+
   const type = searchParams.get('type');
 
+  let response: Response;
+
   if (type === 'method') {
-    return generateMethodImage(searchParams.get('path') || '');
-  }
-
-  if (type === 'guide') {
-    return generateGuideImage(searchParams.get('slug') || '');
-  }
-
-  // Default: home page style
-  return createOgImageResponse(
+    response = await generateMethodImage(searchParams.get('path') || '');
+  } else if (type === 'guide') {
+    response = await generateGuideImage(searchParams.get('slug') || '');
+  } else {
+    response = await createOgImageResponse(
     <span
       style={{
         fontSize: '82px',
@@ -28,7 +55,10 @@ export async function GET(request: NextRequest) {
     >
       Пачка для разработчиков
     </span>,
-  );
+    );
+  }
+
+  return cacheAndRespond(cacheKey, response);
 }
 
 async function generateMethodImage(path: string) {

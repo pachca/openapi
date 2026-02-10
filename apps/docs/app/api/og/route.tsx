@@ -45,16 +45,16 @@ export async function GET(request: NextRequest) {
     response = await generateGuideImage(searchParams.get('slug') || '');
   } else {
     response = await createOgImageResponse(
-    <span
-      style={{
-        fontSize: '82px',
-        fontWeight: 600,
-        color: OG_COLORS.textPrimary,
-        lineHeight: 1.2,
-      }}
-    >
-      Пачка для разработчиков
-    </span>,
+      <span
+        style={{
+          fontSize: '82px',
+          fontWeight: 600,
+          color: OG_COLORS.textPrimary,
+          lineHeight: 1.2,
+        }}
+      >
+        Пачка для разработчиков
+      </span>
     );
   }
 
@@ -68,7 +68,7 @@ async function generateMethodImage(path: string) {
     return createOgImageResponse(
       <span style={{ fontSize: '82px', fontWeight: 700, color: OG_COLORS.textPrimary }}>
         API Reference
-      </span>,
+      </span>
     );
   }
 
@@ -112,7 +112,7 @@ async function generateMethodImage(path: string) {
       >
         {endpoint.title}
       </span>
-    </div>,
+    </div>
   );
 }
 
@@ -130,6 +130,6 @@ async function generateGuideImage(slug: string) {
       }}
     >
       {title}
-    </span>,
+    </span>
   );
 }

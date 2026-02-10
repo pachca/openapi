@@ -344,6 +344,13 @@ html.dark .code-block-container .shiki span {
   color: var(--color-text-tertiary);
 }
 
+.code-block-container .line::after {
+  content: '';
+  display: inline;
+  width: 10px;
+  height: auto;
+}
+
 .code-block-container .line > span {
   display: inline;
   line-height: inherit;

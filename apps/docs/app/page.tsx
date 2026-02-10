@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     absolute: 'Обзор - Пачка для разработчиков',
   },
   description: 'Создавайте уникальные решения на одной платформе',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     images: ['/api/og'],
   },

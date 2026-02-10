@@ -32,7 +32,11 @@ export async function generateMetadata({
   return {
     title: data.frontmatter.title,
     description,
+    alternates: {
+      canonical: `/guides/${slug}`,
+    },
     openGraph: {
+      type: 'article',
       siteName: 'Пачка',
       locale: 'ru_RU',
       description,
@@ -57,11 +61,29 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     ? data.content.split(/<!--\s*update:/)[0].trim()
     : data.content;
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: data.frontmatter.title,
+    description: data.frontmatter.description,
+    url: `https://dev.pachca.com${pageUrl}`,
+    inLanguage: 'ru',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Пачка',
+      url: 'https://pachca.com',
+    },
+  };
+
   return (
     <StaticPageWrapper
       adjacent={adjacent}
       hideTableOfContents={data.frontmatter.hideTableOfContents}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <StaticPageHeader title={data.frontmatter.title} pageUrl={pageUrl} />
       {data.frontmatter.useUpdatesComponent ? (
         <>

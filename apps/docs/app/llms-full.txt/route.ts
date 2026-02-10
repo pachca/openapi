@@ -6,8 +6,7 @@ import {
 import { NextResponse } from 'next/server';
 import { getOrderedGuidePages, sortTagsByOrder } from '@/lib/guides-config';
 
-// Generate dynamically on each request to show current date
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
 export async function GET() {
   const api = await parseOpenAPI();
@@ -26,13 +25,9 @@ export async function GET() {
   // Sort tags by predefined order
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
 
-  // Generate markdown content
-  const now = new Date();
-  const localDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
   let content = '# Пачка API - Полная документация\n\n';
-  content += `> Сгенерировано: ${localDateTime}\n`;
-  content += '> Полная версия документации API в формате Markdown\n\n';
+  content +=
+    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
 
   // Get guides dynamically from page.tsx files
   const guidePages = getOrderedGuidePages();
@@ -91,6 +86,8 @@ export async function GET() {
   return new NextResponse(content, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
     },
   });
 }

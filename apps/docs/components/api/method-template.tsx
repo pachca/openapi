@@ -30,7 +30,7 @@ export function ApiMethodTemplate({
   baseUrl,
 }: ApiMethodTemplateProps) {
   const processedEndpoint = resolveEndpointDescriptionLinks(endpoint, allEndpoints);
-  const fullDescription = getDescriptionWithoutTitle(processedEndpoint);
+  const fullDescription = getDescriptionWithoutTitle(endpoint);
 
   return (
     <div className="flex flex-col flex-1 min-h-full">

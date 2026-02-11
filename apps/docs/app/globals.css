@@ -448,9 +448,9 @@ html.dark .code-block-container .shiki span {
 
 /* Плавная прокрутка для всех ссылок-якорей */
 /* Стили ссылок в тексте */
-.prose a,
-.prose a:link,
-.prose a:visited {
+.prose a:not(.endpoint-link),
+.prose a:not(.endpoint-link):link,
+.prose a:not(.endpoint-link):visited {
   color: var(--color-text-primary) !important;
   font-weight: 600 !important;
   text-decoration: underline !important;
@@ -462,7 +462,7 @@ html.dark .code-block-container .shiki span {
     text-decoration-thickness 0.2s !important;
 }
 
-.prose a:hover {
+.prose a:not(.endpoint-link):hover {
   text-decoration-color: var(--color-text-primary) !important;
   text-decoration-thickness: 1.5px !important;
 }

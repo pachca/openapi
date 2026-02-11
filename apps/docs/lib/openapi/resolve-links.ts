@@ -1,7 +1,13 @@
 import type { Endpoint, Schema, Parameter, RequestBody, Response, MediaType } from './types';
 import { generateUrlFromOperation } from './mapper';
 
-export function resolveEndpointLinks(text: string, allEndpoints: Endpoint[]): string {
+export function resolveEndpointLinks(
+  text: string,
+  allEndpoints: Endpoint[],
+  options?: { mdx?: boolean }
+): string {
+  const mdx = options?.mdx ?? false;
+
   return text.replace(
     /\[([^\]]+)\]\((GET|POST|PUT|DELETE|PATCH)\s+(\/[^)]+)\)/g,
     (match, description, method, path) => {
@@ -12,9 +18,16 @@ export function resolveEndpointLinks(text: string, allEndpoints: Endpoint[]): st
         (ep) => ep.method.toUpperCase() === method.toUpperCase() && ep.path === path
       );
       if (endpoint) {
-        return `[${description.trim()}](${generateUrlFromOperation(endpoint)})`;
+        const url = generateUrlFromOperation(endpoint);
+        if (mdx) {
+          return `<EndpointLink method="${method}" href="${url}">${description.trim()}</EndpointLink>`;
+        }
+        return `[${description.trim()}](${method}:${url})`;
       }
       const escapedPath = path.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
+      if (mdx) {
+        return `<EndpointLink method="${method}">${description.trim()} (${escapedPath})</EndpointLink>`;
+      }
       return `${description.trim()} (${method} ${escapedPath})`;
     }
   );

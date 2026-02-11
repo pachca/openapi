@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { CopyableInlineCode } from './copyable-inline-code';
+import { EndpointLink } from './endpoint-link';
 
 interface InlineCodeTextProps {
   text: string;
@@ -18,24 +19,34 @@ function renderTextWithLinks(text: string): React.ReactNode[] {
       result.push(text.slice(lastIndex, match.index));
     }
     const [, linkText, url] = match;
-    const isExternal = url.startsWith('http');
-    result.push(
-      isExternal ? (
-        <a
-          key={match.index}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-accent-emphasis hover:underline"
-        >
+    const methodMatch = url.match(/^(GET|POST|PUT|DELETE|PATCH):(.+)$/);
+    if (methodMatch) {
+      const [, method, href] = methodMatch;
+      result.push(
+        <EndpointLink key={match.index} method={method} href={href}>
           {linkText}
-        </a>
-      ) : (
-        <Link key={match.index} href={url} className="text-accent-emphasis hover:underline">
-          {linkText}
-        </Link>
-      )
-    );
+        </EndpointLink>
+      );
+    } else {
+      const isExternal = url.startsWith('http');
+      result.push(
+        isExternal ? (
+          <a
+            key={match.index}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-emphasis hover:underline"
+          >
+            {linkText}
+          </a>
+        ) : (
+          <Link key={match.index} href={url} className="text-accent-emphasis hover:underline">
+            {linkText}
+          </Link>
+        )
+      );
+    }
     lastIndex = match.index + match[0].length;
   }
 

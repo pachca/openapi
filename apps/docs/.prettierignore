@@ -23,3 +23,7 @@ packages/spec/openapi.yaml
 
 # TypeSpec files (Prettier doesn't understand them)
 *.tsp
+
+# MDX content files (Prettier strips indentation from template literals
+# that mix unindented and indented lines, e.g. HTTP headers + JSON body)
+content/

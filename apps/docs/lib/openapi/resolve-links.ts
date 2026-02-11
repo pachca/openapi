@@ -24,11 +24,11 @@ export function resolveEndpointLinks(
         }
         return `[${description.trim()}](${method}:${url})`;
       }
-      const escapedPath = path.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
       if (mdx) {
+        const escapedPath = path.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
         return `<EndpointLink method="${method}">${description.trim()} (${escapedPath})</EndpointLink>`;
       }
-      return `${description.trim()} (${method} ${escapedPath})`;
+      return `${description.trim()} (${method} ${path})`;
     }
   );
 }

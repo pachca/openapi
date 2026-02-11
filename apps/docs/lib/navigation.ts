@@ -13,7 +13,7 @@ const TAG_TRANSLATIONS: Record<string, string> = {
   'Group tags': 'Теги',
   Chats: 'Чаты',
   Members: 'Участники чатов',
-  Thread: 'Комментарии',
+  Thread: 'Треды',
   Messages: 'Сообщения',
   'Read member': 'Прочтение сообщения',
   Reactions: 'Реакции на сообщения',

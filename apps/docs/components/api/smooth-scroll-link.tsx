@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
 import gsap from 'gsap';
 import { toSlug } from '@/lib/utils/transliterate';
 
@@ -62,8 +63,16 @@ export function InternalLink({
   // External links or downloadable files - use regular <a> with target="_blank"
   if (isExternal || isDownloadable) {
     return (
-      <a href={href} className={className} target="_blank" rel="noopener noreferrer">
+      <a
+        href={href}
+        className={`${className} inline-flex items-baseline gap-1`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {children}
+        {isExternal && (
+          <ExternalLinkIcon className="size-3.5 shrink-0 self-center" strokeWidth={2.5} />
+        )}
       </a>
     );
   }

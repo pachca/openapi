@@ -156,7 +156,7 @@ export function ResponseSection({ endpoint }: ResponseSectionProps) {
         {/* Всегда показываем описание кода ответа */}
         {currentResponse.description && (
           <div className="pt-6 mb-2">
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-background-tertiary border border-background-border">
+            <div className="flex items-start gap-4 px-4 py-3 rounded-xl bg-background-tertiary border border-background-border">
               <div
                 className={`shrink-0 w-2 h-2 mt-2 rounded-full ${isError ? 'bg-method-delete' : 'bg-method-post'}`}
               />
@@ -173,7 +173,7 @@ export function ResponseSection({ endpoint }: ResponseSectionProps) {
                     </span>
                   )}
                 </div>
-                <div className="text-[14px] text-text-secondary leading-relaxed">
+                <div className="text-[14px] text-text-secondary">
                   <InlineCodeText text={currentResponse.description} />
                 </div>
               </div>

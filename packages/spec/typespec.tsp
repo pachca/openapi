@@ -2349,17 +2349,19 @@ interface ExportOperations {
 Метод для скачивания готового архива экспорта сообщений.
 
 Для получения архива вам необходимо знать его `id` и указать его в `URL` запроса.
+
+В ответ на запрос сервер вернёт `302 Found` с заголовком `Location`, содержащим временную ссылку на скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 """)
   @route("/{id}")
   @get
-  
+
   downloadExport(
     @doc("Идентификатор экспорта")
     @example(22322)
     @path id: int32
   ): {
-    @statusCode _: 204;
-    @body body: EmptyResponse;
+    @statusCode _: 302;
+    @header Location: url;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -3944,7 +3946,7 @@ interface ThreadOperations {
       id: 154332686
     },
     returnType: #{
-      _: 200,
+      _: 201,
       body: #{
         data: #{
           id: 265142,
@@ -3960,7 +3962,7 @@ interface ThreadOperations {
     @doc("Идентификатор сообщения")
     @path id: int32
   ): {
-    @statusCode _: 200;
+    @statusCode _: 201;
     @body body: DataResponse<Thread>;
   } | {
     @statusCode _: 401;
@@ -4045,7 +4047,7 @@ interface MessageOperations {
       }
     },
     returnType: #{
-      _: 200,
+      _: 201,
       body: #{
         data: #{
           id: 194275,
@@ -4068,7 +4070,7 @@ interface MessageOperations {
     }
   })
   createMessage(@body request: MessageCreateRequest): {
-    @statusCode _: 200;
+    @statusCode _: 201;
     @body body: DataResponse<Message>;
   } | {
     @statusCode _: 401;
@@ -4765,7 +4767,7 @@ interface TaskOperations {
       }
     },
     returnType: #{
-      _: 200,
+      _: 201,
       body: #{
         data: #{
           id: 22283,
@@ -4789,7 +4791,7 @@ interface TaskOperations {
     }
   })
   createTask(@body request: TaskCreateRequest): {
-    @statusCode _: 200;
+    @statusCode _: 201;
     @body body: DataResponse<Task>;
   } | {
     @statusCode _: 401;

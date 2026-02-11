@@ -18,13 +18,6 @@ export const metadata: Metadata = {
     template: '%s - Пачка для разработчиков',
   },
   description: 'Создавайте уникальные решения на одной платформе',
-  icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: '32x32' },
-    ],
-    apple: '/apple-touch-icon.png',
-  },
   openGraph: {
     type: 'website',
     siteName: 'Пачка',

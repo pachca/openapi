@@ -1,4 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import Link from 'next/link';
 import { Callout } from './callout';
 import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';
@@ -20,6 +21,7 @@ import {
   Info,
 } from '@/components/mdx/mdx-components';
 import { CopyableInlineCode } from './copyable-inline-code';
+import { EndpointLink } from './endpoint-link';
 
 // Simple markdown components for server rendering
 const components = {
@@ -107,6 +109,7 @@ const components = {
   Warning,
   Info,
   Callout,
+  EndpointLink,
 };
 
 interface MarkdownContentProps {
@@ -140,8 +143,8 @@ export async function MarkdownContent({
   // 1. Replace special tags with MDX components (<Warning>, <Info>)
   let processedContent = replaceSpecialTagsForMDX(content);
 
-  // 2. Resolve endpoint links: [description](METHOD /path) -> [description](/url)
-  processedContent = resolveEndpointLinks(processedContent, endpoints);
+  // 2. Resolve endpoint links: [description](METHOD /path) -> <EndpointLink> with badge
+  processedContent = resolveEndpointLinks(processedContent, endpoints, { mdx: true });
 
   return (
     <div className={className}>

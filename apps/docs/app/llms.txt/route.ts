@@ -25,11 +25,14 @@ export async function GET() {
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
 
+  const siteUrl = 'https://dev.pachca.com';
+
   // Add guides section (dynamically collected from page.tsx files)
   const guidePages = getOrderedGuidePages();
   content += '## Руководства\n';
   for (const guide of guidePages) {
-    content += `- [${guide.title}](${guide.path}): ${guide.description}\n`;
+    const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
+    content += `- [${guide.title}](${siteUrl}${mdPath}): ${guide.description}\n`;
   }
   content += '\n';
 
@@ -44,7 +47,7 @@ export async function GET() {
       const title = generateTitle(endpoint);
       const url = generateUrlFromOperation(endpoint);
 
-      content += `- [${title}](${url}): ${endpoint.method} ${endpoint.path}\n`;
+      content += `- [${title}](${siteUrl}${url}.md): ${endpoint.method} ${endpoint.path}\n`;
     }
 
     content += '\n';

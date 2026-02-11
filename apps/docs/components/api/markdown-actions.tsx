@@ -60,14 +60,6 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
     }
   };
 
-  const handleCopyMethodPath = async () => {
-    if (pageTitle && method && path) {
-      const text = `${pageTitle} (${method.toUpperCase()} ${path})`;
-      await copyToClipboard(text);
-    }
-    setDropdownOpen(false);
-  };
-
   const handleCopyPageUrl = async () => {
     const fullUrl = typeof window !== 'undefined' ? window.location.href : pageUrl;
     await copyToClipboard(fullUrl);
@@ -138,15 +130,6 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
                   >
                     Версию страницы для LLM
                   </DropdownMenu.Item>
-
-                  {pageTitle && method && path && (
-                    <DropdownMenu.Item
-                      onClick={handleCopyMethodPath}
-                      className="flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
-                    >
-                      Название метода и путь
-                    </DropdownMenu.Item>
-                  )}
 
                   <DropdownMenu.Item
                     onClick={handleCopyPageUrl}

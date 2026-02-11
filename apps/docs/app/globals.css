@@ -123,6 +123,16 @@ html.dark {
   .bg-callout-warning-bg\! code {
     @apply bg-callout-warning-header-bg! text-callout-warning-text! border-callout-warning-text/20!;
   }
+
+  .bg-callout-info-bg li::before,
+  .bg-callout-info-bg\! li::before {
+    @apply bg-callout-info-text/50!;
+  }
+
+  .bg-callout-warning-bg li::before,
+  .bg-callout-warning-bg\! li::before {
+    @apply bg-callout-warning-text/50!;
+  }
 }
 
 * {

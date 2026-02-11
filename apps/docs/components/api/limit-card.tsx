@@ -13,9 +13,7 @@ export function LimitCard({ title, howItWorks, limit, period, entity }: LimitCar
     <div className="my-6 border border-background-border rounded-xl overflow-hidden bg-background">
       {title && (
         <div className="flex items-center justify-between px-3 bg-background-secondary border-b border-background-border h-[var(--boxed-header-height)]">
-          <div className="py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary">
-            {title}
-          </div>
+          <div className="text-[13px] font-medium text-text-primary truncate">{title}</div>
         </div>
       )}
       {howItWorks && (

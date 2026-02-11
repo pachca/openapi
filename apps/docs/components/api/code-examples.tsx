@@ -16,7 +16,6 @@ import { generateDotNet } from '@/lib/code-generators/dotnet';
 import { generateResponseExample } from '@/lib/openapi/example-generator';
 import { CopyButton } from './copy-button';
 import { CodeBlock } from './code-block';
-import { MethodBadge } from './method-badge';
 import { BoxedPanel } from './boxed-panel';
 
 interface CodeExamplesProps {
@@ -75,12 +74,9 @@ export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
         className="mt-0 mb-10"
         header={
           <>
-            <div className="flex items-center gap-3 overflow-hidden mr-4">
-              <MethodBadge method={endpoint.method} />
-              <code className="text-[13px] font-mono text-text-primary font-bold truncate">
-                {endpoint.path}
-              </code>
-            </div>
+            <span className="text-[13px] font-medium text-text-primary truncate mr-4">
+              {endpoint.title || endpoint.summary || endpoint.path}
+            </span>
 
             <div className="flex items-center gap-0 shrink-0">
               <DropdownMenu.Root>
@@ -132,8 +128,8 @@ export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
           className="my-0"
           header={
             <>
-              <span className="py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary">
-                пример ответа
+              <span className="text-[13px] font-medium text-text-primary truncate">
+                Ответ {successCode}
               </span>
               <CopyButton text={JSON.stringify(responseExample, null, 2)} />
             </>

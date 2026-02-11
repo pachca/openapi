@@ -15,9 +15,7 @@ export function ResponseCodesList({ title, items }: ResponseCodesListProps) {
   return (
     <div className="not-prose my-8 border border-background-border rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-3 bg-background-secondary border-b border-background-border h-[var(--boxed-header-height)]">
-        <span className="py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary">
-          {title}
-        </span>
+        <span className="text-[13px] font-medium text-text-primary truncate">{title}</span>
       </div>
       <div className="divide-y divide-background-border/40">
         {items.map((item, index) => (

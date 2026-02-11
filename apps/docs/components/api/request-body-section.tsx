@@ -68,8 +68,8 @@ export function RequestBodySection({ endpoint }: RequestBodySectionProps) {
             className="my-4"
             header={
               <>
-                <span className="py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary">
-                  пример тела запроса
+                <span className="text-[13px] font-medium text-text-primary truncate">
+                  Пример тела запроса
                 </span>
                 <CopyButton text={JSON.stringify(requestExample, null, 2)} />
               </>

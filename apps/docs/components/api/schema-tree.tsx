@@ -135,7 +135,7 @@ function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string 
   return (
     <div className="mt-3 mb-1 border border-background-border rounded-lg w-full">
       <div className="px-3 flex items-center border-b bg-background-tertiary border-background-border min-h-(--boxed-header-height) rounded-t-lg">
-        <span className="text-[10px] py-2 font-bold uppercase tracking-wider text-text-secondary">
+        <span className="text-[13px] font-medium text-text-primary">
           Возможные значения
         </span>
       </div>
@@ -690,10 +690,12 @@ function VariantSection({
   }, [shouldAutoExpand, isOpen]);
 
   return (
-    <div className="border border-background-border rounded-lg overflow-hidden">
+    <div className="border border-background-border rounded-lg overflow-visible">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2 px-3 py-2 bg-background-secondary hover:bg-background-tertiary transition-colors text-left group/variant cursor-pointer select-none"
+        className={`w-full flex items-center gap-2 px-3 min-h-[var(--boxed-header-height)] bg-background-tertiary transition-colors text-left group/variant cursor-pointer select-none ${
+          isOpen ? 'rounded-t-lg' : 'rounded-lg'
+        }`}
       >
         <ChevronDown
           className={`w-3.5 h-3.5 text-text-secondary group-hover/variant:text-text-primary transition-all duration-200 shrink-0 ${
@@ -701,7 +703,7 @@ function VariantSection({
           }`}
           strokeWidth={2.5}
         />
-        <span className="font-mono text-[13px] font-bold text-text-primary">{title}</span>
+        <span className="text-[13px] font-medium text-text-primary">{title}</span>
         <span className="text-[11px] text-text-secondary ml-auto">
           {Array.isArray(schema.type)
             ? schema.type.join(' | ')
@@ -710,7 +712,7 @@ function VariantSection({
       </div>
 
       {isOpen && (
-        <div className="p-3 border-t border-background-border">
+        <div className="px-4 py-0 border-t border-background-border">
           <SchemaTreeInner schema={schema} level={level + 1} parentPath={parentPath} />
         </div>
       )}

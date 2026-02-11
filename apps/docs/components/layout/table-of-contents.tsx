@@ -13,6 +13,32 @@ export function TableOfContents() {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
   const isScrollingRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const isFirstRenderRef = useRef(true);
+
+  // Анимация индикатора активного элемента
+  useEffect(() => {
+    if (!activeId || !containerRef.current || !indicatorRef.current) return;
+
+    const activeLink = containerRef.current.querySelector(`a[href="#${activeId}"]`) as HTMLElement;
+    if (!activeLink) return;
+
+    const top = activeLink.offsetTop;
+    const height = activeLink.offsetHeight;
+
+    if (isFirstRenderRef.current) {
+      gsap.set(indicatorRef.current, { top, height });
+      isFirstRenderRef.current = false;
+    } else {
+      gsap.to(indicatorRef.current, {
+        top,
+        height,
+        duration: 0.25,
+        ease: 'power2.out',
+      });
+    }
+  }, [activeId]);
 
   // Прокрутка активного элемента в видимую область навигации
   useEffect(() => {
@@ -131,7 +157,11 @@ export function TableOfContents() {
 
   return (
     <nav className="sticky top-6 lg:top-10 max-h-[calc(100vh-80px)] overflow-y-auto no-scrollbar py-2">
-      <div className="flex flex-col border-l-2 border-background-border ml-4">
+      <div
+        ref={containerRef}
+        className="relative flex flex-col border-l-2 border-background-border ml-4"
+      >
+        <div ref={indicatorRef} className="absolute left-[-2px] w-[2px] bg-primary" />
         {toc.map((item) => (
           <a
             key={item.id}
@@ -158,12 +188,12 @@ export function TableOfContents() {
               }
             }}
             className={`
-              block py-1 text-[13px] transition-all duration-200 border-l-2 -ml-[2px] font-medium
+              block py-1 text-[13px] transition-colors duration-200 font-medium
               ${item.level === 3 ? 'pl-6' : 'pl-4'}
               ${
                 activeId === item.id
-                  ? 'text-text-primary border-primary'
-                  : 'text-text-secondary border-transparent hover:text-text-primary'
+                  ? 'text-text-primary'
+                  : 'text-text-secondary hover:text-text-primary'
               }
             `}
           >

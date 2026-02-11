@@ -6,8 +6,6 @@ export async function GET(): Promise<Response> {
 Allow: /
 Disallow: /api/
 Disallow: /openapi.yaml
-Disallow: /llms.txt
-Disallow: /llms-full.txt
 
 Sitemap: ${BASE_URL}/sitemap.xml
 `;

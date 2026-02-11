@@ -47,6 +47,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description,
     alternates: {
       canonical: path,
+      types: {
+        'text/markdown': `${path}.md`,
+      },
     },
     openGraph: {
       type: 'article',

@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   description: 'Создавайте уникальные решения на одной платформе',
   alternates: {
     canonical: '/',
+    types: {
+      'text/markdown': '/.md',
+    },
   },
   openGraph: {
     images: ['/api/og'],

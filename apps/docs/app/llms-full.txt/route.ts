@@ -87,7 +87,7 @@ export async function GET() {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+      'Cache-Control': 'public, max-age=0, must-revalidate, s-maxage=86400',
     },
   });
 }

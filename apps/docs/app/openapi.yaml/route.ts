@@ -10,7 +10,7 @@ export async function GET(): Promise<Response> {
       'Content-Type': 'text/yaml; charset=utf-8',
       'Content-Disposition': 'inline; filename="openapi.yaml"',
       'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+      'Cache-Control': 'public, max-age=0, must-revalidate, s-maxage=86400',
     },
   });
 }

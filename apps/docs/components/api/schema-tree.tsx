@@ -135,9 +135,7 @@ function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string 
   return (
     <div className="mt-3 mb-1 border border-background-border rounded-lg w-full">
       <div className="px-3 flex items-center border-b bg-background-tertiary border-background-border min-h-(--boxed-header-height) rounded-t-lg">
-        <span className="text-[13px] font-medium text-text-primary">
-          Возможные значения
-        </span>
+        <span className="text-[13px] font-medium text-text-primary">Возможные значения</span>
       </div>
       <div className="divide-y divide-background-border/40">
         {schema.enum.map((v, i) => {

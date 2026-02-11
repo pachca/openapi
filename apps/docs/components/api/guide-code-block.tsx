@@ -16,9 +16,7 @@ export function GuideCodeBlock({ code, language, title }: GuideCodeBlockProps) {
       header={
         <>
           {title ? (
-            <span className="py-2 text-[10px] font-bold uppercase tracking-widest text-text-primary">
-              {title}
-            </span>
+            <span className="text-[13px] font-medium text-text-primary truncate">{title}</span>
           ) : (
             <div />
           )}

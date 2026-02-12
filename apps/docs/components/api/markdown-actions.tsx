@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, Copy, ChevronDown } from 'lucide-react';
+import { Check, Copy, ChevronDown, FileText, Link, Bot } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { CopiedTooltip } from './copied-tooltip';
 
@@ -58,6 +58,13 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
     } catch (error) {
       console.error('Failed to copy markdown:', error);
     }
+  };
+
+  const handleCopyMarkdownUrl = async () => {
+    const mdUrl = pageUrl.endsWith('/') ? `${pageUrl.slice(0, -1)}.md` : `${pageUrl}.md`;
+    const fullMdUrl = typeof window !== 'undefined' ? `${window.location.origin}${mdUrl}` : mdUrl;
+    await copyToClipboard(fullMdUrl);
+    setDropdownOpen(false);
   };
 
   const handleCopyPageUrl = async () => {
@@ -126,15 +133,25 @@ export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownAc
                 >
                   <DropdownMenu.Item
                     onClick={handleCopyMarkdown}
-                    className="flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
+                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
                   >
+                    <Bot className="w-4 h-4" />
                     Версию страницы для LLM
                   </DropdownMenu.Item>
 
                   <DropdownMenu.Item
-                    onClick={handleCopyPageUrl}
-                    className="flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
+                    onClick={handleCopyMarkdownUrl}
+                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
                   >
+                    <FileText className="w-4 h-4" />
+                    Ссылку на .md версию
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    onClick={handleCopyPageUrl}
+                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
+                  >
+                    <Link className="w-4 h-4" />
                     Ссылку на страницу
                   </DropdownMenu.Item>
                 </DropdownMenu.Content>

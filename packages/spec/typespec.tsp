@@ -2219,7 +2219,7 @@ interface UploadOperations {
   @post
   @opExample(#{
     returnType: #{
-      _: 200,
+      _: 201,
       body: #{
         contentDisposition: "attachment",
         acl: "private",
@@ -2234,7 +2234,7 @@ interface UploadOperations {
     }
   })
   getUploadParams(): {
-    @statusCode _: 200;
+    @statusCode _: 201;
     @body body: UploadParams;
   } | {
     @statusCode _: 401;
@@ -2565,7 +2565,7 @@ interface UserOperations {
       }
     },
     returnType: #{
-      _: 200,
+      _: 201,
       body: #{
         data: #{
           id: 12,
@@ -2598,7 +2598,7 @@ interface UserOperations {
     }
   })
   createUser(@body request: UserCreateRequest): {
-    @statusCode _: 200;
+    @statusCode _: 201;
     @body body: DataResponse<User>;
   } | {
     @statusCode _: 401;

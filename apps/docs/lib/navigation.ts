@@ -29,7 +29,7 @@ export async function generateNavigation(): Promise<NavigationSection[]> {
 
   const sections: NavigationSection[] = [];
 
-  // Check if there are new updates (within last 14 days)
+  // Check if there are new updates (within last 7 days)
   const updates = loadUpdates();
   const hasNewUpdates = updates.some((update) => isNewUpdate(update.date));
 

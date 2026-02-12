@@ -3711,7 +3711,7 @@ interface ChatMemberOperations {
   @doc("""
 Добавление пользователей
 
-Метод для добавления пользователей в состав участников беседы или канала.
+Метод для добавления пользователей в состав участников беседы, канала или треда.
 """)
   @route("/chats/{id}/members")
   @post
@@ -3724,9 +3724,9 @@ interface ChatMemberOperations {
       }
     }
   })
-  
+
   addMembers(
-    @doc("Идентификатор чата")
+    @doc("Идентификатор чата (беседа, канал или чат треда)")
     @path id: int32,
     @body request: AddMembersRequest
   ): {

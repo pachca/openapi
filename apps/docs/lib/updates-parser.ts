@@ -88,12 +88,12 @@ export function loadUpdates(): ParsedUpdate[] {
 }
 
 /**
- * Check if update is "new" (within last 14 days)
+ * Check if update is "new" (within last 7 days)
  */
 export function isNewUpdate(dateStr: string): boolean {
   const updateDate = new Date(dateStr);
   const now = new Date();
-  const twoWeeksAgo = new Date();
-  twoWeeksAgo.setDate(now.getDate() - 14);
-  return updateDate >= twoWeeksAgo;
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(now.getDate() - 7);
+  return updateDate >= oneWeekAgo;
 }

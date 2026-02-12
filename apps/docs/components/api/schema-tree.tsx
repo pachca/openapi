@@ -345,6 +345,7 @@ interface SchemaHeaderProps {
   variantType?: string;
   typeOverride?: string;
   paramId?: string;
+  arrayDepth?: number;
 }
 
 function SchemaHeader({
@@ -357,6 +358,7 @@ function SchemaHeader({
   variantType,
   typeOverride,
   paramId,
+  arrayDepth = 0,
 }: SchemaHeaderProps) {
   const hasMultipleVariants = !!(
     schema.anyOf ||
@@ -395,6 +397,11 @@ function SchemaHeader({
             </>
           )}
           <CopyableName name={name} />
+          {arrayDepth > 0 && (
+            <span className="text-[13px] font-bold text-text-primary">
+              {'[]'.repeat(arrayDepth)}
+            </span>
+          )}
         </div>
       )}
 
@@ -611,9 +618,6 @@ function SchemaTreeInner({
         )}
 
         <div className={itemsIsObject ? '' : 'pl-4 border-l border-background-border/60'}>
-          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">
-            Array items
-          </div>
           {itemsIsObject && schema.items ? (
             // Если items - это объект с properties, рендерим его как таблицу свойств
             <div className="divide-y divide-background-border/60 mt-2">
@@ -677,7 +681,7 @@ function VariantSection({
   // Для вариантов сложнее определить путь, поэтому раскрываем все варианты если есть targetPath в этой ветке
   const shouldAutoExpand = targetPath && parentPath ? isPathPrefix(parentPath, targetPath) : false;
 
-  const [isOpen, setIsOpen] = useState(shouldAutoExpand);
+  const [isOpen, setIsOpen] = useState(true);
 
   // Обновляем состояние раскрытия при изменении targetPath
   useEffect(() => {
@@ -756,7 +760,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
   // Проверяем, нужно ли автоматически раскрыть этот блок
   const shouldAutoExpand = targetPath ? isPathPrefix(currentPath, targetPath) : false;
 
-  const [isExpanded, setIsExpanded] = useState(shouldAutoExpand);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // Обновляем состояние раскрытия при изменении targetPath
   useEffect(() => {
@@ -826,7 +830,18 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
     typeof schema.additionalProperties !== 'boolean'
   );
   const hasItems = !!(isArrayType && schema.items);
-  const isComplex = hasProperties || hasAdditionalProperties || hasItems || hasMultipleVariants;
+  const isNestedArray = !!(isArrayType && schema.items && schema.items.type === 'array');
+  const isSimpleArray = !!(
+    isArrayType &&
+    schema.items &&
+    !isNestedArray &&
+    !isItemsObjectWithProperties(schema.items) &&
+    !schema.items.anyOf &&
+    !schema.items.oneOf &&
+    !schema.items.allOf
+  );
+  const isComplex =
+    hasProperties || hasAdditionalProperties || (hasItems && !isSimpleArray) || hasMultipleVariants;
 
   // Если allOf с одним элементом, обрабатываем особо
   if (schema.allOf && schema.allOf.length === 1 && !schema.anyOf && !schema.oneOf) {
@@ -848,8 +863,22 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
     );
   }
 
-  const typeOverride =
-    hasAdditionalProperties && !hasProperties ? 'Record<string, object>' : undefined;
+  let typeOverride: string | undefined;
+  if (hasAdditionalProperties && !hasProperties) {
+    typeOverride = 'Record<string, object>';
+  } else if (isArrayType && schema.items) {
+    // Для вложенных массивов берём тип конечного элемента
+    let leafItems = schema.items;
+    while (leafItems.type === 'array' && leafItems.items) {
+      leafItems = leafItems.items;
+    }
+    const itemType = Array.isArray(leafItems.type)
+      ? leafItems.type.join(' | ')
+      : leafItems.type || 'any';
+    const itemFormat = leafItems.format ? `, (${leafItems.format})` : '';
+    const pluralType = itemType.endsWith('s') ? itemType : `${itemType}s`;
+    typeOverride = `array of ${pluralType}${itemFormat}`;
+  }
 
   return (
     <div className="py-3 scroll-mt-20" id={paramId}>
@@ -863,6 +892,19 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
           onToggle={() => setIsExpanded(!isExpanded)}
           paramId={paramId}
           typeOverride={typeOverride}
+          arrayDepth={
+            isArrayType
+              ? (() => {
+                  let depth = 1;
+                  let items = schema.items;
+                  while (items?.type === 'array' && items.items) {
+                    depth++;
+                    items = items.items;
+                  }
+                  return depth;
+                })()
+              : 0
+          }
         />
 
         {/* Описание показывается только если нет вариантов (anyOf/oneOf/allOf) */}
@@ -944,9 +986,6 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
 
       {!hasMultipleVariants && isComplex && isExpanded && isArrayType && schema.items && (
         <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
-          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">
-            Array items
-          </div>
           {isItemsObjectWithProperties(schema.items) && schema.items.properties ? (
             // Если items - это объект с properties, показываем его свойства напрямую
             <div className="divide-y divide-background-border/60 mt-2">

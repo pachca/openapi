@@ -2,8 +2,15 @@
 
 import { Moon, Sun, SunMoon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 type Theme = 'light' | 'dark' | 'system';
+
+const themeOptions: { value: Theme; label: string; icon: typeof Sun }[] = [
+  { value: 'light', label: 'Светлая', icon: Sun },
+  { value: 'dark', label: 'Тёмная', icon: Moon },
+  { value: 'system', label: 'Системная', icon: SunMoon },
+];
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>('system');
@@ -66,35 +73,15 @@ export function ThemeToggle() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const toggleTheme = () => {
-    // Циклическое переключение: light → dark → system → light
-    const themeOrder: Theme[] = ['light', 'dark', 'system'];
-    const currentIndex = themeOrder.indexOf(theme);
-    const newTheme = themeOrder[(currentIndex + 1) % themeOrder.length];
-
+  const selectTheme = (newTheme: Theme) => {
+    if (newTheme === theme) return;
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     applyTheme(newTheme);
   };
 
   // Получаем текущую иконку в зависимости от темы
-  const getIcon = () => {
-    if (theme === 'system') {
-      return <SunMoon className="w-5 h-5" />;
-    }
-
-    if (theme === 'light') {
-      return <Sun className="w-5 h-5" />;
-    }
-
-    return <Moon className="w-5 h-5" />;
-  };
-
-  const getLabel = () => {
-    if (theme === 'light') return 'Светлая тема';
-    if (theme === 'dark') return 'Темная тема';
-    return 'Системная тема';
-  };
+  const CurrentIcon = themeOptions.find((o) => o.value === theme)?.icon ?? SunMoon;
 
   // Предотвращаем layout shift - показываем placeholder с теми же размерами
   if (!mounted) {
@@ -106,13 +93,37 @@ export function ThemeToggle() {
   }
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="w-9 h-9 flex shrink-0 items-center justify-center rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer out"
-      aria-label={`Текущая: ${getLabel()}. Нажмите для переключения`}
-      title={getLabel()}
-    >
-      {getIcon()}
-    </button>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <button
+          className="w-9 h-9 flex shrink-0 items-center justify-center rounded-lg text-text-secondary hover:text-text-primary transition-colors cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 select-none"
+          aria-label="Переключить тему"
+        >
+          <CurrentIcon className="w-5 h-5" />
+        </button>
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="z-50 min-w-[140px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-100"
+          align="end"
+        >
+          {themeOptions.map(({ value, label, icon: Icon }) => (
+            <DropdownMenu.Item
+              key={value}
+              onClick={() => selectTheme(value)}
+              className={`flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
+                theme === value
+                  ? 'bg-primary text-white'
+                  : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }

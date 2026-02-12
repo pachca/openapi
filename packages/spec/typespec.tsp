@@ -4042,7 +4042,13 @@ interface MessageOperations {
         message: #{
           entity_type: MessageEntityType.discussion,
           entity_id: 198,
-          content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"
+          content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+          buttons: #[
+            #[
+              #{ text: "Подробнее", url: "https://example.com/details" },
+              #{ text: "Отлично!", data: "awesome" }
+            ]
+          ]
         }
       }
     },
@@ -4059,7 +4065,12 @@ interface MessageOperations {
           created_at: utcDateTime.fromISO("2021-08-28T15:57:23.000Z"),
           url: "https://app.pachca.com/chats/334?message=194275",
           files: #[],
-          buttons: #[],
+          buttons: #[
+            #[
+              #{ text: "Подробнее", url: "https://example.com/details" },
+              #{ text: "Отлично!", data: "awesome" }
+            ]
+          ],
           thread: null,
           forwarding: null,
           parent_message_id: null,

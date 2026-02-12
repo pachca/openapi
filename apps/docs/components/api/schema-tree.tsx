@@ -539,12 +539,7 @@ function SchemaTreeInner({
     return (
       <div className="flex flex-col not-prose">
         {name && (
-          <SchemaHeader
-            name={name}
-            schema={schema}
-            required={required}
-            typeOverride="Record<string, object>"
-          />
+          <SchemaHeader name={name} schema={schema} required={required} typeOverride="object" />
         )}
         {/* description показывается только на root-уровне (когда есть name) */}
         {name && schema.description && (
@@ -553,11 +548,8 @@ function SchemaTreeInner({
           </div>
         )}
         <div className={valueIsObject ? '' : 'pl-4 border-l border-background-border/60'}>
-          <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-1 pt-1">
-            Record value
-          </div>
           {valueIsObject && valueSchema.properties ? (
-            <div className="divide-y divide-background-border/60 mt-2">
+            <div className="divide-y divide-background-border/60">
               {Object.entries(valueSchema.properties).map(([propName, propSchema]) => (
                 <PropertyRow
                   key={propName}
@@ -620,7 +612,7 @@ function SchemaTreeInner({
         <div className={itemsIsObject ? '' : 'pl-4 border-l border-background-border/60'}>
           {itemsIsObject && schema.items ? (
             // Если items - это объект с properties, рендерим его как таблицу свойств
-            <div className="divide-y divide-background-border/60 mt-2">
+            <div className="divide-y divide-background-border/60">
               {Object.entries(schema.items.properties!).map(([propName, propSchema]) => {
                 // Приводим propSchema к типу Schema для корректной работы
                 const typedPropSchema = propSchema as Schema;
@@ -865,11 +857,13 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
 
   let typeOverride: string | undefined;
   if (hasAdditionalProperties && !hasProperties) {
-    typeOverride = 'Record<string, object>';
+    typeOverride = 'object';
   } else if (isArrayType && schema.items) {
-    // Для вложенных массивов берём тип конечного элемента
+    // Для вложенных массивов строим "array of arrays of objects"
     let leafItems = schema.items;
+    let arrayPrefix = 'array of ';
     while (leafItems.type === 'array' && leafItems.items) {
+      arrayPrefix += 'arrays of ';
       leafItems = leafItems.items;
     }
     const itemType = Array.isArray(leafItems.type)
@@ -877,7 +871,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
       : leafItems.type || 'any';
     const itemFormat = leafItems.format ? `, (${leafItems.format})` : '';
     const pluralType = itemType.endsWith('s') ? itemType : `${itemType}s`;
-    typeOverride = `array of ${pluralType}${itemFormat}`;
+    typeOverride = `${arrayPrefix}${pluralType}${itemFormat}`;
   }
 
   return (
@@ -988,7 +982,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
           {isItemsObjectWithProperties(schema.items) && schema.items.properties ? (
             // Если items - это объект с properties, показываем его свойства напрямую
-            <div className="divide-y divide-background-border/60 mt-2">
+            <div className="divide-y divide-background-border/60">
               {Object.entries(schema.items.properties).map(([propName, propSchema]) => (
                 <PropertyRow
                   key={propName}

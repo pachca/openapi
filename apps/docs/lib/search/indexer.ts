@@ -130,10 +130,22 @@ function extractSchemaFields(
         : undefined;
       const fieldPath = parentPath ? `${parentPath}.${propName}` : propName;
 
+      // Compute array depth for display (e.g. buttons[][] for nested arrays)
+      let displayName = propName;
+      if (propSchema.type === 'array') {
+        let arrayDepth = 1;
+        let items = propSchema.items;
+        while (items?.type === 'array' && items.items) {
+          arrayDepth++;
+          items = items.items;
+        }
+        displayName = propName + '[]'.repeat(arrayDepth);
+      }
+
       // Store with full path - prefer shorter paths for the same field name
-      const existing = fields.get(propName);
+      const existing = fields.get(displayName);
       if (!existing || fieldPath.length < existing.path.length) {
-        fields.set(propName, { description: desc, path: fieldPath });
+        fields.set(displayName, { description: desc, path: fieldPath });
       }
 
       keywords.push(propName.toLowerCase());
@@ -216,7 +228,7 @@ function extractEndpointSchemaFields(endpoint: Endpoint): EndpointSchemaResult {
   const allFields = new Map<string, SchemaFieldInfo>();
   const allKeywords: string[] = [];
 
-  // Extract from request body
+  // Extract from request body (highest priority for field descriptions)
   if (endpoint.requestBody?.content) {
     for (const mediaType of Object.values(endpoint.requestBody.content)) {
       const result = extractSchemaFields(mediaType.schema);
@@ -230,14 +242,13 @@ function extractEndpointSchemaFields(endpoint: Endpoint): EndpointSchemaResult {
     }
   }
 
-  // Extract from responses
+  // Extract from responses (only add fields not already present from request body)
   for (const response of Object.values(endpoint.responses)) {
     if (response.content) {
       for (const mediaType of Object.values(response.content)) {
         const result = extractSchemaFields(mediaType.schema);
         for (const [name, info] of result.fields) {
-          const existing = allFields.get(name);
-          if (!existing || info.path.length < existing.path.length) {
+          if (!allFields.has(name)) {
             allFields.set(name, info);
           }
         }

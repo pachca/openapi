@@ -21,7 +21,6 @@ import {
   Info,
   Tip,
   Danger,
-  Note,
 } from '@/components/mdx/mdx-components';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
@@ -113,7 +112,6 @@ const components = {
   Info,
   Tip,
   Danger,
-  Note,
   Callout,
   EndpointLink,
 };

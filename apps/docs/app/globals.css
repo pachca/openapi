@@ -38,11 +38,6 @@
   --color-callout-danger-header-bg: oklch(95% 0.025 28);
   --color-callout-danger-text: var(--color-accent-red);
 
-  --color-callout-note-bg: var(--color-background-secondary);
-  --color-callout-note-border: var(--color-background-border);
-  --color-callout-note-header-bg: var(--color-background-secondary);
-  --color-callout-note-text: var(--color-text-secondary);
-
   --color-method-get: oklch(60.2% 0.193 263);
   --color-method-post: oklch(63.8% 0.142 143.5);
   --color-method-put: oklch(55.4% 0.116 77);
@@ -209,24 +204,6 @@ html.dark {
   .bg-callout-danger-bg li::before,
   .bg-callout-danger-bg\! li::before {
     @apply bg-callout-danger-text/50!;
-  }
-
-  .bg-callout-note-bg a,
-  .bg-callout-note-bg\! a {
-    @apply text-callout-note-text! font-semibold underline decoration-callout-note-text/50! underline-offset-4 decoration-1 hover:decoration-callout-note-text!;
-    transition:
-      text-decoration-color 0.2s,
-      text-decoration-thickness 0.2s !important;
-  }
-
-  .bg-callout-note-bg code,
-  .bg-callout-note-bg\! code {
-    @apply bg-callout-note-header-bg! text-callout-note-text! border-callout-note-text/20!;
-  }
-
-  .bg-callout-note-bg li::before,
-  .bg-callout-note-bg\! li::before {
-    @apply bg-callout-note-text/50!;
   }
 }
 

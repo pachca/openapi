@@ -19,9 +19,12 @@ import {
   Image,
   Warning,
   Info,
-  Tip,
   Danger,
+  GuideCards,
+  ApiCards,
 } from '@/components/mdx/mdx-components';
+import { Steps, Step } from '@/components/mdx/steps';
+import { CardGroup, Card } from '@/components/mdx/cards';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -110,9 +113,14 @@ const components = {
   Image,
   Warning,
   Info,
-  Tip,
   Danger,
   Callout,
+  Steps,
+  Step,
+  CardGroup,
+  Card,
+  GuideCards,
+  ApiCards,
   EndpointLink,
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-type CalloutType = 'info' | 'warning' | 'tip' | 'danger';
+type CalloutType = 'info' | 'warning' | 'danger';
 
 interface CalloutProps {
   children: React.ReactNode;
@@ -19,12 +19,6 @@ const styles: Record<CalloutType, { bg: string; border: string; content: string 
     border: 'border-callout-warning-border',
     content:
       '[&_p]:text-callout-warning-text/90! text-callout-warning-text/90! [&_em]:text-callout-warning-text/70 [&]:text-inherit [&_p]:mb-0! [&_p]:last:mb-0 [&_code]:text-callout-warning-text [&_a]:text-callout-warning-text [&_a]:underline [&_p+ul]:mt-4! [&_p+ul]:mb-0! [&_p+ol]:mt-4! [&_.endpoint-badge]:text-callout-warning-text! [&_.endpoint-badge]:bg-callout-warning-text/10! [&_li]:text-callout-warning-text/90! [&_li]:text-[13px]!',
-  },
-  tip: {
-    bg: 'bg-callout-tip-bg',
-    border: 'border-callout-tip-border',
-    content:
-      '[&_p]:text-callout-tip-text/90! text-callout-tip-text/90! [&_em]:text-callout-tip-text/70 [&]:text-inherit [&_p]:mb-0! [&_p]:last:mb-0 [&_code]:text-callout-tip-text [&_a]:text-callout-tip-text [&_a]:underline [&_p+ul]:mt-4! [&_p+ul]:mb-0! [&_p+ol]:mt-4! [&_.endpoint-badge]:text-callout-tip-text! [&_.endpoint-badge]:bg-callout-tip-text/10! [&_li]:text-callout-tip-text/90! [&_li]:text-[13px]!',
   },
   danger: {
     bg: 'bg-callout-danger-bg',

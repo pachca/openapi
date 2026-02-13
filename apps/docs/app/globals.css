@@ -549,6 +549,50 @@ html.dark .code-block-container .shiki span {
   text-decoration-thickness: 1.5px !important;
 }
 
+/* Steps component */
+.steps-list {
+  counter-reset: step;
+}
+
+.step-item {
+  counter-increment: step;
+}
+
+.step-item h3 {
+  margin: 0;
+}
+
+.step-item::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.step-item::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 2.25rem;
+  bottom: 0.5rem;
+  width: 1px;
+  background-color: var(--color-background-border);
+}
+
+.step-item:last-child::after {
+  bottom: 0;
+}
+
 html {
   scroll-behavior: smooth;
 }

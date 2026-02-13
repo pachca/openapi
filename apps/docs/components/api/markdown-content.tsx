@@ -1,5 +1,4 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import Link from 'next/link';
 import { Callout } from './callout';
 import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';
@@ -19,7 +18,12 @@ import {
   Image,
   Warning,
   Info,
+  Danger,
+  GuideCards,
+  ApiCards,
 } from '@/components/mdx/mdx-components';
+import { Steps, Step } from '@/components/mdx/steps';
+import { CardGroup, Card } from '@/components/mdx/cards';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -108,7 +112,14 @@ const components = {
   Image,
   Warning,
   Info,
+  Danger,
   Callout,
+  Steps,
+  Step,
+  CardGroup,
+  Card,
+  GuideCards,
+  ApiCards,
   EndpointLink,
 };
 

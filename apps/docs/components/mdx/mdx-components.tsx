@@ -4,6 +4,10 @@ import { ResponseCodesList } from '@/components/api/response-codes-list';
 import { LimitCard } from '@/components/api/limit-card';
 import { UpdatesList } from '@/components/api/updates-list';
 import { Callout } from '@/components/api/callout';
+import { Steps, Step } from '@/components/mdx/steps';
+import { CardGroup, Card, GUIDE_ICONS, API_SECTION_META } from '@/components/mdx/cards';
+import { getOrderedGuidePages } from '@/lib/guides-config';
+import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
 import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
 
@@ -267,6 +271,10 @@ export function Info({ children }: { children: React.ReactNode }) {
   return <Callout type="info">{children}</Callout>;
 }
 
+export function Danger({ children }: { children: React.ReactNode }) {
+  return <Callout type="danger">{children}</Callout>;
+}
+
 // ============================================
 // Export all MDX components
 // ============================================
@@ -288,6 +296,52 @@ export async function CodeBlock({ language = 'text', title, children }: CodeBloc
   return <GuideCodeBlock language={mappedLanguage} code={code} title={title} />;
 }
 
+// ============================================
+// GuideCards - auto-generated cards from guide pages
+// ============================================
+
+export function GuideCards() {
+  const guides = getOrderedGuidePages().filter(
+    (g) => g.path !== '/' && g.path !== '/guides/updates'
+  );
+
+  return (
+    <CardGroup>
+      {guides.map((guide) => (
+        <Card key={guide.path} title={guide.title} icon={GUIDE_ICONS[guide.path]} href={guide.path}>
+          {guide.description}
+        </Card>
+      ))}
+    </CardGroup>
+  );
+}
+
+// ============================================
+// ApiCards - auto-generated cards from API navigation sections
+// ============================================
+
+export async function ApiCards() {
+  const sections = await generateNavigation();
+  // Skip first section ("Начало работы" — guides) and "Профиль и статус"
+  const apiSections = sections.filter((s) => s.items[0]?.method != null);
+
+  return (
+    <CardGroup>
+      {apiSections.map((section) => {
+        const meta = API_SECTION_META[section.title];
+        const firstHref = section.items[0]?.href;
+        if (!firstHref) return null;
+
+        return (
+          <Card key={section.title} title={section.title} icon={meta?.icon} href={firstHref}>
+            {meta?.description ?? section.title}
+          </Card>
+        );
+      })}
+    </CardGroup>
+  );
+}
+
 export const customMdxComponents = {
   SchemaBlock,
   HttpCodes,
@@ -299,5 +353,12 @@ export const customMdxComponents = {
   Image,
   Warning,
   Info,
+  Danger,
   Callout,
+  Steps,
+  Step,
+  CardGroup,
+  Card,
+  GuideCards,
+  ApiCards,
 };

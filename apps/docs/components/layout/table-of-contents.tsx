@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 
 interface TocItem {
@@ -16,6 +16,54 @@ export function TableOfContents() {
   const containerRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
   const isFirstRenderRef = useRef(true);
+
+  // Обработчик клика по ссылкам TOC через нативное делегирование событий
+  const handleContainerClick = useCallback((e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest('a');
+    if (!link) return;
+
+    e.preventDefault();
+
+    const href = link.getAttribute('href');
+    if (!href?.startsWith('#')) return;
+
+    const id = href.slice(1);
+    const element = document.getElementById(id);
+    const mainContent = document.querySelector('main');
+
+    if (element && mainContent) {
+      isScrollingRef.current = true;
+      const targetScrollTop =
+        element.getBoundingClientRect().top -
+        mainContent.getBoundingClientRect().top +
+        mainContent.scrollTop -
+        80;
+      gsap.to(mainContent, {
+        duration: 0.4,
+        scrollTop: targetScrollTop,
+        ease: 'power2.out',
+        onComplete: () => {
+          setTimeout(() => {
+            isScrollingRef.current = false;
+          }, 100);
+        },
+      });
+      window.history.pushState(null, '', `#${id}`);
+    }
+  }, []);
+
+  // Подключаем обработчик кликов на document (capture) — гарантирует перехват
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[href^="#"]');
+      if (!link || !containerRef.current?.contains(link)) return;
+      handleContainerClick(e);
+    };
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, [handleContainerClick]);
 
   // Анимация индикатора активного элемента
   useEffect(() => {
@@ -166,27 +214,6 @@ export function TableOfContents() {
           <a
             key={item.id}
             href={`#${item.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              isScrollingRef.current = true;
-              const element = document.getElementById(item.id);
-              const mainContent = document.querySelector('main');
-
-              if (element && mainContent) {
-                gsap.to(mainContent, {
-                  duration: 0.4,
-                  scrollTop: element.offsetTop - 80,
-                  ease: 'power2.out',
-                  onComplete: () => {
-                    // Разрешаем автопрокрутку через 100мс после завершения анимации
-                    setTimeout(() => {
-                      isScrollingRef.current = false;
-                    }, 100);
-                  },
-                });
-                window.history.pushState(null, '', `#${item.id}`);
-              }
-            }}
             className={`
               block py-1 text-[13px] transition-colors duration-200 font-medium
               ${item.level === 3 ? 'pl-6' : 'pl-4'}

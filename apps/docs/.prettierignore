@@ -16,6 +16,7 @@ pnpm-lock.yaml
 
 # Generated files
 packages/spec/openapi.yaml
+next-env.d.ts
 
 # Cache and misc
 .vercel/

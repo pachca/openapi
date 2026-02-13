@@ -23,7 +23,11 @@ export function StaticPageWrapper({
         <div className="p-8 pt-10 xl:p-10 pb-0! flex-1 flex justify-center">
           <div className="w-full max-w-[1000px] flex flex-col xl:flex-row gap-12 relative">
             <div className="flex-1 min-w-0 flex flex-col">
-              <div className="prose prose-slate flex-1 max-w-full xl:max-w-[700px]">{children}</div>
+              <div
+                className={`prose prose-slate flex-1 max-w-full ${hideTableOfContents ? '' : 'xl:max-w-[700px]'}`}
+              >
+                {children}
+              </div>
               <Footer adjacent={adjacent} noMargin={true} />
             </div>
             {!hideTableOfContents && (

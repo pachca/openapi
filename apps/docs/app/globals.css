@@ -24,6 +24,21 @@
   --color-callout-warning-header-bg: oklch(96% 0.03 85);
   --color-callout-warning-text: oklch(55% 0.14 85);
 
+  --color-callout-tip-bg: oklch(97.5% 0.02 155);
+  --color-callout-tip-border: oklch(91% 0.035 155);
+  --color-callout-tip-header-bg: oklch(95% 0.025 155);
+  --color-callout-tip-text: oklch(48% 0.15 155);
+
+  --color-callout-danger-bg: oklch(97.5% 0.015 25);
+  --color-callout-danger-border: oklch(90% 0.04 25);
+  --color-callout-danger-header-bg: oklch(95% 0.025 25);
+  --color-callout-danger-text: oklch(52% 0.17 25);
+
+  --color-callout-note-bg: oklch(97.5% 0.003 270);
+  --color-callout-note-border: oklch(91% 0.006 270);
+  --color-callout-note-header-bg: oklch(95.5% 0.004 270);
+  --color-callout-note-text: oklch(50% 0.01 270);
+
   --color-method-get: #4078f2;
   --color-method-post: #50a14f;
   --color-method-put: #986801;
@@ -64,6 +79,21 @@ html.dark {
   --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
   --color-callout-warning-text: oklch(81.1% 0.154 70.7);
 
+  --color-callout-tip-bg: oklch(70% 0.17 155 / 12%);
+  --color-callout-tip-border: oklch(70% 0.17 155 / 20%);
+  --color-callout-tip-header-bg: oklch(70% 0.17 155 / 15%);
+  --color-callout-tip-text: oklch(75% 0.14 155);
+
+  --color-callout-danger-bg: oklch(65% 0.2 25 / 12%);
+  --color-callout-danger-border: oklch(65% 0.2 25 / 20%);
+  --color-callout-danger-header-bg: oklch(65% 0.2 25 / 15%);
+  --color-callout-danger-text: oklch(75% 0.15 25);
+
+  --color-callout-note-bg: oklch(70% 0.01 270 / 10%);
+  --color-callout-note-border: oklch(70% 0.01 270 / 18%);
+  --color-callout-note-header-bg: oklch(70% 0.01 270 / 12%);
+  --color-callout-note-text: oklch(75% 0.01 270);
+
   --color-method-delete: #e06c75;
   --color-method-patch: #c678dd;
 }
@@ -91,6 +121,21 @@ html.dark {
     --color-callout-warning-border: oklch(81.1% 0.154 70.7 / 20%);
     --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
     --color-callout-warning-text: oklch(81.1% 0.154 70.7);
+
+    --color-callout-tip-bg: oklch(70% 0.17 155 / 12%);
+    --color-callout-tip-border: oklch(70% 0.17 155 / 20%);
+    --color-callout-tip-header-bg: oklch(70% 0.17 155 / 15%);
+    --color-callout-tip-text: oklch(75% 0.14 155);
+
+    --color-callout-danger-bg: oklch(65% 0.2 25 / 12%);
+    --color-callout-danger-border: oklch(65% 0.2 25 / 20%);
+    --color-callout-danger-header-bg: oklch(65% 0.2 25 / 15%);
+    --color-callout-danger-text: oklch(75% 0.15 25);
+
+    --color-callout-note-bg: oklch(70% 0.01 270 / 10%);
+    --color-callout-note-border: oklch(70% 0.01 270 / 18%);
+    --color-callout-note-header-bg: oklch(70% 0.01 270 / 12%);
+    --color-callout-note-text: oklch(75% 0.01 270);
 
     --color-method-delete: #e06c75;
     --color-method-patch: #c678dd;
@@ -132,6 +177,60 @@ html.dark {
   .bg-callout-warning-bg li::before,
   .bg-callout-warning-bg\! li::before {
     @apply bg-callout-warning-text/50!;
+  }
+
+  .bg-callout-tip-bg a,
+  .bg-callout-tip-bg\! a {
+    @apply text-callout-tip-text! font-semibold underline decoration-callout-tip-text/50! underline-offset-4 decoration-1 hover:decoration-callout-tip-text!;
+    transition:
+      text-decoration-color 0.2s,
+      text-decoration-thickness 0.2s !important;
+  }
+
+  .bg-callout-tip-bg code,
+  .bg-callout-tip-bg\! code {
+    @apply bg-callout-tip-header-bg! text-callout-tip-text! border-callout-tip-text/20!;
+  }
+
+  .bg-callout-tip-bg li::before,
+  .bg-callout-tip-bg\! li::before {
+    @apply bg-callout-tip-text/50!;
+  }
+
+  .bg-callout-danger-bg a,
+  .bg-callout-danger-bg\! a {
+    @apply text-callout-danger-text! font-semibold underline decoration-callout-danger-text/50! underline-offset-4 decoration-1 hover:decoration-callout-danger-text!;
+    transition:
+      text-decoration-color 0.2s,
+      text-decoration-thickness 0.2s !important;
+  }
+
+  .bg-callout-danger-bg code,
+  .bg-callout-danger-bg\! code {
+    @apply bg-callout-danger-header-bg! text-callout-danger-text! border-callout-danger-text/20!;
+  }
+
+  .bg-callout-danger-bg li::before,
+  .bg-callout-danger-bg\! li::before {
+    @apply bg-callout-danger-text/50!;
+  }
+
+  .bg-callout-note-bg a,
+  .bg-callout-note-bg\! a {
+    @apply text-callout-note-text! font-semibold underline decoration-callout-note-text/50! underline-offset-4 decoration-1 hover:decoration-callout-note-text!;
+    transition:
+      text-decoration-color 0.2s,
+      text-decoration-thickness 0.2s !important;
+  }
+
+  .bg-callout-note-bg code,
+  .bg-callout-note-bg\! code {
+    @apply bg-callout-note-header-bg! text-callout-note-text! border-callout-note-text/20!;
+  }
+
+  .bg-callout-note-bg li::before,
+  .bg-callout-note-bg\! li::before {
+    @apply bg-callout-note-text/50!;
   }
 }
 

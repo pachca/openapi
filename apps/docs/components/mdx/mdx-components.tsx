@@ -267,6 +267,18 @@ export function Info({ children }: { children: React.ReactNode }) {
   return <Callout type="info">{children}</Callout>;
 }
 
+export function Tip({ children }: { children: React.ReactNode }) {
+  return <Callout type="tip">{children}</Callout>;
+}
+
+export function Danger({ children }: { children: React.ReactNode }) {
+  return <Callout type="danger">{children}</Callout>;
+}
+
+export function Note({ children }: { children: React.ReactNode }) {
+  return <Callout type="note">{children}</Callout>;
+}
+
 // ============================================
 // Export all MDX components
 // ============================================
@@ -299,5 +311,8 @@ export const customMdxComponents = {
   Image,
   Warning,
   Info,
+  Tip,
+  Danger,
+  Note,
   Callout,
 };

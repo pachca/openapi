@@ -1,5 +1,4 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import Link from 'next/link';
 import { Callout } from './callout';
 import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';

@@ -12,7 +12,7 @@ interface MarkdownActionsProps {
   path?: string;
 }
 
-export function MarkdownActions({ pageUrl, pageTitle, method, path }: MarkdownActionsProps) {
+export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
   const [copied, setCopied] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

@@ -40,6 +40,7 @@ export function SidebarNav({ navigation }: SidebarNavProps) {
       .find((section) => section.items.some((item) => item.href === pathname));
 
     if (activeSection) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally updating state on navigation
       setOpenSections((prev) =>
         prev.includes(activeSection.title) ? prev : [...prev, activeSection.title]
       );

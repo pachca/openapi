@@ -7,6 +7,8 @@ import { getSchemaByName } from './openapi/parser';
 import { schemaToMarkdown } from './markdown-generator';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
+import { getOrderedGuidePages } from './guides-config';
+import { generateNavigation } from './navigation';
 
 // ============================================
 // Helper functions
@@ -52,6 +54,63 @@ function markdownSyntaxTableToMarkdown(): string {
   md += '| Зачеркнутый | `~~текст~~` | ~~текст~~ |\n';
   md += '| Строчный код | `` `код` `` | `код` |\n';
   md += '| Блок кода | ` ```код``` ` | код |\n';
+  md += '\n';
+
+  return md;
+}
+
+function guideCardsToMarkdown(): string {
+  const guides = getOrderedGuidePages().filter(
+    (g) => g.path !== '/' && g.path !== '/guides/updates'
+  );
+
+  let md = '';
+  for (const guide of guides) {
+    md += `- [${guide.title}](${guide.path})`;
+    if (guide.description) {
+      md += ` — ${guide.description}`;
+    }
+    md += '\n';
+  }
+  md += '\n';
+
+  return md;
+}
+
+async function apiCardsToMarkdown(): Promise<string> {
+  const API_SECTION_META: Record<string, { icon: string; description: string }> = {
+    'Общие методы': { icon: 'Zap', description: 'Экспорт и загрузка файлов' },
+    'Профиль и статус': { icon: 'User', description: 'Информация о текущем пользователе' },
+    Сотрудники: { icon: 'Users', description: 'Управление участниками пространства' },
+    Теги: { icon: 'Tag', description: 'Группировка сотрудников по тегам' },
+    Чаты: { icon: 'MessagesSquare', description: 'Создание и управление чатами' },
+    'Участники чатов': { icon: 'UserPlus', description: 'Добавление и удаление участников' },
+    Треды: { icon: 'MessageSquareMore', description: 'Обсуждения внутри сообщений' },
+    Сообщения: { icon: 'MessageSquare', description: 'Отправка, редактирование, удаление' },
+    'Прочтение сообщения': { icon: 'CheckCheck', description: 'Информация о прочтении' },
+    'Реакции на сообщения': { icon: 'SmilePlus', description: 'Реакции на сообщения' },
+    Ссылки: { icon: 'LinkIcon', description: 'Разворачивание ссылок (unfurl)' },
+    Напоминания: { icon: 'Bell', description: 'Создание и управление напоминаниями' },
+    Формы: { icon: 'SquareMousePointer', description: 'Модальные окна с полями ввода' },
+    'Боты и Webhook': { icon: 'Bot', description: 'Информация о ботах и вебхуках' },
+    Безопасность: { icon: 'Shield', description: 'Аудит и настройки безопасности' },
+  };
+
+  const sections = await generateNavigation();
+  const apiSections = sections.filter((s) => s.items[0]?.method != null);
+
+  let md = '';
+  for (const section of apiSections) {
+    const meta = API_SECTION_META[section.title];
+    const firstHref = section.items[0]?.href;
+    if (!firstHref) continue;
+
+    md += `- [${section.title}](${firstHref})`;
+    if (meta?.description) {
+      md += ` — ${meta.description}`;
+    }
+    md += '\n';
+  }
   md += '\n';
 
   return md;
@@ -166,6 +225,17 @@ export async function expandMdxComponents(content: string): Promise<string> {
       return `${header}\`\`\`${lang}\n${code.trim()}\n\`\`\`\n`;
     }
   );
+
+  // <GuideCards />
+  if (result.includes('<GuideCards')) {
+    result = result.replace(/<GuideCards\s*\/>/g, guideCardsToMarkdown());
+  }
+
+  // <ApiCards />
+  if (result.includes('<ApiCards')) {
+    const apiCardsMarkdown = await apiCardsToMarkdown();
+    result = result.replace(/<ApiCards\s*\/>/g, apiCardsMarkdown);
+  }
 
   // Clean up multiple newlines
   result = result.replace(/\n{4,}/g, '\n\n\n');

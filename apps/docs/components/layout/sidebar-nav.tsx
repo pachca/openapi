@@ -27,11 +27,23 @@ export function SidebarNav({ navigation }: SidebarNavProps) {
     isInternalNav.current = true;
   };
 
-  // Автоматическая прокрутка к активному пункту только при внешней навигации
+  // При внешней навигации: раскрываем секцию и прокручиваем к ней
   useEffect(() => {
     if (isInternalNav.current) {
       isInternalNav.current = false;
       return;
+    }
+
+    // Раскрываем секцию, содержащую активный пункт
+    const activeSection = navigation
+      .slice(1)
+      .find((section) => section.items.some((item) => item.href === pathname));
+
+    if (activeSection) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally updating state on navigation
+      setOpenSections((prev) =>
+        prev.includes(activeSection.title) ? prev : [...prev, activeSection.title]
+      );
     }
 
     // Проверяем размер экрана - пропускаем автоскролл на мобильных полностью
@@ -63,7 +75,7 @@ export function SidebarNav({ navigation }: SidebarNavProps) {
         });
       }
     }
-  }, [pathname]);
+  }, [pathname, navigation]);
 
   const firstSection = navigation[0];
   const otherSections = navigation.slice(1);

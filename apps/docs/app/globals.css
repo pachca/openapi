@@ -19,16 +19,30 @@
   --color-callout-info-header-bg: oklch(95% 0.02 270);
   --color-callout-info-text: oklch(54.82% 0.2498 270.55);
 
+  --color-accent-yellow: oklch(55% 0.14 85);
+  --color-accent-green: oklch(50% 0.14 143.5);
+  --color-accent-red: oklch(55% 0.17 28);
+
   --color-callout-warning-bg: oklch(98% 0.02 85);
   --color-callout-warning-border: oklch(92% 0.04 85);
   --color-callout-warning-header-bg: oklch(96% 0.03 85);
-  --color-callout-warning-text: oklch(55% 0.14 85);
+  --color-callout-warning-text: var(--color-accent-yellow);
 
-  --color-method-get: #4078f2;
-  --color-method-post: #50a14f;
-  --color-method-put: #986801;
-  --color-method-delete: #e45649;
-  --color-method-patch: #a626a4;
+  --color-callout-tip-bg: oklch(97.5% 0.015 143.5);
+  --color-callout-tip-border: oklch(91% 0.03 143.5);
+  --color-callout-tip-header-bg: oklch(95% 0.02 143.5);
+  --color-callout-tip-text: var(--color-accent-green);
+
+  --color-callout-danger-bg: oklch(97.5% 0.015 28);
+  --color-callout-danger-border: oklch(90% 0.04 28);
+  --color-callout-danger-header-bg: oklch(95% 0.025 28);
+  --color-callout-danger-text: var(--color-accent-red);
+
+  --color-method-get: oklch(60.2% 0.193 263);
+  --color-method-post: oklch(63.8% 0.142 143.5);
+  --color-method-put: oklch(55.4% 0.116 77);
+  --color-method-delete: oklch(63.9% 0.179 28);
+  --color-method-patch: oklch(52.4% 0.211 329);
 
   --boxed-header-height: 40px;
   --mobile-header-height: 56px;
@@ -59,13 +73,24 @@ html.dark {
   --color-callout-info-header-bg: oklch(53.91% 0.19 270 / 10%);
   --color-callout-info-text: oklch(68.4% 0.16 270);
 
+  --color-accent-yellow: oklch(81.1% 0.154 70.7);
+  --color-accent-green: oklch(75% 0.12 143.5);
+  --color-accent-red: oklch(75% 0.13 17);
+
   --color-callout-warning-bg: oklch(81.1% 0.154 70.7 / 12%);
   --color-callout-warning-border: oklch(81.1% 0.154 70.7 / 20%);
   --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
-  --color-callout-warning-text: oklch(81.1% 0.154 70.7);
 
-  --color-method-delete: #e06c75;
-  --color-method-patch: #c678dd;
+  --color-callout-tip-bg: oklch(75% 0.12 143.5 / 12%);
+  --color-callout-tip-border: oklch(75% 0.12 143.5 / 20%);
+  --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 15%);
+
+  --color-callout-danger-bg: oklch(75% 0.13 17 / 12%);
+  --color-callout-danger-border: oklch(75% 0.13 17 / 20%);
+  --color-callout-danger-header-bg: oklch(75% 0.13 17 / 15%);
+
+  --color-method-delete: oklch(67.1% 0.145 17);
+  --color-method-patch: oklch(69.4% 0.164 318);
 }
 
 /* Dark Mode - системная тема (только если НЕ установлен класс .light) */
@@ -87,13 +112,24 @@ html.dark {
     --color-callout-info-header-bg: oklch(53.91% 0.19 270 / 10%);
     --color-callout-info-text: oklch(68.4% 0.16 270);
 
+    --color-accent-yellow: oklch(81.1% 0.154 70.7);
+    --color-accent-green: oklch(75% 0.12 143.5);
+    --color-accent-red: oklch(75% 0.13 17);
+
     --color-callout-warning-bg: oklch(81.1% 0.154 70.7 / 12%);
     --color-callout-warning-border: oklch(81.1% 0.154 70.7 / 20%);
     --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
-    --color-callout-warning-text: oklch(81.1% 0.154 70.7);
 
-    --color-method-delete: #e06c75;
-    --color-method-patch: #c678dd;
+    --color-callout-tip-bg: oklch(75% 0.12 143.5 / 12%);
+    --color-callout-tip-border: oklch(75% 0.12 143.5 / 20%);
+    --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 15%);
+
+    --color-callout-danger-bg: oklch(75% 0.13 17 / 12%);
+    --color-callout-danger-border: oklch(75% 0.13 17 / 20%);
+    --color-callout-danger-header-bg: oklch(75% 0.13 17 / 15%);
+
+    --color-method-delete: oklch(67.1% 0.145 17);
+    --color-method-patch: oklch(69.4% 0.164 318);
   }
 }
 
@@ -132,6 +168,42 @@ html.dark {
   .bg-callout-warning-bg li::before,
   .bg-callout-warning-bg\! li::before {
     @apply bg-callout-warning-text/50!;
+  }
+
+  .bg-callout-tip-bg a,
+  .bg-callout-tip-bg\! a {
+    @apply text-callout-tip-text! font-semibold underline decoration-callout-tip-text/50! underline-offset-4 decoration-1 hover:decoration-callout-tip-text!;
+    transition:
+      text-decoration-color 0.2s,
+      text-decoration-thickness 0.2s !important;
+  }
+
+  .bg-callout-tip-bg code,
+  .bg-callout-tip-bg\! code {
+    @apply bg-callout-tip-header-bg! text-callout-tip-text! border-callout-tip-text/20!;
+  }
+
+  .bg-callout-tip-bg li::before,
+  .bg-callout-tip-bg\! li::before {
+    @apply bg-callout-tip-text/50!;
+  }
+
+  .bg-callout-danger-bg a,
+  .bg-callout-danger-bg\! a {
+    @apply text-callout-danger-text! font-semibold underline decoration-callout-danger-text/50! underline-offset-4 decoration-1 hover:decoration-callout-danger-text!;
+    transition:
+      text-decoration-color 0.2s,
+      text-decoration-thickness 0.2s !important;
+  }
+
+  .bg-callout-danger-bg code,
+  .bg-callout-danger-bg\! code {
+    @apply bg-callout-danger-header-bg! text-callout-danger-text! border-callout-danger-text/20!;
+  }
+
+  .bg-callout-danger-bg li::before,
+  .bg-callout-danger-bg\! li::before {
+    @apply bg-callout-danger-text/50!;
   }
 }
 
@@ -475,6 +547,50 @@ html.dark .code-block-container .shiki span {
 .prose a:not(.endpoint-link):hover {
   text-decoration-color: var(--color-text-primary) !important;
   text-decoration-thickness: 1.5px !important;
+}
+
+/* Steps component */
+.steps-list {
+  counter-reset: step;
+}
+
+.step-item {
+  counter-increment: step;
+}
+
+.step-item h3 {
+  margin: 0;
+}
+
+.step-item::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.step-item::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 2.25rem;
+  bottom: 0.5rem;
+  width: 1px;
+  background-color: var(--color-background-border);
+}
+
+.step-item:last-child::after {
+  bottom: 0;
 }
 
 html {

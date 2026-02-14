@@ -31,7 +31,7 @@ async function HomeContent() {
 
   if (!content) {
     return (
-      <StaticPageWrapper adjacent={adjacent}>
+      <StaticPageWrapper adjacent={adjacent} hideTableOfContents>
         <StaticPageHeader title="Обзор" pageUrl="/" />
         <p>Контент страницы не найден.</p>
       </StaticPageWrapper>
@@ -39,7 +39,7 @@ async function HomeContent() {
   }
 
   return (
-    <StaticPageWrapper adjacent={adjacent}>
+    <StaticPageWrapper adjacent={adjacent} hideTableOfContents>
       <StaticPageHeader title="Обзор" pageUrl="/" />
       <MarkdownContent content={content} />
     </StaticPageWrapper>

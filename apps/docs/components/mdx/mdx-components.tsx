@@ -8,6 +8,7 @@ import { Steps, Step } from '@/components/mdx/steps';
 import { CardGroup, Card, GUIDE_ICONS, API_SECTION_META } from '@/components/mdx/cards';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
+import { ImageCard } from '@/components/mdx/image-card';
 import { getOrderedGuidePages } from '@/lib/guides-config';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
@@ -29,8 +30,8 @@ import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
  *
  * <Updates />
  *
- * <Image src="/images/example.png" alt="Описание" />
- * <Image src="/images/example.png" alt="Описание" maxWidth={500} />
+ * <ImageCard src="/images/example.png" alt="Описание" caption="Подпись" />
+ * <ImageCard src="/images/example.png" alt="Описание" maxWidth={500} />
  */
 
 // ============================================
@@ -240,28 +241,6 @@ export function Limit({ title, limit, period, entity, howItWorks }: LimitProps) 
 export { UpdatesList as Updates };
 
 // ============================================
-// Image - displays image with border
-// ============================================
-
-interface ImageProps {
-  src: string;
-  alt: string;
-  maxWidth?: number;
-}
-
-export function Image({ src, alt, maxWidth }: ImageProps) {
-  return (
-    <div
-      className="my-8 rounded-lg overflow-hidden border border-background-border mx-auto"
-      style={maxWidth ? { maxWidth: `${maxWidth}px` } : undefined}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element -- using standard img for MDX content with external URLs */}
-      <img src={src} alt={alt} className="w-full h-auto" />
-    </div>
-  );
-}
-
-// ============================================
 // Warning/Info Callouts for explicit use
 // ============================================
 
@@ -352,7 +331,6 @@ export const customMdxComponents = {
   CodeBlock,
   Limit,
   Updates: UpdatesList,
-  Image,
   Warning,
   Info,
   Danger,
@@ -367,4 +345,5 @@ export const customMdxComponents = {
   Tree,
   TreeFolder,
   TreeFile,
+  ImageCard,
 };

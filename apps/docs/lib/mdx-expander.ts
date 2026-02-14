@@ -281,6 +281,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
   result = result.replace(/<Image\s+src="([^"]+)"\s+alt="([^"]*)"[^/]*\/>/g, '![$2]($1)');
   result = result.replace(/<Image\s+alt="([^"]*)"\s+src="([^"]+)"[^/]*\/>/g, '![$1]($2)');
 
+  // <ImageCard src="..." alt="..." caption="..." hint="..." /> -> markdown with optional hint/caption
+  result = result.replace(/<ImageCard\s+([^/]*?)\/>/g, (_, attrs) => {
+    const src = attrs.match(/src="([^"]+)"/)?.[1] ?? '';
+    const alt = attrs.match(/alt="([^"]*)"/)?.[1] ?? '';
+    const caption = attrs.match(/caption="([^"]*)"/)?.[1];
+    const hint = attrs.match(/hint="([^"]*)"/)?.[1];
+
+    let md = '';
+    if (hint) md += `*${hint}*\n\n`;
+    md += `![${alt}](${src})\n`;
+    if (caption) md += `\n*${caption}*\n`;
+    return md;
+  });
+
   // <Limit ... /> -> just remove (limit info is contextual)
   result = result.replace(/<Limit\s+[^/]*\/>/g, '');
 

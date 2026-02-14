@@ -153,12 +153,45 @@ function treeToMarkdown(jsx: string): string {
     }
   }
 
-  // Render as text tree
+  // Build tree with ├──/└──/│ connectors
+  // Group entries by parent to determine last-child status
+  const isLastAtDepth = (index: number, targetDepth: number): boolean => {
+    for (let j = index + 1; j < entries.length; j++) {
+      if (entries[j].depth === targetDepth) return false;
+      if (entries[j].depth < targetDepth) break;
+    }
+    return true;
+  };
+
+  // Track which depths have continuing siblings (for │ vs space)
+  const continuingDepths = new Set<number>();
+
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    const prefix = entry.depth > 0 ? '  '.repeat(entry.depth) : '';
-    const icon = entry.isFolder ? '📁 ' : '📄 ';
-    lines.push(`${prefix}${icon}${entry.name}${entry.isFolder ? '/' : ''}`);
+    const name = entry.isFolder ? `${entry.name}/` : entry.name;
+
+    if (entry.depth === 0) {
+      const connector = isLastAtDepth(i, 0) ? '└── ' : '├── ';
+      if (isLastAtDepth(i, 0)) {
+        continuingDepths.delete(0);
+      } else {
+        continuingDepths.add(0);
+      }
+      lines.push(`${connector}${name}`);
+    } else {
+      let prefix = '';
+      for (let d = 0; d < entry.depth; d++) {
+        prefix += continuingDepths.has(d) ? '│   ' : '    ';
+      }
+      const isLast = isLastAtDepth(i, entry.depth);
+      const connector = isLast ? '└── ' : '├── ';
+      if (isLast) {
+        continuingDepths.delete(entry.depth);
+      } else {
+        continuingDepths.add(entry.depth);
+      }
+      lines.push(`${prefix}${connector}${name}`);
+    }
   }
 
   return '```\n' + lines.join('\n') + '\n```\n';

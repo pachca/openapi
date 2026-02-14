@@ -1,0 +1,14 @@
+{
+  "name": "@pachca/kotlin",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "setup": "true",
+    "generate": "bun strip-enum-descriptions.ts && openapi-generator-cli generate -i generated/openapi-kotlin.yaml -g kotlin -o generated --library=jvm-ktor"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.15.0",
+    "@pachca/spec": "workspace:*",
+    "yaml": "^2.0.0"
+  }
+}

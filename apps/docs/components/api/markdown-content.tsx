@@ -15,7 +15,6 @@ import {
   CodeBlock,
   Limit,
   Updates,
-  Image,
   Warning,
   Info,
   Danger,
@@ -23,9 +22,11 @@ import {
   ApiCards,
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
+
 import { CardGroup, Card } from '@/components/mdx/cards';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
+import { ImageCard } from '@/components/mdx/image-card';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -111,7 +112,6 @@ const components = {
   CodeBlock,
   Limit,
   Updates,
-  Image,
   Warning,
   Info,
   Danger,
@@ -127,6 +127,7 @@ const components = {
   Tree,
   TreeFolder,
   TreeFile,
+  ImageCard,
 };
 
 interface MarkdownContentProps {

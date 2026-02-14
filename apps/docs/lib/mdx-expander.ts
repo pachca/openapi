@@ -116,6 +116,54 @@ async function apiCardsToMarkdown(): Promise<string> {
   return md;
 }
 
+function treeToMarkdown(jsx: string): string {
+  const lines: string[] = [];
+
+  // Parse JSX tree into flat list of entries with depth
+  const entries: { depth: number; name: string; isFolder: boolean }[] = [];
+  let depth = 0;
+
+  // Process sequentially through the string
+  const tokens: { index: number; type: 'open' | 'file' | 'close'; name: string }[] = [];
+
+  // Collect TreeFolder opens
+  for (const m of jsx.matchAll(/<TreeFolder\s+name="([^"]*)"[^>]*>/g)) {
+    tokens.push({ index: m.index!, type: 'open', name: m[1] });
+  }
+  // Collect TreeFile
+  for (const m of jsx.matchAll(/<TreeFile\s+name="([^"]*)"[^/]*\/>/g)) {
+    tokens.push({ index: m.index!, type: 'file', name: m[1] });
+  }
+  // Collect TreeFolder closes
+  for (const m of jsx.matchAll(/<\/TreeFolder>/g)) {
+    tokens.push({ index: m.index!, type: 'close', name: '' });
+  }
+
+  // Sort by position in string
+  tokens.sort((a, b) => a.index - b.index);
+
+  for (const token of tokens) {
+    if (token.type === 'open') {
+      entries.push({ depth, name: token.name, isFolder: true });
+      depth++;
+    } else if (token.type === 'file') {
+      entries.push({ depth, name: token.name, isFolder: false });
+    } else if (token.type === 'close') {
+      depth--;
+    }
+  }
+
+  // Render as text tree
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const prefix = entry.depth > 0 ? '  '.repeat(entry.depth) : '';
+    const icon = entry.isFolder ? '📁 ' : '📄 ';
+    lines.push(`${prefix}${icon}${entry.name}${entry.isFolder ? '/' : ''}`);
+  }
+
+  return '```\n' + lines.join('\n') + '\n```\n';
+}
+
 // ============================================
 // Main expander function (async)
 // ============================================
@@ -225,6 +273,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
       return `${header}\`\`\`${lang}\n${code.trim()}\n\`\`\`\n`;
     }
   );
+
+  // <Mermaid title="..." chart={`...`} /> -> ```mermaid ... ```
+  result = result.replace(
+    /<Mermaid\s+(?:title="([^"]*?)"\s+)?chart=\{`([\s\S]*?)`\}\s*\/>/g,
+    (_, title, chart) => {
+      const header = title ? `**${title}**\n\n` : '';
+      return `${header}\`\`\`mermaid\n${chart.trim()}\n\`\`\`\n`;
+    }
+  );
+
+  // <Tree>...</Tree> -> text tree
+  result = result.replace(/<Tree>([\s\S]*?)<\/Tree>/g, (_, inner) => {
+    return treeToMarkdown(inner.trim()) + '\n';
+  });
 
   // <GuideCards />
   if (result.includes('<GuideCards')) {

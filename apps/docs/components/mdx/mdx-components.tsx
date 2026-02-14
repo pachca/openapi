@@ -4,6 +4,7 @@ import { ResponseCodesList } from '@/components/api/response-codes-list';
 import { LimitCard } from '@/components/api/limit-card';
 import { UpdatesList } from '@/components/api/updates-list';
 import { Callout } from '@/components/api/callout';
+import { Mermaid } from '@/components/mdx/mermaid';
 import type { Schema } from '@/lib/openapi/types';
 import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
 
@@ -300,4 +301,5 @@ export const customMdxComponents = {
   Warning,
   Info,
   Callout,
+  Mermaid,
 };

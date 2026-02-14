@@ -1,5 +1,4 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import Link from 'next/link';
 import { Callout } from './callout';
 import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';
@@ -20,6 +19,7 @@ import {
   Warning,
   Info,
 } from '@/components/mdx/mdx-components';
+import { Mermaid } from '@/components/mdx/mermaid';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -110,6 +110,7 @@ const components = {
   Info,
   Callout,
   EndpointLink,
+  Mermaid,
 };
 
 interface MarkdownContentProps {

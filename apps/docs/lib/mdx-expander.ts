@@ -116,6 +116,87 @@ async function apiCardsToMarkdown(): Promise<string> {
   return md;
 }
 
+function treeToMarkdown(jsx: string): string {
+  const lines: string[] = [];
+
+  // Parse JSX tree into flat list of entries with depth
+  const entries: { depth: number; name: string; isFolder: boolean }[] = [];
+  let depth = 0;
+
+  // Process sequentially through the string
+  const tokens: { index: number; type: 'open' | 'file' | 'close'; name: string }[] = [];
+
+  // Collect TreeFolder opens
+  for (const m of jsx.matchAll(/<TreeFolder\s+name="([^"]*)"[^>]*>/g)) {
+    tokens.push({ index: m.index!, type: 'open', name: m[1] });
+  }
+  // Collect TreeFile
+  for (const m of jsx.matchAll(/<TreeFile\s+name="([^"]*)"[^/]*\/>/g)) {
+    tokens.push({ index: m.index!, type: 'file', name: m[1] });
+  }
+  // Collect TreeFolder closes
+  for (const m of jsx.matchAll(/<\/TreeFolder>/g)) {
+    tokens.push({ index: m.index!, type: 'close', name: '' });
+  }
+
+  // Sort by position in string
+  tokens.sort((a, b) => a.index - b.index);
+
+  for (const token of tokens) {
+    if (token.type === 'open') {
+      entries.push({ depth, name: token.name, isFolder: true });
+      depth++;
+    } else if (token.type === 'file') {
+      entries.push({ depth, name: token.name, isFolder: false });
+    } else if (token.type === 'close') {
+      depth--;
+    }
+  }
+
+  // Build tree with ├──/└──/│ connectors
+  // Group entries by parent to determine last-child status
+  const isLastAtDepth = (index: number, targetDepth: number): boolean => {
+    for (let j = index + 1; j < entries.length; j++) {
+      if (entries[j].depth === targetDepth) return false;
+      if (entries[j].depth < targetDepth) break;
+    }
+    return true;
+  };
+
+  // Track which depths have continuing siblings (for │ vs space)
+  const continuingDepths = new Set<number>();
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const name = entry.isFolder ? `${entry.name}/` : entry.name;
+
+    if (entry.depth === 0) {
+      const connector = isLastAtDepth(i, 0) ? '└── ' : '├── ';
+      if (isLastAtDepth(i, 0)) {
+        continuingDepths.delete(0);
+      } else {
+        continuingDepths.add(0);
+      }
+      lines.push(`${connector}${name}`);
+    } else {
+      let prefix = '';
+      for (let d = 0; d < entry.depth; d++) {
+        prefix += continuingDepths.has(d) ? '│   ' : '    ';
+      }
+      const isLast = isLastAtDepth(i, entry.depth);
+      const connector = isLast ? '└── ' : '├── ';
+      if (isLast) {
+        continuingDepths.delete(entry.depth);
+      } else {
+        continuingDepths.add(entry.depth);
+      }
+      lines.push(`${prefix}${connector}${name}`);
+    }
+  }
+
+  return '```\n' + lines.join('\n') + '\n```\n';
+}
+
 // ============================================
 // Main expander function (async)
 // ============================================
@@ -126,6 +207,18 @@ async function apiCardsToMarkdown(): Promise<string> {
  */
 export async function expandMdxComponents(content: string): Promise<string> {
   let result = content;
+
+  // <Steps><Step title="...">...</Step>...</Steps> -> numbered steps
+  result = result.replace(/<Steps>([\s\S]*?)<\/Steps>/g, (_, inner) => {
+    let stepNum = 0;
+    return inner.replace(
+      /<Step\s+title="([^"]*)">([\s\S]*?)<\/Step>/g,
+      (_: string, title: string, content: string) => {
+        stepNum++;
+        return `### Шаг ${stepNum}. ${title}\n\n${content.trim()}\n\n`;
+      }
+    );
+  });
 
   // <HttpCodes />
   result = result.replace(/<HttpCodes\s*\/>/g, httpCodesToMarkdown());
@@ -158,6 +251,12 @@ export async function expandMdxComponents(content: string): Promise<string> {
   result = result.replace(/<Warning>([\s\S]*?)<\/Warning>/g, (_, inner) => {
     const text = inner.trim().replace(/<br\s*\/?>/g, '\n> ');
     return `> **Внимание:** ${text}\n`;
+  });
+
+  // <Danger>...</Danger> -> > **Важно:** ...
+  result = result.replace(/<Danger>([\s\S]*?)<\/Danger>/g, (_, inner) => {
+    const text = inner.trim().replace(/<br\s*\/?>/g, '\n> ');
+    return `> **Важно:** ${text}\n`;
   });
 
   // <Info>...</Info> -> > ...
@@ -225,6 +324,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
       return `${header}\`\`\`${lang}\n${code.trim()}\n\`\`\`\n`;
     }
   );
+
+  // <Mermaid title="..." chart={`...`} /> -> ```mermaid ... ```
+  result = result.replace(
+    /<Mermaid\s+(?:title="([^"]*?)"\s+)?chart=\{`([\s\S]*?)`\}\s*\/>/g,
+    (_, title, chart) => {
+      const header = title ? `**${title}**\n\n` : '';
+      return `${header}\`\`\`mermaid\n${chart.trim()}\n\`\`\`\n`;
+    }
+  );
+
+  // <Tree>...</Tree> -> text tree
+  result = result.replace(/<Tree>([\s\S]*?)<\/Tree>/g, (_, inner) => {
+    return treeToMarkdown(inner.trim()) + '\n';
+  });
 
   // <GuideCards />
   if (result.includes('<GuideCards')) {

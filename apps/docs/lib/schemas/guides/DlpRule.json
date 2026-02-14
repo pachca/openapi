@@ -76,7 +76,7 @@
                 },
                 "pattern": {
                   "type": "string",
-                  "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex."
+                  "description": "Регулярное выражение для поиска в тексте. Используется синтаксис [Google RE2](https://github.com/google/re2/wiki/Syntax). Обязательно, если type указано как regex."
                 },
                 "value": {
                   "type": "string",
@@ -112,7 +112,7 @@
                 },
                 "pattern": {
                   "type": "string",
-                  "description": "Регулярное выражение для поиска в тексте. Используется синтаксис Google RE2. Обязательно, если type указано как regex."
+                  "description": "Регулярное выражение для поиска в тексте. Используется синтаксис [Google RE2](https://github.com/google/re2/wiki/Syntax). Обязательно, если type указано как regex."
                 },
                 "value": {
                   "type": "string",

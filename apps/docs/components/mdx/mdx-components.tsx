@@ -1,5 +1,6 @@
-import { getSchemaByName } from '@/lib/openapi/parser';
+import { getSchemaByName, getEndpointByOperation, getBaseUrl } from '@/lib/openapi/parser';
 import { WebhookSchemaSection } from '@/components/api/webhook-schema-section';
+import { CodeExamples } from '@/components/api/code-examples';
 import { ResponseCodesList } from '@/components/api/response-codes-list';
 import { LimitCard } from '@/components/api/limit-card';
 import { UpdatesList } from '@/components/api/updates-list';
@@ -323,6 +324,53 @@ export async function ApiCards() {
   );
 }
 
+// ============================================
+// ApiCodeExample - auto-generated code examples from OpenAPI endpoint
+// ============================================
+
+/**
+ * Usage in .mdx files:
+ *
+ * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" />
+ * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="Custom title" />
+ * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="With filters" params={{ event_key: "user_login", limit: 50 }} />
+ *
+ * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
+ * params — override query parameter values; only specified + required params are included
+ */
+
+interface ApiCodeExampleProps {
+  operationId: string;
+  title?: string;
+  params?: Record<string, unknown>;
+}
+
+export async function ApiCodeExample({ operationId, title, params }: ApiCodeExampleProps) {
+  const endpoint = await getEndpointByOperation(operationId);
+  const baseUrl = await getBaseUrl();
+
+  if (!endpoint) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-lg text-red-700">
+        Endpoint not found: {operationId}
+      </div>
+    );
+  }
+
+  let finalEndpoint = endpoint;
+  if (params) {
+    const paramNames = Object.keys(params);
+    finalEndpoint = {
+      ...endpoint,
+      parameters: endpoint.parameters
+        .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
+        .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
+    };
+  }
+
+  return <CodeExamples endpoint={finalEndpoint} baseUrl={baseUrl} hideResponse title={title} />;
+}
+
 export const customMdxComponents = {
   SchemaBlock,
   HttpCodes,
@@ -346,4 +394,5 @@ export const customMdxComponents = {
   TreeFolder,
   TreeFile,
   ImageCard,
+  ApiCodeExample,
 };

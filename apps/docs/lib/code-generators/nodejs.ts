@@ -5,13 +5,13 @@ import {
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
+import { requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
 
 export function generateNodeJS(
   endpoint: Endpoint,
   baseUrl: string = 'https://api.pachca.com/api/shared/v1'
 ): string {
-  const url = `${baseUrl}${endpoint.path}`;
+  const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method.toLowerCase();
 
   // Multipart form-data

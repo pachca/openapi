@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Sidebar } from '@/components/layout/sidebar-wrapper';
 import { TransitionProvider } from '@/components/layout/transition-provider';
 import { Inter } from 'next/font/google';
@@ -10,6 +10,14 @@ const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dev.pachca.com'),

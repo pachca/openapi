@@ -20,6 +20,7 @@ import {
   Danger,
   GuideCards,
   ApiCards,
+  ApiCodeExample,
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
 
@@ -128,6 +129,7 @@ const components = {
   TreeFolder,
   TreeFile,
   ImageCard,
+  ApiCodeExample,
 };
 
 interface MarkdownContentProps {

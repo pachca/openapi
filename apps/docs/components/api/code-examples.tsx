@@ -21,6 +21,8 @@ import { BoxedPanel } from './boxed-panel';
 interface CodeExamplesProps {
   endpoint: Endpoint;
   baseUrl?: string;
+  title?: string;
+  hideResponse?: boolean;
 }
 
 type Language =
@@ -34,7 +36,7 @@ type Language =
   | 'go'
   | 'dotnet';
 
-export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
+export function CodeExamples({ endpoint, baseUrl, title, hideResponse }: CodeExamplesProps) {
   const [activeTab, setActiveTab] = useState<Language>('curl');
 
   const examples = {
@@ -75,7 +77,7 @@ export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
         header={
           <>
             <span className="text-[13px] font-medium text-text-primary truncate mr-4">
-              {endpoint.title || endpoint.summary || endpoint.path}
+              {title || endpoint.title || endpoint.summary || endpoint.path}
             </span>
 
             <div className="flex items-center gap-0 shrink-0">
@@ -122,7 +124,7 @@ export function CodeExamples({ endpoint, baseUrl }: CodeExamplesProps) {
       </BoxedPanel>
 
       {/* Response Section */}
-      {responseExample !== undefined && (
+      {!hideResponse && responseExample !== undefined && (
         <BoxedPanel
           id="response-examples"
           className="my-0"

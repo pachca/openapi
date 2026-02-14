@@ -225,6 +225,9 @@ body {
 /* Main container padding - mobile header offset */
 .main-container-padding {
   padding-top: var(--mobile-header-height);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
   height: 100vh;
 }
 
@@ -595,6 +598,8 @@ html.dark .code-block-container .shiki span {
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Main uses auto by default, smooth scroll is handled programmatically */

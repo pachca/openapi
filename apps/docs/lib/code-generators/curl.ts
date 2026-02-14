@@ -5,16 +5,23 @@ import {
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
+import { requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
 
 export function generateCurl(
   endpoint: Endpoint,
   baseUrl: string = 'https://api.pachca.com/api/shared/v1'
 ): string {
-  const url = `${baseUrl}${endpoint.path}`;
   const method = endpoint.method;
+  const url = resolveUrl(endpoint, baseUrl);
 
-  let curl = `curl -X ${method} "${url}"`;
+  // Determine if -X flag is needed:
+  // - GET: omit (curl default)
+  // - POST with body: omit (-d/-F implies POST)
+  // - PUT/PATCH/DELETE: always include
+  const hasBodyData = endpoint.requestBody != null;
+  const needsMethod = method !== 'GET' && !(method === 'POST' && hasBodyData);
+
+  let curl = needsMethod ? `curl -X ${method} "${url}"` : `curl "${url}"`;
 
   // Add authentication header
   if (requiresAuth(endpoint)) {
@@ -34,7 +41,7 @@ export function generateCurl(
       }
     }
   } else {
-    // Add headers
+    // Add Content-Type header for JSON requests
     if (hasJsonContent(endpoint)) {
       curl += ` \\\n  -H "Content-Type: application/json"`;
     }
@@ -73,7 +80,7 @@ export function generateCurl(
         paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
       }
     }
-    curl = curl.replace(url, `${url}?${paramParts.join('&')}`);
+    curl = curl.replace(`"${url}"`, `"${url}?${paramParts.join('&')}"`);
   }
 
   return curl;

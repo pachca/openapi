@@ -5,13 +5,13 @@ import {
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { requiresAuth, hasMultipartContent } from './utils';
+import { requiresAuth, hasMultipartContent, resolveUrl } from './utils';
 
 export function generateDotNet(
   endpoint: Endpoint,
   baseUrl: string = 'https://api.pachca.com/api/shared/v1'
 ): string {
-  const url = `${baseUrl}${endpoint.path}`;
+  const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
 
   let code = `using System;\nusing System.Net.Http;\nusing System.Net.Http.Headers;\nusing System.Text;\nusing System.Threading.Tasks;\n\n`;

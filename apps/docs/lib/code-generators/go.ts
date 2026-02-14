@@ -5,13 +5,13 @@ import {
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent } from './utils';
+import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
 
 export function generateGo(
   endpoint: Endpoint,
   baseUrl: string = 'https://api.pachca.com/api/shared/v1'
 ): string {
-  const url = `${baseUrl}${endpoint.path}`;
+  const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
 
   // Multipart form-data

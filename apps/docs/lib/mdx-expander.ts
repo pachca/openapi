@@ -3,7 +3,13 @@
  * Used when generating raw .md files from .mdx sources
  */
 
-import { getSchemaByName } from './openapi/parser';
+import { getSchemaByName, getEndpointByOperation, getBaseUrl } from './openapi/parser';
+import { generateCurl } from './code-generators/curl';
+import { generateJavaScript } from './code-generators/javascript';
+import { generatePython } from './code-generators/python';
+import { generateRuby } from './code-generators/ruby';
+import { generatePHP } from './code-generators/php';
+import { generateNodeJS } from './code-generators/nodejs';
 import { schemaToMarkdown } from './markdown-generator';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
@@ -362,6 +368,65 @@ export async function expandMdxComponents(content: string): Promise<string> {
   if (result.includes('<ApiCards')) {
     const apiCardsMarkdown = await apiCardsToMarkdown();
     result = result.replace(/<ApiCards\s*\/>/g, apiCardsMarkdown);
+  }
+
+  // <ApiCodeExample operationId="..." title="..." params={{ ... }} />
+  if (result.includes('<ApiCodeExample')) {
+    const apiCodeRegex = /<ApiCodeExample\s+([\s\S]*?)\/>/g;
+    const apiCodeMatches = [...result.matchAll(apiCodeRegex)];
+
+    for (const match of apiCodeMatches) {
+      const [fullMatch, attrs] = match;
+      const operationId = attrs.match(/operationId="([^"]+)"/)?.[1];
+      const title = attrs.match(/title="([^"]+)"/)?.[1];
+      const paramsMatch = attrs.match(/params=\{\{([^}]*)\}\}/);
+
+      if (!operationId) {
+        result = result.replace(fullMatch, '*Endpoint not found*\n');
+        continue;
+      }
+
+      const endpoint = await getEndpointByOperation(operationId);
+      if (!endpoint) {
+        result = result.replace(fullMatch, `*Endpoint not found: ${operationId}*\n`);
+        continue;
+      }
+
+      // Parse and apply param overrides
+      let finalEndpoint = endpoint;
+      if (paramsMatch) {
+        const paramsStr = paramsMatch[1];
+        const paramOverrides: Record<string, unknown> = {};
+        for (const pair of paramsStr.matchAll(/(\w+):\s*(?:"([^"]*)"|([\d.]+))/g)) {
+          paramOverrides[pair[1]] = pair[2] !== undefined ? pair[2] : Number(pair[3]);
+        }
+        const paramNames = Object.keys(paramOverrides);
+        finalEndpoint = {
+          ...endpoint,
+          parameters: endpoint.parameters
+            .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
+            .map((p) =>
+              paramNames.includes(p.name) ? { ...p, example: paramOverrides[p.name] } : p
+            ),
+        };
+      }
+
+      const baseUrl = await getBaseUrl();
+      let md = '';
+      if (title) md += `**${title}**\n\n`;
+
+      md += '### cURL\n\n```bash\n' + generateCurl(finalEndpoint, baseUrl) + '\n```\n\n';
+      md +=
+        '### JavaScript\n\n```javascript\n' +
+        generateJavaScript(finalEndpoint, baseUrl) +
+        '\n```\n\n';
+      md += '### Python\n\n```python\n' + generatePython(finalEndpoint, baseUrl) + '\n```\n\n';
+      md += '### Node.js\n\n```javascript\n' + generateNodeJS(finalEndpoint, baseUrl) + '\n```\n\n';
+      md += '### Ruby\n\n```ruby\n' + generateRuby(finalEndpoint, baseUrl) + '\n```\n\n';
+      md += '### PHP\n\n```php\n' + generatePHP(finalEndpoint, baseUrl) + '\n```\n';
+
+      result = result.replace(fullMatch, md);
+    }
   }
 
   // Clean up multiple newlines

@@ -18,6 +18,15 @@ declare global {
 // Инициализируем mermaid один раз
 let mermaidInitialized = false;
 
+// Определяем, активна ли тёмная тема (учитываем системную тему)
+function getIsDark(): boolean {
+  const { classList } = document.documentElement;
+  if (classList.contains('dark')) return true;
+  if (classList.contains('light')) return false;
+  // Системная тема — ни dark, ни light класса нет
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 export function Mermaid({ chart, title }: MermaidProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgWrapperRef = useRef<HTMLDivElement>(null);
@@ -36,8 +45,8 @@ export function Mermaid({ chart, title }: MermaidProps) {
         // Динамический импорт mermaid (только на клиенте)
         const mermaid = (await import('mermaid')).default;
 
-        // Определяем текущую тему (светлая/тёмная)
-        const isDark = document.documentElement.classList.contains('dark');
+        // Определяем текущую тему (светлая/тёмная), учитывая системную
+        const isDark = getIsDark();
 
         // Цвета для светлой и темной темы (из globals.css)
         const colors = isDark
@@ -322,7 +331,22 @@ export function Mermaid({ chart, title }: MermaidProps) {
       attributeFilter: ['class'],
     });
 
-    return () => observer.disconnect();
+    // Слушаем изменения системной темы (для режима «Системная»)
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => {
+      // Перерисовываем только если активна системная тема (нет классов dark/light)
+      const { classList } = document.documentElement;
+      if (!classList.contains('dark') && !classList.contains('light')) {
+        setThemeKey((prev) => prev + 1);
+        setIsLoading(true);
+      }
+    };
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    };
   }, [chart, themeKey]);
 
   // Добавляем обработчик wheel с { passive: false } для предотвращения зума страницы
@@ -340,7 +364,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
       const cursorX = e.clientX - rect.left;
       const cursorY = e.clientY - rect.top;
 
-      const delta = e.deltaY > 0 ? 0.94 : 1.06;
+      const delta = e.deltaY > 0 ? 0.96 : 1.04;
       setTransform((prev) => {
         const newScale = Math.max(0.1, Math.min(5, prev.scale * delta));
         const ratio = newScale / prev.scale;
@@ -354,6 +378,94 @@ export function Mermaid({ chart, title }: MermaidProps) {
 
     wrapper.addEventListener('wheel', handleWheelNative, { passive: false });
     return () => wrapper.removeEventListener('wheel', handleWheelNative);
+  }, []);
+
+  // Touch-события: pinch-to-zoom и панорамирование одним пальцем
+  useEffect(() => {
+    const wrapper = svgWrapperRef.current;
+    if (!wrapper) return;
+
+    let lastTouchDist = 0;
+    let lastTouchCenter = { x: 0, y: 0 };
+    let lastSingleTouch = { x: 0, y: 0 };
+    let isTouchPanning = false;
+
+    const getTouchDistance = (t1: Touch, t2: Touch) =>
+      Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
+    const getTouchCenter = (t1: Touch, t2: Touch) => ({
+      x: (t1.clientX + t2.clientX) / 2,
+      y: (t1.clientY + t2.clientY) / 2,
+    });
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        lastTouchDist = getTouchDistance(e.touches[0], e.touches[1]);
+        lastTouchCenter = getTouchCenter(e.touches[0], e.touches[1]);
+        isTouchPanning = false;
+      } else if (e.touches.length === 1) {
+        isTouchPanning = true;
+        lastSingleTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const newDist = getTouchDistance(e.touches[0], e.touches[1]);
+        const newCenter = getTouchCenter(e.touches[0], e.touches[1]);
+        const rect = wrapper.getBoundingClientRect();
+
+        const factor = newDist / lastTouchDist;
+        const cx = newCenter.x - rect.left;
+        const cy = newCenter.y - rect.top;
+        const dx = newCenter.x - lastTouchCenter.x;
+        const dy = newCenter.y - lastTouchCenter.y;
+
+        setTransform((prev) => {
+          const newScale = Math.max(0.1, Math.min(5, prev.scale * factor));
+          const ratio = newScale / prev.scale;
+          return {
+            scale: newScale,
+            x: cx - (cx - prev.x) * ratio + dx,
+            y: cy - (cy - prev.y) * ratio + dy,
+          };
+        });
+
+        lastTouchDist = newDist;
+        lastTouchCenter = newCenter;
+      } else if (e.touches.length === 1 && isTouchPanning) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - lastSingleTouch.x;
+        const dy = e.touches[0].clientY - lastSingleTouch.y;
+
+        setTransform((prev) => ({
+          ...prev,
+          x: prev.x + dx,
+          y: prev.y + dy,
+        }));
+
+        lastSingleTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const handleTouchEnd = () => {
+      isTouchPanning = false;
+      lastTouchDist = 0;
+    };
+
+    wrapper.addEventListener('touchstart', handleTouchStart, { passive: false });
+    wrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
+    wrapper.addEventListener('touchend', handleTouchEnd);
+    wrapper.addEventListener('touchcancel', handleTouchEnd);
+
+    return () => {
+      wrapper.removeEventListener('touchstart', handleTouchStart);
+      wrapper.removeEventListener('touchmove', handleTouchMove);
+      wrapper.removeEventListener('touchend', handleTouchEnd);
+      wrapper.removeEventListener('touchcancel', handleTouchEnd);
+    };
   }, []);
 
   // Зум относительно центра видимой области
@@ -487,7 +599,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+          style={{ cursor: isPanning ? 'grabbing' : 'grab', touchAction: 'none' }}
         >
           <div
             ref={containerRef}

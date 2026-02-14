@@ -253,6 +253,12 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return `> **Внимание:** ${text}\n`;
   });
 
+  // <Danger>...</Danger> -> > **Важно:** ...
+  result = result.replace(/<Danger>([\s\S]*?)<\/Danger>/g, (_, inner) => {
+    const text = inner.trim().replace(/<br\s*\/?>/g, '\n> ');
+    return `> **Важно:** ${text}\n`;
+  });
+
   // <Info>...</Info> -> > ...
   result = result.replace(/<Info>([\s\S]*?)<\/Info>/g, (_, inner) => {
     const text = inner.trim().replace(/<br\s*\/?>/g, '\n> ');

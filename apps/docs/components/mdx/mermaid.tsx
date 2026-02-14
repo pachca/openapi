@@ -36,6 +36,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const isTouchingRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -399,6 +400,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
     });
 
     const handleTouchStart = (e: TouchEvent) => {
+      isTouchingRef.current = true;
       if (e.touches.length === 2) {
         e.preventDefault();
         lastTouchDist = getTouchDistance(e.touches[0], e.touches[1]);
@@ -451,6 +453,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
     };
 
     const handleTouchEnd = () => {
+      isTouchingRef.current = false;
       isTouchPanning = false;
       lastTouchDist = 0;
     };
@@ -607,7 +610,6 @@ export function Mermaid({ chart, title }: MermaidProps) {
             style={{
               transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
               transformOrigin: '0 0',
-              transition: isPanning ? 'none' : 'transform 0.1s ease-out',
             }}
           />
         </div>

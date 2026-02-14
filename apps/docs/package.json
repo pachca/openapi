@@ -25,6 +25,7 @@
     "gsap": "^3.13.0",
     "js-yaml": "^4.1.0",
     "lucide-react": "^0.469.0",
+    "mermaid": "^11.12.2",
     "next": "16.0.10",
     "next-mdx-remote": "^5.0.0",
     "react": "19.2.3",

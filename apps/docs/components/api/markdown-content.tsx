@@ -24,6 +24,7 @@ import {
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
 import { CardGroup, Card } from '@/components/mdx/cards';
+import { Mermaid } from '@/components/mdx/mermaid';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -121,6 +122,7 @@ const components = {
   GuideCards,
   ApiCards,
   EndpointLink,
+  Mermaid,
 };
 
 interface MarkdownContentProps {

@@ -7,6 +7,7 @@ import { Callout } from '@/components/api/callout';
 import { Steps, Step } from '@/components/mdx/steps';
 import { CardGroup, Card, GUIDE_ICONS, API_SECTION_META } from '@/components/mdx/cards';
 import { Mermaid } from '@/components/mdx/mermaid';
+import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { getOrderedGuidePages } from '@/lib/guides-config';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
@@ -363,4 +364,7 @@ export const customMdxComponents = {
   GuideCards,
   ApiCards,
   Mermaid,
+  Tree,
+  TreeFolder,
+  TreeFile,
 };

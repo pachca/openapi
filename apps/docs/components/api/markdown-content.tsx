@@ -25,6 +25,7 @@ import {
 import { Steps, Step } from '@/components/mdx/steps';
 import { CardGroup, Card } from '@/components/mdx/cards';
 import { Mermaid } from '@/components/mdx/mermaid';
+import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -123,6 +124,9 @@ const components = {
   ApiCards,
   EndpointLink,
   Mermaid,
+  Tree,
+  TreeFolder,
+  TreeFile,
 };
 
 interface MarkdownContentProps {

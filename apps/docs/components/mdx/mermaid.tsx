@@ -50,8 +50,8 @@ export function Mermaid({ chart, title }: MermaidProps) {
               bgSecondary: '#2a2a2e', // oklch(22.7% 0.0063 240)
               bgTertiary: '#3d3d42', // oklch(27.77% 0.0068 240)
               bgBorder: '#4d4d53', // oklch(34% 0.0077 240)
-              primaryColor: '#5d7a9d', // Мягкий серо-синий для темной темы
-              primaryBorder: '#4a6582', // Более темный серо-синий для границ
+              primaryColor: '#3d3d42', // bg-background-tertiary
+              primaryBorder: '#4d4d53', // border-background-border
               warningBg: '#3d3420', // Темный фон для предупреждений без прозрачности
               warningBorder: '#5a4d2e', // Темная граница для предупреждений
               warningText: '#f8c44b', // oklch(81.1% 0.154 70.7)
@@ -68,8 +68,8 @@ export function Mermaid({ chart, title }: MermaidProps) {
               bgSecondary: '#f7f8fa', // oklch(97.5% 0.003 240)
               bgTertiary: '#f7f8fa', // oklch(97.5% 0.003 240)
               bgBorder: '#dfe1e6', // oklch(90% 0.005 240)
-              primaryColor: '#e8eef5', // Очень светлый серо-синий для фона блоков
-              primaryBorder: '#a8b9ce', // Мягкий серо-синий для границ
+              primaryColor: '#f7f8fa', // bg-background-tertiary
+              primaryBorder: '#dfe1e6', // border-background-border
               warningBg: '#fef8e8', // oklch(98% 0.02 85)
               warningBorder: '#f5d88d', // oklch(92% 0.04 85)
               warningText: '#9d6b0d', // oklch(55% 0.14 85)
@@ -336,31 +336,49 @@ export function Mermaid({ chart, title }: MermaidProps) {
       e.preventDefault();
       e.stopPropagation();
 
-      const delta = e.deltaY > 0 ? 0.98 : 1.02;
-      setTransform((prev) => ({
-        ...prev,
-        scale: Math.max(0.1, Math.min(5, prev.scale * delta)),
-      }));
+      const rect = wrapper.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
+
+      const delta = e.deltaY > 0 ? 0.94 : 1.06;
+      setTransform((prev) => {
+        const newScale = Math.max(0.1, Math.min(5, prev.scale * delta));
+        const ratio = newScale / prev.scale;
+        return {
+          scale: newScale,
+          x: cursorX - (cursorX - prev.x) * ratio,
+          y: cursorY - (cursorY - prev.y) * ratio,
+        };
+      });
     };
 
     wrapper.addEventListener('wheel', handleWheelNative, { passive: false });
     return () => wrapper.removeEventListener('wheel', handleWheelNative);
   }, []);
 
-  // Функции управления масштабом и положением
-  const handleZoomIn = () => {
-    setTransform((prev) => ({
-      ...prev,
-      scale: Math.min(prev.scale * 1.5, 5),
-    }));
+  // Зум относительно центра видимой области
+  const zoomToCenter = (factor: number) => {
+    const wrapper = svgWrapperRef.current;
+    if (!wrapper) {
+      setTransform((prev) => ({ ...prev, scale: Math.max(0.1, Math.min(5, prev.scale * factor)) }));
+      return;
+    }
+    const rect = wrapper.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    setTransform((prev) => {
+      const newScale = Math.max(0.1, Math.min(5, prev.scale * factor));
+      const ratio = newScale / prev.scale;
+      return {
+        scale: newScale,
+        x: cx - (cx - prev.x) * ratio,
+        y: cy - (cy - prev.y) * ratio,
+      };
+    });
   };
 
-  const handleZoomOut = () => {
-    setTransform((prev) => ({
-      ...prev,
-      scale: Math.max(prev.scale / 1.5, 0.1),
-    }));
-  };
+  const handleZoomIn = () => zoomToCenter(1.5);
+  const handleZoomOut = () => zoomToCenter(1 / 1.5);
 
   const handleReset = () => {
     setTransform({ scale: 1, x: 0, y: 0 });
@@ -476,7 +494,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
             className="w-full h-full"
             style={{
               transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-              transformOrigin: 'center center',
+              transformOrigin: '0 0',
               transition: isPanning ? 'none' : 'transform 0.1s ease-out',
             }}
           />

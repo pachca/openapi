@@ -208,6 +208,18 @@ function treeToMarkdown(jsx: string): string {
 export async function expandMdxComponents(content: string): Promise<string> {
   let result = content;
 
+  // <Steps><Step title="...">...</Step>...</Steps> -> numbered steps
+  result = result.replace(/<Steps>([\s\S]*?)<\/Steps>/g, (_, inner) => {
+    let stepNum = 0;
+    return inner.replace(
+      /<Step\s+title="([^"]*)">([\s\S]*?)<\/Step>/g,
+      (_: string, title: string, content: string) => {
+        stepNum++;
+        return `### Шаг ${stepNum}. ${title}\n\n${content.trim()}\n\n`;
+      }
+    );
+  });
+
   // <HttpCodes />
   result = result.replace(/<HttpCodes\s*\/>/g, httpCodesToMarkdown());
 

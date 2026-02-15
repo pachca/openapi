@@ -189,22 +189,26 @@ export function ImageCard({ src, alt, caption, hint, maxWidth }: ImageCardProps)
       const r = { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
       setSourceTransform(computeTransform(r, el));
     }
+    zoomRef.current = { scale: 1, panX: 0, panY: 0 };
+    setIsZoomed(false);
     setIsOpen(true);
     setAnimState('entering');
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setAnimState('open');
+        // Animate via direct DOM to avoid React style-diffing conflicts with applyZoom
+        const lbImg = lightboxImgRef.current;
+        if (lbImg) {
+          lbImg.style.transition = 'transform 250ms cubic-bezier(0.2, 0, 0.2, 1)';
+          lbImg.style.transform = 'none';
+        }
+        const bd = backdropRef.current;
+        if (bd) {
+          bd.style.opacity = '1';
+        }
+        setTimeout(() => setAnimState('open'), 250);
       });
     });
   }, []);
-
-  // Set initial zoom transform when lightbox opens
-  useEffect(() => {
-    if (animState === 'open') {
-      zoomRef.current = { scale: 1, panX: 0, panY: 0 };
-      applyZoom(false);
-    }
-  }, [animState, applyZoom]);
 
   useEffect(() => {
     if (!isOpen) return;

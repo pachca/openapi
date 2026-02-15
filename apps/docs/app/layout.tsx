@@ -34,6 +34,9 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
   },
+  other: {
+    'apple-mobile-web-app-title': 'dev.pachca',
+  },
 };
 
 const jsonLd = {

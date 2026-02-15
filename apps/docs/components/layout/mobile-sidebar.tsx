@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import Link from 'next/link';
-import { PachkaLogo } from './pachka-logo';
+import { LogoLink } from './pachka-logo';
 import { ThemeToggle } from './theme-toggle';
 import { SearchButton } from './search-button';
 import { SidebarNav } from './sidebar-nav';
@@ -44,12 +43,7 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
         style={{ height: 'var(--mobile-header-height)' }}
       >
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <PachkaLogo className="text-text-primary" />
-            <span className="text-[14px] font-semibold text-primary tracking-tight translate-y-px">
-              API
-            </span>
-          </Link>
+          <LogoLink />
         </div>
 
         <div className="flex items-center gap-2">

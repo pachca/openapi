@@ -1,4 +1,41 @@
+import Link from 'next/link';
 import React from 'react';
+
+export function PachkaIcon({ className, size = 22 }: { className?: string; size?: number }) {
+  const width = size * (24 / 27);
+  return (
+    <svg
+      width={width}
+      height={size}
+      viewBox="0 0 24 27"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M23.2803 6.81857L16.8275 0.375576C16.382 -0.0692192 15.5905 -0.127236 15.0596 0.245992L0.448277 10.518C-0.0826181 10.8912 -0.151866 11.5543 0.293609 11.9991L6.74643 18.4421C7.1919 18.8869 7.98341 18.945 8.5143 18.5717L23.1256 8.29973C23.6565 7.9265 23.7258 7.26336 23.2803 6.81857ZM23.1859 13.8652L20.91 11.5582L9.30905 19.714C8.23452 20.4694 6.69615 20.3566 5.76918 19.431L2.485 16.1512L0.446459 17.6064C-0.0822829 17.9838 -0.15125 18.6545 0.292417 19.1043L6.71906 25.6201C7.16273 26.07 7.95102 26.1286 8.47976 25.7512L23.0318 15.3631C23.5606 14.9856 23.6295 14.315 23.1859 13.8652Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export function LogoLink() {
+  return (
+    <Link
+      href="/"
+      className="flex items-center gap-2.5 hover:opacity-80 transition-opacity outline-none"
+    >
+      <PachkaIcon className="text-text-primary" size={28} />
+      <div className="w-px h-[18px] bg-text-tertiary/40" />
+      <span className="text-[14px] font-semibold text-text-primary tracking-tight">
+        Для разработчиков
+      </span>
+    </Link>
+  );
+}
 
 export function PachkaLogo({ className }: { className?: string }) {
   return (

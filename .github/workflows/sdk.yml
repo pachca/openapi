@@ -57,12 +57,12 @@ jobs:
       - name: Tag
         if: github.event_name == 'push'
         run: |
-          git tag "v${{ steps.version.outputs.version }}"
-          git tag "sdk/go/generated/v${{ steps.version.outputs.version }}"
+          git tag -f "v${{ steps.version.outputs.version }}"
+          git tag -f "sdk/go/generated/v${{ steps.version.outputs.version }}"
 
       - name: Push
         if: github.event_name == 'push'
-        run: git push && git push --tags
+        run: git push && git push --tags --force
 
   publish-npm:
     if: github.event_name == 'push'

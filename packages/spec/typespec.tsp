@@ -3028,11 +3028,16 @@ interface GroupTagOperations {
   @get
   @opExample(#{
     parameters: #{
-      names: #["Design", "iOS"]
+      limit: 2
     },
     returnType: #{
       _: 200,
       body: #{
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
+          }
+        },
         data: #[
           #{
             id: 9111,
@@ -3053,15 +3058,15 @@ interface GroupTagOperations {
     @query(#{ explode: true })
     names?: TagNamesFilter,
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
     @minValue(1)
     @maxValue(50)
-    per?: int32 = 25,
-    @doc("Страница выборки")
-    @query page?: int32 = 1
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @query cursor?: string
   ): {
     @statusCode _: 200;
-    @body body: DataResponse<GroupTag[]>;
+    @body body: PaginatedDataResponse<GroupTag[]>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -3186,7 +3191,12 @@ interface GroupTagOperations {
           time_zone: "Europe/Moscow",
           image_url: null
         }
-      ]
+      ],
+      meta: #{
+        paginate: #{
+          next_page: "eyJpZCI6MTQsImRpciI6ImFzYyJ9"
+        }
+      }
     }
   }
   })
@@ -3194,15 +3204,15 @@ interface GroupTagOperations {
     @doc("Идентификатор тега")
     @path id: int32,
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
     @minValue(1)
     @maxValue(50)
-    per?: int32 = 25,
-    @doc("Страница выборки")
-    @query page?: int32 = 1
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @query cursor?: string
   ): {
     @statusCode _: 200;
-    @body body: DataResponse<User[]>;
+    @body body: PaginatedDataResponse<User[]>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4328,14 +4338,13 @@ interface ChatMessageOperations {
 
 Метод для получения списка сообщений бесед, каналов, тредов и личных сообщений.
 
-Для получения сообщений вам необходимо знать `chat_id` требуемой беседы, канала, треда или диалога, и указать его в `URL` запроса. Сообщения будут возвращены в порядке убывания даты отправки (то есть, сначала будут идти последние сообщения чата). Для получения более ранних сообщений чата доступны параметры `per` и `page`.
+Для получения сообщений вам необходимо знать `chat_id` требуемой беседы, канала, треда или диалога, и указать его в `URL` запроса. Сообщения будут возвращены в порядке убывания даты отправки (то есть, сначала будут идти последние сообщения чата). Для получения более ранних сообщений чата доступны параметры `limit` и `cursor`.
 """)
   @get
   @opExample(#{
     parameters: #{
       chat_id: 198,
-      per: 10,
-      page: 1
+      limit: 10
     },
     returnType: #{
       _: 200,
@@ -4398,25 +4407,30 @@ interface ChatMessageOperations {
             display_avatar_url: null,
             display_name: null
           }
-        ]
+        ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6MTE5NDI3NSwiZGlyIjoiZGVzYyJ9"
+          }
+        }
       }
     }
   })
   listChatMessages(
     @doc("Идентификатор чата (беседа, канал, диалог или чат треда)")
     @query chat_id: int32,
+    @doc("Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).")
+    @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc,
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
     @minValue(1)
     @maxValue(50)
-    per?: int32 = 25,
-    @doc("Страница выборки")
-    @query page?: int32 = 1,
-    @doc("Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).")
-    @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @query cursor?: string
   ): {
     @statusCode _: 200;
-    @body body: DataResponse<Message[]>;
+    @body body: PaginatedDataResponse<Message[]>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4455,6 +4469,11 @@ interface ReadMemberOperations {
     returnType: #{
       _: 200,
       body: #{
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
+          }
+        },
         data: #[12, 13, 14, 15, 16]
       }
     }
@@ -4463,15 +4482,15 @@ interface ReadMemberOperations {
     @doc("Идентификатор сообщения")
     @path id: int32,
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
     @minValue(1)
     @maxValue(300)
-    per?: int32 = 300,
-    @doc("Страница выборки")
-    @query page?: int32 = 1
+    limit?: int32 = 300,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @query cursor?: string
   ): {
     @statusCode _: 200;
-    @body body: DataResponse<int32[]>;
+    @body body: PaginatedDataResponse<int32[]>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4610,8 +4629,7 @@ interface ReactionOperations {
   @opExample(#{
     parameters: #{
       id: 194275,
-      per: 50,
-      page: 1
+      limit: 50
     },
     returnType: #{
       _: 200,
@@ -4659,22 +4677,28 @@ interface ReactionOperations {
             code: "🔥",
             name: ":fire:"
           }
-        ]
+        ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6NzcsImRpciI6ImFzYyJ9"
+          }
+        }
       }
     }
   })
   listReactions(
     @doc("Идентификатор сообщения")
     @path id: int32,
-    @doc("Количество записей на странице")
-    @query 
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @minValue(1)
     @maxValue(50)
-    per?: int32 = 50,
-    @doc("Номер страницы")
-    @query page?: int32 = 1
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @query cursor?: string
   ): {
     @statusCode _: 200;
-    @body body: DataResponse<Reaction[]>;
+    @body body: PaginatedDataResponse<Reaction[]>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4828,8 +4852,7 @@ interface TaskOperations {
   @get
   @opExample(#{
     parameters: #{
-      per: 2,
-      page: 1
+      limit: 2
     },
     returnType: #{
       _: 200,
@@ -4866,7 +4889,12 @@ interface TaskOperations {
           all_day: false,
           custom_properties: #[]
         }
-      ]
+      ],
+      meta: #{
+        paginate: #{
+          next_page: "eyJpZCI6MjIyODQsImRpciI6ImFzYyJ9"
+        }
+      }
       }
     }
   })
@@ -4875,12 +4903,12 @@ interface TaskOperations {
     @query
     @minValue(1)
     @maxValue(50)
-    per?: int32 = 50,
-    @doc("Страница выборки")
-    @query page?: int32 = 1
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @query cursor?: string
   ): {
     @statusCode _: 200;
-    @body body: DataResponse<Task[]>;
+    @body body: PaginatedDataResponse<Task[]>;
   } | {
     @statusCode _: 401;
     @body body: OAuthError;

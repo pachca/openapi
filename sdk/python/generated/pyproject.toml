@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pachca"
+name = "pachca-sdk"
 version = "1.0.0"
 description = "A client library for accessing Pachca API"
 authors = []

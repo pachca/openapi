@@ -1,4 +1,4 @@
-# pachca
+# pachca-sdk
 A client library for accessing Pachca API
 
 ## Usage

@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import { parse, stringify } from "yaml";
 
-const spec = parse(readFileSync("../../../packages/spec/openapi.yaml", "utf-8"));
+const spec = parse(readFileSync("../../packages/spec/openapi.yaml", "utf-8"));
 
 function strip(obj: unknown): unknown {
   if (Array.isArray(obj)) return obj.map(strip);

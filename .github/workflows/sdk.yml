@@ -79,7 +79,7 @@ jobs:
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
-      - run: npm ci
+      - run: npm install
         working-directory: sdk/typescript
       - run: npm run build
         working-directory: sdk/typescript

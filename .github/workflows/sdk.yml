@@ -1,0 +1,115 @@
+name: SDK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - uses: swift-actions/setup-swift@v2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: bun install
+      - run: bun turbo run generate
+
+      - name: Copy Swift Package.swift to root
+        if: github.event_name == 'push'
+        run: cp sdk/swift/Package.swift Package.swift
+
+      - name: Extract version
+        if: github.event_name == 'push'
+        id: version
+        run: |
+          VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --staged --quiet || git commit -m "chore: regenerate SDK v${{ steps.version.outputs.version }}"
+
+      - name: Tag
+        if: github.event_name == 'push'
+        run: |
+          git tag "v${{ steps.version.outputs.version }}"
+          git tag "sdk/go/generated/v${{ steps.version.outputs.version }}"
+
+      - name: Push
+        if: github.event_name == 'push'
+        run: git push --follow-tags
+
+  publish-npm:
+    if: github.event_name == 'push'
+    needs: generate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.generate.outputs.version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+        working-directory: sdk/typescript
+      - run: npm run build
+        working-directory: sdk/typescript
+      - run: npm publish --provenance --access public
+        working-directory: sdk/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-pypi:
+    if: github.event_name == 'push'
+    needs: generate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.generate.outputs.version }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+        working-directory: sdk/python/generated
+      - run: twine upload sdk/python/generated/dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  publish-jitpack:
+    if: github.event_name == 'push'
+    needs: generate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: badasintended/autojitpack@v1
+        with:
+          version: v${{ needs.generate.outputs.version }}

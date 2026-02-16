@@ -14,8 +14,9 @@ dist/
 # Turborepo
 .turbo/
 
-# Generated files
-packages/spec/openapi.yaml
+# Swift
+.build/
+Package.resolved
 
 # Debug
 npm-debug.log*

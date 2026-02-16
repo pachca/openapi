@@ -1,0 +1,3 @@
+jdk: 17
+install:
+  - cd sdk/kotlin/generated && ./gradlew publishToMavenLocal

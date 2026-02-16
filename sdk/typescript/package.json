@@ -1,0 +1,36 @@
+{
+  "name": "@pachca/sdk",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "generated/src"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pachca/openapi.git",
+    "directory": "sdk/typescript"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "setup": "true",
+    "generate": "mkdir -p generated/src && openapi-typescript ../../packages/spec/openapi.yaml -o generated/src/schema.d.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.13.0"
+  },
+  "devDependencies": {
+    "@pachca/spec": "workspace:*",
+    "openapi-typescript": "^7.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@pachca/swift",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "setup": "true",
+    "generate": "mkdir -p generated/Sources/Pachca && cp ../../packages/spec/openapi.yaml generated/Sources/Pachca/openapi.yaml && swift build"
+  },
+  "devDependencies": {
+    "@pachca/spec": "workspace:*"
+  }
+}

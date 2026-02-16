@@ -46,6 +46,12 @@ jobs:
           VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Sync SDK versions
+        if: github.event_name == 'push'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          cd sdk/typescript && npm version "$VERSION" --no-git-tag-version --allow-same-version
+
       - name: Commit
         if: github.event_name == 'push'
         run: |

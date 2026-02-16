@@ -22,7 +22,7 @@
   },
   "scripts": {
     "setup": "true",
-    "generate": "openapi-typescript ../../packages/spec/openapi.yaml -o generated/src/schema.d.ts",
+    "generate": "mkdir -p generated/src && openapi-typescript ../../packages/spec/openapi.yaml -o generated/src/schema.d.ts",
     "build": "tsc"
   },
   "dependencies": {

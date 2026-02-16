@@ -1,0 +1,13 @@
+
+# CustomProperty
+
+## Properties
+| Name | Type | Description | Notes |
+| ------------ | ------------- | ------------- | ------------- |
+| **id** | **kotlin.Int** | Идентификатор поля |  |
+| **name** | **kotlin.String** | Название поля |  |
+| **dataType** | [**CustomPropertyDataType**](CustomPropertyDataType.md) | Тип поля |  |
+| **&#x60;value&#x60;** | **kotlin.String** | Значение |  |
+
+
+

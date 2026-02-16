@@ -14,9 +14,6 @@ dist/
 # Turborepo
 .turbo/
 
-# Generated
-packages/spec/openapi.yaml
-
 # Swift
 .build/
 Package.resolved

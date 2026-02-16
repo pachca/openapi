@@ -62,7 +62,7 @@ jobs:
 
       - name: Push
         if: github.event_name == 'push'
-        run: git push --follow-tags
+        run: git push && git push --tags
 
   publish-npm:
     if: github.event_name == 'push'

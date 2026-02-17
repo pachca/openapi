@@ -1665,8 +1665,8 @@ model ViewBlockDate {
   label: string;
   
   @doc("Начальное значение в поле в формате YYYY-MM-DD")
-  @example("2025-07-01")
-  initial_date?: string;
+  @example(plainDate.fromISO("2025-07-01"))
+  initial_date?: plainDate;
   
   @doc("Обязательность")
   @example(true)
@@ -1697,8 +1697,8 @@ model ViewBlockTime {
   label: string;
   
   @doc("Начальное значение в поле в формате HH:mm")
-  @example("11:00")
-  initial_time?: string;
+  @example(plainTime.fromISO("11:00"))
+  initial_time?: plainTime;
   
   @doc("Обязательность")
   required?: boolean;
@@ -3485,9 +3485,9 @@ interface ChatOperations {
     @doc("Параметр, который отвечает за доступность и выборку чатов для пользователя")
     @query availability?: ChatAvailability = ChatAvailability.is_member,
     @doc("Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
-    @query last_message_at_after?: string,
+    @query last_message_at_after?: utcDateTime,
     @doc("Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
-    @query last_message_at_before?: string,
+    @query last_message_at_before?: utcDateTime,
     @doc("Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.")
     @query personal?: boolean,
     @doc("Количество возвращаемых сущностей за один запрос")
@@ -5113,14 +5113,14 @@ interface FormOperations {
               type: "date",
               name: "date_start",
               label: "Дата начала отпуска",
-              initial_date: "2025-07-01",
+              initial_date: plainDate.fromISO("2025-07-01"),
               required: true
             },
             #{
               type: "date",
               name: "date_end",
               label: "Дата окончания отпуска",
-              initial_date: "2025-07-28",
+              initial_date: plainDate.fromISO("2025-07-28"),
               required: true
             },
             #{
@@ -5226,7 +5226,7 @@ interface FormOperations {
               type: "time",
               name: "newsletter_time",
               label: "Время рассылки",
-              initial_time: "11:00",
+              initial_time: plainTime.fromISO("11:00"),
               hint: "Укажите, в какое время присылать выбранные рассылки"
             }
           ]

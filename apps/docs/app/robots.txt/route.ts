@@ -8,6 +8,8 @@ Disallow: /api/search
 Disallow: /api/og
 
 Sitemap: ${BASE_URL}/sitemap.xml
+
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
 `;
 
   return new Response(productionRobots, {

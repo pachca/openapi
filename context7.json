@@ -1,0 +1,15 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Pachca API",
+  "description": "REST API for Pachca corporate messenger — send messages, manage chats, users, tags, tasks, handle webhooks, upload files, and build bots.",
+  "folders": ["apps/docs/content", "packages/spec", "sdk"],
+  "excludeFolders": ["node_modules"],
+  "excludeFiles": ["typespec.tsp", "tspconfig.yaml"],
+  "rules": [
+    "Base URL: https://api.pachca.com/api/shared/v1",
+    "All requests require Bearer token in Authorization header",
+    "API documentation (MDX guides) is written in Russian",
+    "Full documentation: https://dev.pachca.com/llms-full.txt",
+    "OpenAPI spec: https://dev.pachca.com/openapi.yaml"
+  ]
+}

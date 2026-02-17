@@ -10,13 +10,19 @@
     "setup": {
       "cache": false
     },
-    "build": {
+    "generate-llms": {
       "dependsOn": ["@pachca/spec#generate"],
+      "inputs": ["scripts/generate-llms.ts", "lib/**", "content/**"],
+      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md"],
+      "cache": true
+    },
+    "build": {
+      "dependsOn": ["@pachca/spec#generate", "generate-llms"],
       "outputs": [".next/**", "!.next/cache/**"],
       "cache": true
     },
     "dev": {
-      "dependsOn": ["@pachca/spec#generate"],
+      "dependsOn": ["@pachca/spec#generate", "generate-llms"],
       "cache": false,
       "persistent": true
     },

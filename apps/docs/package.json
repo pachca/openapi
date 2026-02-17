@@ -11,6 +11,7 @@
     "knip": "knip",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "generate-llms": "bun scripts/generate-llms.ts",
     "check-urls": "node scripts/check-url-conflicts.mjs"
   },
   "dependencies": {

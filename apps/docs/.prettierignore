@@ -28,3 +28,7 @@ next-env.d.ts
 # MDX content files (Prettier strips indentation from template literals
 # that mix unindented and indented lines, e.g. HTTP headers + JSON body)
 content/
+
+# Generated markdown files (auto-generated from OpenAPI spec)
+public/**/*.md
+public/**/*.txt

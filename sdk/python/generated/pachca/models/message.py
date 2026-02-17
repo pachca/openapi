@@ -75,9 +75,9 @@ class Message:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.button import Button
-        from ..models.file import File
         from ..models.thread import Thread
         from ..models.forwarding import Forwarding
+        from ..models.file import File
         id = self.id
 
         entity_type = self.entity_type.value

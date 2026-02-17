@@ -843,6 +843,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
       description: schema.description || singleSchema.description,
       nullable: schema.nullable !== undefined ? schema.nullable : singleSchema.nullable,
       example: schema.example !== undefined ? schema.example : singleSchema.example,
+      default: schema.default !== undefined ? schema.default : singleSchema.default,
     };
     return (
       <PropertyRow

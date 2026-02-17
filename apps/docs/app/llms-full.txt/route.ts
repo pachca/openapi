@@ -28,6 +28,7 @@ export async function GET() {
   let content = '# Пачка API - Полная документация\n\n';
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
+  content += '> Краткий индекс: [llms.txt](https://dev.pachca.com/llms.txt)\n\n';
 
   // Get guides dynamically from page.tsx files
   const guidePages = getOrderedGuidePages();

@@ -21,11 +21,12 @@ export async function GET() {
   // Sort tags by predefined order
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
 
+  const siteUrl = 'https://dev.pachca.com';
+
   let content = '# Пачка API Documentation\n\n';
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
-
-  const siteUrl = 'https://dev.pachca.com';
+  content += `> Полная документация в одном файле: [llms-full.txt](${siteUrl}/llms-full.txt)\n\n`;
 
   // Add guides section (dynamically collected from page.tsx files)
   const guidePages = getOrderedGuidePages();
@@ -55,6 +56,7 @@ export async function GET() {
 
   // Add optional section
   content += '## Дополнительно\n';
+  content += `- [Agent Skill](${siteUrl}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
   content += '\n____\n';

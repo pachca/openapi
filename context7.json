@@ -1,18 +1,4 @@
 {
-  "$schema": "https://context7.com/schema/context7.json",
-  "projectTitle": "Pachca API",
-  "description": "REST API for Pachca corporate messenger — send messages, manage chats, users, tags, tasks, handle webhooks, upload files, and build bots.",
-  "folders": ["apps/docs/content", "apps/docs/public", "packages/spec", "sdk"],
-  "excludeFolders": ["node_modules"],
-  "excludeFiles": ["typespec.tsp", "tspconfig.yaml"],
   "url": "https://context7.com/pachca/openapi",
-  "public_key": "pk_XD0EuPOww8Nx2l9uC2i5c",
-  "rules": [
-    "Base URL: https://api.pachca.com/api/shared/v1",
-    "All requests require Bearer token in Authorization header",
-    "Pagination is cursor-based: use 'limit' (1-50) and 'cursor' params, check meta.paginate.next_page",
-    "Error response format: { errors: [{ key: 'field', value: 'description' }] }",
-    "On 429 rate limit, respect the Retry-After header",
-    "Full docs: https://dev.pachca.com/llms-full.txt | OpenAPI: https://dev.pachca.com/openapi.yaml"
-  ]
+  "public_key": "pk_XD0EuPOww8Nx2l9uC2i5c"
 }

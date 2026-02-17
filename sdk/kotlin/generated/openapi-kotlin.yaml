@@ -367,6 +367,7 @@ paths:
             не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
           schema:
             type: string
+            format: date-time
           explode: false
         - name: last_message_at_before
           in: query
@@ -376,6 +377,7 @@ paths:
             не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
           schema:
             type: string
+            format: date-time
           explode: false
         - name: personal
           in: query
@@ -6868,6 +6870,7 @@ components:
           example: Дата начала отпуска
         initial_date:
           type: string
+          format: date
           description: Начальное значение в поле в формате YYYY-MM-DD
           example: 2025-07-01
         required:
@@ -7199,6 +7202,7 @@ components:
           example: Время рассылки
         initial_time:
           type: string
+          format: time
           description: Начальное значение в поле в формате HH:mm
           example: 11:00
         required:

@@ -176,8 +176,8 @@ Configure BearerAuth:
 val apiInstance = ChatsApi()
 val sortLeftCurlyBracketFieldRightCurlyBracket : SortOrder =  // SortOrder | Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).
 val availability : ChatAvailability =  // ChatAvailability | Параметр, который отвечает за доступность и выборку чатов для пользователя
-val lastMessageAtAfter : kotlin.String = lastMessageAtAfter_example // kotlin.String | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
-val lastMessageAtBefore : kotlin.String = lastMessageAtBefore_example // kotlin.String | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+val lastMessageAtAfter : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+val lastMessageAtBefore : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 val personal : kotlin.Boolean = true // kotlin.Boolean | Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
 val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
 val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
@@ -196,8 +196,8 @@ try {
 ### Parameters
 | **sortLeftCurlyBracketFieldRightCurlyBracket** | [**SortOrder**](.md)| Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям &#x60;id&#x60; (идентификатор чата) и &#x60;last_message_at&#x60; (дата и время создания последнего сообщения). | [optional] [enum: asc, desc] |
 | **availability** | [**ChatAvailability**](.md)| Параметр, который отвечает за доступность и выборку чатов для пользователя | [optional] [enum: is_member, public] |
-| **lastMessageAtAfter** | **kotlin.String**| Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). | [optional] |
-| **lastMessageAtBefore** | **kotlin.String**| Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). | [optional] |
+| **lastMessageAtAfter** | **java.time.OffsetDateTime**| Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). | [optional] |
+| **lastMessageAtBefore** | **java.time.OffsetDateTime**| Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). | [optional] |
 | **personal** | **kotlin.Boolean**| Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты. | [optional] |
 | **limit** | **kotlin.Int**| Количество возвращаемых сущностей за один запрос | [optional] [default to 50] |
 | Name | Type | Description  | Notes |

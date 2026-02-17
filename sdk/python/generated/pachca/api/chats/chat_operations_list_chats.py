@@ -14,7 +14,9 @@ from ...models.chat_operations_list_chats_response_200 import ChatOperationsList
 from ...models.o_auth_error import OAuthError
 from ...models.sort_order import SortOrder
 from ...types import UNSET, Unset
+from dateutil.parser import isoparse
 from typing import cast
+import datetime
 
 
 
@@ -22,8 +24,8 @@ def _get_kwargs(
     *,
     sortfield: SortOrder | Unset = SortOrder.DESC,
     availability: ChatAvailability | Unset = ChatAvailability.IS_MEMBER,
-    last_message_at_after: str | Unset = UNSET,
-    last_message_at_before: str | Unset = UNSET,
+    last_message_at_after: datetime.datetime | Unset = UNSET,
+    last_message_at_before: datetime.datetime | Unset = UNSET,
     personal: bool | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -47,9 +49,15 @@ def _get_kwargs(
 
     params["availability"] = json_availability
 
-    params["last_message_at_after"] = last_message_at_after
+    json_last_message_at_after: str | Unset = UNSET
+    if not isinstance(last_message_at_after, Unset):
+        json_last_message_at_after = last_message_at_after.isoformat()
+    params["last_message_at_after"] = json_last_message_at_after
 
-    params["last_message_at_before"] = last_message_at_before
+    json_last_message_at_before: str | Unset = UNSET
+    if not isinstance(last_message_at_before, Unset):
+        json_last_message_at_before = last_message_at_before.isoformat()
+    params["last_message_at_before"] = json_last_message_at_before
 
     params["personal"] = personal
 
@@ -128,8 +136,8 @@ def sync_detailed(
     client: AuthenticatedClient | Client,
     sortfield: SortOrder | Unset = SortOrder.DESC,
     availability: ChatAvailability | Unset = ChatAvailability.IS_MEMBER,
-    last_message_at_after: str | Unset = UNSET,
-    last_message_at_before: str | Unset = UNSET,
+    last_message_at_after: datetime.datetime | Unset = UNSET,
+    last_message_at_before: datetime.datetime | Unset = UNSET,
     personal: bool | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -143,8 +151,8 @@ def sync_detailed(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (str | Unset):
-        last_message_at_before (str | Unset):
+        last_message_at_after (datetime.datetime | Unset):
+        last_message_at_before (datetime.datetime | Unset):
         personal (bool | Unset):
         limit (int | Unset):  Default: 50.
         cursor (str | Unset):
@@ -180,8 +188,8 @@ def sync(
     client: AuthenticatedClient | Client,
     sortfield: SortOrder | Unset = SortOrder.DESC,
     availability: ChatAvailability | Unset = ChatAvailability.IS_MEMBER,
-    last_message_at_after: str | Unset = UNSET,
-    last_message_at_before: str | Unset = UNSET,
+    last_message_at_after: datetime.datetime | Unset = UNSET,
+    last_message_at_before: datetime.datetime | Unset = UNSET,
     personal: bool | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -195,8 +203,8 @@ def sync(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (str | Unset):
-        last_message_at_before (str | Unset):
+        last_message_at_after (datetime.datetime | Unset):
+        last_message_at_before (datetime.datetime | Unset):
         personal (bool | Unset):
         limit (int | Unset):  Default: 50.
         cursor (str | Unset):
@@ -227,8 +235,8 @@ async def asyncio_detailed(
     client: AuthenticatedClient | Client,
     sortfield: SortOrder | Unset = SortOrder.DESC,
     availability: ChatAvailability | Unset = ChatAvailability.IS_MEMBER,
-    last_message_at_after: str | Unset = UNSET,
-    last_message_at_before: str | Unset = UNSET,
+    last_message_at_after: datetime.datetime | Unset = UNSET,
+    last_message_at_before: datetime.datetime | Unset = UNSET,
     personal: bool | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -242,8 +250,8 @@ async def asyncio_detailed(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (str | Unset):
-        last_message_at_before (str | Unset):
+        last_message_at_after (datetime.datetime | Unset):
+        last_message_at_before (datetime.datetime | Unset):
         personal (bool | Unset):
         limit (int | Unset):  Default: 50.
         cursor (str | Unset):
@@ -279,8 +287,8 @@ async def asyncio(
     client: AuthenticatedClient | Client,
     sortfield: SortOrder | Unset = SortOrder.DESC,
     availability: ChatAvailability | Unset = ChatAvailability.IS_MEMBER,
-    last_message_at_after: str | Unset = UNSET,
-    last_message_at_before: str | Unset = UNSET,
+    last_message_at_after: datetime.datetime | Unset = UNSET,
+    last_message_at_before: datetime.datetime | Unset = UNSET,
     personal: bool | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -294,8 +302,8 @@ async def asyncio(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (str | Unset):
-        last_message_at_before (str | Unset):
+        last_message_at_after (datetime.datetime | Unset):
+        last_message_at_before (datetime.datetime | Unset):
         personal (bool | Unset):
         limit (int | Unset):  Default: 50.
         cursor (str | Unset):

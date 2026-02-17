@@ -1439,7 +1439,7 @@ type ViewBlockDate struct {
 	Hint *string `json:"hint,omitempty"`
 
 	// InitialDate Начальное значение в поле в формате YYYY-MM-DD
-	InitialDate *string `json:"initial_date,omitempty"`
+	InitialDate *openapi_types.Date `json:"initial_date,omitempty"`
 
 	// Label Подпись к полю
 	Label string `json:"label"`
@@ -1731,10 +1731,10 @@ type ChatOperationsListChatsParams struct {
 	Availability *ChatAvailability `form:"availability,omitempty" json:"availability,omitempty"`
 
 	// LastMessageAtAfter Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
-	LastMessageAtAfter *string `form:"last_message_at_after,omitempty" json:"last_message_at_after,omitempty"`
+	LastMessageAtAfter *time.Time `form:"last_message_at_after,omitempty" json:"last_message_at_after,omitempty"`
 
 	// LastMessageAtBefore Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
-	LastMessageAtBefore *string `form:"last_message_at_before,omitempty" json:"last_message_at_before,omitempty"`
+	LastMessageAtBefore *time.Time `form:"last_message_at_before,omitempty" json:"last_message_at_before,omitempty"`
 
 	// Personal Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
 	Personal *bool `form:"personal,omitempty" json:"personal,omitempty"`

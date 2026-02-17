@@ -47,7 +47,7 @@ data class ViewBlockDate (
 
     /* Начальное значение в поле в формате YYYY-MM-DD */
     @Json(name = "initial_date")
-    val initialDate: kotlin.String? = null,
+    val initialDate: java.time.LocalDate? = null,
 
     /* Обязательность */
     @Json(name = "required")

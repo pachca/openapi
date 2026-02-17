@@ -2716,6 +2716,7 @@ export interface components {
              */
             label: string;
             /**
+             * Format: date
              * @description Начальное значение в поле в формате YYYY-MM-DD
              * @example 2025-07-01
              */
@@ -2978,6 +2979,7 @@ export interface components {
              */
             label: string;
             /**
+             * Format: time
              * @description Начальное значение в поле в формате HH:mm
              * @example 11:00
              */

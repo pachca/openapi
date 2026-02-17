@@ -155,7 +155,7 @@ import io.ktor.http.ParametersBuilder
          * @return ChatOperationsListChats200Response
         */
             @Suppress("UNCHECKED_CAST")
-        open suspend fun chatOperationsListChats(sortLeftCurlyBracketFieldRightCurlyBracket: SortOrder?, availability: ChatAvailability?, lastMessageAtAfter: kotlin.String?, lastMessageAtBefore: kotlin.String?, personal: kotlin.Boolean?, limit: kotlin.Int?, cursor: kotlin.String?): HttpResponse<ChatOperationsListChats200Response> {
+        open suspend fun chatOperationsListChats(sortLeftCurlyBracketFieldRightCurlyBracket: SortOrder?, availability: ChatAvailability?, lastMessageAtAfter: java.time.OffsetDateTime?, lastMessageAtBefore: java.time.OffsetDateTime?, personal: kotlin.Boolean?, limit: kotlin.Int?, cursor: kotlin.String?): HttpResponse<ChatOperationsListChats200Response> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

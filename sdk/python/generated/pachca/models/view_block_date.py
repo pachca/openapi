@@ -10,6 +10,9 @@ from ..types import UNSET, Unset
 
 from ..models.view_block_date_type import ViewBlockDateType
 from ..types import UNSET, Unset
+from dateutil.parser import isoparse
+from typing import cast
+import datetime
 
 
 
@@ -29,7 +32,7 @@ class ViewBlockDate:
             name (str): Название, которое будет передано в ваше приложение как ключ указанного пользователем значения
                 Example: date_start.
             label (str): Подпись к полю Example: Дата начала отпуска.
-            initial_date (str | Unset): Начальное значение в поле в формате YYYY-MM-DD Example: 2025-07-01.
+            initial_date (datetime.date | Unset): Начальное значение в поле в формате YYYY-MM-DD Example: 2025-07-01.
             required (bool | Unset): Обязательность Example: True.
             hint (str | Unset): Подсказка, которая отображается под полем серым цветом
      """
@@ -37,7 +40,7 @@ class ViewBlockDate:
     type_: ViewBlockDateType
     name: str
     label: str
-    initial_date: str | Unset = UNSET
+    initial_date: datetime.date | Unset = UNSET
     required: bool | Unset = UNSET
     hint: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -53,7 +56,9 @@ class ViewBlockDate:
 
         label = self.label
 
-        initial_date = self.initial_date
+        initial_date: str | Unset = UNSET
+        if not isinstance(self.initial_date, Unset):
+            initial_date = self.initial_date.isoformat()
 
         required = self.required
 
@@ -90,7 +95,15 @@ class ViewBlockDate:
 
         label = d.pop("label")
 
-        initial_date = d.pop("initial_date", UNSET)
+        _initial_date = d.pop("initial_date", UNSET)
+        initial_date: datetime.date | Unset
+        if isinstance(_initial_date,  Unset):
+            initial_date = UNSET
+        else:
+            initial_date = isoparse(_initial_date).date()
+
+
+
 
         required = d.pop("required", UNSET)
 

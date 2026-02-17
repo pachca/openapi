@@ -21,6 +21,22 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      {
+        source: '/:path(llms\\.txt|llms-full\\.txt)',
+        headers: [
+          { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+        ],
+      },
+      {
+        source: '/:path(skill\\.md|:rest*\\.md)',
+        headers: [
+          { key: 'Content-Type', value: 'text/markdown; charset=utf-8' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+        ],
+      },
     ];
   },
   async redirects() {
@@ -32,15 +48,9 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // Rewrite /.md to /api/md/index for home page
       {
         source: '/.md',
-        destination: '/api/md/index',
-      },
-      // Rewrite /path.md to /api/md/path for all pages
-      {
-        source: '/:path*.md',
-        destination: '/api/md/:path*',
+        destination: '/index.md',
       },
     ];
   },

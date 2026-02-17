@@ -3557,7 +3557,7 @@ func NewSecurityOperationsGetAuditEventsRequest(server string, params *SecurityO
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/audit-events")
+	operationPath := fmt.Sprintf("/audit_events")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}

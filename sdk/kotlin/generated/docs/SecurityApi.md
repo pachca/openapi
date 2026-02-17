@@ -4,7 +4,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
-| [**securityOperationsGetAuditEvents**](SecurityApi.md#securityOperationsGetAuditEvents) | **GET** /audit-events |  |
+| [**securityOperationsGetAuditEvents**](SecurityApi.md#securityOperationsGetAuditEvents) | **GET** /audit_events |  |
 
 
 <a id="securityOperationsGetAuditEvents"></a>

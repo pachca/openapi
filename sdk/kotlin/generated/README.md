@@ -88,7 +88,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 | *ReactionsApi* | [**reactionOperationsListReactions**](docs/ReactionsApi.md#reactionoperationslistreactions) | **GET** /messages/{id}/reactions |  |
 | *ReactionsApi* | [**reactionOperationsRemoveReaction**](docs/ReactionsApi.md#reactionoperationsremovereaction) | **DELETE** /messages/{id}/reactions |  |
 | *ReadMemberApi* | [**readMemberOperationsListReadMembers**](docs/ReadMemberApi.md#readmemberoperationslistreadmembers) | **GET** /messages/{id}/read_member_ids |  |
-| *SecurityApi* | [**securityOperationsGetAuditEvents**](docs/SecurityApi.md#securityoperationsgetauditevents) | **GET** /audit-events |  |
+| *SecurityApi* | [**securityOperationsGetAuditEvents**](docs/SecurityApi.md#securityoperationsgetauditevents) | **GET** /audit_events |  |
 | *TasksApi* | [**taskOperationsCreateTask**](docs/TasksApi.md#taskoperationscreatetask) | **POST** /tasks |  |
 | *TasksApi* | [**taskOperationsDeleteTask**](docs/TasksApi.md#taskoperationsdeletetask) | **DELETE** /tasks/{id} |  |
 | *TasksApi* | [**taskOperationsGetTask**](docs/TasksApi.md#taskoperationsgettask) | **GET** /tasks/{id} |  |

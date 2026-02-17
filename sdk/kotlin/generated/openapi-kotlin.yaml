@@ -19,7 +19,7 @@ tags:
   - name: Bots
   - name: Security
 paths:
-  /audit-events:
+  /audit_events:
     get:
       operationId: SecurityOperations_getAuditEvents
       description: |-

@@ -36,7 +36,7 @@ import io.ktor.http.ParametersBuilder
     ) {
 
         /**
-        * GET /audit-events
+        * GET /audit_events
         * 
         * Журнал аудита событий  #corporation_price_only  Метод для получения логов событий на основе указанных фильтров.
          * @param startTime Начальная метка времени (включительно) 
@@ -73,7 +73,7 @@ import io.ktor.http.ParametersBuilder
 
             val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.GET,
-            "/audit-events",
+            "/audit_events",
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

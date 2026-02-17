@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/audit-events": {
+    "/audit_events": {
         parameters: {
             query?: never;
             header?: never;

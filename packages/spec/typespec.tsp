@@ -5456,7 +5456,7 @@ interface BotOperations {
 // Security Operations
 // ============================================================================
 
-@route("/audit-events")
+@route("/audit_events")
 @tag("Security")
 interface SecurityOperations {
   @doc("""

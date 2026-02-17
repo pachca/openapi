@@ -51,6 +51,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `DELETE /messages/{id}/reactions` — remove emoji reaction
 - `GET /messages/{id}/reactions` — list reactions on a message
 - `GET /messages/{id}/read_member_ids` — list users who read a message
+- `POST /messages/{id}/link_previews` — add link preview to a message
 
 ### Threads
 - `POST /messages/{id}/thread` — create a thread on a message
@@ -108,7 +109,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 
 ### File Uploads
 - `POST /uploads` — get S3 upload signature and parameters
-- `POST /uploads/direct_url` — upload a file directly (multipart/form-data, no auth required)
+- `POST /direct_url` — upload a file directly (multipart/form-data, no auth required)
 
 ### Interactive Forms
 - `POST /views/open` — open a modal form for a user (requires trigger_id from button click)
@@ -119,7 +120,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ### Export & Audit (Corporation plan, owner token)
 - `POST /chats/exports` — request message export as JSON/ZIP
 - `GET /chats/exports/{id}` — download export archive (returns 302 redirect)
-- `GET /audit-events` — query security audit log (90-day retention)
+- `GET /audit_events` — query security audit log (90-day retention)
 
 ## Common Workflows
 
@@ -192,7 +193,7 @@ Form submission results arrive via the `view.submission` webhook event.
 - User management, tag management, and message deletion require an **admin** token.
 - Audit events and data export require an **owner** token and **Corporation** pricing plan.
 - Link preview (unfurling) requires a dedicated unfurling bot token with whitelisted domains.
-- `POST /uploads/direct_url` is the only endpoint that does not require authentication.
+- `POST /direct_url` is the only endpoint that does not require authentication.
 
 ### Error Handling
 - `400` — validation error

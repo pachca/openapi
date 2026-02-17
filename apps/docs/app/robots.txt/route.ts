@@ -4,8 +4,8 @@ export async function GET(): Promise<Response> {
   // Production robots.txt
   const productionRobots = `User-agent: *
 Allow: /
-Disallow: /api/
-Disallow: /openapi.yaml
+Disallow: /api/search
+Disallow: /api/og
 
 Sitemap: ${BASE_URL}/sitemap.xml
 `;

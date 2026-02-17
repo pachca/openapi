@@ -71,6 +71,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           title="Пачка API — Обновления"
           href="/feed.xml"
         />
+        <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
+        <link rel="alternate" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
+        <link rel="alternate" type="text/markdown" title="skill.md" href="/skill.md" />
+        <link
+          rel="alternate"
+          type="application/vnd.oai.openapi"
+          title="OpenAPI"
+          href="/openapi.yaml"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

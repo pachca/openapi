@@ -55,6 +55,7 @@ export async function GET() {
 
   // Add optional section
   content += '## Дополнительно\n';
+  content += `- [Agent Skill](${siteUrl}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
   content += '\n____\n';

@@ -241,6 +241,10 @@ function parseSchema(schema: Record<string, unknown>, openapi: OpenAPIData, dept
     const parsed = parseSchema(resolved, openapi, depth + 1);
     // Всегда сохраняем $ref для отображения названий вариантов и компонентов
     parsed.$ref = ref;
+    // Свойства-соседи $ref (например, default) переопределяют свойства из $ref
+    if (schema.default !== undefined) parsed.default = schema.default;
+    if (schema.example !== undefined) parsed.example = schema.example;
+    if (getString(schema, 'description')) parsed.description = getString(schema, 'description');
     return parsed;
   }
 

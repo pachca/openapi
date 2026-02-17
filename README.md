@@ -399,6 +399,21 @@ const GUIDES_ORDER = [
 
 ---
 
+## Редиректы
+
+При переносе страниц на новые URL добавьте редирект в `apps/docs/redirects.ts`:
+
+```ts
+const redirects: Redirect[] = [
+  { source: '/old-page', destination: '/new-section/new-page' },
+  { source: '/old-section/:path*', destination: '/new-section/:path*' },
+];
+```
+
+Все редиректы — permanent (308). Поддерживаются wildcard-паттерны (`:path*`) для переноса целых разделов.
+
+---
+
 ## Контакты
 
 - support@pachca.com

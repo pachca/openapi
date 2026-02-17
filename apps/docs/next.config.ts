@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import redirectsList from './redirects';
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -21,6 +22,13 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
     ];
+  },
+  async redirects() {
+    return redirectsList.map((r) => ({
+      source: r.source,
+      destination: r.destination,
+      permanent: true,
+    }));
   },
   async rewrites() {
     return [

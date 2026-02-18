@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, SquareTerminal, Loader2, BookText } from 'lucide-react';
+import { Search, SquareTerminal, Loader2, BookText, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { SearchResult } from '@/lib/search/indexer';
+import { SUGGESTED_QUERIES } from '@/lib/search/synonyms';
 
-// Генерация param ID из пути (аналогично schema-tree.tsx)
-// Путь может содержать -- как разделитель для enum значений
 function generateParamId(path: string): string {
   return `param-${path
     .replace(/\./g, '-')
@@ -26,17 +25,13 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-  // Handle navigation with optional param hash
   const handleResultClick = (result: SearchResult) => {
     onClose();
 
-    // If we have a matched field with a path, navigate with hash
     if (result.matchedValue?.path) {
       const paramId = generateParamId(result.matchedValue.path);
       const url = `${result.url}#${paramId}`;
       router.push(url);
-      // Trigger section opening and scroll
-      // First event opens sections, second event (after sections render) triggers scroll
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('param-navigation'));
       }, 100);
@@ -48,18 +43,19 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
     }
   };
 
-  // Remove tags from description
   const removeTagsFromDescription = (text: string) => {
     return text.replace(/#\w+/g, '').replace(/\s+/g, ' ').trim();
   };
 
-  // Ensure component is mounted before rendering portal
+  const handleSuggestedClick = (suggestion: string) => {
+    setQuery(suggestion);
+  };
+
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
 
-  // Handle Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -91,6 +87,13 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   }, []);
 
   useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     const timer = setTimeout(() => {
       performSearch(query);
     }, 300);
@@ -101,6 +104,47 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   if (!mounted) {
     return null;
   }
+
+  const renderResult = (result: SearchResult) => (
+    <button
+      key={result.id}
+      onClick={() => handleResultClick(result)}
+      className="block w-full text-left px-4 py-3 hover:bg-background-tertiary transition-colors cursor-pointer"
+    >
+      <div className="flex items-start gap-3">
+        <div className="mt-1">
+          {result.type === 'guide' ? (
+            <BookText className="w-4 h-4 text-text-secondary" />
+          ) : (
+            <SquareTerminal className="w-4 h-4 text-text-secondary" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-text-primary mb-1 text-[15px]">{result.title}</div>
+          {result.matchedValue?.path && (
+            <div className=" text-xs mb-1">
+              <span className="text-text-secondary flex items-center overflow-hidden gap-1 min-w-0">
+                <code className="text-[13px] font-bold font-mono text-text-secondary shrink-0">
+                  {result.matchedValue.value}
+                </code>
+                {result.matchedValue.description && (
+                  <span className="text-[13px] text-nowrap overflow-hidden text-ellipsis">
+                    {' '}
+                    {result.matchedValue.description.toLowerCase()}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+          {result.description && (
+            <div className="text-sm text-text-primary line-clamp-2">
+              {removeTagsFromDescription(result.description)}
+            </div>
+          )}
+        </div>
+      </div>
+    </button>
+  );
 
   const dialogContent = (
     <div
@@ -121,12 +165,36 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
             className="flex-1 outline-none text-lg bg-transparent text-text-primary font-medium text-[15px]"
             autoFocus
           />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="p-1 text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
           <kbd className="px-2 py-1 text-xs bg-background-secondary rounded text-text-tertiary">
             ESC
           </kbd>
         </div>
 
         <div className="overflow-y-auto  max-h-[calc(100vh-168px)] custom-scrollbar">
+          {!query && (
+            <div className="px-4 py-4 border-t border-background-border">
+              <div className="flex flex-wrap gap-2">
+                {SUGGESTED_QUERIES.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => handleSuggestedClick(suggestion)}
+                    className="px-2 py-1 text-[13px] font-medium text-text-secondary bg-background-secondary hover:bg-background-tertiary rounded-full transition-colors cursor-pointer"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {isLoading && (
             <div className="p-6 text-[14px]! text-center text-text-tertiary border-t border-background-border flex items-center justify-center gap-2">
               <Loader2 size={16} className="animate-spin" /> <span>Поиск...</span>
@@ -141,48 +209,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
 
           {!isLoading && results.length > 0 && (
             <div className="divide-y divide-background-border border-t border-background-border">
-              {results.map((result) => (
-                <button
-                  key={result.id}
-                  onClick={() => handleResultClick(result)}
-                  className="block w-full text-left px-4 py-3 hover:bg-background-tertiary transition-colors cursor-pointer"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">
-                      {result.type === 'guide' ? (
-                        <BookText className="w-4 h-4 text-text-secondary" />
-                      ) : (
-                        <SquareTerminal className="w-4 h-4 text-text-secondary" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-text-primary mb-1 text-[15px]">
-                        {result.title}
-                      </div>
-                      {result.matchedValue?.path && (
-                        <div className=" text-xs mb-1">
-                          <span className="text-text-secondary flex items-center overflow-hidden gap-1 min-w-0">
-                            <code className="text-[13px] font-bold font-mono text-text-secondary shrink-0">
-                              {result.matchedValue.value}
-                            </code>
-                            {result.matchedValue.description && (
-                              <span className="text-[13px] text-nowrap overflow-hidden text-ellipsis">
-                                {' '}
-                                {result.matchedValue.description.toLowerCase()}
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      )}
-                      {result.description && (
-                        <div className="text-sm text-text-primary line-clamp-2">
-                          {removeTagsFromDescription(result.description)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
+              {results.map(renderResult)}
             </div>
           )}
         </div>

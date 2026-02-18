@@ -140,7 +140,7 @@ Docker multi-stage: builder (bun + node, `turbo check` + `turbo build`) → runn
 
 ## Архитектура
 
-Next.js 16 (App Router, Turbopack) + MDX + FlexSearch + Shiki + Mermaid + GSAP.
+Next.js 16 (App Router, Turbopack) + MDX + FlexSearch (+ русские синонимы/стемминг) + Shiki + Mermaid + GSAP.
 
 Всё динамическое — навигация, маршруты, поиск, примеры кода генерируются из OpenAPI.
 
@@ -200,7 +200,7 @@ apps/docs/
 ├── lib/
 │   ├── openapi/              # Парсер, маппер, типы, генератор примеров, $ref resolver
 │   ├── code-generators/      # 9 языков (curl, js, nodejs, python, ruby, php, go, java, dotnet)
-│   ├── search/               # FlexSearch индексатор
+│   ├── search/               # FlexSearch индексатор + синонимы/стемминг
 │   ├── schemas/guides/       # Кастомные JSON-схемы для гайдов (5 файлов)
 │   ├── og/                   # Shared-компоненты OG-изображений
 │   ├── utils/                # Транслитерация, type guards
@@ -281,21 +281,34 @@ CORS разрешён только для `llms.txt`, `llms-full.txt`, `skill.md
 | API методы | Заголовок, описание, URL, поля request/response/параметров, enum-значения |
 | Гайды | Заголовок, описание, значения в backticks, поля из `<SchemaBlock>` |
 
+## Русский язык (`lib/search/synonyms.ts`)
+
+- **Синонимы**: рус↔англ маппинг (`участники` → `members`, `users`; `канал` → `chat`, `чат`, `беседа`)
+- **Стемминг**: отсечение русских окончаний (`участников` → `участник`, `канала` → `канал`)
+- **Стоп-слова**: фильтрация служебных слов (`как`, `можно`, `нужно`, `для`, `это`)
+- **Action patterns**: распознавание действий (`отправить` → `create/post`, `удалить` → `delete`)
+- **Цепочка**: запрос → стоп-слова → синонимы → стемминг → синонимы стемов → FlexSearch
+
 ## Скоринг
 
 | Критерий | Очки |
 |----------|------|
-| Schema field match | +12 |
+| Content relevance (2+ слова запроса в title+description) | +20 |
 | Exact title match | +10 |
+| Schema field match | +8 |
+| Action intent match (action + entity) | +15 |
 | Title field match | +5 |
 | Code value match | +4 |
+| Content relevance (1 слово) | +3 |
 | Description field match | +3 |
 | Guide type | +2 |
 | Keywords field match | +1 |
 
-Code-like запросы (`snake_case`, `camelCase`, `object.property`) — только точные совпадения, без приблизительного поиска.
+Code-like запросы (`snake_case`, `camelCase`, `object.property`) — только точные совпадения, без synonym expansion и стемминга.
 
 При клике на результат с `matchedValue.path` — переход + скролл к параметру (`#param-data-display_avatar_url`).
+
+Suggested queries показываются при пустом поле поиска (`SUGGESTED_QUERIES` в `synonyms.ts`).
 
 ---
 

@@ -186,7 +186,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
                   <button
                     key={suggestion}
                     onClick={() => handleSuggestedClick(suggestion)}
-                    className="px-2 py-1 text-[13px] font-medium text-text-secondary bg-background-secondary hover:bg-background-tertiary rounded-full transition-colors cursor-pointer"
+                    className="px-2 py-1 text-[13px] font-medium text-text-secondary bg-background-tertiary hover:text-text-primary rounded-full transition-colors cursor-pointer"
                   >
                     {suggestion}
                   </button>

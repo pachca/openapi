@@ -7,6 +7,14 @@ import {
 import type { Schema, Endpoint } from '../openapi/types';
 import { loadUpdates } from '../updates-parser';
 import { GUIDE_SCHEMAS } from '../schemas/guide-schemas';
+import {
+  expandQueryWithSynonyms,
+  removeStopWords,
+  extractActionIntent,
+  addStems,
+  stemRussian,
+  getWordVariants,
+} from './synonyms';
 import * as fs from 'fs';
 import * as path from 'path';
 import FlexSearch from 'flexsearch';
@@ -769,8 +777,8 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
     // Extract schema fields from referenced schemas
     const schemaData = extractGuideSchemaFields(guide.schemaNames, api.schemas);
 
-    // Merge schema keywords with existing keywords
-    const allKeywords = [...guide.keywords, ...schemaData.keywords];
+    // Merge schema keywords with existing keywords + stems for Russian morphology
+    const allKeywords = addStems([...guide.keywords, ...schemaData.keywords]);
 
     const guideDoc: SearchIndex = {
       id: guide.id,
@@ -838,6 +846,9 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
     // Add schema keywords
     keywords.push(...schemaResult.keywords);
 
+    // Add stems for Russian morphology matching
+    const keywordsWithStems = addStems(keywords);
+
     const endpointDoc: SearchIndex = {
       id: endpoint.id,
       title,
@@ -845,8 +856,8 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
       url,
       type: 'api',
       category: tag,
-      keywords: [...new Set(keywords)], // Remove duplicates
-      schemaFields: schemaResult.fields, // Store fields with descriptions for highlighting
+      keywords: [...new Set(keywordsWithStems)],
+      schemaFields: schemaResult.fields,
     };
 
     index.push(endpointDoc);
@@ -854,7 +865,7 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
     // Add to FlexSearch index with keywords as space-separated string for better matching
     flexIndex!.add({
       ...endpointDoc,
-      keywords: keywords.join(' '),
+      keywords: keywordsWithStems.join(' '),
     } as unknown as SearchIndex);
   }
 
@@ -956,34 +967,55 @@ export async function search(query: string): Promise<SearchResult[]> {
     return [];
   }
 
-  // Split query into words for multi-word search
-  const queryWords = lowerQuery.split(/\s+/).filter((w) => w.length > 1);
-
   // Detect if this is a code-like query (variable name, field name, etc.)
   const isCodeQuery = isCodeLikeQuery(query);
 
-  // Use FlexSearch for fast full-text search across all indexed fields
-  // Search in title, description, and keywords with different weights
-  const searchResults = flexIndex.search(lowerQuery, {
-    limit: 50, // Get more results than needed for better ranking
-    suggest: !isCodeQuery, // Disable suggestions for code queries (need exact matches)
-  });
+  // For natural language queries: expand with synonyms and extract action intent
+  const cleanedQuery = isCodeQuery ? lowerQuery : removeStopWords(lowerQuery);
+  const expandedQuery = isCodeQuery ? lowerQuery : expandQueryWithSynonyms(cleanedQuery);
+  const actionIntent = isCodeQuery ? undefined : extractActionIntent(lowerQuery);
+
+  // Split expanded query into words for multi-word matching (includes synonyms)
+  const expandedWords = expandedQuery.split(/\s+/).filter((w) => w.length > 1);
+
+  // Build stemmed query for Russian morphology matching
+  const stemmedWords = isCodeQuery
+    ? []
+    : expandedWords.map((w) => stemRussian(w)).filter((s): s is string => s !== undefined);
+  const stemmedQuery = stemmedWords.join(' ');
+
+  // Expand stemmed words with synonyms (e.g., "канала" → stem "канал" → synonyms "чат", "chat")
+  const stemSynonymsQuery = isCodeQuery ? '' : expandQueryWithSynonyms(stemmedQuery);
+
+  // Search with original, expanded, stemmed, and stem-synonym queries
+  const searchQueries = isCodeQuery
+    ? [lowerQuery]
+    : [...new Set([lowerQuery, expandedQuery, stemmedQuery, stemSynonymsQuery].filter(Boolean))];
 
   // Collect unique document IDs from all field results
   const matchedIds = new Set<string>();
-  const idToFieldMatches = new Map<string, string[]>(); // Track which fields matched
+  const idToFieldMatches = new Map<string, string[]>();
 
-  for (const fieldResult of searchResults) {
-    const field = fieldResult.field as string;
-    for (const id of fieldResult.result) {
-      const docId = String(id);
-      matchedIds.add(docId);
+  for (const sq of searchQueries) {
+    const searchResults = flexIndex.search(sq, {
+      limit: 50,
+      suggest: !isCodeQuery,
+    });
 
-      // Track field matches for scoring
-      if (!idToFieldMatches.has(docId)) {
-        idToFieldMatches.set(docId, []);
+    for (const fieldResult of searchResults) {
+      const field = fieldResult.field as string;
+      for (const id of fieldResult.result) {
+        const docId = String(id);
+        matchedIds.add(docId);
+
+        if (!idToFieldMatches.has(docId)) {
+          idToFieldMatches.set(docId, []);
+        }
+        const fields = idToFieldMatches.get(docId)!;
+        if (!fields.includes(field)) {
+          fields.push(field);
+        }
       }
-      idToFieldMatches.get(docId)!.push(field);
     }
   }
 
@@ -997,13 +1029,13 @@ export async function search(query: string): Promise<SearchResult[]> {
     const item = indexMap.get(id);
     if (!item) continue;
 
-    const matchResult = findMatchedValue(item, lowerQuery, queryWords);
+    const matchResult = findMatchedValue(item, lowerQuery, expandedWords);
     const fieldMatches = idToFieldMatches.get(id) || [];
 
     // For code-like queries, only include results that actually contain the query
     if (isCodeQuery) {
       const hasExactMatch = matchResult || itemContainsExactQuery(item, lowerQuery);
-      if (!hasExactMatch) continue; // Skip results without exact match
+      if (!hasExactMatch) continue;
     }
 
     // Calculate score based on match quality (not type)
@@ -1012,9 +1044,23 @@ export async function search(query: string): Promise<SearchResult[]> {
     // Exact title match is strongest signal
     if (item.title.toLowerCase().includes(lowerQuery)) score += 10;
 
-    // Matched in schema fields (actual API parameter) - highest priority
-    if (matchResult?.isSchemaField) score += 12;
-    // Matched in code values (just mentioned in text) - lower priority
+    // Content relevance: count how many query words match title+description (via stems + synonyms)
+    if (!isCodeQuery) {
+      const titleLower = item.title.toLowerCase();
+      const descLower = item.description.toLowerCase();
+      const queryTerms = lowerQuery.split(/\s+/).filter((w) => w.length > 1);
+      let contentMatches = 0;
+      for (const term of queryTerms) {
+        const variants = getWordVariants(term);
+        if (variants.some((v) => titleLower.includes(v) || descLower.includes(v))) contentMatches++;
+      }
+      if (contentMatches >= 2) score += 20;
+      else if (contentMatches === 1) score += 3;
+    }
+
+    // Matched in schema fields (actual API parameter)
+    if (matchResult?.isSchemaField) score += 8;
+    // Matched in code values (just mentioned in text)
     else if (matchResult) score += 4;
 
     // Field match priority
@@ -1024,6 +1070,19 @@ export async function search(query: string): Promise<SearchResult[]> {
 
     // Small bonus for guides (but not dominant)
     if (item.type === 'guide') score += 2;
+
+    // Action intent boost: if query matches action+entity pattern, boost matching endpoints
+    if (actionIntent && item.type === 'api') {
+      const itemKeywords = item.keywords.join(' ').toLowerCase();
+      const itemTitle = item.title.toLowerCase();
+      const hasAction = actionIntent.action.some(
+        (a) => itemKeywords.includes(a) || itemTitle.includes(a)
+      );
+      const entityWords = actionIntent.entity.split(/\s+/);
+      const hasEntity = entityWords.some((e) => itemKeywords.includes(e) || itemTitle.includes(e));
+      if (hasAction && hasEntity) score += 15;
+      else if (hasEntity) score += 5;
+    }
 
     results.push({
       ...item,

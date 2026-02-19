@@ -285,5 +285,3 @@ src/main/kotlin/org/openapitools/client/models/WebhookEventType.kt
 src/main/kotlin/org/openapitools/client/models/WebhookMessageThread.kt
 src/main/kotlin/org/openapitools/client/models/WebhookPayloadUnion.kt
 src/main/kotlin/org/openapitools/client/models/java.io.File.kt
-src/test/kotlin/org/openapitools/client/models/ViewBlockCheckboxOptionTest.kt
-src/test/kotlin/org/openapitools/client/models/ViewBlockSelectableOptionTest.kt

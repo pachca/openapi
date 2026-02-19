@@ -24,7 +24,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 val apiInstance = SecurityApi()
 val startTime : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Начальная метка времени (включительно)
 val endTime : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Конечная метка времени (исключительно)
-val eventKey : kotlin.String = eventKey_example // kotlin.String | Фильтр по конкретному типу события
+val eventKey : AuditEventKey =  // AuditEventKey | Фильтр по конкретному типу события
 val actorId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя, выполнившего действие
 val actorType : kotlin.String = actorType_example // kotlin.String | Тип актора
 val entityId : kotlin.Int = 56 // kotlin.Int | Идентификатор затронутой сущности
@@ -46,7 +46,7 @@ try {
 ### Parameters
 | **startTime** | **java.time.OffsetDateTime**| Начальная метка времени (включительно) | |
 | **endTime** | **java.time.OffsetDateTime**| Конечная метка времени (исключительно) | |
-| **eventKey** | **kotlin.String**| Фильтр по конкретному типу события | [optional] |
+| **eventKey** | [**AuditEventKey**](.md)| Фильтр по конкретному типу события | [optional] [enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected] |
 | **actorId** | **kotlin.Int**| Идентификатор пользователя, выполнившего действие | [optional] |
 | **actorType** | **kotlin.String**| Тип актора | [optional] |
 | **entityId** | **kotlin.Int**| Идентификатор затронутой сущности | [optional] |

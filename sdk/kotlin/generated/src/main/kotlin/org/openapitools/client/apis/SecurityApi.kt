@@ -16,6 +16,7 @@
 package org.openapitools.client.apis
 
 import org.openapitools.client.models.ApiError
+import org.openapitools.client.models.AuditEventKey
 import org.openapitools.client.models.OAuthError
 import org.openapitools.client.models.SecurityOperationsGetAuditEvents200Response
 
@@ -51,7 +52,7 @@ import io.ktor.http.ParametersBuilder
          * @return SecurityOperationsGetAuditEvents200Response
         */
             @Suppress("UNCHECKED_CAST")
-        open suspend fun securityOperationsGetAuditEvents(startTime: java.time.OffsetDateTime, endTime: java.time.OffsetDateTime, eventKey: kotlin.String?, actorId: kotlin.Int?, actorType: kotlin.String?, entityId: kotlin.Int?, entityType: kotlin.String?, limit: kotlin.Int?, cursor: kotlin.String?): HttpResponse<SecurityOperationsGetAuditEvents200Response> {
+        open suspend fun securityOperationsGetAuditEvents(startTime: java.time.OffsetDateTime, endTime: java.time.OffsetDateTime, eventKey: AuditEventKey?, actorId: kotlin.Int?, actorType: kotlin.String?, entityId: kotlin.Int?, entityType: kotlin.String?, limit: kotlin.Int?, cursor: kotlin.String?): HttpResponse<SecurityOperationsGetAuditEvents200Response> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

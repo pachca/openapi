@@ -8,6 +8,7 @@ from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
 
+from ..models.audit_event_key import AuditEventKey
 from dateutil.parser import isoparse
 from typing import cast
 import datetime
@@ -31,7 +32,7 @@ class AuditEvent:
             id (str): Уникальный идентификатор события Example: a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14.
             created_at (datetime.datetime): Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-
                 DDThh:mm:ss.sssZ Example: 2025-05-15T14:30:00.000Z.
-            event_key (str): Ключ типа события Example: user_chat_join.
+            event_key (AuditEventKey): Тип аудит-события
             entity_id (str): Идентификатор затронутой сущности Example: 12345678.
             entity_type (str): Тип затронутой сущности Example: Chat.
             actor_id (str): Идентификатор пользователя, выполнившего действие Example: 98765.
@@ -44,7 +45,7 @@ class AuditEvent:
 
     id: str
     created_at: datetime.datetime
-    event_key: str
+    event_key: AuditEventKey
     entity_id: str
     entity_type: str
     actor_id: str
@@ -64,7 +65,7 @@ class AuditEvent:
 
         created_at = self.created_at.isoformat()
 
-        event_key = self.event_key
+        event_key = self.event_key.value
 
         entity_id = self.entity_id
 
@@ -111,7 +112,10 @@ class AuditEvent:
 
 
 
-        event_key = d.pop("event_key")
+        event_key = AuditEventKey(d.pop("event_key"))
+
+
+
 
         entity_id = d.pop("entity_id")
 

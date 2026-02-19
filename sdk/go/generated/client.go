@@ -22,6 +22,38 @@ const (
 	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
+// Defines values for AuditEventKey.
+const (
+	AccessTokenCreated    AuditEventKey = "access_token_created"
+	AccessTokenDestroy    AuditEventKey = "access_token_destroy"
+	AccessTokenUpdated    AuditEventKey = "access_token_updated"
+	AuditEventsAccessed   AuditEventKey = "audit_events_accessed"
+	ChatCreated           AuditEventKey = "chat_created"
+	ChatPermissionChanged AuditEventKey = "chat_permission_changed"
+	ChatRenamed           AuditEventKey = "chat_renamed"
+	DlpViolationDetected  AuditEventKey = "dlp_violation_detected"
+	KmsDecrypt            AuditEventKey = "kms_decrypt"
+	KmsEncrypt            AuditEventKey = "kms_encrypt"
+	MessageDeleted        AuditEventKey = "message_deleted"
+	MessageUpdated        AuditEventKey = "message_updated"
+	TagAddedToChat        AuditEventKey = "tag_added_to_chat"
+	TagCreated            AuditEventKey = "tag_created"
+	TagDeleted            AuditEventKey = "tag_deleted"
+	TagRemovedFromChat    AuditEventKey = "tag_removed_from_chat"
+	User2faFail           AuditEventKey = "user_2fa_fail"
+	User2faSuccess        AuditEventKey = "user_2fa_success"
+	UserAddedToTag        AuditEventKey = "user_added_to_tag"
+	UserChatJoin          AuditEventKey = "user_chat_join"
+	UserChatLeave         AuditEventKey = "user_chat_leave"
+	UserCreated           AuditEventKey = "user_created"
+	UserDeleted           AuditEventKey = "user_deleted"
+	UserLogin             AuditEventKey = "user_login"
+	UserLogout            AuditEventKey = "user_logout"
+	UserRemovedFromTag    AuditEventKey = "user_removed_from_tag"
+	UserRoleChanged       AuditEventKey = "user_role_changed"
+	UserUpdated           AuditEventKey = "user_updated"
+)
+
 // Defines values for ButtonWebhookPayloadEvent.
 const (
 	Click ButtonWebhookPayloadEvent = "click"
@@ -342,7 +374,7 @@ type AuditEvent struct {
 	EntityType string `json:"entity_type"`
 
 	// EventKey Ключ типа события
-	EventKey string `json:"event_key"`
+	EventKey AuditEventKey `json:"event_key"`
 
 	// Id Уникальный идентификатор события
 	Id string `json:"id"`
@@ -353,6 +385,9 @@ type AuditEvent struct {
 	// UserAgent User agent клиента
 	UserAgent string `json:"user_agent"`
 }
+
+// AuditEventKey Тип аудит-события
+type AuditEventKey string
 
 // BotResponse Ответ с данными бота
 type BotResponse struct {
@@ -1701,7 +1736,7 @@ type SecurityOperationsGetAuditEventsParams struct {
 	EndTime time.Time `form:"end_time" json:"end_time"`
 
 	// EventKey Фильтр по конкретному типу события
-	EventKey *string `form:"event_key,omitempty" json:"event_key,omitempty"`
+	EventKey *AuditEventKey `form:"event_key,omitempty" json:"event_key,omitempty"`
 
 	// ActorId Идентификатор пользователя, выполнившего действие
 	ActorId *int32 `form:"actor_id,omitempty" json:"actor_id,omitempty"`

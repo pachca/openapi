@@ -9,6 +9,7 @@ from ...types import Response, UNSET
 from ... import errors
 
 from ...models.api_error import ApiError
+from ...models.audit_event_key import AuditEventKey
 from ...models.o_auth_error import OAuthError
 from ...models.security_operations_get_audit_events_response_200 import SecurityOperationsGetAuditEventsResponse200
 from ...types import UNSET, Unset
@@ -22,7 +23,7 @@ def _get_kwargs(
     *,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    event_key: str | Unset = UNSET,
+    event_key: AuditEventKey | Unset = UNSET,
     actor_id: int | Unset = UNSET,
     actor_type: str | Unset = UNSET,
     entity_id: int | Unset = UNSET,
@@ -43,7 +44,11 @@ def _get_kwargs(
     json_end_time = end_time.isoformat()
     params["end_time"] = json_end_time
 
-    params["event_key"] = event_key
+    json_event_key: str | Unset = UNSET
+    if not isinstance(event_key, Unset):
+        json_event_key = event_key.value
+
+    params["event_key"] = json_event_key
 
     params["actor_id"] = actor_id
 
@@ -128,7 +133,7 @@ def sync_detailed(
     client: AuthenticatedClient | Client,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    event_key: str | Unset = UNSET,
+    event_key: AuditEventKey | Unset = UNSET,
     actor_id: int | Unset = UNSET,
     actor_type: str | Unset = UNSET,
     entity_id: int | Unset = UNSET,
@@ -146,7 +151,7 @@ def sync_detailed(
     Args:
         start_time (datetime.datetime):
         end_time (datetime.datetime):
-        event_key (str | Unset):
+        event_key (AuditEventKey | Unset): Тип аудит-события
         actor_id (int | Unset):
         actor_type (str | Unset):
         entity_id (int | Unset):
@@ -187,7 +192,7 @@ def sync(
     client: AuthenticatedClient | Client,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    event_key: str | Unset = UNSET,
+    event_key: AuditEventKey | Unset = UNSET,
     actor_id: int | Unset = UNSET,
     actor_type: str | Unset = UNSET,
     entity_id: int | Unset = UNSET,
@@ -205,7 +210,7 @@ def sync(
     Args:
         start_time (datetime.datetime):
         end_time (datetime.datetime):
-        event_key (str | Unset):
+        event_key (AuditEventKey | Unset): Тип аудит-события
         actor_id (int | Unset):
         actor_type (str | Unset):
         entity_id (int | Unset):
@@ -241,7 +246,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient | Client,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    event_key: str | Unset = UNSET,
+    event_key: AuditEventKey | Unset = UNSET,
     actor_id: int | Unset = UNSET,
     actor_type: str | Unset = UNSET,
     entity_id: int | Unset = UNSET,
@@ -259,7 +264,7 @@ async def asyncio_detailed(
     Args:
         start_time (datetime.datetime):
         end_time (datetime.datetime):
-        event_key (str | Unset):
+        event_key (AuditEventKey | Unset): Тип аудит-события
         actor_id (int | Unset):
         actor_type (str | Unset):
         entity_id (int | Unset):
@@ -300,7 +305,7 @@ async def asyncio(
     client: AuthenticatedClient | Client,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    event_key: str | Unset = UNSET,
+    event_key: AuditEventKey | Unset = UNSET,
     actor_id: int | Unset = UNSET,
     actor_type: str | Unset = UNSET,
     entity_id: int | Unset = UNSET,
@@ -318,7 +323,7 @@ async def asyncio(
     Args:
         start_time (datetime.datetime):
         end_time (datetime.datetime):
-        event_key (str | Unset):
+        event_key (AuditEventKey | Unset): Тип аудит-события
         actor_id (int | Unset):
         actor_type (str | Unset):
         entity_id (int | Unset):

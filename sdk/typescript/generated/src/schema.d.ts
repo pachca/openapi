@@ -1088,7 +1088,7 @@ export interface components {
              * @description Ключ типа события
              * @example user_chat_join
              */
-            event_key: string;
+            event_key: components["schemas"]["AuditEventKey"];
             /**
              * @description Идентификатор затронутой сущности
              * @example 12345678
@@ -1129,6 +1129,11 @@ export interface components {
              */
             user_agent: string;
         };
+        /**
+         * @description Тип аудит-события
+         * @enum {string}
+         */
+        AuditEventKey: "user_login" | "user_logout" | "user_2fa_fail" | "user_2fa_success" | "user_created" | "user_deleted" | "user_role_changed" | "user_updated" | "tag_created" | "tag_deleted" | "user_added_to_tag" | "user_removed_from_tag" | "chat_created" | "chat_renamed" | "chat_permission_changed" | "user_chat_join" | "user_chat_leave" | "tag_added_to_chat" | "tag_removed_from_chat" | "message_updated" | "message_deleted" | "access_token_created" | "access_token_updated" | "access_token_destroy" | "kms_encrypt" | "kms_decrypt" | "audit_events_accessed" | "dlp_violation_detected";
         BearerAuth: {
             /**
              * @description Http authentication
@@ -3054,7 +3059,7 @@ export interface operations {
                 /** @description Конечная метка времени (исключительно) */
                 end_time: string;
                 /** @description Фильтр по конкретному типу события */
-                event_key?: string;
+                event_key?: components["schemas"]["AuditEventKey"];
                 /** @description Идентификатор пользователя, выполнившего действие */
                 actor_id?: number;
                 /** @description Тип актора */

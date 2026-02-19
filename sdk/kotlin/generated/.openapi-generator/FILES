@@ -5,6 +5,7 @@ docs/AddTagsRequest.md
 docs/ApiError.md
 docs/ApiErrorItem.md
 docs/AuditEvent.md
+docs/AuditEventKey.md
 docs/BearerAuth.md
 docs/BotOperationsGetWebhookEvents200Response.md
 docs/BotOperationsUpdateBot200Response.md
@@ -168,6 +169,7 @@ src/main/kotlin/org/openapitools/client/models/AddTagsRequest.kt
 src/main/kotlin/org/openapitools/client/models/ApiError.kt
 src/main/kotlin/org/openapitools/client/models/ApiErrorItem.kt
 src/main/kotlin/org/openapitools/client/models/AuditEvent.kt
+src/main/kotlin/org/openapitools/client/models/AuditEventKey.kt
 src/main/kotlin/org/openapitools/client/models/BearerAuth.kt
 src/main/kotlin/org/openapitools/client/models/BotOperationsGetWebhookEvents200Response.kt
 src/main/kotlin/org/openapitools/client/models/BotOperationsUpdateBot200Response.kt
@@ -281,3 +283,4 @@ src/main/kotlin/org/openapitools/client/models/WebhookEventType.kt
 src/main/kotlin/org/openapitools/client/models/WebhookMessageThread.kt
 src/main/kotlin/org/openapitools/client/models/WebhookPayloadUnion.kt
 src/main/kotlin/org/openapitools/client/models/java.io.File.kt
+src/test/kotlin/org/openapitools/client/models/AuditEventKeyTest.kt

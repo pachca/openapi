@@ -6,6 +6,7 @@ from .api_error import ApiError
 from .api_error_item import ApiErrorItem
 from .audit_event import AuditEvent
 from .audit_event_details import AuditEventDetails
+from .audit_event_key import AuditEventKey
 from .bearer_auth import BearerAuth
 from .bearer_auth_scheme import BearerAuthScheme
 from .bearer_auth_type import BearerAuthType
@@ -167,6 +168,7 @@ __all__ = (
     "ApiErrorItem",
     "AuditEvent",
     "AuditEventDetails",
+    "AuditEventKey",
     "BearerAuth",
     "BearerAuthScheme",
     "BearerAuthType",

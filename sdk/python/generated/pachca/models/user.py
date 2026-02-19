@@ -82,8 +82,8 @@ class User:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.custom_property import CustomProperty
         from ..models.user_status import UserStatus
+        from ..models.custom_property import CustomProperty
         id = self.id
 
         first_name = self.first_name

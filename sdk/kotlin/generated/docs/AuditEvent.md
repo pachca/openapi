@@ -6,7 +6,7 @@
 | ------------ | ------------- | ------------- | ------------- |
 | **id** | **kotlin.String** | Уникальный идентификатор события |  |
 | **createdAt** | [**java.time.OffsetDateTime**](java.time.OffsetDateTime.md) | Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ |  |
-| **eventKey** | **kotlin.String** | Ключ типа события |  |
+| **eventKey** | [**AuditEventKey**](AuditEventKey.md) | Ключ типа события |  |
 | **entityId** | **kotlin.String** | Идентификатор затронутой сущности |  |
 | **entityType** | **kotlin.String** | Тип затронутой сущности |  |
 | **actorId** | **kotlin.String** | Идентификатор пользователя, выполнившего действие |  |

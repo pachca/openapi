@@ -1,0 +1,34 @@
+from enum import Enum
+
+class AuditEventKey(str, Enum):
+    ACCESS_TOKEN_CREATED = "access_token_created"
+    ACCESS_TOKEN_DESTROY = "access_token_destroy"
+    ACCESS_TOKEN_UPDATED = "access_token_updated"
+    AUDIT_EVENTS_ACCESSED = "audit_events_accessed"
+    CHAT_CREATED = "chat_created"
+    CHAT_PERMISSION_CHANGED = "chat_permission_changed"
+    CHAT_RENAMED = "chat_renamed"
+    DLP_VIOLATION_DETECTED = "dlp_violation_detected"
+    KMS_DECRYPT = "kms_decrypt"
+    KMS_ENCRYPT = "kms_encrypt"
+    MESSAGE_DELETED = "message_deleted"
+    MESSAGE_UPDATED = "message_updated"
+    TAG_ADDED_TO_CHAT = "tag_added_to_chat"
+    TAG_CREATED = "tag_created"
+    TAG_DELETED = "tag_deleted"
+    TAG_REMOVED_FROM_CHAT = "tag_removed_from_chat"
+    USER_2FA_FAIL = "user_2fa_fail"
+    USER_2FA_SUCCESS = "user_2fa_success"
+    USER_ADDED_TO_TAG = "user_added_to_tag"
+    USER_CHAT_JOIN = "user_chat_join"
+    USER_CHAT_LEAVE = "user_chat_leave"
+    USER_CREATED = "user_created"
+    USER_DELETED = "user_deleted"
+    USER_LOGIN = "user_login"
+    USER_LOGOUT = "user_logout"
+    USER_REMOVED_FROM_TAG = "user_removed_from_tag"
+    USER_ROLE_CHANGED = "user_role_changed"
+    USER_UPDATED = "user_updated"
+
+    def __str__(self) -> str:
+        return str(self.value)

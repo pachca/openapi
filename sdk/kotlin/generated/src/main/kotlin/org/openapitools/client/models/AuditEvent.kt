@@ -15,6 +15,7 @@
 
 package org.openapitools.client.models
 
+import org.openapitools.client.models.AuditEventKey
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -47,7 +48,7 @@ data class AuditEvent (
 
     /* Ключ типа события */
     @Json(name = "event_key")
-    val eventKey: kotlin.String,
+    val eventKey: AuditEventKey,
 
     /* Идентификатор затронутой сущности */
     @Json(name = "entity_id")

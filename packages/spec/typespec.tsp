@@ -1535,29 +1535,46 @@ model TaskUpdateRequest {
 }
 
 @doc("Опция для блоков select, radio и checkbox")
-model ViewBlockOption {
+model ViewBlockSelectableOption {
   @doc("Отображаемый текст")
   @example("Ничего")
   @maxLength(75)
   text: string;
-  
+
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
   @maxLength(150)
   value: string;
-  
+
   @doc("Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом")
   @example("Каждый день бот будет присылать список новых задач в вашей команде")
   @maxLength(75)
   description?: string;
-  
-  @doc("Изначально выбранный пункт. Только один пункт может быть выбран.")
-  @example(true)
-  checked?: boolean;
-  
+
   @doc("Изначально выбранный пункт. Только один пункт может быть выбран.")
   @example(true)
   selected?: boolean;
+}
+
+model ViewBlockCheckboxOption {
+  @doc("Отображаемый текст")
+  @example("Ничего")
+  @maxLength(75)
+  text: string;
+
+  @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
+  @example("nothing")
+  @maxLength(150)
+  value: string;
+
+  @doc("Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом")
+  @example("Каждый день бот будет присылать список новых задач в вашей команде")
+  @maxLength(75)
+  description?: string;
+
+  @doc("Изначально выбранный пункт")
+  @example(true)
+  checked?: boolean;
 }
 
 @doc("Блок header — заголовок")
@@ -1688,7 +1705,7 @@ model ViewBlockSelect {
   
   @doc("Массив доступных пунктов в выпадающем списке")
   @maxItems(100)
-  options?: ViewBlockOption[];
+  options?: ViewBlockSelectableOption[];
   
   @doc("Обязательность")
   required?: boolean;
@@ -1719,7 +1736,7 @@ model ViewBlockRadio {
   
   @doc("Массив радиокнопок")
   @maxItems(10)
-  options?: ViewBlockOption[];
+  options?: ViewBlockSelectableOption[];
   
   @doc("Обязательность")
   @example(true)
@@ -1752,7 +1769,7 @@ model ViewBlockCheckbox {
   
   @doc("Массив чекбоксов")
   @maxItems(10)
-  options?: ViewBlockOption[];
+  options?: ViewBlockCheckboxOption[];
   
   @doc("Обязательность")
   required?: boolean;
@@ -5257,7 +5274,7 @@ interface FormOperations {
                 #{
                   text: "Ничего",
                   value: "nothing",
-                  checked: true
+                  selected: true
                 },
                 #{
                   text: "Только телефон",

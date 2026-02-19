@@ -1073,7 +1073,7 @@ model UploadParams {
   @doc("Уникальный ключ для загрузки файла")
   @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename")
   key: string;
-  
+
   @doc("Адрес для загрузки файла")
   @example("https://api.pachca.com/api/v3/direct_upload")
   @encodedName("application/json", "direct_url")
@@ -1535,29 +1535,46 @@ model TaskUpdateRequest {
 }
 
 @doc("Опция для блоков select, radio и checkbox")
-model ViewBlockOption {
+model ViewBlockSelectableOption {
   @doc("Отображаемый текст")
   @example("Ничего")
   @maxLength(75)
   text: string;
-  
+
   @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
   @example("nothing")
   @maxLength(150)
   value: string;
-  
+
   @doc("Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом")
   @example("Каждый день бот будет присылать список новых задач в вашей команде")
   @maxLength(75)
   description?: string;
-  
-  @doc("Изначально выбранный пункт. Только один пункт может быть выбран.")
-  @example(true)
-  checked?: boolean;
-  
+
   @doc("Изначально выбранный пункт. Только один пункт может быть выбран.")
   @example(true)
   selected?: boolean;
+}
+
+model ViewBlockCheckboxOption {
+  @doc("Отображаемый текст")
+  @example("Ничего")
+  @maxLength(75)
+  text: string;
+
+  @doc("Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта")
+  @example("nothing")
+  @maxLength(150)
+  value: string;
+
+  @doc("Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом")
+  @example("Каждый день бот будет присылать список новых задач в вашей команде")
+  @maxLength(75)
+  description?: string;
+
+  @doc("Изначально выбранный пункт")
+  @example(true)
+  checked?: boolean;
 }
 
 @doc("Блок header — заголовок")
@@ -1688,7 +1705,7 @@ model ViewBlockSelect {
   
   @doc("Массив доступных пунктов в выпадающем списке")
   @maxItems(100)
-  options?: ViewBlockOption[];
+  options?: ViewBlockSelectableOption[];
   
   @doc("Обязательность")
   required?: boolean;
@@ -1719,7 +1736,7 @@ model ViewBlockRadio {
   
   @doc("Массив радиокнопок")
   @maxItems(10)
-  options?: ViewBlockOption[];
+  options?: ViewBlockSelectableOption[];
   
   @doc("Обязательность")
   @example(true)
@@ -1752,7 +1769,7 @@ model ViewBlockCheckbox {
   
   @doc("Массив чекбоксов")
   @maxItems(10)
-  options?: ViewBlockOption[];
+  options?: ViewBlockCheckboxOption[];
   
   @doc("Обязательность")
   required?: boolean;
@@ -2414,14 +2431,14 @@ interface DirectUploadOperations {
 **Процесс загрузки состоит из трёх шагов:**
 
 1. [Получение подписи, ключа и других параметров](POST /uploads) — сделать `POST`-запрос без тела запроса для получения параметров загрузки.
-2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition, acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При успешной загрузке — `HTTP` статус `204`, тело ответа отсутствует.
+2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition, acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При успешной загрузке — `HTTP` статус `201`.
 3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `$filename` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/$filename`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
 """)
   @post
   @route("direct_url")
   uploadFile(
     @multipartBody request: FileUploadRequest
-  ): {@statusCode _: 204, ...EmptyResponse};
+  ): {@statusCode _: 201};
 }
 
 @route("/chats/exports")
@@ -5257,7 +5274,7 @@ interface FormOperations {
                 #{
                   text: "Ничего",
                   value: "nothing",
-                  checked: true
+                  selected: true
                 },
                 #{
                   text: "Только телефон",

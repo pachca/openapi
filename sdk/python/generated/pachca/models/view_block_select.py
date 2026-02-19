@@ -13,7 +13,7 @@ from ..types import UNSET, Unset
 from typing import cast
 
 if TYPE_CHECKING:
-  from ..models.view_block_option import ViewBlockOption
+  from ..models.view_block_selectable_option import ViewBlockSelectableOption
 
 
 
@@ -32,7 +32,7 @@ class ViewBlockSelect:
             name (str): Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора Example:
                 team.
             label (str): Подпись к выпадающему списку Example: Выберите команду.
-            options (list[ViewBlockOption] | Unset): Массив доступных пунктов в выпадающем списке
+            options (list[ViewBlockSelectableOption] | Unset): Массив доступных пунктов в выпадающем списке
             required (bool | Unset): Обязательность
             hint (str | Unset): Подсказка, которая отображается под выпадающим списком серым цветом
      """
@@ -40,7 +40,7 @@ class ViewBlockSelect:
     type_: ViewBlockSelectType
     name: str
     label: str
-    options: list[ViewBlockOption] | Unset = UNSET
+    options: list[ViewBlockSelectableOption] | Unset = UNSET
     required: bool | Unset = UNSET
     hint: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -50,7 +50,7 @@ class ViewBlockSelect:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.view_block_option import ViewBlockOption
+        from ..models.view_block_selectable_option import ViewBlockSelectableOption
         type_ = self.type_.value
 
         name = self.name
@@ -91,7 +91,7 @@ class ViewBlockSelect:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.view_block_option import ViewBlockOption
+        from ..models.view_block_selectable_option import ViewBlockSelectableOption
         d = dict(src_dict)
         type_ = ViewBlockSelectType(d.pop("type"))
 
@@ -103,11 +103,11 @@ class ViewBlockSelect:
         label = d.pop("label")
 
         _options = d.pop("options", UNSET)
-        options: list[ViewBlockOption] | Unset = UNSET
+        options: list[ViewBlockSelectableOption] | Unset = UNSET
         if _options is not UNSET:
             options = []
             for options_item_data in _options:
-                options_item = ViewBlockOption.from_dict(options_item_data)
+                options_item = ViewBlockSelectableOption.from_dict(options_item_data)
 
 
 

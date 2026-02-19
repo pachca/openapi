@@ -1456,7 +1456,7 @@ type ViewBlockCheckbox struct {
 	Name string `json:"name"`
 
 	// Options Массив чекбоксов
-	Options *[]ViewBlockOption `json:"options,omitempty"`
+	Options *[]ViewBlockCheckboxOption `json:"options,omitempty"`
 
 	// Required Обязательность
 	Required *bool `json:"required,omitempty"`
@@ -1467,6 +1467,21 @@ type ViewBlockCheckbox struct {
 
 // ViewBlockCheckboxType Тип блока
 type ViewBlockCheckboxType string
+
+// ViewBlockCheckboxOption defines model for ViewBlockCheckboxOption.
+type ViewBlockCheckboxOption struct {
+	// Checked Изначально выбранный пункт
+	Checked *bool `json:"checked,omitempty"`
+
+	// Description Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
+	Description *string `json:"description,omitempty"`
+
+	// Text Отображаемый текст
+	Text string `json:"text"`
+
+	// Value Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+	Value string `json:"value"`
+}
 
 // ViewBlockDate Блок date — выбор даты
 type ViewBlockDate struct {
@@ -1588,24 +1603,6 @@ type ViewBlockMarkdown struct {
 // ViewBlockMarkdownType Тип блока
 type ViewBlockMarkdownType string
 
-// ViewBlockOption Опция для блоков select, radio и checkbox
-type ViewBlockOption struct {
-	// Checked Изначально выбранный пункт. Только один пункт может быть выбран.
-	Checked *bool `json:"checked,omitempty"`
-
-	// Description Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
-	Description *string `json:"description,omitempty"`
-
-	// Selected Изначально выбранный пункт. Только один пункт может быть выбран.
-	Selected *bool `json:"selected,omitempty"`
-
-	// Text Отображаемый текст
-	Text string `json:"text"`
-
-	// Value Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
-	Value string `json:"value"`
-}
-
 // ViewBlockPlainText Блок plain_text — обычный текст
 type ViewBlockPlainText struct {
 	// Text Текст
@@ -1630,7 +1627,7 @@ type ViewBlockRadio struct {
 	Name string `json:"name"`
 
 	// Options Массив радиокнопок
-	Options *[]ViewBlockOption `json:"options,omitempty"`
+	Options *[]ViewBlockSelectableOption `json:"options,omitempty"`
 
 	// Required Обязательность
 	Required *bool `json:"required,omitempty"`
@@ -1654,7 +1651,7 @@ type ViewBlockSelect struct {
 	Name string `json:"name"`
 
 	// Options Массив доступных пунктов в выпадающем списке
-	Options *[]ViewBlockOption `json:"options,omitempty"`
+	Options *[]ViewBlockSelectableOption `json:"options,omitempty"`
 
 	// Required Обязательность
 	Required *bool `json:"required,omitempty"`
@@ -1665,6 +1662,21 @@ type ViewBlockSelect struct {
 
 // ViewBlockSelectType Тип блока
 type ViewBlockSelectType string
+
+// ViewBlockSelectableOption Опция для блоков select, radio и checkbox
+type ViewBlockSelectableOption struct {
+	// Description Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
+	Description *string `json:"description,omitempty"`
+
+	// Selected Изначально выбранный пункт. Только один пункт может быть выбран.
+	Selected *bool `json:"selected,omitempty"`
+
+	// Text Отображаемый текст
+	Text string `json:"text"`
+
+	// Value Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+	Value string `json:"value"`
+}
 
 // ViewBlockTime Блок time — выбор времени
 type ViewBlockTime struct {

@@ -40,7 +40,7 @@ def _get_kwargs(
 
 
 def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | None:
-    if response.status_code == 204:
+    if response.status_code == 201:
         return None
 
     if client.raise_on_unexpected_status:
@@ -79,7 +79,7 @@ def sync_detailed(
     2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом
     `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition,
     acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При
-    успешной загрузке — `HTTP` статус `204`, тело ответа отсутствует.
+    успешной загрузке — `HTTP` статус `201`.
     3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить
     его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`,
     полученном на этапе подписи, заменить шаблон `$filename` на фактическое имя файла. Пример: Если ваш
@@ -132,7 +132,7 @@ async def asyncio_detailed(
     2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом
     `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition,
     acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При
-    успешной загрузке — `HTTP` статус `204`, тело ответа отсутствует.
+    успешной загрузке — `HTTP` статус `201`.
     3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить
     его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`,
     полученном на этапе подписи, заменить шаблон `$filename` на фактическое имя файла. Пример: Если ваш

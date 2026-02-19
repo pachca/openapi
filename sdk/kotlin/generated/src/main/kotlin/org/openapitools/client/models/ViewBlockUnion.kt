@@ -16,13 +16,13 @@
 package org.openapitools.client.models
 
 import org.openapitools.client.models.ViewBlockCheckbox
+import org.openapitools.client.models.ViewBlockCheckboxOption
 import org.openapitools.client.models.ViewBlockDate
 import org.openapitools.client.models.ViewBlockDivider
 import org.openapitools.client.models.ViewBlockFileInput
 import org.openapitools.client.models.ViewBlockHeader
 import org.openapitools.client.models.ViewBlockInput
 import org.openapitools.client.models.ViewBlockMarkdown
-import org.openapitools.client.models.ViewBlockOption
 import org.openapitools.client.models.ViewBlockPlainText
 import org.openapitools.client.models.ViewBlockRadio
 import org.openapitools.client.models.ViewBlockSelect
@@ -101,7 +101,7 @@ data class ViewBlockUnion (
 
     /* Массив чекбоксов */
     @Json(name = "options")
-    val options: kotlin.collections.List<ViewBlockOption>? = null,
+    val options: kotlin.collections.List<ViewBlockCheckboxOption>? = null,
 
     /* Начальное значение в поле в формате YYYY-MM-DD */
     @Json(name = "initial_date")

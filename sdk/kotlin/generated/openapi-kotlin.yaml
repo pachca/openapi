@@ -1466,8 +1466,7 @@ paths:
         `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`,
         включая те же поля, что пришли (content-disposition, acl, policy,
         x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и
-        сам файл. При успешной загрузке — `HTTP` статус `204`, тело ответа
-        отсутствует.
+        сам файл. При успешной загрузке — `HTTP` статус `201`.
 
         3. **Прикрепление файла к сообщению или другой сущности** — после
         загрузки файла, чтобы прикрепить его к сообщению или другой сущности
@@ -1479,9 +1478,9 @@ paths:
         `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
       parameters: []
       responses:
-        "204":
-          description: "There is no content to send for this request, but the headers may
-            be useful. "
+        "201":
+          description: The request has succeeded and a new resource has been created as a
+            result.
       tags:
         - Common
       requestBody:
@@ -4441,7 +4440,7 @@ paths:
                     options:
                       - text: Ничего
                         value: nothing
-                        checked: true
+                        selected: true
                       - text: Только телефон
                         value: phone_only
                       - text: Телефон и ноутбук
@@ -6866,7 +6865,7 @@ components:
         options:
           type: array
           items:
-            $ref: "#/components/schemas/ViewBlockOption"
+            $ref: "#/components/schemas/ViewBlockCheckboxOption"
           maxItems: 10
           description: Массив чекбоксов
         required:
@@ -6877,6 +6876,33 @@ components:
           maxLength: 2000
           description: Подсказка, которая отображается под группой чекбоксов серым цветом
       description: Блок checkbox — чекбоксы
+    ViewBlockCheckboxOption:
+      type: object
+      required:
+        - text
+        - value
+      properties:
+        text:
+          type: string
+          maxLength: 75
+          description: Отображаемый текст
+          example: Ничего
+        value:
+          type: string
+          maxLength: 150
+          description: Уникальное строковое значение, которое будет передано в ваше
+            приложение при выборе этого пункта
+          example: nothing
+        description:
+          type: string
+          maxLength: 75
+          description: Пояснение, которое будет указано серым цветом в этом пункте под
+            отображаемым текстом
+          example: Каждый день бот будет присылать список новых задач в вашей команде
+        checked:
+          type: boolean
+          description: Изначально выбранный пункт
+          example: true
     ViewBlockDate:
       type: object
       required:
@@ -7080,38 +7106,6 @@ components:
           example: Информацию о доступных вам днях отпуска вы можете прочитать по
             [ссылке](https://www.website.com/timeoff)
       description: Блок markdown — форматированный текст
-    ViewBlockOption:
-      type: object
-      required:
-        - text
-        - value
-      properties:
-        text:
-          type: string
-          maxLength: 75
-          description: Отображаемый текст
-          example: Ничего
-        value:
-          type: string
-          maxLength: 150
-          description: Уникальное строковое значение, которое будет передано в ваше
-            приложение при выборе этого пункта
-          example: nothing
-        description:
-          type: string
-          maxLength: 75
-          description: Пояснение, которое будет указано серым цветом в этом пункте под
-            отображаемым текстом
-          example: Каждый день бот будет присылать список новых задач в вашей команде
-        checked:
-          type: boolean
-          description: Изначально выбранный пункт. Только один пункт может быть выбран.
-          example: true
-        selected:
-          type: boolean
-          description: Изначально выбранный пункт. Только один пункт может быть выбран.
-          example: true
-      description: Опция для блоков select, radio и checkbox
     ViewBlockPlainText:
       type: object
       required:
@@ -7158,7 +7152,7 @@ components:
         options:
           type: array
           items:
-            $ref: "#/components/schemas/ViewBlockOption"
+            $ref: "#/components/schemas/ViewBlockSelectableOption"
           maxItems: 10
           description: Массив радиокнопок
         required:
@@ -7198,7 +7192,7 @@ components:
         options:
           type: array
           items:
-            $ref: "#/components/schemas/ViewBlockOption"
+            $ref: "#/components/schemas/ViewBlockSelectableOption"
           maxItems: 100
           description: Массив доступных пунктов в выпадающем списке
         required:
@@ -7209,6 +7203,34 @@ components:
           maxLength: 2000
           description: Подсказка, которая отображается под выпадающим списком серым цветом
       description: Блок select — выпадающий список
+    ViewBlockSelectableOption:
+      type: object
+      required:
+        - text
+        - value
+      properties:
+        text:
+          type: string
+          maxLength: 75
+          description: Отображаемый текст
+          example: Ничего
+        value:
+          type: string
+          maxLength: 150
+          description: Уникальное строковое значение, которое будет передано в ваше
+            приложение при выборе этого пункта
+          example: nothing
+        description:
+          type: string
+          maxLength: 75
+          description: Пояснение, которое будет указано серым цветом в этом пункте под
+            отображаемым текстом
+          example: Каждый день бот будет присылать список новых задач в вашей команде
+        selected:
+          type: boolean
+          description: Изначально выбранный пункт. Только один пункт может быть выбран.
+          example: true
+      description: Опция для блоков select, radio и checkbox
     ViewBlockTime:
       type: object
       required:

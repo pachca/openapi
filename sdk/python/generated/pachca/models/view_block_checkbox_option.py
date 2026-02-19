@@ -15,29 +15,26 @@ from ..types import UNSET, Unset
 
 
 
-T = TypeVar("T", bound="ViewBlockOption")
+T = TypeVar("T", bound="ViewBlockCheckboxOption")
 
 
 
 @_attrs_define
-class ViewBlockOption:
-    """ Опция для блоков select, radio и checkbox
-
+class ViewBlockCheckboxOption:
+    """ 
         Attributes:
             text (str): Отображаемый текст Example: Ничего.
             value (str): Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
                 Example: nothing.
             description (str | Unset): Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
                 Example: Каждый день бот будет присылать список новых задач в вашей команде.
-            checked (bool | Unset): Изначально выбранный пункт. Только один пункт может быть выбран. Example: True.
-            selected (bool | Unset): Изначально выбранный пункт. Только один пункт может быть выбран. Example: True.
+            checked (bool | Unset): Изначально выбранный пункт Example: True.
      """
 
     text: str
     value: str
     description: str | Unset = UNSET
     checked: bool | Unset = UNSET
-    selected: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -53,8 +50,6 @@ class ViewBlockOption:
 
         checked = self.checked
 
-        selected = self.selected
-
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -66,8 +61,6 @@ class ViewBlockOption:
             field_dict["description"] = description
         if checked is not UNSET:
             field_dict["checked"] = checked
-        if selected is not UNSET:
-            field_dict["selected"] = selected
 
         return field_dict
 
@@ -84,19 +77,16 @@ class ViewBlockOption:
 
         checked = d.pop("checked", UNSET)
 
-        selected = d.pop("selected", UNSET)
-
-        view_block_option = cls(
+        view_block_checkbox_option = cls(
             text=text,
             value=value,
             description=description,
             checked=checked,
-            selected=selected,
         )
 
 
-        view_block_option.additional_properties = d
-        return view_block_option
+        view_block_checkbox_option.additional_properties = d
+        return view_block_checkbox_option
 
     @property
     def additional_keys(self) -> list[str]:

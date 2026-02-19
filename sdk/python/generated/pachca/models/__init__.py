@@ -135,6 +135,7 @@ from .user_update_request_user_role import UserUpdateRequestUserRole
 from .validation_error_code import ValidationErrorCode
 from .view_block import ViewBlock
 from .view_block_checkbox import ViewBlockCheckbox
+from .view_block_checkbox_option import ViewBlockCheckboxOption
 from .view_block_checkbox_type import ViewBlockCheckboxType
 from .view_block_date import ViewBlockDate
 from .view_block_date_type import ViewBlockDateType
@@ -148,13 +149,13 @@ from .view_block_input import ViewBlockInput
 from .view_block_input_type import ViewBlockInputType
 from .view_block_markdown import ViewBlockMarkdown
 from .view_block_markdown_type import ViewBlockMarkdownType
-from .view_block_option import ViewBlockOption
 from .view_block_plain_text import ViewBlockPlainText
 from .view_block_plain_text_type import ViewBlockPlainTextType
 from .view_block_radio import ViewBlockRadio
 from .view_block_radio_type import ViewBlockRadioType
 from .view_block_select import ViewBlockSelect
 from .view_block_select_type import ViewBlockSelectType
+from .view_block_selectable_option import ViewBlockSelectableOption
 from .view_block_time import ViewBlockTime
 from .view_block_time_type import ViewBlockTimeType
 from .webhook_event import WebhookEvent
@@ -297,6 +298,7 @@ __all__ = (
     "ValidationErrorCode",
     "ViewBlock",
     "ViewBlockCheckbox",
+    "ViewBlockCheckboxOption",
     "ViewBlockCheckboxType",
     "ViewBlockDate",
     "ViewBlockDateType",
@@ -310,12 +312,12 @@ __all__ = (
     "ViewBlockInputType",
     "ViewBlockMarkdown",
     "ViewBlockMarkdownType",
-    "ViewBlockOption",
     "ViewBlockPlainText",
     "ViewBlockPlainTextType",
     "ViewBlockRadio",
     "ViewBlockRadioType",
     "ViewBlockSelect",
+    "ViewBlockSelectableOption",
     "ViewBlockSelectType",
     "ViewBlockTime",
     "ViewBlockTimeType",

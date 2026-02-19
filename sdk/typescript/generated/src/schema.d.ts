@@ -377,7 +377,7 @@ export interface paths {
          *     **Процесс загрузки состоит из трёх шагов:**
          *
          *     1. [Получение подписи, ключа и других параметров](POST /uploads) — сделать `POST`-запрос без тела запроса для получения параметров загрузки.
-         *     2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition, acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При успешной загрузке — `HTTP` статус `204`, тело ответа отсутствует.
+         *     2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition, acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При успешной загрузке — `HTTP` статус `201`.
          *     3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `$filename` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/$filename`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
          */
         post: operations["DirectUploadOperations_uploadFile"];
@@ -2696,11 +2696,33 @@ export interface components {
              */
             label: string;
             /** @description Массив чекбоксов */
-            options?: components["schemas"]["ViewBlockOption"][];
+            options?: components["schemas"]["ViewBlockCheckboxOption"][];
             /** @description Обязательность */
             required?: boolean;
             /** @description Подсказка, которая отображается под группой чекбоксов серым цветом */
             hint?: string;
+        };
+        ViewBlockCheckboxOption: {
+            /**
+             * @description Отображаемый текст
+             * @example Ничего
+             */
+            text: string;
+            /**
+             * @description Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+             * @example nothing
+             */
+            value: string;
+            /**
+             * @description Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
+             * @example Каждый день бот будет присылать список новых задач в вашей команде
+             */
+            description?: string;
+            /**
+             * @description Изначально выбранный пункт
+             * @example true
+             */
+            checked?: boolean;
         };
         /** @description Блок date — выбор даты */
         ViewBlockDate: {
@@ -2867,34 +2889,6 @@ export interface components {
              */
             text: string;
         };
-        /** @description Опция для блоков select, radio и checkbox */
-        ViewBlockOption: {
-            /**
-             * @description Отображаемый текст
-             * @example Ничего
-             */
-            text: string;
-            /**
-             * @description Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
-             * @example nothing
-             */
-            value: string;
-            /**
-             * @description Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
-             * @example Каждый день бот будет присылать список новых задач в вашей команде
-             */
-            description?: string;
-            /**
-             * @description Изначально выбранный пункт. Только один пункт может быть выбран.
-             * @example true
-             */
-            checked?: boolean;
-            /**
-             * @description Изначально выбранный пункт. Только один пункт может быть выбран.
-             * @example true
-             */
-            selected?: boolean;
-        };
         /** @description Блок plain_text — обычный текст */
         ViewBlockPlainText: {
             /**
@@ -2928,7 +2922,7 @@ export interface components {
              */
             label: string;
             /** @description Массив радиокнопок */
-            options?: components["schemas"]["ViewBlockOption"][];
+            options?: components["schemas"]["ViewBlockSelectableOption"][];
             /**
              * @description Обязательность
              * @example true
@@ -2959,11 +2953,34 @@ export interface components {
              */
             label: string;
             /** @description Массив доступных пунктов в выпадающем списке */
-            options?: components["schemas"]["ViewBlockOption"][];
+            options?: components["schemas"]["ViewBlockSelectableOption"][];
             /** @description Обязательность */
             required?: boolean;
             /** @description Подсказка, которая отображается под выпадающим списком серым цветом */
             hint?: string;
+        };
+        /** @description Опция для блоков select, radio и checkbox */
+        ViewBlockSelectableOption: {
+            /**
+             * @description Отображаемый текст
+             * @example Ничего
+             */
+            text: string;
+            /**
+             * @description Уникальное строковое значение, которое будет передано в ваше приложение при выборе этого пункта
+             * @example nothing
+             */
+            value: string;
+            /**
+             * @description Пояснение, которое будет указано серым цветом в этом пункте под отображаемым текстом
+             * @example Каждый день бот будет присылать список новых задач в вашей команде
+             */
+            description?: string;
+            /**
+             * @description Изначально выбранный пункт. Только один пункт может быть выбран.
+             * @example true
+             */
+            selected?: boolean;
         };
         /** @description Блок time — выбор времени */
         ViewBlockTime: {
@@ -4486,8 +4503,8 @@ export interface operations {
             };
         };
         responses: {
-            /** @description There is no content to send for this request, but the headers may be useful. */
-            204: {
+            /** @description The request has succeeded and a new resource has been created as a result. */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7603,7 +7620,7 @@ export interface operations {
                  *               {
                  *                 "text": "Ничего",
                  *                 "value": "nothing",
-                 *                 "checked": true
+                 *                 "selected": true
                  *               },
                  *               {
                  *                 "text": "Только телефон",

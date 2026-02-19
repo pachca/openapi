@@ -13,7 +13,7 @@ from ..types import UNSET, Unset
 from typing import cast
 
 if TYPE_CHECKING:
-  from ..models.view_block_option import ViewBlockOption
+  from ..models.view_block_checkbox_option import ViewBlockCheckboxOption
 
 
 
@@ -32,7 +32,7 @@ class ViewBlockCheckbox:
             name (str): Название, которое будет передано в ваше приложение как ключ указанного пользователем выбора Example:
                 newsletters.
             label (str): Подпись к группе чекбоксов Example: Рассылки.
-            options (list[ViewBlockOption] | Unset): Массив чекбоксов
+            options (list[ViewBlockCheckboxOption] | Unset): Массив чекбоксов
             required (bool | Unset): Обязательность
             hint (str | Unset): Подсказка, которая отображается под группой чекбоксов серым цветом
      """
@@ -40,7 +40,7 @@ class ViewBlockCheckbox:
     type_: ViewBlockCheckboxType
     name: str
     label: str
-    options: list[ViewBlockOption] | Unset = UNSET
+    options: list[ViewBlockCheckboxOption] | Unset = UNSET
     required: bool | Unset = UNSET
     hint: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -50,7 +50,7 @@ class ViewBlockCheckbox:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.view_block_option import ViewBlockOption
+        from ..models.view_block_checkbox_option import ViewBlockCheckboxOption
         type_ = self.type_.value
 
         name = self.name
@@ -91,7 +91,7 @@ class ViewBlockCheckbox:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.view_block_option import ViewBlockOption
+        from ..models.view_block_checkbox_option import ViewBlockCheckboxOption
         d = dict(src_dict)
         type_ = ViewBlockCheckboxType(d.pop("type"))
 
@@ -103,11 +103,11 @@ class ViewBlockCheckbox:
         label = d.pop("label")
 
         _options = d.pop("options", UNSET)
-        options: list[ViewBlockOption] | Unset = UNSET
+        options: list[ViewBlockCheckboxOption] | Unset = UNSET
         if _options is not UNSET:
             options = []
             for options_item_data in _options:
-                options_item = ViewBlockOption.from_dict(options_item_data)
+                options_item = ViewBlockCheckboxOption.from_dict(options_item_data)
 
 
 

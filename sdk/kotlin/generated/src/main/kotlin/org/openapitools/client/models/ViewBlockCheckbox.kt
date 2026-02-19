@@ -15,7 +15,7 @@
 
 package org.openapitools.client.models
 
-import org.openapitools.client.models.ViewBlockOption
+import org.openapitools.client.models.ViewBlockCheckboxOption
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -48,7 +48,7 @@ data class ViewBlockCheckbox (
 
     /* Массив чекбоксов */
     @Json(name = "options")
-    val options: kotlin.collections.List<ViewBlockOption>? = null,
+    val options: kotlin.collections.List<ViewBlockCheckboxOption>? = null,
 
     /* Обязательность */
     @Json(name = "required")

@@ -15,7 +15,7 @@
 | **maxLength** | **kotlin.Int** | Максимальная длина текста, который должен написать пользователь. Если пользователь напишет больше, он получит ошибку. |  [optional] |
 | **required** | **kotlin.Boolean** | Обязательность |  [optional] |
 | **hint** | **kotlin.String** | Подсказка, которая отображается под полем серым цветом |  [optional] |
-| **options** | [**kotlin.collections.List&lt;ViewBlockOption&gt;**](ViewBlockOption.md) | Массив чекбоксов |  [optional] |
+| **options** | [**kotlin.collections.List&lt;ViewBlockCheckboxOption&gt;**](ViewBlockCheckboxOption.md) | Массив чекбоксов |  [optional] |
 | **initialDate** | [**java.time.LocalDate**](java.time.LocalDate.md) | Начальное значение в поле в формате YYYY-MM-DD |  [optional] |
 | **initialTime** | **kotlin.String** | Начальное значение в поле в формате HH:mm |  [optional] |
 | **filetypes** | **kotlin.collections.List&lt;kotlin.String&gt;** | Массив допустимых расширений файлов, указанные в виде строк (например, [\&quot;png\&quot;,\&quot;jpg\&quot;,\&quot;gif\&quot;]). Если это поле не указано, все расширения файлов будут приняты. |  [optional] |

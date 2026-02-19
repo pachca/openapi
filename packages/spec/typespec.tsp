@@ -439,6 +439,123 @@ enum ValidationErrorCode {
   max_length: "max_length",
 }
 
+@doc("Тип аудит-события")
+@extension("x-enum-descriptions", #{
+  user_login: "Пользователь успешно вошел в систему",
+  user_logout: "Пользователь вышел из системы",
+  user_2fa_fail: "Неудачная попытка двухфакторной аутентификации",
+  user_2fa_success: "Успешная двухфакторная аутентификация",
+  user_created: "Создана новая учетная запись пользователя",
+  user_deleted: "Учетная запись пользователя удалена",
+  user_role_changed: "Роль пользователя была изменена",
+  user_updated: "Данные пользователя обновлены",
+  tag_created: "Создан новый тег",
+  tag_deleted: "Тег удален",
+  user_added_to_tag: "Пользователь добавлен в тег",
+  user_removed_from_tag: "Пользователь удален из тега",
+  chat_created: "Создан новый чат",
+  chat_renamed: "Чат переименован",
+  chat_permission_changed: "Изменены права доступа к чату",
+  user_chat_join: "Пользователь присоединился к чату",
+  user_chat_leave: "Пользователь покинул чат",
+  tag_added_to_chat: "Тег добавлен в чат",
+  tag_removed_from_chat: "Тег удален из чата",
+  message_updated: "Сообщение отредактировано",
+  message_deleted: "Сообщение удалено",
+  access_token_created: "Создан новый токен доступа",
+  access_token_updated: "Токен доступа обновлен",
+  access_token_destroy: "Токен доступа удален",
+  kms_encrypt: "Данные зашифрованы",
+  kms_decrypt: "Данные расшифрованы",
+  audit_events_accessed: "Доступ к журналам аудита получен",
+  dlp_violation_detected: "Срабатывание правила DLP-системы",
+})
+enum AuditEventKey {
+  @doc("Пользователь успешно вошел в систему")
+  user_login: "user_login",
+
+  @doc("Пользователь вышел из системы")
+  user_logout: "user_logout",
+
+  @doc("Неудачная попытка двухфакторной аутентификации")
+  user_2fa_fail: "user_2fa_fail",
+
+  @doc("Успешная двухфакторная аутентификация")
+  user_2fa_success: "user_2fa_success",
+
+  @doc("Создана новая учетная запись пользователя")
+  user_created: "user_created",
+
+  @doc("Учетная запись пользователя удалена")
+  user_deleted: "user_deleted",
+
+  @doc("Роль пользователя была изменена")
+  user_role_changed: "user_role_changed",
+
+  @doc("Данные пользователя обновлены")
+  user_updated: "user_updated",
+
+  @doc("Создан новый тег")
+  tag_created: "tag_created",
+
+  @doc("Тег удален")
+  tag_deleted: "tag_deleted",
+
+  @doc("Пользователь добавлен в тег")
+  user_added_to_tag: "user_added_to_tag",
+
+  @doc("Пользователь удален из тега")
+  user_removed_from_tag: "user_removed_from_tag",
+
+  @doc("Создан новый чат")
+  chat_created: "chat_created",
+
+  @doc("Чат переименован")
+  chat_renamed: "chat_renamed",
+
+  @doc("Изменены права доступа к чату")
+  chat_permission_changed: "chat_permission_changed",
+
+  @doc("Пользователь присоединился к чату")
+  user_chat_join: "user_chat_join",
+
+  @doc("Пользователь покинул чат")
+  user_chat_leave: "user_chat_leave",
+
+  @doc("Тег добавлен в чат")
+  tag_added_to_chat: "tag_added_to_chat",
+
+  @doc("Тег удален из чата")
+  tag_removed_from_chat: "tag_removed_from_chat",
+
+  @doc("Сообщение отредактировано")
+  message_updated: "message_updated",
+
+  @doc("Сообщение удалено")
+  message_deleted: "message_deleted",
+
+  @doc("Создан новый токен доступа")
+  access_token_created: "access_token_created",
+
+  @doc("Токен доступа обновлен")
+  access_token_updated: "access_token_updated",
+
+  @doc("Токен доступа удален")
+  access_token_destroy: "access_token_destroy",
+
+  @doc("Данные зашифрованы")
+  kms_encrypt: "kms_encrypt",
+
+  @doc("Данные расшифрованы")
+  kms_decrypt: "kms_decrypt",
+
+  @doc("Доступ к журналам аудита получен")
+  audit_events_accessed: "audit_events_accessed",
+
+  @doc("Срабатывание правила DLP-системы")
+  dlp_violation_detected: "dlp_violation_detected",
+}
+
 // ============================================================================
 // Common Models
 // ============================================================================
@@ -1858,8 +1975,8 @@ model AuditEvent {
   created_at: utcDateTime;
   
   @doc("Ключ типа события")
-  @example("user_chat_join")
-  event_key: string;
+  @example(AuditEventKey.user_chat_join)
+  event_key: AuditEventKey;
   
   @doc("Идентификатор затронутой сущности")
   @example("12345678")
@@ -5484,7 +5601,7 @@ interface SecurityOperations {
         #{
           id: "a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14",
           created_at: utcDateTime.fromISO("2025-05-15T14:30:00.000Z"),
-          event_key: "user_chat_join",
+          event_key: AuditEventKey.user_chat_join,
           entity_id: "12345678",
           entity_type: "Chat",
           actor_id: "98765",
@@ -5509,8 +5626,8 @@ interface SecurityOperations {
     @query end_time: utcDateTime,
     
     @doc("Фильтр по конкретному типу события")
-    @example("user_login")
-    @query event_key?: string,
+    @example(AuditEventKey.user_login)
+    @query event_key?: AuditEventKey,
     
     @doc("Идентификатор пользователя, выполнившего действие")
     @query actor_id?: int32,

@@ -14,7 +14,7 @@
 
 - `start_time` (string, **обязательный**): Начальная метка времени (включительно)
 - `end_time` (string, **обязательный**): Конечная метка времени (исключительно)
-- `event_key` (string, опциональный): Фильтр по конкретному типу события
+- `event_key` (string (enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected), опциональный): Фильтр по конкретному типу события
 - `actor_id` (integer, опциональный): Идентификатор пользователя, выполнившего действие
 - `actor_type` (string, опциональный): Тип актора
 - `entity_id` (integer, опциональный): Идентификатор затронутой сущности
@@ -29,14 +29,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=string&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=string&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -55,7 +55,7 @@ import requests
 params = {
     'start_time': '2024-04-08T10:00:00.000Z',
     'end_time': '2024-04-08T10:00:00.000Z',
-    'event_key': 'string',
+    'event_key': 'user_login',
     'actor_id': 12345,
     'actor_type': 'string',
     'entity_id': 12345,
@@ -85,7 +85,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=string&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string',
+    path: '/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -121,7 +121,7 @@ uri = URI('https://api.pachca.com/api/shared/v1/audit_events')
 params = {
   'start_time' => '2024-04-08T10:00:00.000Z',
   'end_time' => '2024-04-08T10:00:00.000Z',
-  'event_key' => 'string',
+  'event_key' => 'user_login',
   'actor_id' => 12345,
   'actor_type' => 'string',
   'entity_id' => 12345,
@@ -146,7 +146,7 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['start_time' => '2024-04-08T10:00:00.000Z', 'end_time' => '2024-04-08T10:00:00.000Z', 'event_key' => 'string', 'actor_id' => 12345, 'actor_type' => 'string', 'entity_id' => 12345, 'entity_type' => 'string', 'limit' => 50, 'cursor' => 'string'];
+$params = ['start_time' => '2024-04-08T10:00:00.000Z', 'end_time' => '2024-04-08T10:00:00.000Z', 'event_key' => 'user_login', 'actor_id' => 12345, 'actor_type' => 'string', 'entity_id' => 12345, 'entity_type' => 'string', 'limit' => 50, 'cursor' => 'string'];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
@@ -178,6 +178,35 @@ echo $response;
   - `id` (string, **обязательный**): Уникальный идентификатор события
   - `created_at` (string, date-time, **обязательный**): Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `event_key` (string, **обязательный**): Ключ типа события
+    - **Возможные значения:**
+      - `user_login`: Пользователь успешно вошел в систему
+      - `user_logout`: Пользователь вышел из системы
+      - `user_2fa_fail`: Неудачная попытка двухфакторной аутентификации
+      - `user_2fa_success`: Успешная двухфакторная аутентификация
+      - `user_created`: Создана новая учетная запись пользователя
+      - `user_deleted`: Учетная запись пользователя удалена
+      - `user_role_changed`: Роль пользователя была изменена
+      - `user_updated`: Данные пользователя обновлены
+      - `tag_created`: Создан новый тег
+      - `tag_deleted`: Тег удален
+      - `user_added_to_tag`: Пользователь добавлен в тег
+      - `user_removed_from_tag`: Пользователь удален из тега
+      - `chat_created`: Создан новый чат
+      - `chat_renamed`: Чат переименован
+      - `chat_permission_changed`: Изменены права доступа к чату
+      - `user_chat_join`: Пользователь присоединился к чату
+      - `user_chat_leave`: Пользователь покинул чат
+      - `tag_added_to_chat`: Тег добавлен в чат
+      - `tag_removed_from_chat`: Тег удален из чата
+      - `message_updated`: Сообщение отредактировано
+      - `message_deleted`: Сообщение удалено
+      - `access_token_created`: Создан новый токен доступа
+      - `access_token_updated`: Токен доступа обновлен
+      - `access_token_destroy`: Токен доступа удален
+      - `kms_encrypt`: Данные зашифрованы
+      - `kms_decrypt`: Данные расшифрованы
+      - `audit_events_accessed`: Доступ к журналам аудита получен
+      - `dlp_violation_detected`: Срабатывание правила DLP-системы
   - `entity_id` (string, **обязательный**): Идентификатор затронутой сущности
   - `entity_type` (string, **обязательный**): Тип затронутой сущности
   - `actor_id` (string, **обязательный**): Идентификатор пользователя, выполнившего действие

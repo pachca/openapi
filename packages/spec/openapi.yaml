@@ -50,7 +50,7 @@ paths:
           required: false
           description: Фильтр по конкретному типу события
           schema:
-            type: string
+            $ref: '#/components/schemas/AuditEventKey'
           explode: false
         - name: actor_id
           in: query
@@ -4489,7 +4489,8 @@ components:
           description: Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
           example: '2025-05-15T14:30:00.000Z'
         event_key:
-          type: string
+          allOf:
+            - $ref: '#/components/schemas/AuditEventKey'
           description: Ключ типа события
           example: user_chat_join
         entity_id:
@@ -4523,6 +4524,67 @@ components:
           description: User agent клиента
           example: Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0
       description: Событие аудита
+    AuditEventKey:
+      type: string
+      enum:
+        - user_login
+        - user_logout
+        - user_2fa_fail
+        - user_2fa_success
+        - user_created
+        - user_deleted
+        - user_role_changed
+        - user_updated
+        - tag_created
+        - tag_deleted
+        - user_added_to_tag
+        - user_removed_from_tag
+        - chat_created
+        - chat_renamed
+        - chat_permission_changed
+        - user_chat_join
+        - user_chat_leave
+        - tag_added_to_chat
+        - tag_removed_from_chat
+        - message_updated
+        - message_deleted
+        - access_token_created
+        - access_token_updated
+        - access_token_destroy
+        - kms_encrypt
+        - kms_decrypt
+        - audit_events_accessed
+        - dlp_violation_detected
+      description: Тип аудит-события
+      x-enum-descriptions:
+        user_login: Пользователь успешно вошел в систему
+        user_logout: Пользователь вышел из системы
+        user_2fa_fail: Неудачная попытка двухфакторной аутентификации
+        user_2fa_success: Успешная двухфакторная аутентификация
+        user_created: Создана новая учетная запись пользователя
+        user_deleted: Учетная запись пользователя удалена
+        user_role_changed: Роль пользователя была изменена
+        user_updated: Данные пользователя обновлены
+        tag_created: Создан новый тег
+        tag_deleted: Тег удален
+        user_added_to_tag: Пользователь добавлен в тег
+        user_removed_from_tag: Пользователь удален из тега
+        chat_created: Создан новый чат
+        chat_renamed: Чат переименован
+        chat_permission_changed: Изменены права доступа к чату
+        user_chat_join: Пользователь присоединился к чату
+        user_chat_leave: Пользователь покинул чат
+        tag_added_to_chat: Тег добавлен в чат
+        tag_removed_from_chat: Тег удален из чата
+        message_updated: Сообщение отредактировано
+        message_deleted: Сообщение удалено
+        access_token_created: Создан новый токен доступа
+        access_token_updated: Токен доступа обновлен
+        access_token_destroy: Токен доступа удален
+        kms_encrypt: Данные зашифрованы
+        kms_decrypt: Данные расшифрованы
+        audit_events_accessed: Доступ к журналам аудита получен
+        dlp_violation_detected: Срабатывание правила DLP-системы
     BearerAuth:
       type: object
       required:

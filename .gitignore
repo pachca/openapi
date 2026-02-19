@@ -50,4 +50,5 @@ Thumbs.db
 # Generated docs (rebuilt during deploy)
 apps/docs/public/llms.txt
 apps/docs/public/llms-full.txt
+apps/docs/public/*.md
 apps/docs/public/**/*.md

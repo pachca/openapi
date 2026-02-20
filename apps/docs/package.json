@@ -31,6 +31,7 @@
     "next-mdx-remote": "^5.0.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "remark-gfm": "^4.0.1",
     "shiki": "^1.23.1",
     "typescript": "^5.7.3"
   },

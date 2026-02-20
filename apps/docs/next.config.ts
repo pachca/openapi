@@ -37,6 +37,13 @@ const nextConfig: NextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
         ],
       },
+      {
+        source: '/.well-known/skills/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+        ],
+      },
     ];
   },
   async redirects() {

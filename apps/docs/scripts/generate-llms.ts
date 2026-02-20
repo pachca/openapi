@@ -8,6 +8,7 @@ import {
 } from '../lib/markdown-generator';
 import { getOrderedGuidePages, sortTagsByOrder } from '../lib/guides-config';
 import type { Endpoint } from '../lib/openapi/types';
+import { generateAllSkills } from './skills/generate';
 
 const SITE_URL = 'https://dev.pachca.com';
 
@@ -112,7 +113,7 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   return content;
 }
 
-function generateSkillMd(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
+function generateLegacySkillMd(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url;
   const grouped = groupByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
@@ -300,8 +301,16 @@ async function generateGuideMdFiles() {
   return files;
 }
 
+const REPO_ROOT = path.join(process.cwd(), '..', '..');
+
 function writeFile(filePath: string, content: string) {
   const fullPath = path.join(process.cwd(), filePath);
+  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+  fs.writeFileSync(fullPath, content, 'utf-8');
+}
+
+function writeFileFromRoot(filePath: string, content: string) {
+  const fullPath = path.join(REPO_ROOT, filePath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
   fs.writeFileSync(fullPath, content, 'utf-8');
 }
@@ -318,9 +327,15 @@ async function main() {
   writeFile('public/llms-full.txt', llmsFullTxt);
   console.log('✓ public/llms-full.txt');
 
-  const skillMd = generateSkillMd(api);
+  const skillMd = generateLegacySkillMd(api);
   writeFile('public/skill.md', skillMd);
   console.log('✓ public/skill.md');
+
+  const skillFiles = generateAllSkills(api);
+  for (const file of skillFiles) {
+    writeFileFromRoot(file.path, file.content);
+  }
+  console.log(`✓ ${skillFiles.length} skill files`);
 
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {
@@ -334,7 +349,9 @@ async function main() {
   }
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
-  console.log(`\nTotal: ${3 + endpointFiles.length + guideFiles.length} files generated`);
+  console.log(
+    `\nTotal: ${3 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+  );
 }
 
 main().catch((err) => {

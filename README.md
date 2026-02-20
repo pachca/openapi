@@ -21,6 +21,63 @@ SDK генерируются из `openapi.yaml` и публикуются ав�
 4. Теги: `v{VERSION}`, `sdk/go/generated/v{VERSION}`
 5. Публикация: npm (TypeScript), PyPI (Python), JitPack (Kotlin). Swift и Go — через Git-теги.
 
+## Agent Skills
+
+AI-агенты могут использовать скиллы для работы с API Пачки — пошаговые инструкции с curl-примерами, обработкой ошибок и ограничениями.
+
+### Установка (40+ агентов)
+
+```bash
+npx skills add dev.pachca.com
+```
+
+### Совместимость
+
+| Агент | Установка | Путь |
+|-------|----------|------|
+| Claude Code | `npx skills add dev.pachca.com` | `.claude/skills/` |
+| Cursor | `npx skills add dev.pachca.com` | `.cursor/skills/` |
+| Codex CLI | Автоматически | `AGENTS.md` в корне репо |
+| OpenCode | `npx skills add dev.pachca.com` | `.agents/skills/` |
+| Windsurf, Continue, 35+ других | `npx skills add dev.pachca.com` | Автоопределение |
+| Ручная установка | `cp -r .agents/skills/pachca-* <path>` | Любой |
+
+### Доступные скиллы
+
+| Скилл | Описание |
+|-------|----------|
+| `pachca-profile` | Профиль, статус, кастомные поля |
+| `pachca-users` | Сотрудники и теги (группы) |
+| `pachca-chats` | Каналы, беседы, участники, экспорт |
+| `pachca-messages` | Сообщения, треды, файлы, реакции, кнопки |
+| `pachca-bots` | Боты, вебхуки, unfurling |
+| `pachca-forms` | Интерактивные формы |
+| `pachca-tasks` | Напоминания (задачи) |
+| `pachca-security` | Аудит событий, DLP |
+
+### Как скиллы помогают агенту
+
+**Без скилла** — агент не знает порядок вызовов:
+
+```
+> Отправь файл report.pdf в тред сообщения 123
+Агент: POST /messages с file=@report.pdf  ← неверно, файлы не передаются inline
+```
+
+**Со скиллом** — агент следует пошаговому сценарию:
+
+```
+> Отправь файл report.pdf в тред сообщения 123
+1. POST /uploads → key, direct_url, policy, подпись
+2. POST direct_url (multipart) → загрузка файла на S3
+3. POST /messages/123/thread → thread.id
+4. POST /messages с entity_type:"thread", entity_id:thread.id, files:[{key:...}]
+```
+
+Скиллы генерируются автоматически из OpenAPI-спеки при `bun turbo build`.
+
+Устанавливайте скиллы только из официального репозитория. Скиллы содержат только инструкции (нет исполняемого кода).
+
 ## Структура монорепозитория
 
 ```
@@ -60,6 +117,7 @@ apps/docs                           sdk/* (5 языков)
     ▼                                npm, PyPI, JitPack, SPM, Go modules
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
+  + Agent Skills (.agents/, .claude/, .cursor/, AGENTS.md, .well-known/)
   + OG-изображения + sitemap + RSS
 ```
 
@@ -124,7 +182,7 @@ Docker multi-stage: builder (bun + node, `turbo check` + `turbo build`) → runn
 | Задача | Зависит от | Кешируется |
 |--------|------------|------------|
 | `generate` | `setup` | да (inputs: tsp + yaml config → outputs: openapi.yaml, generated/) |
-| `generate-llms` | `@pachca/spec#generate` | да (→ llms.txt, llms-full.txt, skill.md, *.md) |
+| `generate-llms` | `@pachca/spec#generate` | да (→ llms.txt, llms-full.txt, skill.md, *.md, Agent Skills) |
 | `build` | `@pachca/spec#generate`, `generate-llms` | да (→ .next/) |
 | `dev` | `@pachca/spec#generate`, `generate-llms` | нет (persistent) |
 | `check` | `lint`, `typecheck`, `knip`, `format:check` | нет |
@@ -236,7 +294,7 @@ apps/docs/
 
 HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy (камера/микрофон/гео — запрещены).
 
-CORS разрешён только для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`.
+CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`.
 
 ### SEO
 

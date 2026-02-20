@@ -12,8 +12,8 @@
     },
     "generate-llms": {
       "dependsOn": ["@pachca/spec#generate"],
-      "inputs": ["scripts/generate-llms.ts", "lib/**", "content/**"],
-      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md"],
+      "inputs": ["scripts/generate-llms.ts", "scripts/skills/**", "lib/**", "content/**"],
+      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md", "public/.well-known/**"],
       "cache": true
     },
     "build": {

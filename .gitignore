@@ -52,3 +52,10 @@ apps/docs/public/llms.txt
 apps/docs/public/llms-full.txt
 apps/docs/public/*.md
 apps/docs/public/**/*.md
+apps/docs/public/.well-known/
+
+# Generated agent skills (rebuilt during deploy)
+.agents/skills/
+.claude/skills/
+.cursor/rules/
+AGENTS.md

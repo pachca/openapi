@@ -1,4 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import remarkGfm from 'remark-gfm';
 import { Callout } from './callout';
 import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';
@@ -11,7 +12,6 @@ import {
   SchemaBlock,
   HttpCodes,
   ErrorSchema,
-  MarkdownSyntaxTable,
   CodeBlock,
   Limit,
   Updates,
@@ -96,6 +96,28 @@ const components = {
     <p className="text-text-primary leading-relaxed mb-4">{children}</p>
   ),
 
+  // Tables
+  table: ({ children }: { children: React.ReactNode }) => (
+    <div className="my-6 overflow-x-auto not-prose">
+      <table className="w-full border-none text-[14px]">{children}</table>
+    </div>
+  ),
+  thead: ({ children }: { children: React.ReactNode }) => (
+    <thead className="border-b border-background-border">{children}</thead>
+  ),
+  tbody: ({ children }: { children: React.ReactNode }) => (
+    <tbody className="divide-y divide-background-border/40">{children}</tbody>
+  ),
+  tr: ({ children }: { children: React.ReactNode }) => <tr>{children}</tr>,
+  th: ({ children }: { children: React.ReactNode }) => (
+    <th className="text-left py-4 pl-0! text-text-primary! font-semibold! text-[15px]! normal-case! tracking-normal! bg-transparent!">
+      {children}
+    </th>
+  ),
+  td: ({ children }: { children: React.ReactNode }) => (
+    <td className="py-5 pl-0! text-text-primary w-[20%]">{children}</td>
+  ),
+
   // Other
   hr: () => <hr className="my-8 border-background-border" />,
   em: ({ children }: { children: React.ReactNode }) => (
@@ -109,7 +131,6 @@ const components = {
   SchemaBlock,
   HttpCodes,
   ErrorSchema,
-  MarkdownSyntaxTable,
   CodeBlock,
   Limit,
   Updates,
@@ -168,7 +189,11 @@ export async function MarkdownContent({
 
   return (
     <div className={className}>
-      <MDXRemote source={processedContent} components={components} />
+      <MDXRemote
+        source={processedContent}
+        components={components}
+        options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+      />
     </div>
   );
 }

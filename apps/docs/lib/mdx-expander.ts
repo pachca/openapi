@@ -49,22 +49,6 @@ function httpCodesToMarkdown(): string {
   return md;
 }
 
-function markdownSyntaxTableToMarkdown(): string {
-  let md = '| Элемент | Синтаксис | Результат |\n';
-  md += '|---------|-----------|----------|\n';
-  md += '| Жирный | `**текст**` или `__текст__` | **текст** |\n';
-  md += '| Курсив | `*текст*` или `_текст_` | *текст* |\n';
-  md += '| Ссылки | `[текст](url)` | [текст](url) |\n';
-  md += '| Маркированный список | `- пункт` | • пункт |\n';
-  md += '| Нумерованный список | `1. пункт` | 1. пункт |\n';
-  md += '| Зачеркнутый | `~~текст~~` | ~~текст~~ |\n';
-  md += '| Строчный код | `` `код` `` | `код` |\n';
-  md += '| Блок кода | ` ```код``` ` | код |\n';
-  md += '\n';
-
-  return md;
-}
-
 function guideCardsToMarkdown(): string {
   const guides = getOrderedGuidePages().filter(
     (g) => g.path !== '/' && g.path !== '/guides/updates'
@@ -249,9 +233,6 @@ export async function expandMdxComponents(content: string): Promise<string> {
 
     result = result.replace(/<ErrorSchema\s*\/>/g, errorSchemaMarkdown);
   }
-
-  // <MarkdownSyntaxTable />
-  result = result.replace(/<MarkdownSyntaxTable\s*\/>/g, markdownSyntaxTableToMarkdown());
 
   // <Warning>...</Warning> -> > **Внимание:** ...
   result = result.replace(/<Warning>([\s\S]*?)<\/Warning>/g, (_, inner) => {

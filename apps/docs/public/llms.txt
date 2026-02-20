@@ -1,0 +1,111 @@
+# Пачка API Documentation
+
+> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.
+
+> Полная документация в одном файле: [llms-full.txt](https://dev.pachca.com/llms-full.txt)
+
+## Руководства
+- [Обзор](https://dev.pachca.com/.md): Создавайте уникальные решения на одной платформе
+- [AI агенты](https://dev.pachca.com/guides/ai-agents.md): Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
+- [Исходящий Webhook](https://dev.pachca.com/guides/webhook.md): Получение уведомлений о событиях в реальном времени
+- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses.md): Формат запросов, авторизация, пагинация
+- [Ошибки и лимиты](https://dev.pachca.com/guides/errors.md): Коды ошибок HTTP и rate limits
+- [Экспорт сообщений](https://dev.pachca.com/guides/export.md): Экспорт данных пространства
+- [Формы](https://dev.pachca.com/guides/forms.md): Представления с набором полей для пользователей
+- [DLP-система](https://dev.pachca.com/guides/dlp.md): Политики предотвращения утечки данных
+- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events.md): Отслеживание событий безопасности
+- [Последние обновления](https://dev.pachca.com/guides/updates.md): История изменений и новые возможности API
+
+## Common
+- [Экспорт сообщений](https://dev.pachca.com/common/request-export.md): POST /chats/exports
+- [Скачать архив экспорта](https://dev.pachca.com/common/get-exports.md): GET /chats/exports/{id}
+- [Список дополнительных полей](https://dev.pachca.com/common/list.md): GET /custom_properties
+- [Загрузка файла](https://dev.pachca.com/common/direct-url.md): POST /direct_url
+- [Получение подписи, ключа и других параметров](https://dev.pachca.com/common/create.md): POST /uploads
+
+## Profile
+- [Информация о профиле](https://dev.pachca.com/profile/profile.md): GET /profile
+- [Текущий статус](https://dev.pachca.com/profile/list-status.md): GET /profile/status
+- [Новый статус](https://dev.pachca.com/profile/update-status.md): PUT /profile/status
+- [Удаление статуса](https://dev.pachca.com/profile/delete-status.md): DELETE /profile/status
+
+## Users
+- [Создать сотрудника](https://dev.pachca.com/users/create.md): POST /users
+- [Список сотрудников](https://dev.pachca.com/users/list.md): GET /users
+- [Информация о сотруднике](https://dev.pachca.com/users/get.md): GET /users/{id}
+- [Редактирование сотрудника](https://dev.pachca.com/users/update.md): PUT /users/{id}
+- [Удаление сотрудника](https://dev.pachca.com/users/delete.md): DELETE /users/{id}
+
+## Group tags
+- [Новый тег](https://dev.pachca.com/group-tags/create.md): POST /group_tags
+- [Список тегов сотрудников](https://dev.pachca.com/group-tags/list.md): GET /group_tags
+- [Информация о теге](https://dev.pachca.com/group-tags/get.md): GET /group_tags/{id}
+- [Редактирование тега](https://dev.pachca.com/group-tags/update.md): PUT /group_tags/{id}
+- [Удаление тега](https://dev.pachca.com/group-tags/delete.md): DELETE /group_tags/{id}
+- [Список сотрудников тега](https://dev.pachca.com/group-tags/list-users.md): GET /group_tags/{id}/users
+
+## Chats
+- [Новый чат](https://dev.pachca.com/chats/create.md): POST /chats
+- [Список чатов](https://dev.pachca.com/chats/list.md): GET /chats
+- [Информация о чате](https://dev.pachca.com/chats/get.md): GET /chats/{id}
+- [Обновление чата](https://dev.pachca.com/chats/update.md): PUT /chats/{id}
+- [Архивация чата](https://dev.pachca.com/chats/update-archive.md): PUT /chats/{id}/archive
+- [Разархивация чата](https://dev.pachca.com/chats/update-unarchive.md): PUT /chats/{id}/unarchive
+
+## Members
+- [Добавление тегов](https://dev.pachca.com/members/add-group-tags.md): POST /chats/{chatId}/group_tags
+- [Исключение тега](https://dev.pachca.com/members/remove-group-tag.md): DELETE /chats/{chatId}/group_tags/{tagId}
+- [Исключение пользователя](https://dev.pachca.com/members/remove-member.md): DELETE /chats/{chatId}/members/{userId}
+- [Редактирование роли](https://dev.pachca.com/members/update-members.md): PUT /chats/{chatId}/members/{userId}
+- [Выход из беседы или канала](https://dev.pachca.com/members/remove-leave.md): DELETE /chats/{id}/leave
+- [Список участников чата](https://dev.pachca.com/members/list-members.md): GET /chats/{id}/members
+- [Добавление пользователей](https://dev.pachca.com/members/add-members.md): POST /chats/{id}/members
+
+## Thread
+- [Новый тред](https://dev.pachca.com/thread/add-thread.md): POST /messages/{id}/thread
+- [Информация о треде](https://dev.pachca.com/thread/get.md): GET /threads/{id}
+
+## Messages
+- [Новое сообщение](https://dev.pachca.com/messages/create.md): POST /messages
+- [Список сообщений чата](https://dev.pachca.com/messages/list.md): GET /messages
+- [Информация о сообщении](https://dev.pachca.com/messages/get.md): GET /messages/{id}
+- [Редактирование сообщения](https://dev.pachca.com/messages/update.md): PUT /messages/{id}
+- [Удаление сообщения](https://dev.pachca.com/messages/delete.md): DELETE /messages/{id}
+- [Закрепление сообщения](https://dev.pachca.com/messages/pin.md): POST /messages/{id}/pin
+- [Открепление сообщения](https://dev.pachca.com/messages/unpin.md): DELETE /messages/{id}/pin
+
+## Read member
+- [Список прочитавших сообщение](https://dev.pachca.com/read-member/list-read-member-ids.md): GET /messages/{id}/read_member_ids
+
+## Reactions
+- [Добавление реакции](https://dev.pachca.com/reactions/add-reactions.md): POST /messages/{id}/reactions
+- [Удаление реакции](https://dev.pachca.com/reactions/remove-reactions.md): DELETE /messages/{id}/reactions
+- [Список реакций](https://dev.pachca.com/reactions/list-reactions.md): GET /messages/{id}/reactions
+
+## Link Previews
+- [Unfurl (разворачивание ссылок)](https://dev.pachca.com/link-previews/add-link-previews.md): POST /messages/{id}/link_previews
+
+## Tasks
+- [Новое напоминание](https://dev.pachca.com/tasks/create.md): POST /tasks
+- [Список напоминаний](https://dev.pachca.com/tasks/list.md): GET /tasks
+- [Информация о напоминании](https://dev.pachca.com/tasks/get.md): GET /tasks/{id}
+- [Редактирование напоминания](https://dev.pachca.com/tasks/update.md): PUT /tasks/{id}
+- [Удаление напоминания](https://dev.pachca.com/tasks/delete.md): DELETE /tasks/{id}
+
+## Views
+- [Открытие представления](https://dev.pachca.com/views/create-open.md): POST /views/open
+
+## Bots
+- [Редактирование бота](https://dev.pachca.com/bots/update.md): PUT /bots/{id}
+- [История событий](https://dev.pachca.com/bots/list-events.md): GET /webhooks/events
+- [Удаление события](https://dev.pachca.com/bots/remove-event.md): DELETE /webhooks/events/{id}
+
+## Security
+- [Журнал аудита событий](https://dev.pachca.com/security/list.md): GET /audit_events
+
+## Дополнительно
+- [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)
+- [Веб-сайт](https://pachca.com/)
+- [Получить помощь](mailto:team@pachca.com)
+
+____

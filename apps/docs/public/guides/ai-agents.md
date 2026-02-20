@@ -1,7 +1,3 @@
----
-title: AI агенты
-description: Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
----
 
 # AI агенты
 
@@ -53,20 +49,26 @@ description: Как Пачка работает с AI-агентами и как
 
 ## Как это работает
 
-<Steps>
-  <Step title="Получение события">
-    Агент получает события через [исходящий вебхук](/guides/webhook) — упоминание по имени, ответ в тред или личное сообщение боту.
-  </Step>
-  <Step title="Сбор контекста">
-    Агент читает историю сообщений треда через API и собирает контекст.
-  </Step>
-  <Step title="Выполнение действий">
-    Агент выполняет нужные действия — отправляет сообщения, создаёт задачи, вызывает внешние сервисы.
-  </Step>
-  <Step title="Ответ">
-    Результат агент отправляет обратно в тред или в личные сообщения через API.
-  </Step>
-</Steps>
+
+  ### Шаг 1. Получение события
+
+Агент получает события через [исходящий вебхук](/guides/webhook) — упоминание по имени, ответ в тред или личное сообщение боту.
+
+
+  ### Шаг 2. Сбор контекста
+
+Агент читает историю сообщений треда через API и собирает контекст.
+
+
+  ### Шаг 3. Выполнение действий
+
+Агент выполняет нужные действия — отправляет сообщения, создаёт задачи, вызывает внешние сервисы.
+
+
+  ### Шаг 4. Ответ
+
+Результат агент отправляет обратно в тред или в личные сообщения через API.
+
 
 ## API-методы для типичных задач агента
 
@@ -122,9 +124,8 @@ description: Как Пачка работает с AI-агентами и как
   </Card>
 </CardGroup>
 
-<Info>
-  Любая страница документации доступна в markdown-формате — добавьте `.md` к адресу страницы. Например: `/guides/webhook.md`
-</Info>
+> Любая страница документации доступна в markdown-формате — добавьте `.md` к адресу страницы. Например: `/guides/webhook.md`
+
 
 ## Как подключить Пачку к вашему агенту
 
@@ -132,19 +133,28 @@ description: Как Пачка работает с AI-агентами и как
 
 Универсальный способ для 40+ AI-агентов (Claude Code, Cursor, Codex, Windsurf, Continue и др.).
 
-<CodeBlock language="bash" title="Agent Skills">
-  {`npx skills add pachca/openapi`}
-</CodeBlock>
+**Agent Skills**
+
+```bash
+{`npx skills add dev.pachca.com`}
+```
+
 
 Команда автоматически определит установленные агенты и подключит скиллы Пачки. Агент получит пошаговые сценарии для всех типичных задач — от отправки сообщений до работы с формами.
+
+> Скиллы доступны в [репозитории на GitHub](https://github.com/pachca/openapi/tree/main/.agents/skills). Устанавливайте скиллы только из официального репозитория.
+
 
 ### Через Context7 MCP
 
 Для AI-агентов с поддержкой MCP (Claude Code, Cursor, Windsurf и др.). [Context7](https://context7.com) — MCP-сервер, который отдаёт актуальную документацию прямо в контекст агента. Документация Пачки доступна по адресу [context7.com/pachca/openapi](https://context7.com/pachca/openapi).
 
-<CodeBlock language="bash" title="Claude Code">
-  {`claude mcp add context7 https://mcp.context7.com/mcp`}
-</CodeBlock>
+**Claude Code**
+
+```bash
+{`claude mcp add context7 https://mcp.context7.com/mcp`}
+```
+
 
 Для других агентов добавьте MCP-сервер `https://mcp.context7.com/mcp` в настройках. Чтобы агент использовал документацию Пачки, добавьте в промпт `use context7` или настройте это через правила агента.
 
@@ -152,14 +162,20 @@ description: Как Пачка работает с AI-агентами и как
 
 Подходит для агентов, которые не поддерживают формат Agent Skills, но позволяют загружать текст в контекст (ChatGPT, собственные агенты на базе LLM).
 
-<CodeBlock language="text" title="llms-full.txt">
-  {`https://dev.pachca.com/llms-full.txt`}
-</CodeBlock>
+**llms-full.txt**
+
+```text
+{`https://dev.pachca.com/llms-full.txt`}
+```
+
 
 ### Через OpenAPI-спецификацию
 
 Подходит для кодогенераторов (openapi-generator, Kiota, Orval) и агентов, которые умеют работать с OpenAPI напрямую (GPT Actions).
 
-<CodeBlock language="text" title="OpenAPI">
-  {`https://dev.pachca.com/openapi.yaml`}
-</CodeBlock>
+**OpenAPI**
+
+```text
+{`https://dev.pachca.com/openapi.yaml`}
+```
+

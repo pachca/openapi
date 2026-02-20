@@ -38,9 +38,9 @@ npx skills add dev.pachca.com
 | Claude Code | `npx skills add dev.pachca.com` | `.claude/skills/` |
 | Cursor | `npx skills add dev.pachca.com` | `.cursor/skills/` |
 | Codex CLI | Автоматически | `AGENTS.md` в корне репо |
-| OpenCode | `npx skills add dev.pachca.com` | `.agents/skills/` |
+| OpenCode | `npx skills add dev.pachca.com` | `skills/` |
 | Windsurf, Continue, 35+ других | `npx skills add dev.pachca.com` | Автоопределение |
-| Ручная установка | `cp -r .agents/skills/pachca-* <path>` | Любой |
+| Ручная установка | `cp -r skills/pachca-* <path>` | Любой |
 
 ### Доступные скиллы
 
@@ -117,7 +117,7 @@ apps/docs                           sdk/* (5 языков)
     ▼                                npm, PyPI, JitPack, SPM, Go modules
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
-  + Agent Skills (.agents/, .claude/, .cursor/, AGENTS.md, .well-known/)
+  + Agent Skills (skills/, .claude/, .cursor/, AGENTS.md, .well-known/)
   + OG-изображения + sitemap + RSS
 ```
 

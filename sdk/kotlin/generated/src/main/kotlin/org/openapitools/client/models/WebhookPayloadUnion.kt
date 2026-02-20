@@ -18,10 +18,11 @@ package org.openapitools.client.models
 import org.openapitools.client.models.ButtonWebhookPayload
 import org.openapitools.client.models.ChatMemberWebhookPayload
 import org.openapitools.client.models.CompanyMemberWebhookPayload
+import org.openapitools.client.models.LinkSharedWebhookPayload
 import org.openapitools.client.models.MessageEntityType
 import org.openapitools.client.models.MessageWebhookPayload
 import org.openapitools.client.models.ReactionWebhookPayload
-import org.openapitools.client.models.UserEventType
+import org.openapitools.client.models.WebhookLink
 import org.openapitools.client.models.WebhookMessageThread
 
 import com.squareup.moshi.Json
@@ -37,16 +38,17 @@ import com.squareup.moshi.JsonClass
  * @param entityId Идентификатор сущности, к которой относится сообщение
  * @param content Текст сообщения
  * @param userId Идентификатор пользователя, который нажал кнопку
- * @param createdAt Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+ * @param createdAt Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
  * @param url Прямая ссылка на сообщение
- * @param chatId Идентификатор чата, в котором изменился состав участников
+ * @param chatId Идентификатор чата, в котором обнаружена ссылка
  * @param webhookTimestamp Дата и время отправки вебхука (UTC+0) в формате UNIX
- * @param messageId Идентификатор сообщения, к которому относится кнопка
+ * @param messageId Идентификатор сообщения, содержащего ссылку
  * @param code Emoji символ реакции
  * @param name Название реакции
  * @param triggerId Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю
  * @param `data` Данные нажатой кнопки
  * @param userIds Массив идентификаторов пользователей, с которыми произошло событие
+ * @param links Массив обнаруженных ссылок на отслеживаемые домены
  * @param parentMessageId Идентификатор сообщения, к которому написан ответ
  * @param thread Объект с параметрами треда
  * @param threadId Идентификатор треда
@@ -65,7 +67,7 @@ data class WebhookPayloadUnion (
 
     /* Тип события */
     @Json(name = "event")
-    val event: UserEventType,
+    val event: WebhookPayloadUnion.Event,
 
     /* Тип сущности, к которой относится сообщение */
     @Json(name = "entity_type")
@@ -83,7 +85,7 @@ data class WebhookPayloadUnion (
     @Json(name = "user_id")
     val userId: kotlin.Int,
 
-    /* Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
+    /* Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
     @Json(name = "created_at")
     val createdAt: java.time.OffsetDateTime,
 
@@ -91,7 +93,7 @@ data class WebhookPayloadUnion (
     @Json(name = "url")
     val url: kotlin.String,
 
-    /* Идентификатор чата, в котором изменился состав участников */
+    /* Идентификатор чата, в котором обнаружена ссылка */
     @Json(name = "chat_id")
     val chatId: kotlin.Int,
 
@@ -99,7 +101,7 @@ data class WebhookPayloadUnion (
     @Json(name = "webhook_timestamp")
     val webhookTimestamp: kotlin.Int,
 
-    /* Идентификатор сообщения, к которому относится кнопка */
+    /* Идентификатор сообщения, содержащего ссылку */
     @Json(name = "message_id")
     val messageId: kotlin.Int,
 
@@ -122,6 +124,10 @@ data class WebhookPayloadUnion (
     /* Массив идентификаторов пользователей, с которыми произошло событие */
     @Json(name = "user_ids")
     val userIds: kotlin.collections.List<kotlin.Int>,
+
+    /* Массив обнаруженных ссылок на отслеживаемые домены */
+    @Json(name = "links")
+    val links: kotlin.collections.List<WebhookLink>,
 
     /* Идентификатор сообщения, к которому написан ответ */
     @Json(name = "parent_message_id")
@@ -149,6 +155,15 @@ data class WebhookPayloadUnion (
         @Json(name = "button") button("button"),
         @Json(name = "chat_member") chat_member("chat_member"),
         @Json(name = "company_member") company_member("company_member");
+    }
+    /**
+     * Тип события
+     *
+     * Values: link_shared
+     */
+    @JsonClass(generateAdapter = false)
+    enum class Event(val value: kotlin.String) {
+        @Json(name = "link_shared") link_shared("link_shared");
     }
 
 }

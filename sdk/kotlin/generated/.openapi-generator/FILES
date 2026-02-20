@@ -53,6 +53,7 @@ docs/LinkPreview.md
 docs/LinkPreviewImage.md
 docs/LinkPreviewsApi.md
 docs/LinkPreviewsRequest.md
+docs/LinkSharedWebhookPayload.md
 docs/MemberEventType.md
 docs/MembersApi.md
 docs/Message.md
@@ -133,6 +134,7 @@ docs/ViewBlockUnion.md
 docs/ViewsApi.md
 docs/WebhookEvent.md
 docs/WebhookEventType.md
+docs/WebhookLink.md
 docs/WebhookMessageThread.md
 docs/WebhookPayloadUnion.md
 gradle/wrapper/gradle-wrapper.jar
@@ -212,6 +214,7 @@ src/main/kotlin/org/openapitools/client/models/InviteStatus.kt
 src/main/kotlin/org/openapitools/client/models/LinkPreview.kt
 src/main/kotlin/org/openapitools/client/models/LinkPreviewImage.kt
 src/main/kotlin/org/openapitools/client/models/LinkPreviewsRequest.kt
+src/main/kotlin/org/openapitools/client/models/LinkSharedWebhookPayload.kt
 src/main/kotlin/org/openapitools/client/models/MemberEventType.kt
 src/main/kotlin/org/openapitools/client/models/Message.kt
 src/main/kotlin/org/openapitools/client/models/MessageCreateRequest.kt
@@ -282,6 +285,9 @@ src/main/kotlin/org/openapitools/client/models/ViewBlockTime.kt
 src/main/kotlin/org/openapitools/client/models/ViewBlockUnion.kt
 src/main/kotlin/org/openapitools/client/models/WebhookEvent.kt
 src/main/kotlin/org/openapitools/client/models/WebhookEventType.kt
+src/main/kotlin/org/openapitools/client/models/WebhookLink.kt
 src/main/kotlin/org/openapitools/client/models/WebhookMessageThread.kt
 src/main/kotlin/org/openapitools/client/models/WebhookPayloadUnion.kt
 src/main/kotlin/org/openapitools/client/models/java.io.File.kt
+src/test/kotlin/org/openapitools/client/models/LinkSharedWebhookPayloadTest.kt
+src/test/kotlin/org/openapitools/client/models/WebhookLinkTest.kt

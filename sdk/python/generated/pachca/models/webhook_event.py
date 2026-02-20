@@ -16,6 +16,7 @@ if TYPE_CHECKING:
   from ..models.button_webhook_payload import ButtonWebhookPayload
   from ..models.chat_member_webhook_payload import ChatMemberWebhookPayload
   from ..models.company_member_webhook_payload import CompanyMemberWebhookPayload
+  from ..models.link_shared_webhook_payload import LinkSharedWebhookPayload
   from ..models.message_webhook_payload import MessageWebhookPayload
   from ..models.reaction_webhook_payload import ReactionWebhookPayload
 
@@ -34,15 +35,16 @@ class WebhookEvent:
         Attributes:
             id (str): Идентификатор события Example: a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14.
             event_type (str): Тип события Example: message_new.
-            payload (ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | MessageWebhookPayload |
-                ReactionWebhookPayload): Объединение всех типов payload вебхуков
+            payload (ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload |
+                LinkSharedWebhookPayload | MessageWebhookPayload | ReactionWebhookPayload): Объединение всех типов payload
+                вебхуков
             created_at (datetime.datetime): Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-
                 DDThh:mm:ss.sssZ Example: 2025-05-15T14:30:00.000Z.
      """
 
     id: str
     event_type: str
-    payload: ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | MessageWebhookPayload | ReactionWebhookPayload
+    payload: ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload | MessageWebhookPayload | ReactionWebhookPayload
     created_at: datetime.datetime
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -51,11 +53,12 @@ class WebhookEvent:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.button_webhook_payload import ButtonWebhookPayload
-        from ..models.reaction_webhook_payload import ReactionWebhookPayload
-        from ..models.company_member_webhook_payload import CompanyMemberWebhookPayload
+        from ..models.link_shared_webhook_payload import LinkSharedWebhookPayload
         from ..models.message_webhook_payload import MessageWebhookPayload
+        from ..models.button_webhook_payload import ButtonWebhookPayload
+        from ..models.company_member_webhook_payload import CompanyMemberWebhookPayload
         from ..models.chat_member_webhook_payload import ChatMemberWebhookPayload
+        from ..models.reaction_webhook_payload import ReactionWebhookPayload
         id = self.id
 
         event_type = self.event_type
@@ -68,6 +71,8 @@ class WebhookEvent:
         elif isinstance(self.payload, ButtonWebhookPayload):
             payload = self.payload.to_dict()
         elif isinstance(self.payload, ChatMemberWebhookPayload):
+            payload = self.payload.to_dict()
+        elif isinstance(self.payload, CompanyMemberWebhookPayload):
             payload = self.payload.to_dict()
         else:
             payload = self.payload.to_dict()
@@ -94,6 +99,7 @@ class WebhookEvent:
         from ..models.button_webhook_payload import ButtonWebhookPayload
         from ..models.chat_member_webhook_payload import ChatMemberWebhookPayload
         from ..models.company_member_webhook_payload import CompanyMemberWebhookPayload
+        from ..models.link_shared_webhook_payload import LinkSharedWebhookPayload
         from ..models.message_webhook_payload import MessageWebhookPayload
         from ..models.reaction_webhook_payload import ReactionWebhookPayload
         d = dict(src_dict)
@@ -101,7 +107,7 @@ class WebhookEvent:
 
         event_type = d.pop("event_type")
 
-        def _parse_payload(data: object) -> ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | MessageWebhookPayload | ReactionWebhookPayload:
+        def _parse_payload(data: object) -> ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload | MessageWebhookPayload | ReactionWebhookPayload:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
@@ -142,13 +148,23 @@ class WebhookEvent:
                 return componentsschemas_webhook_payload_union_type_3
             except (TypeError, ValueError, AttributeError, KeyError):
                 pass
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                componentsschemas_webhook_payload_union_type_4 = CompanyMemberWebhookPayload.from_dict(data)
+
+
+
+                return componentsschemas_webhook_payload_union_type_4
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemas_webhook_payload_union_type_4 = CompanyMemberWebhookPayload.from_dict(data)
+            componentsschemas_webhook_payload_union_type_5 = LinkSharedWebhookPayload.from_dict(data)
 
 
 
-            return componentsschemas_webhook_payload_union_type_4
+            return componentsschemas_webhook_payload_union_type_5
 
         payload = _parse_payload(d.pop("payload"))
 

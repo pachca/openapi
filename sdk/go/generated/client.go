@@ -34,8 +34,11 @@ const (
 	DlpViolationDetected  AuditEventKey = "dlp_violation_detected"
 	KmsDecrypt            AuditEventKey = "kms_decrypt"
 	KmsEncrypt            AuditEventKey = "kms_encrypt"
+	MessageCreated        AuditEventKey = "message_created"
 	MessageDeleted        AuditEventKey = "message_deleted"
 	MessageUpdated        AuditEventKey = "message_updated"
+	ReactionCreated       AuditEventKey = "reaction_created"
+	ReactionDeleted       AuditEventKey = "reaction_deleted"
 	TagAddedToChat        AuditEventKey = "tag_added_to_chat"
 	TagCreated            AuditEventKey = "tag_created"
 	TagDeleted            AuditEventKey = "tag_deleted"
@@ -114,6 +117,16 @@ const (
 const (
 	Confirmed InviteStatus = "confirmed"
 	Sent      InviteStatus = "sent"
+)
+
+// Defines values for LinkSharedWebhookPayloadEvent.
+const (
+	LinkShared LinkSharedWebhookPayloadEvent = "link_shared"
+)
+
+// Defines values for LinkSharedWebhookPayloadType.
+const (
+	LinkSharedWebhookPayloadTypeMessage LinkSharedWebhookPayloadType = "message"
 )
 
 // Defines values for MemberEventType.
@@ -768,6 +781,36 @@ type LinkPreviewsRequest struct {
 	// LinkPreviews `JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.
 	LinkPreviews map[string]LinkPreview `json:"link_previews"`
 }
+
+// LinkSharedWebhookPayload Структура исходящего вебхука о разворачивании ссылок
+type LinkSharedWebhookPayload struct {
+	// ChatId Идентификатор чата, в котором обнаружена ссылка
+	ChatId int32 `json:"chat_id"`
+
+	// CreatedAt Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+	CreatedAt time.Time `json:"created_at"`
+
+	// Event Тип события
+	Event LinkSharedWebhookPayloadEvent `json:"event"`
+
+	// Links Массив обнаруженных ссылок на отслеживаемые домены
+	Links []WebhookLink `json:"links"`
+
+	// MessageId Идентификатор сообщения, содержащего ссылку
+	MessageId int32 `json:"message_id"`
+
+	// Type Тип объекта
+	Type LinkSharedWebhookPayloadType `json:"type"`
+
+	// WebhookTimestamp Дата и время отправки вебхука (UTC+0) в формате UNIX
+	WebhookTimestamp int32 `json:"webhook_timestamp"`
+}
+
+// LinkSharedWebhookPayloadEvent Тип события
+type LinkSharedWebhookPayloadEvent string
+
+// LinkSharedWebhookPayloadType Тип объекта
+type LinkSharedWebhookPayloadType string
 
 // MemberEventType Тип события webhook для участников
 type MemberEventType string
@@ -1725,6 +1768,15 @@ type WebhookEvent struct {
 // WebhookEventType Тип события webhook
 type WebhookEventType string
 
+// WebhookLink Объект ссылки в вебхуке разворачивания ссылок
+type WebhookLink struct {
+	// Domain Домен ссылки
+	Domain string `json:"domain"`
+
+	// Url URL ссылки
+	Url string `json:"url"`
+}
+
 // WebhookMessageThread Объект треда в вебхуке сообщения
 type WebhookMessageThread struct {
 	// MessageChatId Идентификатор чата сообщения, к которому был создан тред
@@ -2380,6 +2432,32 @@ func (t *WebhookPayloadUnion) FromCompanyMemberWebhookPayload(v CompanyMemberWeb
 
 // MergeCompanyMemberWebhookPayload performs a merge with any union data inside the WebhookPayloadUnion, using the provided CompanyMemberWebhookPayload
 func (t *WebhookPayloadUnion) MergeCompanyMemberWebhookPayload(v CompanyMemberWebhookPayload) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsLinkSharedWebhookPayload returns the union data inside the WebhookPayloadUnion as a LinkSharedWebhookPayload
+func (t WebhookPayloadUnion) AsLinkSharedWebhookPayload() (LinkSharedWebhookPayload, error) {
+	var body LinkSharedWebhookPayload
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLinkSharedWebhookPayload overwrites any union data inside the WebhookPayloadUnion as the provided LinkSharedWebhookPayload
+func (t *WebhookPayloadUnion) FromLinkSharedWebhookPayload(v LinkSharedWebhookPayload) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeLinkSharedWebhookPayload performs a merge with any union data inside the WebhookPayloadUnion, using the provided LinkSharedWebhookPayload
+func (t *WebhookPayloadUnion) MergeLinkSharedWebhookPayload(v LinkSharedWebhookPayload) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err

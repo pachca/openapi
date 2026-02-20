@@ -22,7 +22,7 @@ import com.squareup.moshi.JsonClass
 /**
  * Тип аудит-события
  *
- * Values: user_login,user_logout,user_2fa_fail,user_2fa_success,user_created,user_deleted,user_role_changed,user_updated,tag_created,tag_deleted,user_added_to_tag,user_removed_from_tag,chat_created,chat_renamed,chat_permission_changed,user_chat_join,user_chat_leave,tag_added_to_chat,tag_removed_from_chat,message_updated,message_deleted,access_token_created,access_token_updated,access_token_destroy,kms_encrypt,kms_decrypt,audit_events_accessed,dlp_violation_detected
+ * Values: user_login,user_logout,user_2fa_fail,user_2fa_success,user_created,user_deleted,user_role_changed,user_updated,tag_created,tag_deleted,user_added_to_tag,user_removed_from_tag,chat_created,chat_renamed,chat_permission_changed,user_chat_join,user_chat_leave,tag_added_to_chat,tag_removed_from_chat,message_updated,message_deleted,message_created,reaction_created,reaction_deleted,access_token_created,access_token_updated,access_token_destroy,kms_encrypt,kms_decrypt,audit_events_accessed,dlp_violation_detected
  */
 
 @JsonClass(generateAdapter = false)
@@ -90,6 +90,15 @@ enum class AuditEventKey(val value: kotlin.String) {
 
     @Json(name = "message_deleted")
     message_deleted("message_deleted"),
+
+    @Json(name = "message_created")
+    message_created("message_created"),
+
+    @Json(name = "reaction_created")
+    reaction_created("reaction_created"),
+
+    @Json(name = "reaction_deleted")
+    reaction_deleted("reaction_deleted"),
 
     @Json(name = "access_token_created")
     access_token_created("access_token_created"),

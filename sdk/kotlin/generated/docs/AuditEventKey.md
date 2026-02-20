@@ -46,6 +46,12 @@
 
     * `message_deleted` (value: `"message_deleted"`)
 
+    * `message_created` (value: `"message_created"`)
+
+    * `reaction_created` (value: `"reaction_created"`)
+
+    * `reaction_deleted` (value: `"reaction_deleted"`)
+
     * `access_token_created` (value: `"access_token_created"`)
 
     * `access_token_updated` (value: `"access_token_updated"`)

@@ -62,6 +62,9 @@ from .link_preview import LinkPreview
 from .link_preview_image import LinkPreviewImage
 from .link_previews_request import LinkPreviewsRequest
 from .link_previews_request_link_previews import LinkPreviewsRequestLinkPreviews
+from .link_shared_webhook_payload import LinkSharedWebhookPayload
+from .link_shared_webhook_payload_event import LinkSharedWebhookPayloadEvent
+from .link_shared_webhook_payload_type import LinkSharedWebhookPayloadType
 from .member_event_type import MemberEventType
 from .message import Message
 from .message_create_request import MessageCreateRequest
@@ -160,6 +163,7 @@ from .view_block_time import ViewBlockTime
 from .view_block_time_type import ViewBlockTimeType
 from .webhook_event import WebhookEvent
 from .webhook_event_type import WebhookEventType
+from .webhook_link import WebhookLink
 from .webhook_message_thread import WebhookMessageThread
 
 __all__ = (
@@ -225,6 +229,9 @@ __all__ = (
     "LinkPreviewImage",
     "LinkPreviewsRequest",
     "LinkPreviewsRequestLinkPreviews",
+    "LinkSharedWebhookPayload",
+    "LinkSharedWebhookPayloadEvent",
+    "LinkSharedWebhookPayloadType",
     "MemberEventType",
     "Message",
     "MessageCreateRequest",
@@ -323,5 +330,6 @@ __all__ = (
     "ViewBlockTimeType",
     "WebhookEvent",
     "WebhookEventType",
+    "WebhookLink",
     "WebhookMessageThread",
 )

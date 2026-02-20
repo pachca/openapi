@@ -1133,7 +1133,7 @@ export interface components {
          * @description Тип аудит-события
          * @enum {string}
          */
-        AuditEventKey: "user_login" | "user_logout" | "user_2fa_fail" | "user_2fa_success" | "user_created" | "user_deleted" | "user_role_changed" | "user_updated" | "tag_created" | "tag_deleted" | "user_added_to_tag" | "user_removed_from_tag" | "chat_created" | "chat_renamed" | "chat_permission_changed" | "user_chat_join" | "user_chat_leave" | "tag_added_to_chat" | "tag_removed_from_chat" | "message_updated" | "message_deleted" | "access_token_created" | "access_token_updated" | "access_token_destroy" | "kms_encrypt" | "kms_decrypt" | "audit_events_accessed" | "dlp_violation_detected";
+        AuditEventKey: "user_login" | "user_logout" | "user_2fa_fail" | "user_2fa_success" | "user_created" | "user_deleted" | "user_role_changed" | "user_updated" | "tag_created" | "tag_deleted" | "user_added_to_tag" | "user_removed_from_tag" | "chat_created" | "chat_renamed" | "chat_permission_changed" | "user_chat_join" | "user_chat_leave" | "tag_added_to_chat" | "tag_removed_from_chat" | "message_updated" | "message_deleted" | "message_created" | "reaction_created" | "reaction_deleted" | "access_token_created" | "access_token_updated" | "access_token_destroy" | "kms_encrypt" | "kms_decrypt" | "audit_events_accessed" | "dlp_violation_detected";
         BearerAuth: {
             /**
              * @description Http authentication
@@ -1682,6 +1682,47 @@ export interface components {
             link_previews: {
                 [key: string]: components["schemas"]["LinkPreview"];
             };
+        };
+        /** @description Структура исходящего вебхука о разворачивании ссылок */
+        LinkSharedWebhookPayload: {
+            /**
+             * @description Тип объекта
+             * @example message
+             * @enum {string}
+             */
+            type: "message";
+            /**
+             * @description Тип события
+             * @example link_shared
+             * @enum {string}
+             */
+            event: "link_shared";
+            /**
+             * Format: int32
+             * @description Идентификатор чата, в котором обнаружена ссылка
+             * @example 23438
+             */
+            chat_id: number;
+            /**
+             * Format: int32
+             * @description Идентификатор сообщения, содержащего ссылку
+             * @example 268092
+             */
+            message_id: number;
+            /** @description Массив обнаруженных ссылок на отслеживаемые домены */
+            links: components["schemas"]["WebhookLink"][];
+            /**
+             * Format: date-time
+             * @description Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+             * @example 2024-09-18T19:53:14.000Z
+             */
+            created_at: string;
+            /**
+             * Format: int32
+             * @description Дата и время отправки вебхука (UTC+0) в формате UNIX
+             * @example 1726685594
+             */
+            webhook_timestamp: number;
         };
         /**
          * @description Тип события webhook для участников
@@ -3042,6 +3083,19 @@ export interface components {
          * @enum {string}
          */
         WebhookEventType: "new" | "update" | "delete";
+        /** @description Объект ссылки в вебхуке разворачивания ссылок */
+        WebhookLink: {
+            /**
+             * @description URL ссылки
+             * @example https://example.com/page1
+             */
+            url: string;
+            /**
+             * @description Домен ссылки
+             * @example example.com
+             */
+            domain: string;
+        };
         /** @description Объект треда в вебхуке сообщения */
         WebhookMessageThread: {
             /**
@@ -3058,7 +3112,7 @@ export interface components {
             message_chat_id: number;
         };
         /** @description Объединение всех типов payload вебхуков */
-        WebhookPayloadUnion: components["schemas"]["MessageWebhookPayload"] | components["schemas"]["ReactionWebhookPayload"] | components["schemas"]["ButtonWebhookPayload"] | components["schemas"]["ChatMemberWebhookPayload"] | components["schemas"]["CompanyMemberWebhookPayload"];
+        WebhookPayloadUnion: components["schemas"]["MessageWebhookPayload"] | components["schemas"]["ReactionWebhookPayload"] | components["schemas"]["ButtonWebhookPayload"] | components["schemas"]["ChatMemberWebhookPayload"] | components["schemas"]["CompanyMemberWebhookPayload"] | components["schemas"]["LinkSharedWebhookPayload"];
     };
     responses: never;
     parameters: never;

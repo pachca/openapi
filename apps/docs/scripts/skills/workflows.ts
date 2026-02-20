@@ -56,15 +56,15 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
   -d '{"message":{"entity_type":"thread","entity_id":265142,"content":"Ответ в тред"}}'`,
     },
     {
-      title: 'Отправить сообщение с файлом',
+      title: 'Отправить сообщение с файлами',
       steps: [
-        'Получи параметры загрузки: POST /uploads → вернёт key (с $filename), direct_url, policy, подпись',
-        'Загрузи файл: POST на direct_url (multipart/form-data, без авторизации) с параметрами из шага 1',
-        'Подставь имя файла вместо $filename в key',
-        'Отправь POST /messages, передав массив files с полученным key',
+        'Для КАЖДОГО файла: POST /uploads → получи key (с $filename), direct_url, policy, подпись',
+        'Для КАЖДОГО файла: подставь имя файла вместо $filename в key, затем загрузи файл POST на direct_url (multipart/form-data, без авторизации)',
+        'Собери массив files из всех загруженных файлов (key, name, file_type, size)',
+        'Отправь POST /messages с массивом files — одно сообщение со всеми файлами',
       ],
       notes:
-        'Файлы НЕ передаются inline. Загрузка двухшаговая: сначала POST /uploads (параметры), затем POST на direct_url (сам файл на S3).',
+        'Файлы НЕ передаются inline. Загрузка двухшаговая: сначала POST /uploads (параметры), затем POST на direct_url (сам файл на S3). Шаги 1-2 повторяются для каждого файла отдельно, а сообщение отправляется один раз со всеми файлами.',
       curl: `curl "https://api.pachca.com/api/shared/v1/uploads" \\
   -H "Authorization: Bearer $TOKEN"
 # Ответ: {"key":".../$filename","direct_url":"https://...","policy":"...","x-amz-signature":"...",...}
@@ -174,11 +174,13 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     {
       title: 'Разворачивание ссылок (unfurling)',
       steps: [
-        'Настрой бота на получение событий о ссылках',
-        'При получении вебхук-события с URL — извлеки данные из своей системы',
+        'Создай специального Unfurl-бота и укажи отслеживаемые домены в его настройках',
+        'При появлении ссылки бот получает вебхук event: "link_shared" с массивом links (url + domain) и message_id',
+        'Извлеки данные из своей системы по URL из links',
         'Отправь POST /messages/{message_id}/link_previews с превью-данными',
       ],
-      notes: 'Эндпоинт привязан к конкретному сообщению. Бот должен иметь включённый unfurling.',
+      notes:
+        'Эндпоинт привязан к конкретному сообщению. Необходим специальный Unfurl-бот с указанными доменами.',
     },
   ],
   'pachca-forms': [

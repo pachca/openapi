@@ -1,0 +1,224 @@
+---
+name: pachca-api
+description: Interact with the Pachca corporate messenger API — send messages, manage chats, users, tags, tasks, handle webhooks, upload files, and build bots. Use when integrating with Pachca or automating team communication workflows.
+metadata:
+  author: pachca
+  version: "1.0"
+---
+
+# Pachca API
+
+Pachca is a corporate messenger for teams. The REST API lets you automate communication workflows: send and manage messages, organize chats and channels, manage users and permissions, build interactive bots, handle file uploads, and react to real-time events via webhooks.
+
+**Base URL:** `https://api.pachca.com/api/shared/v1`
+
+## Accessing Documentation
+
+| Format | URL | Best for |
+|--------|-----|----------|
+| LLM-friendly summary | `https://dev.pachca.com/llms.txt` | Quick overview with links |
+| Full documentation | `https://dev.pachca.com/llms-full.txt` | Complete reference in one file |
+| OpenAPI 3.0 spec | `https://dev.pachca.com/openapi.yaml` | Programmatic parsing and code generation |
+
+For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt`.
+
+## Authentication
+
+All requests require a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Token types and their permissions:**
+- **Admin token** — full access: manage users, tags, delete messages. Get it in Settings → Automations → API.
+- **Owner token** — admin access plus audit events and data export (Corporation plan only).
+- **Bot token** — send messages with custom display name/avatar, receive webhook events, manage webhook settings. Created per-bot in Settings → Automations.
+
+Tokens are long-lived and do not expire. They can be reset by the admin/owner in Settings.
+
+## Capabilities
+
+### Common
+- `POST /chats/exports` — Экспорт сообщений
+- `GET /chats/exports/{id}` — Скачать архив экспорта
+- `GET /custom_properties` — Список дополнительных полей
+- `POST /direct_url` — Загрузка файла
+- `POST /uploads` — Получение подписи, ключа и других параметров
+
+### Profile
+- `GET /profile` — Информация о профиле
+- `GET /profile/status` — Текущий статус
+- `PUT /profile/status` — Новый статус
+- `DELETE /profile/status` — Удаление статуса
+
+### Users
+- `POST /users` — Создать сотрудника
+- `GET /users` — Список сотрудников
+- `GET /users/{id}` — Информация о сотруднике
+- `PUT /users/{id}` — Редактирование сотрудника
+- `DELETE /users/{id}` — Удаление сотрудника
+
+### Group tags
+- `POST /group_tags` — Новый тег
+- `GET /group_tags` — Список тегов сотрудников
+- `GET /group_tags/{id}` — Информация о теге
+- `PUT /group_tags/{id}` — Редактирование тега
+- `DELETE /group_tags/{id}` — Удаление тега
+- `GET /group_tags/{id}/users` — Список сотрудников тега
+
+### Chats
+- `POST /chats` — Новый чат
+- `GET /chats` — Список чатов
+- `GET /chats/{id}` — Информация о чате
+- `PUT /chats/{id}` — Обновление чата
+- `PUT /chats/{id}/archive` — Архивация чата
+- `PUT /chats/{id}/unarchive` — Разархивация чата
+
+### Members
+- `POST /chats/{chatId}/group_tags` — Добавление тегов
+- `DELETE /chats/{chatId}/group_tags/{tagId}` — Исключение тега
+- `DELETE /chats/{chatId}/members/{userId}` — Исключение пользователя
+- `PUT /chats/{chatId}/members/{userId}` — Редактирование роли
+- `DELETE /chats/{id}/leave` — Выход из беседы или канала
+- `GET /chats/{id}/members` — Список участников чата
+- `POST /chats/{id}/members` — Добавление пользователей
+
+### Thread
+- `POST /messages/{id}/thread` — Новый тред
+- `GET /threads/{id}` — Информация о треде
+
+### Messages
+- `POST /messages` — Новое сообщение
+- `GET /messages` — Список сообщений чата
+- `GET /messages/{id}` — Информация о сообщении
+- `PUT /messages/{id}` — Редактирование сообщения
+- `DELETE /messages/{id}` — Удаление сообщения
+- `POST /messages/{id}/pin` — Закрепление сообщения
+- `DELETE /messages/{id}/pin` — Открепление сообщения
+
+### Read member
+- `GET /messages/{id}/read_member_ids` — Список прочитавших сообщение
+
+### Reactions
+- `POST /messages/{id}/reactions` — Добавление реакции
+- `DELETE /messages/{id}/reactions` — Удаление реакции
+- `GET /messages/{id}/reactions` — Список реакций
+
+### Link Previews
+- `POST /messages/{id}/link_previews` — Unfurl (разворачивание ссылок)
+
+### Tasks
+- `POST /tasks` — Новое напоминание
+- `GET /tasks` — Список напоминаний
+- `GET /tasks/{id}` — Информация о напоминании
+- `PUT /tasks/{id}` — Редактирование напоминания
+- `DELETE /tasks/{id}` — Удаление напоминания
+
+### Views
+- `POST /views/open` — Открытие представления
+
+### Bots
+- `PUT /bots/{id}` — Редактирование бота
+- `GET /webhooks/events` — История событий
+- `DELETE /webhooks/events/{id}` — Удаление события
+
+### Security
+- `GET /audit_events` — Журнал аудита событий
+
+
+## Common Workflows
+
+### Send a message to a chat
+
+```
+POST /messages
+{
+  "message": {
+    "entity_type": "discussion",
+    "entity_id": 123,
+    "content": "Hello from the API!"
+  }
+}
+```
+
+`entity_type` is `"discussion"` for chats/channels, `"user"` for direct messages, `"thread"` for thread replies. `entity_id` is the chat ID, user ID, or thread ID respectively.
+
+### Send a message with a file
+
+1. Get upload parameters: `POST /uploads` with `file_name` and `file_size`
+2. Upload to the returned S3 URL using the provided form fields
+3. Send a message referencing the uploaded file key in the `files` array
+
+### React to webhook events
+
+Configure a webhook URL in your bot settings (Settings → Automations → Bots). The bot receives POST requests for subscribed events:
+
+**Message events:** `message.new`, `message.updated`, `message.deleted`
+**Reaction events:** `reaction.add`, `reaction.remove`
+**Interactive events:** `button.click`, `view.submission`
+**Chat membership:** `chat_member.add`, `chat_member.remove`
+**Workspace membership:** `company_member.invite`, `company_member.confirm`, `company_member.update`, `company_member.suspend`, `company_member.activate`, `company_member.delete`
+
+Verify webhook authenticity using the `Pachca-Signature` header (HMAC-SHA256 with your bot's signing secret).
+
+### Open an interactive form
+
+When a user clicks a button in a message, your bot receives a `button.click` webhook with a `trigger_id`. Use it to open a modal:
+
+```
+POST /views/open
+{
+  "trigger_id": "<from webhook>",
+  "view": {
+    "title": "Feedback Form",
+    "blocks": [
+      { "block_id": "input1", "type": "input", "label": "Your feedback" }
+    ]
+  }
+}
+```
+
+Form submission results arrive via the `view.submission` webhook event.
+
+## Constraints
+
+### Rate Limits
+- **Message send/edit/delete:** ~4 req/sec per chat (burst: 30/sec for 5s)
+- **Message read:** ~10 req/sec
+- **Other endpoints:** ~50 req/sec
+- **Webhooks:** ~4 req/sec per webhook ID
+- On `429` response, respect the `Retry-After` header.
+
+### Pagination
+- **Cursor-based** (preferred): use `limit` (1–50) and `cursor` parameters. Check `meta.paginate.next_page` in response.
+- **Offset-based** (legacy): use `per` (1–50) and `page` parameters.
+
+### Permissions
+- User management, tag management, and message deletion require an **admin** token.
+- Audit events and data export require an **owner** token and **Corporation** pricing plan.
+- Link preview (unfurling) requires a dedicated unfurling bot token with whitelisted domains.
+- `POST /direct_url` is the only endpoint that does not require authentication.
+
+### Error Handling
+- `400` — validation error
+- `401` — missing or invalid token
+- `403` — insufficient permissions
+- `404` — resource not found
+- `429` — rate limited (check `Retry-After`)
+
+Error response body: `{ "errors": [{ "key": "field", "value": "description" }] }`
+
+## Guides
+
+Detailed documentation on specific topics is available at:
+
+- [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
+- [Исходящий Webhook](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
+- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses) — Формат запросов, авторизация, пагинация
+- [Ошибки и лимиты](https://dev.pachca.com/guides/errors) — Коды ошибок HTTP и rate limits
+- [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт данных пространства
+- [Формы](https://dev.pachca.com/guides/forms) — Представления с набором полей для пользователей
+- [DLP-система](https://dev.pachca.com/guides/dlp) — Политики предотвращения утечки данных
+- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Отслеживание событий безопасности
+- [Последние обновления](https://dev.pachca.com/guides/updates) — История изменений и новые возможности API

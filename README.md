@@ -28,19 +28,19 @@ AI-агенты могут использовать скиллы для рабо
 ### Установка (40+ агентов)
 
 ```bash
-npx skills add dev.pachca.com
+npx skills add pachca/openapi
 ```
 
 ### Совместимость
 
 | Агент | Установка | Путь |
 |-------|----------|------|
-| Claude Code | `npx skills add dev.pachca.com` | `.claude/skills/` |
-| Cursor | `npx skills add dev.pachca.com` | `.cursor/skills/` |
+| Claude Code | `npx skills add pachca/openapi` | `.claude/skills/` |
+| Cursor | `npx skills add pachca/openapi` | `.cursor/skills/` |
 | Codex CLI | Автоматически | `AGENTS.md` в корне репо |
-| OpenCode | `npx skills add dev.pachca.com` | `.agents/skills/` |
-| Windsurf, Continue, 35+ других | `npx skills add dev.pachca.com` | Автоопределение |
-| Ручная установка | `cp -r .agents/skills/pachca-* <path>` | Любой |
+| OpenCode | `npx skills add pachca/openapi` | `skills/` |
+| Windsurf, Continue, 35+ других | `npx skills add pachca/openapi` | Автоопределение |
+| Ручная установка | `cp -r skills/pachca-* <path>` | Любой |
 
 ### Доступные скиллы
 
@@ -117,7 +117,7 @@ apps/docs                           sdk/* (5 языков)
     ▼                                npm, PyPI, JitPack, SPM, Go modules
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
-  + Agent Skills (.agents/, .claude/, .cursor/, AGENTS.md, .well-known/)
+  + Agent Skills (skills/, .claude/, .cursor/, AGENTS.md, .well-known/)
   + OG-изображения + sitemap + RSS
 ```
 

@@ -105,7 +105,7 @@
 | `pachca-tasks` | Создание и управление задачами (напоминаниями) |
 | `pachca-security` | Журнал аудита событий и DLP-система |
 
-Скиллы соответствуют [Agent Skills Discovery RFC](https://github.com/cloudflare/agent-skills-discovery-rfc) и совместимы с 40+ AI-агентами через [Vercel Skills CLI](https://github.com/vercel-labs/skills).
+Скиллы соответствуют спецификации [Agent Skills](https://agentskills.io) и [Agent Skills Discovery RFC](https://github.com/cloudflare/agent-skills-discovery-rfc), совместимы с 40+ AI-агентами через [Skills CLI](https://skills.sh).
 
 ### Другие форматы
 
@@ -136,14 +136,11 @@
 **Agent Skills**
 
 ```bash
-{`npx skills add dev.pachca.com`}
+{`npx skills add pachca/openapi`}
 ```
 
 
 Команда автоматически определит установленные агенты и подключит скиллы Пачки. Агент получит пошаговые сценарии для всех типичных задач — от отправки сообщений до работы с формами.
-
-> Скиллы доступны в [репозитории на GitHub](https://github.com/pachca/openapi/tree/main/.agents/skills). Устанавливайте скиллы только из официального репозитория.
-
 
 ### Через Context7 MCP
 

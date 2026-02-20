@@ -47,5 +47,6 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
-# Claude Code local settings
-.claude/settings.local.json
+# Agent-specific local skills (installed via `npx skills add`)
+.claude/skills/
+.cursor/

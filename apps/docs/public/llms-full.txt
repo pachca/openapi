@@ -44,15 +44,6 @@
 
 Администрирование состава участников пространства и их профилей через API · Интеграции на основе API для создания чатов и отправки сообщений в указанные чаты · Входящие вебхуки для упрощенной отправки сообщений без API · Получение информации в реальном времени при помощи исходящих вебхуков · [и многое другое](https://pachca.com/blog/kak-podklyuchit-lyubimye-servisy-k-pachke)
 
-> Полезные форматы для работы с AI:
-
-[**llms.txt**](/llms.txt) — краткая версия всей документации в markdown
-
-[**llms-full.txt**](/llms-full.txt) — полный markdown-файл с оглавлением
-
-_Также вы можете получить markdown-версию любой страницы, добавив .md к её адресу или используя меню «Скопировать» под заголовком страницы._
-
-
 ## Руководства
 
 - [AI агенты](/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
@@ -278,7 +269,7 @@ _Также вы можете получить markdown-версию любой 
 | `pachca-tasks` | Создание и управление задачами (напоминаниями) |
 | `pachca-security` | Журнал аудита событий и DLP-система |
 
-Скиллы соответствуют [Agent Skills Discovery RFC](https://github.com/cloudflare/agent-skills-discovery-rfc) и совместимы с 40+ AI-агентами через [Vercel Skills CLI](https://github.com/vercel-labs/skills).
+Скиллы соответствуют спецификации [Agent Skills](https://agentskills.io) и [Agent Skills Discovery RFC](https://github.com/cloudflare/agent-skills-discovery-rfc), совместимы с 40+ AI-агентами через [Skills CLI](https://skills.sh).
 
 ### Другие форматы
 
@@ -309,14 +300,11 @@ _Также вы можете получить markdown-версию любой 
 **Agent Skills**
 
 ```bash
-{`npx skills add dev.pachca.com`}
+{`npx skills add pachca/openapi`}
 ```
 
 
 Команда автоматически определит установленные агенты и подключит скиллы Пачки. Агент получит пошаговые сценарии для всех типичных задач — от отправки сообщений до работы с формами.
-
-> Скиллы доступны в [репозитории на GitHub](https://github.com/pachca/openapi/tree/main/.agents/skills). Устанавливайте скиллы только из официального репозитория.
-
 
 ### Через Context7 MCP
 

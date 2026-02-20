@@ -10,7 +10,7 @@ import { WORKFLOWS } from './workflows';
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
 const OUTPUT_DIRS = [
-  path.join(REPO_ROOT, '.agents/skills'),
+  path.join(REPO_ROOT, 'skills'),
   path.join(REPO_ROOT, '.claude/skills'),
   path.join(REPO_ROOT, '.cursor/rules'),
   path.join(process.cwd(), 'public/.well-known/skills'),
@@ -56,7 +56,7 @@ export function generateAllSkills(api: ParsedAPI) {
     const endpointsMd = generateEndpointsMd(ctx);
 
     const basePaths = [
-      `.agents/skills/${config.name}`,
+      `skills/${config.name}`,
       `.claude/skills/${config.name}`,
       `apps/docs/public/.well-known/skills/${config.name}`,
     ];
@@ -102,7 +102,7 @@ export function generateAllSkills(api: ParsedAPI) {
     const skillMd = generateSkillMd(ctx);
     const endpointsMd = generateEndpointsMd(ctx);
     for (const base of [
-      `.agents/skills/${name}`,
+      `skills/${name}`,
       `.claude/skills/${name}`,
       `apps/docs/public/.well-known/skills/${name}`,
     ]) {
@@ -113,7 +113,7 @@ export function generateAllSkills(api: ParsedAPI) {
   }
 
   const overviewMd = generateOverviewSkillMd(baseUrl);
-  for (const base of ['.agents/skills/default', 'apps/docs/public/.well-known/skills/default']) {
+  for (const base of ['skills/default', 'apps/docs/public/.well-known/skills/default']) {
     results.push({ path: `${base}/SKILL.md`, content: overviewMd });
   }
 
@@ -697,14 +697,14 @@ function generateAgentsMd(baseUrl: string): string {
   for (const config of SKILL_TAG_MAP) {
     const shortDesc = config.description.split('.')[0];
     lines.push(
-      `| ${config.name} | ${shortDesc} | [.agents/skills/${config.name}/SKILL.md](.agents/skills/${config.name}/SKILL.md) |`
+      `| ${config.name} | ${shortDesc} | [skills/${config.name}/SKILL.md](skills/${config.name}/SKILL.md) |`
     );
   }
   lines.push('');
   lines.push('## Установка');
   lines.push('');
   lines.push('```bash');
-  lines.push('npx skills add dev.pachca.com');
+  lines.push('npx skills add pachca/openapi');
   lines.push('```');
   lines.push('');
   lines.push(

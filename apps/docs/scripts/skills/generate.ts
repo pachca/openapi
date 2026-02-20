@@ -704,7 +704,7 @@ function generateAgentsMd(baseUrl: string): string {
   lines.push('## Установка');
   lines.push('');
   lines.push('```bash');
-  lines.push('npx skills add dev.pachca.com');
+  lines.push('npx skills add pachca/openapi');
   lines.push('```');
   lines.push('');
   lines.push(

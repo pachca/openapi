@@ -77,7 +77,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
-  '/guides/ai-agents': 'Bot',
+  '/guides/ai-agents': 'Sparkles',
   '/guides/requests-responses': 'ArrowLeftRight',
   '/guides/webhook': 'Webhook',
   '/guides/errors': 'AlertTriangle',

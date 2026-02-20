@@ -21,7 +21,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 ## Установка
 
 ```bash
-npx skills add dev.pachca.com
+npx skills add pachca/openapi
 ```
 
 Подробнее: [документация API](https://dev.pachca.com), [OpenAPI спецификация](https://dev.pachca.com/openapi.yaml)

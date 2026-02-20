@@ -32,3 +32,4 @@ content/
 # Generated markdown files (auto-generated from OpenAPI spec)
 public/**/*.md
 public/**/*.txt
+public/.well-known/

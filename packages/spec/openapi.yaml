@@ -4548,6 +4548,9 @@ components:
         - tag_removed_from_chat
         - message_updated
         - message_deleted
+        - message_created
+        - reaction_created
+        - reaction_deleted
         - access_token_created
         - access_token_updated
         - access_token_destroy
@@ -5303,6 +5306,59 @@ components:
             $ref: '#/components/schemas/LinkPreview'
           description: '`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.'
       description: Запрос на разворачивание ссылок
+    LinkSharedWebhookPayload:
+      type: object
+      required:
+        - type
+        - event
+        - chat_id
+        - message_id
+        - links
+        - created_at
+        - webhook_timestamp
+      properties:
+        type:
+          type: string
+          enum:
+            - message
+          description: Тип объекта
+          example: message
+          x-enum-descriptions:
+            message: Для разворачивания ссылок всегда message
+        event:
+          type: string
+          enum:
+            - link_shared
+          description: Тип события
+          example: link_shared
+          x-enum-descriptions:
+            link_shared: Обнаружена ссылка на отслеживаемый домен
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата, в котором обнаружена ссылка
+          example: 23438
+        message_id:
+          type: integer
+          format: int32
+          description: Идентификатор сообщения, содержащего ссылку
+          example: 268092
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookLink'
+          description: Массив обнаруженных ссылок на отслеживаемые домены
+        created_at:
+          type: string
+          format: date-time
+          description: Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+          example: '2024-09-18T19:53:14.000Z'
+        webhook_timestamp:
+          type: integer
+          format: int32
+          description: Дата и время отправки вебхука (UTC+0) в формате UNIX
+          example: 1726685594
+      description: Структура исходящего вебхука о разворачивании ссылок
     MemberEventType:
       type: string
       enum:
@@ -7112,6 +7168,21 @@ components:
         new: Создание
         update: Обновление
         delete: Удаление
+    WebhookLink:
+      type: object
+      required:
+        - url
+        - domain
+      properties:
+        url:
+          type: string
+          description: URL ссылки
+          example: https://example.com/page1
+        domain:
+          type: string
+          description: Домен ссылки
+          example: example.com
+      description: Объект ссылки в вебхуке разворачивания ссылок
     WebhookMessageThread:
       type: object
       required:
@@ -7136,6 +7207,7 @@ components:
         - $ref: '#/components/schemas/ButtonWebhookPayload'
         - $ref: '#/components/schemas/ChatMemberWebhookPayload'
         - $ref: '#/components/schemas/CompanyMemberWebhookPayload'
+        - $ref: '#/components/schemas/LinkSharedWebhookPayload'
       description: Объединение всех типов payload вебхуков
   securitySchemes:
     BearerAuth:

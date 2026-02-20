@@ -104,111 +104,6 @@ export async function ErrorSchema() {
 }
 
 // ============================================
-// MarkdownTable - renders a simple table for forms page
-// ============================================
-
-export function MarkdownSyntaxTable() {
-  return (
-    <div className="my-6 overflow-x-auto not-prose">
-      <table className="w-full border-none text-[14px]">
-        <thead>
-          <tr className="border-b border-background-border">
-            <th className="text-left py-4 pl-0! text-text-primary! font-semibold! text-[15px]! normal-case! tracking-normal! bg-transparent!">
-              Элемент
-            </th>
-            <th className="text-left py-4 pl-0! text-text-primary! font-semibold! text-[15px]! normal-case! tracking-normal! bg-transparent!">
-              Синтаксис
-            </th>
-            <th className="text-left py-4 pl-0! text-text-primary! font-semibold! text-[15px]! normal-case! tracking-normal! bg-transparent!">
-              Результат
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-background-border/40">
-          <tr>
-            <td className="py-5 pl-0! text-text-primary w-[20%]">Жирный</td>
-            <td className="py-5 pl-0! w-[45%]">
-              <code>**это жирный текст**</code> или <code>__это жирный текст__</code>
-            </td>
-            <td className="py-5 pl-0! text-text-primary font-bold">это жирный текст</td>
-          </tr>
-          <tr>
-            <td className="py-5 pl-0! text-text-primary">Курсив</td>
-            <td className="py-5 pl-0!">
-              <code>*это курсивный текст*</code> или <code>_это курсивный текст_</code>
-            </td>
-            <td className="py-5 pl-0! text-text-primary italic">это курсивный текст</td>
-          </tr>
-          <tr>
-            <td className="py-5 pl-0! text-text-primary">Ссылки</td>
-            <td className="py-5 pl-0!">
-              <code>[текст ссылки](https://www.google.com)</code>
-            </td>
-            <td className="py-5 pl-0! underline text-primary">текст ссылки</td>
-          </tr>
-          <tr>
-            <td className="py-5 pl-0! text-text-primary">Маркированный список</td>
-            <td className="py-5 pl-0!">
-              <code>- первый пункт</code>
-              <br />
-              <code>- второй пункт</code>
-            </td>
-            <td className="py-5 pl-0!">
-              • первый пункт
-              <br />• второй пункт
-            </td>
-          </tr>
-          <tr>
-            <td className="py-5 pl-0! text-text-primary">Нумерованный список</td>
-            <td className="py-5 pl-0!">
-              <code>1. первый пункт</code>
-              <br />
-              <code>2. второй пункт</code>
-            </td>
-            <td className="py-5 pl-0!">
-              1. первый пункт
-              <br />
-              2. второй пункт
-            </td>
-          </tr>
-          <tr>
-            <td className="py-5 pl-0! text-text-primary">Зачеркнутый</td>
-            <td className="py-5 pl-0!">
-              <code>~~это зачеркнутый текст~~</code>
-            </td>
-            <td className="py-5 pl-0! text-text-primary line-through">это зачеркнутый текст</td>
-          </tr>
-          <tr>
-            <td className="py-5 pl-0! text-text-primary">Строчный код</td>
-            <td className="py-5 pl-0!">
-              <code>`код в тексте`</code>
-            </td>
-            <td className="py-5 pl-0!">
-              <code>код в тексте</code>
-            </td>
-          </tr>
-          <tr>
-            <td className="py-5 pl-0! text-text-primary">Блок кода</td>
-            <td className="py-5 pl-0!">
-              <code>
-                ```
-                <br />
-                Блок кода
-                <br />
-                ```
-              </code>
-            </td>
-            <td className="py-5 pl-0! bg-background-secondary p-2 rounded font-mono text-sm">
-              Блок кода
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ============================================
 // Limit - displays rate limit card
 // ============================================
 
@@ -375,7 +270,6 @@ export const customMdxComponents = {
   SchemaBlock,
   HttpCodes,
   ErrorSchema,
-  MarkdownSyntaxTable,
   CodeBlock,
   Limit,
   Updates: UpdatesList,

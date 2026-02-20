@@ -74,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
         <link rel="alternate" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
         <link rel="alternate" type="text/markdown" title="skill.md" href="/skill.md" />
+        <link rel="skills" href="/.well-known/skills/index.json" />
         <link
           rel="alternate"
           type="application/vnd.oai.openapi"

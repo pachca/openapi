@@ -534,6 +534,15 @@ enum AuditEventKey {
   @doc("Сообщение удалено")
   message_deleted: "message_deleted",
 
+  @doc("Сообщение создано")
+  message_created: "message_created",
+
+  @doc("Реакция добавлена")
+  reaction_created: "reaction_created",
+
+  @doc("Реакция удалена")
+  reaction_deleted: "reaction_deleted",
+
   @doc("Создан новый токен доступа")
   access_token_created: "access_token_created",
 
@@ -2230,6 +2239,53 @@ model CompanyMemberWebhookPayload {
   webhook_timestamp: int32;
 }
 
+@doc("Объект ссылки в вебхуке разворачивания ссылок")
+model WebhookLink {
+  @doc("URL ссылки")
+  @example("https://example.com/page1")
+  url: string;
+
+  @doc("Домен ссылки")
+  @example("example.com")
+  domain: string;
+}
+
+@doc("Структура исходящего вебхука о разворачивании ссылок")
+model LinkSharedWebhookPayload {
+  @doc("Тип объекта")
+  @example("message")
+  @extension("x-enum-descriptions", #{
+    message: "Для разворачивания ссылок всегда message"
+  })
+  type: "message";
+
+  @doc("Тип события")
+  @example("link_shared")
+  @extension("x-enum-descriptions", #{
+    link_shared: "Обнаружена ссылка на отслеживаемый домен"
+  })
+  event: "link_shared";
+
+  @doc("Идентификатор чата, в котором обнаружена ссылка")
+  @example(23438)
+  chat_id: int32;
+
+  @doc("Идентификатор сообщения, содержащего ссылку")
+  @example(268092)
+  message_id: int32;
+
+  @doc("Массив обнаруженных ссылок на отслеживаемые домены")
+  links: WebhookLink[];
+
+  @doc("Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2024-09-18T19:53:14.000Z"))
+  created_at: utcDateTime;
+
+  @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
+  @example(1726685594)
+  webhook_timestamp: int32;
+}
+
 @doc("Объединение всех типов payload вебхуков")
 union WebhookPayloadUnion {
   MessageWebhookPayload,
@@ -2237,6 +2293,7 @@ union WebhookPayloadUnion {
   ButtonWebhookPayload,
   ChatMemberWebhookPayload,
   CompanyMemberWebhookPayload,
+  LinkSharedWebhookPayload,
 }
 
 @doc("Событие исходящего вебхука")

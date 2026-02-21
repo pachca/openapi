@@ -179,6 +179,7 @@ apps/docs                           sdk/* (5 языков)
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
   + Agent Skills (skills/, .claude/, .cursor/, AGENTS.md, .well-known/)
+  + pachca.postman_collection.json
   + OG-изображения + sitemap + RSS
 ```
 

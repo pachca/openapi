@@ -1,6 +1,9 @@
 {
-  "name": "dev.pachca",
+  "name": "Пачка для разработчиков",
   "short_name": "dev.pachca",
+  "description": "REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.",
+  "start_url": "/",
+  "lang": "ru",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

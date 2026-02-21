@@ -80,25 +80,60 @@ export default async function ApiMethodPage({ params }: { params: Promise<{ slug
   const api = await parseOpenAPI();
   const baseUrl = api.servers[0]?.url;
 
+  const tag = endpoint.tags[0] || '';
+  const section = resolvedParams.slug[0] || '';
+
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'TechArticle',
-    headline: endpoint.title,
-    description: endpoint.description || endpoint.summary,
-    url: `https://dev.pachca.com${path}`,
-    inLanguage: 'ru',
-    publisher: {
-      '@type': 'Organization',
-      name: 'Пачка',
-      url: 'https://pachca.com',
-    },
+    '@graph': [
+      {
+        '@type': 'TechArticle',
+        headline: endpoint.title,
+        description: endpoint.description || endpoint.summary,
+        url: `https://dev.pachca.com${path}`,
+        inLanguage: 'ru',
+        isPartOf: {
+          '@type': 'WebSite',
+          url: 'https://dev.pachca.com',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Пачка',
+          url: 'https://pachca.com',
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'API',
+            item: 'https://dev.pachca.com',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: tag,
+            item: `https://dev.pachca.com/${section}`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: endpoint.title,
+          },
+        ],
+      },
+    ],
   };
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
       />
       <ApiMethodTemplate
         endpoint={endpoint}

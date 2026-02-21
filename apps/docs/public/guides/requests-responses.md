@@ -14,14 +14,14 @@
 **Базовый URL**
 
 ```http
-{`https://api.pachca.com/api/shared/v1`}
+https://api.pachca.com/api/shared/v1
 ```
 
 
 **Пример запроса**
 
 ```http
-{`POST /users HTTP/1.1
+POST /users HTTP/1.1
 Authorization: Bearer YOUR_ACCESS_TOKEN
 Content-Type: application/json; charset=utf-8
 Host: api.pachca.com
@@ -44,7 +44,7 @@ Content-Length: 219
         ]
     },
     "skip_email_notify": true
-}`}
+}
 ```
 
 
@@ -61,7 +61,7 @@ Content-Length: 219
 **Пример ответа**
 
 ```http
-{`HTTP/1.1 201 Created
+HTTP/1.1 201 Created
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2020 12:32:29 GMT
 Content-Type: application/json; charset=utf-8
@@ -96,6 +96,6 @@ X-Rack-CORS: miss; no-origin
             }
         ]
     }
-}`}
+}
 ```
 

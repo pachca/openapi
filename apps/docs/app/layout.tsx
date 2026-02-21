@@ -14,8 +14,7 @@ const inter = Inter({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
   viewportFit: 'cover',
 };
 
@@ -41,22 +40,43 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Пачка для разработчиков',
-  description:
-    'REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.',
-  url: 'https://dev.pachca.com',
-  inLanguage: 'ru',
-  publisher: {
-    '@type': 'Organization',
-    name: 'Пачка',
-    url: 'https://pachca.com',
-  },
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: 'https://dev.pachca.com/?search={search_term_string}',
-    'query-input': 'required name=search_term_string',
-  },
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      name: 'Пачка для разработчиков',
+      description:
+        'REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.',
+      url: 'https://dev.pachca.com',
+      inLanguage: 'ru',
+      publisher: {
+        '@type': 'Organization',
+        name: 'Пачка',
+        url: 'https://pachca.com',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://dev.pachca.com/web-app-manifest-512x512.png',
+        },
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://dev.pachca.com/?search={search_term_string}',
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'WebAPI',
+      name: 'Pachca REST API',
+      description:
+        'REST API для управления сообщениями, чатами, пользователями и задачами в мессенджере Пачка.',
+      documentation: 'https://dev.pachca.com',
+      url: 'https://api.pachca.com/api/shared/v1',
+      provider: {
+        '@type': 'Organization',
+        name: 'Пачка',
+        url: 'https://pachca.com',
+      },
+    },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -83,7 +103,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+          }}
         />
         <script
           dangerouslySetInnerHTML={{

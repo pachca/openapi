@@ -66,16 +66,40 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'TechArticle',
-    headline: data.frontmatter.title,
-    description: data.frontmatter.description,
-    url: `https://dev.pachca.com${pageUrl}`,
-    inLanguage: 'ru',
-    publisher: {
-      '@type': 'Organization',
-      name: 'Пачка',
-      url: 'https://pachca.com',
-    },
+    '@graph': [
+      {
+        '@type': 'TechArticle',
+        headline: data.frontmatter.title,
+        description: data.frontmatter.description,
+        url: `https://dev.pachca.com${pageUrl}`,
+        inLanguage: 'ru',
+        isPartOf: {
+          '@type': 'WebSite',
+          url: 'https://dev.pachca.com',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Пачка',
+          url: 'https://pachca.com',
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'API',
+            item: 'https://dev.pachca.com',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: data.frontmatter.title,
+          },
+        ],
+      },
+    ],
   };
 
   return (
@@ -85,7 +109,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     >
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
       />
       <StaticPageHeader title={data.frontmatter.title} pageUrl={pageUrl} />
       {data.frontmatter.useUpdatesComponent ? (

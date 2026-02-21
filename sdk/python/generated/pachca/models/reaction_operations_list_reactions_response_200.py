@@ -41,8 +41,8 @@ class ReactionOperationsListReactionsResponse200:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.reaction import Reaction
         from ..models.pagination_meta import PaginationMeta
+        from ..models.reaction import Reaction
         data = []
         for data_item_data in self.data:
             data_item = data_item_data.to_dict()

@@ -179,6 +179,7 @@ apps/docs                           sdk/* (5 языков)
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
   + Agent Skills (skills/, .claude/, .cursor/, AGENTS.md, .well-known/)
+  + pachca.postman_collection.json
   + OG-изображения + sitemap + RSS
 ```
 
@@ -319,6 +320,6 @@ Badge «Новое» показывается < 7 дней. Попадает в 
 
 ### Безопасность (next.config.ts)
 
-HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`.
+HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
 
 </details>

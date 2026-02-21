@@ -113,7 +113,6 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
  - [org.openapitools.client.models.ApiErrorItem](docs/ApiErrorItem.md)
  - [org.openapitools.client.models.AuditEvent](docs/AuditEvent.md)
  - [org.openapitools.client.models.AuditEventKey](docs/AuditEventKey.md)
- - [org.openapitools.client.models.BearerAuth](docs/BearerAuth.md)
  - [org.openapitools.client.models.BotOperationsGetWebhookEvents200Response](docs/BotOperationsGetWebhookEvents200Response.md)
  - [org.openapitools.client.models.BotOperationsUpdateBot200Response](docs/BotOperationsUpdateBot200Response.md)
  - [org.openapitools.client.models.BotResponse](docs/BotResponse.md)
@@ -239,5 +238,5 @@ Authentication schemes defined for the API:
 <a id="BearerAuth"></a>
 ### BearerAuth
 
-- **Type**: HTTP basic authentication
+- **Type**: HTTP Bearer Token authentication
 

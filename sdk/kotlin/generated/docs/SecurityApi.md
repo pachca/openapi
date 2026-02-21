@@ -64,8 +64,7 @@ try {
 
 
 Configure BearerAuth:
-    ApiClient.username = ""
-    ApiClient.password = ""
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 

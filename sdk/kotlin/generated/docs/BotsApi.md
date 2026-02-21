@@ -50,8 +50,7 @@ try {
 
 
 Configure BearerAuth:
-    ApiClient.username = ""
-    ApiClient.password = ""
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 
@@ -101,8 +100,7 @@ try {
 
 
 Configure BearerAuth:
-    ApiClient.username = ""
-    ApiClient.password = ""
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 
@@ -152,8 +150,7 @@ try {
 
 
 Configure BearerAuth:
-    ApiClient.username = ""
-    ApiClient.password = ""
+    ApiClient.accessToken = ""
 
 ### HTTP request headers
 

@@ -6,7 +6,6 @@ docs/ApiError.md
 docs/ApiErrorItem.md
 docs/AuditEvent.md
 docs/AuditEventKey.md
-docs/BearerAuth.md
 docs/BotOperationsGetWebhookEvents200Response.md
 docs/BotOperationsUpdateBot200Response.md
 docs/BotResponse.md
@@ -173,7 +172,6 @@ src/main/kotlin/org/openapitools/client/models/ApiError.kt
 src/main/kotlin/org/openapitools/client/models/ApiErrorItem.kt
 src/main/kotlin/org/openapitools/client/models/AuditEvent.kt
 src/main/kotlin/org/openapitools/client/models/AuditEventKey.kt
-src/main/kotlin/org/openapitools/client/models/BearerAuth.kt
 src/main/kotlin/org/openapitools/client/models/BotOperationsGetWebhookEvents200Response.kt
 src/main/kotlin/org/openapitools/client/models/BotOperationsUpdateBot200Response.kt
 src/main/kotlin/org/openapitools/client/models/BotResponse.kt

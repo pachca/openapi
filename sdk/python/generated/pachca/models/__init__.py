@@ -7,9 +7,6 @@ from .api_error_item import ApiErrorItem
 from .audit_event import AuditEvent
 from .audit_event_details import AuditEventDetails
 from .audit_event_key import AuditEventKey
-from .bearer_auth import BearerAuth
-from .bearer_auth_scheme import BearerAuthScheme
-from .bearer_auth_type import BearerAuthType
 from .bot_operations_get_webhook_events_response_200 import BotOperationsGetWebhookEventsResponse200
 from .bot_operations_update_bot_response_200 import BotOperationsUpdateBotResponse200
 from .bot_response import BotResponse
@@ -174,9 +171,6 @@ __all__ = (
     "AuditEvent",
     "AuditEventDetails",
     "AuditEventKey",
-    "BearerAuth",
-    "BearerAuthScheme",
-    "BearerAuthType",
     "BotOperationsGetWebhookEventsResponse200",
     "BotOperationsUpdateBotResponse200",
     "BotResponse",

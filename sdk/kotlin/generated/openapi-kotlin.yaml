@@ -4845,23 +4845,6 @@ components:
         - audit_events_accessed
         - dlp_violation_detected
       description: Тип аудит-события
-    BearerAuth:
-      type: object
-      required:
-        - type
-        - scheme
-      properties:
-        type:
-          type: string
-          enum:
-            - http
-          description: Http authentication
-        scheme:
-          type: string
-          enum:
-            - Basic
-          description: basic auth scheme
-      description: ""
     BotResponse:
       type: object
       required:
@@ -7414,7 +7397,7 @@ components:
   securitySchemes:
     BearerAuth:
       type: http
-      scheme: Basic
+      scheme: Bearer
 servers:
   - url: https://api.pachca.com/api/shared/v1
     description: Production server

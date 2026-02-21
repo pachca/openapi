@@ -3,6 +3,7 @@
 [![CI](https://github.com/pachca/openapi/actions/workflows/check.yml/badge.svg)](https://github.com/pachca/openapi/actions/workflows/check.yml)
 [![npm](https://img.shields.io/npm/v/@pachca/sdk)](https://www.npmjs.com/package/@pachca/sdk)
 [![PyPI](https://img.shields.io/pypi/v/pachca)](https://pypi.org/project/pachca/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Репозиторий содержит OpenAPI-спецификацию, SDK для 5 языков и AI-скиллы для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Используйте для автоматизации: отправки сообщений, управления каналами и сотрудниками, настройки ботов, работы с задачами и аудитом событий.
 

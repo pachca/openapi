@@ -7,7 +7,7 @@
 
 Репозиторий содержит OpenAPI-спецификацию, SDK для 5 языков и AI-скиллы для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Используйте для автоматизации: отправки сообщений, управления каналами и сотрудниками, настройки ботов, работы с задачами и аудитом событий.
 
-**Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Changelog**: https://dev.pachca.com/guides/updates
+**Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Changelog**: https://dev.pachca.com/guides/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
 ## Agent Skills
 
@@ -88,6 +88,13 @@ const { data, error } = await client.GET('/users');
 ```
 
 SDK генерируются из `openapi.yaml` и публикуются автоматически при пуше в `main`: генерация → коммит `chore: regenerate SDK v{VERSION}` → теги → npm, PyPI, JitPack. Swift и Go — через Git-теги.
+
+## Тестирование
+
+| Инструмент | Как использовать |
+|-----------|-----------------|
+| [Postman Collection](https://dev.pachca.com/pachca.postman_collection.json) | Скачайте и импортируйте в Postman |
+| Bruno | Скачайте тот же файл и импортируйте: File → Import → Postman Collection |
 
 ## AI-интеграции
 
@@ -218,6 +225,7 @@ Next.js 16 (App Router, Turbopack) + MDX + FlexSearch (+ русские сино
 | `/feed.xml` | RSS-лента обновлений |
 | `/sitemap.xml` | Карта сайта |
 | `/openapi.yaml` | OpenAPI спецификация |
+| `/pachca.postman_collection.json` | Postman/Bruno коллекция |
 
 ### URL маппинг
 

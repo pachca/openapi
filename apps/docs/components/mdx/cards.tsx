@@ -35,6 +35,7 @@ import {
   Sparkles,
   MessageSquareReply,
   AtSign,
+  ArrowDownToLine,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -73,6 +74,7 @@ const iconMap: Record<string, LucideIcon> = {
   Sparkles,
   MessageSquareReply,
   AtSign,
+  ArrowDownToLine,
 };
 
 /** Icon mapping for guide pages by path */

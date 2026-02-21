@@ -35,6 +35,7 @@ import {
   Sparkles,
   MessageSquareReply,
   AtSign,
+  ArrowDownToLine,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -73,6 +74,7 @@ const iconMap: Record<string, LucideIcon> = {
   Sparkles,
   MessageSquareReply,
   AtSign,
+  ArrowDownToLine,
 };
 
 /** Icon mapping for guide pages by path */
@@ -129,10 +131,11 @@ interface CardProps {
   title: string;
   icon?: string;
   href?: string;
+  download?: boolean;
   children: React.ReactNode;
 }
 
-export function Card({ title, icon, href, children }: CardProps) {
+export function Card({ title, icon, href, download, children }: CardProps) {
   const Icon = icon ? iconMap[icon] : null;
 
   const content = (
@@ -148,13 +151,27 @@ export function Card({ title, icon, href, children }: CardProps) {
   );
 
   if (href) {
+    const className =
+      'group relative flex flex-col gap-2.5 px-4 py-3 rounded-lg border border-background-border hover:bg-background-tertiary transition-all duration-200 no-underline!';
+    const cornerIcon = download ? (
+      <ArrowDownToLine className="absolute top-3 right-3 h-4 w-4 text-text-tertiary transition-transform duration-200 group-hover:translate-y-0.5" />
+    ) : (
+      <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+    );
+
+    if (download) {
+      return (
+        <a href={href} download className={className}>
+          {content}
+          {cornerIcon}
+        </a>
+      );
+    }
+
     return (
-      <Link
-        href={href}
-        className="group relative flex flex-col gap-2.5 px-4 py-3 rounded-lg border border-background-border hover:bg-background-tertiary transition-all duration-200 no-underline!"
-      >
+      <Link href={href} className={className}>
         {content}
-        <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        {cornerIcon}
       </Link>
     );
   }

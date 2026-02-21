@@ -8,6 +8,7 @@ import {
 } from '../lib/markdown-generator';
 import { getOrderedGuidePages, sortTagsByOrder } from '../lib/guides-config';
 import type { Endpoint } from '../lib/openapi/types';
+import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP } from './skills/config';
 
@@ -282,6 +283,135 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   ].join('\n');
 }
 
+function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
+  const baseUrl = api.servers[0]?.url ?? 'https://api.pachca.com/api/shared/v1';
+  const grouped = groupByTag(api.endpoints);
+  const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
+
+  interface PostmanVariable {
+    key: string;
+    value: string;
+    type?: string;
+  }
+  interface PostmanUrl {
+    raw: string;
+    host: string[];
+    path: string[];
+    variable?: PostmanVariable[];
+    query?: { key: string; value: string }[];
+  }
+  interface PostmanHeader {
+    key: string;
+    value: string;
+  }
+  interface PostmanBody {
+    mode: string;
+    raw: string;
+    options: { raw: { language: string } };
+  }
+  interface PostmanRequest {
+    method: string;
+    header: PostmanHeader[];
+    url: PostmanUrl;
+    body?: PostmanBody;
+  }
+  interface PostmanItem {
+    name: string;
+    request: PostmanRequest;
+  }
+  interface PostmanFolder {
+    name: string;
+    item: PostmanItem[];
+  }
+
+  function buildUrl(endpointPath: string): PostmanUrl {
+    // Replace {param} with :param for Postman style
+    const postmanPath = endpointPath.replace(/\{([^}]+)\}/g, ':$1');
+    const pathSegments = postmanPath.split('/').filter(Boolean);
+    const pathVariables = [...endpointPath.matchAll(/\{([^}]+)\}/g)].map((m) => ({
+      key: m[1],
+      value: '',
+    }));
+
+    const url: PostmanUrl = {
+      raw: `{{baseUrl}}${postmanPath}`,
+      host: ['{{baseUrl}}'],
+      path: pathSegments,
+    };
+
+    if (pathVariables.length > 0) {
+      url.variable = pathVariables;
+    }
+
+    return url;
+  }
+
+  function buildRequest(endpoint: Endpoint): PostmanRequest {
+    const header: PostmanHeader[] = [];
+    const hasBody =
+      ['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody != null;
+
+    if (hasBody) {
+      header.push({ key: 'Content-Type', value: 'application/json' });
+    }
+
+    const request: PostmanRequest = {
+      method: endpoint.method,
+      header,
+      url: buildUrl(endpoint.path),
+    };
+
+    if (hasBody && endpoint.requestBody) {
+      let bodyObj: unknown;
+
+      // Try explicit example first, then generate from schema
+      const requestExample = generateRequestExample(endpoint.requestBody);
+      if (requestExample !== undefined) {
+        bodyObj = requestExample;
+      } else {
+        const jsonContent = endpoint.requestBody.content['application/json'];
+        if (jsonContent?.schema) {
+          bodyObj = generateExample(jsonContent.schema);
+        }
+      }
+
+      if (bodyObj !== undefined) {
+        request.body = {
+          mode: 'raw',
+          raw: JSON.stringify(bodyObj, null, 2),
+          options: { raw: { language: 'json' } },
+        };
+      }
+    }
+
+    return request;
+  }
+
+  const folders: PostmanFolder[] = sortedTags.map((tag) => ({
+    name: tag,
+    item: (grouped.get(tag) ?? []).map((endpoint) => ({
+      name: generateTitle(endpoint),
+      request: buildRequest(endpoint),
+    })),
+  }));
+
+  return {
+    info: {
+      name: 'Пачка API',
+      schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
+    },
+    auth: {
+      type: 'bearer',
+      bearer: [{ key: 'token', value: '{{PACHCA_TOKEN}}', type: 'string' }],
+    },
+    variable: [
+      { key: 'baseUrl', value: baseUrl },
+      { key: 'PACHCA_TOKEN', value: 'YOUR_TOKEN_HERE' },
+    ],
+    item: folders,
+  };
+}
+
 async function generateEndpointMdFiles(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url;
   const files: { path: string; content: string }[] = [];
@@ -350,6 +480,10 @@ async function main() {
   }
   console.log(`✓ ${skillFiles.length} skill files`);
 
+  const postmanCollection = generatePostmanCollection(api);
+  writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));
+  console.log('✓ public/pachca.postman_collection.json');
+
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {
     writeFile(file.path, file.content);
@@ -363,7 +497,7 @@ async function main() {
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
   console.log(
-    `\nTotal: ${3 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+    `\nTotal: ${4 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
   );
 }
 

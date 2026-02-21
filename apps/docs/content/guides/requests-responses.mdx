@@ -11,6 +11,23 @@ description: Формат запросов, авторизация, пагина
 
 `access_token` не имеет времени жизни. Если вы используете `access_token` «Администратора» или «Владельца» пространства, то в разделе «Автоматизации» → «API» вы можете воспользоваться функцией сброса токена. В таком случае вы увидите новый `Access token`, а предыдущий станет недействительным.
 
+## Тестирование API
+
+Коллекция содержит все методы API с примерами запросов и настроенной авторизацией. Совместима с:
+
+- **Postman** *File → Import*
+- **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
+
+<CodeBlock language="text" title="Коллекция Postman/Bruno">
+  {`https://dev.pachca.com/pachca.postman_collection.json`}
+</CodeBlock>
+
+<CardGroup columns={1}>
+  <Card title="Скачать коллекцию" icon="FileText" href="/pachca.postman_collection.json" download>
+    Файл в формате Postman Collection v2.1, совместим с Postman и Bruno.
+  </Card>
+</CardGroup>
+
 ## Структура запроса метода API
 
 При выполнении запроса, `access_token` необходимо поместить в заголовки (ключ `Authorization` с указанием типа `Bearer`), а в теле запроса указать все необходимые параметры метода. При этом не забудьте, что сервер ожидает перечисление параметров в формате `JSON`, кодировке `UTF-8` и по протоколу `HTTPS`.

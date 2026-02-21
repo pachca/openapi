@@ -18,7 +18,7 @@ export function EndpointHeader({ title, pageUrl, method, path }: EndpointHeaderP
     <div className="mb-8">
       <h1 className="text-text-primary mb-2!">{title}</h1>
       <div className="mt-0">
-        <MarkdownActions pageUrl={pageUrl} pageTitle={title} method={method} path={path} />
+        <MarkdownActions pageUrl={pageUrl} pageTitle={title} />
       </div>
 
       {method && path && (

@@ -121,7 +121,7 @@ const components = {
   // Other
   hr: () => <hr className="my-8 border-background-border" />,
   em: ({ children }: { children: React.ReactNode }) => (
-    <em className="text-text-secondary italic">{children}</em>
+    <em className="text-text-secondary not-italic">{children}</em>
   ),
   strong: ({ children }: { children: React.ReactNode }) => (
     <strong className="font-semibold">{children}</strong>

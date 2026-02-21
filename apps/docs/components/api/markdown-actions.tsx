@@ -8,8 +8,6 @@ import { CopiedTooltip } from './copied-tooltip';
 interface MarkdownActionsProps {
   pageUrl: string;
   pageTitle?: string;
-  method?: string;
-  path?: string;
 }
 
 export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {

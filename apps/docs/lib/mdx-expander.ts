@@ -264,12 +264,28 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return `> ${text}\n`;
   });
 
+  // <CardGroup>...<Card>...</Card>...</CardGroup> -> markdown list
+  result = result.replace(/<CardGroup[^>]*>([\s\S]*?)<\/CardGroup>/g, (_, inner) => {
+    const items: string[] = [];
+    const cardRegex = /<Card\s+([\s\S]*?)>([\s\S]*?)<\/Card>/g;
+    let cardMatch;
+    while ((cardMatch = cardRegex.exec(inner)) !== null) {
+      const attrs = cardMatch[1];
+      const content = cardMatch[2].trim();
+      const title = attrs.match(/title="([^"]+)"/)?.[1] ?? '';
+      const href = attrs.match(/href="([^"]+)"/)?.[1];
+      const titlePart = href ? `[${title}](${href})` : `**${title}**`;
+      items.push(content ? `- ${titlePart} — ${content}` : `- ${titlePart}`);
+    }
+    return items.join('\n') + '\n';
+  });
+
   // <Image src="..." alt="..." /> -> ![alt](src)
   result = result.replace(/<Image\s+src="([^"]+)"\s+alt="([^"]*)"[^/]*\/>/g, '![$2]($1)');
   result = result.replace(/<Image\s+alt="([^"]*)"\s+src="([^"]+)"[^/]*\/>/g, '![$1]($2)');
 
   // <ImageCard src="..." alt="..." caption="..." hint="..." /> -> markdown with optional hint/caption
-  result = result.replace(/<ImageCard\s+([^/]*?)\/>/g, (_, attrs) => {
+  result = result.replace(/<ImageCard\s+([\s\S]*?)\/>/g, (_, attrs) => {
     const src = attrs.match(/src="([^"]+)"/)?.[1] ?? '';
     const alt = attrs.match(/alt="([^"]*)"/)?.[1] ?? '';
     const caption = attrs.match(/caption="([^"]*)"/)?.[1];
@@ -322,7 +338,9 @@ export async function expandMdxComponents(content: string): Promise<string> {
     /<CodeBlock\s+language="([^"]*)"(?:\s+title="([^"]*)")?>([\s\S]*?)<\/CodeBlock>/g,
     (_, lang, title, code) => {
       const header = title ? `**${title}**\n\n` : '';
-      return `${header}\`\`\`${lang}\n${code.trim()}\n\`\`\`\n`;
+      // Strip JSX template literal wrapper {`...`}
+      const cleanCode = code.trim().replace(/^\{\`([\s\S]*)\`\}$/, '$1');
+      return `${header}\`\`\`${lang}\n${cleanCode}\n\`\`\`\n`;
     }
   );
 

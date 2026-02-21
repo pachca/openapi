@@ -173,43 +173,26 @@
 - **Треды как единица работы** — каждый тред изолирован, агент видит только его содержимое и отвечает туда же, не загрязняя общий чат
 - **Сквозные треды** — упомяните любого сотрудника в треде, и он увидит весь контекст, даже если не состоит в исходном чате. Один тред — единая точка координации между людьми и агентом
 
-<ImageCard src="/images/ai-agent-kai.jpg" alt="Пример работы AI-агента в треде Пачки" caption="Пример работы AI-агента в треде Пачки" />
+![Пример работы AI-агента в треде Пачки](/images/ai-agent-kai.jpg)
 
-<CardGroup columns={2}>
-  <Card title="Ответ на вопрос" icon="CircleHelp">
-    Читает тред, ищет ответ в базе знаний, отвечает в тот же тред
-  </Card>
-  <Card title="Задача из обсуждения" icon="ListTodo">
-    Читает историю треда, формирует заголовок и описание, создаёт задачу в трекере
-  </Card>
-  <Card title="Обработка заявок" icon="ClipboardCheck">
-    Получает заявку в канале, уточняет детали через форму, маршрутизирует ответственному
-  </Card>
-  <Card title="Диагностика CI" icon="Activity">
-    Запрашивает статус CI-проверок, находит упавший джоб, читает логи и отвечает с диагнозом
-  </Card>
-  <Card title="Анализ файла" icon="FileSearch">
-    Скачивает файл по ссылке из репозитория или веб-страницы, анализирует и отвечает в тред
-  </Card>
-  <Card title="Исследование компании" icon="Building2">
-    Находит сайт компании, определяет размер команды, собирает ключевую информацию в отчёт
-  </Card>
-  <Card title="Мониторинг" icon="Eye">
-    Следит за сообщениями в канале, при триггере отправляет уведомление или выполняет действие
-  </Card>
-  <Card title="Онбординг" icon="UserRoundPlus">
-    Приветствует нового сотрудника, отправляет инструкции, помогает настроить профиль
-  </Card>
-  <Card title="Личный ассистент" icon="Sparkles">
-    Напоминает о задачах, готовит дайджест непрочитанного, собирает повестку к встрече
-  </Card>
-  <Card title="Ответы коллегам" icon="MessageSquareReply">
-    Отвечает на типовые вопросы от коллег, пока вы заняты, используя контекст ваших проектов
-  </Card>
-  <Card title="Поиск упоминаний" icon="AtSign">
-    Находит все треды и сообщения, где вас упомянули, и собирает краткую сводку
-  </Card>
-</CardGroup>
+*Пример работы AI-агента в треде Пачки*
+
+
+> Как мы сделали AI-агента, который живёт в корпоративном мессенджере — [читайте в блоге Пачки](https://pachca.com/blog/ai-agent-v-korporativnom-messendzhere)
+
+
+- **Ответ на вопрос** — Читает тред, ищет ответ в базе знаний, отвечает в тот же тред
+- **Задача из обсуждения** — Читает историю треда, формирует заголовок и описание, создаёт задачу в трекере
+- **Обработка заявок** — Получает заявку в канале, уточняет детали через форму, маршрутизирует ответственному
+- **Диагностика CI** — Запрашивает статус CI-проверок, находит упавший джоб, читает логи и отвечает с диагнозом
+- **Анализ файла** — Скачивает файл по ссылке из репозитория или веб-страницы, анализирует и отвечает в тред
+- **Исследование компании** — Находит сайт компании, определяет размер команды, собирает ключевую информацию в отчёт
+- **Мониторинг** — Следит за сообщениями в канале, при триггере отправляет уведомление или выполняет действие
+- **Онбординг** — Приветствует нового сотрудника, отправляет инструкции, помогает настроить профиль
+- **Личный ассистент** — Напоминает о задачах, готовит дайджест непрочитанного, собирает повестку к встрече
+- **Ответы коллегам** — Отвечает на типовые вопросы от коллег, пока вы заняты, используя контекст ваших проектов
+- **Поиск упоминаний** — Находит все треды и сообщения, где вас упомянули, и собирает краткую сводку
+
 
 ## Как это работает
 
@@ -221,29 +204,28 @@
 
   ### Шаг 2. Сбор контекста
 
-Агент читает историю сообщений треда через API и собирает контекст.
+Агент читает историю сообщений и информацию о чате, чтобы понять контекст запроса.
+
+    - [Список сообщений чата](GET /messages) — история сообщений треда или чата
+    - [Информация о чате](GET /chats/{id}) — участники и тема чата
 
 
   ### Шаг 3. Выполнение действий
 
-Агент выполняет нужные действия — отправляет сообщения, создаёт задачи, вызывает внешние сервисы.
+Агент выполняет нужные действия — отправляет сообщения, создаёт задачи, вызывает внешние сервисы. Реакция-индикатор показывает пользователю, что агент работает.
+
+    - [Новое сообщение](POST /messages) — отправить сообщение в канал или беседу
+    - [Новый тред](POST /messages/{id}/thread) — создать тред и ответить
+    - [Новая реакция](POST /messages/{id}/reactions) — поставить реакцию-индикатор
 
 
   ### Шаг 4. Ответ
 
-Результат агент отправляет обратно в тред или в личные сообщения через API.
+Результат агент отправляет обратно в тред или в личные сообщения и снимает реакцию-индикатор.
 
+    - [Новое сообщение](POST /messages) — отправить результат
+    - [Удаление реакции](DELETE /messages/{id}/reactions) — снять реакцию-индикатор
 
-## API-методы для типичных задач агента
-
-| Задача | Метод | Описание |
-|--------|-------|----------|
-| Прочитать обсуждение | [Список сообщений чата](GET /messages) | Получить историю сообщений треда или чата |
-| Ответить в тред | [Новый тред](POST /messages/{id}/thread), [Новое сообщение](POST /messages) | Создать тред и отправить ответ |
-| Отправить результат | [Новое сообщение](POST /messages) | Отправить сообщение в канал или беседу |
-| Показать статус работы | [Новая реакция](POST /messages/{id}/reactions), [Удаление реакции](DELETE /messages/{id}/reactions) | Поставить реакцию-индикатор и снять по завершении |
-| Получить контекст | [Информация о чате](GET /chats/{id}) | Узнать участников и тему чата |
-| Получить события | [Исходящий Webhook](/guides/webhook) | Получать уведомления о новых сообщениях в реальном времени |
 
 ## Практические советы
 
@@ -273,20 +255,11 @@
 
 ### Другие форматы
 
-<CardGroup columns={2}>
-  <Card title="llms.txt" icon="FileText" href="/llms.txt">
-    Краткая сводка документации со ссылками на страницы в markdown-формате. Соответствует стандарту llms.txt.
-  </Card>
-  <Card title="llms-full.txt" icon="FileText" href="/llms-full.txt">
-    Полная документация в одном файле для загрузки в контекст агента. Содержит все руководства и описания методов.
-  </Card>
-  <Card title="OpenAPI-спецификация" icon="ArrowLeftRight" href="/openapi.yaml">
-    OpenAPI 3.0 спецификация для кодогенерации, парсинга и автоматического создания клиентов.
-  </Card>
-  <Card title="Context7" icon="Zap" href="https://context7.com/pachca/openapi">
-    Документация Пачки в Context7 — MCP-сервер с актуальной документацией для AI-агентов.
-  </Card>
-</CardGroup>
+- [llms.txt](/llms.txt) — Краткая сводка документации со ссылками на страницы в markdown-формате. Соответствует стандарту llms.txt.
+- [llms-full.txt](/llms-full.txt) — Полная документация в одном файле для загрузки в контекст агента. Содержит все руководства и описания методов.
+- [OpenAPI-спецификация](/openapi.yaml) — OpenAPI 3.0 спецификация для кодогенерации, парсинга и автоматического создания клиентов.
+- [Context7](https://context7.com/pachca/openapi) — Документация Пачки в Context7 — MCP-сервер с актуальной документацией для AI-агентов.
+
 
 > Любая страница документации доступна в markdown-формате — добавьте `.md` к адресу страницы. Например: `/guides/webhook.md`
 
@@ -300,7 +273,7 @@
 **Agent Skills**
 
 ```bash
-{`npx skills add pachca/openapi`}
+npx skills add pachca/openapi
 ```
 
 
@@ -313,7 +286,7 @@
 **Claude Code**
 
 ```bash
-{`claude mcp add context7 https://mcp.context7.com/mcp`}
+claude mcp add context7 https://mcp.context7.com/mcp
 ```
 
 
@@ -326,7 +299,7 @@
 **llms-full.txt**
 
 ```text
-{`https://dev.pachca.com/llms-full.txt`}
+https://dev.pachca.com/llms-full.txt
 ```
 
 
@@ -337,7 +310,7 @@
 **OpenAPI**
 
 ```text
-{`https://dev.pachca.com/openapi.yaml`}
+https://dev.pachca.com/openapi.yaml
 ```
 
 
@@ -514,7 +487,7 @@
 **Пример исходящего вебхука (новое сообщение)**
 
 ```http
-{`POST https://yourweb.site/read HTTP/1.1
+POST https://yourweb.site/read HTTP/1.1
 host: yourweb.site
 content-Type: application/json
 pachca-signature: a805d3470c263f4628cafc4ed66235d8fe2229891d1fcf4e400331adff5d8e5a
@@ -535,7 +508,7 @@ content-length: 358
     "entity_id": 918264,
     "thread": null,
     "url": "https://app.pachca.com/chats/124511?message=56431"
-}`}
+}
 ```
 
 
@@ -546,12 +519,12 @@ content-length: 358
     **Вычисление и сравнение подписи**
 
 ```javascript
-{`// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
+// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
 
 const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
 if (signature !== request.headers['pachca-signature']) {
     throw "Invalid signature"
-}`}
+}
 ```
 
 
@@ -581,14 +554,14 @@ if (signature !== request.headers['pachca-signature']) {
 **Базовый URL**
 
 ```http
-{`https://api.pachca.com/api/shared/v1`}
+https://api.pachca.com/api/shared/v1
 ```
 
 
 **Пример запроса**
 
 ```http
-{`POST /users HTTP/1.1
+POST /users HTTP/1.1
 Authorization: Bearer YOUR_ACCESS_TOKEN
 Content-Type: application/json; charset=utf-8
 Host: api.pachca.com
@@ -611,7 +584,7 @@ Content-Length: 219
         ]
     },
     "skip_email_notify": true
-}`}
+}
 ```
 
 
@@ -628,7 +601,7 @@ Content-Length: 219
 **Пример ответа**
 
 ```http
-{`HTTP/1.1 201 Created
+HTTP/1.1 201 Created
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2020 12:32:29 GMT
 Content-Type: application/json; charset=utf-8
@@ -663,7 +636,7 @@ X-Rack-CORS: miss; no-origin
             }
         ]
     }
-}`}
+}
 ```
 
 
@@ -844,12 +817,12 @@ X-Rack-CORS: miss; no-origin
     **Пример JSON вебхука об успешном завершении экспорта**
 
 ```json
-{`{
+{
     "type": "export",
     "event": "ready",
     "export_id": 22322,
     "created_at": "2025-03-20T12:33:58Z"
-}`}
+}
 ```
 
 
@@ -965,7 +938,10 @@ X-Rack-CORS: miss; no-origin
 
 Модальное окно состоит из стандартных элементов - заголовка, кнопки закрытия (отмены), набора полей (подзаголовки, текст, ввод текста, выбор, списки и тд.) и кнопки отправки.
 
-<ImageCard src="/images/forms/modal-window.png" alt="Модальное окно" caption="Модальное окно" maxWidth={420} />
+![Модальное окно](/images/forms/modal-window.png)
+
+*Модальное окно*
+
 
 ## Жизненный цикл модального окна
 
@@ -1014,7 +990,10 @@ sequenceDiagram
 
 ### Заголовок (header)
 
-<ImageCard src="/images/forms/header.png" alt="Заголовок" caption="Заголовок" />
+![Заголовок](/images/forms/header.png)
+
+*Заголовок*
+
 
 #### ViewBlockHeader
 
@@ -1027,7 +1006,10 @@ sequenceDiagram
 
 ### Обычный текст (plain_text)
 
-<ImageCard src="/images/forms/plaintext.png" alt="Обычный текст" caption="Обычный текст" />
+![Обычный текст](/images/forms/plaintext.png)
+
+*Обычный текст*
+
 
 #### ViewBlockPlainText
 
@@ -1040,7 +1022,10 @@ sequenceDiagram
 
 ### Форматированный текст (markdown)
 
-<ImageCard src="/images/forms/markdown.png" alt="Форматированный текст" caption="Форматированный текст" />
+![Форматированный текст](/images/forms/markdown.png)
+
+*Форматированный текст*
+
 
 #### ViewBlockMarkdown
 
@@ -1066,7 +1051,10 @@ sequenceDiagram
 
 ### Разделитель (divider)
 
-<ImageCard src="/images/forms/divider.png" alt="Разделитель" caption="Разделитель" />
+![Разделитель](/images/forms/divider.png)
+
+*Разделитель*
+
 
 #### ViewBlockDivider
 
@@ -1077,7 +1065,10 @@ sequenceDiagram
 
 ### Текстовое поле (input)
 
-<ImageCard src="/images/forms/input.png" alt="Текстовое поле" caption="Текстовое поле" />
+![Текстовое поле](/images/forms/input.png)
+
+*Текстовое поле*
+
 
 #### ViewBlockInput
 
@@ -1106,7 +1097,10 @@ sequenceDiagram
 
 ### Выпадающий список (select)
 
-<ImageCard src="/images/forms/select.png" alt="Выпадающий список" caption="Выпадающий список" />
+![Выпадающий список](/images/forms/select.png)
+
+*Выпадающий список*
+
 
 #### ViewBlockSelect
 
@@ -1133,7 +1127,10 @@ sequenceDiagram
 
 ### Радиокнопки (radio)
 
-<ImageCard src="/images/forms/radio.png" alt="Радиокнопки" caption="Радиокнопки" />
+![Радиокнопки](/images/forms/radio.png)
+
+*Радиокнопки*
+
 
 #### ViewBlockRadio
 
@@ -1160,7 +1157,10 @@ sequenceDiagram
 
 ### Чекбоксы (checkbox)
 
-<ImageCard src="/images/forms/checkbox.png" alt="Чекбоксы" caption="Чекбоксы" />
+![Чекбоксы](/images/forms/checkbox.png)
+
+*Чекбоксы*
+
 
 #### ViewBlockCheckbox
 
@@ -1187,7 +1187,10 @@ sequenceDiagram
 
 ### Выбор даты (date)
 
-<ImageCard src="/images/forms/date.png" alt="Выбор даты" caption="Выбор даты" />
+![Выбор даты](/images/forms/date.png)
+
+*Выбор даты*
+
 
 #### ViewBlockDate
 
@@ -1206,7 +1209,10 @@ sequenceDiagram
 
 ### Выбор времени (time)
 
-<ImageCard src="/images/forms/time.png" alt="Выбор времени" caption="Выбор времени" />
+![Выбор времени](/images/forms/time.png)
+
+*Выбор времени*
+
 
 #### ViewBlockTime
 
@@ -1225,7 +1231,10 @@ sequenceDiagram
 
 ### Загрузка файлов (file_input)
 
-<ImageCard src="/images/forms/file.png" alt="Загрузка файлов" caption="Загрузка файлов" />
+![Загрузка файлов](/images/forms/file.png)
+
+*Загрузка файлов*
+
 
 #### ViewBlockFileInput
 
@@ -1287,7 +1296,7 @@ sequenceDiagram
 **Пример вебхука о заполнении формы**
 
 ```json
-{`{
+{
     "type": "view",
     "event": "submit",
     "private_metadata": "{'timeoff_id':4378}",
@@ -1310,7 +1319,7 @@ sequenceDiagram
         "time": "22:00"
     },
     "webhook_timestamp": 1755075544
-}`}
+}
 ```
 
 
@@ -1341,7 +1350,7 @@ sequenceDiagram
 **Пример ответа на вебхук для отображения ошибок**
 
 ```http
-{`HTTP/1.1 400 Bad Request
+HTTP/1.1 400 Bad Request
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2025 12:32:29 GMT
 Content-Type: application/json; charset=utf-8
@@ -1359,11 +1368,14 @@ X-Rack-CORS: miss; no-origin
         "date_end": "Дата окончания отпуска не может быть меньше даты начала",
         "request_doc": "В заявлении не найдена электронная подпись"
     }
-}`}
+}
 ```
 
 
-<ImageCard src="/images/forms/errors.png" alt="Пример отображения ошибок в интерфейсе представления" caption="Пример отображения ошибок в интерфейсе представления" />
+![Пример отображения ошибок в интерфейсе представления](/images/forms/errors.png)
+
+*Пример отображения ошибок в интерфейсе представления*
+
 
 ### Закрытие представления
 
@@ -1372,10 +1384,10 @@ X-Rack-CORS: miss; no-origin
 **Пример ответа на вебхук для закрытия представления**
 
 ```http
-{`HTTP/1.1 200 OK
+HTTP/1.1 200 OK
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2025 12:32:29 GMT
-Content-Type: text/plain; charset=utf-8`}
+Content-Type: text/plain; charset=utf-8
 ```
 
 
@@ -1390,13 +1402,19 @@ Content-Type: text/plain; charset=utf-8`}
 
 Управление правилами DLP-системы доступно в разделе «Настройки пространства» → «DLP». Вы можете изменять список правил, а также включать и отключать их.
 
-<ImageCard src="/images/dlp/dlp-page.png" alt="Список правил DLP-системы" caption="Список правил DLP-системы" />
+![Список правил DLP-системы](/images/dlp/dlp-page.png)
+
+*Список правил DLP-системы*
+
 
 ## Создание правила
 
 Чтобы внести новое правило нажмите на кнопку «Создать новое правило», укажите название правила (чтобы было проще его потом изменить или удалить), его приоритет и `JSON` объект условия.
 
-<ImageCard src="/images/dlp/new-rule.png" alt="Новое правило" caption="Создание нового правила" maxWidth={500} />
+![Новое правило](/images/dlp/new-rule.png)
+
+*Создание нового правила*
+
 
 Параметр «Приоритет» задает значение приоритета для политики, определяющее порядок её обработки. Меньшее целое число указывает на более высокий приоритет, значение 0 — на наивысший приоритет. Правила не могут иметь одинаковое значение приоритета.
 
@@ -1443,7 +1461,7 @@ Content-Type: text/plain; charset=utf-8`}
 **Пример правила #1**
 
 ```json
-{`{
+{
     "conditions": {
         "any": [
             {
@@ -1456,14 +1474,14 @@ Content-Type: text/plain; charset=utf-8`}
         "type": "AUDIT_LOG",
         "message": "Обнаружен номер телефона в сообщении"
     }
-}`}
+}
 ```
 
 
 **Пример правила #2**
 
 ```json
-{`{
+{
     "conditions": {
         "all": [
             {
@@ -1480,7 +1498,7 @@ Content-Type: text/plain; charset=utf-8`}
         "type": "BLOCK",
         "message": "Нельзя отправлять паспортные данные"
     }
-}`}
+}
 ```
 
 
@@ -21097,9 +21115,9 @@ echo $response;
       - `tag_removed_from_chat`: Тег удален из чата
       - `message_updated`: Сообщение отредактировано
       - `message_deleted`: Сообщение удалено
-      - `message_created`
-      - `reaction_created`
-      - `reaction_deleted`
+      - `message_created`: Сообщение создано
+      - `reaction_created`: Реакция добавлена
+      - `reaction_deleted`: Реакция удалена
       - `access_token_created`: Создан новый токен доступа
       - `access_token_updated`: Токен доступа обновлен
       - `access_token_destroy`: Токен доступа удален

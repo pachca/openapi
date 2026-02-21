@@ -169,7 +169,7 @@
 **Пример исходящего вебхука (новое сообщение)**
 
 ```http
-{`POST https://yourweb.site/read HTTP/1.1
+POST https://yourweb.site/read HTTP/1.1
 host: yourweb.site
 content-Type: application/json
 pachca-signature: a805d3470c263f4628cafc4ed66235d8fe2229891d1fcf4e400331adff5d8e5a
@@ -190,7 +190,7 @@ content-length: 358
     "entity_id": 918264,
     "thread": null,
     "url": "https://app.pachca.com/chats/124511?message=56431"
-}`}
+}
 ```
 
 
@@ -201,12 +201,12 @@ content-length: 358
     **Вычисление и сравнение подписи**
 
 ```javascript
-{`// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
+// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
 
 const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
 if (signature !== request.headers['pachca-signature']) {
     throw "Invalid signature"
-}`}
+}
 ```
 
 

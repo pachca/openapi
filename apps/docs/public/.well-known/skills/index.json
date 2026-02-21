@@ -1,4 +1,7 @@
 {
+  "repository": "pachca/openapi",
+  "install": "npx skills add pachca/openapi",
+  "documentation": "https://dev.pachca.com",
   "skills": [
     {
       "name": "pachca-profile",

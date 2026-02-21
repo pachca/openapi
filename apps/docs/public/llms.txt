@@ -103,6 +103,25 @@
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/security/list.md): GET /audit_events
 
+## Agent Skills
+
+Скиллы для AI-агентов (Claude Code, Cursor и др.):
+
+| Скилл | Описание |
+|-------|---------|
+| pachca-profile | Получение и обновление профиля текущего пользователя, управление статусом, кастомные поля сотрудников |
+| pachca-users | Управление сотрудниками и тегами (группами) |
+| pachca-chats | Управление каналами и беседами, участниками чатов |
+| pachca-messages | Отправка сообщений в каналы, беседы и личные чаты Пачки |
+| pachca-bots | Управление ботами, входящие/исходящие вебхуки, разворачивание ссылок (unfurling) |
+| pachca-forms | Интерактивные формы с полями ввода и кнопками для ботов |
+| pachca-tasks | Создание, получение, обновление и удаление задач (напоминаний) |
+| pachca-security | Журнал аудита событий и DLP-система |
+
+Установка: `npx skills add pachca/openapi`
+
+Индекс скиллов: [https://dev.pachca.com/.well-known/skills/index.json](https://dev.pachca.com/.well-known/skills/index.json)
+
 ## Дополнительно
 - [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)
 - [Веб-сайт](https://pachca.com/)

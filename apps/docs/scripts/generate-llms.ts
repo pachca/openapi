@@ -9,6 +9,7 @@ import {
 import { getOrderedGuidePages, sortTagsByOrder } from '../lib/guides-config';
 import type { Endpoint } from '../lib/openapi/types';
 import { generateAllSkills } from './skills/generate';
+import { SKILL_TAG_MAP } from './skills/config';
 
 const SITE_URL = 'https://dev.pachca.com';
 
@@ -49,6 +50,18 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
     }
     content += '\n';
   }
+
+  content += '## Agent Skills\n\n';
+  content += 'Скиллы для AI-агентов (Claude Code, Cursor и др.):\n\n';
+  content += '| Скилл | Описание |\n';
+  content += '|-------|---------|\n';
+  for (const config of SKILL_TAG_MAP) {
+    const shortDesc = config.description.split('.')[0];
+    content += `| ${config.name} | ${shortDesc} |\n`;
+  }
+  content += '\n';
+  content += 'Установка: `npx skills add pachca/openapi`\n\n';
+  content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
 
   content += '## Дополнительно\n';
   content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;

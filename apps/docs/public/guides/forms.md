@@ -10,7 +10,10 @@
 
 Модальное окно состоит из стандартных элементов - заголовка, кнопки закрытия (отмены), набора полей (подзаголовки, текст, ввод текста, выбор, списки и тд.) и кнопки отправки.
 
-<ImageCard src="/images/forms/modal-window.png" alt="Модальное окно" caption="Модальное окно" maxWidth={420} />
+![Модальное окно](/images/forms/modal-window.png)
+
+*Модальное окно*
+
 
 ## Жизненный цикл модального окна
 
@@ -59,7 +62,10 @@ sequenceDiagram
 
 ### Заголовок (header)
 
-<ImageCard src="/images/forms/header.png" alt="Заголовок" caption="Заголовок" />
+![Заголовок](/images/forms/header.png)
+
+*Заголовок*
+
 
 #### ViewBlockHeader
 
@@ -72,7 +78,10 @@ sequenceDiagram
 
 ### Обычный текст (plain_text)
 
-<ImageCard src="/images/forms/plaintext.png" alt="Обычный текст" caption="Обычный текст" />
+![Обычный текст](/images/forms/plaintext.png)
+
+*Обычный текст*
+
 
 #### ViewBlockPlainText
 
@@ -85,7 +94,10 @@ sequenceDiagram
 
 ### Форматированный текст (markdown)
 
-<ImageCard src="/images/forms/markdown.png" alt="Форматированный текст" caption="Форматированный текст" />
+![Форматированный текст](/images/forms/markdown.png)
+
+*Форматированный текст*
+
 
 #### ViewBlockMarkdown
 
@@ -111,7 +123,10 @@ sequenceDiagram
 
 ### Разделитель (divider)
 
-<ImageCard src="/images/forms/divider.png" alt="Разделитель" caption="Разделитель" />
+![Разделитель](/images/forms/divider.png)
+
+*Разделитель*
+
 
 #### ViewBlockDivider
 
@@ -122,7 +137,10 @@ sequenceDiagram
 
 ### Текстовое поле (input)
 
-<ImageCard src="/images/forms/input.png" alt="Текстовое поле" caption="Текстовое поле" />
+![Текстовое поле](/images/forms/input.png)
+
+*Текстовое поле*
+
 
 #### ViewBlockInput
 
@@ -151,7 +169,10 @@ sequenceDiagram
 
 ### Выпадающий список (select)
 
-<ImageCard src="/images/forms/select.png" alt="Выпадающий список" caption="Выпадающий список" />
+![Выпадающий список](/images/forms/select.png)
+
+*Выпадающий список*
+
 
 #### ViewBlockSelect
 
@@ -178,7 +199,10 @@ sequenceDiagram
 
 ### Радиокнопки (radio)
 
-<ImageCard src="/images/forms/radio.png" alt="Радиокнопки" caption="Радиокнопки" />
+![Радиокнопки](/images/forms/radio.png)
+
+*Радиокнопки*
+
 
 #### ViewBlockRadio
 
@@ -205,7 +229,10 @@ sequenceDiagram
 
 ### Чекбоксы (checkbox)
 
-<ImageCard src="/images/forms/checkbox.png" alt="Чекбоксы" caption="Чекбоксы" />
+![Чекбоксы](/images/forms/checkbox.png)
+
+*Чекбоксы*
+
 
 #### ViewBlockCheckbox
 
@@ -232,7 +259,10 @@ sequenceDiagram
 
 ### Выбор даты (date)
 
-<ImageCard src="/images/forms/date.png" alt="Выбор даты" caption="Выбор даты" />
+![Выбор даты](/images/forms/date.png)
+
+*Выбор даты*
+
 
 #### ViewBlockDate
 
@@ -251,7 +281,10 @@ sequenceDiagram
 
 ### Выбор времени (time)
 
-<ImageCard src="/images/forms/time.png" alt="Выбор времени" caption="Выбор времени" />
+![Выбор времени](/images/forms/time.png)
+
+*Выбор времени*
+
 
 #### ViewBlockTime
 
@@ -270,7 +303,10 @@ sequenceDiagram
 
 ### Загрузка файлов (file_input)
 
-<ImageCard src="/images/forms/file.png" alt="Загрузка файлов" caption="Загрузка файлов" />
+![Загрузка файлов](/images/forms/file.png)
+
+*Загрузка файлов*
+
 
 #### ViewBlockFileInput
 
@@ -332,7 +368,7 @@ sequenceDiagram
 **Пример вебхука о заполнении формы**
 
 ```json
-{`{
+{
     "type": "view",
     "event": "submit",
     "private_metadata": "{'timeoff_id':4378}",
@@ -355,7 +391,7 @@ sequenceDiagram
         "time": "22:00"
     },
     "webhook_timestamp": 1755075544
-}`}
+}
 ```
 
 
@@ -386,7 +422,7 @@ sequenceDiagram
 **Пример ответа на вебхук для отображения ошибок**
 
 ```http
-{`HTTP/1.1 400 Bad Request
+HTTP/1.1 400 Bad Request
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2025 12:32:29 GMT
 Content-Type: application/json; charset=utf-8
@@ -404,11 +440,14 @@ X-Rack-CORS: miss; no-origin
         "date_end": "Дата окончания отпуска не может быть меньше даты начала",
         "request_doc": "В заявлении не найдена электронная подпись"
     }
-}`}
+}
 ```
 
 
-<ImageCard src="/images/forms/errors.png" alt="Пример отображения ошибок в интерфейсе представления" caption="Пример отображения ошибок в интерфейсе представления" />
+![Пример отображения ошибок в интерфейсе представления](/images/forms/errors.png)
+
+*Пример отображения ошибок в интерфейсе представления*
+
 
 ### Закрытие представления
 
@@ -417,9 +456,9 @@ X-Rack-CORS: miss; no-origin
 **Пример ответа на вебхук для закрытия представления**
 
 ```http
-{`HTTP/1.1 200 OK
+HTTP/1.1 200 OK
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2025 12:32:29 GMT
-Content-Type: text/plain; charset=utf-8`}
+Content-Type: text/plain; charset=utf-8
 ```
 

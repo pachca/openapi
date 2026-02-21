@@ -675,7 +675,14 @@ function generateIndexJson(): string {
     };
   });
 
-  return JSON.stringify({ skills }, null, 2) + '\n';
+  const index = {
+    repository: 'pachca/openapi',
+    install: 'npx skills add pachca/openapi',
+    documentation: 'https://dev.pachca.com',
+    skills,
+  };
+
+  return JSON.stringify(index, null, 2) + '\n';
 }
 
 function generateAgentsMd(baseUrl: string): string {

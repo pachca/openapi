@@ -320,6 +320,6 @@ Badge «Новое» показывается < 7 дней. Попадает в 
 
 ### Безопасность (next.config.ts)
 
-HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`.
+HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
 
 </details>

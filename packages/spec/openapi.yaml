@@ -4591,23 +4591,6 @@ components:
         kms_decrypt: Данные расшифрованы
         audit_events_accessed: Доступ к журналам аудита получен
         dlp_violation_detected: Срабатывание правила DLP-системы
-    BearerAuth:
-      type: object
-      required:
-        - type
-        - scheme
-      properties:
-        type:
-          type: string
-          enum:
-            - http
-          description: Http authentication
-        scheme:
-          type: string
-          enum:
-            - Basic
-          description: basic auth scheme
-      description: ''
     BotResponse:
       type: object
       required:
@@ -7215,7 +7198,7 @@ components:
   securitySchemes:
     BearerAuth:
       type: http
-      scheme: Basic
+      scheme: Bearer
 servers:
   - url: https://api.pachca.com/api/shared/v1
     description: Production server

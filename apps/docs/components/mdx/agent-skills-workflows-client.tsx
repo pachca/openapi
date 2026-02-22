@@ -10,11 +10,11 @@ interface Props {
 
 export function AgentSkillsWorkflowsClient({ skills }: Props) {
   return (
-    <Accordion.Root type="multiple" className="my-6 divide-y divide-background-border">
+    <Accordion.Root type="multiple" className="my-4">
       {skills.map((skill) => (
         <Accordion.Item key={skill.name} value={skill.name} className="overflow-hidden">
           <Accordion.Header>
-            <Accordion.Trigger className="flex w-full items-center justify-between py-3 text-[15px] font-medium text-text-primary hover:text-text-primary/80 transition-colors duration-200 cursor-pointer outline-none group">
+            <Accordion.Trigger className="flex w-full items-center justify-between py-1.5 text-[15px] font-medium text-text-primary hover:text-text-primary/80 transition-colors duration-200 cursor-pointer outline-none group">
               <span className="flex items-center gap-2">
                 <span>{skill.title}</span>
                 <span className="text-xs text-text-secondary bg-background-secondary rounded-full px-2 py-0.5">

@@ -91,20 +91,25 @@ export function AgentSkillsWorkflowsClient({ skills }: Props) {
         <Accordion.Item key={skill.name} value={skill.name} className="overflow-hidden">
           <Accordion.Header asChild>
             <div>
-              <Accordion.Trigger className="w-full flex flex-wrap items-baseline gap-x-2 gap-y-0.5 py-3 cursor-pointer select-none outline-none group/header">
-                <div className="shrink-0 self-center flex items-center justify-center">
+              <Accordion.Trigger className="w-full flex items-start gap-x-2 py-3 cursor-pointer select-none outline-none group/header text-left">
+                <div className="shrink-0 flex items-center justify-center mt-[3px]">
                   <ChevronDown
                     className="w-3.5 h-3.5 text-text-secondary group-hover/header:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]/header:rotate-0"
                     strokeWidth={2.5}
                   />
                 </div>
-                <span className="font-bold font-mono text-[14px] text-text-primary">
-                  {skill.name}
-                </span>
-                <span className="text-[13px] text-text-secondary">
-                  {skill.workflows.length}{' '}
-                  {pluralize(skill.workflows.length, 'сценарий', 'сценария', 'сценариев')}
-                </span>
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-bold font-mono text-[14px] text-text-primary">
+                      {skill.name}
+                    </span>
+                    <span className="text-[13px] text-text-secondary">
+                      {skill.workflows.length}{' '}
+                      {pluralize(skill.workflows.length, 'сценарий', 'сценария', 'сценариев')}
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-text-secondary">{skill.tags.join(', ')}</p>
+                </div>
               </Accordion.Trigger>
             </div>
           </Accordion.Header>

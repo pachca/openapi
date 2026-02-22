@@ -53,6 +53,7 @@ function parseStep(text: string, endpoints: Endpoint[]): StepSegment[] {
 
 export interface SkillWorkflowData {
   name: string;
+  tags: string[];
   workflows: {
     title: string;
     steps: StepSegment[][];
@@ -75,7 +76,7 @@ export async function AgentSkillsWorkflows() {
       notes: wf.notes ? parseStep(wf.notes, endpoints) : undefined,
     }));
 
-    skills.push({ name: skill.name, workflows });
+    skills.push({ name: skill.name, tags: skill.tags, workflows });
   }
 
   return <AgentSkillsWorkflowsClient skills={skills} />;

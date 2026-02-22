@@ -1,10 +1,10 @@
 ---
 name: pachca-users
 description: >
-  Управляет сотрудниками и тегами (группами). Поддерживает создание, обновление,
-  удаление и поиск сотрудников, создание и управление тегами. Применяется для:
-  поиска сотрудников, создания пользователей, управления тегами, назначения тегов.
-  Не применяется для: собственного профиля (→ pachca-profile).
+  Управление сотрудниками и тегами (группами). Создание, обновление, удаление,
+  поиск сотрудников. Создание и управление тегами. Используй когда нужно: найти
+  сотрудника, создать пользователя, управлять тегами, назначить теги. НЕ используй
+  для: собственного профиля (→ pachca-profile).
 ---
 
 # Сотрудники и теги
@@ -35,32 +35,20 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ## Пошаговые сценарии
 
-### Найти сотрудника по имени или email
-
-1. GET /users?query=Иван — поиск по имени/email (частичное совпадение)
-2. Если нужен точный поиск по email — перебери страницы и отфильтруй на клиенте
-
-```bash
-curl "https://api.pachca.com/api/shared/v1/users?query=ivan" \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-> GET /users поддерживает параметр query для поиска. Пагинация cursor-based: используй limit и cursor из meta.
-
 ### Массовое создание сотрудников с тегами
 
 1. Создай тег (если нужен): POST /group_tags с { group_tag: { name } }
 2. Для каждого сотрудника: POST /users — теги назначаются через поле list_tags в теле запроса
 3. Или обнови существующего: PUT /users/{id} с list_tags
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/users" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"user":{"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","list_tags":["Backend","Moscow"]}}'
-```
-
 > Создание сотрудников доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег" — теги назначаются через list_tags в POST/PUT /users.
+
+### Найти сотрудника по имени или email
+
+1. GET /users?query=Иван — поиск по имени/email (частичное совпадение)
+2. Если нужен точный поиск по email — перебери страницы и отфильтруй на клиенте
+
+> GET /users поддерживает параметр query для поиска. Пагинация cursor-based: используй limit и cursor из meta.
 
 ### Онбординг нового сотрудника
 
@@ -82,15 +70,6 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 1. GET /group_tags?names[]=Backend — найти тег по названию
 2. Из ответа взять id тега
 3. GET /group_tags/{id}/users с пагинацией (limit + cursor) — получить всех участников
-
-```bash
-curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Backend" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":[{"id":42,"name":"Backend",...}]}
-
-curl "https://api.pachca.com/api/shared/v1/group_tags/42/users?limit=50" \
-  -H "Authorization: Bearer $TOKEN"
-```
 
 ## Обработка ошибок
 

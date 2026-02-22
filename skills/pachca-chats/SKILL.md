@@ -1,11 +1,10 @@
 ---
 name: pachca-chats
 description: >
-  Управляет каналами и беседами, участниками чатов. Поддерживает создание,
-  обновление, архивацию чатов, добавление/удаление участников, роли, экспорт
-  сообщений. Применяется для: создания каналов, добавления участников,
-  архивации чатов, экспорта сообщений. Не применяется для: отправки сообщений
-  (→ pachca-messages).
+  Управление каналами и беседами, участниками чатов. Создание, обновление,
+  архивация чатов. Добавление/удаление участников, роли, экспорт сообщений.
+  Используй когда нужно: создать канал, добавить участника, архивировать чат,
+  экспорт сообщений. НЕ используй для: отправки сообщений (→ pachca-messages).
 ---
 
 # Чаты и участники
@@ -93,18 +92,6 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 3. Polling: GET /chats/exports/{id} до status: "completed"
 4. Скачай архив по ссылке из ответа
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats/exports" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"start_at":"2026-01-01","end_at":"2026-01-31"}'
-# Ответ: {"data":{"id":55}}
-
-curl "https://api.pachca.com/api/shared/v1/chats/exports/55" \
-  -H "Authorization: Bearer $TOKEN"
-# Повторяй до status: "completed"
-```
-
 > Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Polling каждые 5-10 секунд.
 
 ### Найти и заархивировать неактивные чаты
@@ -112,11 +99,6 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports/55" \
 1. GET /chats с пагинацией, sort[last_message_at]=asc — сначала самые старые
 2. Отфильтруй чаты, где last_message_at старше нужного порога
 3. Для каждого: PUT /chats/{id}/archive
-
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats?sort[last_message_at]=asc&limit=50" \
-  -H "Authorization: Bearer $TOKEN"
-```
 
 > Проверяй channel: false — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.
 

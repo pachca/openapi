@@ -28,6 +28,45 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - показать форму, интерактивная форма, модальное окно → **pachca-forms**
 - аудит, журнал событий, безопасность → **pachca-security**
 
+## Пошаговые сценарии
+
+### Создать напоминание для себя
+
+1. POST /tasks с kind, content и due_at
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/tasks" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z"}}'
+```
+
+### Получить список предстоящих задач
+
+1. GET /tasks с фильтром status: undone и пагинацией
+2. Задачи возвращаются в порядке due_at (ближайшие сначала)
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Отметить задачу выполненной
+
+1. PUT /tasks/{id} с status: done
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task":{"status":"done"}}'
+```
+
+### Создать серию напоминаний
+
+1. Подготовь список дат (ежедневно, еженедельно и т.д.)
+2. Для каждой даты: POST /tasks с нужным kind, content и due_at
+
 ## Обработка ошибок
 
 | Код | Причина | Что делать |

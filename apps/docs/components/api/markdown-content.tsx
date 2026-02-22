@@ -28,6 +28,7 @@ import { CardGroup, Card } from '@/components/mdx/cards';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
+import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 
@@ -151,6 +152,7 @@ const components = {
   TreeFile,
   ImageCard,
   ApiCodeExample,
+  AgentSkillsWorkflows,
 };
 
 interface MarkdownContentProps {

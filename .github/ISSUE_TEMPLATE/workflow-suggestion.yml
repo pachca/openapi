@@ -1,0 +1,35 @@
+name: "Предложить workflow для AI-агента"
+description: Предложите новый сценарий использования API для Agent Skills
+title: "[Workflow] "
+labels: ["workflow", "enhancement"]
+body:
+  - type: input
+    id: skill
+    attributes:
+      label: Скилл
+      description: К какому скиллу относится workflow?
+      placeholder: "pachca-messages, pachca-chats, ..."
+    validations:
+      required: true
+  - type: input
+    id: title
+    attributes:
+      label: Название workflow
+      placeholder: "Отправить сообщение с упоминанием пользователя"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги
+      description: Опишите последовательность API-вызовов
+      placeholder: |
+        1. GET /users?query=... — найти пользователя
+        2. POST /messages с @mention в content
+    validations:
+      required: true
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Зачем это нужно
+      description: Опишите задачу, которую решает этот workflow

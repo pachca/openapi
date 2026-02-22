@@ -10,6 +10,7 @@ import { CardGroup, Card, GUIDE_ICONS, API_SECTION_META } from '@/components/mdx
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
+import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { getOrderedGuidePages } from '@/lib/guides-config';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
@@ -289,4 +290,5 @@ export const customMdxComponents = {
   TreeFile,
   ImageCard,
   ApiCodeExample,
+  AgentSkillsWorkflows,
 };

@@ -1,9 +1,8 @@
 ---
 name: pachca-tasks
 description: >
-  Управляет задачами (напоминаниями): создание, получение, обновление и удаление.
-  Применяется для: создания напоминаний, получения списка задач, обновления и
-  удаления задач.
+  Создание, получение, обновление и удаление задач (напоминаний). Используй когда
+  нужно: создать задачу, получить список задач, обновить задачу, удалить задачу.
 ---
 
 # Напоминания
@@ -33,7 +32,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Создать напоминание для себя
 
-1. POST /tasks с kind, content (текст), due_at (ISO 8601)
+1. POST /tasks с kind, content и due_at
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/tasks" \
@@ -41,8 +40,6 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
   -H "Content-Type: application/json" \
   -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z"}}'
 ```
-
-> kind: `call`, `meeting`, `reminder`, `event`, `email`. due_at — дата и время срабатывания.
 
 ### Получить список предстоящих задач
 
@@ -69,15 +66,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 
 1. Подготовь список дат (ежедневно, еженедельно и т.д.)
 2. Для каждой даты: POST /tasks с нужным kind, content и due_at
-
-```bash
-for DATE in "2026-03-01T09:00:00Z" "2026-03-08T09:00:00Z" "2026-03-15T09:00:00Z"; do
-  curl "https://api.pachca.com/api/shared/v1/tasks" \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/json" \
-    -d "{\"task\":{\"kind\":\"reminder\",\"content\":\"Еженедельный отчёт\",\"due_at\":\"$DATE\"}}"
-done
-```
 
 ## Обработка ошибок
 

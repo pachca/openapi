@@ -60,6 +60,48 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 4. Удалить участника: DELETE /chats/{chatId}/members/{userId}
 5. Покинуть чат: DELETE /chats/{id}/leave
 
+### Создать проектную беседу из шаблона
+
+1. POST /chats с name, channel: false и group_tag_ids (добавить всех участников тега сразу)
+2. Или POST /chats → затем POST /chats/{id}/members с member_ids + POST /chats/{id}/group_tags с group_tag_ids
+3. Отправь приветственное сообщение: POST /messages с entity_id: chat.id
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/chats" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"chat":{"name":"Проект Alpha","channel":false,"group_tag_ids":[42],"member_ids":[186,187]}}'
+```
+
+> group_tag_ids при создании добавляет всех участников тега сразу — удобнее, чем добавлять поштучно.
+
+### Синхронизировать участников чата с тегом
+
+1. GET /group_tags/{id}/users (с пагинацией) — получи всех пользователей тега
+2. GET /chats/{id}/members (с пагинацией) — получи текущих участников чата
+3. Вычисли разницу: кого добавить (в теге, но не в чате), кого удалить (в чате, но не в теге)
+4. POST /chats/{id}/members с member_ids для добавления
+5. DELETE /chats/{chatId}/members/{userId} для каждого удаляемого
+
+> Учитывай пагинацию — оба списка могут быть больше 50 элементов.
+
+### Экспорт истории чата
+
+1. POST /chats/exports с start_at и end_at (формат YYYY-MM-DD)
+2. Из ответа возьми id экспорта
+3. Polling: GET /chats/exports/{id} до status: "completed"
+4. Скачай архив по ссылке из ответа
+
+> Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Polling каждые 5-10 секунд.
+
+### Найти и заархивировать неактивные чаты
+
+1. GET /chats с пагинацией, sort[last_message_at]=asc — сначала самые старые
+2. Отфильтруй чаты, где last_message_at старше нужного порога
+3. Для каждого: PUT /chats/{id}/archive
+
+> Проверяй channel: false — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.
+
 ## Обработка ошибок
 
 | Код | Причина | Что делать |

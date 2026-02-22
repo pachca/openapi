@@ -77,11 +77,11 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 ### Синхронизировать участников чата с тегом
 
-1. GET /group_tags/{tag_id}/users (с пагинацией) — получи всех пользователей тега
-2. GET /chats/{chat_id}/members (с пагинацией) — получи текущих участников чата
+1. GET /group_tags/{id}/users (с пагинацией) — получи всех пользователей тега
+2. GET /chats/{id}/members (с пагинацией) — получи текущих участников чата
 3. Вычисли разницу: кого добавить (в теге, но не в чате), кого удалить (в чате, но не в теге)
-4. POST /chats/{chat_id}/members с member_ids для добавления
-5. DELETE /chats/{chat_id}/members/{userId} для каждого удаляемого
+4. POST /chats/{id}/members с member_ids для добавления
+5. DELETE /chats/{chatId}/members/{userId} для каждого удаляемого
 
 > Учитывай пагинацию — оба списка могут быть больше 50 элементов.
 

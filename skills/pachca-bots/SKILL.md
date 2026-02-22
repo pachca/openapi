@@ -69,7 +69,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 1. Получи вебхук с event: "message_button_clicked" — в payload: data (из кнопки), user_id, message_id
 2. Выполни нужное действие (запись в БД, запрос к API и т.д.)
 3. Ответь пользователю: POST /messages с entity_type: "user", entity_id: user_id из вебхука
-4. Опционально: обнови исходное сообщение через PUT /messages/{message_id} (убери кнопки или измени текст)
+4. Опционально: обнови исходное сообщение через PUT /messages/{id} (убери кнопки или измени текст)
 
 ```json
 // Пример payload вебхука

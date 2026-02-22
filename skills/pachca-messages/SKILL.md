@@ -143,6 +143,68 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 > Для сообщений треда используй chat_id треда (thread.chat_id). Пагинация cursor-based, НЕ page-based.
 
+### Отредактировать сообщение
+
+1. PUT /messages/{id} с полем content (и/или buttons, files)
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message":{"content":"Обновлённый текст"}}'
+```
+
+> Редактировать можно только свои сообщения (или от имени бота).
+
+### Удалить сообщение
+
+1. DELETE /messages/{id}
+
+```bash
+curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/154332686" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Добавить реакцию на сообщение
+
+1. POST /messages/{id}/reactions с полем code (emoji)
+2. Убрать реакцию: DELETE /messages/{id}/reactions с полем code
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/messages/154332686/reactions" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"code":"👍"}'
+```
+
+> code — emoji-символ, не его текстовое название.
+
+### Проверить, кто прочитал сообщение
+
+1. GET /messages/{id}/read_member_ids — возвращает массив user_id прочитавших
+2. При необходимости сопоставь с GET /users для получения имён
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Разослать уведомление нескольким пользователям
+
+1. Определи список user_id получателей (GET /users или из контекста)
+2. Для каждого: POST /messages с entity_type: "user", entity_id: user_id
+
+```bash
+for USER_ID in 186 187 188; do
+  curl "https://api.pachca.com/api/shared/v1/messages" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"message\":{\"entity_type\":\"user\",\"entity_id\":$USER_ID,\"content\":\"Важное уведомление\"}}"
+done
+```
+
+> Соблюдай rate limit: ~4 req/sec для сообщений. Добавляй паузы при большом списке.
+
 ### Закрепить/открепить сообщение
 
 1. Закрепить: POST /messages/{id}/pin

@@ -31,6 +31,45 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - создать задачу, список задач, напоминание → **pachca-tasks**
 - аудит, журнал событий, безопасность → **pachca-security**
 
+## Пошаговые сценарии
+
+### Установить статус
+
+1. PUT /profile/status с emoji и title
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта"}}'
+```
+
+> Статус виден всем участникам пространства. emoji — один символ эмодзи.
+
+### Сбросить статус
+
+1. DELETE /profile/status
+
+```bash
+curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Получить кастомные поля профиля
+
+1. GET /custom_properties — список всех дополнительных полей пространства (id, name, тип)
+2. GET /profile — в ответе поле custom_properties содержит значения для текущего пользователя
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/custom_properties" \
+  -H "Authorization: Bearer $TOKEN"
+
+curl "https://api.pachca.com/api/shared/v1/profile" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве custom_properties объекта user.
+
 ## Обработка ошибок
 
 | Код | Причина | Что делать |

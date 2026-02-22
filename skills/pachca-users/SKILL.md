@@ -35,13 +35,62 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ## Пошаговые сценарии
 
+### Найти сотрудника по имени или email
+
+1. GET /users?query=Иван — поиск по имени/email (частичное совпадение)
+2. Если нужен точный поиск по email — перебери страницы и отфильтруй на клиенте
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/users?query=ivan" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> GET /users поддерживает параметр query для поиска. Пагинация cursor-based: используй limit и cursor из meta.
+
 ### Массовое создание сотрудников с тегами
 
 1. Создай тег (если нужен): POST /group_tags с { group_tag: { name } }
 2. Для каждого сотрудника: POST /users — теги назначаются через поле list_tags в теле запроса
 3. Или обнови существующего: PUT /users/{id} с list_tags
 
+```bash
+curl "https://api.pachca.com/api/shared/v1/users" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"user":{"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","list_tags":["Backend","Moscow"]}}'
+```
+
 > Создание сотрудников доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег" — теги назначаются через list_tags в POST/PUT /users.
+
+### Онбординг нового сотрудника
+
+1. POST /users с email, именем, тегами (list_tags) — создать аккаунт
+2. POST /chats/{id}/members с member_ids — добавить в нужные каналы (онбординг, общий, тематические)
+3. POST /messages с entity_type: "user", entity_id: user.id — отправить welcome-сообщение в ЛС
+
+> Шаг 1 требует токена администратора/владельца. Шаги 2-3 можно делать ботом.
+
+### Offboarding сотрудника
+
+1. PUT /users/{id} с suspended: true — заблокировать доступ
+2. Опционально: DELETE /users/{id} — удалить аккаунт полностью
+
+> Приостановка (suspended) сохраняет данные, удаление — необратимо. Уточняй политику перед удалением.
+
+### Получить всех сотрудников тега/департамента
+
+1. GET /group_tags?names[]=Backend — найти тег по названию
+2. Из ответа взять id тега
+3. GET /group_tags/{id}/users с пагинацией (limit + cursor) — получить всех участников
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Backend" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":[{"id":42,"name":"Backend",...}]}
+
+curl "https://api.pachca.com/api/shared/v1/group_tags/42/users?limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 ## Обработка ошибок
 

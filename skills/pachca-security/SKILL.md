@@ -37,7 +37,37 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 1. GET /audit_events с фильтрами (event_key, период, пагинация)
 2. Доступные типы событий: входы, изменения прав, действия с чатами и т.д.
 
+```bash
+curl "https://api.pachca.com/api/shared/v1/audit_events?limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 > Доступно только владельцу пространства.
+
+### Мониторинг подозрительных входов
+
+1. GET /audit_events с фильтром event_key: user_2fa_fail (или user_signed_in) за нужный период
+2. Пагинируй с cursor до получения всех записей
+3. Если найдены аномалии (много неудачных 2FA с одного аккаунта) — отправь уведомление администратору через POST /messages
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/audit_events?event_key=user_2fa_fail&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> Фильтрация по event_key — строковое совпадение. Доступные ключи — в документации Аудит событий.
+
+### Экспорт логов за период
+
+1. GET /audit_events с параметрами created_at[from] и created_at[to] (ISO 8601)
+2. Пагинируй с cursor до получения всех записей (limit до 50)
+3. Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/audit_events?created_at[from]=2026-02-01T00:00:00Z&created_at[to]=2026-02-28T23:59:59Z&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+# Если в ответе meta.paginate.next_page — повтори с cursor=<next_page>
+```
 
 ## Обработка ошибок
 

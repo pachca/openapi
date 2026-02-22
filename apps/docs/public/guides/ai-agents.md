@@ -412,7 +412,7 @@
 3. Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)
 
 
-> Не нашли нужный сценарий? [Предложите новый workflow](https://github.com/pachca/openapi/issues/new?template=workflow-suggestion.yml) — мы рассмотрим и добавим его в следующую версию скиллов.
+> Не нашли нужный сценарий? [Предложите новый workflow](https://github.com/pachca/openapi/issues/new?template=workflow-suggestion.yml) — мы рассмотрим и добавим его в скиллы.
 
 
 Скиллы соответствуют спецификации [Agent Skills](https://agentskills.io) и [Agent Skills Discovery RFC](https://github.com/cloudflare/agent-skills-discovery-rfc), совместимы с 40+ AI-агентами через [Skills CLI](https://skills.sh).

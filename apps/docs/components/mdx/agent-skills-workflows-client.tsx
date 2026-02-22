@@ -10,15 +10,11 @@ interface Props {
 
 export function AgentSkillsWorkflowsClient({ skills }: Props) {
   return (
-    <Accordion.Root type="multiple" className="my-6 space-y-2">
+    <Accordion.Root type="multiple" className="my-6 divide-y divide-background-border">
       {skills.map((skill) => (
-        <Accordion.Item
-          key={skill.name}
-          value={skill.name}
-          className="rounded-lg border border-background-border overflow-hidden"
-        >
+        <Accordion.Item key={skill.name} value={skill.name} className="overflow-hidden">
           <Accordion.Header>
-            <Accordion.Trigger className="flex w-full items-center justify-between px-4 py-3 text-[15px] font-medium text-text-primary hover:bg-background-tertiary transition-colors duration-200 cursor-pointer outline-none group">
+            <Accordion.Trigger className="flex w-full items-center justify-between py-3 text-[15px] font-medium text-text-primary hover:text-text-primary/80 transition-colors duration-200 cursor-pointer outline-none group">
               <span className="flex items-center gap-2">
                 <span>{skill.title}</span>
                 <span className="text-xs text-text-secondary bg-background-secondary rounded-full px-2 py-0.5">
@@ -33,7 +29,7 @@ export function AgentSkillsWorkflowsClient({ skills }: Props) {
             </Accordion.Trigger>
           </Accordion.Header>
           <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-            <div className="px-4 pb-4 space-y-4">
+            <div className="pb-4 space-y-4">
               {skill.workflows.map((wf, i) => (
                 <div key={i} className={i > 0 ? 'pt-4 border-t border-background-border/50' : ''}>
                   <p className="font-medium text-text-primary text-[14px] mb-2">{wf.title}</p>

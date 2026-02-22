@@ -33,7 +33,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Создать напоминание для себя
 
-1. POST /tasks с kind, content (текст), due_at (ISO 8601) и опционально linked_entity (привязка к чату/сообщению)
+1. POST /tasks с kind, content (текст), due_at (ISO 8601)
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/tasks" \

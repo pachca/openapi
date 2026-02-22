@@ -29,11 +29,11 @@ export function AgentSkillsWorkflowsClient({ skills }: Props) {
             </Accordion.Trigger>
           </Accordion.Header>
           <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-            <div className="pb-4 space-y-4">
+            <div className="pb-3 space-y-3 ml-1">
               {skill.workflows.map((wf, i) => (
-                <div key={i} className={i > 0 ? 'pt-4 border-t border-background-border/50' : ''}>
-                  <p className="font-medium text-text-primary text-[14px] mb-2">{wf.title}</p>
-                  <ol className="list-decimal list-outside ml-5 space-y-1 text-[14px] text-text-primary">
+                <div key={i}>
+                  <p className="font-medium text-text-primary text-[14px] mb-1">{wf.title}</p>
+                  <ol className="list-decimal list-outside ml-5 space-y-0.5 text-[14px] text-text-primary">
                     {wf.steps.map((step, j) => (
                       <li
                         key={j}
@@ -43,7 +43,7 @@ export function AgentSkillsWorkflowsClient({ skills }: Props) {
                     ))}
                   </ol>
                   {wf.notes && (
-                    <p className="mt-2 text-[13px] text-text-secondary leading-relaxed">
+                    <p className="mt-1 text-[13px] text-text-secondary leading-relaxed">
                       {wf.notes}
                     </p>
                   )}

@@ -21,7 +21,7 @@ function resolveMethodRefs(
     if (endpoint) {
       hasLinks = true;
       const url = generateUrlFromOperation(endpoint);
-      return `<a href="${url}"><code>${method} ${apiPath}</code></a>`;
+      return `<a href="${url}" class="text-primary hover:underline"><code>${method} ${apiPath}</code></a>`;
     }
     return `<code>${method} ${apiPath}</code>`;
   });

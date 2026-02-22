@@ -53,13 +53,13 @@
 - [Разархивация чата](https://dev.pachca.com/chats/update-unarchive.md): PUT /chats/{id}/unarchive
 
 ## Members
-- [Добавление тегов](https://dev.pachca.com/members/add-group-tags.md): POST /chats/{chatId}/group_tags
-- [Исключение тега](https://dev.pachca.com/members/remove-group-tag.md): DELETE /chats/{chatId}/group_tags/{tagId}
-- [Исключение пользователя](https://dev.pachca.com/members/remove-member.md): DELETE /chats/{chatId}/members/{userId}
-- [Редактирование роли](https://dev.pachca.com/members/update-members.md): PUT /chats/{chatId}/members/{userId}
+- [Добавление тегов](https://dev.pachca.com/members/add-group-tags.md): POST /chats/{id}/group_tags
+- [Исключение тега](https://dev.pachca.com/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
 - [Выход из беседы или канала](https://dev.pachca.com/members/remove-leave.md): DELETE /chats/{id}/leave
 - [Список участников чата](https://dev.pachca.com/members/list-members.md): GET /chats/{id}/members
 - [Добавление пользователей](https://dev.pachca.com/members/add-members.md): POST /chats/{id}/members
+- [Исключение пользователя](https://dev.pachca.com/members/remove-member.md): DELETE /chats/{id}/members/{user_id}
+- [Редактирование роли](https://dev.pachca.com/members/update-members.md): PUT /chats/{id}/members/{user_id}
 
 ## Thread
 - [Новый тред](https://dev.pachca.com/thread/add-thread.md): POST /messages/{id}/thread

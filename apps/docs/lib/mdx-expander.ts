@@ -15,6 +15,8 @@ import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
 import { getOrderedGuidePages } from './guides-config';
 import { generateNavigation } from './navigation';
+import { WORKFLOWS } from '../scripts/skills/workflows';
+import { SKILL_TAG_MAP } from '../scripts/skills/config';
 
 // ============================================
 // Helper functions
@@ -426,6 +428,25 @@ export async function expandMdxComponents(content: string): Promise<string> {
 
       result = result.replace(fullMatch, md);
     }
+  }
+
+  // <AgentSkillsWorkflows /> -> markdown list of skills and workflows
+  if (result.includes('<AgentSkillsWorkflows')) {
+    let md = '';
+    for (const skill of SKILL_TAG_MAP) {
+      const workflows = WORKFLOWS[skill.name] ?? [];
+      if (!workflows.length) continue;
+      md += `### ${skill.name}\n\n`;
+      for (const wf of workflows) {
+        md += `**${wf.title}**\n\n`;
+        wf.steps.forEach((step, i) => {
+          md += `${i + 1}. ${step}\n`;
+        });
+        if (wf.notes) md += `\n> ${wf.notes}\n`;
+        md += '\n';
+      }
+    }
+    result = result.replace(/<AgentSkillsWorkflows\s*\/>/g, md);
   }
 
   // Clean up multiple newlines

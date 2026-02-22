@@ -87,7 +87,6 @@ export function generateAllSkills(api: ParsedAPI) {
 
     const fallbackConfig: SkillConfig = {
       name,
-      title: name.replace('pachca-', '').replace(/-/g, ' '),
       tags: [],
       description: `Автоматически обнаруженный скилл: ${name}.`,
       triggers: endpoints.map((ep) => ep.summary || `${ep.method} ${ep.path}`),
@@ -192,7 +191,7 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push('---');
   lines.push('');
 
-  lines.push(`# ${config.title}`);
+  lines.push(`# ${config.name}`);
   lines.push('');
   lines.push(`Base URL: \`${baseUrl}\``);
   lines.push('Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`');
@@ -382,9 +381,15 @@ function collectSchemaGotchas(
       const key = `enum:${fullName}`;
       if (!seen.has(key)) {
         seen.add(key);
-        gotchas.push(
-          `\`${fullName}\`: допустимые значения — ${prop.enum.map((v) => `\`${v}\``).join(', ')}`
-        );
+        const enumDescriptions = prop['x-enum-descriptions'];
+        const values = prop.enum
+          .map((v) => {
+            const key = v as string;
+            const desc = enumDescriptions?.[key];
+            return desc ? `\`${key}\` (${desc})` : `\`${key}\``;
+          })
+          .join(', ');
+        gotchas.push(`\`${fullName}\`: допустимые значения — ${values}`);
       }
     }
     if (prop.maxLength) {
@@ -436,7 +441,7 @@ function generateEndpointsMd(ctx: SkillContext): string {
   const { config, endpoints, baseUrl } = ctx;
   const lines: string[] = [];
 
-  lines.push(`# ${config.title} — Справочник эндпоинтов`);
+  lines.push(`# ${config.name} — Справочник эндпоинтов`);
   lines.push('');
 
   for (const ep of endpoints) {
@@ -739,7 +744,7 @@ function generateCursorMdc(baseUrl: string): string {
   lines.push('');
 
   for (const config of SKILL_TAG_MAP) {
-    lines.push(`### ${config.title} (${config.name})`);
+    lines.push(`### ${config.name}`);
     lines.push('');
     lines.push(config.description.split('.').slice(0, 2).join('.') + '.');
     lines.push('');

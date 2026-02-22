@@ -1,0 +1,25 @@
+name: "Предложить сценарий для AI-агента"
+description: Предложите один или несколько новых сценариев использования API для Agent Skills
+title: "[Сценарий] "
+labels: ["workflow", "enhancement"]
+body:
+  - type: textarea
+    id: scenarios
+    attributes:
+      label: Сценарии
+      description: >
+        Опишите, каких сценариев вам не хватает. Можно в любом формате —
+        просто словами, списком шагов или с примерами API-вызовов.
+      placeholder: |
+        Пример 1: хочу отправить сообщение с упоминанием пользователя
+        1. GET /users?query=... — найти пользователя
+        2. POST /messages с @mention в content
+
+        Пример 2: нужно массово добавить участников в канал по тегу
+    validations:
+      required: true
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Зачем это нужно
+      description: Опишите задачу или контекст (необязательно)

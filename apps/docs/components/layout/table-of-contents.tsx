@@ -207,9 +207,9 @@ export function TableOfContents() {
     <nav className="sticky top-6 lg:top-10 max-h-[calc(100vh-80px)] overflow-y-auto no-scrollbar py-2">
       <div
         ref={containerRef}
-        className="relative flex flex-col border-l-2 border-background-border ml-4"
+        className="relative flex flex-col border-l-1 border-background-border ml-4"
       >
-        <div ref={indicatorRef} className="absolute left-[-2px] w-[2px] bg-primary" />
+        <div ref={indicatorRef} className="absolute left-[-1px] w-[1px] bg-primary" />
         {toc.map((item) => (
           <a
             key={item.id}

@@ -76,7 +76,7 @@ function extractActionFromEndpoint(endpoint) {
       return method === 'POST' ? 'pin' : 'unpin';
     }
 
-    // If there's a parameter after the sub-resource (e.g., /chats/{chatId}/members/{userId})
+    // If there's a parameter after the sub-resource (e.g., /chats/{id}/members/{user_id})
     const hasTrailingParam = lastSegmentIndex < segments.length - 1;
 
     if (hasTrailingParam) {

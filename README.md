@@ -93,6 +93,7 @@ SDK генерируются из `openapi.yaml` и публикуются ав�
 
 | Инструмент | Как использовать |
 |-----------|-----------------|
+| [Scalar](https://client.scalar.com/?url=https://dev.pachca.com/openapi.yaml) | Онлайн-клиент прямо в браузере — без установки |
 | [Postman Collection](https://dev.pachca.com/pachca.postman_collection.json) | Скачайте и импортируйте в Postman |
 | Bruno | Скачайте тот же файл и импортируйте: File → Import → Postman Collection |
 

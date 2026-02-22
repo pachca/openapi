@@ -67,12 +67,12 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 | *GroupTagsApi* | [**groupTagOperationsUpdateTag**](docs/GroupTagsApi.md#grouptagoperationsupdatetag) | **PUT** /group_tags/{id} |  |
 | *LinkPreviewsApi* | [**linkPreviewOperationsCreateLinkPreviews**](docs/LinkPreviewsApi.md#linkpreviewoperationscreatelinkpreviews) | **POST** /messages/{id}/link_previews |  |
 | *MembersApi* | [**chatMemberOperationsAddMembers**](docs/MembersApi.md#chatmemberoperationsaddmembers) | **POST** /chats/{id}/members |  |
-| *MembersApi* | [**chatMemberOperationsAddTags**](docs/MembersApi.md#chatmemberoperationsaddtags) | **POST** /chats/{chatId}/group_tags |  |
+| *MembersApi* | [**chatMemberOperationsAddTags**](docs/MembersApi.md#chatmemberoperationsaddtags) | **POST** /chats/{id}/group_tags |  |
 | *MembersApi* | [**chatMemberOperationsLeaveChat**](docs/MembersApi.md#chatmemberoperationsleavechat) | **DELETE** /chats/{id}/leave |  |
 | *MembersApi* | [**chatMemberOperationsListMembers**](docs/MembersApi.md#chatmemberoperationslistmembers) | **GET** /chats/{id}/members |  |
-| *MembersApi* | [**chatMemberOperationsRemoveMember**](docs/MembersApi.md#chatmemberoperationsremovemember) | **DELETE** /chats/{chatId}/members/{userId} |  |
-| *MembersApi* | [**chatMemberOperationsRemoveTag**](docs/MembersApi.md#chatmemberoperationsremovetag) | **DELETE** /chats/{chatId}/group_tags/{tagId} |  |
-| *MembersApi* | [**chatMemberOperationsUpdateMemberRole**](docs/MembersApi.md#chatmemberoperationsupdatememberrole) | **PUT** /chats/{chatId}/members/{userId} |  |
+| *MembersApi* | [**chatMemberOperationsRemoveMember**](docs/MembersApi.md#chatmemberoperationsremovemember) | **DELETE** /chats/{id}/members/{user_id} |  |
+| *MembersApi* | [**chatMemberOperationsRemoveTag**](docs/MembersApi.md#chatmemberoperationsremovetag) | **DELETE** /chats/{id}/group_tags/{tag_id} |  |
+| *MembersApi* | [**chatMemberOperationsUpdateMemberRole**](docs/MembersApi.md#chatmemberoperationsupdatememberrole) | **PUT** /chats/{id}/members/{user_id} |  |
 | *MessagesApi* | [**chatMessageOperationsListChatMessages**](docs/MessagesApi.md#chatmessageoperationslistchatmessages) | **GET** /messages |  |
 | *MessagesApi* | [**messageOperationsCreateMessage**](docs/MessagesApi.md#messageoperationscreatemessage) | **POST** /messages |  |
 | *MessagesApi* | [**messageOperationsDeleteMessage**](docs/MessagesApi.md#messageoperationsdeletemessage) | **DELETE** /messages/{id} |  |

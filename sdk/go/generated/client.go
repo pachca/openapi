@@ -1965,17 +1965,17 @@ type ChatOperationsCreateChatJSONRequestBody = ChatCreateRequest
 // ExportOperationsRequestExportJSONRequestBody defines body for ExportOperationsRequestExport for application/json ContentType.
 type ExportOperationsRequestExportJSONRequestBody = ExportRequest
 
-// ChatMemberOperationsAddTagsJSONRequestBody defines body for ChatMemberOperationsAddTags for application/json ContentType.
-type ChatMemberOperationsAddTagsJSONRequestBody = AddTagsRequest
-
-// ChatMemberOperationsUpdateMemberRoleJSONRequestBody defines body for ChatMemberOperationsUpdateMemberRole for application/json ContentType.
-type ChatMemberOperationsUpdateMemberRoleJSONRequestBody = UpdateMemberRoleRequest
-
 // ChatOperationsUpdateChatJSONRequestBody defines body for ChatOperationsUpdateChat for application/json ContentType.
 type ChatOperationsUpdateChatJSONRequestBody = ChatUpdateRequest
 
+// ChatMemberOperationsAddTagsJSONRequestBody defines body for ChatMemberOperationsAddTags for application/json ContentType.
+type ChatMemberOperationsAddTagsJSONRequestBody = AddTagsRequest
+
 // ChatMemberOperationsAddMembersJSONRequestBody defines body for ChatMemberOperationsAddMembers for application/json ContentType.
 type ChatMemberOperationsAddMembersJSONRequestBody = AddMembersRequest
+
+// ChatMemberOperationsUpdateMemberRoleJSONRequestBody defines body for ChatMemberOperationsUpdateMemberRole for application/json ContentType.
+type ChatMemberOperationsUpdateMemberRoleJSONRequestBody = UpdateMemberRoleRequest
 
 // DirectUploadOperationsUploadFileMultipartRequestBody defines body for DirectUploadOperationsUploadFile for multipart/form-data ContentType.
 type DirectUploadOperationsUploadFileMultipartRequestBody = FileUploadRequest
@@ -2575,22 +2575,6 @@ type ClientInterface interface {
 	// ExportOperationsDownloadExport request
 	ExportOperationsDownloadExport(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// ChatMemberOperationsAddTagsWithBody request with any body
-	ChatMemberOperationsAddTagsWithBody(ctx context.Context, chatId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	ChatMemberOperationsAddTags(ctx context.Context, chatId int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ChatMemberOperationsRemoveTag request
-	ChatMemberOperationsRemoveTag(ctx context.Context, chatId int32, tagId int32, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ChatMemberOperationsRemoveMember request
-	ChatMemberOperationsRemoveMember(ctx context.Context, chatId int32, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// ChatMemberOperationsUpdateMemberRoleWithBody request with any body
-	ChatMemberOperationsUpdateMemberRoleWithBody(ctx context.Context, chatId int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	ChatMemberOperationsUpdateMemberRole(ctx context.Context, chatId int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// ChatOperationsGetChat request
 	ChatOperationsGetChat(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2602,6 +2586,14 @@ type ClientInterface interface {
 	// ChatOperationsArchiveChat request
 	ChatOperationsArchiveChat(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ChatMemberOperationsAddTagsWithBody request with any body
+	ChatMemberOperationsAddTagsWithBody(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ChatMemberOperationsAddTags(ctx context.Context, id int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ChatMemberOperationsRemoveTag request
+	ChatMemberOperationsRemoveTag(ctx context.Context, id int32, tagId int32, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ChatMemberOperationsLeaveChat request
 	ChatMemberOperationsLeaveChat(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2612,6 +2604,14 @@ type ClientInterface interface {
 	ChatMemberOperationsAddMembersWithBody(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ChatMemberOperationsAddMembers(ctx context.Context, id int32, body ChatMemberOperationsAddMembersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ChatMemberOperationsRemoveMember request
+	ChatMemberOperationsRemoveMember(ctx context.Context, id int32, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ChatMemberOperationsUpdateMemberRoleWithBody request with any body
+	ChatMemberOperationsUpdateMemberRoleWithBody(ctx context.Context, id int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ChatMemberOperationsUpdateMemberRole(ctx context.Context, id int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ChatOperationsUnarchiveChat request
 	ChatOperationsUnarchiveChat(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2869,78 +2869,6 @@ func (c *Client) ExportOperationsDownloadExport(ctx context.Context, id int32, r
 	return c.Client.Do(req)
 }
 
-func (c *Client) ChatMemberOperationsAddTagsWithBody(ctx context.Context, chatId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewChatMemberOperationsAddTagsRequestWithBody(c.Server, chatId, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ChatMemberOperationsAddTags(ctx context.Context, chatId int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewChatMemberOperationsAddTagsRequest(c.Server, chatId, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ChatMemberOperationsRemoveTag(ctx context.Context, chatId int32, tagId int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewChatMemberOperationsRemoveTagRequest(c.Server, chatId, tagId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ChatMemberOperationsRemoveMember(ctx context.Context, chatId int32, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewChatMemberOperationsRemoveMemberRequest(c.Server, chatId, userId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ChatMemberOperationsUpdateMemberRoleWithBody(ctx context.Context, chatId int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewChatMemberOperationsUpdateMemberRoleRequestWithBody(c.Server, chatId, userId, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) ChatMemberOperationsUpdateMemberRole(ctx context.Context, chatId int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewChatMemberOperationsUpdateMemberRoleRequest(c.Server, chatId, userId, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) ChatOperationsGetChat(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChatOperationsGetChatRequest(c.Server, id)
 	if err != nil {
@@ -2989,6 +2917,42 @@ func (c *Client) ChatOperationsArchiveChat(ctx context.Context, id int32, reqEdi
 	return c.Client.Do(req)
 }
 
+func (c *Client) ChatMemberOperationsAddTagsWithBody(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatMemberOperationsAddTagsRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChatMemberOperationsAddTags(ctx context.Context, id int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatMemberOperationsAddTagsRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChatMemberOperationsRemoveTag(ctx context.Context, id int32, tagId int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatMemberOperationsRemoveTagRequest(c.Server, id, tagId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ChatMemberOperationsLeaveChat(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChatMemberOperationsLeaveChatRequest(c.Server, id)
 	if err != nil {
@@ -3027,6 +2991,42 @@ func (c *Client) ChatMemberOperationsAddMembersWithBody(ctx context.Context, id 
 
 func (c *Client) ChatMemberOperationsAddMembers(ctx context.Context, id int32, body ChatMemberOperationsAddMembersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChatMemberOperationsAddMembersRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChatMemberOperationsRemoveMember(ctx context.Context, id int32, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatMemberOperationsRemoveMemberRequest(c.Server, id, userId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChatMemberOperationsUpdateMemberRoleWithBody(ctx context.Context, id int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatMemberOperationsUpdateMemberRoleRequestWithBody(c.Server, id, userId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChatMemberOperationsUpdateMemberRole(ctx context.Context, id int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChatMemberOperationsUpdateMemberRoleRequest(c.Server, id, userId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4148,189 +4148,6 @@ func NewExportOperationsDownloadExportRequest(server string, id int32) (*http.Re
 	return req, nil
 }
 
-// NewChatMemberOperationsAddTagsRequest calls the generic ChatMemberOperationsAddTags builder with application/json body
-func NewChatMemberOperationsAddTagsRequest(server string, chatId int32, body ChatMemberOperationsAddTagsJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewChatMemberOperationsAddTagsRequestWithBody(server, chatId, "application/json", bodyReader)
-}
-
-// NewChatMemberOperationsAddTagsRequestWithBody generates requests for ChatMemberOperationsAddTags with any type of body
-func NewChatMemberOperationsAddTagsRequestWithBody(server string, chatId int32, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "chatId", runtime.ParamLocationPath, chatId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/chats/%s/group_tags", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewChatMemberOperationsRemoveTagRequest generates requests for ChatMemberOperationsRemoveTag
-func NewChatMemberOperationsRemoveTagRequest(server string, chatId int32, tagId int32) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "chatId", runtime.ParamLocationPath, chatId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tagId", runtime.ParamLocationPath, tagId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/chats/%s/group_tags/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewChatMemberOperationsRemoveMemberRequest generates requests for ChatMemberOperationsRemoveMember
-func NewChatMemberOperationsRemoveMemberRequest(server string, chatId int32, userId int32) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "chatId", runtime.ParamLocationPath, chatId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/chats/%s/members/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewChatMemberOperationsUpdateMemberRoleRequest calls the generic ChatMemberOperationsUpdateMemberRole builder with application/json body
-func NewChatMemberOperationsUpdateMemberRoleRequest(server string, chatId int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewChatMemberOperationsUpdateMemberRoleRequestWithBody(server, chatId, userId, "application/json", bodyReader)
-}
-
-// NewChatMemberOperationsUpdateMemberRoleRequestWithBody generates requests for ChatMemberOperationsUpdateMemberRole with any type of body
-func NewChatMemberOperationsUpdateMemberRoleRequestWithBody(server string, chatId int32, userId int32, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "chatId", runtime.ParamLocationPath, chatId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/chats/%s/members/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewChatOperationsGetChatRequest generates requests for ChatOperationsGetChat
 func NewChatOperationsGetChatRequest(server string, id int32) (*http.Request, error) {
 	var err error
@@ -4439,6 +4256,94 @@ func NewChatOperationsArchiveChatRequest(server string, id int32) (*http.Request
 	}
 
 	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewChatMemberOperationsAddTagsRequest calls the generic ChatMemberOperationsAddTags builder with application/json body
+func NewChatMemberOperationsAddTagsRequest(server string, id int32, body ChatMemberOperationsAddTagsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewChatMemberOperationsAddTagsRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewChatMemberOperationsAddTagsRequestWithBody generates requests for ChatMemberOperationsAddTags with any type of body
+func NewChatMemberOperationsAddTagsRequestWithBody(server string, id int32, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/chats/%s/group_tags", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewChatMemberOperationsRemoveTagRequest generates requests for ChatMemberOperationsRemoveTag
+func NewChatMemberOperationsRemoveTagRequest(server string, id int32, tagId int32) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "tag_id", runtime.ParamLocationPath, tagId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/chats/%s/group_tags/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -4606,6 +4511,101 @@ func NewChatMemberOperationsAddMembersRequestWithBody(server string, id int32, c
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewChatMemberOperationsRemoveMemberRequest generates requests for ChatMemberOperationsRemoveMember
+func NewChatMemberOperationsRemoveMemberRequest(server string, id int32, userId int32) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "user_id", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/chats/%s/members/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewChatMemberOperationsUpdateMemberRoleRequest calls the generic ChatMemberOperationsUpdateMemberRole builder with application/json body
+func NewChatMemberOperationsUpdateMemberRoleRequest(server string, id int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewChatMemberOperationsUpdateMemberRoleRequestWithBody(server, id, userId, "application/json", bodyReader)
+}
+
+// NewChatMemberOperationsUpdateMemberRoleRequestWithBody generates requests for ChatMemberOperationsUpdateMemberRole with any type of body
+func NewChatMemberOperationsUpdateMemberRoleRequestWithBody(server string, id int32, userId int32, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "user_id", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/chats/%s/members/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -6531,22 +6531,6 @@ type ClientWithResponsesInterface interface {
 	// ExportOperationsDownloadExportWithResponse request
 	ExportOperationsDownloadExportWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ExportOperationsDownloadExportResponse, error)
 
-	// ChatMemberOperationsAddTagsWithBodyWithResponse request with any body
-	ChatMemberOperationsAddTagsWithBodyWithResponse(ctx context.Context, chatId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error)
-
-	ChatMemberOperationsAddTagsWithResponse(ctx context.Context, chatId int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error)
-
-	// ChatMemberOperationsRemoveTagWithResponse request
-	ChatMemberOperationsRemoveTagWithResponse(ctx context.Context, chatId int32, tagId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveTagResponse, error)
-
-	// ChatMemberOperationsRemoveMemberWithResponse request
-	ChatMemberOperationsRemoveMemberWithResponse(ctx context.Context, chatId int32, userId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveMemberResponse, error)
-
-	// ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse request with any body
-	ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse(ctx context.Context, chatId int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error)
-
-	ChatMemberOperationsUpdateMemberRoleWithResponse(ctx context.Context, chatId int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error)
-
 	// ChatOperationsGetChatWithResponse request
 	ChatOperationsGetChatWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ChatOperationsGetChatResponse, error)
 
@@ -6558,6 +6542,14 @@ type ClientWithResponsesInterface interface {
 	// ChatOperationsArchiveChatWithResponse request
 	ChatOperationsArchiveChatWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ChatOperationsArchiveChatResponse, error)
 
+	// ChatMemberOperationsAddTagsWithBodyWithResponse request with any body
+	ChatMemberOperationsAddTagsWithBodyWithResponse(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error)
+
+	ChatMemberOperationsAddTagsWithResponse(ctx context.Context, id int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error)
+
+	// ChatMemberOperationsRemoveTagWithResponse request
+	ChatMemberOperationsRemoveTagWithResponse(ctx context.Context, id int32, tagId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveTagResponse, error)
+
 	// ChatMemberOperationsLeaveChatWithResponse request
 	ChatMemberOperationsLeaveChatWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsLeaveChatResponse, error)
 
@@ -6568,6 +6560,14 @@ type ClientWithResponsesInterface interface {
 	ChatMemberOperationsAddMembersWithBodyWithResponse(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddMembersResponse, error)
 
 	ChatMemberOperationsAddMembersWithResponse(ctx context.Context, id int32, body ChatMemberOperationsAddMembersJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddMembersResponse, error)
+
+	// ChatMemberOperationsRemoveMemberWithResponse request
+	ChatMemberOperationsRemoveMemberWithResponse(ctx context.Context, id int32, userId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveMemberResponse, error)
+
+	// ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse request with any body
+	ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse(ctx context.Context, id int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error)
+
+	ChatMemberOperationsUpdateMemberRoleWithResponse(ctx context.Context, id int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error)
 
 	// ChatOperationsUnarchiveChatWithResponse request
 	ChatOperationsUnarchiveChatWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ChatOperationsUnarchiveChatResponse, error)
@@ -6895,110 +6895,6 @@ func (r ExportOperationsDownloadExportResponse) StatusCode() int {
 	return 0
 }
 
-type ChatMemberOperationsAddTagsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
-	JSON400      *ApiError
-	JSON401      *OAuthError
-	JSON403      *OAuthError
-	JSON404      *ApiError
-	JSON422      *ApiError
-}
-
-// Status returns HTTPResponse.Status
-func (r ChatMemberOperationsAddTagsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ChatMemberOperationsAddTagsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type ChatMemberOperationsRemoveTagResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
-	JSON401      *OAuthError
-	JSON403      *OAuthError
-	JSON404      *ApiError
-}
-
-// Status returns HTTPResponse.Status
-func (r ChatMemberOperationsRemoveTagResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ChatMemberOperationsRemoveTagResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type ChatMemberOperationsRemoveMemberResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
-	JSON401      *OAuthError
-	JSON403      *OAuthError
-	JSON404      *ApiError
-}
-
-// Status returns HTTPResponse.Status
-func (r ChatMemberOperationsRemoveMemberResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ChatMemberOperationsRemoveMemberResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type ChatMemberOperationsUpdateMemberRoleResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
-	JSON400      *ApiError
-	JSON401      *OAuthError
-	JSON403      *OAuthError
-	JSON404      *ApiError
-	JSON422      *ApiError
-}
-
-// Status returns HTTPResponse.Status
-func (r ChatMemberOperationsUpdateMemberRoleResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r ChatMemberOperationsUpdateMemberRoleResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type ChatOperationsGetChatResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7076,6 +6972,58 @@ func (r ChatOperationsArchiveChatResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ChatOperationsArchiveChatResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ChatMemberOperationsAddTagsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON204      *EmptyResponse
+	JSON400      *ApiError
+	JSON401      *OAuthError
+	JSON403      *OAuthError
+	JSON404      *ApiError
+	JSON422      *ApiError
+}
+
+// Status returns HTTPResponse.Status
+func (r ChatMemberOperationsAddTagsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChatMemberOperationsAddTagsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ChatMemberOperationsRemoveTagResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON204      *EmptyResponse
+	JSON401      *OAuthError
+	JSON403      *OAuthError
+	JSON404      *ApiError
+}
+
+// Status returns HTTPResponse.Status
+func (r ChatMemberOperationsRemoveTagResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChatMemberOperationsRemoveTagResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -7162,6 +7110,58 @@ func (r ChatMemberOperationsAddMembersResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ChatMemberOperationsAddMembersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ChatMemberOperationsRemoveMemberResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON204      *EmptyResponse
+	JSON401      *OAuthError
+	JSON403      *OAuthError
+	JSON404      *ApiError
+}
+
+// Status returns HTTPResponse.Status
+func (r ChatMemberOperationsRemoveMemberResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChatMemberOperationsRemoveMemberResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ChatMemberOperationsUpdateMemberRoleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON204      *EmptyResponse
+	JSON400      *ApiError
+	JSON401      *OAuthError
+	JSON403      *OAuthError
+	JSON404      *ApiError
+	JSON422      *ApiError
+}
+
+// Status returns HTTPResponse.Status
+func (r ChatMemberOperationsUpdateMemberRoleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChatMemberOperationsUpdateMemberRoleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8389,58 +8389,6 @@ func (c *ClientWithResponses) ExportOperationsDownloadExportWithResponse(ctx con
 	return ParseExportOperationsDownloadExportResponse(rsp)
 }
 
-// ChatMemberOperationsAddTagsWithBodyWithResponse request with arbitrary body returning *ChatMemberOperationsAddTagsResponse
-func (c *ClientWithResponses) ChatMemberOperationsAddTagsWithBodyWithResponse(ctx context.Context, chatId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error) {
-	rsp, err := c.ChatMemberOperationsAddTagsWithBody(ctx, chatId, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseChatMemberOperationsAddTagsResponse(rsp)
-}
-
-func (c *ClientWithResponses) ChatMemberOperationsAddTagsWithResponse(ctx context.Context, chatId int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error) {
-	rsp, err := c.ChatMemberOperationsAddTags(ctx, chatId, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseChatMemberOperationsAddTagsResponse(rsp)
-}
-
-// ChatMemberOperationsRemoveTagWithResponse request returning *ChatMemberOperationsRemoveTagResponse
-func (c *ClientWithResponses) ChatMemberOperationsRemoveTagWithResponse(ctx context.Context, chatId int32, tagId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveTagResponse, error) {
-	rsp, err := c.ChatMemberOperationsRemoveTag(ctx, chatId, tagId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseChatMemberOperationsRemoveTagResponse(rsp)
-}
-
-// ChatMemberOperationsRemoveMemberWithResponse request returning *ChatMemberOperationsRemoveMemberResponse
-func (c *ClientWithResponses) ChatMemberOperationsRemoveMemberWithResponse(ctx context.Context, chatId int32, userId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveMemberResponse, error) {
-	rsp, err := c.ChatMemberOperationsRemoveMember(ctx, chatId, userId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseChatMemberOperationsRemoveMemberResponse(rsp)
-}
-
-// ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse request with arbitrary body returning *ChatMemberOperationsUpdateMemberRoleResponse
-func (c *ClientWithResponses) ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse(ctx context.Context, chatId int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error) {
-	rsp, err := c.ChatMemberOperationsUpdateMemberRoleWithBody(ctx, chatId, userId, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseChatMemberOperationsUpdateMemberRoleResponse(rsp)
-}
-
-func (c *ClientWithResponses) ChatMemberOperationsUpdateMemberRoleWithResponse(ctx context.Context, chatId int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error) {
-	rsp, err := c.ChatMemberOperationsUpdateMemberRole(ctx, chatId, userId, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseChatMemberOperationsUpdateMemberRoleResponse(rsp)
-}
-
 // ChatOperationsGetChatWithResponse request returning *ChatOperationsGetChatResponse
 func (c *ClientWithResponses) ChatOperationsGetChatWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ChatOperationsGetChatResponse, error) {
 	rsp, err := c.ChatOperationsGetChat(ctx, id, reqEditors...)
@@ -8476,6 +8424,32 @@ func (c *ClientWithResponses) ChatOperationsArchiveChatWithResponse(ctx context.
 	return ParseChatOperationsArchiveChatResponse(rsp)
 }
 
+// ChatMemberOperationsAddTagsWithBodyWithResponse request with arbitrary body returning *ChatMemberOperationsAddTagsResponse
+func (c *ClientWithResponses) ChatMemberOperationsAddTagsWithBodyWithResponse(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error) {
+	rsp, err := c.ChatMemberOperationsAddTagsWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatMemberOperationsAddTagsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ChatMemberOperationsAddTagsWithResponse(ctx context.Context, id int32, body ChatMemberOperationsAddTagsJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsAddTagsResponse, error) {
+	rsp, err := c.ChatMemberOperationsAddTags(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatMemberOperationsAddTagsResponse(rsp)
+}
+
+// ChatMemberOperationsRemoveTagWithResponse request returning *ChatMemberOperationsRemoveTagResponse
+func (c *ClientWithResponses) ChatMemberOperationsRemoveTagWithResponse(ctx context.Context, id int32, tagId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveTagResponse, error) {
+	rsp, err := c.ChatMemberOperationsRemoveTag(ctx, id, tagId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatMemberOperationsRemoveTagResponse(rsp)
+}
+
 // ChatMemberOperationsLeaveChatWithResponse request returning *ChatMemberOperationsLeaveChatResponse
 func (c *ClientWithResponses) ChatMemberOperationsLeaveChatWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsLeaveChatResponse, error) {
 	rsp, err := c.ChatMemberOperationsLeaveChat(ctx, id, reqEditors...)
@@ -8509,6 +8483,32 @@ func (c *ClientWithResponses) ChatMemberOperationsAddMembersWithResponse(ctx con
 		return nil, err
 	}
 	return ParseChatMemberOperationsAddMembersResponse(rsp)
+}
+
+// ChatMemberOperationsRemoveMemberWithResponse request returning *ChatMemberOperationsRemoveMemberResponse
+func (c *ClientWithResponses) ChatMemberOperationsRemoveMemberWithResponse(ctx context.Context, id int32, userId int32, reqEditors ...RequestEditorFn) (*ChatMemberOperationsRemoveMemberResponse, error) {
+	rsp, err := c.ChatMemberOperationsRemoveMember(ctx, id, userId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatMemberOperationsRemoveMemberResponse(rsp)
+}
+
+// ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse request with arbitrary body returning *ChatMemberOperationsUpdateMemberRoleResponse
+func (c *ClientWithResponses) ChatMemberOperationsUpdateMemberRoleWithBodyWithResponse(ctx context.Context, id int32, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error) {
+	rsp, err := c.ChatMemberOperationsUpdateMemberRoleWithBody(ctx, id, userId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatMemberOperationsUpdateMemberRoleResponse(rsp)
+}
+
+func (c *ClientWithResponses) ChatMemberOperationsUpdateMemberRoleWithResponse(ctx context.Context, id int32, userId int32, body ChatMemberOperationsUpdateMemberRoleJSONRequestBody, reqEditors ...RequestEditorFn) (*ChatMemberOperationsUpdateMemberRoleResponse, error) {
+	rsp, err := c.ChatMemberOperationsUpdateMemberRole(ctx, id, userId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChatMemberOperationsUpdateMemberRoleResponse(rsp)
 }
 
 // ChatOperationsUnarchiveChatWithResponse request returning *ChatOperationsUnarchiveChatResponse
@@ -9313,222 +9313,6 @@ func ParseExportOperationsDownloadExportResponse(rsp *http.Response) (*ExportOpe
 	return response, nil
 }
 
-// ParseChatMemberOperationsAddTagsResponse parses an HTTP response from a ChatMemberOperationsAddTagsWithResponse call
-func ParseChatMemberOperationsAddTagsResponse(rsp *http.Response) (*ChatMemberOperationsAddTagsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ChatMemberOperationsAddTagsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON422 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseChatMemberOperationsRemoveTagResponse parses an HTTP response from a ChatMemberOperationsRemoveTagWithResponse call
-func ParseChatMemberOperationsRemoveTagResponse(rsp *http.Response) (*ChatMemberOperationsRemoveTagResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ChatMemberOperationsRemoveTagResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseChatMemberOperationsRemoveMemberResponse parses an HTTP response from a ChatMemberOperationsRemoveMemberWithResponse call
-func ParseChatMemberOperationsRemoveMemberResponse(rsp *http.Response) (*ChatMemberOperationsRemoveMemberResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ChatMemberOperationsRemoveMemberResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseChatMemberOperationsUpdateMemberRoleResponse parses an HTTP response from a ChatMemberOperationsUpdateMemberRoleWithResponse call
-func ParseChatMemberOperationsUpdateMemberRoleResponse(rsp *http.Response) (*ChatMemberOperationsUpdateMemberRoleResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &ChatMemberOperationsUpdateMemberRoleResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest OAuthError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest ApiError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON422 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseChatOperationsGetChatResponse parses an HTTP response from a ChatOperationsGetChatWithResponse call
 func ParseChatOperationsGetChatResponse(rsp *http.Response) (*ChatOperationsGetChatResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -9652,6 +9436,114 @@ func ParseChatOperationsArchiveChatResponse(rsp *http.Response) (*ChatOperations
 	}
 
 	response := &ChatOperationsArchiveChatResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
+		var dest EmptyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON204 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseChatMemberOperationsAddTagsResponse parses an HTTP response from a ChatMemberOperationsAddTagsWithResponse call
+func ParseChatMemberOperationsAddTagsResponse(rsp *http.Response) (*ChatMemberOperationsAddTagsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChatMemberOperationsAddTagsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
+		var dest EmptyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON204 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseChatMemberOperationsRemoveTagResponse parses an HTTP response from a ChatMemberOperationsRemoveTagWithResponse call
+func ParseChatMemberOperationsRemoveTagResponse(rsp *http.Response) (*ChatMemberOperationsRemoveTagResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChatMemberOperationsRemoveTagResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9826,6 +9718,114 @@ func ParseChatMemberOperationsAddMembersResponse(rsp *http.Response) (*ChatMembe
 	}
 
 	response := &ChatMemberOperationsAddMembersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
+		var dest EmptyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON204 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseChatMemberOperationsRemoveMemberResponse parses an HTTP response from a ChatMemberOperationsRemoveMemberWithResponse call
+func ParseChatMemberOperationsRemoveMemberResponse(rsp *http.Response) (*ChatMemberOperationsRemoveMemberResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChatMemberOperationsRemoveMemberResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
+		var dest EmptyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON204 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseChatMemberOperationsUpdateMemberRoleResponse parses an HTTP response from a ChatMemberOperationsUpdateMemberRoleWithResponse call
+func ParseChatMemberOperationsUpdateMemberRoleResponse(rsp *http.Response) (*ChatMemberOperationsUpdateMemberRoleResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChatMemberOperationsUpdateMemberRoleResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

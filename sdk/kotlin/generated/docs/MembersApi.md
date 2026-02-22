@@ -5,12 +5,12 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
 | [**chatMemberOperationsAddMembers**](MembersApi.md#chatMemberOperationsAddMembers) | **POST** /chats/{id}/members |  |
-| [**chatMemberOperationsAddTags**](MembersApi.md#chatMemberOperationsAddTags) | **POST** /chats/{chatId}/group_tags |  |
+| [**chatMemberOperationsAddTags**](MembersApi.md#chatMemberOperationsAddTags) | **POST** /chats/{id}/group_tags |  |
 | [**chatMemberOperationsLeaveChat**](MembersApi.md#chatMemberOperationsLeaveChat) | **DELETE** /chats/{id}/leave |  |
 | [**chatMemberOperationsListMembers**](MembersApi.md#chatMemberOperationsListMembers) | **GET** /chats/{id}/members |  |
-| [**chatMemberOperationsRemoveMember**](MembersApi.md#chatMemberOperationsRemoveMember) | **DELETE** /chats/{chatId}/members/{userId} |  |
-| [**chatMemberOperationsRemoveTag**](MembersApi.md#chatMemberOperationsRemoveTag) | **DELETE** /chats/{chatId}/group_tags/{tagId} |  |
-| [**chatMemberOperationsUpdateMemberRole**](MembersApi.md#chatMemberOperationsUpdateMemberRole) | **PUT** /chats/{chatId}/members/{userId} |  |
+| [**chatMemberOperationsRemoveMember**](MembersApi.md#chatMemberOperationsRemoveMember) | **DELETE** /chats/{id}/members/{user_id} |  |
+| [**chatMemberOperationsRemoveTag**](MembersApi.md#chatMemberOperationsRemoveTag) | **DELETE** /chats/{id}/group_tags/{tag_id} |  |
+| [**chatMemberOperationsUpdateMemberRole**](MembersApi.md#chatMemberOperationsUpdateMemberRole) | **PUT** /chats/{id}/members/{user_id} |  |
 
 
 <a id="chatMemberOperationsAddMembers"></a>
@@ -65,11 +65,11 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsAddTags"></a>
 # **chatMemberOperationsAddTags**
-> kotlin.Any chatMemberOperationsAddTags(chatId, addTagsRequest)
+> kotlin.Any chatMemberOperationsAddTags(id, addTagsRequest)
 
 
 
-Добавление тегов  Метод для добавления тегов в состав участников беседы или канала.
+Добавление тегов  Метод для добавления тегов в состав участников беседы или канала.  После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
 
 ### Example
 ```kotlin
@@ -78,10 +78,10 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val chatId : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
 val addTagsRequest : AddTagsRequest = {"group_tag_ids":[86,18]} // AddTagsRequest | 
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsAddTags(chatId, addTagsRequest)
+    val result : kotlin.Any = apiInstance.chatMemberOperationsAddTags(id, addTagsRequest)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsAddTags")
@@ -93,7 +93,7 @@ try {
 ```
 
 ### Parameters
-| **chatId** | **kotlin.Int**| Идентификатор чата | |
+| **id** | **kotlin.Int**| Идентификатор чата | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
 | **addTagsRequest** | [**AddTagsRequest**](AddTagsRequest.md)|  | |
@@ -217,7 +217,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsRemoveMember"></a>
 # **chatMemberOperationsRemoveMember**
-> kotlin.Any chatMemberOperationsRemoveMember(chatId, userId)
+> kotlin.Any chatMemberOperationsRemoveMember(id, userId)
 
 
 
@@ -230,10 +230,10 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val chatId : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
 val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsRemoveMember(chatId, userId)
+    val result : kotlin.Any = apiInstance.chatMemberOperationsRemoveMember(id, userId)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsRemoveMember")
@@ -245,7 +245,7 @@ try {
 ```
 
 ### Parameters
-| **chatId** | **kotlin.Int**| Идентификатор чата | |
+| **id** | **kotlin.Int**| Идентификатор чата | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
 | **userId** | **kotlin.Int**| Идентификатор пользователя | |
@@ -267,7 +267,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsRemoveTag"></a>
 # **chatMemberOperationsRemoveTag**
-> kotlin.Any chatMemberOperationsRemoveTag(chatId, tagId)
+> kotlin.Any chatMemberOperationsRemoveTag(id, tagId)
 
 
 
@@ -280,10 +280,10 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val chatId : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
 val tagId : kotlin.Int = 56 // kotlin.Int | Идентификатор тега
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsRemoveTag(chatId, tagId)
+    val result : kotlin.Any = apiInstance.chatMemberOperationsRemoveTag(id, tagId)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsRemoveTag")
@@ -295,7 +295,7 @@ try {
 ```
 
 ### Parameters
-| **chatId** | **kotlin.Int**| Идентификатор чата | |
+| **id** | **kotlin.Int**| Идентификатор чата | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
 | **tagId** | **kotlin.Int**| Идентификатор тега | |
@@ -317,7 +317,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsUpdateMemberRole"></a>
 # **chatMemberOperationsUpdateMemberRole**
-> kotlin.Any chatMemberOperationsUpdateMemberRole(chatId, userId, updateMemberRoleRequest)
+> kotlin.Any chatMemberOperationsUpdateMemberRole(id, userId, updateMemberRoleRequest)
 
 
 
@@ -330,11 +330,11 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val chatId : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
 val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
 val updateMemberRoleRequest : UpdateMemberRoleRequest = {"role":"admin"} // UpdateMemberRoleRequest | 
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsUpdateMemberRole(chatId, userId, updateMemberRoleRequest)
+    val result : kotlin.Any = apiInstance.chatMemberOperationsUpdateMemberRole(id, userId, updateMemberRoleRequest)
     println(result)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsUpdateMemberRole")
@@ -346,7 +346,7 @@ try {
 ```
 
 ### Parameters
-| **chatId** | **kotlin.Int**| Идентификатор чата | |
+| **id** | **kotlin.Int**| Идентификатор чата | |
 | **userId** | **kotlin.Int**| Идентификатор пользователя | |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |

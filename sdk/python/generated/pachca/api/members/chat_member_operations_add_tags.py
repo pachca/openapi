@@ -17,7 +17,7 @@ from typing import cast
 
 
 def _get_kwargs(
-    chat_id: int,
+    id: int,
     *,
     body: AddTagsRequest,
 
@@ -31,7 +31,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": "/chats/{chat_id}/group_tags".format(chat_id=quote(str(chat_id), safe=""),),
+        "url": "/chats/{id}/group_tags".format(id=quote(str(id), safe=""),),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -103,7 +103,7 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 
 def sync_detailed(
-    chat_id: int,
+    id: int,
     *,
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
@@ -113,8 +113,12 @@ def sync_detailed(
 
     Метод для добавления тегов в состав участников беседы или канала.
 
+    После добавления тега все его участники автоматически становятся участниками чата. Состав участников
+    тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу
+    появляется в чате, при удалении из тега — удаляется из чата.
+
     Args:
-        chat_id (int):
+        id (int):
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -127,7 +131,7 @@ def sync_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 body=body,
 
     )
@@ -139,7 +143,7 @@ body=body,
     return _build_response(client=client, response=response)
 
 def sync(
-    chat_id: int,
+    id: int,
     *,
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
@@ -149,8 +153,12 @@ def sync(
 
     Метод для добавления тегов в состав участников беседы или канала.
 
+    После добавления тега все его участники автоматически становятся участниками чата. Состав участников
+    тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу
+    появляется в чате, при удалении из тега — удаляется из чата.
+
     Args:
-        chat_id (int):
+        id (int):
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -163,14 +171,14 @@ def sync(
 
 
     return sync_detailed(
-        chat_id=chat_id,
+        id=id,
 client=client,
 body=body,
 
     ).parsed
 
 async def asyncio_detailed(
-    chat_id: int,
+    id: int,
     *,
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
@@ -180,8 +188,12 @@ async def asyncio_detailed(
 
     Метод для добавления тегов в состав участников беседы или канала.
 
+    После добавления тега все его участники автоматически становятся участниками чата. Состав участников
+    тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу
+    появляется в чате, при удалении из тега — удаляется из чата.
+
     Args:
-        chat_id (int):
+        id (int):
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -194,7 +206,7 @@ async def asyncio_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 body=body,
 
     )
@@ -206,7 +218,7 @@ body=body,
     return _build_response(client=client, response=response)
 
 async def asyncio(
-    chat_id: int,
+    id: int,
     *,
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
@@ -216,8 +228,12 @@ async def asyncio(
 
     Метод для добавления тегов в состав участников беседы или канала.
 
+    После добавления тега все его участники автоматически становятся участниками чата. Состав участников
+    тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу
+    появляется в чате, при удалении из тега — удаляется из чата.
+
     Args:
-        chat_id (int):
+        id (int):
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -230,7 +246,7 @@ async def asyncio(
 
 
     return (await asyncio_detailed(
-        chat_id=chat_id,
+        id=id,
 client=client,
 body=body,
 

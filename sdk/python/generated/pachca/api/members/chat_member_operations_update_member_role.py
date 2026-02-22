@@ -17,7 +17,7 @@ from typing import cast
 
 
 def _get_kwargs(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     body: UpdateMemberRoleRequest,
@@ -32,7 +32,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": "/chats/{chat_id}/members/{user_id}".format(chat_id=quote(str(chat_id), safe=""),user_id=quote(str(user_id), safe=""),),
+        "url": "/chats/{id}/members/{user_id}".format(id=quote(str(id), safe=""),user_id=quote(str(user_id), safe=""),),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -104,7 +104,7 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 
 def sync_detailed(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -121,7 +121,7 @@ def sync_detailed(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
@@ -135,7 +135,7 @@ def sync_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 body=body,
 
@@ -148,7 +148,7 @@ body=body,
     return _build_response(client=client, response=response)
 
 def sync(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -165,7 +165,7 @@ def sync(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
@@ -179,7 +179,7 @@ def sync(
 
 
     return sync_detailed(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 client=client,
 body=body,
@@ -187,7 +187,7 @@ body=body,
     ).parsed
 
 async def asyncio_detailed(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -204,7 +204,7 @@ async def asyncio_detailed(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
@@ -218,7 +218,7 @@ async def asyncio_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 body=body,
 
@@ -231,7 +231,7 @@ body=body,
     return _build_response(client=client, response=response)
 
 async def asyncio(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -248,7 +248,7 @@ async def asyncio(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
@@ -262,7 +262,7 @@ async def asyncio(
 
 
     return (await asyncio_detailed(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 client=client,
 body=body,

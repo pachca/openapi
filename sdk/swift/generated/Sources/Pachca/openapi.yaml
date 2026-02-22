@@ -571,244 +571,6 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Common
-  /chats/{chatId}/group_tags:
-    post:
-      operationId: ChatMemberOperations_addTags
-      description: |-
-        Добавление тегов
-
-        Метод для добавления тегов в состав участников беседы или канала.
-      parameters:
-        - name: chatId
-          in: path
-          required: true
-          description: Идентификатор чата
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '204':
-          description: 'There is no content to send for this request, but the headers may be useful. '
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmptyResponse'
-        '400':
-          description: The server could not understand the request due to invalid syntax.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        '401':
-          description: Access is unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '403':
-          description: Access is forbidden.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '404':
-          description: The server cannot find the requested resource.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        '422':
-          description: Client error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-      tags:
-        - Members
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddTagsRequest'
-            example:
-              group_tag_ids:
-                - 86
-                - 18
-  /chats/{chatId}/group_tags/{tagId}:
-    delete:
-      operationId: ChatMemberOperations_removeTag
-      description: |-
-        Исключение тега
-
-        Метод для исключения тега из состава участников беседы или канала.
-
-        Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
-      parameters:
-        - name: chatId
-          in: path
-          required: true
-          description: Идентификатор чата
-          schema:
-            type: integer
-            format: int32
-        - name: tagId
-          in: path
-          required: true
-          description: Идентификатор тега
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '204':
-          description: 'There is no content to send for this request, but the headers may be useful. '
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmptyResponse'
-        '401':
-          description: Access is unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '403':
-          description: Access is forbidden.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '404':
-          description: The server cannot find the requested resource.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-      tags:
-        - Members
-  /chats/{chatId}/members/{userId}:
-    delete:
-      operationId: ChatMemberOperations_removeMember
-      description: |-
-        Исключение пользователя
-
-        Метод для исключения пользователя из состава участников беседы или канала.
-
-        Если пользователь является владельцем чата, то исключить его нельзя. Он может только самостоятельно выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
-      parameters:
-        - name: chatId
-          in: path
-          required: true
-          description: Идентификатор чата
-          schema:
-            type: integer
-            format: int32
-        - name: userId
-          in: path
-          required: true
-          description: Идентификатор пользователя
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '204':
-          description: 'There is no content to send for this request, but the headers may be useful. '
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmptyResponse'
-        '401':
-          description: Access is unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '403':
-          description: Access is forbidden.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '404':
-          description: The server cannot find the requested resource.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-      tags:
-        - Members
-    put:
-      operationId: ChatMemberOperations_updateMemberRole
-      description: |-
-        Редактирование роли
-
-        Метод для редактирования роли пользователя или бота в беседе или канале.
-
-        Для редактирования роли в беседе или канале вам необходимо знать `id` чата и пользователя (или бота) и указать их в `URL` запроса. Все редактируемые параметры роли указываются в теле запроса.
-
-        Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
-      parameters:
-        - name: chatId
-          in: path
-          required: true
-          description: Идентификатор чата
-          schema:
-            type: integer
-            format: int32
-        - name: userId
-          in: path
-          required: true
-          description: Идентификатор пользователя
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '204':
-          description: 'There is no content to send for this request, but the headers may be useful. '
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EmptyResponse'
-        '400':
-          description: The server could not understand the request due to invalid syntax.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        '401':
-          description: Access is unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '403':
-          description: Access is forbidden.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-        '404':
-          description: The server cannot find the requested resource.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        '422':
-          description: Client error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-      tags:
-        - Members
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateMemberRoleRequest'
-            example:
-              role: admin
   /chats/{id}:
     get:
       operationId: ChatOperations_getChat
@@ -1006,6 +768,123 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Chats
+  /chats/{id}/group_tags:
+    post:
+      operationId: ChatMemberOperations_addTags
+      description: |-
+        Добавление тегов
+
+        Метод для добавления тегов в состав участников беседы или канала.
+
+        После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Members
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTagsRequest'
+            example:
+              group_tag_ids:
+                - 86
+                - 18
+  /chats/{id}/group_tags/{tag_id}:
+    delete:
+      operationId: ChatMemberOperations_removeTag
+      description: |-
+        Исключение тега
+
+        Метод для исключения тега из состава участников беседы или канала.
+
+        Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+        - name: tag_id
+          in: path
+          required: true
+          description: Идентификатор тега
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Members
   /chats/{id}/leave:
     delete:
       operationId: ChatMemberOperations_leaveChat
@@ -1248,6 +1127,129 @@ paths:
                 - 186
                 - 187
               silent: true
+  /chats/{id}/members/{user_id}:
+    delete:
+      operationId: ChatMemberOperations_removeMember
+      description: |-
+        Исключение пользователя
+
+        Метод для исключения пользователя из состава участников беседы или канала.
+
+        Если пользователь является владельцем чата, то исключить его нельзя. Он может только самостоятельно выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Members
+    put:
+      operationId: ChatMemberOperations_updateMemberRole
+      description: |-
+        Редактирование роли
+
+        Метод для редактирования роли пользователя или бота в беседе или канале.
+
+        Для редактирования роли в беседе или канале вам необходимо знать `id` чата и пользователя (или бота) и указать их в `URL` запроса. Все редактируемые параметры роли указываются в теле запроса.
+
+        Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Members
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRoleRequest'
+            example:
+              role: admin
   /chats/{id}/unarchive:
     put:
       operationId: ChatOperations_unarchiveChat

@@ -16,7 +16,7 @@ from typing import cast
 
 
 def _get_kwargs(
-    chat_id: int,
+    id: int,
     tag_id: int,
 
 ) -> dict[str, Any]:
@@ -28,7 +28,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "delete",
-        "url": "/chats/{chat_id}/group_tags/{tag_id}".format(chat_id=quote(str(chat_id), safe=""),tag_id=quote(str(tag_id), safe=""),),
+        "url": "/chats/{id}/group_tags/{tag_id}".format(id=quote(str(id), safe=""),tag_id=quote(str(tag_id), safe=""),),
     }
 
 
@@ -81,7 +81,7 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 
 def sync_detailed(
-    chat_id: int,
+    id: int,
     tag_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -94,7 +94,7 @@ def sync_detailed(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        chat_id (int):
+        id (int):
         tag_id (int):
 
     Raises:
@@ -107,7 +107,7 @@ def sync_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 tag_id=tag_id,
 
     )
@@ -119,7 +119,7 @@ tag_id=tag_id,
     return _build_response(client=client, response=response)
 
 def sync(
-    chat_id: int,
+    id: int,
     tag_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -132,7 +132,7 @@ def sync(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        chat_id (int):
+        id (int):
         tag_id (int):
 
     Raises:
@@ -145,14 +145,14 @@ def sync(
 
 
     return sync_detailed(
-        chat_id=chat_id,
+        id=id,
 tag_id=tag_id,
 client=client,
 
     ).parsed
 
 async def asyncio_detailed(
-    chat_id: int,
+    id: int,
     tag_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -165,7 +165,7 @@ async def asyncio_detailed(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        chat_id (int):
+        id (int):
         tag_id (int):
 
     Raises:
@@ -178,7 +178,7 @@ async def asyncio_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 tag_id=tag_id,
 
     )
@@ -190,7 +190,7 @@ tag_id=tag_id,
     return _build_response(client=client, response=response)
 
 async def asyncio(
-    chat_id: int,
+    id: int,
     tag_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -203,7 +203,7 @@ async def asyncio(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        chat_id (int):
+        id (int):
         tag_id (int):
 
     Raises:
@@ -216,7 +216,7 @@ async def asyncio(
 
 
     return (await asyncio_detailed(
-        chat_id=chat_id,
+        id=id,
 tag_id=tag_id,
 client=client,
 

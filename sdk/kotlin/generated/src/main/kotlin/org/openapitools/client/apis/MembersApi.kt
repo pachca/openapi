@@ -74,15 +74,15 @@ import io.ktor.http.ParametersBuilder
             }
 
         /**
-        * POST /chats/{chatId}/group_tags
+        * POST /chats/{id}/group_tags
         * 
-        * Добавление тегов  Метод для добавления тегов в состав участников беседы или канала.
-         * @param chatId Идентификатор чата 
+        * Добавление тегов  Метод для добавления тегов в состав участников беседы или канала.  После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
+         * @param id Идентификатор чата 
          * @param addTagsRequest  
          * @return kotlin.Any
         */
             @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsAddTags(chatId: kotlin.Int, addTagsRequest: AddTagsRequest): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsAddTags(id: kotlin.Int, addTagsRequest: AddTagsRequest): HttpResponse<kotlin.Any> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -94,7 +94,7 @@ import io.ktor.http.ParametersBuilder
 
             val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.POST,
-            "/chats/{chatId}/group_tags".replace("{" + "chatId" + "}", "$chatId"),
+            "/chats/{id}/group_tags".replace("{" + "id" + "}", "$id"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -182,15 +182,15 @@ import io.ktor.http.ParametersBuilder
             }
 
         /**
-        * DELETE /chats/{chatId}/members/{userId}
+        * DELETE /chats/{id}/members/{user_id}
         * 
         * Исключение пользователя  Метод для исключения пользователя из состава участников беседы или канала.  Если пользователь является владельцем чата, то исключить его нельзя. Он может только самостоятельно выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
-         * @param chatId Идентификатор чата 
+         * @param id Идентификатор чата 
          * @param userId Идентификатор пользователя 
          * @return kotlin.Any
         */
             @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsRemoveMember(chatId: kotlin.Int, userId: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsRemoveMember(id: kotlin.Int, userId: kotlin.Int): HttpResponse<kotlin.Any> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -203,7 +203,7 @@ import io.ktor.http.ParametersBuilder
 
             val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.DELETE,
-            "/chats/{chatId}/members/{userId}".replace("{" + "chatId" + "}", "$chatId").replace("{" + "userId" + "}", "$userId"),
+            "/chats/{id}/members/{user_id}".replace("{" + "id" + "}", "$id").replace("{" + "user_id" + "}", "$userId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -217,15 +217,15 @@ import io.ktor.http.ParametersBuilder
             }
 
         /**
-        * DELETE /chats/{chatId}/group_tags/{tagId}
+        * DELETE /chats/{id}/group_tags/{tag_id}
         * 
         * Исключение тега  Метод для исключения тега из состава участников беседы или канала.  Для исключения тега вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
-         * @param chatId Идентификатор чата 
+         * @param id Идентификатор чата 
          * @param tagId Идентификатор тега 
          * @return kotlin.Any
         */
             @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsRemoveTag(chatId: kotlin.Int, tagId: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsRemoveTag(id: kotlin.Int, tagId: kotlin.Int): HttpResponse<kotlin.Any> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -238,7 +238,7 @@ import io.ktor.http.ParametersBuilder
 
             val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.DELETE,
-            "/chats/{chatId}/group_tags/{tagId}".replace("{" + "chatId" + "}", "$chatId").replace("{" + "tagId" + "}", "$tagId"),
+            "/chats/{id}/group_tags/{tag_id}".replace("{" + "id" + "}", "$id").replace("{" + "tag_id" + "}", "$tagId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,
@@ -252,16 +252,16 @@ import io.ktor.http.ParametersBuilder
             }
 
         /**
-        * PUT /chats/{chatId}/members/{userId}
+        * PUT /chats/{id}/members/{user_id}
         * 
         * Редактирование роли  Метод для редактирования роли пользователя или бота в беседе или канале.  Для редактирования роли в беседе или канале вам необходимо знать &#x60;id&#x60; чата и пользователя (или бота) и указать их в &#x60;URL&#x60; запроса. Все редактируемые параметры роли указываются в теле запроса.  Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
-         * @param chatId Идентификатор чата 
+         * @param id Идентификатор чата 
          * @param userId Идентификатор пользователя 
          * @param updateMemberRoleRequest  
          * @return kotlin.Any
         */
             @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsUpdateMemberRole(chatId: kotlin.Int, userId: kotlin.Int, updateMemberRoleRequest: UpdateMemberRoleRequest): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsUpdateMemberRole(id: kotlin.Int, userId: kotlin.Int, updateMemberRoleRequest: UpdateMemberRoleRequest): HttpResponse<kotlin.Any> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -273,7 +273,7 @@ import io.ktor.http.ParametersBuilder
 
             val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.PUT,
-            "/chats/{chatId}/members/{userId}".replace("{" + "chatId" + "}", "$chatId").replace("{" + "userId" + "}", "$userId"),
+            "/chats/{id}/members/{user_id}".replace("{" + "id" + "}", "$id").replace("{" + "user_id" + "}", "$userId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

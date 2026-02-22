@@ -16,7 +16,7 @@ from typing import cast
 
 
 def _get_kwargs(
-    chat_id: int,
+    id: int,
     user_id: int,
 
 ) -> dict[str, Any]:
@@ -28,7 +28,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "delete",
-        "url": "/chats/{chat_id}/members/{user_id}".format(chat_id=quote(str(chat_id), safe=""),user_id=quote(str(user_id), safe=""),),
+        "url": "/chats/{id}/members/{user_id}".format(id=quote(str(id), safe=""),user_id=quote(str(user_id), safe=""),),
     }
 
 
@@ -81,7 +81,7 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 
 def sync_detailed(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -95,7 +95,7 @@ def sync_detailed(
     выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
 
     Raises:
@@ -108,7 +108,7 @@ def sync_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 
     )
@@ -120,7 +120,7 @@ user_id=user_id,
     return _build_response(client=client, response=response)
 
 def sync(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -134,7 +134,7 @@ def sync(
     выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
 
     Raises:
@@ -147,14 +147,14 @@ def sync(
 
 
     return sync_detailed(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 client=client,
 
     ).parsed
 
 async def asyncio_detailed(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -168,7 +168,7 @@ async def asyncio_detailed(
     выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
 
     Raises:
@@ -181,7 +181,7 @@ async def asyncio_detailed(
 
 
     kwargs = _get_kwargs(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 
     )
@@ -193,7 +193,7 @@ user_id=user_id,
     return _build_response(client=client, response=response)
 
 async def asyncio(
-    chat_id: int,
+    id: int,
     user_id: int,
     *,
     client: AuthenticatedClient | Client,
@@ -207,7 +207,7 @@ async def asyncio(
     выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
 
     Args:
-        chat_id (int):
+        id (int):
         user_id (int):
 
     Raises:
@@ -220,7 +220,7 @@ async def asyncio(
 
 
     return (await asyncio_detailed(
-        chat_id=chat_id,
+        id=id,
 user_id=user_id,
 client=client,
 

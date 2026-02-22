@@ -98,17 +98,16 @@ export function AgentSkillsWorkflowsClient({ skills }: Props) {
                     strokeWidth={2.5}
                   />
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="font-bold font-mono text-[14px] text-text-primary">
-                      {skill.name}
-                    </span>
-                    <span className="text-[13px] text-text-secondary">
-                      {skill.workflows.length}{' '}
-                      {pluralize(skill.workflows.length, 'сценарий', 'сценария', 'сценариев')}
-                    </span>
-                  </div>
-                  <p className="text-[13px] text-text-secondary">{skill.tags.join(', ')}</p>
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-bold font-mono text-[14px] text-text-primary">
+                    {skill.name}
+                  </span>
+                  <span className="text-[13px] text-text-secondary">
+                    {skill.workflows.length}{' '}
+                    {pluralize(skill.workflows.length, 'сценарий', 'сценария', 'сценариев')}
+                    {' · '}
+                    {skill.tags.join(', ')}
+                  </span>
                 </div>
               </Accordion.Trigger>
             </div>

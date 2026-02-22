@@ -24,7 +24,7 @@ export function generateUrlFromOperation(endpoint: Endpoint): string {
  * - PUT /chats/{id}/archive → archive
  * - POST /chats/{id}/members → add-members
  * - GET /chats/{id}/members → list-members
- * - DELETE /chats/{id}/members/{userId} → remove-member
+ * - DELETE /chats/{id}/members/{user_id} → remove-member
  * - POST /uploads → uploads (special action-only path)
  */
 function extractActionFromEndpoint(endpoint: Endpoint): string {
@@ -55,7 +55,7 @@ function extractActionFromEndpoint(endpoint: Endpoint): string {
       return method === 'POST' ? 'pin' : 'unpin';
     }
 
-    // If there's a parameter after the sub-resource (e.g., /chats/{chatId}/members/{userId})
+    // If there's a parameter after the sub-resource (e.g., /chats/{id}/members/{user_id})
     // it's typically a single-item operation (get/update/delete)
     const hasTrailingParam = lastSegmentIndex < segments.length - 1;
 

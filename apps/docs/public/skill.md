@@ -76,13 +76,13 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `PUT /chats/{id}/unarchive` — Разархивация чата
 
 ### Members
-- `POST /chats/{chatId}/group_tags` — Добавление тегов
-- `DELETE /chats/{chatId}/group_tags/{tagId}` — Исключение тега
-- `DELETE /chats/{chatId}/members/{userId}` — Исключение пользователя
-- `PUT /chats/{chatId}/members/{userId}` — Редактирование роли
+- `POST /chats/{id}/group_tags` — Добавление тегов
+- `DELETE /chats/{id}/group_tags/{tag_id}` — Исключение тега
 - `DELETE /chats/{id}/leave` — Выход из беседы или канала
 - `GET /chats/{id}/members` — Список участников чата
 - `POST /chats/{id}/members` — Добавление пользователей
+- `DELETE /chats/{id}/members/{user_id}` — Исключение пользователя
+- `PUT /chats/{id}/members/{user_id}` — Редактирование роли
 
 ### Thread
 - `POST /messages/{id}/thread` — Новый тред

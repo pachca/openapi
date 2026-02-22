@@ -7,7 +7,7 @@ description: >
   другими сотрудниками (→ pachca-users).
 ---
 
-# Профиль и статус
+# pachca-profile
 
 Base URL: `https://api.pachca.com/api/shared/v1`
 Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
@@ -35,7 +35,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Установить статус
 
-1. PUT /profile/status с emoji и title
+1. PUT /profile/status с `emoji` и `title`
 
 ```bash
 curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
@@ -55,10 +55,10 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 
 ### Получить кастомные поля профиля
 
-1. GET /custom_properties — список всех дополнительных полей пространства (id, name, тип)
-2. GET /profile — в ответе поле custom_properties содержит значения для текущего пользователя
+1. GET /custom_properties — список всех дополнительных полей пространства (`id`, `name`, `data_type`)
+2. GET /profile — в ответе поле `custom_properties` содержит значения для текущего пользователя
 
-> Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве custom_properties объекта user.
+> Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве `custom_properties` объекта `user`.
 
 ## Обработка ошибок
 

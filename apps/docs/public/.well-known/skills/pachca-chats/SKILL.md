@@ -7,7 +7,7 @@ description: >
   экспорт сообщений. НЕ используй для: отправки сообщений (→ pachca-messages).
 ---
 
-# Чаты и участники
+# pachca-chats
 
 Base URL: `https://api.pachca.com/api/shared/v1`
 Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
@@ -39,9 +39,9 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Создать канал и пригласить участников
 
-1. POST /chats — channel: true для канала, false (по умолчанию) для беседы
-2. Участников можно передать сразу при создании: member_ids и/или group_tag_ids в теле запроса
-3. Или добавить позже: POST /chats/{id}/members с member_ids, POST /chats/{id}/group_tags с group_tag_ids
+1. POST /chats — `"channel": true` для канала, `false` (по умолчанию) для беседы
+2. Участников можно передать сразу при создании: `member_ids` и/или `group_tag_ids` в теле запроса
+3. Или добавить позже: POST /chats/{id}/members с `member_ids`, POST /chats/{id}/group_tags с `group_tag_ids`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/chats" \
@@ -50,21 +50,21 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
   -d '{"chat":{"name":"Новый канал","channel":true,"member_ids":[1,2,3]}}'
 ```
 
-> channel — boolean, не строка. member_ids и group_tag_ids — опциональны при создании.
+> `channel` — boolean, не строка. `member_ids` и `group_tag_ids` — опциональны при создании.
 
 ### Архивация и управление чатом
 
 1. Архивировать: PUT /chats/{id}/archive
 2. Разархивировать: PUT /chats/{id}/unarchive
-3. Изменить роль участника: PUT /chats/{chatId}/members/{userId} с role (admin|editor|member)
-4. Удалить участника: DELETE /chats/{chatId}/members/{userId}
+3. Изменить роль участника: PUT /chats/{id}/members/{user_id} с `role` (`"admin"` | `"member"`; `"editor"` — только для каналов). Роль создателя чата изменить нельзя.
+4. Удалить участника: DELETE /chats/{id}/members/{user_id}
 5. Покинуть чат: DELETE /chats/{id}/leave
 
 ### Создать проектную беседу из шаблона
 
-1. POST /chats с name, channel: false и group_tag_ids (добавить всех участников тега сразу)
-2. Или POST /chats → затем POST /chats/{id}/members с member_ids + POST /chats/{id}/group_tags с group_tag_ids
-3. Отправь приветственное сообщение: POST /messages с entity_id: chat.id
+1. POST /chats с `name`, `"channel": false` и `group_tag_ids` (добавить всех участников тега сразу)
+2. Или POST /chats → затем POST /chats/{id}/members с `member_ids` + POST /chats/{id}/group_tags с `group_tag_ids`
+3. Отправь приветственное сообщение: POST /messages с `"entity_id": chat.id`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/chats" \
@@ -73,34 +73,24 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
   -d '{"chat":{"name":"Проект Alpha","channel":false,"group_tag_ids":[42],"member_ids":[186,187]}}'
 ```
 
-> group_tag_ids при создании добавляет всех участников тега сразу — удобнее, чем добавлять поштучно.
-
-### Синхронизировать участников чата с тегом
-
-1. GET /group_tags/{id}/users (с пагинацией) — получи всех пользователей тега
-2. GET /chats/{id}/members (с пагинацией) — получи текущих участников чата
-3. Вычисли разницу: кого добавить (в теге, но не в чате), кого удалить (в чате, но не в теге)
-4. POST /chats/{id}/members с member_ids для добавления
-5. DELETE /chats/{chatId}/members/{userId} для каждого удаляемого
-
-> Учитывай пагинацию — оба списка могут быть больше 50 элементов.
+> `group_tag_ids` при создании добавляет всех участников тега сразу — удобнее, чем добавлять поштучно.
 
 ### Экспорт истории чата
 
-1. POST /chats/exports с start_at и end_at (формат YYYY-MM-DD)
-2. Из ответа возьми id экспорта
-3. Polling: GET /chats/exports/{id} до status: "completed"
+1. POST /chats/exports с `start_at` и `end_at` (формат YYYY-MM-DD)
+2. Из ответа возьми `id` экспорта
+3. Polling: GET /chats/exports/{id} до `"status": "completed"`
 4. Скачай архив по ссылке из ответа
 
 > Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Polling каждые 5-10 секунд.
 
 ### Найти и заархивировать неактивные чаты
 
-1. GET /chats с пагинацией, sort[last_message_at]=asc — сначала самые старые
-2. Отфильтруй чаты, где last_message_at старше нужного порога
+1. GET /chats с пагинацией, `sort[last_message_at]=asc` — сначала самые старые
+2. Отфильтруй чаты, где `last_message_at` старше нужного порога
 3. Для каждого: PUT /chats/{id}/archive
 
-> Проверяй channel: false — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.
+> Проверяй `"channel": false` — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.
 
 ## Обработка ошибок
 
@@ -145,37 +135,6 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 `GET /chats/exports/{id}`
 
-### Добавление тегов
-
-`POST /chats/{chatId}/group_tags`
-
-```json
-{
-  "group_tag_ids": [
-    86,
-    18
-  ]
-}
-```
-
-### Исключение тега
-
-`DELETE /chats/{chatId}/group_tags/{tagId}`
-
-### Исключение пользователя
-
-`DELETE /chats/{chatId}/members/{userId}`
-
-### Редактирование роли
-
-`PUT /chats/{chatId}/members/{userId}`
-
-```json
-{
-  "role": "admin"
-}
-```
-
 ### Информация о чате
 
 `GET /chats/{id}`
@@ -193,6 +152,23 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 ### Архивация чата
 
 `PUT /chats/{id}/archive`
+
+### Добавление тегов
+
+`POST /chats/{id}/group_tags`
+
+```json
+{
+  "group_tag_ids": [
+    86,
+    18
+  ]
+}
+```
+
+### Исключение тега
+
+`DELETE /chats/{id}/group_tags/{tag_id}`
 
 ### Выход из беседы или канала
 
@@ -215,6 +191,20 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 }
 ```
 
+### Исключение пользователя
+
+`DELETE /chats/{id}/members/{user_id}`
+
+### Редактирование роли
+
+`PUT /chats/{id}/members/{user_id}`
+
+```json
+{
+  "role": "admin"
+}
+```
+
 ### Разархивация чата
 
 `PUT /chats/{id}/unarchive`
@@ -222,7 +212,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 ## Ограничения и gotchas
 
 - `limit`: максимум 50
-- `role`: допустимые значения — `admin`, `editor`, `member`
+- `role`: допустимые значения — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
 
 ## Подробнее

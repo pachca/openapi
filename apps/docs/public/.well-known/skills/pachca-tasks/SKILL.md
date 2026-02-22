@@ -5,7 +5,7 @@ description: >
   нужно: создать задачу, получить список задач, обновить задачу, удалить задачу.
 ---
 
-# Напоминания
+# pachca-tasks
 
 Base URL: `https://api.pachca.com/api/shared/v1`
 Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
@@ -32,7 +32,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Создать напоминание для себя
 
-1. POST /tasks с kind, content и due_at
+1. POST /tasks с `kind`, `content` и `due_at`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/tasks" \
@@ -43,17 +43,19 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
 
 ### Получить список предстоящих задач
 
-1. GET /tasks с фильтром status: undone и пагинацией
-2. Задачи возвращаются в порядке due_at (ближайшие сначала)
+1. GET /tasks с пагинацией (`limit`, `cursor`)
+2. Отфильтруй на клиенте по полю `status`: `"undone"` — не выполнена, `"done"` — выполнена
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/tasks?status=undone&limit=50" \
+curl "https://api.pachca.com/api/shared/v1/tasks?limit=50" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+> Фильтрация по `status` на стороне API не поддерживается — фильтруй самостоятельно после получения.
+
 ### Отметить задачу выполненной
 
-1. PUT /tasks/{id} с status: done
+1. PUT /tasks/{id} с `"status": "done"`
 
 ```bash
 curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
@@ -65,7 +67,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ### Создать серию напоминаний
 
 1. Подготовь список дат (ежедневно, еженедельно и т.д.)
-2. Для каждой даты: POST /tasks с нужным kind, content и due_at
+2. Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`
 
 ## Обработка ошибок
 
@@ -115,9 +117,9 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 
 ## Ограничения и gotchas
 
-- `task.kind`: допустимые значения — `call`, `meeting`, `reminder`, `event`, `email`
+- `task.kind`: допустимые значения — `call` (Позвонить контакту), `meeting` (Встреча), `reminder` (Простое напоминание), `event` (Событие), `email` (Написать письмо)
 - `limit`: максимум 50
-- `task.status`: допустимые значения — `done`, `undone`
+- `task.status`: допустимые значения — `done` (Выполнено), `undone` (Не выполнено)
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
 
 ## Подробнее

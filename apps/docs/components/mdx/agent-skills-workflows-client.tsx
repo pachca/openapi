@@ -2,7 +2,83 @@
 
 import * as Accordion from '@radix-ui/react-accordion';
 import { ChevronDown } from 'lucide-react';
-import type { SkillWorkflowData } from './agent-skills-workflows';
+import Link from 'next/link';
+import { CopyableInlineCode } from '@/components/api/copyable-inline-code';
+import type { SkillWorkflowData, StepSegment } from './agent-skills-workflows';
+
+const METHOD_COLORS: Record<string, string> = {
+  GET: 'bg-method-get/10 text-method-get',
+  POST: 'bg-method-post/10 text-method-post',
+  PUT: 'bg-method-put/10 text-method-put',
+  DELETE: 'bg-method-delete/10 text-method-delete',
+  PATCH: 'bg-method-patch/10 text-method-patch',
+};
+
+/** Render text with backtick-wrapped fragments as <code> */
+function InlineText({ text }: { text: string }) {
+  const parts = text.split(/(`[^`]+`)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith('`') && part.endsWith('`') ? (
+          <CopyableInlineCode key={i}>{part.slice(1, -1)}</CopyableInlineCode>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
+function StepContent({ segments }: { segments: StepSegment[] }) {
+  return (
+    <>
+      {segments.map((seg, i) => {
+        if (seg.type === 'text') return <InlineText key={i} text={seg.value} />;
+
+        const badge = seg.method ? (
+          <span
+            className={`endpoint-badge px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider -translate-y-px no-underline ${METHOD_COLORS[seg.method] || ''}`}
+          >
+            {seg.method}
+          </span>
+        ) : null;
+
+        const displayLabel = seg.label || seg.value.split('?')[0];
+        const query = seg.value.includes('?') ? '?' + seg.value.split('?')[1] : null;
+
+        if (seg.href) {
+          return (
+            <span key={i}>
+              <Link
+                href={seg.href}
+                className="endpoint-link group inline-flex items-baseline gap-1 !no-underline hover:!no-underline"
+              >
+                {badge}
+                <span className="font-semibold underline underline-offset-[3px] decoration-1 decoration-current/30 group-hover:decoration-current group-hover:decoration-[1.5px] transition-all">
+                  {displayLabel}
+                </span>
+              </Link>
+              {query && (
+                <>
+                  {' '}
+                  <CopyableInlineCode>{query}</CopyableInlineCode>
+                </>
+              )}
+            </span>
+          );
+        }
+
+        return (
+          <span key={i} className="inline-flex items-baseline gap-1">
+            {badge}
+            <span>{displayLabel}</span>
+          </span>
+        );
+      })}
+    </>
+  );
+}
 
 interface Props {
   skills: SkillWorkflowData[];
@@ -10,45 +86,59 @@ interface Props {
 
 export function AgentSkillsWorkflowsClient({ skills }: Props) {
   return (
-    <Accordion.Root type="multiple" className="my-4">
+    <Accordion.Root type="multiple" className="not-prose my-4 divide-y divide-background-border">
       {skills.map((skill) => (
         <Accordion.Item key={skill.name} value={skill.name} className="overflow-hidden">
-          <Accordion.Header>
-            <Accordion.Trigger className="flex w-full items-center justify-between py-1.5 text-[15px] font-medium text-text-primary hover:text-text-primary/80 transition-colors duration-200 cursor-pointer outline-none group">
-              <span className="flex items-center gap-2">
-                <span>{skill.title}</span>
-                <span className="text-xs text-text-secondary bg-background-secondary rounded-full px-2 py-0.5">
+          <Accordion.Header asChild>
+            <div>
+              <Accordion.Trigger className="w-full flex flex-wrap items-baseline gap-x-2 gap-y-0.5 py-3 cursor-pointer select-none outline-none group/header">
+                <div className="shrink-0 self-center flex items-center justify-center">
+                  <ChevronDown
+                    className="w-3.5 h-3.5 text-text-secondary group-hover/header:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]/header:rotate-0"
+                    strokeWidth={2.5}
+                  />
+                </div>
+                <span className="font-bold font-mono text-[14px] text-text-primary">
+                  {skill.name}
+                </span>
+                <span className="text-[13px] text-text-secondary">
                   {skill.workflows.length}{' '}
                   {pluralize(skill.workflows.length, 'сценарий', 'сценария', 'сценариев')}
                 </span>
-              </span>
-              <ChevronDown
-                className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]:rotate-0 shrink-0"
-                strokeWidth={2.5}
-              />
-            </Accordion.Trigger>
+              </Accordion.Trigger>
+            </div>
           </Accordion.Header>
           <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-            <div className="pb-3 space-y-3 ml-1">
-              {skill.workflows.map((wf, i) => (
-                <div key={i}>
-                  <p className="font-medium text-text-primary text-[14px] mb-1">{wf.title}</p>
-                  <ol className="list-decimal list-outside ml-5 space-y-0.5 text-[14px] text-text-primary">
-                    {wf.steps.map((step, j) => (
-                      <li
-                        key={j}
-                        className="leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: step }}
-                      />
-                    ))}
-                  </ol>
-                  {wf.notes && (
-                    <p className="mt-1 text-[13px] text-text-secondary leading-relaxed">
-                      {wf.notes}
-                    </p>
-                  )}
+            <div className="pb-3">
+              <div className="ml-4 border-l border-background-border/60 pl-4">
+                <div className="divide-y divide-background-border/60">
+                  {skill.workflows.map((wf, i) => (
+                    <div key={i} className="py-3">
+                      <p className="font-semibold text-[14px] text-text-primary mb-1">{wf.title}</p>
+                      {wf.steps.length === 1 ? (
+                        <ul className="!mb-0 list-disc list-outside ml-5 space-y-0.5 text-[14px] text-text-primary">
+                          <li className="leading-relaxed">
+                            <StepContent segments={wf.steps[0]} />
+                          </li>
+                        </ul>
+                      ) : (
+                        <ol className="!mb-0 list-decimal list-outside ml-5 space-y-0.5 text-[14px] text-text-primary">
+                          {wf.steps.map((stepSegments, j) => (
+                            <li key={j} className="leading-relaxed">
+                              <StepContent segments={stepSegments} />
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+                      {wf.notes && (
+                        <p className="mt-4 !mb-0 text-[13px] text-text-secondary leading-relaxed">
+                          <StepContent segments={wf.notes} />
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </Accordion.Content>
         </Accordion.Item>

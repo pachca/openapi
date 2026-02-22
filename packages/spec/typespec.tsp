@@ -3959,14 +3959,14 @@ interface ChatMemberOperations {
 
 Если пользователь является владельцем чата, то исключить его нельзя. Он может только самостоятельно выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
 """)
-  @route("/chats/{chatId}/members/{userId}")
+  @route("/chats/{id}/members/{user_id}")
   @delete
-  
+
   removeMember(
     @doc("Идентификатор чата")
-    @path chatId: int32,
+    @path id: int32,
     @doc("Идентификатор пользователя")
-    @path userId: int32
+    @path user_id: int32
   ): {
     @statusCode _: 204;
     @body body: EmptyResponse;
@@ -3985,21 +3985,23 @@ interface ChatMemberOperations {
 Добавление тегов
 
 Метод для добавления тегов в состав участников беседы или канала.
+
+После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
 """)
-  @route("/chats/{chatId}/group_tags")
+  @route("/chats/{id}/group_tags")
   @post
   @opExample(#{
     parameters: #{
-      chatId: 334,
+      id: 334,
       request: #{
         group_tag_ids: #[86, 18]
       }
     }
   })
-  
+
   addTags(
     @doc("Идентификатор чата")
-    @path chatId: int32,
+    @path id: int32,
     @body request: AddTagsRequest
   ): {
     @statusCode _: 204;
@@ -4028,14 +4030,14 @@ interface ChatMemberOperations {
 
 Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 """)
-  @route("/chats/{chatId}/group_tags/{tagId}")
+  @route("/chats/{id}/group_tags/{tag_id}")
   @delete
-  
+
   removeTag(
     @doc("Идентификатор чата")
-    @path chatId: int32,
+    @path id: int32,
     @doc("Идентификатор тега")
-    @path tagId: int32
+    @path tag_id: int32
   ): {
     @statusCode _: 204;
     @body body: EmptyResponse;
@@ -4059,23 +4061,23 @@ interface ChatMemberOperations {
 
 Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 """)
-  @route("/chats/{chatId}/members/{userId}")
+  @route("/chats/{id}/members/{user_id}")
   @put
   @opExample(#{
     parameters: #{
-      chatId: 334,
-      userId: 186,
+      id: 334,
+      user_id: 186,
       request: #{
         role: ChatMemberRole.admin
       }
     }
   })
-  
+
   updateMemberRole(
     @doc("Идентификатор чата")
-    @path chatId: int32,
+    @path id: int32,
     @doc("Идентификатор пользователя")
-    @path userId: int32,
+    @path user_id: int32,
     @body request: UpdateMemberRoleRequest
   ): {
     @statusCode _: 204;

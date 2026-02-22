@@ -436,7 +436,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
     for (const skill of SKILL_TAG_MAP) {
       const workflows = WORKFLOWS[skill.name] ?? [];
       if (!workflows.length) continue;
-      md += `### ${skill.title}\n\n`;
+      md += `### ${skill.name}\n\n`;
       for (const wf of workflows) {
         md += `**${wf.title}**\n\n`;
         wf.steps.forEach((step, i) => {

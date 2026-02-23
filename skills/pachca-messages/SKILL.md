@@ -90,7 +90,16 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
   -d '{"message":{"entity_type":"thread","entity_id":265142,"content":"Ответ в тред"}}'
 ```
 
-> Если тред уже существует, POST /messages/{id}/thread вернёт существующий. Альтернативно можно использовать `"entity_type": "discussion"` + `"entity_id": thread.chat_id`.
+> Если тред уже существует, POST /messages/{id}/thread вернёт существующий. Альтернативно можно использовать `"entity_type": "discussion"` + `"entity_id": thread.chat_id`. `skip_invite_mentions: true` — не добавлять упомянутых пользователей в тред автоматически.
+
+### Ответить пользователю, который написал боту
+
+1. Вебхук содержит `entity_type` — он однозначно определяет контекст: `"user"` — личное сообщение боту, `"thread"` — сообщение в треде, `"discussion"` — сообщение в канале или беседе
+2. DM (`entity_type: "user"`): ответь POST /messages с `"entity_type": "user"`, `"entity_id"`: `user_id` из вебхука
+3. Тред (`entity_type: "thread"`): вложенных тредов нет — ответь в тот же тред: POST /messages с `"entity_type": "thread"`, `"entity_id"`: `entity_id` из вебхука, `"parent_message_id"`: `id` сообщения пользователя из вебхука
+4. Беседа/канал (`entity_type: "discussion"`): выбери стратегию — inline-ответ (POST /messages c `"parent_message_id"`: `id` сообщения) или тред (POST /messages/{id}/thread → ответ в тред)
+
+> `parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду.
 
 ### Отправить сообщение с файлами
 
@@ -148,7 +157,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 1. Закрепить: POST /messages/{id}/pin
 2. Открепить: DELETE /messages/{id}/pin
 
-> В чате может быть только одно закреплённое сообщение.
+> В чате может быть несколько закреплённых сообщений.
 
 ### Подписаться на тред сообщения
 
@@ -158,6 +167,26 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 4. Теперь бот будет получать вебхук-события о новых сообщениях в этом треде
 
 > POST /messages/{id}/thread идемпотентен — безопасно вызывать повторно. После добавления в участники бот получает события треда через исходящий вебхук.
+
+### Упомянуть пользователя по имени
+
+1. Определи поисковый запрос — используй фамилию, она уникальнее. Имена не склоняются в API, приводи к именительному падежу: «упомяни Пашу» → ищи `Паша` или `Павел`, «тегни Голубева» → ищи `Голубев`
+2. Найди пользователя: GET /users?query={запрос}
+3. Один подходящий результат → используй `nickname`. Несколько → уточни у пользователя (имя + фамилия). Ничего → попробуй другую форму имени (уменьшительное ↔ полное)
+4. Вставь `@nickname` в текст сообщения
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/users?query=Голубев" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: [{"id":42,"first_name":"Павел","last_name":"Голубев","nickname":"golubevpn"}]
+
+curl "https://api.pachca.com/api/shared/v1/messages" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message":{"entity_id":12345,"content":"@golubevpn, митинг перенесён"}}'
+```
+
+> Упоминание — это просто `@nickname` в тексте. Пачка автоматически делает его кликабельным. GET /users поддерживает `query` (частичное совпадение по имени и email).
 
 ### Отредактировать сообщение
 

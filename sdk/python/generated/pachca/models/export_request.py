@@ -29,7 +29,7 @@ class ExportRequest:
         Attributes:
             start_at (datetime.date): Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD Example: 2025-03-20.
             end_at (datetime.date): Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD Example: 2025-03-20.
-            webhook_url (str | Unset): Адрес, на который будет отправлен вебхук по завершению экспорта Example:
+            webhook_url (str): Адрес, на который будет отправлен вебхук по завершению экспорта Example:
                 https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2.
             chat_ids (list[int] | Unset): Массив идентификаторов чатов. Указывается, если нужно получить сообщения только
                 некоторых чатов. Example: [1381521].
@@ -38,7 +38,7 @@ class ExportRequest:
 
     start_at: datetime.date
     end_at: datetime.date
-    webhook_url: str | Unset = UNSET
+    webhook_url: str
     chat_ids: list[int] | Unset = UNSET
     skip_chats_file: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -68,9 +68,8 @@ class ExportRequest:
         field_dict.update({
             "start_at": start_at,
             "end_at": end_at,
+            "webhook_url": webhook_url,
         })
-        if webhook_url is not UNSET:
-            field_dict["webhook_url"] = webhook_url
         if chat_ids is not UNSET:
             field_dict["chat_ids"] = chat_ids
         if skip_chats_file is not UNSET:
@@ -93,7 +92,7 @@ class ExportRequest:
 
 
 
-        webhook_url = d.pop("webhook_url", UNSET)
+        webhook_url = d.pop("webhook_url")
 
         chat_ids = cast(list[int], d.pop("chat_ids", UNSET))
 

@@ -5033,6 +5033,7 @@ components:
       required:
         - start_at
         - end_at
+        - webhook_url
       properties:
         start_at:
           type: string

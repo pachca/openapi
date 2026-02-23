@@ -645,7 +645,7 @@ type ExportRequest struct {
 	StartAt openapi_types.Date `json:"start_at"`
 
 	// WebhookUrl Адрес, на который будет отправлен вебхук по завершению экспорта
-	WebhookUrl *string `json:"webhook_url,omitempty"`
+	WebhookUrl string `json:"webhook_url"`
 }
 
 // File Файл

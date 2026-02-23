@@ -42,7 +42,7 @@ data class ExportRequest (
 
     /* Адрес, на который будет отправлен вебхук по завершению экспорта */
     @Json(name = "webhook_url")
-    val webhookUrl: kotlin.String? = null,
+    val webhookUrl: kotlin.String,
 
     /* Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов. */
     @Json(name = "chat_ids")

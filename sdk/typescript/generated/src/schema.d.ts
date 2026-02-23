@@ -1476,7 +1476,7 @@ export interface components {
              * @description Адрес, на который будет отправлен вебхук по завершению экспорта
              * @example https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2
              */
-            webhook_url?: string;
+            webhook_url: string;
             /**
              * @description Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.
              * @example [

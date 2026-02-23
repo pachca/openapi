@@ -4,7 +4,8 @@ description: >
   Управление каналами и беседами, участниками чатов. Создание, обновление,
   архивация чатов. Добавление/удаление участников, роли, экспорт сообщений.
   Используй когда нужно: создать канал, добавить участника, архивировать чат,
-  экспорт сообщений. НЕ используй для: отправки сообщений (→ pachca-messages).
+  найти активные/неактивные чаты, экспорт сообщений. НЕ используй для: отправки
+  сообщений (→ pachca-messages).
 ---
 
 # pachca-chats
@@ -24,10 +25,12 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - роли участников
 - экспорт сообщений
 - список чатов
+- активные чаты
+- неактивные чаты
 
 ## Когда НЕ использовать
 
-- получить профиль, обновить статус, мой профиль → **pachca-profile**
+- получить профиль, мой профиль, установить статус → **pachca-profile**
 - найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
 - отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
 - настроить бота, вебхук, webhook → **pachca-bots**
@@ -77,18 +80,42 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 ### Экспорт истории чата
 
-1. POST /chats/exports с `start_at` и `end_at` (формат YYYY-MM-DD)
-2. Из ответа возьми `id` экспорта
-3. Polling: GET /chats/exports/{id} до `"status": "completed"`
-4. Скачай архив по ссылке из ответа
+1. POST /chats/exports с `start_at`, `end_at` (формат YYYY-MM-DD) и обязательным `webhook_url` — запрос выполняется асинхронно
+2. Дождись вебхука на `webhook_url`: придёт JSON с `"type": "export"`, `"event": "ready"` и полем `export_id` — по `"type": "export"` можно отличить от других вебхуков
+3. GET /chats/exports/{id} — сервер вернёт 302, большинство HTTP-клиентов скачают файл автоматически
 
-> Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Polling каждые 5-10 секунд.
+```bash
+curl "https://api.pachca.com/api/shared/v1/chats/exports" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"start_at":"$START_DATE","end_at":"$END_DATE","webhook_url":"$WEBHOOK_URL"}'
+```
+
+> `webhook_url` обязателен — без него невозможно получить `export_id`. POST не возвращает id в ответе. Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Максимальный период: 45 дней (366 дней при указании конкретных чатов).
+
+### Найти активные чаты за период
+
+1. GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты
+2. Для диапазона добавь `last_message_at_before={дата}` — чаты с активностью между двумя датами
+3. Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_after=$DATE_FROM&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> Дата в формате ISO-8601 UTC+0: `YYYY-MM-DDThh:mm:ss.sssZ`. Для «последних N дней» вычисли `now - N days` в UTC.
 
 ### Найти и заархивировать неактивные чаты
 
-1. GET /chats с пагинацией, `sort[last_message_at]=asc` — сначала самые старые
-2. Отфильтруй чаты, где `last_message_at` старше нужного порога
-3. Для каждого: PUT /chats/{id}/archive
+1. GET /chats с `last_message_at_before={порог}` — сразу только чаты без активности с нужной даты
+2. Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой
+3. Для каждого чата: PUT /chats/{id}/archive
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BEFORE&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 > Проверяй `"channel": false` — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.
 
@@ -127,7 +154,8 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 ```json
 {
   "start_at": "2025-03-20",
-  "end_at": "2025-03-20"
+  "end_at": "2025-03-20",
+  "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2"
 }
 ```
 

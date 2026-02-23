@@ -17,10 +17,13 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - список задач
 - напоминание
 - обновить задачу
+- отметить задачу выполненной
+- удалить задачу
+- кастомные поля задачи
 
 ## Когда НЕ использовать
 
-- получить профиль, обновить статус, мой профиль → **pachca-profile**
+- получить профиль, мой профиль, установить статус → **pachca-profile**
 - найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
 - создать канал, создать беседу, создать чат → **pachca-chats**
 - отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
@@ -38,7 +41,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 curl "https://api.pachca.com/api/shared/v1/tasks" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z","custom_properties":[{"id":78,"value":"Синий склад"}]}}'
+  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"$DUE_AT","custom_properties":[{"id":78,"value":"Синий склад"}]}}'
 ```
 
 > Задачи поддерживают дополнительные поля (`custom_properties`). Передай массив `[{"id": <field_id>, "value": "..."}]` при создании или обновлении. Список доступных полей: GET /custom_properties?entity_type=Task.
@@ -86,7 +89,7 @@ curl "https://api.pachca.com/api/shared/v1/custom_properties?entity_type=Task" \
 curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"task":{"custom_properties":[{"id":78,"value":"Синий склад"},{"id":91,"value":"2026-03-01"}]}}'
+  -d '{"task":{"custom_properties":[{"id":78,"value":"Синий склад"},{"id":91,"value":"$DUE_DATE"}]}}'
 ```
 
 > Если передать `id` удалённого или несуществующего поля — получишь ошибку 422. Тип значения в `value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.

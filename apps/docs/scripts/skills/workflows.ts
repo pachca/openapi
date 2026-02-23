@@ -116,6 +116,20 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
       ],
       notes:
         'Для сообщений треда используй `chat_id` треда (`thread.chat_id`). Пагинация cursor-based, не page-based.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/messages?chat_id=12345&limit=50&sort[id]=asc" \\
+  -H "Authorization: Bearer $TOKEN"`,
+    },
+    {
+      title: 'Получить вложения из сообщения',
+      steps: [
+        'GET /messages/{id} — в поле `files[]` каждый объект содержит `url` (прямая ссылка), `name`, `file_type`, `size`',
+        'Скачай нужные файлы по `files[].url` — ссылка прямая, авторизация не требуется',
+      ],
+      notes:
+        'Вебхук о новом сообщении НЕ содержит вложений — поле `files` отсутствует даже если файлы есть. При анализе любого сообщения (из вебхука, из истории чата) всегда проверяй вложения через GET /messages/{id} — если `files` непустой, в сообщении есть файлы, которые могут быть важны для контекста.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/messages/154332686" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":154332686,"content":"Смотри файл","files":[{"url":"https://...","name":"report.pdf","file_type":"file","size":12345}],...}}`,
     },
     {
       title: 'Закрепить/открепить сообщение',
@@ -137,15 +151,17 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
       title: 'Упомянуть пользователя по имени',
       steps: [
         'Определи поисковый запрос — используй фамилию, она уникальнее. Имена не склоняются в API, приводи к именительному падежу: «упомяни Пашу» → ищи `Паша` или `Павел`, «тегни Голубева» → ищи `Голубев`',
-        'Найди пользователя: GET /users?query={запрос}',
+        'Ищи сначала среди участников целевого чата: GET /chats/{id}/members (для треда тоже работает, у него свои участники) — фильтруй по имени на клиенте',
+        'Если пишешь в тред: также проверь участников родительского чата (GET /chats/{id}/members с `id=message_chat_id`)',
+        'Не нашёл — ищи по всей компании: GET /users?query={запрос}',
         'Один подходящий результат → используй `nickname`. Несколько → уточни у пользователя (имя + фамилия). Ничего → попробуй другую форму имени (уменьшительное ↔ полное)',
         'Вставь `@nickname` в текст сообщения',
       ],
       notes:
-        'Упоминание — это просто `@nickname` в тексте. Пачка автоматически делает его кликабельным. GET /users поддерживает `query` (частичное совпадение по имени и email).',
-      curl: `curl "https://api.pachca.com/api/shared/v1/users?query=Голубев" \\
+        'Поиск среди участников чата точнее — пользователь явно связан с контекстом, меньше вероятность спутать однофамильцев. GET /users?query — последний fallback для поиска по всей компании.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/chats/12345/members" \\
   -H "Authorization: Bearer $TOKEN"
-# Ответ: [{"id":42,"first_name":"Павел","last_name":"Голубев","nickname":"golubevpn"}]
+# Ответ: [{"id":42,"first_name":"Павел","last_name":"Голубев","nickname":"golubevpn",...}]
 
 curl "https://api.pachca.com/api/shared/v1/messages" \\
   -H "Authorization: Bearer $TOKEN" \\
@@ -160,6 +176,24 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{"message":{"content":"Обновлённый текст"}}'`,
+    },
+    {
+      title: 'Изменить вложения сообщения',
+      steps: [
+        'GET /messages/{id} — получи текущие вложения из поля `files[]`, сохрани нужные объекты (`key`, `name`, `file_type`, `size`)',
+        'Если нужно добавить новый файл: POST /uploads → загрузи файл → добавь объект в список',
+        'PUT /messages/{id} с массивом `files` — только те файлы, которые должны остаться (+ новые при необходимости)',
+      ],
+      notes:
+        '`files` при редактировании работает по принципу replace-all: присылаемый массив полностью заменяет текущие вложения, отсутствующие файлы удаляются. `files: []` удаляет все вложения. Если поле `files` не передавать — вложения не меняются.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/messages/154332686" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"files":[{"key":"uploads/.../a.pdf","name":"a.pdf","file_type":"file","size":1000},{"key":"uploads/.../b.pdf","name":"b.pdf","file_type":"file","size":2000}],...}}
+
+curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"message":{"files":[{"key":"uploads/.../a.pdf","name":"a.pdf","file_type":"file","size":1000}]}}'`,
     },
     {
       title: 'Удалить сообщение',
@@ -239,23 +273,40 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     {
       title: 'Экспорт истории чата',
       steps: [
-        'POST /chats/exports с `start_at` и `end_at` (формат YYYY-MM-DD)',
-        'Из ответа возьми `id` экспорта',
-        'Polling: GET /chats/exports/{id} до `"status": "completed"`',
-        'Скачай архив по ссылке из ответа',
+        'POST /chats/exports с `start_at`, `end_at` (формат YYYY-MM-DD) и обязательным `webhook_url` — запрос выполняется асинхронно',
+        'Дождись вебхука на `webhook_url`: придёт JSON с `"type": "export"`, `"event": "ready"` и полем `export_id` — по `"type": "export"` можно отличить от других вебхуков',
+        'GET /chats/exports/{id} — сервер вернёт 302, большинство HTTP-клиентов скачают файл автоматически',
       ],
       notes:
-        'Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Polling каждые 5-10 секунд.',
+        '`webhook_url` обязателен — без него невозможно получить `export_id`. POST не возвращает id в ответе. Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Максимальный период: 45 дней (366 дней при указании конкретных чатов).',
+      curl: `curl "https://api.pachca.com/api/shared/v1/chats/exports" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"start_at":"$START_DATE","end_at":"$END_DATE","webhook_url":"$WEBHOOK_URL"}'`,
+    },
+    {
+      title: 'Найти активные чаты за период',
+      steps: [
+        'GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты',
+        'Для диапазона добавь `last_message_at_before={дата}` — чаты с активностью между двумя датами',
+        'Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой',
+      ],
+      notes:
+        'Дата в формате ISO-8601 UTC+0: `YYYY-MM-DDThh:mm:ss.sssZ`. Для «последних N дней» вычисли `now - N days` в UTC.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_after=$DATE_FROM&limit=50" \\
+  -H "Authorization: Bearer $TOKEN"`,
     },
     {
       title: 'Найти и заархивировать неактивные чаты',
       steps: [
-        'GET /chats с пагинацией, `sort[last_message_at]=asc` — сначала самые старые',
-        'Отфильтруй чаты, где `last_message_at` старше нужного порога',
-        'Для каждого: PUT /chats/{id}/archive',
+        'GET /chats с `last_message_at_before={порог}` — сразу только чаты без активности с нужной даты',
+        'Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой',
+        'Для каждого чата: PUT /chats/{id}/archive',
       ],
       notes:
         'Проверяй `"channel": false` — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BEFORE&limit=50" \\
+  -H "Authorization: Bearer $TOKEN"`,
     },
   ],
   'pachca-bots': [
@@ -277,9 +328,10 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
         'Проверь подпись (Signing secret) для безопасности',
         'Проверь `webhook_timestamp` — должен быть в пределах 1 минуты',
         'Разбери JSON: тип события, данные',
-        'Для полной информации сделай запрос к API (например, GET /messages/{id})',
+        'Для полной информации сделай запрос к API: GET /messages/{id} — особенно важно для получения вложений (`files[]`), которых нет в вебхуке',
       ],
-      notes: 'Вебхук содержит минимум данных. Для полной информации используй API.',
+      notes:
+        'Вебхук содержит минимум данных — файлы (`files`) в нём отсутствуют. Если сообщение может содержать вложения, всегда запрашивай GET /messages/{id}.',
     },
     {
       title: 'Разворачивание ссылок (unfurling)',
@@ -291,6 +343,10 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
       ],
       notes:
         'Эндпоинт привязан к конкретному сообщению. Необходим специальный Unfurl-бот с указанными доменами.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/messages/56431/link_previews" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"link_previews":{"https://example.com/article":{"title":"Заголовок статьи","description":"Краткое описание","image_url":"https://example.com/img.png"}}}'`,
     },
     {
       title: 'Обработать нажатие кнопки (callback)',
@@ -298,7 +354,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
         'Получи вебхук с `"event": "message_button_clicked"` — в payload: `data` (из кнопки), `user_id`, `message_id`',
         'Выполни нужное действие (запись в БД, запрос к API и т.д.)',
         'Ответь пользователю: POST /messages с `"entity_type": "user"`, `"entity_id": user_id` из вебхука',
-        'Опционально: обнови исходное сообщение через PUT /messages/{id} (убери кнопки или измени текст)',
+        'Опционально: обнови исходное сообщение через PUT /messages/{id} — чтобы убрать кнопки передай `"buttons": []`, чтобы изменить текст — передай `"content"`',
       ],
       notes:
         'Кнопка с `data` отправляет событие на вебхук. Кнопка с `url` — открывает ссылку (вебхука не будет).',
@@ -340,23 +396,40 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     {
       title: 'Показать интерактивную форму пользователю',
       steps: [
-        'Заранее подготовь объект формы (`view` с `title` и `blocks`) — собери его до получения `trigger_id`',
+        'Заранее подготовь объект формы: `view` с `title`, `blocks` (типы: `input`, `select`, `radio`, `checkbox`, `date`, `time`, `file_input`, `header`, `plain_text`, `markdown`, `divider`), опционально `callback_id` (идентификатор формы) и `private_metadata` (контекст, например id сообщения)',
         'Отправь сообщение с кнопкой (POST /messages с `buttons`, в `data` кнопки передай идентификатор формы)',
         'При нажатии кнопки — получи вебхук-событие с `trigger_id`',
         'Немедленно отправь POST /views/open с `trigger_id` и готовым объектом формы',
-        'Пользователь заполняет форму → результат приходит на Webhook URL',
+        'Пользователь заполняет форму → при отправке получи вебхук — обработай по сценарию «Обработать отправку формы»',
       ],
       notes:
-        '`trigger_id` живёт 3 секунды — за это время нужно успеть отправить POST /views/open. Формируй объект формы заранее, а не после получения события. Формы работают только от бота (GET /profile → `"bot": true`).',
+        '`trigger_id` живёт 3 секунды — за это время нужно успеть отправить POST /views/open. Формируй объект формы заранее, а не после получения события. Формы работают только от бота.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/views/open" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"type":"modal","trigger_id":"abc123","view":{"title":"Заявка на отпуск","callback_id":"vacation_form","private_metadata":"{\\"msg_id\\":154332686}","blocks":[{"type":"input","name":"date_start","label":"Дата начала"},{"type":"input","name":"date_end","label":"Дата окончания"},{"type":"select","name":"reason","label":"Причина","options":[{"text":"Отпуск","value":"vacation"},{"text":"Больничный","value":"sick"}]}]}}'`,
+    },
+    {
+      title: 'Обработать отправку формы (view_submission)',
+      steps: [
+        'Получи вебхук с `"type": "view"`, `"event": "submit"` — содержит `callback_id`, `user_id`, `private_metadata` и `data` (значения полей, ключи совпадают с полем `name` каждого блока)',
+        'Извлеки значения из `data`: например, для блока с `"name": "comment"` значение в `data.comment`',
+        'Если форма содержит `file_input` — скачай файлы по `data.field_name[].url` немедленно: ссылки истекают через 1 час',
+        'Если данные валидны → ответь HTTP 200 (пустое тело) — форма закроется у пользователя',
+        'Если есть ошибки → ответь HTTP 400 с `{"errors": {"field_name": "текст ошибки"}}` — пользователь увидит ошибки в форме и сможет исправить и отправить повторно',
+      ],
+      notes:
+        'Ответ должен быть дан в течение 3 секунд — иначе пользователь увидит ошибку отправки, но все значения сохранятся и он повторит попытку. `callback_id` — идентифицирует какая форма отправлена (если ботов несколько). `private_metadata` — контекст, переданный при открытии (до 3000 символов).',
     },
     {
       title: 'Опрос сотрудников через форму',
       steps: [
         'Отправь сообщение с кнопкой «Пройти опрос» в канал или ЛС: POST /messages с `"data": "survey_start"` в кнопке',
         'При нажатии кнопки получи вебхук с `trigger_id` и `user_id` нажавшего',
-        'Немедленно отправь POST /views/open с формой (поля: `text_field`, `select` и т.д.)',
-        'При отправке формы получи вебхук с результатами (поле `values` в payload)',
+        'Немедленно отправь POST /views/open с формой (поля: `input`, `select`, `radio` и т.д.)',
+        'При отправке формы получи вебхук с `"event": "submit"` — значения полей в `data`',
         'Обработай ответы: сохрани в базу или отправь итоговым сообщением в канал',
+        'Ответь HTTP 200 — форма закроется',
       ],
       notes:
         'Каждый пользователь должен нажать кнопку сам — у каждого свой `trigger_id`. Нельзя открыть форму принудительно.',
@@ -368,6 +441,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
         'При нажатии открой форму с полями: тема, описание, приоритет (`select`)',
         'При submit-вебхуке: создай задачу (POST /tasks) или отправь уведомление ответственному (POST /messages с `"entity_type": "user"`)',
         'Отправь подтверждение автору: POST /messages с `"entity_type": "user"`, `"entity_id": user_id` из вебхука',
+        'Ответь HTTP 200 — форма закроется',
       ],
     },
   ],
@@ -390,6 +464,9 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
       ],
       notes:
         'GET /users поддерживает параметр `query` для поиска. Пагинация cursor-based: используй `limit` и `cursor` из `meta`.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":[{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com",...}]}`,
     },
     {
       title: 'Онбординг нового сотрудника',
@@ -427,7 +504,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
       curl: `curl "https://api.pachca.com/api/shared/v1/tasks" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z","custom_properties":[{"id":78,"value":"Синий склад"}]}}'`,
+  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"$DUE_AT","custom_properties":[{"id":78,"value":"Синий склад"}]}}'`,
     },
     {
       title: 'Получить список предстоящих задач',
@@ -472,7 +549,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
 curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"task":{"custom_properties":[{"id":78,"value":"Синий склад"},{"id":91,"value":"2026-03-01"}]}}'`,
+  -d '{"task":{"custom_properties":[{"id":78,"value":"Синий склад"},{"id":91,"value":"$DUE_DATE"}]}}'`,
     },
   ],
   'pachca-profile': [
@@ -508,6 +585,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \\
         'Доступные типы событий: входы, изменения прав, действия с чатами и т.д.',
       ],
       notes: 'Доступно только владельцу пространства.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/audit_events?created_at[from]=$DATE_FROM&created_at[to]=$DATE_TO&limit=50" \\
+  -H "Authorization: Bearer $TOKEN"`,
     },
     {
       title: 'Мониторинг подозрительных входов',

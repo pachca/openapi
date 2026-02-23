@@ -55,10 +55,10 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 
 ### Получить кастомные поля профиля
 
-1. GET /custom_properties — список всех дополнительных полей пространства (`id`, `name`, `data_type`)
+1. GET /custom_properties?entity_type=User — список дополнительных полей для сотрудников (`id`, `name`, `data_type`)
 2. GET /profile — в ответе поле `custom_properties` содержит значения для текущего пользователя
 
-> Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве `custom_properties` объекта `user`.
+> Параметр `entity_type=User` фильтрует поля по типу сущности. Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве `custom_properties` объекта `user`.
 
 ## Обработка ошибок
 

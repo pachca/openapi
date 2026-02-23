@@ -38,8 +38,10 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 curl "https://api.pachca.com/api/shared/v1/tasks" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z"}}'
+  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z","custom_properties":[{"id":78,"value":"Синий склад"}]}}'
 ```
+
+> Задачи поддерживают дополнительные поля (`custom_properties`). Передай массив `[{"id": <field_id>, "value": "..."}]` при создании или обновлении. Список доступных полей: GET /custom_properties?entity_type=Task.
 
 ### Получить список предстоящих задач
 
@@ -68,6 +70,26 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 
 1. Подготовь список дат (ежедневно, еженедельно и т.д.)
 2. Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`
+
+### Заполнить дополнительные поля задачи
+
+1. GET /custom_properties?entity_type=Task — получи список доступных полей (`id`, `name`, `data_type`)
+2. При создании: POST /tasks с `custom_properties: [{"id": <field_id>, "value": "..."}]`
+3. При обновлении: PUT /tasks/{id} с `custom_properties: [{"id": <field_id>, "value": "..."}]`
+4. В ответе задачи поле `custom_properties` содержит текущие значения всех полей
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/custom_properties?entity_type=Task" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: [{"id":78,"name":"Склад","data_type":"string"},{"id":91,"name":"Дата доставки","data_type":"date"}]
+
+curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task":{"custom_properties":[{"id":78,"value":"Синий склад"},{"id":91,"value":"2026-03-01"}]}}'
+```
+
+> Если передать `id` удалённого или несуществующего поля — получишь ошибку 422. Тип значения в `value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.
 
 ## Обработка ошибок
 

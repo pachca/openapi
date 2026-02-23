@@ -11,27 +11,22 @@ interface TocItem {
 
 export function TableOfContents() {
   const [toc, setToc] = useState<TocItem[]>([]);
-  const [activeId, setActiveId] = useState<string>('');
+  const [activeIds, setActiveIds] = useState<Set<string>>(new Set());
   const isScrollingRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
   const isFirstRenderRef = useRef(true);
 
-  // Обработчик клика по ссылкам TOC через нативное делегирование событий
   const handleContainerClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
     const link = target.closest('a');
     if (!link) return;
-
     e.preventDefault();
-
     const href = link.getAttribute('href');
     if (!href?.startsWith('#')) return;
-
     const id = href.slice(1);
     const element = document.getElementById(id);
     const mainContent = document.querySelector('main');
-
     if (element && mainContent) {
       isScrollingRef.current = true;
       const targetScrollTop =
@@ -53,7 +48,6 @@ export function TableOfContents() {
     }
   }, []);
 
-  // Подключаем обработчик кликов на document (capture) — гарантирует перехват
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -65,77 +59,56 @@ export function TableOfContents() {
     return () => document.removeEventListener('click', handler, true);
   }, [handleContainerClick]);
 
-  // Анимация индикатора активного элемента
+  // Анимация индикатора: от первого до последнего активного заголовка
   useEffect(() => {
-    if (!activeId || !containerRef.current || !indicatorRef.current) return;
-
-    const activeLink = containerRef.current.querySelector(`a[href="#${activeId}"]`) as HTMLElement;
-    if (!activeLink) return;
-
-    const top = activeLink.offsetTop;
-    const height = activeLink.offsetHeight;
-
+    if (activeIds.size === 0 || !containerRef.current || !indicatorRef.current) return;
+    const activeItems = toc.filter((item) => activeIds.has(item.id));
+    if (activeItems.length === 0) return;
+    const firstEl = containerRef.current.querySelector(
+      `a[href="#${activeItems[0].id}"]`
+    ) as HTMLElement;
+    const lastEl = containerRef.current.querySelector(
+      `a[href="#${activeItems[activeItems.length - 1].id}"]`
+    ) as HTMLElement;
+    if (!firstEl || !lastEl) return;
+    const top = firstEl.offsetTop;
+    const height = lastEl.offsetTop + lastEl.offsetHeight - firstEl.offsetTop;
     if (isFirstRenderRef.current) {
       gsap.set(indicatorRef.current, { top, height });
       isFirstRenderRef.current = false;
     } else {
-      gsap.to(indicatorRef.current, {
-        top,
-        height,
-        duration: 0.25,
-        ease: 'power2.out',
-      });
+      gsap.to(indicatorRef.current, { top, height, duration: 0.25, ease: 'power2.out' });
     }
-  }, [activeId]);
+  }, [activeIds, toc]);
 
-  // Прокрутка активного элемента в видимую область навигации
+  // Прокрутка первого активного элемента в видимую область навигации
   useEffect(() => {
-    // Пропускаем автопрокрутку если идет прокрутка после клика пользователя
-    if (isScrollingRef.current) {
-      return;
-    }
-
-    if (activeId) {
-      const navContainer = document.querySelector('nav.sticky') as HTMLElement;
-      const activeLink = document.querySelector(`a[href="#${activeId}"]`) as HTMLElement;
-
-      if (activeLink && navContainer) {
-        const navRect = navContainer.getBoundingClientRect();
-        const linkRect = activeLink.getBoundingClientRect();
-
-        // Проверяем, виден ли элемент в навигации
-        const isVisible = linkRect.top >= navRect.top && linkRect.bottom <= navRect.bottom;
-
-        if (!isVisible) {
-          // Вычисляем позицию элемента относительно контейнера
-          const linkOffsetTop = activeLink.offsetTop;
-          const navHeight = navContainer.clientHeight;
-          const linkHeight = activeLink.clientHeight;
-
-          // Центрируем элемент в контейнере
-          const targetScrollTop = linkOffsetTop - navHeight / 2 + linkHeight / 2;
-
-          navContainer.scrollTo({
-            top: targetScrollTop,
-            behavior: 'smooth',
-          });
-        }
+    if (isScrollingRef.current) return;
+    const firstActiveId = toc.find((item) => activeIds.has(item.id))?.id;
+    if (!firstActiveId) return;
+    const navContainer = document.querySelector('nav.sticky') as HTMLElement;
+    const activeLink = document.querySelector(`a[href="#${firstActiveId}"]`) as HTMLElement;
+    if (activeLink && navContainer) {
+      const navRect = navContainer.getBoundingClientRect();
+      const linkRect = activeLink.getBoundingClientRect();
+      const isVisible = linkRect.top >= navRect.top && linkRect.bottom <= navRect.bottom;
+      if (!isVisible) {
+        const targetScrollTop =
+          activeLink.offsetTop - navContainer.clientHeight / 2 + activeLink.clientHeight / 2;
+        navContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
       }
     }
-  }, [activeId]);
+  }, [activeIds, toc]);
 
   useEffect(() => {
-    // Находим все заголовки h2 и h3 внутри .prose
     const container = document.querySelector('.prose');
-    if (!container) return;
+    const mainContent = document.querySelector('main');
+    if (!container || !mainContent) return;
 
-    const headings = Array.from(container.querySelectorAll('h2, h3'));
+    const headings = Array.from(container.querySelectorAll('h2, h3')) as HTMLElement[];
 
     const items: TocItem[] = headings.map((heading, index) => {
-      // Если у заголовка нет id, создаем его
-      if (!heading.id) {
-        heading.id = `heading-${index}`;
-      }
+      if (!heading.id) heading.id = `heading-${index}`;
       return {
         id: heading.id,
         title: heading.textContent || '',
@@ -143,62 +116,71 @@ export function TableOfContents() {
       };
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToc(items);
-    if (items.length > 0) {
-      setActiveId(items[0].id);
-    }
+    if (items.length > 0) setActiveIds(new Set([items[0].id]));
 
-    const visibilityMap: Record<string, boolean> = {};
+    // Абсолютная позиция заголовка от начала контента main (независимо от scroll)
+    const computeHeadingTop = (h: HTMLElement) => {
+      const mainRect = mainContent.getBoundingClientRect();
+      const hRect = h.getBoundingClientRect();
+      return hRect.top - mainRect.top + mainContent.scrollTop;
+    };
 
-    // Настройка Intersection Observer для отслеживания активного заголовка
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          visibilityMap[entry.target.id] = entry.isIntersecting;
-        });
+    let headingTops: number[] = [];
+    const computePositions = () => {
+      headingTops = headings.map(computeHeadingTop);
+    };
+    computePositions();
 
-        // Находим первый видимый заголовок сверху
-        const firstVisible = items.find((item) => visibilityMap[item.id]);
-        if (firstVisible) {
-          setActiveId(firstVisible.id);
+    const updateActive = () => {
+      const scrollTop = mainContent.scrollTop;
+      // Зона видимости: от 80px (фиксированная шапка) до 80% высоты вьюпорта
+      const visibleTop = scrollTop + 80;
+      const visibleBottom = scrollTop + mainContent.clientHeight * 0.8;
+
+      const visibleIds: string[] = [];
+
+      items.forEach((item, i) => {
+        // Секция занимает место от своего заголовка до начала следующего (или конца страницы)
+        const sectionStart = headingTops[i];
+        const sectionEnd = i < items.length - 1 ? headingTops[i + 1] : mainContent.scrollHeight;
+
+        if (sectionStart < visibleBottom && sectionEnd > visibleTop) {
+          visibleIds.push(item.id);
         }
-      },
-      { rootMargin: '-80px 0px -20% 0px' }
-    );
+      });
 
-    headings.forEach((heading) => observer.observe(heading));
-
-    // Дополнительная проверка для нижнего края страницы
-    const mainContent = document.querySelector('main');
-    const handleScroll = () => {
-      if (!mainContent) return;
-
-      // Если страница прокручена в начало и активный не первый - сбрасываем навигацию
-      if (mainContent.scrollTop < 100 && items.length > 0) {
-        const firstItemId = items[0].id;
-        if (activeId !== firstItemId) {
-          setActiveId(firstItemId);
-          const navContainer = document.querySelector('nav.sticky') as HTMLElement;
-          if (navContainer) {
-            navContainer.scrollTop = 0;
-          }
+      if (visibleIds.length > 0) {
+        setActiveIds(new Set(visibleIds));
+      } else {
+        // Ни одна секция не пересекается — выбираем последнюю, которую уже проскроллили
+        const lastPassed = [...items]
+          .reverse()
+          .find((_, reverseIdx) => headingTops[items.length - 1 - reverseIdx] <= visibleTop);
+        if (lastPassed) {
+          setActiveIds(new Set([lastPassed.id]));
+        } else if (items.length > 0) {
+          setActiveIds(new Set([items[0].id]));
         }
-      }
-
-      const isAtBottom =
-        mainContent.scrollTop + mainContent.clientHeight >= mainContent.scrollHeight - 10;
-      if (isAtBottom && items.length > 0) {
-        setActiveId(items[items.length - 1].id);
       }
     };
 
-    mainContent?.addEventListener('scroll', handleScroll);
+    updateActive();
+
+    mainContent.addEventListener('scroll', updateActive);
+
+    // Пересчитываем позиции при изменении размеров контента (например, раскрытие спойлеров)
+    const resizeObserver = new ResizeObserver(() => {
+      computePositions();
+      updateActive();
+    });
+    resizeObserver.observe(container);
 
     return () => {
-      headings.forEach((heading) => observer.unobserve(heading));
-      mainContent?.removeEventListener('scroll', handleScroll);
+      mainContent.removeEventListener('scroll', updateActive);
+      resizeObserver.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally exclude activeId to avoid infinite loop
   }, []);
 
   if (toc.length === 0) return null;
@@ -218,7 +200,7 @@ export function TableOfContents() {
               block py-1 text-[13px] transition-colors duration-200 font-medium
               ${item.level === 3 ? 'pl-6' : 'pl-4'}
               ${
-                activeId === item.id
+                activeIds.has(item.id)
                   ? 'text-text-primary'
                   : 'text-text-secondary hover:text-text-primary'
               }

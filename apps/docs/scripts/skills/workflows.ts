@@ -45,7 +45,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         'Отправь POST /messages с `"entity_type": "thread"`, `"entity_id": thread.id`',
       ],
       notes:
-        'Если тред уже существует, POST /messages/{id}/thread вернёт существующий. Альтернативно можно использовать `"entity_type": "discussion"` + `"entity_id": thread.chat_id`.',
+        'Если тред уже существует, POST /messages/{id}/thread вернёт существующий. Альтернативно можно использовать `"entity_type": "discussion"` + `"entity_id": thread.chat_id`. `skip_invite_mentions: true` — не добавлять упомянутых пользователей в тред автоматически.',
       curl: `curl "https://api.pachca.com/api/shared/v1/messages/154332686/thread" \\
   -H "Authorization: Bearer $TOKEN"
 # Ответ: {"data":{"id":265142,"chat_id":2637266155,"message_id":154332686,...}}
@@ -54,6 +54,17 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{"message":{"entity_type":"thread","entity_id":265142,"content":"Ответ в тред"}}'`,
+    },
+    {
+      title: 'Ответить пользователю, который написал боту',
+      steps: [
+        'Вебхук содержит `entity_type` — он однозначно определяет контекст: `"user"` — личное сообщение боту, `"thread"` — сообщение в треде, `"discussion"` — сообщение в канале или беседе',
+        'DM (`entity_type: "user"`): ответь POST /messages с `"entity_type": "user"`, `"entity_id"`: `user_id` из вебхука',
+        'Тред (`entity_type: "thread"`): вложенных тредов нет — ответь в тот же тред: POST /messages с `"entity_type": "thread"`, `"entity_id"`: `entity_id` из вебхука, `"parent_message_id"`: `id` сообщения пользователя из вебхука',
+        'Беседа/канал (`entity_type: "discussion"`): выбери стратегию — inline-ответ (POST /messages c `"parent_message_id"`: `id` сообщения) или тред (POST /messages/{id}/thread → ответ в тред)',
+      ],
+      notes:
+        '`parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду.',
     },
     {
       title: 'Отправить сообщение с файлами',
@@ -109,7 +120,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     {
       title: 'Закрепить/открепить сообщение',
       steps: ['Закрепить: POST /messages/{id}/pin', 'Открепить: DELETE /messages/{id}/pin'],
-      notes: 'В чате может быть только одно закреплённое сообщение.',
+      notes: 'В чате может быть несколько закреплённых сообщений.',
     },
     {
       title: 'Подписаться на тред сообщения',
@@ -121,6 +132,25 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
       ],
       notes:
         'POST /messages/{id}/thread идемпотентен — безопасно вызывать повторно. После добавления в участники бот получает события треда через исходящий вебхук.',
+    },
+    {
+      title: 'Упомянуть пользователя по имени',
+      steps: [
+        'Определи поисковый запрос — используй фамилию, она уникальнее. Имена не склоняются в API, приводи к именительному падежу: «упомяни Пашу» → ищи `Паша` или `Павел`, «тегни Голубева» → ищи `Голубев`',
+        'Найди пользователя: GET /users?query={запрос}',
+        'Один подходящий результат → используй `nickname`. Несколько → уточни у пользователя (имя + фамилия). Ничего → попробуй другую форму имени (уменьшительное ↔ полное)',
+        'Вставь `@nickname` в текст сообщения',
+      ],
+      notes:
+        'Упоминание — это просто `@nickname` в тексте. Пачка автоматически делает его кликабельным. GET /users поддерживает `query` (частичное совпадение по имени и email).',
+      curl: `curl "https://api.pachca.com/api/shared/v1/users?query=Голубев" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: [{"id":42,"first_name":"Павел","last_name":"Голубев","nickname":"golubevpn"}]
+
+curl "https://api.pachca.com/api/shared/v1/messages" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"message":{"entity_id":12345,"content":"@golubevpn, митинг перенесён"}}'`,
     },
     {
       title: 'Отредактировать сообщение',
@@ -292,6 +322,19 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
         'При нажатии кнопки — обработай callback и обнови статус алерта',
       ],
     },
+    {
+      title: 'Обработка событий через историю (polling)',
+      steps: [
+        'В настройках бота включи «Сохранять историю событий» (вкладка «Исходящий webhook»). Webhook URL указывать не обязательно.',
+        'По расписанию или по запросу: GET /webhooks/events — получи накопленные события с пагинацией (`limit`, `cursor`)',
+        'Обработай каждое событие (тот же формат payload, что и в real-time вебхуке)',
+        'После обработки: DELETE /webhooks/events/{id} — удали событие, чтобы не обработать повторно',
+      ],
+      notes:
+        'Polling — альтернатива real-time вебхуку, если у бота нет публичного URL или нужна отложенная обработка. Подходит для batch-сценариев, скриптов, serverless-функций по расписанию.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \\
+  -H "Authorization: Bearer $TOKEN"`,
+    },
   ],
   'pachca-forms': [
     {
@@ -379,10 +422,12 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     {
       title: 'Создать напоминание для себя',
       steps: ['POST /tasks с `kind`, `content` и `due_at`'],
+      notes:
+        'Задачи поддерживают дополнительные поля (`custom_properties`). Передай массив `[{"id": <field_id>, "value": "..."}]` при создании или обновлении. Список доступных полей: GET /custom_properties?entity_type=Task.',
       curl: `curl "https://api.pachca.com/api/shared/v1/tasks" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z"}}'`,
+  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"2026-03-01T10:00:00Z","custom_properties":[{"id":78,"value":"Синий склад"}]}}'`,
     },
     {
       title: 'Получить список предстоящих задач',
@@ -410,6 +455,25 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
         'Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`',
       ],
     },
+    {
+      title: 'Заполнить дополнительные поля задачи',
+      steps: [
+        'GET /custom_properties?entity_type=Task — получи список доступных полей (`id`, `name`, `data_type`)',
+        'При создании: POST /tasks с `custom_properties: [{"id": <field_id>, "value": "..."}]`',
+        'При обновлении: PUT /tasks/{id} с `custom_properties: [{"id": <field_id>, "value": "..."}]`',
+        'В ответе задачи поле `custom_properties` содержит текущие значения всех полей',
+      ],
+      notes:
+        'Если передать `id` удалённого или несуществующего поля — получишь ошибку 422. Тип значения в `value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/custom_properties?entity_type=Task" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: [{"id":78,"name":"Склад","data_type":"string"},{"id":91,"name":"Дата доставки","data_type":"date"}]
+
+curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"task":{"custom_properties":[{"id":78,"value":"Синий склад"},{"id":91,"value":"2026-03-01"}]}}'`,
+    },
   ],
   'pachca-profile': [
     {
@@ -429,11 +493,11 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     {
       title: 'Получить кастомные поля профиля',
       steps: [
-        'GET /custom_properties — список всех дополнительных полей пространства (`id`, `name`, `data_type`)',
+        'GET /custom_properties?entity_type=User — список дополнительных полей для сотрудников (`id`, `name`, `data_type`)',
         'GET /profile — в ответе поле `custom_properties` содержит значения для текущего пользователя',
       ],
       notes:
-        'Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве `custom_properties` объекта `user`.',
+        'Параметр `entity_type=User` фильтрует поля по типу сущности. Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве `custom_properties` объекта `user`.',
     },
   ],
   'pachca-security': [

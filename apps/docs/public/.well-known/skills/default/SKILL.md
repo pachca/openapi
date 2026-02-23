@@ -16,7 +16,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 | Скилл | Когда использовать |
 |-------|--------------------|
-| [pachca-profile](../pachca-profile/SKILL.md) | получить профиль, обновить статус, мой профиль |
+| [pachca-profile](../pachca-profile/SKILL.md) | получить профиль, мой профиль, установить статус |
 | [pachca-users](../pachca-users/SKILL.md) | найти сотрудника, создать пользователя, список сотрудников |
 | [pachca-chats](../pachca-chats/SKILL.md) | создать канал, создать беседу, создать чат |
 | [pachca-messages](../pachca-messages/SKILL.md) | отправить сообщение, ответить в тред, прикрепить файл |

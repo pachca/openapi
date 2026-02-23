@@ -19,10 +19,12 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - безопасность
 - DLP
 - логи
+- подозрительные входы
+- история входов
 
 ## Когда НЕ использовать
 
-- получить профиль, обновить статус, мой профиль → **pachca-profile**
+- получить профиль, мой профиль, установить статус → **pachca-profile**
 - найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
 - создать канал, создать беседу, создать чат → **pachca-chats**
 - отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
@@ -36,6 +38,11 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 1. GET /audit_events с фильтрами (`event_key`, период, пагинация)
 2. Доступные типы событий: входы, изменения прав, действия с чатами и т.д.
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/audit_events?created_at[from]=$DATE_FROM&created_at[to]=$DATE_TO&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 > Доступно только владельцу пространства.
 

@@ -14,8 +14,6 @@ export interface paths {
         /**
          * @description Журнал аудита событий
          *
-         *     #corporation_price_only
-         *
          *     Метод для получения логов событий на основе указанных фильтров.
          */
         get: operations["SecurityOperations_getAuditEvents"];
@@ -94,8 +92,6 @@ export interface paths {
         /**
          * @description Экспорт сообщений
          *
-         *     #corporation_price_only #owner_access_token_required
-         *
          *     Метод для запрашивания экспорта сообщений за указанный период.
          */
         post: operations["ExportOperations_requestExport"];
@@ -114,8 +110,6 @@ export interface paths {
         };
         /**
          * @description Скачать архив экспорта
-         *
-         *     #corporation_price_only #owner_access_token_required
          *
          *     Метод для скачивания готового архива экспорта сообщений.
          *
@@ -345,7 +339,7 @@ export interface paths {
         /**
          * @description Список дополнительных полей
          *
-         *     #files_not_supported
+         *     На данный момент работа с дополнительными полями типа "Файл" недоступна.
          *
          *     Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей компании.
          *
@@ -371,8 +365,6 @@ export interface paths {
         put?: never;
         /**
          * @description Загрузка файла
-         *
-         *     #access_token_not_required
          *
          *     Для того чтобы прикрепить файл к сообщению или к другой сущности через API, требуется сначала загрузить файл на сервер (через метод получения подписи и ключа), а затем сформировать ссылку на него.
          *
@@ -406,8 +398,6 @@ export interface paths {
         /**
          * @description Новый тег
          *
-         *     #admin_access_token_required
-         *
          *     Метод для создания нового тега.
          */
         post: operations["GroupTagOperations_createTag"];
@@ -435,8 +425,6 @@ export interface paths {
         /**
          * @description Редактирование тега
          *
-         *     #admin_access_token_required
-         *
          *     Метод для редактирования тега.
          *
          *     Для редактирования тега вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры тега указываются в теле запроса.
@@ -445,8 +433,6 @@ export interface paths {
         post?: never;
         /**
          * @description Удаление тега
-         *
-         *     #admin_access_token_required
          *
          *     Метод для удаления тега.
          *
@@ -538,8 +524,6 @@ export interface paths {
         /**
          * @description Удаление сообщения
          *
-         *     #admin_access_token_required
-         *
          *     Метод для удаления сообщения.
          *
          *     Удаление сообщения доступно отправителю, админам и редакторам в чате. В личных сообщениях оба пользователя являются редакторами. Ограничений по давности отправки сообщения нет.
@@ -563,8 +547,6 @@ export interface paths {
         put?: never;
         /**
          * @description Unfurl (разворачивание ссылок)
-         *
-         *     #unfurling_bot_access_token_required
          *
          *     Метод для создания предпросмотров ссылок в сообщениях.
          *
@@ -694,6 +676,27 @@ export interface paths {
          *     Если у сообщения уже был создан тред, то в ответе на запрос вернётся информация об уже созданном ранее треде.
          */
         post: operations["ThreadOperations_createThread"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/oauth/token/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Информация о токене
+         *
+         *     Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
+         */
+        get: operations["OAuthOperations_getTokenInfo"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -886,8 +889,6 @@ export interface paths {
         /**
          * @description Создать сотрудника
          *
-         *     #admin_access_token_required
-         *
          *     Метод для создания нового сотрудника в вашей компании.
          *
          *     Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
@@ -917,8 +918,6 @@ export interface paths {
         /**
          * @description Редактирование сотрудника
          *
-         *     #admin_access_token_required
-         *
          *     Метод для редактирования сотрудника.
          *
          *     Для редактирования сотрудника вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры сотрудника указываются в теле запроса. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
@@ -927,8 +926,6 @@ export interface paths {
         post?: never;
         /**
          * @description Удаление сотрудника
-         *
-         *     #admin_access_token_required
          *
          *     Метод для удаления сотрудника.
          *
@@ -972,8 +969,6 @@ export interface paths {
         };
         /**
          * @description История событий
-         *
-         *     #bot_access_token_required
          *
          *     Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на которые вы подписались.
          *
@@ -1019,6 +1014,57 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Информация о текущем OAuth токене */
+        AccessTokenInfo: {
+            /**
+             * Format: int64
+             * @description Идентификатор токена
+             * @example 4827
+             */
+            id: number;
+            /**
+             * @description Маскированный токен (видны первые 8 и последние 4 символа)
+             * @example cH5kR9mN...x7Qp
+             */
+            token: string;
+            /**
+             * @description Пользовательское имя токена
+             * @example Мой API токен
+             */
+            name: string | null;
+            /**
+             * Format: int64
+             * @description Идентификатор владельца токена
+             * @example 12
+             */
+            user_id: number;
+            /** @description Список скоупов токена */
+            scopes: components["schemas"]["OAuthScope"][];
+            /**
+             * Format: date-time
+             * @description Дата создания токена
+             * @example 2025-01-15T10:30:00.000Z
+             */
+            created_at: string;
+            /**
+             * Format: date-time
+             * @description Дата отзыва токена
+             * @example null
+             */
+            revoked_at: string | null;
+            /**
+             * Format: int32
+             * @description Время жизни токена в секундах
+             * @example null
+             */
+            expires_in: number | null;
+            /**
+             * Format: date-time
+             * @description Дата последнего использования токена
+             * @example 2025-02-24T14:20:00.000Z
+             */
+            last_used_at: string | null;
+        };
         /** @description Запрос на добавление участников в чат */
         AddMembersRequest: {
             /**
@@ -2014,6 +2060,11 @@ export interface components {
              */
             error_description: string;
         };
+        /**
+         * @description Скоуп доступа OAuth токена
+         * @enum {string}
+         */
+        OAuthScope: "chats:read" | "chats:create" | "chats:update" | "chats:archive" | "chats:leave" | "chat_members:read" | "chat_members:write" | "chat_exports:read" | "chat_exports:write" | "messages:read" | "messages:create" | "messages:update" | "messages:delete" | "reactions:read" | "reactions:write" | "pins:write" | "threads:read" | "threads:create" | "link_previews:write" | "users:read" | "users:create" | "users:update" | "users:delete" | "group_tags:read" | "group_tags:write" | "bots:write" | "profile:read" | "profile_status:read" | "profile_status:write" | "custom_properties:read" | "audit_events:read" | "tasks:read" | "tasks:create" | "tasks:update" | "tasks:delete" | "files:read" | "files:write" | "uploads:write" | "views:write" | "webhooks:read" | "webhooks:write" | "webhooks:events:read" | "webhooks:events:delete";
         /** @description Запрос на открытие представления */
         OpenViewRequest: {
             /**
@@ -6235,6 +6286,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    OAuthOperations_getTokenInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "data": {
+                     *         "id": 4827,
+                     *         "token": "cH5kR9mN...x7Qp",
+                     *         "name": "Мой API токен",
+                     *         "user_id": 12,
+                     *         "scopes": [
+                     *           "messages:read",
+                     *           "messages:create"
+                     *         ],
+                     *         "created_at": "2025-01-15T10:30:00.000Z",
+                     *         "revoked_at": null,
+                     *         "expires_in": null,
+                     *         "last_used_at": "2025-02-24T14:20:00.000Z"
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        data: components["schemas"]["AccessTokenInfo"];
+                    };
+                };
+            };
+            /** @description Access is unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
                 };
             };
         };

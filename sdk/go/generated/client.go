@@ -153,6 +153,53 @@ const (
 	MessageWebhookPayloadTypeMessage MessageWebhookPayloadType = "message"
 )
 
+// Defines values for OAuthScope.
+const (
+	AuditEventsRead      OAuthScope = "audit_events:read"
+	BotsWrite            OAuthScope = "bots:write"
+	ChatExportsRead      OAuthScope = "chat_exports:read"
+	ChatExportsWrite     OAuthScope = "chat_exports:write"
+	ChatMembersRead      OAuthScope = "chat_members:read"
+	ChatMembersWrite     OAuthScope = "chat_members:write"
+	ChatsArchive         OAuthScope = "chats:archive"
+	ChatsCreate          OAuthScope = "chats:create"
+	ChatsLeave           OAuthScope = "chats:leave"
+	ChatsRead            OAuthScope = "chats:read"
+	ChatsUpdate          OAuthScope = "chats:update"
+	CustomPropertiesRead OAuthScope = "custom_properties:read"
+	FilesRead            OAuthScope = "files:read"
+	FilesWrite           OAuthScope = "files:write"
+	GroupTagsRead        OAuthScope = "group_tags:read"
+	GroupTagsWrite       OAuthScope = "group_tags:write"
+	LinkPreviewsWrite    OAuthScope = "link_previews:write"
+	MessagesCreate       OAuthScope = "messages:create"
+	MessagesDelete       OAuthScope = "messages:delete"
+	MessagesRead         OAuthScope = "messages:read"
+	MessagesUpdate       OAuthScope = "messages:update"
+	PinsWrite            OAuthScope = "pins:write"
+	ProfileRead          OAuthScope = "profile:read"
+	ProfileStatusRead    OAuthScope = "profile_status:read"
+	ProfileStatusWrite   OAuthScope = "profile_status:write"
+	ReactionsRead        OAuthScope = "reactions:read"
+	ReactionsWrite       OAuthScope = "reactions:write"
+	TasksCreate          OAuthScope = "tasks:create"
+	TasksDelete          OAuthScope = "tasks:delete"
+	TasksRead            OAuthScope = "tasks:read"
+	TasksUpdate          OAuthScope = "tasks:update"
+	ThreadsCreate        OAuthScope = "threads:create"
+	ThreadsRead          OAuthScope = "threads:read"
+	UploadsWrite         OAuthScope = "uploads:write"
+	UsersCreate          OAuthScope = "users:create"
+	UsersDelete          OAuthScope = "users:delete"
+	UsersRead            OAuthScope = "users:read"
+	UsersUpdate          OAuthScope = "users:update"
+	ViewsWrite           OAuthScope = "views:write"
+	WebhooksEventsDelete OAuthScope = "webhooks:events:delete"
+	WebhooksEventsRead   OAuthScope = "webhooks:events:read"
+	WebhooksRead         OAuthScope = "webhooks:read"
+	WebhooksWrite        OAuthScope = "webhooks:write"
+)
+
 // Defines values for OpenViewRequestType.
 const (
 	Modal OpenViewRequestType = "modal"
@@ -326,6 +373,36 @@ const (
 	New    WebhookEventType = "new"
 	Update WebhookEventType = "update"
 )
+
+// AccessTokenInfo Информация о текущем OAuth токене
+type AccessTokenInfo struct {
+	// CreatedAt Дата создания токена
+	CreatedAt time.Time `json:"created_at"`
+
+	// ExpiresIn Время жизни токена в секундах
+	ExpiresIn *int32 `json:"expires_in"`
+
+	// Id Идентификатор токена
+	Id int64 `json:"id"`
+
+	// LastUsedAt Дата последнего использования токена
+	LastUsedAt *time.Time `json:"last_used_at"`
+
+	// Name Пользовательское имя токена
+	Name *string `json:"name"`
+
+	// RevokedAt Дата отзыва токена
+	RevokedAt *time.Time `json:"revoked_at"`
+
+	// Scopes Список скоупов токена
+	Scopes []OAuthScope `json:"scopes"`
+
+	// Token Маскированный токен (видны первые 8 и последние 4 символа)
+	Token string `json:"token"`
+
+	// UserId Идентификатор владельца токена
+	UserId int64 `json:"user_id"`
+}
 
 // AddMembersRequest Запрос на добавление участников в чат
 type AddMembersRequest struct {
@@ -1015,6 +1092,9 @@ type OAuthError struct {
 	// ErrorDescription Описание ошибки
 	ErrorDescription string `json:"error_description"`
 }
+
+// OAuthScope Скоуп доступа OAuth токена
+type OAuthScope string
 
 // OpenViewRequest Запрос на открытие представления
 type OpenViewRequest struct {
@@ -2691,6 +2771,9 @@ type ClientInterface interface {
 	// ThreadOperationsCreateThread request
 	ThreadOperationsCreateThread(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// OAuthOperationsGetTokenInfo request
+	OAuthOperationsGetTokenInfo(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ProfileOperationsGetProfile request
 	ProfileOperationsGetProfile(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3363,6 +3446,18 @@ func (c *Client) ReadMemberOperationsListReadMembers(ctx context.Context, id int
 
 func (c *Client) ThreadOperationsCreateThread(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewThreadOperationsCreateThreadRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) OAuthOperationsGetTokenInfo(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewOAuthOperationsGetTokenInfoRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -5687,6 +5782,33 @@ func NewThreadOperationsCreateThreadRequest(server string, id int32) (*http.Requ
 	return req, nil
 }
 
+// NewOAuthOperationsGetTokenInfoRequest generates requests for OAuthOperationsGetTokenInfo
+func NewOAuthOperationsGetTokenInfoRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/oauth/token/info")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewProfileOperationsGetProfileRequest generates requests for ProfileOperationsGetProfile
 func NewProfileOperationsGetProfileRequest(server string) (*http.Request, error) {
 	var err error
@@ -6646,6 +6768,9 @@ type ClientWithResponsesInterface interface {
 
 	// ThreadOperationsCreateThreadWithResponse request
 	ThreadOperationsCreateThreadWithResponse(ctx context.Context, id int32, reqEditors ...RequestEditorFn) (*ThreadOperationsCreateThreadResponse, error)
+
+	// OAuthOperationsGetTokenInfoWithResponse request
+	OAuthOperationsGetTokenInfoWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*OAuthOperationsGetTokenInfoResponse, error)
 
 	// ProfileOperationsGetProfileWithResponse request
 	ProfileOperationsGetProfileWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ProfileOperationsGetProfileResponse, error)
@@ -7785,6 +7910,32 @@ func (r ThreadOperationsCreateThreadResponse) StatusCode() int {
 	return 0
 }
 
+type OAuthOperationsGetTokenInfoResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Data Информация о текущем OAuth токене
+		Data AccessTokenInfo `json:"data"`
+	}
+	JSON401 *OAuthError
+}
+
+// Status returns HTTPResponse.Status
+func (r OAuthOperationsGetTokenInfoResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r OAuthOperationsGetTokenInfoResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ProfileOperationsGetProfileResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8755,6 +8906,15 @@ func (c *ClientWithResponses) ThreadOperationsCreateThreadWithResponse(ctx conte
 		return nil, err
 	}
 	return ParseThreadOperationsCreateThreadResponse(rsp)
+}
+
+// OAuthOperationsGetTokenInfoWithResponse request returning *OAuthOperationsGetTokenInfoResponse
+func (c *ClientWithResponses) OAuthOperationsGetTokenInfoWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*OAuthOperationsGetTokenInfoResponse, error) {
+	rsp, err := c.OAuthOperationsGetTokenInfo(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseOAuthOperationsGetTokenInfoResponse(rsp)
 }
 
 // ProfileOperationsGetProfileWithResponse request returning *ProfileOperationsGetProfileResponse
@@ -11084,6 +11244,42 @@ func ParseThreadOperationsCreateThreadResponse(rsp *http.Response) (*ThreadOpera
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseOAuthOperationsGetTokenInfoResponse parses an HTTP response from a OAuthOperationsGetTokenInfoWithResponse call
+func ParseOAuthOperationsGetTokenInfoResponse(rsp *http.Response) (*OAuthOperationsGetTokenInfoResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &OAuthOperationsGetTokenInfoResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Data Информация о текущем OAuth токене
+			Data AccessTokenInfo `json:"data"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	}
 

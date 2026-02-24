@@ -87,8 +87,6 @@ def sync_detailed(
 ) -> Response[ApiError | EmptyResponse | OAuthError]:
     """  Удаление сообщения
 
-    #admin_access_token_required
-
     Метод для удаления сообщения.
 
     Удаление сообщения доступно отправителю, админам и редакторам в чате. В личных сообщениях оба
@@ -127,8 +125,6 @@ def sync(
 ) -> ApiError | EmptyResponse | OAuthError | None:
     """  Удаление сообщения
 
-    #admin_access_token_required
-
     Метод для удаления сообщения.
 
     Удаление сообщения доступно отправителю, админам и редакторам в чате. В личных сообщениях оба
@@ -161,8 +157,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | EmptyResponse | OAuthError]:
     """  Удаление сообщения
-
-    #admin_access_token_required
 
     Метод для удаления сообщения.
 
@@ -201,8 +195,6 @@ async def asyncio(
 
 ) -> ApiError | EmptyResponse | OAuthError | None:
     """  Удаление сообщения
-
-    #admin_access_token_required
 
     Метод для удаления сообщения.
 

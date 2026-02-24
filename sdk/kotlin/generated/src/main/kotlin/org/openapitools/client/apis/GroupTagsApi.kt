@@ -41,7 +41,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * POST /group_tags
         * 
-        * Новый тег  #admin_access_token_required  Метод для создания нового тега.
+        * Новый тег  Метод для создания нового тега.
          * @param groupTagRequest  
          * @return GroupTagOperationsCreateTag201Response
         */
@@ -74,7 +74,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * DELETE /group_tags/{id}
         * 
-        * Удаление тега  #admin_access_token_required  Метод для удаления тега.  Для удаления тега вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
+        * Удаление тега  Метод для удаления тега.  Для удаления тега вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор тега 
          * @return kotlin.Any
         */
@@ -219,7 +219,7 @@ import io.ktor.http.ParametersBuilder
         /**
         * PUT /group_tags/{id}
         * 
-        * Редактирование тега  #admin_access_token_required  Метод для редактирования тега.  Для редактирования тега вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса. Все редактируемые параметры тега указываются в теле запроса.
+        * Редактирование тега  Метод для редактирования тега.  Для редактирования тега вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса. Все редактируемые параметры тега указываются в теле запроса.
          * @param id Идентификатор тега 
          * @param groupTagRequest  
          * @return GroupTagOperationsCreateTag201Response

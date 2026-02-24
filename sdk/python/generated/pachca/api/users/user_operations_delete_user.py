@@ -87,8 +87,6 @@ def sync_detailed(
 ) -> Response[ApiError | EmptyResponse | OAuthError]:
     """  Удаление сотрудника
 
-    #admin_access_token_required
-
     Метод для удаления сотрудника.
 
     Для удаления сотрудника вам необходимо знать его `id` и указать его в `URL` запроса.
@@ -124,8 +122,6 @@ def sync(
 ) -> ApiError | EmptyResponse | OAuthError | None:
     """  Удаление сотрудника
 
-    #admin_access_token_required
-
     Метод для удаления сотрудника.
 
     Для удаления сотрудника вам необходимо знать его `id` и указать его в `URL` запроса.
@@ -155,8 +151,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | EmptyResponse | OAuthError]:
     """  Удаление сотрудника
-
-    #admin_access_token_required
 
     Метод для удаления сотрудника.
 
@@ -192,8 +186,6 @@ async def asyncio(
 
 ) -> ApiError | EmptyResponse | OAuthError | None:
     """  Удаление сотрудника
-
-    #admin_access_token_required
 
     Метод для удаления сотрудника.
 

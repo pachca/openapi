@@ -111,8 +111,6 @@ def sync_detailed(
 ) -> Response[ApiError | EmptyResponse | OAuthError]:
     """  Unfurl (разворачивание ссылок)
 
-    #unfurling_bot_access_token_required
-
     Метод для создания предпросмотров ссылок в сообщениях.
 
     Для создания предпросмотров ссылок вам необходимо знать `id` сообщения и указать его в `URL`
@@ -164,8 +162,6 @@ def sync(
 ) -> ApiError | EmptyResponse | OAuthError | None:
     """  Unfurl (разворачивание ссылок)
 
-    #unfurling_bot_access_token_required
-
     Метод для создания предпросмотров ссылок в сообщениях.
 
     Для создания предпросмотров ссылок вам необходимо знать `id` сообщения и указать его в `URL`
@@ -211,8 +207,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | EmptyResponse | OAuthError]:
     """  Unfurl (разворачивание ссылок)
-
-    #unfurling_bot_access_token_required
 
     Метод для создания предпросмотров ссылок в сообщениях.
 
@@ -264,8 +258,6 @@ async def asyncio(
 
 ) -> ApiError | EmptyResponse | OAuthError | None:
     """  Unfurl (разворачивание ссылок)
-
-    #unfurling_bot_access_token_required
 
     Метод для создания предпросмотров ссылок в сообщениях.
 

@@ -80,6 +80,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 | *MessagesApi* | [**messageOperationsPinMessage**](docs/MessagesApi.md#messageoperationspinmessage) | **POST** /messages/{id}/pin |  |
 | *MessagesApi* | [**messageOperationsUnpinMessage**](docs/MessagesApi.md#messageoperationsunpinmessage) | **DELETE** /messages/{id}/pin |  |
 | *MessagesApi* | [**messageOperationsUpdateMessage**](docs/MessagesApi.md#messageoperationsupdatemessage) | **PUT** /messages/{id} |  |
+| *ProfileApi* | [**oAuthOperationsGetTokenInfo**](docs/ProfileApi.md#oauthoperationsgettokeninfo) | **GET** /oauth/token/info |  |
 | *ProfileApi* | [**profileOperationsDeleteStatus**](docs/ProfileApi.md#profileoperationsdeletestatus) | **DELETE** /profile/status |  |
 | *ProfileApi* | [**profileOperationsGetProfile**](docs/ProfileApi.md#profileoperationsgetprofile) | **GET** /profile |  |
 | *ProfileApi* | [**profileOperationsGetStatus**](docs/ProfileApi.md#profileoperationsgetstatus) | **GET** /profile/status |  |
@@ -107,6 +108,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 <a id="documentation-for-models"></a>
 ## Documentation for Models
 
+ - [org.openapitools.client.models.AccessTokenInfo](docs/AccessTokenInfo.md)
  - [org.openapitools.client.models.AddMembersRequest](docs/AddMembersRequest.md)
  - [org.openapitools.client.models.AddTagsRequest](docs/AddTagsRequest.md)
  - [org.openapitools.client.models.ApiError](docs/ApiError.md)
@@ -166,6 +168,8 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
  - [org.openapitools.client.models.MessageUpdateRequestMessageFilesInner](docs/MessageUpdateRequestMessageFilesInner.md)
  - [org.openapitools.client.models.MessageWebhookPayload](docs/MessageWebhookPayload.md)
  - [org.openapitools.client.models.OAuthError](docs/OAuthError.md)
+ - [org.openapitools.client.models.OAuthOperationsGetTokenInfo200Response](docs/OAuthOperationsGetTokenInfo200Response.md)
+ - [org.openapitools.client.models.OAuthScope](docs/OAuthScope.md)
  - [org.openapitools.client.models.OpenViewRequest](docs/OpenViewRequest.md)
  - [org.openapitools.client.models.OpenViewRequestView](docs/OpenViewRequestView.md)
  - [org.openapitools.client.models.PaginationMeta](docs/PaginationMeta.md)

@@ -1,5 +1,6 @@
 README.md
 build.gradle
+docs/AccessTokenInfo.md
 docs/AddMembersRequest.md
 docs/AddTagsRequest.md
 docs/ApiError.md
@@ -67,6 +68,8 @@ docs/MessageUpdateRequestMessageFilesInner.md
 docs/MessageWebhookPayload.md
 docs/MessagesApi.md
 docs/OAuthError.md
+docs/OAuthOperationsGetTokenInfo200Response.md
+docs/OAuthScope.md
 docs/OpenViewRequest.md
 docs/OpenViewRequestView.md
 docs/PaginationMeta.md
@@ -166,6 +169,7 @@ src/main/kotlin/org/openapitools/client/infrastructure/ApiClient.kt
 src/main/kotlin/org/openapitools/client/infrastructure/HttpResponse.kt
 src/main/kotlin/org/openapitools/client/infrastructure/RequestConfig.kt
 src/main/kotlin/org/openapitools/client/infrastructure/RequestMethod.kt
+src/main/kotlin/org/openapitools/client/models/AccessTokenInfo.kt
 src/main/kotlin/org/openapitools/client/models/AddMembersRequest.kt
 src/main/kotlin/org/openapitools/client/models/AddTagsRequest.kt
 src/main/kotlin/org/openapitools/client/models/ApiError.kt
@@ -225,6 +229,8 @@ src/main/kotlin/org/openapitools/client/models/MessageUpdateRequestMessage.kt
 src/main/kotlin/org/openapitools/client/models/MessageUpdateRequestMessageFilesInner.kt
 src/main/kotlin/org/openapitools/client/models/MessageWebhookPayload.kt
 src/main/kotlin/org/openapitools/client/models/OAuthError.kt
+src/main/kotlin/org/openapitools/client/models/OAuthOperationsGetTokenInfo200Response.kt
+src/main/kotlin/org/openapitools/client/models/OAuthScope.kt
 src/main/kotlin/org/openapitools/client/models/OpenViewRequest.kt
 src/main/kotlin/org/openapitools/client/models/OpenViewRequestView.kt
 src/main/kotlin/org/openapitools/client/models/PaginationMeta.kt
@@ -287,3 +293,6 @@ src/main/kotlin/org/openapitools/client/models/WebhookLink.kt
 src/main/kotlin/org/openapitools/client/models/WebhookMessageThread.kt
 src/main/kotlin/org/openapitools/client/models/WebhookPayloadUnion.kt
 src/main/kotlin/org/openapitools/client/models/java.io.File.kt
+src/test/kotlin/org/openapitools/client/models/AccessTokenInfoTest.kt
+src/test/kotlin/org/openapitools/client/models/OAuthOperationsGetTokenInfo200ResponseTest.kt
+src/test/kotlin/org/openapitools/client/models/OAuthScopeTest.kt

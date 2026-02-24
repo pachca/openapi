@@ -56,17 +56,17 @@ class OpenViewRequestView:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.view_block_select import ViewBlockSelect
-        from ..models.view_block_time import ViewBlockTime
-        from ..models.view_block_date import ViewBlockDate
-        from ..models.view_block_markdown import ViewBlockMarkdown
-        from ..models.view_block_header import ViewBlockHeader
         from ..models.view_block_divider import ViewBlockDivider
+        from ..models.view_block_date import ViewBlockDate
         from ..models.view_block_input import ViewBlockInput
-        from ..models.view_block_file_input import ViewBlockFileInput
-        from ..models.view_block_plain_text import ViewBlockPlainText
-        from ..models.view_block_checkbox import ViewBlockCheckbox
         from ..models.view_block_radio import ViewBlockRadio
+        from ..models.view_block_markdown import ViewBlockMarkdown
+        from ..models.view_block_time import ViewBlockTime
+        from ..models.view_block_checkbox import ViewBlockCheckbox
+        from ..models.view_block_plain_text import ViewBlockPlainText
+        from ..models.view_block_file_input import ViewBlockFileInput
+        from ..models.view_block_select import ViewBlockSelect
+        from ..models.view_block_header import ViewBlockHeader
         title = self.title
 
         blocks = []

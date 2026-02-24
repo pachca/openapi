@@ -13,7 +13,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 
 
 
-Журнал аудита событий  #corporation_price_only  Метод для получения логов событий на основе указанных фильтров.
+Журнал аудита событий  Метод для получения логов событий на основе указанных фильтров.
 
 ### Example
 ```kotlin

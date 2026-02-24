@@ -119,8 +119,6 @@ def sync_detailed(
 ) -> Response[ApiError | ApiError | OAuthError | EmptyResponse | OAuthError]:
     """  Экспорт сообщений
 
-    #corporation_price_only #owner_access_token_required
-
     Метод для запрашивания экспорта сообщений за указанный период.
 
     Args:
@@ -154,8 +152,6 @@ def sync(
 ) -> ApiError | ApiError | OAuthError | EmptyResponse | OAuthError | None:
     """  Экспорт сообщений
 
-    #corporation_price_only #owner_access_token_required
-
     Метод для запрашивания экспорта сообщений за указанный период.
 
     Args:
@@ -183,8 +179,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | ApiError | OAuthError | EmptyResponse | OAuthError]:
     """  Экспорт сообщений
-
-    #corporation_price_only #owner_access_token_required
 
     Метод для запрашивания экспорта сообщений за указанный период.
 
@@ -218,8 +212,6 @@ async def asyncio(
 
 ) -> ApiError | ApiError | OAuthError | EmptyResponse | OAuthError | None:
     """  Экспорт сообщений
-
-    #corporation_price_only #owner_access_token_required
 
     Метод для запрашивания экспорта сообщений за указанный период.
 

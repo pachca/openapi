@@ -144,8 +144,6 @@ def sync_detailed(
 ) -> Response[ApiError | OAuthError | SecurityOperationsGetAuditEventsResponse200]:
     """  Журнал аудита событий
 
-    #corporation_price_only
-
     Метод для получения логов событий на основе указанных фильтров.
 
     Args:
@@ -203,8 +201,6 @@ def sync(
 ) -> ApiError | OAuthError | SecurityOperationsGetAuditEventsResponse200 | None:
     """  Журнал аудита событий
 
-    #corporation_price_only
-
     Метод для получения логов событий на основе указанных фильтров.
 
     Args:
@@ -256,8 +252,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | OAuthError | SecurityOperationsGetAuditEventsResponse200]:
     """  Журнал аудита событий
-
-    #corporation_price_only
 
     Метод для получения логов событий на основе указанных фильтров.
 
@@ -315,8 +309,6 @@ async def asyncio(
 
 ) -> ApiError | OAuthError | SecurityOperationsGetAuditEventsResponse200 | None:
     """  Журнал аудита событий
-
-    #corporation_price_only
 
     Метод для получения логов событий на основе указанных фильтров.
 

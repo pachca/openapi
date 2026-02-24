@@ -111,8 +111,6 @@ def sync_detailed(
 ) -> Response[ApiError | OAuthError | UserOperationsUpdateUserResponse200]:
     """  Редактирование сотрудника
 
-    #admin_access_token_required
-
     Метод для редактирования сотрудника.
 
     Для редактирования сотрудника вам необходимо знать его `id` и указать его в `URL` запроса. Все
@@ -154,8 +152,6 @@ def sync(
 ) -> ApiError | OAuthError | UserOperationsUpdateUserResponse200 | None:
     """  Редактирование сотрудника
 
-    #admin_access_token_required
-
     Метод для редактирования сотрудника.
 
     Для редактирования сотрудника вам необходимо знать его `id` и указать его в `URL` запроса. Все
@@ -191,8 +187,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | OAuthError | UserOperationsUpdateUserResponse200]:
     """  Редактирование сотрудника
-
-    #admin_access_token_required
 
     Метод для редактирования сотрудника.
 
@@ -234,8 +228,6 @@ async def asyncio(
 
 ) -> ApiError | OAuthError | UserOperationsUpdateUserResponse200 | None:
     """  Редактирование сотрудника
-
-    #admin_access_token_required
 
     Метод для редактирования сотрудника.
 

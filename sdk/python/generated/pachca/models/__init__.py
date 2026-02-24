@@ -1,5 +1,6 @@
 """ Contains all the data models used in inputs/outputs """
 
+from .access_token_info import AccessTokenInfo
 from .add_members_request import AddMembersRequest
 from .add_tags_request import AddTagsRequest
 from .api_error import ApiError
@@ -78,6 +79,8 @@ from .message_update_request_message_files_item import MessageUpdateRequestMessa
 from .message_webhook_payload import MessageWebhookPayload
 from .message_webhook_payload_type import MessageWebhookPayloadType
 from .o_auth_error import OAuthError
+from .o_auth_operations_get_token_info_response_200 import OAuthOperationsGetTokenInfoResponse200
+from .o_auth_scope import OAuthScope
 from .open_view_request import OpenViewRequest
 from .open_view_request_type import OpenViewRequestType
 from .open_view_request_view import OpenViewRequestView
@@ -164,6 +167,7 @@ from .webhook_link import WebhookLink
 from .webhook_message_thread import WebhookMessageThread
 
 __all__ = (
+    "AccessTokenInfo",
     "AddMembersRequest",
     "AddTagsRequest",
     "ApiError",
@@ -242,6 +246,8 @@ __all__ = (
     "MessageWebhookPayload",
     "MessageWebhookPayloadType",
     "OAuthError",
+    "OAuthOperationsGetTokenInfoResponse200",
+    "OAuthScope",
     "OpenViewRequest",
     "OpenViewRequestType",
     "OpenViewRequestView",

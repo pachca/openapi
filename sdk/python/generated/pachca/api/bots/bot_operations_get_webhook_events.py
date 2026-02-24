@@ -107,8 +107,6 @@ def sync_detailed(
 ) -> Response[ApiError | BotOperationsGetWebhookEventsResponse200 | OAuthError]:
     """  История событий
 
-    #bot_access_token_required
-
     Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете
     получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на
     которые вы подписались.
@@ -153,8 +151,6 @@ def sync(
 ) -> ApiError | BotOperationsGetWebhookEventsResponse200 | OAuthError | None:
     """  История событий
 
-    #bot_access_token_required
-
     Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете
     получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на
     которые вы подписались.
@@ -193,8 +189,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | BotOperationsGetWebhookEventsResponse200 | OAuthError]:
     """  История событий
-
-    #bot_access_token_required
 
     Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете
     получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на
@@ -239,8 +233,6 @@ async def asyncio(
 
 ) -> ApiError | BotOperationsGetWebhookEventsResponse200 | OAuthError | None:
     """  История событий
-
-    #bot_access_token_required
 
     Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете
     получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на

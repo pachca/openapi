@@ -100,8 +100,6 @@ def sync_detailed(
 ) -> Response[Any | ApiError | ApiError | OAuthError | OAuthError]:
     """  Скачать архив экспорта
 
-    #corporation_price_only #owner_access_token_required
-
     Метод для скачивания готового архива экспорта сообщений.
 
     Для получения архива вам необходимо знать его `id` и указать его в `URL` запроса.
@@ -140,8 +138,6 @@ def sync(
 ) -> Any | ApiError | ApiError | OAuthError | OAuthError | None:
     """  Скачать архив экспорта
 
-    #corporation_price_only #owner_access_token_required
-
     Метод для скачивания готового архива экспорта сообщений.
 
     Для получения архива вам необходимо знать его `id` и указать его в `URL` запроса.
@@ -174,8 +170,6 @@ async def asyncio_detailed(
 
 ) -> Response[Any | ApiError | ApiError | OAuthError | OAuthError]:
     """  Скачать архив экспорта
-
-    #corporation_price_only #owner_access_token_required
 
     Метод для скачивания готового архива экспорта сообщений.
 
@@ -214,8 +208,6 @@ async def asyncio(
 
 ) -> Any | ApiError | ApiError | OAuthError | OAuthError | None:
     """  Скачать архив экспорта
-
-    #corporation_price_only #owner_access_token_required
 
     Метод для скачивания готового архива экспорта сообщений.
 

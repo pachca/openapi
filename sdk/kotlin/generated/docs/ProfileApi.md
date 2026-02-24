@@ -4,11 +4,57 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 
 | Method | HTTP request | Description |
 | ------------- | ------------- | ------------- |
+| [**oAuthOperationsGetTokenInfo**](ProfileApi.md#oAuthOperationsGetTokenInfo) | **GET** /oauth/token/info |  |
 | [**profileOperationsDeleteStatus**](ProfileApi.md#profileOperationsDeleteStatus) | **DELETE** /profile/status |  |
 | [**profileOperationsGetProfile**](ProfileApi.md#profileOperationsGetProfile) | **GET** /profile |  |
 | [**profileOperationsGetStatus**](ProfileApi.md#profileOperationsGetStatus) | **GET** /profile/status |  |
 | [**profileOperationsUpdateStatus**](ProfileApi.md#profileOperationsUpdateStatus) | **PUT** /profile/status |  |
 
+
+<a id="oAuthOperationsGetTokenInfo"></a>
+# **oAuthOperationsGetTokenInfo**
+> OAuthOperationsGetTokenInfo200Response oAuthOperationsGetTokenInfo()
+
+
+
+Информация о токене  Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
+
+### Example
+```kotlin
+// Import classes:
+//import org.openapitools.client.infrastructure.*
+//import org.openapitools.client.models.*
+
+val apiInstance = ProfileApi()
+try {
+    val result : OAuthOperationsGetTokenInfo200Response = apiInstance.oAuthOperationsGetTokenInfo()
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling ProfileApi#oAuthOperationsGetTokenInfo")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling ProfileApi#oAuthOperationsGetTokenInfo")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**OAuthOperationsGetTokenInfo200Response**](OAuthOperationsGetTokenInfo200Response.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
 
 <a id="profileOperationsDeleteStatus"></a>
 # **profileOperationsDeleteStatus**

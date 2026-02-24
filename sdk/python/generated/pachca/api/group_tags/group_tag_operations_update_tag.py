@@ -111,8 +111,6 @@ def sync_detailed(
 ) -> Response[ApiError | GroupTagOperationsUpdateTagResponse200 | OAuthError]:
     """  Редактирование тега
 
-    #admin_access_token_required
-
     Метод для редактирования тега.
 
     Для редактирования тега вам необходимо знать его `id` и указать его в `URL` запроса. Все
@@ -152,8 +150,6 @@ def sync(
 ) -> ApiError | GroupTagOperationsUpdateTagResponse200 | OAuthError | None:
     """  Редактирование тега
 
-    #admin_access_token_required
-
     Метод для редактирования тега.
 
     Для редактирования тега вам необходимо знать его `id` и указать его в `URL` запроса. Все
@@ -187,8 +183,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | GroupTagOperationsUpdateTagResponse200 | OAuthError]:
     """  Редактирование тега
-
-    #admin_access_token_required
 
     Метод для редактирования тега.
 
@@ -228,8 +222,6 @@ async def asyncio(
 
 ) -> ApiError | GroupTagOperationsUpdateTagResponse200 | OAuthError | None:
     """  Редактирование тега
-
-    #admin_access_token_required
 
     Метод для редактирования тега.
 

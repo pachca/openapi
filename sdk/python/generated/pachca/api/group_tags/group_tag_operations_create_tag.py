@@ -102,8 +102,6 @@ def sync_detailed(
 ) -> Response[ApiError | GroupTagOperationsCreateTagResponse201 | OAuthError]:
     """  Новый тег
 
-    #admin_access_token_required
-
     Метод для создания нового тега.
 
     Args:
@@ -137,8 +135,6 @@ def sync(
 ) -> ApiError | GroupTagOperationsCreateTagResponse201 | OAuthError | None:
     """  Новый тег
 
-    #admin_access_token_required
-
     Метод для создания нового тега.
 
     Args:
@@ -166,8 +162,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | GroupTagOperationsCreateTagResponse201 | OAuthError]:
     """  Новый тег
-
-    #admin_access_token_required
 
     Метод для создания нового тега.
 
@@ -201,8 +195,6 @@ async def asyncio(
 
 ) -> ApiError | GroupTagOperationsCreateTagResponse201 | OAuthError | None:
     """  Новый тег
-
-    #admin_access_token_required
 
     Метод для создания нового тега.
 

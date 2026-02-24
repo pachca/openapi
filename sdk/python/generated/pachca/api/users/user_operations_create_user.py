@@ -102,8 +102,6 @@ def sync_detailed(
 ) -> Response[ApiError | OAuthError | UserOperationsCreateUserResponse201]:
     """  Создать сотрудника
 
-    #admin_access_token_required
-
     Метод для создания нового сотрудника в вашей компании.
 
     Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить
@@ -141,8 +139,6 @@ def sync(
 ) -> ApiError | OAuthError | UserOperationsCreateUserResponse201 | None:
     """  Создать сотрудника
 
-    #admin_access_token_required
-
     Метод для создания нового сотрудника в вашей компании.
 
     Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить
@@ -174,8 +170,6 @@ async def asyncio_detailed(
 
 ) -> Response[ApiError | OAuthError | UserOperationsCreateUserResponse201]:
     """  Создать сотрудника
-
-    #admin_access_token_required
 
     Метод для создания нового сотрудника в вашей компании.
 
@@ -213,8 +207,6 @@ async def asyncio(
 
 ) -> ApiError | OAuthError | UserOperationsCreateUserResponse201 | None:
     """  Создать сотрудника
-
-    #admin_access_token_required
 
     Метод для создания нового сотрудника в вашей компании.
 

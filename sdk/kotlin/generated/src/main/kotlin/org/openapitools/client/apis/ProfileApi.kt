@@ -17,6 +17,7 @@ package org.openapitools.client.apis
 
 import org.openapitools.client.models.ApiError
 import org.openapitools.client.models.OAuthError
+import org.openapitools.client.models.OAuthOperationsGetTokenInfo200Response
 import org.openapitools.client.models.ProfileOperationsGetProfile200Response
 import org.openapitools.client.models.ProfileOperationsGetStatus200Response
 import org.openapitools.client.models.ProfileOperationsUpdateStatus200Response
@@ -37,6 +38,39 @@ import io.ktor.http.ParametersBuilder
         httpClientEngine,
         httpClientConfig,
     ) {
+
+        /**
+        * GET /oauth/token/info
+        * 
+        * Информация о токене  Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
+         * @return OAuthOperationsGetTokenInfo200Response
+        */
+            @Suppress("UNCHECKED_CAST")
+        open suspend fun oAuthOperationsGetTokenInfo(): HttpResponse<OAuthOperationsGetTokenInfo200Response> {
+
+            val localVariableAuthNames = listOf<String>("BearerAuth")
+
+            val localVariableBody = 
+                    io.ktor.client.utils.EmptyContent
+
+            val localVariableQuery = mutableMapOf<String, List<String>>()
+
+            val localVariableHeaders = mutableMapOf<String, String>()
+
+            val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.GET,
+            "/oauth/token/info",
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            )
+
+            return request(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+            ).wrap()
+            }
 
         /**
         * DELETE /profile/status

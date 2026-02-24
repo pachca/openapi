@@ -102,9 +102,9 @@ def sync_detailed(
     entity_type: SearchEntityType,
 
 ) -> Response[ApiError | CommonOperationsListPropertiesResponse200 | OAuthError]:
-    """  Список дополнительных полей
+    r"""  Список дополнительных полей
 
-    #files_not_supported
+    На данный момент работа с дополнительными полями типа \"Файл\" недоступна.
 
     Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей
     компании.
@@ -143,9 +143,9 @@ def sync(
     entity_type: SearchEntityType,
 
 ) -> ApiError | CommonOperationsListPropertiesResponse200 | OAuthError | None:
-    """  Список дополнительных полей
+    r"""  Список дополнительных полей
 
-    #files_not_supported
+    На данный момент работа с дополнительными полями типа \"Файл\" недоступна.
 
     Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей
     компании.
@@ -179,9 +179,9 @@ async def asyncio_detailed(
     entity_type: SearchEntityType,
 
 ) -> Response[ApiError | CommonOperationsListPropertiesResponse200 | OAuthError]:
-    """  Список дополнительных полей
+    r"""  Список дополнительных полей
 
-    #files_not_supported
+    На данный момент работа с дополнительными полями типа \"Файл\" недоступна.
 
     Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей
     компании.
@@ -220,9 +220,9 @@ async def asyncio(
     entity_type: SearchEntityType,
 
 ) -> ApiError | CommonOperationsListPropertiesResponse200 | OAuthError | None:
-    """  Список дополнительных полей
+    r"""  Список дополнительных полей
 
-    #files_not_supported
+    На данный момент работа с дополнительными полями типа \"Файл\" недоступна.
 
     Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей
     компании.

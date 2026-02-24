@@ -58,7 +58,7 @@ export function InternalLink({
 }: InternalLinkProps) {
   const isExternal = href?.startsWith('http');
   const isAnchor = href?.startsWith('#');
-  const isDownloadable = href?.endsWith('.txt') || href?.endsWith('.md');
+  const isDownloadable = href?.endsWith('.txt') || href?.endsWith('.md') || href?.endsWith('.xml');
 
   // External links or downloadable files - use regular <a> with target="_blank"
   if (isExternal || isDownloadable) {

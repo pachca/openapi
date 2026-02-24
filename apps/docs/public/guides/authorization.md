@@ -93,6 +93,9 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 ### Скоупы персональных токенов
 
+> **Внимание:** При создании персонального токена в интерфейсе Пачки отображаются только те скоупы, которые доступны вашей роли. Например, только **Владелец** видит все скоупы, включая `audit_events:read` и `chat_exports:read/write`. **Сотрудник** не видит скоупы управления другими пользователями (`users:create`, `users:update`, `users:delete`) и тегами (`group_tags:write`).
+
+
 #### OAuthScope
 
 
@@ -108,7 +111,8 @@ Authorization: Bearer <ACCESS_TOKEN>
 - **Файлы:** `files:read`, `uploads:write`
 - **Вебхуки:** `webhooks:events:read`, `webhooks:events:delete`
 
-Боты не имеют доступа к: `audit_events:read`, `chat_exports:read/write`, `users:create/update/delete`, `group_tags:write`, `files:write`, `webhooks:read/write`, `bots:write`.
+> **Внимание:** Боты не имеют доступа к: `audit_events:read`, `chat_exports:read/write`, `users:create/update/delete`, `group_tags:write`, `webhooks:read/write`, `bots:write`.
+
 
 ## Ошибки авторизации
 

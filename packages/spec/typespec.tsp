@@ -1000,6 +1000,180 @@ model PaginatedDataResponse<T> {
 model EmptyResponse {}
 
 // ============================================================================
+// OAuth Models
+// ============================================================================
+
+@doc("Скоуп доступа OAuth токена")
+enum OAuthScope {
+  @doc("Просмотр чатов и списка чатов")
+  chats_read: "chats:read",
+
+  @doc("Создание новых чатов")
+  chats_create: "chats:create",
+
+  @doc("Изменение настроек чата")
+  chats_update: "chats:update",
+
+  @doc("Архивация и разархивация чатов")
+  chats_archive: "chats:archive",
+
+  @doc("Выход из чатов")
+  chats_leave: "chats:leave",
+
+  @doc("Просмотр участников чата")
+  chat_members_read: "chat_members:read",
+
+  @doc("Добавление, изменение и удаление участников чата")
+  chat_members_write: "chat_members:write",
+
+  @doc("Скачивание экспортов чата")
+  chat_exports_read: "chat_exports:read",
+
+  @doc("Создание экспортов чата")
+  chat_exports_write: "chat_exports:write",
+
+  @doc("Просмотр сообщений в чатах")
+  messages_read: "messages:read",
+
+  @doc("Отправка сообщений")
+  messages_create: "messages:create",
+
+  @doc("Редактирование сообщений")
+  messages_update: "messages:update",
+
+  @doc("Удаление сообщений")
+  messages_delete: "messages:delete",
+
+  @doc("Просмотр реакций на сообщения")
+  reactions_read: "reactions:read",
+
+  @doc("Добавление и удаление реакций")
+  reactions_write: "reactions:write",
+
+  @doc("Закрепление и открепление сообщений")
+  pins_write: "pins:write",
+
+  @doc("Просмотр тредов (комментариев)")
+  threads_read: "threads:read",
+
+  @doc("Создание тредов (комментариев)")
+  threads_create: "threads:create",
+
+  @doc("Unfurl (разворачивание ссылок)")
+  link_previews_write: "link_previews:write",
+
+  @doc("Просмотр информации о сотрудниках и списка сотрудников")
+  users_read: "users:read",
+
+  @doc("Создание новых сотрудников")
+  users_create: "users:create",
+
+  @doc("Редактирование данных сотрудника")
+  users_update: "users:update",
+
+  @doc("Удаление сотрудников")
+  users_delete: "users:delete",
+
+  @doc("Просмотр тегов")
+  group_tags_read: "group_tags:read",
+
+  @doc("Создание, редактирование и удаление тегов")
+  group_tags_write: "group_tags:write",
+
+  @doc("Изменение настроек бота")
+  bots_write: "bots:write",
+
+  @doc("Просмотр информации о своем профиле")
+  profile_read: "profile:read",
+
+  @doc("Просмотр статуса профиля")
+  profile_status_read: "profile_status:read",
+
+  @doc("Изменение и удаление статуса профиля")
+  profile_status_write: "profile_status:write",
+
+  @doc("Просмотр дополнительных полей")
+  custom_properties_read: "custom_properties:read",
+
+  @doc("Просмотр журнала аудита")
+  audit_events_read: "audit_events:read",
+
+  @doc("Просмотр задач")
+  tasks_read: "tasks:read",
+
+  @doc("Создание задач")
+  tasks_create: "tasks:create",
+
+  @doc("Изменение задачи")
+  tasks_update: "tasks:update",
+
+  @doc("Удаление задачи")
+  tasks_delete: "tasks:delete",
+
+  @doc("Скачивание файлов")
+  files_read: "files:read",
+
+  @doc("Загрузка файлов")
+  files_write: "files:write",
+
+  @doc("Получение данных для загрузки файлов")
+  uploads_write: "uploads:write",
+
+  @doc("Открытие форм (представлений)")
+  views_write: "views:write",
+
+  @doc("Просмотр вебхуков")
+  webhooks_read: "webhooks:read",
+
+  @doc("Создание и управление вебхуками")
+  webhooks_write: "webhooks:write",
+
+  @doc("Просмотр лога вебхуков")
+  webhooks_events_read: "webhooks:events:read",
+
+  @doc("Удаление записи в логе вебхука")
+  webhooks_events_delete: "webhooks:events:delete",
+}
+
+@doc("Информация о текущем OAuth токене")
+model AccessTokenInfo {
+  @doc("Идентификатор токена")
+  @example(4827)
+  id: int64;
+
+  @doc("Маскированный токен (видны первые 8 и последние 4 символа)")
+  @example("cH5kR9mN...x7Qp")
+  token: string;
+
+  @doc("Пользовательское имя токена")
+  @example("Мой API токен")
+  name: string | null;
+
+  @doc("Идентификатор владельца токена")
+  @example(12)
+  user_id: int64;
+
+  @doc("Список скоупов токена")
+  scopes: OAuthScope[];
+
+  @doc("Дата создания токена")
+  @example(utcDateTime.fromISO("2025-01-15T10:30:00.000Z"))
+  created_at: utcDateTime;
+
+  @doc("Дата отзыва токена")
+  @example(null)
+  revoked_at: utcDateTime | null;
+
+  @doc("Время жизни токена в секундах")
+  @example(null)
+  expires_in: int32 | null;
+
+  @doc("Дата последнего использования токена")
+  @example(utcDateTime.fromISO("2025-02-24T14:20:00.000Z"))
+  last_used_at: utcDateTime | null;
+}
+
+// ============================================================================
 // Error Models
 // ============================================================================
 
@@ -5738,5 +5912,41 @@ interface SecurityOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  };
+}
+
+@route("/oauth/token/info")
+@tag("Profile")
+interface OAuthOperations {
+  @doc("""
+Информация о токене
+
+Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
+""")
+  @get
+  @opExample(#{
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          id: 4827,
+          token: "cH5kR9mN...x7Qp",
+          name: "Мой API токен",
+          user_id: 12,
+          scopes: #[OAuthScope.messages_read, OAuthScope.messages_create],
+          created_at: utcDateTime.fromISO("2025-01-15T10:30:00.000Z"),
+          revoked_at: null,
+          expires_in: null,
+          last_used_at: utcDateTime.fromISO("2025-02-24T14:20:00.000Z")
+        }
+      }
+    }
+  })
+  getTokenInfo(): {
+    @statusCode _: 200;
+    @body body: DataResponse<AccessTokenInfo>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
   };
 }

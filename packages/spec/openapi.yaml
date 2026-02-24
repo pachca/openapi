@@ -4747,6 +4747,7 @@ components:
         - message_created
         - reaction_created
         - reaction_deleted
+        - thread_created
         - access_token_created
         - access_token_updated
         - access_token_destroy
@@ -4780,6 +4781,7 @@ components:
         message_created: Сообщение создано
         reaction_created: Реакция добавлена
         reaction_deleted: Реакция удалена
+        thread_created: Тред создан
         access_token_created: Создан новый токен доступа
         access_token_updated: Токен доступа обновлен
         access_token_destroy: Токен доступа удален

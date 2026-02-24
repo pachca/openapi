@@ -54,7 +54,7 @@ export function EndpointHeader({
                 {requirements.auth === false && (
                   <Link
                     href="/guides/authorization"
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-callout-info-bg)] ![color:var(--color-callout-info-text)] ![text-decoration:none] hover:opacity-80 transition-opacity"
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                   >
                     Без авторизации
                   </Link>
@@ -62,7 +62,7 @@ export function EndpointHeader({
                 {requirements.scope && (
                   <Link
                     href="/guides/authorization#скоупы"
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-callout-info-bg)] ![color:var(--color-callout-info-text)] ![text-decoration:none] hover:opacity-80 transition-opacity"
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                   >
                     {requirements.scope}
                   </Link>

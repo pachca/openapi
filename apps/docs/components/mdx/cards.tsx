@@ -36,6 +36,7 @@ import {
   MessageSquareReply,
   AtSign,
   ArrowDownToLine,
+  KeyRound,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -75,10 +76,12 @@ const iconMap: Record<string, LucideIcon> = {
   MessageSquareReply,
   AtSign,
   ArrowDownToLine,
+  KeyRound,
 };
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
+  '/guides/authorization': 'KeyRound',
   '/guides/ai-agents': 'Sparkles',
   '/guides/requests-responses': 'ArrowLeftRight',
   '/guides/webhook': 'Webhook',

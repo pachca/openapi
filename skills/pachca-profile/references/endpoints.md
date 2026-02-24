@@ -4,8 +4,11 @@
 
 **GET** `/custom_properties`
 
+> Скоуп: `custom_properties:read`
+
 Список дополнительных полей
 
+На данный момент работа с дополнительными полями типа "Файл" недоступна.
 
 Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей компании.
 
@@ -32,9 +35,41 @@ curl "https://api.pachca.com/api/shared/v1/custom_properties?entity_type=User" \
 
 ---
 
+## Информация о токене
+
+**GET** `/oauth/token/info`
+
+Информация о токене
+
+Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
+
+**Пример:**
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Ответ:**
+
+- `data` (object, **обязательный**): Информация о текущем OAuth токене
+  - `id` (integer, **обязательный**): Идентификатор токена
+  - `token` (string, **обязательный**): Маскированный токен (видны первые 8 и последние 4 символа)
+  - `name` (string, **обязательный**): Пользовательское имя токена
+  - `user_id` (integer, **обязательный**): Идентификатор владельца токена
+  - `scopes` (array[string], **обязательный**): Список скоупов токена
+  - `created_at` (string, **обязательный**): Дата создания токена
+  - `revoked_at` (string, **обязательный**): Дата отзыва токена
+  - `expires_in` (integer, **обязательный**): Время жизни токена в секундах
+  - `last_used_at` (string, **обязательный**): Дата последнего использования токена
+
+---
+
 ## Информация о профиле
 
 **GET** `/profile`
+
+> Скоуп: `profile:read`
 
 Информация о профиле
 
@@ -81,6 +116,8 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 
 **GET** `/profile/status`
 
+> Скоуп: `profile_status:read`
+
 Текущий статус
 
 Метод для получения информации о своем статусе.
@@ -101,6 +138,8 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 ## Новый статус
 
 **PUT** `/profile/status`
+
+> Скоуп: `profile_status:write`
 
 Новый статус
 
@@ -140,6 +179,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
 ## Удаление статуса
 
 **DELETE** `/profile/status`
+
+> Скоуп: `profile_status:write`
 
 Удаление статуса
 

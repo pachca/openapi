@@ -4,7 +4,7 @@
 
 **Путь**: `/messages/{id}/link_previews`
 
-#unfurling_bot_access_token_required
+> **Скоуп:** `link_previews:write`
 
 Метод для создания предпросмотров ссылок в сообщениях.
 

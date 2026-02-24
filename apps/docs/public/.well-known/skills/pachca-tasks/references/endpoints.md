@@ -4,6 +4,8 @@
 
 **POST** `/tasks`
 
+> Скоуп: `tasks:create`
+
 Новое напоминание
 
 Метод для создания нового напоминания.
@@ -76,6 +78,8 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
 
 **GET** `/tasks`
 
+> Скоуп: `tasks:read`
+
 Список напоминаний
 
 Метод для получения списка напоминаний.
@@ -120,6 +124,8 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=50&cursor=string" \
 
 **GET** `/tasks/{id}`
 
+> Скоуп: `tasks:read`
+
 Информация о напоминании
 
 Метод для получения информации о напоминании.
@@ -161,6 +167,8 @@ curl "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ## Редактирование напоминания
 
 **PUT** `/tasks/{id}`
+
+> Скоуп: `tasks:update`
 
 Редактирование напоминания
 
@@ -224,6 +232,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ## Удаление напоминания
 
 **DELETE** `/tasks/{id}`
+
+> Скоуп: `tasks:delete`
 
 Удаление напоминания
 

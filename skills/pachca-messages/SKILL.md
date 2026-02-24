@@ -292,7 +292,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 |-----|---------|------------|
 | 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
 | 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Бот не в чате, или endpoint только для админов/владельцев |
+| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
 | 404 | Не найдено | Неверный id. Проверь что сущность существует |
 | 401 | Не авторизован | Проверь токен в заголовке Authorization |
 
@@ -305,6 +305,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 ### Новое сообщение
 
 `POST /messages`
+
+> скоуп: `messages:create`
 
 ```json
 {
@@ -319,13 +321,19 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 
 `GET /messages`
 
+> скоуп: `messages:read`
+
 ### Информация о сообщении
 
 `GET /messages/{id}`
 
+> скоуп: `messages:read`
+
 ### Редактирование сообщения
 
 `PUT /messages/{id}`
+
+> скоуп: `messages:update`
 
 ```json
 {
@@ -337,17 +345,25 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 
 `DELETE /messages/{id}`
 
+> скоуп: `messages:delete`
+
 ### Закрепление сообщения
 
 `POST /messages/{id}/pin`
+
+> скоуп: `pins:write`
 
 ### Открепление сообщения
 
 `DELETE /messages/{id}/pin`
 
+> скоуп: `pins:write`
+
 ### Добавление реакции
 
 `POST /messages/{id}/reactions`
+
+> скоуп: `reactions:write`
 
 ```json
 {
@@ -359,25 +375,37 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 
 `DELETE /messages/{id}/reactions`
 
+> скоуп: `reactions:write`
+
 ### Список реакций
 
 `GET /messages/{id}/reactions`
+
+> скоуп: `reactions:read`
 
 ### Список прочитавших сообщение
 
 `GET /messages/{id}/read_member_ids`
 
+> скоуп: `messages:read`
+
 ### Новый тред
 
 `POST /messages/{id}/thread`
+
+> скоуп: `threads:create`
 
 ### Информация о треде
 
 `GET /threads/{id}`
 
+> скоуп: `threads:read`
+
 ### Получение подписи, ключа и других параметров
 
 `POST /uploads`
+
+> скоуп: `uploads:write`
 
 ## Ограничения и gotchas
 

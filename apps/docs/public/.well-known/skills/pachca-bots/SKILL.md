@@ -121,7 +121,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
 |-----|---------|------------|
 | 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
 | 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Бот не в чате, или endpoint только для админов/владельцев |
+| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
 | 404 | Не найдено | Неверный id. Проверь что сущность существует |
 | 401 | Не авторизован | Проверь токен в заголовке Authorization |
 
@@ -130,6 +130,8 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
 ### Редактирование бота
 
 `PUT /bots/{id}`
+
+> скоуп: `bots:write`
 
 ```json
 {
@@ -145,6 +147,8 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
 
 `POST /messages/{id}/link_previews`
 
+> скоуп: `link_previews:write`
+
 ```json
 {
   "link_previews": {}
@@ -155,9 +159,13 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
 
 `GET /webhooks/events`
 
+> скоуп: `webhooks:events:read`
+
 ### Удаление события
 
 `DELETE /webhooks/events/{id}`
+
+> скоуп: `webhooks:events:delete`
 
 ## Ограничения и gotchas
 

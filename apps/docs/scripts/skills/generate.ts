@@ -252,7 +252,9 @@ function generateSkillMd(ctx: SkillContext): string {
     '| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |'
   );
   lines.push('| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |');
-  lines.push('| 403 | Нет доступа | Бот не в чате, или endpoint только для админов/владельцев |');
+  lines.push(
+    '| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |'
+  );
   lines.push('| 404 | Не найдено | Неверный id. Проверь что сущность существует |');
   lines.push('| 401 | Не авторизован | Проверь токен в заголовке Authorization |');
   if (config.errors) {
@@ -270,6 +272,15 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('');
     lines.push(`\`${ep.method} ${ep.path}\``);
     lines.push('');
+    if (ep.requirements?.scope || ep.requirements?.plan) {
+      const planNames: Record<string, string> = { corporation: 'Корпорация' };
+      const parts: string[] = [];
+      if (ep.requirements.scope) parts.push(`скоуп: \`${ep.requirements.scope}\``);
+      if (ep.requirements.plan)
+        parts.push(`тариф: **${planNames[ep.requirements.plan] ?? ep.requirements.plan}**`);
+      lines.push(`> ${parts.join(' · ')}`);
+      lines.push('');
+    }
     if (ep.description) {
       const firstLine = ep.description.split('\n')[0].trim();
       if (firstLine !== title) {
@@ -450,6 +461,15 @@ function generateEndpointsMd(ctx: SkillContext): string {
     lines.push('');
     lines.push(`**${ep.method}** \`${ep.path}\``);
     lines.push('');
+    if (ep.requirements?.scope || ep.requirements?.plan) {
+      const planNames: Record<string, string> = { corporation: 'Корпорация' };
+      const parts: string[] = [];
+      if (ep.requirements.scope) parts.push(`Скоуп: \`${ep.requirements.scope}\``);
+      if (ep.requirements.plan)
+        parts.push(`Тариф: **${planNames[ep.requirements.plan] ?? ep.requirements.plan}**`);
+      lines.push(`> ${parts.join(' · ')}`);
+      lines.push('');
+    }
 
     if (ep.description) {
       lines.push(

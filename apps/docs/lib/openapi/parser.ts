@@ -81,6 +81,16 @@ function parseEndpoint(
     security: getArray(operation, 'security') as Endpoint['security'],
   };
 
+  // Parse x-requirements extension
+  const requirements = getRecord(operation, 'x-requirements');
+  if (requirements) {
+    endpoint.requirements = {
+      scope: getString(requirements, 'scope') || undefined,
+      plan: getString(requirements, 'plan') || undefined,
+      auth: requirements.auth === false ? false : undefined,
+    };
+  }
+
   // Parse parameters
   const parameters = getArray(operation, 'parameters');
   if (parameters) {
@@ -228,6 +238,27 @@ function parseResponse(response: Record<string, unknown>, openapi: OpenAPIData):
   };
 }
 
+/** Normalize x-enum-descriptions keys to match actual enum values.
+ *  TypeSpec generates member-name keys (e.g. `chats_read`) but enum values
+ *  may use colons (e.g. `chats:read`). Re-key descriptions to match values. */
+function normalizeEnumDescriptions(
+  descriptions: Record<string, string> | undefined,
+  enumValues: string[] | undefined
+): Record<string, string> | undefined {
+  if (!descriptions || !enumValues) return descriptions;
+  const keys = Object.keys(descriptions);
+  // Fast path: if first key already matches an enum value, no normalization needed
+  if (keys.length > 0 && enumValues.includes(keys[0])) return descriptions;
+  // Build a lookup: underscored enum value → original enum value
+  const normalized: Record<string, string> = {};
+  const valueByUnderscore = new Map(enumValues.map((v) => [v.replace(/:/g, '_'), v]));
+  for (const [key, desc] of Object.entries(descriptions)) {
+    const enumValue = valueByUnderscore.get(key);
+    normalized[enumValue ?? key] = desc;
+  }
+  return normalized;
+}
+
 function parseSchema(schema: Record<string, unknown>, openapi: OpenAPIData, depth = 0): Schema {
   // Защита от бесконечной рекурсии
   if (!schema || depth > 20) {
@@ -255,9 +286,10 @@ function parseSchema(schema: Record<string, unknown>, openapi: OpenAPIData, dept
     description: getString(schema, 'description'),
     required: getArray(schema, 'required') as string[] | undefined,
     enum: getArray(schema, 'enum'),
-    'x-enum-descriptions': getRecord(schema, 'x-enum-descriptions') as
-      | Record<string, string>
-      | undefined,
+    'x-enum-descriptions': normalizeEnumDescriptions(
+      getRecord(schema, 'x-enum-descriptions') as Record<string, string> | undefined,
+      getArray(schema, 'enum') as string[] | undefined
+    ),
     default: schema.default,
     example: schema.example,
     nullable: getBoolean(schema, 'nullable'),

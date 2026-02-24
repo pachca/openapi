@@ -24,6 +24,12 @@ export interface Tag {
   description?: string;
 }
 
+export interface EndpointRequirements {
+  scope?: string;
+  plan?: string;
+  auth?: boolean;
+}
+
 export interface Endpoint {
   id: string; // operationId
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -37,6 +43,7 @@ export interface Endpoint {
   security?: SecurityRequirement[];
   url?: string; // Generated URL for the docs page
   title?: string; // Human-readable title
+  requirements?: EndpointRequirements;
 }
 
 export interface Parameter {

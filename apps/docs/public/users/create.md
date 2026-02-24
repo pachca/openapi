@@ -4,7 +4,7 @@
 
 **Путь**: `/users`
 
-#admin_access_token_required
+> **Скоуп:** `users:create`
 
 Метод для создания нового сотрудника в вашей компании.
 

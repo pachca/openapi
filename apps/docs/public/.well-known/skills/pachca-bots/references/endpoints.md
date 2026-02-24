@@ -4,6 +4,8 @@
 
 **PUT** `/bots/{id}`
 
+> Скоуп: `bots:write`
+
 Редактирование бота
 
 Метод для редактирования бота.
@@ -50,8 +52,9 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/12345" \
 
 **POST** `/messages/{id}/link_previews`
 
-Unfurl (разворачивание ссылок)
+> Скоуп: `link_previews:write`
 
+Unfurl (разворачивание ссылок)
 
 Метод для создания предпросмотров ссылок в сообщениях.
 
@@ -99,8 +102,9 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/link_previews" \
 
 **GET** `/webhooks/events`
 
-История событий
+> Скоуп: `webhooks:events:read`
 
+История событий
 
 Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на которые вы подписались.
 
@@ -136,6 +140,8 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50&cursor=strin
 ## Удаление события
 
 **DELETE** `/webhooks/events/{id}`
+
+> Скоуп: `webhooks:events:delete`
 
 Удаление события
 

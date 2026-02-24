@@ -4,7 +4,9 @@
 
 **Путь**: `/chats/exports`
 
-#corporation_price_only #owner_access_token_required
+> **Скоуп:** `chat_exports:write`
+
+> **Внимание:** Доступно только на тарифе **Корпорация**
 
 Метод для запрашивания экспорта сообщений за указанный период.
 

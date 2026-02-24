@@ -47,6 +47,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `POST /uploads` — Получение подписи, ключа и других параметров
 
 ### Profile
+- `GET /oauth/token/info` — Информация о токене
 - `GET /profile` — Информация о профиле
 - `GET /profile/status` — Текущий статус
 - `PUT /profile/status` — Новый статус
@@ -215,7 +216,8 @@ Detailed documentation on specific topics is available at:
 
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [Исходящий Webhook](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
-- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses) — Формат запросов, авторизация, пагинация
+- [Авторизация](https://dev.pachca.com/guides/authorization) — OAuth 2.0 токены, скоупы и ролевые ограничения
+- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses) — Формат запросов, пагинация, тестирование
 - [Ошибки и лимиты](https://dev.pachca.com/guides/errors) — Коды ошибок HTTP и rate limits
 - [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт данных пространства
 - [Формы](https://dev.pachca.com/guides/forms) — Представления с набором полей для пользователей

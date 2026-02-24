@@ -88,7 +88,7 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 |-----|---------|------------|
 | 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
 | 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Бот не в чате, или endpoint только для админов/владельцев |
+| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
 | 404 | Не найдено | Неверный id. Проверь что сущность существует |
 | 401 | Не авторизован | Проверь токен в заголовке Authorization |
 
@@ -97,6 +97,8 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 ### Новый тег
 
 `POST /group_tags`
+
+> скоуп: `group_tags:write`
 
 ```json
 {
@@ -110,13 +112,19 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 
 `GET /group_tags`
 
+> скоуп: `group_tags:read`
+
 ### Информация о теге
 
 `GET /group_tags/{id}`
 
+> скоуп: `group_tags:read`
+
 ### Редактирование тега
 
 `PUT /group_tags/{id}`
+
+> скоуп: `group_tags:write`
 
 ```json
 {
@@ -130,13 +138,19 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 
 `DELETE /group_tags/{id}`
 
+> скоуп: `group_tags:write`
+
 ### Список сотрудников тега
 
 `GET /group_tags/{id}/users`
 
+> скоуп: `group_tags:read`
+
 ### Создать сотрудника
 
 `POST /users`
+
+> скоуп: `users:create`
 
 ```json
 {
@@ -150,13 +164,19 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 
 `GET /users`
 
+> скоуп: `users:read`
+
 ### Информация о сотруднике
 
 `GET /users/{id}`
 
+> скоуп: `users:read`
+
 ### Редактирование сотрудника
 
 `PUT /users/{id}`
+
+> скоуп: `users:update`
 
 ```json
 {
@@ -167,6 +187,8 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 ### Удаление сотрудника
 
 `DELETE /users/{id}`
+
+> скоуп: `users:delete`
 
 ## Ограничения и gotchas
 

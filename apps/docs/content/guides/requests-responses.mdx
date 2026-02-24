@@ -1,48 +1,9 @@
 ---
 title: Запросы и ответы
-description: Формат запросов, авторизация, пагинация
+description: Формат запросов, пагинация, тестирование
 ---
 
 # Запросы и ответы
-
-## Доступ
-
-Для работы с методами API вам необходимо иметь действующий `access_token`.
-
-`access_token` не имеет времени жизни. Если вы используете `access_token` «Администратора» или «Владельца» пространства, то в разделе «Автоматизации» → «API» вы можете воспользоваться функцией сброса токена. В таком случае вы увидите новый `Access token`, а предыдущий станет недействительным.
-
-## Тестирование API
-
-### Scalar
-
-Онлайн-клиент с интерфейсом для тестирования всех методов API прямо в браузере — без установки. Достаточно вставить токен и отправить запрос.
-
-<CardGroup columns={1}>
-  <Card title="Открыть Scalar API Client" href="https://client.scalar.com/?url=https://dev.pachca.com/openapi.yaml">
-    Браузерный клиент на основе OpenAPI-спецификации. Бесплатно, без регистрации.
-  </Card>
-</CardGroup>
-
-<Callout type="warning">
-  Браузерный клиент Scalar отправляет запросы через прокси-сервер `proxy.scalar.com` — это необходимо из-за ограничений браузера (CORS). Токен проходит через сервер Scalar, но [по их заявлению](https://github.com/scalar/scalar) данные не логируются. Scalar — проект с открытым исходным кодом (MIT), включая код прокси. Если вы хотите избежать передачи токена через сторонний сервер, используйте Postman или Bruno — они работают локально и отправляют запросы напрямую.
-</Callout>
-
-### Postman / Bruno
-
-Коллекция содержит все методы API с примерами запросов и настроенной авторизацией. Совместима с:
-
-- **Postman** *File → Import*
-- **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
-
-<CodeBlock language="text" title="Коллекция Postman/Bruno">
-  {`https://dev.pachca.com/pachca.postman_collection.json`}
-</CodeBlock>
-
-<CardGroup columns={1}>
-  <Card title="Скачать коллекцию" href="/pachca.postman_collection.json" download>
-    Файл в формате Postman Collection v2.1, совместим с Postman и Bruno.
-  </Card>
-</CardGroup>
 
 ## Структура запроса метода API
 
@@ -129,3 +90,36 @@ X-Rack-CORS: miss; no-origin
 }`}
 
 </CodeBlock>
+
+## Тестирование API
+
+### Scalar
+
+Онлайн-клиент с интерфейсом для тестирования всех методов API прямо в браузере — без установки. Достаточно вставить токен и отправить запрос.
+
+<CardGroup columns={1}>
+  <Card title="Открыть Scalar API Client" href="https://client.scalar.com/?url=https://dev.pachca.com/openapi.yaml">
+    Браузерный клиент на основе OpenAPI-спецификации. Бесплатно, без регистрации.
+  </Card>
+</CardGroup>
+
+<Callout type="warning">
+  Браузерный клиент Scalar отправляет запросы через прокси-сервер `proxy.scalar.com` — это необходимо из-за ограничений браузера (CORS). Токен проходит через сервер Scalar, но [по их заявлению](https://github.com/scalar/scalar) данные не логируются. Scalar — проект с открытым исходным кодом (MIT), включая код прокси. Если вы хотите избежать передачи токена через сторонний сервер, используйте Postman или Bruno — они работают локально и отправляют запросы напрямую.
+</Callout>
+
+### Postman / Bruno
+
+Коллекция содержит все методы API с примерами запросов и настроенной авторизацией. Совместима с:
+
+- **Postman** *File → Import*
+- **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
+
+<CodeBlock language="text" title="Коллекция Postman/Bruno">
+  {`https://dev.pachca.com/pachca.postman_collection.json`}
+</CodeBlock>
+
+<CardGroup columns={1}>
+  <Card title="Скачать коллекцию" href="/pachca.postman_collection.json" download>
+    Файл в формате Postman Collection v2.1, совместим с Postman и Bruno.
+  </Card>
+</CardGroup>

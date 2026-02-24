@@ -515,11 +515,6 @@ function extractGuideMetadata(content: string, id: string, url: string): GuideMe
         continue;
       }
 
-      // Skip tag lines (e.g., #corporation_price_only #owner_access_token_required)
-      if (trimmedLine.match(/^#\w+(\s+#\w+)*$/)) {
-        continue;
-      }
-
       // Skip component tags like <Info>, <Image>, etc.
       if (trimmedLine.startsWith('<') && !trimmedLine.startsWith('</')) {
         continue;

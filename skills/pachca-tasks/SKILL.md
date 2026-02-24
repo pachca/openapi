@@ -100,7 +100,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 |-----|---------|------------|
 | 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
 | 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Бот не в чате, или endpoint только для админов/владельцев |
+| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
 | 404 | Не найдено | Неверный id. Проверь что сущность существует |
 | 401 | Не авторизован | Проверь токен в заголовке Authorization |
 
@@ -109,6 +109,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ### Новое напоминание
 
 `POST /tasks`
+
+> скоуп: `tasks:create`
 
 ```json
 {
@@ -122,13 +124,19 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 
 `GET /tasks`
 
+> скоуп: `tasks:read`
+
 ### Информация о напоминании
 
 `GET /tasks/{id}`
 
+> скоуп: `tasks:read`
+
 ### Редактирование напоминания
 
 `PUT /tasks/{id}`
+
+> скоуп: `tasks:update`
 
 ```json
 {
@@ -139,6 +147,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ### Удаление напоминания
 
 `DELETE /tasks/{id}`
+
+> скоуп: `tasks:delete`
 
 ## Ограничения и gotchas
 

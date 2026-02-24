@@ -924,7 +924,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
               </MetadataRow>
             )}
 
-          <EnumValues schema={schema} fieldPath={currentPath} />
+          <EnumValues schema={schema.items?.enum ? schema.items : schema} fieldPath={currentPath} />
           {schema.default !== undefined && (
             <MetadataRow label="По умолчанию">
               <CodeBadge>

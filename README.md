@@ -7,11 +7,11 @@
 
 Репозиторий содержит OpenAPI-спецификацию, SDK для 5 языков и AI-скиллы для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Используйте для автоматизации: отправки сообщений, управления каналами и сотрудниками, настройки ботов, работы с задачами и аудитом событий.
 
-**Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Changelog**: https://dev.pachca.com/guides/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
+**Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/guides/authorization · **Changelog**: https://dev.pachca.com/guides/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
 ## Agent Skills
 
-AI-агенты могут использовать скиллы для работы с API Пачки — пошаговые инструкции с curl-примерами, обработкой ошибок и ограничениями.
+AI-агенты могут использовать скиллы для работы с API Пачки — пошаговые инструкции с curl-примерами, требуемыми скоупами токена, ограничениями по тарифу и обработкой ошибок.
 
 ### Установка (40+ агентов)
 
@@ -256,15 +256,15 @@ FlexSearch с `tokenize: 'forward'`. Русский язык: синонимы (
 
 Ссылки резолвятся в реальные URL и рендерятся с method-badge.
 
-### Специальные теги (превращаются в callout-блоки)
+### Требования к методам (x-requirements)
 
-- `#admin_access_token_required`
-- `#owner_access_token_required`
-- `#corporation_price_only`
-- `#files_not_supported`
-- `#unfurling_bot_access_token_required`
-- `#bot_access_token_required`
-- `#access_token_not_required`
+Ограничения эндпоинтов описываются через `@extension("x-requirements", ...)` в TypeSpec.
+Попадают в OpenAPI YAML как `x-requirements` и рендерятся в трёх местах: в UI как бейджи, в Agent Skills рядом с каждой операцией, в per-endpoint `.md`-файлах.
+
+Поля:
+- `scope` — требуемый скоуп токена (например `"messages:read"`)
+- `plan` — требуемый тариф (например `"corporation"`)
+- `auth` — `false` если авторизация не нужна
 
 ### MDX компоненты
 

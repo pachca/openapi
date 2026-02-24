@@ -4,7 +4,7 @@
 
 **Путь**: `/users/{id}`
 
-#admin_access_token_required
+> **Скоуп:** `users:delete`
 
 Метод для удаления сотрудника.
 

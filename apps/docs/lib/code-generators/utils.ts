@@ -15,7 +15,7 @@ export function resolveUrl(endpoint: Endpoint, baseUrl: string): string {
 }
 
 export function requiresAuth(endpoint: Endpoint): boolean {
-  return !endpoint.description?.includes('#access_token_not_required');
+  return endpoint.requirements?.auth !== false;
 }
 
 export function hasJsonContent(endpoint: Endpoint): boolean {

@@ -44,6 +44,7 @@ export function ApiMethodTemplate({
                 pageUrl={endpoint.url || generateUrlFromOperation(endpoint)}
                 method={endpoint.method}
                 path={endpoint.path}
+                requirements={endpoint.requirements}
               />
 
               {fullDescription && (

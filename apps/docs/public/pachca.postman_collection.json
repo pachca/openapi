@@ -141,6 +141,24 @@
       "name": "Profile",
       "item": [
         {
+          "name": "Информация о токене",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/oauth/token/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "oauth",
+                "token",
+                "info"
+              ]
+            }
+          }
+        },
+        {
           "name": "Информация о профиле",
           "request": {
             "method": "GET",

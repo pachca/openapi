@@ -4,6 +4,8 @@
 
 **POST** `/chats`
 
+> Скоуп: `chats:create`
+
 Новый чат
 
 Метод для создания нового чата.
@@ -61,6 +63,8 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 **GET** `/chats`
 
+> Скоуп: `chats:read`
+
 Список чатов
 
 Метод для получения списка чатов по заданным параметрам.
@@ -106,8 +110,9 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort[{field}]=value&availabilit
 
 **POST** `/chats/exports`
 
-Экспорт сообщений
+> Скоуп: `chat_exports:write` · Тариф: **Корпорация**
 
+Экспорт сообщений
 
 Метод для запрашивания экспорта сообщений за указанный период.
 
@@ -141,8 +146,9 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
 
 **GET** `/chats/exports/{id}`
 
-Скачать архив экспорта
+> Скоуп: `chat_exports:read` · Тариф: **Корпорация**
 
+Скачать архив экспорта
 
 Метод для скачивания готового архива экспорта сообщений.
 
@@ -166,6 +172,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports/12345" \
 ## Информация о чате
 
 **GET** `/chats/{id}`
+
+> Скоуп: `chats:read`
 
 Информация о чате
 
@@ -204,6 +212,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345" \
 ## Обновление чата
 
 **PUT** `/chats/{id}`
+
+> Скоуп: `chats:update`
 
 Обновление чата
 
@@ -256,6 +266,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \
 
 **PUT** `/chats/{id}/archive`
 
+> Скоуп: `chats:archive`
+
 Архивация чата
 
 Метод для отправки чата в архив.
@@ -278,6 +290,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345/archive" \
 ## Добавление тегов
 
 **POST** `/chats/{id}/group_tags`
+
+> Скоуп: `chat_members:write`
 
 Добавление тегов
 
@@ -313,6 +327,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/group_tags" \
 
 **DELETE** `/chats/{id}/group_tags/{tag_id}`
 
+> Скоуп: `chat_members:write`
+
 Исключение тега
 
 Метод для исключения тега из состава участников беседы или канала.
@@ -337,6 +353,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/group_tags/1234
 
 **DELETE** `/chats/{id}/leave`
 
+> Скоуп: `chats:leave`
+
 Выход из беседы или канала
 
 Метод для самостоятельного выхода из беседы или канала.
@@ -357,6 +375,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/leave" \
 ## Список участников чата
 
 **GET** `/chats/{id}/members`
+
+> Скоуп: `chat_members:read`
 
 Список участников чата
 
@@ -415,6 +435,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/members?role=value&limit=
 
 **POST** `/chats/{id}/members`
 
+> Скоуп: `chat_members:write`
+
 Добавление пользователей
 
 Метод для добавления пользователей в состав участников беседы, канала или треда.
@@ -449,6 +471,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/members" \
 
 **DELETE** `/chats/{id}/members/{user_id}`
 
+> Скоуп: `chat_members:write`
+
 Исключение пользователя
 
 Метод для исключения пользователя из состава участников беседы или канала.
@@ -472,6 +496,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/members/12345" 
 ## Редактирование роли
 
 **PUT** `/chats/{id}/members/{user_id}`
+
+> Скоуп: `chat_members:write`
 
 Редактирование роли
 
@@ -506,6 +532,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345/members/12345" \
 ## Разархивация чата
 
 **PUT** `/chats/{id}/unarchive`
+
+> Скоуп: `chats:archive`
 
 Разархивация чата
 

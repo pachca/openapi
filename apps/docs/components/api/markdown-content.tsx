@@ -3,7 +3,6 @@ import remarkGfm from 'remark-gfm';
 import { Callout } from './callout';
 import { GuideCodeBlock } from './guide-code-block';
 import { InternalLink } from './smooth-scroll-link';
-import { replaceSpecialTagsForMDX } from '@/lib/replace-special-tags';
 import { toSlug } from '@/lib/utils/transliterate';
 import type { Endpoint } from '@/lib/openapi/types';
 import { parseOpenAPI } from '@/lib/openapi/parser';
@@ -183,11 +182,8 @@ export async function MarkdownContent({
   // Load endpoints if not provided (for resolving API links)
   const endpoints = allEndpoints ?? (await parseOpenAPI()).endpoints;
 
-  // 1. Replace special tags with MDX components (<Warning>, <Info>)
-  let processedContent = replaceSpecialTagsForMDX(content);
-
-  // 2. Resolve endpoint links: [description](METHOD /path) -> <EndpointLink> with badge
-  processedContent = resolveEndpointLinks(processedContent, endpoints, { mdx: true });
+  // Resolve endpoint links: [description](METHOD /path) -> <EndpointLink> with badge
+  const processedContent = resolveEndpointLinks(content, endpoints, { mdx: true });
 
   return (
     <div className={className}>

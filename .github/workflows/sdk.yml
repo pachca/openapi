@@ -70,7 +70,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -94,7 +93,7 @@ jobs:
           if npm view "@pachca/sdk@${VERSION}" version 2>/dev/null; then
             echo "Version ${VERSION} already published, skipping"
           else
-            npm publish --provenance --access public
+            npm publish --access public
           fi
 
   publish-pypi:

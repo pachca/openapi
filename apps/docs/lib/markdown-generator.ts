@@ -455,8 +455,23 @@ export function generateEndpointMarkdown(endpoint: Endpoint, baseUrl?: string): 
   content += `**Метод**: \`${endpoint.method}\`\n\n`;
   content += `**Путь**: \`${endpoint.path}\`\n\n`;
 
+  // Requirements
+  if (endpoint.requirements) {
+    const { scope, plan, auth } = endpoint.requirements;
+    const planNames: Record<string, string> = { corporation: 'Корпорация' };
+
+    if (auth === false) {
+      content += `> Авторизация не требуется\n\n`;
+    }
+    if (scope) {
+      content += `> **Скоуп:** \`${scope}\`\n\n`;
+    }
+    if (plan) {
+      content += `> **Внимание:** Доступно только на тарифе **${planNames[plan] ?? plan}**\n\n`;
+    }
+  }
+
   if (description) {
-    // Use original description from OpenAPI without transforming special tags
     content += description + '\n';
   }
 

@@ -4,7 +4,9 @@
 
 **Путь**: `/chats/exports/{id}`
 
-#corporation_price_only #owner_access_token_required
+> **Скоуп:** `chat_exports:read`
+
+> **Внимание:** Доступно только на тарифе **Корпорация**
 
 Метод для скачивания готового архива экспорта сообщений.
 

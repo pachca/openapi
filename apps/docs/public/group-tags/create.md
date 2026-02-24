@@ -4,7 +4,7 @@
 
 **Путь**: `/group_tags`
 
-#admin_access_token_required
+> **Скоуп:** `group_tags:write`
 
 Метод для создания нового тега.
 

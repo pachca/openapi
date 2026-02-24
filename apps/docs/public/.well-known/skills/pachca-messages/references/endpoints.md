@@ -6,7 +6,6 @@
 
 Загрузка файла
 
-
 Для того чтобы прикрепить файл к сообщению или к другой сущности через API, требуется сначала загрузить файл на сервер (через метод получения подписи и ключа), а затем сформировать ссылку на него.
 
 **Процесс загрузки состоит из трёх шагов:**
@@ -35,6 +34,8 @@ curl "https://api.pachca.com/api/shared/v1/direct_url" \
 ## Новое сообщение
 
 **POST** `/messages`
+
+> Скоуп: `messages:create`
 
 Новое сообщение
 
@@ -123,6 +124,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 **GET** `/messages`
 
+> Скоуп: `messages:read`
+
 Список сообщений чата
 
 Метод для получения списка сообщений бесед, каналов, тредов и личных сообщений.
@@ -178,6 +181,8 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=12345&sort[{field}]=
 
 **GET** `/messages/{id}`
 
+> Скоуп: `messages:read`
+
 Информация о сообщении
 
 Метод для получения информации о сообщении.
@@ -226,6 +231,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345" \
 ## Редактирование сообщения
 
 **PUT** `/messages/{id}`
+
+> Скоуп: `messages:update`
 
 Редактирование сообщения
 
@@ -298,8 +305,9 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/12345" \
 
 **DELETE** `/messages/{id}`
 
-Удаление сообщения
+> Скоуп: `messages:delete`
 
+Удаление сообщения
 
 Метод для удаления сообщения.
 
@@ -324,6 +332,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345" \
 
 **POST** `/messages/{id}/pin`
 
+> Скоуп: `pins:write`
+
 Закрепление сообщения
 
 Метод для закрепления сообщения в чате.
@@ -347,6 +357,8 @@ curl -X POST "https://api.pachca.com/api/shared/v1/messages/12345/pin" \
 
 **DELETE** `/messages/{id}/pin`
 
+> Скоуп: `pins:write`
+
 Открепление сообщения
 
 Метод для открепления сообщения из чата.
@@ -369,6 +381,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345/pin" \
 ## Добавление реакции
 
 **POST** `/messages/{id}/reactions`
+
+> Скоуп: `reactions:write`
 
 Добавление реакции
 
@@ -416,6 +430,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/reactions" \
 
 **DELETE** `/messages/{id}/reactions`
 
+> Скоуп: `reactions:write`
+
 Удаление реакции
 
 Метод для удаления реакции на сообщение.
@@ -442,6 +458,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345/reactions?co
 ## Список реакций
 
 **GET** `/messages/{id}/reactions`
+
+> Скоуп: `reactions:read`
 
 Список реакций
 
@@ -477,6 +495,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/reactions?limit=50&cur
 
 **GET** `/messages/{id}/read_member_ids`
 
+> Скоуп: `messages:read`
+
 Список прочитавших сообщение
 
 Метод для получения актуального списка пользователей, прочитавших сообщение.
@@ -506,6 +526,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/read_member_ids?limit=
 ## Новый тред
 
 **POST** `/messages/{id}/thread`
+
+> Скоуп: `threads:create`
 
 Новый тред
 
@@ -539,6 +561,8 @@ curl -X POST "https://api.pachca.com/api/shared/v1/messages/12345/thread" \
 
 **GET** `/threads/{id}`
 
+> Скоуп: `threads:read`
+
 Информация о треде
 
 Метод для получения информации о треде.
@@ -570,6 +594,8 @@ curl "https://api.pachca.com/api/shared/v1/threads/12345" \
 ## Получение подписи, ключа и других параметров
 
 **POST** `/uploads`
+
+> Скоуп: `uploads:write`
 
 Получение подписи, ключа и других параметров
 

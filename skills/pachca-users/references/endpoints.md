@@ -4,8 +4,9 @@
 
 **POST** `/group_tags`
 
-Новый тег
+> Скоуп: `group_tags:write`
 
+Новый тег
 
 Метод для создания нового тега.
 
@@ -40,6 +41,8 @@ curl "https://api.pachca.com/api/shared/v1/group_tags" \
 
 **GET** `/group_tags`
 
+> Скоуп: `group_tags:read`
+
 Список тегов сотрудников
 
 Метод для получения актуального списка тегов сотрудников. Названия тегов являются уникальными в компании.
@@ -73,6 +76,8 @@ curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Design&names[]=iOS
 
 **GET** `/group_tags/{id}`
 
+> Скоуп: `group_tags:read`
+
 Информация о теге
 
 Метод для получения информации о теге. Названия тегов являются уникальными в компании.
@@ -103,8 +108,9 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/12345" \
 
 **PUT** `/group_tags/{id}`
 
-Редактирование тега
+> Скоуп: `group_tags:write`
 
+Редактирование тега
 
 Метод для редактирования тега.
 
@@ -145,8 +151,9 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/group_tags/12345" \
 
 **DELETE** `/group_tags/{id}`
 
-Удаление тега
+> Скоуп: `group_tags:write`
 
+Удаление тега
 
 Метод для удаления тега.
 
@@ -168,6 +175,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/group_tags/12345" \
 ## Список сотрудников тега
 
 **GET** `/group_tags/{id}/users`
+
+> Скоуп: `group_tags:read`
 
 Список сотрудников тега
 
@@ -223,8 +232,9 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/12345/users?limit=50&curso
 
 **POST** `/users`
 
-Создать сотрудника
+> Скоуп: `users:create`
 
+Создать сотрудника
 
 Метод для создания нового сотрудника в вашей компании.
 
@@ -309,6 +319,8 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 
 **GET** `/users`
 
+> Скоуп: `users:read`
+
 Список сотрудников
 
 Метод для получения актуального списка сотрудников вашей компании.
@@ -363,6 +375,8 @@ curl "https://api.pachca.com/api/shared/v1/users?query=user%40example.com&limit=
 
 **GET** `/users/{id}`
 
+> Скоуп: `users:read`
+
 Информация о сотруднике
 
 Метод для получения информации о сотруднике.
@@ -414,8 +428,9 @@ curl "https://api.pachca.com/api/shared/v1/users/12345" \
 
 **PUT** `/users/{id}`
 
-Редактирование сотрудника
+> Скоуп: `users:update`
 
+Редактирование сотрудника
 
 Метод для редактирования сотрудника.
 
@@ -493,8 +508,9 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12345" \
 
 **DELETE** `/users/{id}`
 
-Удаление сотрудника
+> Скоуп: `users:delete`
 
+Удаление сотрудника
 
 Метод для удаления сотрудника.
 

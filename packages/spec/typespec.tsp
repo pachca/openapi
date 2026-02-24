@@ -1004,6 +1004,51 @@ model EmptyResponse {}
 // ============================================================================
 
 @doc("Скоуп доступа OAuth токена")
+@extension("x-enum-descriptions", #{
+  chats_read: "Просмотр чатов и списка чатов",
+  chats_create: "Создание новых чатов",
+  chats_update: "Изменение настроек чата",
+  chats_archive: "Архивация и разархивация чатов",
+  chats_leave: "Выход из чатов",
+  chat_members_read: "Просмотр участников чата",
+  chat_members_write: "Добавление, изменение и удаление участников чата",
+  chat_exports_read: "Скачивание экспортов чата",
+  chat_exports_write: "Создание экспортов чата",
+  messages_read: "Просмотр сообщений в чатах",
+  messages_create: "Отправка сообщений",
+  messages_update: "Редактирование сообщений",
+  messages_delete: "Удаление сообщений",
+  reactions_read: "Просмотр реакций на сообщения",
+  reactions_write: "Добавление и удаление реакций",
+  pins_write: "Закрепление и открепление сообщений",
+  threads_read: "Просмотр тредов (комментариев)",
+  threads_create: "Создание тредов (комментариев)",
+  link_previews_write: "Unfurl (разворачивание ссылок)",
+  views_write: "Открытие форм (представлений)",
+  users_read: "Просмотр информации о сотрудниках и списка сотрудников",
+  users_create: "Создание новых сотрудников",
+  users_update: "Редактирование данных сотрудника",
+  users_delete: "Удаление сотрудников",
+  group_tags_read: "Просмотр тегов",
+  group_tags_write: "Создание, редактирование и удаление тегов",
+  bots_write: "Изменение настроек бота",
+  profile_read: "Просмотр информации о своем профиле",
+  profile_status_read: "Просмотр статуса профиля",
+  profile_status_write: "Изменение и удаление статуса профиля",
+  custom_properties_read: "Просмотр дополнительных полей",
+  audit_events_read: "Просмотр журнала аудита",
+  tasks_read: "Просмотр задач",
+  tasks_create: "Создание задач",
+  tasks_update: "Изменение задачи",
+  tasks_delete: "Удаление задачи",
+  files_read: "Скачивание файлов",
+  files_write: "Загрузка файлов",
+  uploads_write: "Получение данных для загрузки файлов",
+  webhooks_read: "Просмотр вебхуков",
+  webhooks_write: "Создание и управление вебхуками",
+  webhooks_events_read: "Просмотр лога вебхуков",
+  webhooks_events_delete: "Удаление записи в логе вебхука",
+})
 enum OAuthScope {
   @doc("Просмотр чатов и списка чатов")
   chats_read: "chats:read",
@@ -2515,10 +2560,13 @@ model ExportRequest {
 @route("/custom_properties")
 @tag("Common")
 interface CommonOperations {
+  @extension("x-requirements", #{
+    scope: "custom_properties:read",
+  })
   @doc("""
 Список дополнительных полей
 
-#files_not_supported
+На данный момент работа с дополнительными полями типа "Файл" недоступна.
 
 Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей компании.
 
@@ -2576,6 +2624,9 @@ interface CommonOperations {
 @route("/uploads")
 @tag("Common")
 interface UploadOperations {
+  @extension("x-requirements", #{
+    scope: "uploads:write",
+  })
   @doc("""
 Получение подписи, ключа и других параметров
 
@@ -2649,10 +2700,11 @@ model FileUploadRequest {
 
 @tag("Common")
 interface DirectUploadOperations {
+  @extension("x-requirements", #{
+    auth: false,
+  })
   @doc("""
 Загрузка файла
-
-#access_token_not_required
 
 Для того чтобы прикрепить файл к сообщению или к другой сущности через API, требуется сначала загрузить файл на сервер (через метод получения подписи и ключа), а затем сформировать ссылку на него.
 
@@ -2672,10 +2724,12 @@ interface DirectUploadOperations {
 @route("/chats/exports")
 @tag("Common")
 interface ExportOperations {
+  @extension("x-requirements", #{
+    scope: "chat_exports:write",
+    plan: "corporation",
+  })
   @doc("""
 Экспорт сообщений
-
-#corporation_price_only #owner_access_token_required
 
 Метод для запрашивания экспорта сообщений за указанный период.
 """)
@@ -2708,10 +2762,12 @@ interface ExportOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chat_exports:read",
+    plan: "corporation",
+  })
   @doc("""
 Скачать архив экспорта
-
-#corporation_price_only #owner_access_token_required
 
 Метод для скачивания готового архива экспорта сообщений.
 
@@ -2751,6 +2807,9 @@ interface ExportOperations {
 @route("/profile")
 @tag("Profile")
 interface ProfileOperations {
+  @extension("x-requirements", #{
+    scope: "profile:read",
+  })
   @doc("""
 Информация о профиле
 
@@ -2802,6 +2861,9 @@ interface ProfileOperations {
     @body body: OAuthError;
   };
   
+  @extension("x-requirements", #{
+    scope: "profile_status:read",
+  })
   @doc("""
 Текущий статус
 
@@ -2832,6 +2894,9 @@ interface ProfileOperations {
     @body body: OAuthError;
   };
   
+  @extension("x-requirements", #{
+    scope: "profile_status:write",
+  })
   @doc("""
 Новый статус
 
@@ -2877,6 +2942,9 @@ interface ProfileOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "profile_status:write",
+  })
   @doc("""
 Удаление статуса
 
@@ -2904,10 +2972,11 @@ interface ProfileOperations {
 @route("/users")
 @tag("Users")
 interface UserOperations {
+  @extension("x-requirements", #{
+    scope: "users:create",
+  })
   @doc("""
 Создать сотрудника
-
-#admin_access_token_required
 
 Метод для создания нового сотрудника в вашей компании.
 
@@ -2981,6 +3050,9 @@ interface UserOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "users:read",
+  })
   @doc("""
 Список сотрудников
 
@@ -3121,6 +3193,9 @@ interface UserOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "users:read",
+  })
   @doc("""
 Информация о сотруднике
 
@@ -3184,10 +3259,11 @@ interface UserOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "users:update",
+  })
   @doc("""
 Редактирование сотрудника
-
-#admin_access_token_required
 
 Метод для редактирования сотрудника.
 
@@ -3264,10 +3340,11 @@ interface UserOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "users:delete",
+  })
   @doc("""
 Удаление сотрудника
-
-#admin_access_token_required
 
 Метод для удаления сотрудника.
 
@@ -3300,10 +3377,11 @@ interface UserOperations {
 @route("/group_tags")
 @tag("Group tags")
 interface GroupTagOperations {
+  @extension("x-requirements", #{
+    scope: "group_tags:write",
+  })
   @doc("""
 Новый тег
-
-#admin_access_token_required
 
 Метод для создания нового тега.
 """)
@@ -3344,6 +3422,9 @@ interface GroupTagOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "group_tags:read",
+  })
   @doc("""
 Информация о теге
 
@@ -3385,6 +3466,9 @@ interface GroupTagOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "group_tags:read",
+  })
   @doc("""
 Список тегов сотрудников
 
@@ -3446,6 +3530,9 @@ interface GroupTagOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "group_tags:read",
+  })
   @doc("""
 Список сотрудников тега
 
@@ -3595,10 +3682,11 @@ interface GroupTagOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "group_tags:write",
+  })
   @doc("""
 Редактирование тега
-
-#admin_access_token_required
 
 Метод для редактирования тега.
 
@@ -3649,10 +3737,11 @@ interface GroupTagOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "group_tags:write",
+  })
   @doc("""
 Удаление тега
-
-#admin_access_token_required
 
 Метод для удаления тега.
 
@@ -3685,6 +3774,9 @@ interface GroupTagOperations {
 @route("/chats")
 @tag("Chats")
 interface ChatOperations {
+  @extension("x-requirements", #{
+    scope: "chats:create",
+  })
   @doc("""
 Новый чат
 
@@ -3742,6 +3834,9 @@ interface ChatOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chats:read",
+  })
   @doc("""
 Информация о чате
 
@@ -3791,6 +3886,9 @@ interface ChatOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chats:read",
+  })
   @doc("""
 Список чатов
 
@@ -3876,6 +3974,9 @@ interface ChatOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chats:update",
+  })
   @doc("""
 Обновление чата
 
@@ -3937,6 +4038,9 @@ interface ChatOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chats:archive",
+  })
   @doc("""
 Архивация чата
 
@@ -3964,6 +4068,9 @@ interface ChatOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chats:archive",
+  })
   @doc("""
 Разархивация чата
 
@@ -3998,6 +4105,9 @@ interface ChatOperations {
 
 @tag("Members")
 interface ChatMemberOperations {
+  @extension("x-requirements", #{
+    scope: "chat_members:read",
+  })
   @doc("""
 Список участников чата
 
@@ -4085,6 +4195,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chat_members:write",
+  })
   @doc("""
 Добавление пользователей
 
@@ -4126,6 +4239,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chat_members:write",
+  })
   @doc("""
 Исключение пользователя
 
@@ -4155,6 +4271,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chat_members:write",
+  })
   @doc("""
 Добавление тегов
 
@@ -4197,6 +4316,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chat_members:write",
+  })
   @doc("""
 Исключение тега
 
@@ -4226,6 +4348,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chat_members:write",
+  })
   @doc("""
 Редактирование роли
 
@@ -4273,6 +4398,9 @@ interface ChatMemberOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "chats:leave",
+  })
   @doc("""
 Выход из беседы или канала
 
@@ -4311,6 +4439,9 @@ interface ChatMemberOperations {
 
 @tag("Thread")
 interface ThreadOperations {
+  @extension("x-requirements", #{
+    scope: "threads:create",
+  })
   @doc("""
 Новый тред
 
@@ -4354,6 +4485,9 @@ interface ThreadOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "threads:read",
+  })
   @doc("""
 Информация о треде
 
@@ -4405,6 +4539,9 @@ interface ThreadOperations {
 @route("/messages")
 @tag("Messages")
 interface MessageOperations {
+  @extension("x-requirements", #{
+    scope: "messages:create",
+  })
   @doc("""
 Новое сообщение
 
@@ -4476,6 +4613,9 @@ interface MessageOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "messages:read",
+  })
   @doc("""
 Информация о сообщении
 
@@ -4544,6 +4684,9 @@ interface MessageOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "messages:update",
+  })
   @doc("""
 Редактирование сообщения
 
@@ -4609,10 +4752,11 @@ interface MessageOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "messages:delete",
+  })
   @doc("""
 Удаление сообщения
-
-#admin_access_token_required
 
 Метод для удаления сообщения.
 
@@ -4639,6 +4783,9 @@ interface MessageOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "pins:write",
+  })
   @doc("""
 Закрепление сообщения
 
@@ -4669,6 +4816,9 @@ interface MessageOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "pins:write",
+  })
   @doc("""
 Открепление сообщения
 
@@ -4700,6 +4850,9 @@ interface MessageOperations {
 @route("/messages")
 @tag("Messages")
 interface ChatMessageOperations {
+  @extension("x-requirements", #{
+    scope: "messages:read",
+  })
   @doc("""
 Список сообщений чата
 
@@ -4822,6 +4975,9 @@ interface ChatMessageOperations {
 
 @tag("Read member")
 interface ReadMemberOperations {
+  @extension("x-requirements", #{
+    scope: "messages:read",
+  })
   @doc("""
 Список прочитавших сообщение
 
@@ -4883,6 +5039,9 @@ interface ReadMemberOperations {
 @route("/messages/{id}/reactions")
 @tag("Reactions")
 interface ReactionOperations {
+  @extension("x-requirements", #{
+    scope: "reactions:write",
+  })
   @doc("""
 Добавление реакции
 
@@ -4940,6 +5099,9 @@ interface ReactionOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "reactions:write",
+  })
   @doc("""
 Удаление реакции
 
@@ -4987,6 +5149,9 @@ interface ReactionOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "reactions:read",
+  })
   @doc("""
 Список реакций
 
@@ -5090,10 +5255,11 @@ interface ReactionOperations {
 
 @tag("Link Previews")
 interface LinkPreviewOperations {
+  @extension("x-requirements", #{
+    scope: "link_previews:write",
+  })
   @doc("""
 Unfurl (разворачивание ссылок)
-
-#unfurling_bot_access_token_required
 
 Метод для создания предпросмотров ссылок в сообщениях.
 
@@ -5141,6 +5307,9 @@ Unfurl (разворачивание ссылок)
 @route("/tasks")
 @tag("Tasks")
 interface TaskOperations {
+  @extension("x-requirements", #{
+    scope: "tasks:create",
+  })
   @doc("""
 Новое напоминание
 
@@ -5211,6 +5380,9 @@ interface TaskOperations {
     @body body: ApiError;
   };
 
+  @extension("x-requirements", #{
+    scope: "tasks:read",
+  })
   @doc("""
 Список напоминаний
 
@@ -5287,6 +5459,9 @@ interface TaskOperations {
     @body body: ApiError;
   };
 
+  @extension("x-requirements", #{
+    scope: "tasks:read",
+  })
   @doc("""
 Информация о напоминании
 
@@ -5341,6 +5516,9 @@ interface TaskOperations {
     @body body: ApiError;
   };
 
+  @extension("x-requirements", #{
+    scope: "tasks:update",
+  })
   @doc("""
 Редактирование напоминания
 
@@ -5406,6 +5584,9 @@ interface TaskOperations {
     @body body: ApiError;
   };
 
+  @extension("x-requirements", #{
+    scope: "tasks:delete",
+  })
   @doc("""
 Удаление напоминания
 
@@ -5440,6 +5621,9 @@ interface TaskOperations {
 @route("/views")
 @tag("Views")
 interface FormOperations {
+  @extension("x-requirements", #{
+    scope: "views:write",
+  })
   @doc("""
 Открытие представления
 
@@ -5626,6 +5810,9 @@ interface FormOperations {
 
 @tag("Bots")
 interface BotOperations {
+  @extension("x-requirements", #{
+    scope: "bots:write",
+  })
   @doc("""
 Редактирование бота
 
@@ -5684,10 +5871,11 @@ interface BotOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "webhooks:events:read",
+  })
   @doc("""
 История событий
-
-#bot_access_token_required
 
 Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на которые вы подписались.
 
@@ -5786,6 +5974,9 @@ interface BotOperations {
     @body body: ApiError;
   };
   
+  @extension("x-requirements", #{
+    scope: "webhooks:events:delete",
+  })
   @doc("""
 Удаление события
 
@@ -5823,10 +6014,12 @@ interface BotOperations {
 @route("/audit_events")
 @tag("Security")
 interface SecurityOperations {
+  @extension("x-requirements", #{
+    scope: "audit_events:read",
+    plan: "corporation",
+  })
   @doc("""
 Журнал аудита событий
-
-#corporation_price_only
 
 Метод для получения логов событий на основе указанных фильтров.
 """)

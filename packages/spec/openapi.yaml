@@ -25,8 +25,6 @@ paths:
       description: |-
         Журнал аудита событий
 
-        #corporation_price_only
-
         Метод для получения логов событий на основе указанных фильтров.
       parameters:
         - name: start_time
@@ -158,6 +156,9 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Security
+      x-requirements:
+        scope: audit_events:read
+        plan: corporation
   /bots/{id}:
     put:
       operationId: BotOperations_updateBot
@@ -237,6 +238,8 @@ paths:
               bot:
                 webhook:
                   outgoing_url: https://www.website.com/tasks/new
+      x-requirements:
+        scope: bots:write
   /chats:
     post:
       operationId: ChatOperations_createChat
@@ -318,6 +321,8 @@ paths:
                   - 187
                 channel: true
                 public: false
+      x-requirements:
+        scope: chats:create
     get:
       operationId: ChatOperations_listChats
       description: |-
@@ -460,13 +465,13 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Chats
+      x-requirements:
+        scope: chats:read
   /chats/exports:
     post:
       operationId: ExportOperations_requestExport
       description: |-
         Экспорт сообщений
-
-        #corporation_price_only #owner_access_token_required
 
         Метод для запрашивания экспорта сообщений за указанный период.
       parameters: []
@@ -517,13 +522,14 @@ paths:
               webhook_url: https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2
               chat_ids:
                 - 1381521
+      x-requirements:
+        scope: chat_exports:write
+        plan: corporation
   /chats/exports/{id}:
     get:
       operationId: ExportOperations_downloadExport
       description: |-
         Скачать архив экспорта
-
-        #corporation_price_only #owner_access_token_required
 
         Метод для скачивания готового архива экспорта сообщений.
 
@@ -571,6 +577,9 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Common
+      x-requirements:
+        scope: chat_exports:read
+        plan: corporation
   /chats/{id}:
     get:
       operationId: ChatOperations_getChat
@@ -637,6 +646,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Chats
+      x-requirements:
+        scope: chats:read
     put:
       operationId: ChatOperations_updateChat
       description: |-
@@ -724,6 +735,8 @@ paths:
               chat:
                 name: Бассейн
                 public: true
+      x-requirements:
+        scope: chats:update
   /chats/{id}/archive:
     put:
       operationId: ChatOperations_archiveChat
@@ -768,6 +781,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Chats
+      x-requirements:
+        scope: chats:archive
   /chats/{id}/group_tags:
     post:
       operationId: ChatMemberOperations_addTags
@@ -834,6 +849,8 @@ paths:
               group_tag_ids:
                 - 86
                 - 18
+      x-requirements:
+        scope: chat_members:write
   /chats/{id}/group_tags/{tag_id}:
     delete:
       operationId: ChatMemberOperations_removeTag
@@ -885,6 +902,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Members
+      x-requirements:
+        scope: chat_members:write
   /chats/{id}/leave:
     delete:
       operationId: ChatMemberOperations_leaveChat
@@ -939,6 +958,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Members
+      x-requirements:
+        scope: chats:leave
   /chats/{id}/members:
     get:
       operationId: ChatMemberOperations_listMembers
@@ -1063,6 +1084,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Members
+      x-requirements:
+        scope: chat_members:read
     post:
       operationId: ChatMemberOperations_addMembers
       description: |-
@@ -1127,6 +1150,8 @@ paths:
                 - 186
                 - 187
               silent: true
+      x-requirements:
+        scope: chat_members:write
   /chats/{id}/members/{user_id}:
     delete:
       operationId: ChatMemberOperations_removeMember
@@ -1178,6 +1203,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Members
+      x-requirements:
+        scope: chat_members:write
     put:
       operationId: ChatMemberOperations_updateMemberRole
       description: |-
@@ -1250,6 +1277,8 @@ paths:
               $ref: '#/components/schemas/UpdateMemberRoleRequest'
             example:
               role: admin
+      x-requirements:
+        scope: chat_members:write
   /chats/{id}/unarchive:
     put:
       operationId: ChatOperations_unarchiveChat
@@ -1294,13 +1323,15 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Chats
+      x-requirements:
+        scope: chats:archive
   /custom_properties:
     get:
       operationId: CommonOperations_listProperties
       description: |-
         Список дополнительных полей
 
-        #files_not_supported
+        На данный момент работа с дополнительными полями типа "Файл" недоступна.
 
         Метод для получения актуального списка дополнительных полей участников и напоминаний в вашей компании.
 
@@ -1365,13 +1396,13 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Common
+      x-requirements:
+        scope: custom_properties:read
   /direct_url:
     post:
       operationId: DirectUploadOperations_uploadFile
       description: |-
         Загрузка файла
-
-        #access_token_not_required
 
         Для того чтобы прикрепить файл к сообщению или к другой сущности через API, требуется сначала загрузить файл на сервер (через метод получения подписи и ключа), а затем сформировать ссылку на него.
 
@@ -1392,13 +1423,13 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/FileUploadRequest'
+      x-requirements:
+        auth: false
   /group_tags:
     post:
       operationId: GroupTagOperations_createTag
       description: |-
         Новый тег
-
-        #admin_access_token_required
 
         Метод для создания нового тега.
       parameters: []
@@ -1455,6 +1486,8 @@ paths:
             example:
               group_tag:
                 name: Название тега
+      x-requirements:
+        scope: group_tags:write
     get:
       operationId: GroupTagOperations_listTags
       description: |-
@@ -1540,6 +1573,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-requirements:
+        scope: group_tags:read
   /group_tags/{id}:
     get:
       operationId: GroupTagOperations_getTag
@@ -1595,12 +1630,12 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-requirements:
+        scope: group_tags:read
     put:
       operationId: GroupTagOperations_updateTag
       description: |-
         Редактирование тега
-
-        #admin_access_token_required
 
         Метод для редактирования тега.
 
@@ -1672,12 +1707,12 @@ paths:
             example:
               group_tag:
                 name: Новое название тега
+      x-requirements:
+        scope: group_tags:write
     delete:
       operationId: GroupTagOperations_deleteTag
       description: |-
         Удаление тега
-
-        #admin_access_token_required
 
         Метод для удаления тега.
 
@@ -1717,6 +1752,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-requirements:
+        scope: group_tags:write
   /group_tags/{id}/users:
     get:
       operationId: GroupTagOperations_getTagUsers
@@ -1888,6 +1925,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-requirements:
+        scope: group_tags:read
   /messages:
     post:
       operationId: MessageOperations_createMessage
@@ -1976,6 +2015,8 @@ paths:
                       url: https://example.com/details
                     - text: Отлично!
                       data: awesome
+      x-requirements:
+        scope: messages:create
     get:
       operationId: ChatMessageOperations_listChatMessages
       description: |-
@@ -2124,6 +2165,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
+      x-requirements:
+        scope: messages:read
   /messages/{id}:
     get:
       operationId: MessageOperations_getMessage
@@ -2203,6 +2246,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
+      x-requirements:
+        scope: messages:read
     put:
       operationId: MessageOperations_updateMessage
       description: |-
@@ -2291,12 +2336,12 @@ paths:
               message:
                 content: 'Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.'
                 files: []
+      x-requirements:
+        scope: messages:update
     delete:
       operationId: MessageOperations_deleteMessage
       description: |-
         Удаление сообщения
-
-        #admin_access_token_required
 
         Метод для удаления сообщения.
 
@@ -2338,13 +2383,13 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
+      x-requirements:
+        scope: messages:delete
   /messages/{id}/link_previews:
     post:
       operationId: LinkPreviewOperations_createLinkPreviews
       description: |-
         Unfurl (разворачивание ссылок)
-
-        #unfurling_bot_access_token_required
 
         Метод для создания предпросмотров ссылок в сообщениях.
 
@@ -2408,6 +2453,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LinkPreviewsRequest'
+      x-requirements:
+        scope: link_previews:write
   /messages/{id}/pin:
     post:
       operationId: MessageOperations_pinMessage
@@ -2458,6 +2505,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
+      x-requirements:
+        scope: pins:write
     delete:
       operationId: MessageOperations_unpinMessage
       description: |-
@@ -2501,6 +2550,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
+      x-requirements:
+        scope: pins:write
   /messages/{id}/reactions:
     post:
       operationId: ReactionOperations_addReaction
@@ -2577,6 +2628,8 @@ paths:
             example:
               code: 👍
               name: ':+1:'
+      x-requirements:
+        scope: reactions:write
     delete:
       operationId: ReactionOperations_removeReaction
       description: |-
@@ -2648,6 +2701,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Reactions
+      x-requirements:
+        scope: reactions:write
     get:
       operationId: ReactionOperations_listReactions
       description: |-
@@ -2762,6 +2817,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Reactions
+      x-requirements:
+        scope: reactions:read
   /messages/{id}/read_member_ids:
     get:
       operationId: ReadMemberOperations_listReadMembers
@@ -2855,6 +2912,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Read member
+      x-requirements:
+        scope: messages:read
   /messages/{id}/thread:
     post:
       operationId: ThreadOperations_createThread
@@ -2912,6 +2971,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Thread
+      x-requirements:
+        scope: threads:create
   /oauth/token/info:
     get:
       operationId: OAuthOperations_getTokenInfo
@@ -3017,6 +3078,8 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
+      x-requirements:
+        scope: profile:read
   /profile/status:
     get:
       operationId: ProfileOperations_getStatus
@@ -3060,6 +3123,8 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
+      x-requirements:
+        scope: profile_status:read
     put:
       operationId: ProfileOperations_updateStatus
       description: |-
@@ -3122,6 +3187,8 @@ paths:
                 emoji: 🎮
                 title: Очень занят
                 expires_at: '2024-04-08T10:00:00.000Z'
+      x-requirements:
+        scope: profile_status:write
     delete:
       operationId: ProfileOperations_deleteStatus
       description: |-
@@ -3150,6 +3217,8 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Profile
+      x-requirements:
+        scope: profile_status:write
   /tasks:
     post:
       operationId: TaskOperations_createTask
@@ -3238,6 +3307,8 @@ paths:
                 custom_properties:
                   - id: 78
                     value: Синий склад
+      x-requirements:
+        scope: tasks:create
     get:
       operationId: TaskOperations_listTasks
       description: |-
@@ -3334,6 +3405,8 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Tasks
+      x-requirements:
+        scope: tasks:read
   /tasks/{id}:
     get:
       operationId: TaskOperations_getTask
@@ -3402,6 +3475,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Tasks
+      x-requirements:
+        scope: tasks:read
     put:
       operationId: TaskOperations_updateTask
       description: |-
@@ -3490,6 +3565,8 @@ paths:
             example:
               task:
                 status: done
+      x-requirements:
+        scope: tasks:update
     delete:
       operationId: TaskOperations_deleteTask
       description: |-
@@ -3533,6 +3610,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Tasks
+      x-requirements:
+        scope: tasks:delete
   /threads/{id}:
     get:
       operationId: ThreadOperations_getThread
@@ -3590,6 +3669,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Thread
+      x-requirements:
+        scope: threads:read
   /uploads:
     post:
       operationId: UploadOperations_getUploadParams
@@ -3631,13 +3712,13 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Common
+      x-requirements:
+        scope: uploads:write
   /users:
     post:
       operationId: UserOperations_createUser
       description: |-
         Создать сотрудника
-
-        #admin_access_token_required
 
         Метод для создания нового сотрудника в вашей компании.
 
@@ -3729,6 +3810,8 @@ paths:
                   - id: 1678
                     value: Санкт-Петербург
               skip_email_notify: true
+      x-requirements:
+        scope: users:create
     get:
       operationId: UserOperations_listUsers
       description: |-
@@ -3893,6 +3976,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Users
+      x-requirements:
+        scope: users:read
   /users/{id}:
     get:
       operationId: UserOperations_getUser
@@ -3971,12 +4056,12 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Users
+      x-requirements:
+        scope: users:read
     put:
       operationId: UserOperations_updateUser
       description: |-
         Редактирование сотрудника
-
-        #admin_access_token_required
 
         Метод для редактирования сотрудника.
 
@@ -4073,12 +4158,12 @@ paths:
                 role: user
                 list_tags:
                   - Product
+      x-requirements:
+        scope: users:update
     delete:
       operationId: UserOperations_deleteUser
       description: |-
         Удаление сотрудника
-
-        #admin_access_token_required
 
         Метод для удаления сотрудника.
 
@@ -4118,6 +4203,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Users
+      x-requirements:
+        scope: users:delete
   /views/open:
     post:
       operationId: FormOperations_openView
@@ -4265,13 +4352,13 @@ paths:
                     label: Время рассылки
                     initial_time: '11:00'
                     hint: Укажите, в какое время присылать выбранные рассылки
+      x-requirements:
+        scope: views:write
   /webhooks/events:
     get:
       operationId: BotOperations_getWebhookEvents
       description: |-
         История событий
-
-        #bot_access_token_required
 
         Метод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на которые вы подписались.
 
@@ -4384,6 +4471,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Bots
+      x-requirements:
+        scope: webhooks:events:read
   /webhooks/events/{id}:
     delete:
       operationId: BotOperations_deleteWebhookEvent
@@ -4429,6 +4518,8 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Bots
+      x-requirements:
+        scope: webhooks:events:delete
 security:
   - BearerAuth: []
 components:
@@ -5877,6 +5968,50 @@ components:
         - webhooks:events:read
         - webhooks:events:delete
       description: Скоуп доступа OAuth токена
+      x-enum-descriptions:
+        chats_read: Просмотр чатов и списка чатов
+        chats_create: Создание новых чатов
+        chats_update: Изменение настроек чата
+        chats_archive: Архивация и разархивация чатов
+        chats_leave: Выход из чатов
+        chat_members_read: Просмотр участников чата
+        chat_members_write: Добавление, изменение и удаление участников чата
+        chat_exports_read: Скачивание экспортов чата
+        chat_exports_write: Создание экспортов чата
+        messages_read: Просмотр сообщений в чатах
+        messages_create: Отправка сообщений
+        messages_update: Редактирование сообщений
+        messages_delete: Удаление сообщений
+        reactions_read: Просмотр реакций на сообщения
+        reactions_write: Добавление и удаление реакций
+        pins_write: Закрепление и открепление сообщений
+        threads_read: Просмотр тредов (комментариев)
+        threads_create: Создание тредов (комментариев)
+        link_previews_write: Unfurl (разворачивание ссылок)
+        views_write: Открытие форм (представлений)
+        users_read: Просмотр информации о сотрудниках и списка сотрудников
+        users_create: Создание новых сотрудников
+        users_update: Редактирование данных сотрудника
+        users_delete: Удаление сотрудников
+        group_tags_read: Просмотр тегов
+        group_tags_write: Создание, редактирование и удаление тегов
+        bots_write: Изменение настроек бота
+        profile_read: Просмотр информации о своем профиле
+        profile_status_read: Просмотр статуса профиля
+        profile_status_write: Изменение и удаление статуса профиля
+        custom_properties_read: Просмотр дополнительных полей
+        audit_events_read: Просмотр журнала аудита
+        tasks_read: Просмотр задач
+        tasks_create: Создание задач
+        tasks_update: Изменение задачи
+        tasks_delete: Удаление задачи
+        files_read: Скачивание файлов
+        files_write: Загрузка файлов
+        uploads_write: Получение данных для загрузки файлов
+        webhooks_read: Просмотр вебхуков
+        webhooks_write: Создание и управление вебхуками
+        webhooks_events_read: Просмотр лога вебхуков
+        webhooks_events_delete: Удаление записи в логе вебхука
     OpenViewRequest:
       type: object
       required:

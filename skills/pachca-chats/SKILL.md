@@ -125,7 +125,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 |-----|---------|------------|
 | 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
 | 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Бот не в чате, или endpoint только для админов/владельцев |
+| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
 | 404 | Не найдено | Неверный id. Проверь что сущность существует |
 | 401 | Не авторизован | Проверь токен в заголовке Authorization |
 
@@ -134,6 +134,8 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 ### Новый чат
 
 `POST /chats`
+
+> скоуп: `chats:create`
 
 ```json
 {
@@ -147,9 +149,13 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 `GET /chats`
 
+> скоуп: `chats:read`
+
 ### Экспорт сообщений
 
 `POST /chats/exports`
+
+> скоуп: `chat_exports:write` · тариф: **Корпорация**
 
 ```json
 {
@@ -163,13 +169,19 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 `GET /chats/exports/{id}`
 
+> скоуп: `chat_exports:read` · тариф: **Корпорация**
+
 ### Информация о чате
 
 `GET /chats/{id}`
 
+> скоуп: `chats:read`
+
 ### Обновление чата
 
 `PUT /chats/{id}`
+
+> скоуп: `chats:update`
 
 ```json
 {
@@ -181,9 +193,13 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 `PUT /chats/{id}/archive`
 
+> скоуп: `chats:archive`
+
 ### Добавление тегов
 
 `POST /chats/{id}/group_tags`
+
+> скоуп: `chat_members:write`
 
 ```json
 {
@@ -198,17 +214,25 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 `DELETE /chats/{id}/group_tags/{tag_id}`
 
+> скоуп: `chat_members:write`
+
 ### Выход из беседы или канала
 
 `DELETE /chats/{id}/leave`
+
+> скоуп: `chats:leave`
 
 ### Список участников чата
 
 `GET /chats/{id}/members`
 
+> скоуп: `chat_members:read`
+
 ### Добавление пользователей
 
 `POST /chats/{id}/members`
+
+> скоуп: `chat_members:write`
 
 ```json
 {
@@ -223,9 +247,13 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 `DELETE /chats/{id}/members/{user_id}`
 
+> скоуп: `chat_members:write`
+
 ### Редактирование роли
 
 `PUT /chats/{id}/members/{user_id}`
+
+> скоуп: `chat_members:write`
 
 ```json
 {
@@ -236,6 +264,8 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 ### Разархивация чата
 
 `PUT /chats/{id}/unarchive`
+
+> скоуп: `chats:archive`
 
 ## Ограничения и gotchas
 

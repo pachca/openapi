@@ -4,7 +4,7 @@
 
 **Путь**: `/messages/{id}`
 
-#admin_access_token_required
+> **Скоуп:** `messages:delete`
 
 Метод для удаления сообщения.
 

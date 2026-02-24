@@ -68,7 +68,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 |-----|---------|------------|
 | 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
 | 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Бот не в чате, или endpoint только для админов/владельцев |
+| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
 | 404 | Не найдено | Неверный id. Проверь что сущность существует |
 | 401 | Не авторизован | Проверь токен в заголовке Authorization |
 
@@ -78,17 +78,29 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 
 `GET /custom_properties`
 
+> скоуп: `custom_properties:read`
+
+### Информация о токене
+
+`GET /oauth/token/info`
+
 ### Информация о профиле
 
 `GET /profile`
+
+> скоуп: `profile:read`
 
 ### Текущий статус
 
 `GET /profile/status`
 
+> скоуп: `profile_status:read`
+
 ### Новый статус
 
 `PUT /profile/status`
+
+> скоуп: `profile_status:write`
 
 ```json
 {
@@ -102,6 +114,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 ### Удаление статуса
 
 `DELETE /profile/status`
+
+> скоуп: `profile_status:write`
 
 ## Ограничения и gotchas
 

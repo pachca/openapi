@@ -14,10 +14,10 @@
   --color-background-tertiary: oklch(97.95% 0.0054 274.97);
   --color-background-border: oklch(91.92% 0.006 274.97);
 
-  --color-callout-info-bg: oklch(97% 0.015 270);
-  --color-callout-info-border: oklch(91% 0.025 270);
-  --color-callout-info-header-bg: oklch(95% 0.02 270);
-  --color-callout-info-text: oklch(54.82% 0.2498 270.55);
+  --color-callout-info-bg: oklch(60.2% 0.193 263 / 10%);
+  --color-callout-info-border: oklch(60.2% 0.193 263 / 20%);
+  --color-callout-info-header-bg: oklch(60.2% 0.193 263 / 12%);
+  --color-callout-info-text: oklch(60.2% 0.193 263);
 
   --color-accent-yellow: oklch(55% 0.14 85);
   --color-accent-green: oklch(50% 0.14 143.5);
@@ -68,10 +68,10 @@ html.dark {
   --color-background-tertiary: oklch(27.77% 0.0068 240);
   --color-background-border: oklch(34% 0.0077 240);
 
-  --color-callout-info-bg: oklch(53.91% 0.19 270 / 12%);
-  --color-callout-info-border: oklch(53.91% 0.19 270 / 20%);
-  --color-callout-info-header-bg: oklch(53.91% 0.19 270 / 10%);
-  --color-callout-info-text: oklch(68.4% 0.16 270);
+  --color-callout-info-bg: oklch(66% 0.193 263 / 10%);
+  --color-callout-info-border: oklch(66% 0.193 263 / 20%);
+  --color-callout-info-header-bg: oklch(66% 0.193 263 / 8%);
+  --color-callout-info-text: oklch(66% 0.193 263);
 
   --color-accent-yellow: oklch(81.1% 0.154 70.7);
   --color-accent-green: oklch(75% 0.12 143.5);
@@ -89,6 +89,9 @@ html.dark {
   --color-callout-danger-border: oklch(75% 0.13 17 / 20%);
   --color-callout-danger-header-bg: oklch(75% 0.13 17 / 15%);
 
+  --color-method-get: oklch(66% 0.193 263);
+  --color-method-post: oklch(68% 0.142 143.5);
+  --color-method-put: oklch(68% 0.116 77);
   --color-method-delete: oklch(67.1% 0.145 17);
   --color-method-patch: oklch(69.4% 0.164 318);
 }
@@ -107,10 +110,10 @@ html.dark {
     --color-background-tertiary: oklch(27.77% 0.0068 240);
     --color-background-border: oklch(34% 0.0077 240);
 
-    --color-callout-info-bg: oklch(53.91% 0.19 270 / 12%);
-    --color-callout-info-border: oklch(53.91% 0.19 270 / 20%);
-    --color-callout-info-header-bg: oklch(53.91% 0.19 270 / 10%);
-    --color-callout-info-text: oklch(68.4% 0.16 270);
+    --color-callout-info-bg: oklch(66% 0.193 263 / 10%);
+    --color-callout-info-border: oklch(66% 0.193 263 / 20%);
+    --color-callout-info-header-bg: oklch(66% 0.193 263 / 8%);
+    --color-callout-info-text: oklch(66% 0.193 263);
 
     --color-accent-yellow: oklch(81.1% 0.154 70.7);
     --color-accent-green: oklch(75% 0.12 143.5);
@@ -128,6 +131,9 @@ html.dark {
     --color-callout-danger-border: oklch(75% 0.13 17 / 20%);
     --color-callout-danger-header-bg: oklch(75% 0.13 17 / 15%);
 
+    --color-method-get: oklch(66% 0.193 263);
+    --color-method-post: oklch(68% 0.142 143.5);
+    --color-method-put: oklch(68% 0.116 77);
     --color-method-delete: oklch(67.1% 0.145 17);
     --color-method-patch: oklch(69.4% 0.164 318);
   }

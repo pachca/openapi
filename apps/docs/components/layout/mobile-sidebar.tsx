@@ -42,11 +42,11 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
         className="lg:hidden fixed top-0 left-0 right-0 bg-background-secondary border-b border-background-border z-50 flex items-center px-4 justify-between"
         style={{ height: 'var(--mobile-header-height)' }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0 overflow-hidden">
           <LogoLink />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <ThemeToggle />
           <SearchButton variant="header" />
           <button

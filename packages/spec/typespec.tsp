@@ -459,6 +459,7 @@ enum ValidationErrorCode {
   message_created: "Сообщение создано",
   reaction_created: "Реакция добавлена",
   reaction_deleted: "Реакция удалена",
+  thread_created: "Тред создан",
   access_token_created: "Создан новый токен доступа",
   access_token_updated: "Токен доступа обновлен",
   access_token_destroy: "Токен доступа удален",
@@ -539,6 +540,9 @@ enum AuditEventKey {
 
   @doc("Реакция удалена")
   reaction_deleted: "reaction_deleted",
+
+  @doc("Тред создан")
+  thread_created: "thread_created",
 
   @doc("Создан новый токен доступа")
   access_token_created: "access_token_created",

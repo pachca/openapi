@@ -83,10 +83,16 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
         working-directory: sdk/typescript
-      - run: npm publish --provenance --access public
-        working-directory: sdk/typescript
+      - working-directory: sdk/typescript
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "@pachca/sdk@${VERSION}" version 2>/dev/null; then
+            echo "Version ${VERSION} already published, skipping"
+          else
+            npm publish --provenance --access public
+          fi
 
   publish-pypi:
     if: github.event_name == 'push'
@@ -102,7 +108,7 @@ jobs:
       - run: pip install build twine
       - run: python -m build
         working-directory: sdk/python/generated
-      - run: twine upload sdk/python/generated/dist/*
+      - run: twine upload --skip-existing sdk/python/generated/dist/*
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

@@ -53,9 +53,9 @@ class WebhookEvent:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.message_webhook_payload import MessageWebhookPayload
         from ..models.button_webhook_payload import ButtonWebhookPayload
         from ..models.reaction_webhook_payload import ReactionWebhookPayload
+        from ..models.message_webhook_payload import MessageWebhookPayload
         from ..models.company_member_webhook_payload import CompanyMemberWebhookPayload
         from ..models.link_shared_webhook_payload import LinkSharedWebhookPayload
         from ..models.chat_member_webhook_payload import ChatMemberWebhookPayload

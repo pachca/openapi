@@ -52,6 +52,8 @@
 
     * `reaction_deleted` (value: `"reaction_deleted"`)
 
+    * `thread_created` (value: `"thread_created"`)
+
     * `access_token_created` (value: `"access_token_created"`)
 
     * `access_token_updated` (value: `"access_token_updated"`)

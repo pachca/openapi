@@ -20,6 +20,7 @@ class AuditEventKey(str, Enum):
     TAG_CREATED = "tag_created"
     TAG_DELETED = "tag_deleted"
     TAG_REMOVED_FROM_CHAT = "tag_removed_from_chat"
+    THREAD_CREATED = "thread_created"
     USER_2FA_FAIL = "user_2fa_fail"
     USER_2FA_SUCCESS = "user_2fa_success"
     USER_ADDED_TO_TAG = "user_added_to_tag"

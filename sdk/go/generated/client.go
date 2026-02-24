@@ -43,6 +43,7 @@ const (
 	TagCreated            AuditEventKey = "tag_created"
 	TagDeleted            AuditEventKey = "tag_deleted"
 	TagRemovedFromChat    AuditEventKey = "tag_removed_from_chat"
+	ThreadCreated         AuditEventKey = "thread_created"
 	User2faFail           AuditEventKey = "user_2fa_fail"
 	User2faSuccess        AuditEventKey = "user_2fa_success"
 	UserAddedToTag        AuditEventKey = "user_added_to_tag"

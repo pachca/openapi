@@ -107,10 +107,10 @@ html.dark {
     --color-background-tertiary: oklch(27.77% 0.0068 240);
     --color-background-border: oklch(34% 0.0077 240);
 
-    --color-callout-info-bg: oklch(52% 0.22 290 / 12%);
-    --color-callout-info-border: oklch(52% 0.22 290 / 20%);
-    --color-callout-info-header-bg: oklch(52% 0.22 290 / 10%);
-    --color-callout-info-text: oklch(72% 0.18 290);
+    --color-callout-info-bg: oklch(53.91% 0.19 270 / 12%);
+    --color-callout-info-border: oklch(53.91% 0.19 270 / 20%);
+    --color-callout-info-header-bg: oklch(53.91% 0.19 270 / 10%);
+    --color-callout-info-text: oklch(68.4% 0.16 270);
 
     --color-accent-yellow: oklch(81.1% 0.154 70.7);
     --color-accent-green: oklch(75% 0.12 143.5);

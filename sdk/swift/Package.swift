@@ -21,8 +21,7 @@ let package = Package(
                 .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession"),
                 .product(name: "HTTPTypes", package: "swift-http-types"),
             ],
-            path: "generated/Sources/Pachca",
-            exclude: ["openapi.yaml", "openapi-generator-config.yaml"]
+            path: "generated/Sources/Pachca"
         )
     ]
 )

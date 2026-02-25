@@ -951,6 +951,10 @@ model Task {
   @example(12)
   user_id: int32;
 
+  @doc("Идентификатор чата, к которому привязано напоминание")
+  @example(456)
+  chat_id: int32 | null;
+
   @doc("Статус напоминания")
   @example("undone")
   @extension("x-enum-descriptions", #{
@@ -1696,6 +1700,10 @@ model TaskCreateRequest {
     
     @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)")
     performer_ids?: int32[];
+
+    @doc("Идентификатор чата, к которому привязывается напоминание")
+    @example(456)
+    chat_id?: int32;
 
     @doc("Напоминание на весь день (без указания времени)")
     all_day?: boolean;
@@ -5325,7 +5333,7 @@ interface TaskOperations {
 
 Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
 
-На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
 """)
   @post
   @opExample(#{
@@ -5353,6 +5361,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "undone",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
@@ -5376,6 +5385,9 @@ interface TaskOperations {
   } | {
     @statusCode _: 403;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -5408,6 +5420,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "undone",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
@@ -5426,6 +5439,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-06T14:00:00.000Z"),
           priority: 3,
           user_id: 12,
+          chat_id: null,
           status: "done",
           created_at: utcDateTime.fromISO("2020-06-04T11:20:00.000Z"),
           performer_ids: #[12, 13],
@@ -5489,6 +5503,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "undone",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
@@ -5550,6 +5565,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "done",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],

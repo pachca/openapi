@@ -10,6 +10,7 @@
 | **dueAt** | [**java.time.OffsetDateTime**](java.time.OffsetDateTime.md) | Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ |  |
 | **priority** | **kotlin.Int** | Приоритет |  |
 | **userId** | **kotlin.Int** | Идентификатор пользователя-создателя напоминания |  |
+| **chatId** | **kotlin.Int** | Идентификатор чата, к которому привязано напоминание |  |
 | **status** | [**inline**](#Status) | Статус напоминания |  |
 | **createdAt** | [**java.time.OffsetDateTime**](java.time.OffsetDateTime.md) | Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ |  |
 | **performerIds** | **kotlin.collections.List&lt;kotlin.Int&gt;** | Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные» |  |

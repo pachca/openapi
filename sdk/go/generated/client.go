@@ -1224,6 +1224,9 @@ type Task struct {
 	// AllDay Напоминание на весь день (без указания времени)
 	AllDay bool `json:"all_day"`
 
+	// ChatId Идентификатор чата, к которому привязано напоминание
+	ChatId *int32 `json:"chat_id"`
+
 	// Content Описание
 	Content string `json:"content"`
 
@@ -1264,6 +1267,9 @@ type TaskCreateRequest struct {
 	Task struct {
 		// AllDay Напоминание на весь день (без указания времени)
 		AllDay *bool `json:"all_day,omitempty"`
+
+		// ChatId Идентификатор чата, к которому привязывается напоминание
+		ChatId *int32 `json:"chat_id,omitempty"`
 
 		// Content Описание (по умолчанию — название типа)
 		Content *string `json:"content,omitempty"`
@@ -8083,6 +8089,7 @@ type TaskOperationsCreateTaskResponse struct {
 	JSON400 *ApiError
 	JSON401 *OAuthError
 	JSON403 *OAuthError
+	JSON404 *ApiError
 	JSON422 *ApiError
 }
 
@@ -11565,6 +11572,13 @@ func ParseTaskOperationsCreateTaskResponse(rsp *http.Response) (*TaskOperationsC
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest ApiError

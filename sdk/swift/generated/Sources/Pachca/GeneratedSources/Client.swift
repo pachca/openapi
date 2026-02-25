@@ -7076,7 +7076,7 @@ internal struct Client: APIProtocol {
     ///
     /// Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
     ///
-    /// На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+    /// Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
     ///
     /// - Remark: HTTP `POST /tasks`.
     /// - Remark: Generated from `#/paths//tasks/post(TaskOperations_createTask)`.
@@ -7199,6 +7199,28 @@ internal struct Client: APIProtocol {
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
                     return .forbidden(.init(body: body))
+                case 404:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.TaskOperations_createTask.Output.NotFound.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ApiError.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .notFound(.init(body: body))
                 case 422:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.TaskOperations_createTask.Output.UnprocessableContent.Body

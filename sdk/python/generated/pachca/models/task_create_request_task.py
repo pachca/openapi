@@ -38,6 +38,7 @@ class TaskCreateRequestTask:
             priority (int | Unset): Приоритет: 1, 2 (важно) или 3 (очень важно). Default: 1. Example: 2.
             performer_ids (list[int] | Unset): Массив идентификаторов пользователей, привязываемых к напоминанию как
                 «ответственные» (по умолчанию ответственным назначается вы)
+            chat_id (int | Unset): Идентификатор чата, к которому привязывается напоминание Example: 456.
             all_day (bool | Unset): Напоминание на весь день (без указания времени)
             custom_properties (list[TaskCreateRequestTaskCustomPropertiesItem] | Unset): Задаваемые дополнительные поля
      """
@@ -47,6 +48,7 @@ class TaskCreateRequestTask:
     due_at: datetime.datetime | Unset = UNSET
     priority: int | Unset = 1
     performer_ids: list[int] | Unset = UNSET
+    chat_id: int | Unset = UNSET
     all_day: bool | Unset = UNSET
     custom_properties: list[TaskCreateRequestTaskCustomPropertiesItem] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -73,6 +75,8 @@ class TaskCreateRequestTask:
 
 
 
+        chat_id = self.chat_id
+
         all_day = self.all_day
 
         custom_properties: list[dict[str, Any]] | Unset = UNSET
@@ -98,6 +102,8 @@ class TaskCreateRequestTask:
             field_dict["priority"] = priority
         if performer_ids is not UNSET:
             field_dict["performer_ids"] = performer_ids
+        if chat_id is not UNSET:
+            field_dict["chat_id"] = chat_id
         if all_day is not UNSET:
             field_dict["all_day"] = all_day
         if custom_properties is not UNSET:
@@ -133,6 +139,8 @@ class TaskCreateRequestTask:
         performer_ids = cast(list[int], d.pop("performer_ids", UNSET))
 
 
+        chat_id = d.pop("chat_id", UNSET)
+
         all_day = d.pop("all_day", UNSET)
 
         _custom_properties = d.pop("custom_properties", UNSET)
@@ -153,6 +161,7 @@ class TaskCreateRequestTask:
             due_at=due_at,
             priority=priority,
             performer_ids=performer_ids,
+            chat_id=chat_id,
             all_day=all_day,
             custom_properties=custom_properties,
         )

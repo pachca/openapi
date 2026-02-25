@@ -30,6 +30,7 @@ import com.squareup.moshi.JsonClass
  * @param dueAt Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
  * @param priority Приоритет
  * @param userId Идентификатор пользователя-создателя напоминания
+ * @param chatId Идентификатор чата, к которому привязано напоминание
  * @param status Статус напоминания
  * @param createdAt Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
  * @param performerIds Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные»
@@ -63,6 +64,10 @@ data class Task (
     /* Идентификатор пользователя-создателя напоминания */
     @Json(name = "user_id")
     val userId: kotlin.Int,
+
+    /* Идентификатор чата, к которому привязано напоминание */
+    @Json(name = "chat_id")
+    val chatId: kotlin.Int?,
 
     /* Статус напоминания */
     @Json(name = "status")

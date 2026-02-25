@@ -37,6 +37,7 @@ class Task:
                 DDThh:mm:ss.sssZ Example: 2020-06-05T09:00:00.000Z.
             priority (int): Приоритет Example: 2.
             user_id (int): Идентификатор пользователя-создателя напоминания Example: 12.
+            chat_id (int | None): Идентификатор чата, к которому привязано напоминание Example: 456.
             status (TaskStatus): Статус напоминания Example: undone.
             created_at (datetime.datetime): Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-
                 DDThh:mm:ss.sssZ Example: 2020-06-04T10:37:57.000Z.
@@ -52,6 +53,7 @@ class Task:
     due_at: datetime.datetime | None
     priority: int
     user_id: int
+    chat_id: int | None
     status: TaskStatus
     created_at: datetime.datetime
     performer_ids: list[int]
@@ -81,6 +83,9 @@ class Task:
 
         user_id = self.user_id
 
+        chat_id: int | None
+        chat_id = self.chat_id
+
         status = self.status.value
 
         created_at = self.created_at.isoformat()
@@ -108,6 +113,7 @@ class Task:
             "due_at": due_at,
             "priority": priority,
             "user_id": user_id,
+            "chat_id": chat_id,
             "status": status,
             "created_at": created_at,
             "performer_ids": performer_ids,
@@ -154,6 +160,14 @@ class Task:
 
         user_id = d.pop("user_id")
 
+        def _parse_chat_id(data: object) -> int | None:
+            if data is None:
+                return data
+            return cast(int | None, data)
+
+        chat_id = _parse_chat_id(d.pop("chat_id"))
+
+
         status = TaskStatus(d.pop("status"))
 
 
@@ -186,6 +200,7 @@ class Task:
             due_at=due_at,
             priority=priority,
             user_id=user_id,
+            chat_id=chat_id,
             status=status,
             created_at=created_at,
             performer_ids=performer_ids,

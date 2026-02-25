@@ -417,7 +417,7 @@ internal protocol APIProtocol: Sendable {
     ///
     /// Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
     ///
-    /// На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+    /// Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
     ///
     /// - Remark: HTTP `POST /tasks`.
     /// - Remark: Generated from `#/paths//tasks/post(TaskOperations_createTask)`.
@@ -1301,7 +1301,7 @@ extension APIProtocol {
     ///
     /// Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
     ///
-    /// На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+    /// Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
     ///
     /// - Remark: HTTP `POST /tasks`.
     /// - Remark: Generated from `#/paths//tasks/post(TaskOperations_createTask)`.
@@ -4603,6 +4603,10 @@ internal enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/Task/user_id`.
             internal var user_id: Swift.Int32
+            /// Идентификатор чата, к которому привязано напоминание
+            ///
+            /// - Remark: Generated from `#/components/schemas/Task/chat_id`.
+            internal var chat_id: Swift.Int32?
             /// Статус напоминания
             ///
             /// - Remark: Generated from `#/components/schemas/Task/status`.
@@ -4639,6 +4643,7 @@ internal enum Components {
             ///   - due_at: Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
             ///   - priority: Приоритет
             ///   - user_id: Идентификатор пользователя-создателя напоминания
+            ///   - chat_id: Идентификатор чата, к которому привязано напоминание
             ///   - status: Статус напоминания
             ///   - created_at: Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
             ///   - performer_ids: Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные»
@@ -4651,6 +4656,7 @@ internal enum Components {
                 due_at: Foundation.Date? = nil,
                 priority: Swift.Int32,
                 user_id: Swift.Int32,
+                chat_id: Swift.Int32? = nil,
                 status: Components.Schemas.Task.statusPayload,
                 created_at: Foundation.Date,
                 performer_ids: [Swift.Int32],
@@ -4663,6 +4669,7 @@ internal enum Components {
                 self.due_at = due_at
                 self.priority = priority
                 self.user_id = user_id
+                self.chat_id = chat_id
                 self.status = status
                 self.created_at = created_at
                 self.performer_ids = performer_ids
@@ -4676,6 +4683,7 @@ internal enum Components {
                 case due_at
                 case priority
                 case user_id
+                case chat_id
                 case status
                 case created_at
                 case performer_ids
@@ -4731,6 +4739,10 @@ internal enum Components {
                 ///
                 /// - Remark: Generated from `#/components/schemas/TaskCreateRequest/task/performer_ids`.
                 internal var performer_ids: [Swift.Int32]?
+                /// Идентификатор чата, к которому привязывается напоминание
+                ///
+                /// - Remark: Generated from `#/components/schemas/TaskCreateRequest/task/chat_id`.
+                internal var chat_id: Swift.Int32?
                 /// Напоминание на весь день (без указания времени)
                 ///
                 /// - Remark: Generated from `#/components/schemas/TaskCreateRequest/task/all_day`.
@@ -4778,6 +4790,7 @@ internal enum Components {
                 ///   - due_at: Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени).
                 ///   - priority: Приоритет: 1, 2 (важно) или 3 (очень важно).
                 ///   - performer_ids: Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)
+                ///   - chat_id: Идентификатор чата, к которому привязывается напоминание
                 ///   - all_day: Напоминание на весь день (без указания времени)
                 ///   - custom_properties: Задаваемые дополнительные поля
                 internal init(
@@ -4786,6 +4799,7 @@ internal enum Components {
                     due_at: Foundation.Date? = nil,
                     priority: Swift.Int32? = nil,
                     performer_ids: [Swift.Int32]? = nil,
+                    chat_id: Swift.Int32? = nil,
                     all_day: Swift.Bool? = nil,
                     custom_properties: Components.Schemas.TaskCreateRequest.taskPayload.custom_propertiesPayload? = nil
                 ) {
@@ -4794,6 +4808,7 @@ internal enum Components {
                     self.due_at = due_at
                     self.priority = priority
                     self.performer_ids = performer_ids
+                    self.chat_id = chat_id
                     self.all_day = all_day
                     self.custom_properties = custom_properties
                 }
@@ -4803,6 +4818,7 @@ internal enum Components {
                     case due_at
                     case priority
                     case performer_ids
+                    case chat_id
                     case all_day
                     case custom_properties
                 }
@@ -22307,7 +22323,7 @@ internal enum Operations {
     ///
     /// Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
     ///
-    /// На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+    /// Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
     ///
     /// - Remark: HTTP `POST /tasks`.
     /// - Remark: Generated from `#/paths//tasks/post(TaskOperations_createTask)`.
@@ -22562,6 +22578,57 @@ internal enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/tasks/POST/responses/404/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/tasks/POST/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.TaskOperations_createTask.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.TaskOperations_createTask.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// The server cannot find the requested resource.
+            ///
+            /// - Remark: Generated from `#/paths//tasks/post(TaskOperations_createTask)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.TaskOperations_createTask.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            internal var notFound: Operations.TaskOperations_createTask.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
                             response: self
                         )
                     }

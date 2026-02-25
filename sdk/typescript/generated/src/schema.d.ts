@@ -780,7 +780,7 @@ export interface paths {
          *
          *     Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
          *
-         *     На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+         *     Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
          */
         post: operations["TaskOperations_createTask"];
         delete?: never;
@@ -2261,6 +2261,12 @@ export interface components {
              */
             user_id: number;
             /**
+             * Format: int32
+             * @description Идентификатор чата, к которому привязано напоминание
+             * @example 456
+             */
+            chat_id: number | null;
+            /**
              * @description Статус напоминания
              * @example undone
              * @enum {string}
@@ -2313,6 +2319,12 @@ export interface components {
                 priority: number;
                 /** @description Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы) */
                 performer_ids?: number[];
+                /**
+                 * Format: int32
+                 * @description Идентификатор чата, к которому привязывается напоминание
+                 * @example 456
+                 */
+                chat_id?: number;
                 /** @description Напоминание на весь день (без указания времени) */
                 all_day?: boolean;
                 /** @description Задаваемые дополнительные поля */
@@ -6612,6 +6624,7 @@ export interface operations {
                      *           "due_at": "2020-06-05T09:00:00.000Z",
                      *           "priority": 2,
                      *           "user_id": 12,
+                     *           "chat_id": null,
                      *           "status": "undone",
                      *           "created_at": "2020-06-04T10:37:57.000Z",
                      *           "performer_ids": [
@@ -6634,6 +6647,7 @@ export interface operations {
                      *           "due_at": "2020-06-06T14:00:00.000Z",
                      *           "priority": 3,
                      *           "user_id": 12,
+                     *           "chat_id": null,
                      *           "status": "done",
                      *           "created_at": "2020-06-04T11:20:00.000Z",
                      *           "performer_ids": [
@@ -6730,6 +6744,7 @@ export interface operations {
                      *         "due_at": "2020-06-05T09:00:00.000Z",
                      *         "priority": 2,
                      *         "user_id": 12,
+                     *         "chat_id": null,
                      *         "status": "undone",
                      *         "created_at": "2020-06-04T10:37:57.000Z",
                      *         "performer_ids": [
@@ -6779,6 +6794,15 @@ export interface operations {
                     "application/json": components["schemas"]["OAuthError"];
                 };
             };
+            /** @description The server cannot find the requested resource. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
             /** @description Client error */
             422: {
                 headers: {
@@ -6817,6 +6841,7 @@ export interface operations {
                      *         "due_at": "2020-06-05T09:00:00.000Z",
                      *         "priority": 2,
                      *         "user_id": 12,
+                     *         "chat_id": null,
                      *         "status": "undone",
                      *         "created_at": "2020-06-04T10:37:57.000Z",
                      *         "performer_ids": [
@@ -6906,6 +6931,7 @@ export interface operations {
                      *         "due_at": "2020-06-05T09:00:00.000Z",
                      *         "priority": 2,
                      *         "user_id": 12,
+                     *         "chat_id": null,
                      *         "status": "done",
                      *         "created_at": "2020-06-04T10:37:57.000Z",
                      *         "performer_ids": [

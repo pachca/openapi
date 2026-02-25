@@ -384,7 +384,7 @@
 3. Тред (`entity_type: "thread"`): вложенных тредов нет — ответь в тот же тред: POST /messages с `"entity_type": "thread"`, `"entity_id"`: `entity_id` из вебхука, `"parent_message_id"`: `id` сообщения пользователя из вебхука
 4. Беседа/канал (`entity_type: "discussion"`): выбери стратегию — inline-ответ (POST /messages c `"parent_message_id"`: `id` сообщения) или тред (POST /messages/{id}/thread → ответ в тред)
 
-> `parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду.
+> `parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду. Если бота вызвали в треде и других сообщений в треде нет — основной контекст в родительском сообщении треда. В вебхуке уже есть `thread.message_id` — получи родительское сообщение: GET /messages/{id}.
 
 **Отправить сообщение с файлами**
 
@@ -589,11 +589,13 @@
 
 ### pachca-tasks
 
-**Создать напоминание для себя**
+**Создать напоминание**
 
 1. POST /tasks с `kind`, `content` и `due_at`
+2. Чтобы привязать к чату — добавь `chat_id`
+3. Чтобы заполнить дополнительные поля — добавь `custom_properties: [{"id": <field_id>, "value": "..."}]` (список полей: GET /custom_properties?entity_type=Task)
 
-> Задачи поддерживают дополнительные поля (`custom_properties`). Передай массив `[{"id": <field_id>, "value": "..."}]` при создании или обновлении. Список доступных полей: GET /custom_properties?entity_type=Task.
+> Для привязки к чату нужно быть его участником. Если чат не найден — 404. Тип значения `custom_properties[].value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.
 
 **Получить список предстоящих задач**
 
@@ -610,15 +612,6 @@
 
 1. Подготовь список дат (ежедневно, еженедельно и т.д.)
 2. Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`
-
-**Заполнить дополнительные поля задачи**
-
-1. GET /custom_properties?entity_type=Task — получи список доступных полей (`id`, `name`, `data_type`)
-2. При создании: POST /tasks с `custom_properties: [{"id": <field_id>, "value": "..."}]`
-3. При обновлении: PUT /tasks/{id} с `custom_properties: [{"id": <field_id>, "value": "..."}]`
-4. В ответе задачи поле `custom_properties` содержит текущие значения всех полей
-
-> Если передать `id` удалённого или несуществующего поля — получишь ошибку 422. Тип значения в `value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.
 
 ### pachca-security
 
@@ -2497,6 +2490,19 @@ echo $response;
 > Автоматически отслеживайте обновления: подпишитесь на [RSS-ленту](/feed.xml) или используйте [markdown-версию этой страницы](/guides/updates.md) для интеграции с инструментами и AI-агентами.
 
 
+<!-- update:2026-02-25 -->
+
+## Привязка напоминаний к чатам
+
+Напоминания теперь можно привязывать к чатам, в которых вы состоите — при создании напоминания укажите `chat_id`. В ответе всех методов напоминаний добавлено новое поле `chat_id`.
+
+Были обновлены следующие методы:
+
+- [Новое напоминание](POST /tasks)
+- [Список напоминаний](GET /tasks)
+- [Информация о напоминании](GET /tasks/{id})
+- [Редактирование напоминания](PUT /tasks/{id})
+
 <!-- update:2026-02-24 -->
 
 ## Авторизация и скоупы
@@ -2533,9 +2539,10 @@ echo $response;
 
 ## Новые типы аудит-событий
 
-В журнал аудита событий добавлены новые типы событий для отслеживания создания сообщений и работы с реакциями:
+В журнал аудита событий добавлены новые типы событий для отслеживания создания сообщений, тредов и работы с реакциями:
 
 - `message_created` — сообщение создано
+- `thread_created` — тред создан
 - `reaction_created` — реакция добавлена
 - `reaction_deleted` — реакция удалена
 
@@ -17559,7 +17566,7 @@ echo $response;
 
 Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
 
-На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
 
 ## Тело запроса
 
@@ -17582,6 +17589,7 @@ echo $response;
   - `priority` (integer, int32, опциональный): Приоритет: 1, 2 (важно) или 3 (очень важно).
     - По умолчанию: `1`
   - `performer_ids` (array[integer], опциональный): Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)
+  - `chat_id` (integer, int32, опциональный): Идентификатор чата, к которому привязывается напоминание
   - `all_day` (boolean, опциональный): Напоминание на весь день (без указания времени)
   - `custom_properties` (array[object], опциональный): Задаваемые дополнительные поля
     - `id` (integer, int32, **обязательный**): Идентификатор поля
@@ -17832,6 +17840,7 @@ echo $response;
   - `due_at` (string, date-time, **обязательный**): Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `priority` (integer, int32, **обязательный**): Приоритет
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя-создателя напоминания
+  - `chat_id` (integer, int32, **обязательный**): Идентификатор чата, к которому привязано напоминание
   - `status` (string, **обязательный**): Статус напоминания
     - **Возможные значения:**
       - `done`: Выполнено
@@ -17861,6 +17870,7 @@ echo $response;
     "due_at": "2020-06-05T09:00:00.000Z",
     "priority": 2,
     "user_id": 12,
+    "chat_id": null,
     "status": "undone",
     "created_at": "2020-06-04T10:37:57.000Z",
     "performer_ids": [
@@ -17939,6 +17949,53 @@ echo $response;
 
 - `error` (string, **обязательный**): Код ошибки
 - `error_description` (string, **обязательный**): Описание ошибки
+
+### 404: The server cannot find the requested resource.
+
+**Схема ответа при ошибке:**
+
+- `errors` (array[object], **обязательный**): Массив ошибок
+  - `key` (string, **обязательный**): Ключ поля с ошибкой
+  - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+  - `message` (string, **обязательный**): Сообщение об ошибке
+  - `code` (string, **обязательный**): Код ошибки
+    - **Возможные значения:**
+      - `blank`: Обязательное поле (не может быть пустым)
+      - `too_long`: Слишком длинное значение (пояснения вы получите в поле message)
+      - `invalid`: Поле не соответствует правилам (пояснения вы получите в поле message)
+      - `inclusion`: Поле имеет непредусмотренное значение
+      - `exclusion`: Поле имеет недопустимое значение
+      - `taken`: Название для этого поля уже существует
+      - `wrong_emoji`: Emoji статуса не может содержать значения отличные от Emoji символа
+      - `not_found`: Объект не найден
+      - `already_exists`: Объект уже существует (пояснения вы получите в поле message)
+      - `personal_chat`: Ошибка личного чата (пояснения вы получите в поле message)
+      - `displayed_error`: Отображаемая ошибка (пояснения вы получите в поле message)
+      - `not_authorized`: Действие запрещено
+      - `invalid_date_range`: Выбран слишком большой диапазон дат
+      - `invalid_webhook_url`: Некорректный URL вебхука
+      - `rate_limit`: Достигнут лимит запросов
+      - `licenses_limit`: Превышен лимит активных сотрудников (пояснения вы получите в поле message)
+      - `user_limit`: Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
+      - `unique_limit`: Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
+      - `general_limit`: Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
+      - `unhandled`: Ошибка выполнения запроса (пояснения вы получите в поле message)
+      - `trigger_not_found`: Не удалось найти идентификатор события
+      - `trigger_expired`: Время жизни идентификатора события истекло
+      - `required`: Обязательный параметр не передан
+      - `in`: Недопустимое значение (не входит в список допустимых)
+      - `not_applicable`: Значение неприменимо в данном контексте (пояснения вы получите в поле message)
+      - `self_update`: Нельзя изменить свои собственные данные
+      - `owner_protected`: Нельзя изменить данные владельца
+      - `already_assigned`: Значение уже назначено
+      - `forbidden`: Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
+      - `permission_denied`: Доступ запрещён (недостаточно прав)
+      - `access_denied`: Доступ запрещён
+      - `wrong_params`: Некорректные параметры запроса (пояснения вы получите в поле message)
+      - `payment_required`: Требуется оплата
+      - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
+      - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
+  - `payload` (string, **обязательный**): Дополнительные данные об ошибке
 
 ### 422: Client error
 
@@ -18158,6 +18215,7 @@ echo $response;
   - `due_at` (string, date-time, **обязательный**): Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `priority` (integer, int32, **обязательный**): Приоритет
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя-создателя напоминания
+  - `chat_id` (integer, int32, **обязательный**): Идентификатор чата, к которому привязано напоминание
   - `status` (string, **обязательный**): Статус напоминания
     - **Возможные значения:**
       - `done`: Выполнено
@@ -18188,6 +18246,7 @@ echo $response;
       "due_at": "2020-06-05T09:00:00.000Z",
       "priority": 2,
       "user_id": 12,
+      "chat_id": null,
       "status": "undone",
       "created_at": "2020-06-04T10:37:57.000Z",
       "performer_ids": [
@@ -18210,6 +18269,7 @@ echo $response;
       "due_at": "2020-06-06T14:00:00.000Z",
       "priority": 3,
       "user_id": 12,
+      "chat_id": null,
       "status": "done",
       "created_at": "2020-06-04T11:20:00.000Z",
       "performer_ids": [
@@ -18444,6 +18504,7 @@ echo $response;
   - `due_at` (string, date-time, **обязательный**): Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `priority` (integer, int32, **обязательный**): Приоритет
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя-создателя напоминания
+  - `chat_id` (integer, int32, **обязательный**): Идентификатор чата, к которому привязано напоминание
   - `status` (string, **обязательный**): Статус напоминания
     - **Возможные значения:**
       - `done`: Выполнено
@@ -18473,6 +18534,7 @@ echo $response;
     "due_at": "2020-06-05T09:00:00.000Z",
     "priority": 2,
     "user_id": 12,
+    "chat_id": null,
     "status": "undone",
     "created_at": "2020-06-04T10:37:57.000Z",
     "performer_ids": [
@@ -18786,6 +18848,7 @@ echo $response;
   - `due_at` (string, date-time, **обязательный**): Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `priority` (integer, int32, **обязательный**): Приоритет
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя-создателя напоминания
+  - `chat_id` (integer, int32, **обязательный**): Идентификатор чата, к которому привязано напоминание
   - `status` (string, **обязательный**): Статус напоминания
     - **Возможные значения:**
       - `done`: Выполнено
@@ -18815,6 +18878,7 @@ echo $response;
     "due_at": "2020-06-05T09:00:00.000Z",
     "priority": 2,
     "user_id": 12,
+    "chat_id": null,
     "status": "done",
     "created_at": "2020-06-04T10:37:57.000Z",
     "performer_ids": [
@@ -21773,7 +21837,7 @@ echo $response;
 
 - `start_time` (string, **обязательный**): Начальная метка времени (включительно)
 - `end_time` (string, **обязательный**): Конечная метка времени (исключительно)
-- `event_key` (string (enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, message_created, reaction_created, reaction_deleted, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected), опциональный): Фильтр по конкретному типу события
+- `event_key` (string (enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, message_created, reaction_created, reaction_deleted, thread_created, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected), опциональный): Фильтр по конкретному типу события
 - `actor_id` (integer, опциональный): Идентификатор пользователя, выполнившего действие
 - `actor_type` (string, опциональный): Тип актора
 - `entity_id` (integer, опциональный): Идентификатор затронутой сущности
@@ -21962,6 +22026,7 @@ echo $response;
       - `message_created`: Сообщение создано
       - `reaction_created`: Реакция добавлена
       - `reaction_deleted`: Реакция удалена
+      - `thread_created`: Тред создан
       - `access_token_created`: Создан новый токен доступа
       - `access_token_updated`: Токен доступа обновлен
       - `access_token_destroy`: Токен доступа удален

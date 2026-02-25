@@ -166,6 +166,7 @@ echo $response;
   - `due_at` (string, date-time, **обязательный**): Срок выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `priority` (integer, int32, **обязательный**): Приоритет
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя-создателя напоминания
+  - `chat_id` (integer, int32, **обязательный**): Идентификатор чата, к которому привязано напоминание
   - `status` (string, **обязательный**): Статус напоминания
     - **Возможные значения:**
       - `done`: Выполнено
@@ -196,6 +197,7 @@ echo $response;
       "due_at": "2020-06-05T09:00:00.000Z",
       "priority": 2,
       "user_id": 12,
+      "chat_id": null,
       "status": "undone",
       "created_at": "2020-06-04T10:37:57.000Z",
       "performer_ids": [
@@ -218,6 +220,7 @@ echo $response;
       "due_at": "2020-06-06T14:00:00.000Z",
       "priority": 3,
       "user_id": 12,
+      "chat_id": null,
       "status": "done",
       "created_at": "2020-06-04T11:20:00.000Z",
       "performer_ids": [

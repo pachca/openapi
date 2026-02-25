@@ -64,7 +64,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
         'Беседа/канал (`entity_type: "discussion"`): выбери стратегию — inline-ответ (POST /messages c `"parent_message_id"`: `id` сообщения) или тред (POST /messages/{id}/thread → ответ в тред)',
       ],
       notes:
-        '`parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду.',
+        '`parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду. Если бота вызвали в треде и других сообщений в треде нет — основной контекст в родительском сообщении треда. В вебхуке уже есть `thread.message_id` — получи родительское сообщение: GET /messages/{id}.',
     },
     {
       title: 'Отправить сообщение с файлами',
@@ -497,14 +497,18 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
   ],
   'pachca-tasks': [
     {
-      title: 'Создать напоминание для себя',
-      steps: ['POST /tasks с `kind`, `content` и `due_at`'],
+      title: 'Создать напоминание',
+      steps: [
+        'POST /tasks с `kind`, `content` и `due_at`',
+        'Чтобы привязать к чату — добавь `chat_id`',
+        'Чтобы заполнить дополнительные поля — добавь `custom_properties: [{"id": <field_id>, "value": "..."}]` (список полей: GET /custom_properties?entity_type=Task)',
+      ],
       notes:
-        'Задачи поддерживают дополнительные поля (`custom_properties`). Передай массив `[{"id": <field_id>, "value": "..."}]` при создании или обновлении. Список доступных полей: GET /custom_properties?entity_type=Task.',
+        'Для привязки к чату нужно быть его участником. Если чат не найден — 404. Тип значения `custom_properties[].value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.',
       curl: `curl "https://api.pachca.com/api/shared/v1/tasks" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"$DUE_AT","custom_properties":[{"id":78,"value":"Синий склад"}]}}'`,
+  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"$DUE_AT","chat_id":$CHAT_ID,"custom_properties":[{"id":78,"value":"Синий склад"}]}}'`,
     },
     {
       title: 'Получить список предстоящих задач',
@@ -531,25 +535,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
         'Подготовь список дат (ежедневно, еженедельно и т.д.)',
         'Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`',
       ],
-    },
-    {
-      title: 'Заполнить дополнительные поля задачи',
-      steps: [
-        'GET /custom_properties?entity_type=Task — получи список доступных полей (`id`, `name`, `data_type`)',
-        'При создании: POST /tasks с `custom_properties: [{"id": <field_id>, "value": "..."}]`',
-        'При обновлении: PUT /tasks/{id} с `custom_properties: [{"id": <field_id>, "value": "..."}]`',
-        'В ответе задачи поле `custom_properties` содержит текущие значения всех полей',
-      ],
-      notes:
-        'Если передать `id` удалённого или несуществующего поля — получишь ошибку 422. Тип значения в `value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.',
-      curl: `curl "https://api.pachca.com/api/shared/v1/custom_properties?entity_type=Task" \\
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: [{"id":78,"name":"Склад","data_type":"string"},{"id":91,"name":"Дата доставки","data_type":"date"}]
-
-curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \\
-  -H "Authorization: Bearer $TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '{"task":{"custom_properties":[{"id":78,"value":"Синий склад"},{"id":91,"value":"$DUE_DATE"}]}}'`,
     },
   ],
   'pachca-profile': [

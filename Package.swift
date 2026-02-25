@@ -21,10 +21,7 @@ let package = Package(
                 .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession"),
                 .product(name: "HTTPTypes", package: "swift-http-types"),
             ],
-            path: "generated/Sources/Pachca",
-            plugins: [
-                .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")
-            ]
+            path: "generated/Sources/Pachca"
         )
     ]
 )

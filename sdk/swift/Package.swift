@@ -22,9 +22,7 @@ let package = Package(
                 .product(name: "HTTPTypes", package: "swift-http-types"),
             ],
             path: "generated/Sources/Pachca",
-            plugins: [
-                .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")
-            ]
+            exclude: ["openapi.yaml", "openapi-generator-config.yaml"]
         )
     ]
 )

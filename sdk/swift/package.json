@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "true",
-    "generate": "mkdir -p generated/Sources/Pachca && cp ../../packages/spec/openapi.yaml generated/Sources/Pachca/openapi.yaml && swift build"
+    "generate": "mkdir -p generated/Sources/Pachca && cp ../../packages/spec/openapi.yaml generated/Sources/Pachca/openapi.yaml && swift package plugin --allow-writing-to-package-directory generate-code-from-openapi --target PachcaSDK"
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*"

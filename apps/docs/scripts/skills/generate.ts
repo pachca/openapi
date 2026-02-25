@@ -204,6 +204,7 @@ function generateSkillMd(ctx: SkillContext): string {
       'Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).'
     );
   }
+  lines.push('Если токен неизвестен — спроси у пользователя перед выполнением запросов.');
   lines.push('');
 
   lines.push('## Когда использовать');
@@ -574,6 +575,7 @@ function generateOverviewSkillMd(baseUrl: string): string {
   lines.push(
     'Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).'
   );
+  lines.push('Если токен неизвестен — спроси у пользователя перед выполнением запросов.');
   lines.push('');
   lines.push('## Доступные скиллы');
   lines.push('');

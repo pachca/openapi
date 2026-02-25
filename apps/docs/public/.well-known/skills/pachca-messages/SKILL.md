@@ -13,6 +13,7 @@ description: >
 Base URL: `https://api.pachca.com/api/shared/v1`
 Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
 Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
+Если токен неизвестен — спроси у пользователя перед выполнением запросов.
 
 ## Когда использовать
 
@@ -105,19 +106,19 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 3. Тред (`entity_type: "thread"`): вложенных тредов нет — ответь в тот же тред: POST /messages с `"entity_type": "thread"`, `"entity_id"`: `entity_id` из вебхука, `"parent_message_id"`: `id` сообщения пользователя из вебхука
 4. Беседа/канал (`entity_type: "discussion"`): выбери стратегию — inline-ответ (POST /messages c `"parent_message_id"`: `id` сообщения) или тред (POST /messages/{id}/thread → ответ в тред)
 
-> `parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду.
+> `parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду. Если бота вызвали в треде и других сообщений в треде нет — основной контекст в родительском сообщении треда. В вебхуке уже есть `thread.message_id` — получи родительское сообщение: GET /messages/{id}.
 
 ### Отправить сообщение с файлами
 
-1. Для каждого файла: POST /uploads → получи `key` (с `$filename`), `direct_url`, `policy`, подпись
-2. Для каждого файла: подставь имя файла вместо `$filename` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
+1. Для каждого файла: POST /uploads → получи `key` (с `${filename}`), `direct_url`, `policy`, подпись
+2. Для каждого файла: подставь имя файла вместо `${filename}` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
 3. Собери массив `files` из всех загруженных файлов (`key`, `name`, `file_type`, `size`)
 4. Отправь POST /messages с массивом `files` — одно сообщение со всеми файлами
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/uploads" \
   -H "Authorization: Bearer $TOKEN"
-# Ответ: {"key":".../$filename","direct_url":"https://...","policy":"...","x-amz-signature":"...",...}
+# Ответ: {"key":".../${filename}","direct_url":"https://...","policy":"...","x-amz-signature":"...",...}
 
 curl -X POST <direct_url> \
   -F "Content-Disposition=attachment" -F "acl=private" \

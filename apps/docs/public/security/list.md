@@ -16,7 +16,7 @@
 
 - `start_time` (string, **обязательный**): Начальная метка времени (включительно)
 - `end_time` (string, **обязательный**): Конечная метка времени (исключительно)
-- `event_key` (string (enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, message_created, reaction_created, reaction_deleted, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected), опциональный): Фильтр по конкретному типу события
+- `event_key` (string (enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, message_created, reaction_created, reaction_deleted, thread_created, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected), опциональный): Фильтр по конкретному типу события
 - `actor_id` (integer, опциональный): Идентификатор пользователя, выполнившего действие
 - `actor_type` (string, опциональный): Тип актора
 - `entity_id` (integer, опциональный): Идентификатор затронутой сущности
@@ -205,6 +205,7 @@ echo $response;
       - `message_created`: Сообщение создано
       - `reaction_created`: Реакция добавлена
       - `reaction_deleted`: Реакция удалена
+      - `thread_created`: Тред создан
       - `access_token_created`: Создан новый токен доступа
       - `access_token_updated`: Токен доступа обновлен
       - `access_token_destroy`: Токен доступа удален

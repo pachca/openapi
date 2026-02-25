@@ -951,6 +951,10 @@ model Task {
   @example(12)
   user_id: int32;
 
+  @doc("Идентификатор чата, к которому привязано напоминание")
+  @example(456)
+  chat_id: int32 | null;
+
   @doc("Статус напоминания")
   @example("undone")
   @extension("x-enum-descriptions", #{
@@ -1300,7 +1304,7 @@ model UploadParams {
   xAmzSignature: string;
   
   @doc("Уникальный ключ для загрузки файла")
-  @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename")
+  @example("attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/\${filename}")
   key: string;
 
   @doc("Адрес для загрузки файла")
@@ -1656,7 +1660,7 @@ model LinkPreview {
   @doc("Изображение")
   image?: {
     @doc("Путь к изображению, полученный в результате [загрузки файла](POST /direct_url)")
-    @example("attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename")
+    @example("attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/\${filename}")
     key: string;
     
     @doc("Название изображения (рекомендуется писать вместе с расширением)")
@@ -1696,6 +1700,10 @@ model TaskCreateRequest {
     
     @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)")
     performer_ids?: int32[];
+
+    @doc("Идентификатор чата, к которому привязывается напоминание")
+    @example(456)
+    chat_id?: int32;
 
     @doc("Напоминание на весь день (без указания времени)")
     all_day?: boolean;
@@ -2650,7 +2658,7 @@ interface UploadOperations {
         xAmzAlgorithm: "AWS4-HMAC-SHA256",
         xAmzDate: "20211122T065734Z",
         xAmzSignature: "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
-        key: "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+        key: "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/\${filename}",
         directUrl: "https://api.pachca.com/api/v3/direct_upload"
       }
     }
@@ -2716,7 +2724,7 @@ interface DirectUploadOperations {
 
 1. [Получение подписи, ключа и других параметров](POST /uploads) — сделать `POST`-запрос без тела запроса для получения параметров загрузки.
 2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition, acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При успешной загрузке — `HTTP` статус `201`.
-3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `$filename` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/$filename`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
+3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `\${filename}` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/\${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
 """)
   @post
   @route("direct_url")
@@ -5325,7 +5333,7 @@ interface TaskOperations {
 
 Ответственным для напоминания без привязки к каким-либо сущностям может стать любой сотрудник компании. Актуальный состав сотрудников компании вы можете получить в методе [список сотрудников](GET /users).
 
-На текущий момент данный метод поддерживает только создание напоминаний без привязки к каким-либо сущностям.
+Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
 """)
   @post
   @opExample(#{
@@ -5353,6 +5361,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "undone",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
@@ -5376,6 +5385,9 @@ interface TaskOperations {
   } | {
     @statusCode _: 403;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
   } | {
     @statusCode _: 400;
     @body body: ApiError;
@@ -5408,6 +5420,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "undone",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
@@ -5426,6 +5439,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-06T14:00:00.000Z"),
           priority: 3,
           user_id: 12,
+          chat_id: null,
           status: "done",
           created_at: utcDateTime.fromISO("2020-06-04T11:20:00.000Z"),
           performer_ids: #[12, 13],
@@ -5489,6 +5503,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "undone",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
@@ -5550,6 +5565,7 @@ interface TaskOperations {
           due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
           priority: 2,
           user_id: 12,
+          chat_id: null,
           status: "done",
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],

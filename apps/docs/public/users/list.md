@@ -190,6 +190,7 @@ echo $response;
     - `emoji` (string, **обязательный**): Emoji символ статуса
     - `title` (string, **обязательный**): Текст статуса
     - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
   - `bot` (boolean, **обязательный**): Является ботом
   - `sso` (boolean, **обязательный**): Использует ли пользователь SSO
   - `created_at` (string, date-time, **обязательный**): Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
@@ -266,7 +267,8 @@ echo $response;
       "user_status": {
         "emoji": "🎮",
         "title": "Очень занят",
-        "expires_at": "2024-04-08T10:00:00.000Z"
+        "expires_at": "2024-04-08T10:00:00.000Z",
+        "is_away": false
       },
       "bot": false,
       "sso": false,
@@ -302,7 +304,8 @@ echo $response;
       "user_status": {
         "emoji": "🚀",
         "title": "Лечу",
-        "expires_at": null
+        "expires_at": null,
+        "is_away": false
       },
       "bot": false,
       "sso": false,

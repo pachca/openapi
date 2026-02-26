@@ -151,6 +151,7 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
   - `emoji` (string, **обязательный**): Emoji символ статуса
   - `title` (string, **обязательный**): Текст статуса
   - `expires_at` (string, опциональный): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `is_away` (boolean, опциональный): Режим «Нет на месте»
 
 **Пример:**
 
@@ -173,6 +174,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
   - `emoji` (string, **обязательный**): Emoji символ статуса
   - `title` (string, **обязательный**): Текст статуса
   - `expires_at` (string, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
 
 ---
 

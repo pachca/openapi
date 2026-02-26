@@ -83,7 +83,7 @@ description: OAuth 2.0 токены, скоупы и ролевые ограни
 
 ### Скоупы персональных токенов
 
-<Warning>При создании персонального токена в интерфейсе Пачки отображаются только те скоупы, которые доступны вашей роли. Например, только **Владелец** видит все скоупы, включая `audit_events:read` и `chat_exports:read/write`. **Сотрудник** не видит скоупы управления другими пользователями (`users:create`, `users:update`, `users:delete`) и тегами (`group_tags:write`).</Warning>
+<Warning>При создании персонального токена в интерфейсе Пачки отображаются только те скоупы, которые доступны вашей роли. Например, только **Владелец** видит все скоупы, включая `audit_events:read` и `chat_exports:read/write`. **Сотрудник** не видит скоупы управления другими пользователями (`users:create`, `users:update`, `users:delete`), их статусами (`user_status:read`, `user_status:write`) и тегами (`group_tags:write`).</Warning>
 
 <SchemaBlock name="OAuthScope" hideHeader />
 
@@ -99,7 +99,7 @@ description: OAuth 2.0 токены, скоупы и ролевые ограни
 - **Файлы:** `files:read`, `uploads:write`
 - **Вебхуки:** `webhooks:events:read`, `webhooks:events:delete`
 
-<Warning>Боты не имеют доступа к: `audit_events:read`, `chat_exports:read/write`, `users:create/update/delete`, `group_tags:write`, `webhooks:read/write`, `bots:write`.</Warning>
+<Warning>Боты не имеют доступа к: `audit_events:read`, `chat_exports:read/write`, `users:create/update/delete`, `user_status:read/write`, `group_tags:write`, `webhooks:read/write`, `bots:write`.</Warning>
 
 ## Ошибки авторизации
 

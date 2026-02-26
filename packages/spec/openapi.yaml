@@ -1855,6 +1855,7 @@ paths:
                       emoji: 🎮
                       title: Очень занят
                       expires_at: '2024-04-08T10:00:00.000Z'
+                      is_away: false
                     bot: false
                     sso: false
                     created_at: '2020-06-08T09:31:17.000Z'
@@ -1884,6 +1885,7 @@ paths:
                       emoji: 🚀
                       title: Лечу
                       expires_at: null
+                      is_away: false
                     bot: false
                     sso: false
                     created_at: '2020-06-08T09:32:57.000Z'
@@ -3109,6 +3111,7 @@ paths:
                   emoji: 🎮
                   title: Очень занят
                   expires_at: '2024-04-08T10:00:00.000Z'
+                  is_away: false
         '401':
           description: Access is unauthorized.
           content:
@@ -3150,6 +3153,7 @@ paths:
                   emoji: 🎮
                   title: Очень занят
                   expires_at: '2024-04-08T10:00:00.000Z'
+                  is_away: false
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -3926,6 +3930,7 @@ paths:
                       emoji: 🎮
                       title: Очень занят
                       expires_at: '2024-04-08T10:00:00.000Z'
+                      is_away: false
                     bot: false
                     sso: false
                     created_at: '2020-06-08T09:31:17.000Z'
@@ -3955,6 +3960,7 @@ paths:
                       emoji: 🚀
                       title: Лечу
                       expires_at: null
+                      is_away: false
                     bot: false
                     sso: false
                     created_at: '2020-06-08T09:32:57.000Z'
@@ -4216,6 +4222,187 @@ paths:
         - Users
       x-requirements:
         scope: users:delete
+  /users/{user_id}/status:
+    get:
+      operationId: UserStatusOperations_getUserStatus
+      description: |-
+        Статус сотрудника
+
+        Метод для получения информации о статусе сотрудника.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    allOf:
+                      - $ref: '#/components/schemas/UserStatus'
+                    nullable: true
+                description: Обертка ответа с данными
+              example:
+                data:
+                  emoji: 🎮
+                  title: Очень занят
+                  expires_at: '2024-04-08T10:00:00.000Z'
+                  is_away: false
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Users
+      x-requirements:
+        scope: user_status:read
+    put:
+      operationId: UserStatusOperations_updateUserStatus
+      description: |-
+        Новый статус сотрудника
+
+        Метод для установки нового статуса сотруднику.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserStatus'
+                description: Обертка ответа с данными
+              example:
+                data:
+                  emoji: 🏖️
+                  title: В отпуске
+                  expires_at: '2024-04-15T00:00:00.000Z'
+                  is_away: true
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+            example:
+              status:
+                emoji: 🏖️
+                title: В отпуске
+                expires_at: '2024-04-15T00:00:00.000Z'
+                is_away: true
+      x-requirements:
+        scope: user_status:write
+    delete:
+      operationId: UserStatusOperations_deleteUserStatus
+      description: |-
+        Удаление статуса сотрудника
+
+        Метод для удаления статуса сотрудника.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Users
+      x-requirements:
+        scope: user_status:write
   /views/open:
     post:
       operationId: FormOperations_openView
@@ -5966,6 +6153,8 @@ components:
         - profile:read
         - profile_status:read
         - profile_status:write
+        - user_status:read
+        - user_status:write
         - custom_properties:read
         - audit_events:read
         - tasks:read
@@ -6012,6 +6201,8 @@ components:
         profile_read: Просмотр информации о своем профиле
         profile_status_read: Просмотр статуса профиля
         profile_status_write: Изменение и удаление статуса профиля
+        user_status_read: Просмотр статуса сотрудника
+        user_status_write: Изменение и удаление статуса сотрудника
         custom_properties_read: Просмотр дополнительных полей
         audit_events_read: Просмотр журнала аудита
         tasks_read: Просмотр задач
@@ -6228,6 +6419,9 @@ components:
               type: string
               format: date-time
               description: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+            is_away:
+              type: boolean
+              description: Режим «Нет на месте»
           required:
             - emoji
             - title
@@ -6790,6 +6984,7 @@ components:
         - emoji
         - title
         - expires_at
+        - is_away
       properties:
         emoji:
           type: string
@@ -6805,6 +7000,10 @@ components:
           nullable: true
           description: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
           example: '2024-04-08T10:00:00.000Z'
+        is_away:
+          type: boolean
+          description: Режим «Нет на месте»
+          example: false
       description: Статус пользователя
     UserUpdateRequest:
       type: object

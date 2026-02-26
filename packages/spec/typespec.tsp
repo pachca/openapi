@@ -607,14 +607,18 @@ model UserStatus {
   @doc("Emoji символ статуса")
   @example("🎮")
   emoji: string;
-  
+
   @doc("Текст статуса")
   @example("Очень занят")
   title: string;
-  
+
   @doc("Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2024-04-08T10:00:00.000Z"))
   expires_at: utcDateTime | null;
+
+  @doc("Режим «Нет на месте»")
+  @example(false)
+  is_away: boolean;
 }
 
 @doc("Файл")
@@ -1043,6 +1047,8 @@ model EmptyResponse {}
   profile_read: "Просмотр информации о своем профиле",
   profile_status_read: "Просмотр статуса профиля",
   profile_status_write: "Изменение и удаление статуса профиля",
+  user_status_read: "Просмотр статуса сотрудника",
+  user_status_write: "Изменение и удаление статуса сотрудника",
   custom_properties_read: "Просмотр дополнительных полей",
   audit_events_read: "Просмотр журнала аудита",
   tasks_read: "Просмотр задач",
@@ -1144,6 +1150,12 @@ enum OAuthScope {
 
   @doc("Изменение и удаление статуса профиля")
   profile_status_write: "profile_status:write",
+
+  @doc("Просмотр статуса сотрудника")
+  user_status_read: "user_status:read",
+
+  @doc("Изменение и удаление статуса сотрудника")
+  user_status_write: "user_status:write",
 
   @doc("Просмотр дополнительных полей")
   custom_properties_read: "custom_properties:read",
@@ -1436,12 +1448,15 @@ model StatusUpdateRequest {
   status: {
     @doc("Emoji символ статуса")
     emoji: string;
-    
+
     @doc("Текст статуса")
     title: string;
-    
+
     @doc("Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
     expires_at?: utcDateTime;
+
+    @doc("Режим «Нет на месте»")
+    is_away?: boolean;
   };
 }
 
@@ -2890,7 +2905,8 @@ interface ProfileOperations {
         data: #{
           emoji: "🎮",
           title: "Очень занят",
-          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z")
+          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
+          is_away: false
         }
       }
     }
@@ -2932,7 +2948,8 @@ interface ProfileOperations {
         data: #{
           emoji: "🎮",
           title: "Очень занят",
-          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z")
+          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
+          is_away: false
         }
       }
     }
@@ -3134,7 +3151,8 @@ interface UserOperations {
           user_status: #{
             emoji: "🎮",
             title: "Очень занят",
-            expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z")
+            expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
+            is_away: false
           },
           bot: false,
           sso: false,
@@ -3165,7 +3183,8 @@ interface UserOperations {
           user_status: #{
             emoji: "🚀",
             title: "Лечу",
-            expires_at: null
+            expires_at: null,
+            is_away: false
           },
           bot: false,
           sso: false,
@@ -3367,6 +3386,143 @@ interface UserOperations {
   deleteUser(
     @doc("Идентификатор пользователя")
     @path id: int32
+  ): {
+    @statusCode _: 204;
+    @body body: EmptyResponse;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  };
+}
+
+// ============================================================================
+// User Status Operations
+// ============================================================================
+
+@route("/users")
+@tag("Users")
+interface UserStatusOperations {
+  @extension("x-requirements", #{
+    scope: "user_status:read",
+  })
+  @doc("""
+Статус сотрудника
+
+Метод для получения информации о статусе сотрудника.
+""")
+  @route("/{user_id}/status")
+  @get
+  @opExample(#{
+    parameters: #{
+      user_id: 13
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          emoji: "🎮",
+          title: "Очень занят",
+          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
+          is_away: false
+        }
+      }
+    }
+  })
+  getUserStatus(
+    @doc("Идентификатор пользователя")
+    @path user_id: int32
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<UserStatus | null>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "user_status:write",
+  })
+  @doc("""
+Новый статус сотрудника
+
+Метод для установки нового статуса сотруднику.
+""")
+  @route("/{user_id}/status")
+  @put
+  @opExample(#{
+    parameters: #{
+      user_id: 13,
+      request: #{
+        status: #{
+          emoji: "🏖️",
+          title: "В отпуске",
+          expires_at: utcDateTime.fromISO("2024-04-15T00:00:00.000Z"),
+          is_away: true
+        }
+      }
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #{
+          emoji: "🏖️",
+          title: "В отпуске",
+          expires_at: utcDateTime.fromISO("2024-04-15T00:00:00.000Z"),
+          is_away: true
+        }
+      }
+    }
+  })
+  updateUserStatus(
+    @doc("Идентификатор пользователя")
+    @path user_id: int32,
+    @body request: StatusUpdateRequest
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<UserStatus>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "user_status:write",
+  })
+  @doc("""
+Удаление статуса сотрудника
+
+Метод для удаления статуса сотрудника.
+""")
+  @route("/{user_id}/status")
+  @delete
+
+  deleteUserStatus(
+    @doc("Идентификатор пользователя")
+    @path user_id: int32
   ): {
     @statusCode _: 204;
     @body body: EmptyResponse;
@@ -3613,7 +3769,8 @@ interface GroupTagOperations {
           user_status: #{
             emoji: "🎮",
             title: "Очень занят",
-            expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z")
+            expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
+            is_away: false
           },
           bot: false,
           sso: false,
@@ -3646,7 +3803,8 @@ interface GroupTagOperations {
           user_status: #{
             emoji: "🚀",
             title: "Лечу",
-            expires_at: null
+            expires_at: null,
+            is_away: false
           },
           bot: false,
           sso: false,

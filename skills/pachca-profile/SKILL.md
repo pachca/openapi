@@ -39,12 +39,13 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 ### Установить статус
 
 1. PUT /profile/status с `emoji` и `title`
+2. Чтобы включить режим «Нет на месте» — добавь `is_away: true`
 
 ```bash
 curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта"}}'
+  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true}}'
 ```
 
 ### Сбросить статус

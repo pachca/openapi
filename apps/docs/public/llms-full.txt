@@ -206,9 +206,10 @@
 
   ### Шаг 2. Сбор контекста
 
-Агент читает историю сообщений и информацию о чате, чтобы понять контекст запроса.
+Агент читает историю сообщений и информацию о чате, чтобы понять контекст запроса. Если бота вызвали в треде и других сообщений нет — основной контекст в родительском сообщении.
 
     - [Список сообщений чата](GET /messages) — история сообщений треда или чата
+    - [Информация о сообщении](GET /messages/{id}) — родительское сообщение треда
     - [Информация о чате](GET /chats/{id}) — участники и тема чата
 
 
@@ -218,6 +219,7 @@
 
     - [Новое сообщение](POST /messages) — отправить сообщение в канал или беседу
     - [Новый тред](POST /messages/{id}/thread) — создать тред и ответить
+    - [Новое напоминание](POST /tasks) — создать задачу из контекста разговора
     - [Новая реакция](POST /messages/{id}/reactions) — поставить реакцию-индикатор
 
 
@@ -388,8 +390,8 @@
 
 **Отправить сообщение с файлами**
 
-1. Для каждого файла: POST /uploads → получи `key` (с `$filename`), `direct_url`, `policy`, подпись
-2. Для каждого файла: подставь имя файла вместо `$filename` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
+1. Для каждого файла: POST /uploads → получи `key` (с `${filename}`), `direct_url`, `policy`, подпись
+2. Для каждого файла: подставь имя файла вместо `${filename}` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
 3. Собери массив `files` из всех загруженных файлов (`key`, `name`, `file_type`, `size`)
 4. Отправь POST /messages с массивом `files` — одно сообщение со всеми файлами
 
@@ -3740,7 +3742,7 @@ echo $response;
 
 1. [Получение подписи, ключа и других параметров](POST /uploads) — сделать `POST`-запрос без тела запроса для получения параметров загрузки.
 2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition, acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При успешной загрузке — `HTTP` статус `201`.
-3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `$filename` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/$filename`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
+3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `${filename}` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
 
 ## Тело запроса
 
@@ -4100,7 +4102,7 @@ echo $response;
   "x-amz-algorithm": "AWS4-HMAC-SHA256",
   "x-amz-date": "20211122T065734Z",
   "x-amz-signature": "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
-  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
   "direct_url": "https://api.pachca.com/api/v3/direct_upload"
 }
 ```
@@ -17192,7 +17194,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/link_previews" \
       "description": "Пример отправки файлов на удаленный сервер",
       "image_url": "https://website.com/img/landing.png",
       "image": {
-        "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+        "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
         "name": "files-to-server.jpg",
         "size": 695604
       }
@@ -17217,7 +17219,7 @@ const response = await fetch('https://api.pachca.com/api/shared/v1/messages/1234
               "description": "Пример отправки файлов на удаленный сервер",
               "image_url": "https://website.com/img/landing.png",
               "image": {
-                  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+                  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
                   "name": "files-to-server.jpg",
                   "size": 695604
               }
@@ -17242,7 +17244,7 @@ data = {
             'description': 'Пример отправки файлов на удаленный сервер',
             'image_url': 'https://website.com/img/landing.png',
             'image': {
-                'key': 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename',
+                'key': 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}',
                 'name': 'files-to-server.jpg',
                 'size': 695604
             }
@@ -17299,7 +17301,7 @@ req.write(JSON.stringify({
             "description": "Пример отправки файлов на удаленный сервер",
             "image_url": "https://website.com/img/landing.png",
             "image": {
-                "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+                "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
                 "name": "files-to-server.jpg",
                 "size": 695604
             }
@@ -17331,7 +17333,7 @@ request.body = {
       'description' => 'Пример отправки файлов на удаленный сервер',
       'image_url' => 'https://website.com/img/landing.png',
       'image' => {
-        'key' => 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename',
+        'key' => 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}',
         'name' => 'files-to-server.jpg',
         'size' => 695604
       }
@@ -17368,7 +17370,7 @@ curl_setopt_array($curl, [
             'description' => 'Пример отправки файлов на удаленный сервер',
             'image_url' => 'https://website.com/img/landing.png',
             'image' => [
-                'key' => 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename',
+                'key' => 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}',
                 'name' => 'files-to-server.jpg',
                 'size' => 695604
             ]

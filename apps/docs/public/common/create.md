@@ -151,7 +151,7 @@ echo $response;
   "x-amz-algorithm": "AWS4-HMAC-SHA256",
   "x-amz-date": "20211122T065734Z",
   "x-amz-signature": "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
-  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
   "direct_url": "https://api.pachca.com/api/v3/direct_upload"
 }
 ```

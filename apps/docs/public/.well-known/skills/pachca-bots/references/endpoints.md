@@ -87,7 +87,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/link_previews" \
       "description": "Пример отправки файлов на удаленный сервер",
       "image_url": "https://website.com/img/landing.png",
       "image": {
-        "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+        "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
         "name": "files-to-server.jpg",
         "size": 695604
       }

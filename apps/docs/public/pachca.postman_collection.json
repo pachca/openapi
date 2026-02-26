@@ -1308,7 +1308,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"link_previews\": {\n    \"key\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://website.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
+              "raw": "{\n  \"link_previews\": {\n    \"key\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://website.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"

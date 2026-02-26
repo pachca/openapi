@@ -110,15 +110,15 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Отправить сообщение с файлами
 
-1. Для каждого файла: POST /uploads → получи `key` (с `$filename`), `direct_url`, `policy`, подпись
-2. Для каждого файла: подставь имя файла вместо `$filename` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
+1. Для каждого файла: POST /uploads → получи `key` (с `${filename}`), `direct_url`, `policy`, подпись
+2. Для каждого файла: подставь имя файла вместо `${filename}` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
 3. Собери массив `files` из всех загруженных файлов (`key`, `name`, `file_type`, `size`)
 4. Отправь POST /messages с массивом `files` — одно сообщение со всеми файлами
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/uploads" \
   -H "Authorization: Bearer $TOKEN"
-# Ответ: {"key":".../$filename","direct_url":"https://...","policy":"...","x-amz-signature":"...",...}
+# Ответ: {"key":".../${filename}","direct_url":"https://...","policy":"...","x-amz-signature":"...",...}
 
 curl -X POST <direct_url> \
   -F "Content-Disposition=attachment" -F "acl=private" \

@@ -1,20 +1,18 @@
-# Информация о сотруднике
+# Удаление статуса сотрудника
 
-**Метод**: `GET`
+**Метод**: `DELETE`
 
-**Путь**: `/users/{id}`
+**Путь**: `/users/{user_id}/status`
 
-> **Скоуп:** `users:read`
+> **Скоуп:** `user_status:write`
 
-Метод для получения информации о сотруднике.
-
-Для получения сотрудника вам необходимо знать его `id` и указать его в `URL` запроса.
+Метод для удаления статуса сотрудника.
 
 ## Параметры
 
 ### Path параметры
 
-- `id` (integer, **обязательный**): Идентификатор пользователя
+- `user_id` (integer, **обязательный**): Идентификатор пользователя
 
 
 ## Примеры запроса
@@ -22,15 +20,15 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/users/12345" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12345/status" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/users/12345', {
-  method: 'GET',
+const response = await fetch('https://api.pachca.com/api/shared/v1/users/12345/status', {
+  method: 'DELETE',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
   }
@@ -49,8 +47,8 @@ headers = {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
 }
 
-response = requests.get(
-    'https://api.pachca.com/api/shared/v1/users/12345',
+response = requests.delete(
+    'https://api.pachca.com/api/shared/v1/users/12345/status',
     headers=headers
 )
 
@@ -65,8 +63,8 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/users/12345',
-    method: 'GET',
+    path: '/api/shared/v1/users/12345/status',
+    method: 'DELETE',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
     }
@@ -97,8 +95,8 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/users/12345')
-request = Net::HTTP::Get.new(uri)
+uri = URI('https://api.pachca.com/api/shared/v1/users/12345/status')
+request = Net::HTTP::Delete.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
@@ -116,9 +114,9 @@ puts JSON.parse(response.body)
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/users/12345',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/users/12345/status',
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_CUSTOMREQUEST => 'GET',
+    CURLOPT_CUSTOMREQUEST => 'DELETE',
     CURLOPT_HTTPHEADER => [
         'Authorization: Bearer YOUR_ACCESS_TOKEN',
     ],
@@ -133,90 +131,9 @@ echo $response;
 
 ## Ответы
 
-### 200: The request has succeeded.
+### 204: There is no content to send for this request, but the headers may be useful. 
 
 **Схема ответа:**
-
-- `data` (object, **обязательный**): Сотрудник
-  - `id` (integer, int32, **обязательный**): Идентификатор пользователя
-  - `first_name` (string, **обязательный**): Имя
-  - `last_name` (string, **обязательный**): Фамилия
-  - `nickname` (string, **обязательный**): Имя пользователя
-  - `email` (string, **обязательный**): Электронная почта
-  - `phone_number` (string, **обязательный**): Телефон
-  - `department` (string, **обязательный**): Департамент
-  - `title` (string, **обязательный**): Должность
-  - `role` (string, **обязательный**): Уровень доступа
-    - **Возможные значения:**
-      - `admin`: Администратор
-      - `user`: Сотрудник
-      - `multi_guest`: Мульти-гость
-  - `suspended` (boolean, **обязательный**): Деактивация пользователя
-  - `invite_status` (string, **обязательный**): Статус приглашения
-    - **Возможные значения:**
-      - `confirmed`: Принято
-      - `sent`: Отправлено
-  - `list_tags` (array[string], **обязательный**): Массив тегов, привязанных к сотруднику
-  - `custom_properties` (array[object], **обязательный**): Дополнительные поля сотрудника
-    - `id` (integer, int32, **обязательный**): Идентификатор поля
-    - `name` (string, **обязательный**): Название поля
-    - `data_type` (string, **обязательный**): Тип поля
-      - **Возможные значения:**
-        - `string`: Строковое значение
-        - `number`: Числовое значение
-        - `date`: Дата
-        - `link`: Ссылка
-    - `value` (string, **обязательный**): Значение
-  - `user_status` (object, **обязательный**): Статус
-    - `emoji` (string, **обязательный**): Emoji символ статуса
-    - `title` (string, **обязательный**): Текст статуса
-    - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-    - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
-  - `bot` (boolean, **обязательный**): Является ботом
-  - `sso` (boolean, **обязательный**): Использует ли пользователь SSO
-  - `created_at` (string, date-time, **обязательный**): Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-  - `last_activity_at` (string, date-time, **обязательный**): Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-  - `time_zone` (string, **обязательный**): Часовой пояс пользователя
-  - `image_url` (string, **обязательный**): Ссылка на скачивание аватарки пользователя
-
-**Пример ответа:**
-
-```json
-{
-  "data": {
-    "id": 12,
-    "first_name": "Олег",
-    "last_name": "Петров",
-    "nickname": "",
-    "email": "olegp@example.com",
-    "phone_number": "",
-    "department": "Продукт",
-    "title": "CIO",
-    "role": "admin",
-    "suspended": false,
-    "invite_status": "confirmed",
-    "list_tags": [
-      "Product",
-      "Design"
-    ],
-    "custom_properties": [
-      {
-        "id": 1678,
-        "name": "Город",
-        "data_type": "string",
-        "value": "Санкт-Петербург"
-      }
-    ],
-    "user_status": null,
-    "bot": false,
-    "sso": false,
-    "created_at": "2020-06-08T09:32:57.000Z",
-    "last_activity_at": "2025-01-20T13:40:07.000Z",
-    "time_zone": "Europe/Moscow",
-    "image_url": null
-  }
-}
-```
 
 ### 401: Access is unauthorized.
 

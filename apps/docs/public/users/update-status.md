@@ -1,43 +1,82 @@
-# Список сотрудников тега
+# Новый статус сотрудника
 
-**Метод**: `GET`
+**Метод**: `PUT`
 
-**Путь**: `/group_tags/{id}/users`
+**Путь**: `/users/{user_id}/status`
 
-> **Скоуп:** `group_tags:read`
+> **Скоуп:** `user_status:write`
 
-Метод для получения актуального списка сотрудников тега.
+Метод для установки нового статуса сотруднику.
 
 ## Параметры
 
 ### Path параметры
 
-- `id` (integer, **обязательный**): Идентификатор тега
+- `user_id` (integer, **обязательный**): Идентификатор пользователя
 
-### Query параметры
 
-- `limit` (integer, опциональный): Количество возвращаемых сущностей за один запрос
-  - По умолчанию: `50`
-- `cursor` (string, опциональный): Курсор для пагинации (из `meta.paginate.next_page`)
+## Тело запроса
 
+**Обязательно**
+
+Формат: `application/json`
+
+### Схема
+
+- `status` (object, **обязательный**)
+  - `emoji` (string, **обязательный**): Emoji символ статуса
+  - `title` (string, **обязательный**): Текст статуса
+  - `expires_at` (string, date-time, опциональный): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `is_away` (boolean, опциональный): Режим «Нет на месте»
+
+### Пример
+
+```json
+{
+  "status": {
+    "emoji": "🏖️",
+    "title": "В отпуске",
+    "expires_at": "2024-04-15T00:00:00.000Z",
+    "is_away": true
+  }
+}
+```
 
 ## Примеры запроса
 
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/group_tags/12345/users?limit=50&cursor=string" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+curl -X PUT "https://api.pachca.com/api/shared/v1/users/12345/status" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "status": {
+    "emoji": "🏖️",
+    "title": "В отпуске",
+    "expires_at": "2024-04-15T00:00:00.000Z",
+    "is_away": true
+  }
+}'
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/group_tags/12345/users?limit=50&cursor=string', {
-  method: 'GET',
+const response = await fetch('https://api.pachca.com/api/shared/v1/users/12345/status', {
+  method: 'PUT',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
-  }
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+      "status": {
+          "emoji": "🏖️",
+          "title": "В отпуске",
+          "expires_at": "2024-04-15T00:00:00.000Z",
+          "is_away": true
+      }
+  })
 });
 
 const data = await response.json();
@@ -49,19 +88,24 @@ console.log(data);
 ```python
 import requests
 
-params = {
-    'limit': 50,
-    'cursor': 'string',
+data = {
+    'status': {
+        'emoji': '🏖️',
+        'title': 'В отпуске',
+        'expires_at': '2024-04-15T00:00:00.000Z',
+        'is_away': True
+    }
 }
 
 headers = {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
 }
 
-response = requests.get(
-    'https://api.pachca.com/api/shared/v1/group_tags/12345/users',
-    params=params,
-    headers=headers
+response = requests.put(
+    'https://api.pachca.com/api/shared/v1/users/12345/status',
+    headers=headers,
+    json=data
 )
 
 print(response.json())
@@ -75,9 +119,10 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/group_tags/12345/users?limit=50&cursor=string',
-    method: 'GET',
+    path: '/api/shared/v1/users/12345/status',
+    method: 'PUT',
     headers: {
+        'Content-Type': 'application/json',
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
     }
 };
@@ -94,6 +139,14 @@ const req = https.request(options, (res) => {
     });
 });
 
+req.write(JSON.stringify({
+    "status": {
+        "emoji": "🏖️",
+        "title": "В отпуске",
+        "expires_at": "2024-04-15T00:00:00.000Z",
+        "is_away": true
+    }
+}));
 req.on('error', (error) => {
     console.error(error);
 });
@@ -107,15 +160,19 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/group_tags/12345/users')
-params = {
-  'limit' => 50,
-  'cursor' => 'string',
-}
-uri.query = URI.encode_www_form(params)
-
-request = Net::HTTP::Get.new(uri)
+uri = URI('https://api.pachca.com/api/shared/v1/users/12345/status')
+request = Net::HTTP::Put.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
+request['Content-Type'] = 'application/json'
+
+request.body = {
+  'status' => {
+    'emoji' => '🏖️',
+    'title' => 'В отпуске',
+    'expires_at' => '2024-04-15T00:00:00.000Z',
+    'is_away' => true
+  }
+}.to_json
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
   http.request(request)
@@ -129,16 +186,24 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['limit' => 50, 'cursor' => 'string'];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/group_tags/12345/users?' . http_build_query($params)',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/users/12345/status',
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_CUSTOMREQUEST => 'GET',
+    CURLOPT_CUSTOMREQUEST => 'PUT',
     CURLOPT_HTTPHEADER => [
         'Authorization: Bearer YOUR_ACCESS_TOKEN',
+        'Content-Type: application/json',
     ],
+    CURLOPT_POSTFIELDS => json_encode([
+    'status' => [
+        'emoji' => '🏖️',
+        'title' => 'В отпуске',
+        'expires_at' => '2024-04-15T00:00:00.000Z',
+        'is_away' => true
+    ]
+]),
 ]);
 
 $response = curl_exec($curl);
@@ -154,167 +219,21 @@ echo $response;
 
 **Схема ответа:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
-- `data` (array[object], **обязательный**)
-  - `id` (integer, int32, **обязательный**): Идентификатор пользователя
-  - `first_name` (string, **обязательный**): Имя
-  - `last_name` (string, **обязательный**): Фамилия
-  - `nickname` (string, **обязательный**): Имя пользователя
-  - `email` (string, **обязательный**): Электронная почта
-  - `phone_number` (string, **обязательный**): Телефон
-  - `department` (string, **обязательный**): Департамент
-  - `title` (string, **обязательный**): Должность
-  - `role` (string, **обязательный**): Уровень доступа
-    - **Возможные значения:**
-      - `admin`: Администратор
-      - `user`: Сотрудник
-      - `multi_guest`: Мульти-гость
-  - `suspended` (boolean, **обязательный**): Деактивация пользователя
-  - `invite_status` (string, **обязательный**): Статус приглашения
-    - **Возможные значения:**
-      - `confirmed`: Принято
-      - `sent`: Отправлено
-  - `list_tags` (array[string], **обязательный**): Массив тегов, привязанных к сотруднику
-  - `custom_properties` (array[object], **обязательный**): Дополнительные поля сотрудника
-    - `id` (integer, int32, **обязательный**): Идентификатор поля
-    - `name` (string, **обязательный**): Название поля
-    - `data_type` (string, **обязательный**): Тип поля
-      - **Возможные значения:**
-        - `string`: Строковое значение
-        - `number`: Числовое значение
-        - `date`: Дата
-        - `link`: Ссылка
-    - `value` (string, **обязательный**): Значение
-  - `user_status` (object, **обязательный**): Статус
-    - `emoji` (string, **обязательный**): Emoji символ статуса
-    - `title` (string, **обязательный**): Текст статуса
-    - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-    - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
-  - `bot` (boolean, **обязательный**): Является ботом
-  - `sso` (boolean, **обязательный**): Использует ли пользователь SSO
-  - `created_at` (string, date-time, **обязательный**): Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-  - `last_activity_at` (string, date-time, **обязательный**): Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-  - `time_zone` (string, **обязательный**): Часовой пояс пользователя
-  - `image_url` (string, **обязательный**): Ссылка на скачивание аватарки пользователя
+- `data` (object, **обязательный**): Статус пользователя
+  - `emoji` (string, **обязательный**): Emoji символ статуса
+  - `title` (string, **обязательный**): Текст статуса
+  - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
 
 **Пример ответа:**
 
 ```json
 {
-  "data": [
-    {
-      "id": 12,
-      "first_name": "Олег",
-      "last_name": "Петров",
-      "nickname": "olegpetrov",
-      "email": "olegp@example.com",
-      "phone_number": "",
-      "department": "Продукт",
-      "title": "CIO",
-      "role": "admin",
-      "suspended": false,
-      "invite_status": "confirmed",
-      "list_tags": [
-        "Product",
-        "Design"
-      ],
-      "custom_properties": [
-        {
-          "id": 1678,
-          "name": "Город",
-          "data_type": "string",
-          "value": "Санкт-Петербург"
-        }
-      ],
-      "user_status": null,
-      "bot": false,
-      "sso": false,
-      "created_at": "2020-06-08T09:10:11.000Z",
-      "last_activity_at": "2025-01-20T13:40:07.000Z",
-      "time_zone": "Europe/Moscow",
-      "image_url": null
-    },
-    {
-      "id": 13,
-      "first_name": "Сергей",
-      "last_name": "Кузнецов",
-      "nickname": "skuz",
-      "email": "sergkuzn@example.com",
-      "phone_number": "",
-      "department": "Разработка",
-      "title": "iOS Developer",
-      "role": "user",
-      "suspended": false,
-      "invite_status": "confirmed",
-      "list_tags": [
-        "Development",
-        "Android"
-      ],
-      "custom_properties": [
-        {
-          "id": 1678,
-          "name": "Город",
-          "data_type": "string",
-          "value": "Москва"
-        }
-      ],
-      "user_status": {
-        "emoji": "🎮",
-        "title": "Очень занят",
-        "expires_at": "2024-04-08T10:00:00.000Z",
-        "is_away": false
-      },
-      "bot": false,
-      "sso": false,
-      "created_at": "2020-06-08T09:31:17.000Z",
-      "last_activity_at": "2025-01-20T07:00:32.000Z",
-      "time_zone": "Europe/Moscow",
-      "image_url": null
-    },
-    {
-      "id": 14,
-      "first_name": "Дмитрий",
-      "last_name": "Смирнов",
-      "nickname": "dsmir",
-      "email": "ds@example.com",
-      "phone_number": "",
-      "department": "Разработка",
-      "title": "Android Developer",
-      "role": "user",
-      "suspended": false,
-      "invite_status": "confirmed",
-      "list_tags": [
-        "Development",
-        "Frontend"
-      ],
-      "custom_properties": [
-        {
-          "id": 1678,
-          "name": "Город",
-          "data_type": "string",
-          "value": "Санкт-Петербург"
-        }
-      ],
-      "user_status": {
-        "emoji": "🚀",
-        "title": "Лечу",
-        "expires_at": null,
-        "is_away": false
-      },
-      "bot": false,
-      "sso": false,
-      "created_at": "2020-06-08T09:32:57.000Z",
-      "last_activity_at": "2025-01-20T13:51:25.000Z",
-      "time_zone": "Europe/Moscow",
-      "image_url": null
-    }
-  ],
-  "meta": {
-    "paginate": {
-      "next_page": "eyJpZCI6MTQsImRpciI6ImFzYyJ9"
-    }
+  "data": {
+    "emoji": "🏖️",
+    "title": "В отпуске",
+    "expires_at": "2024-04-15T00:00:00.000Z",
+    "is_away": true
   }
 }
 ```

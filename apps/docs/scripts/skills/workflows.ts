@@ -494,6 +494,20 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
         'GET /group_tags/{id}/users с пагинацией (`limit` + `cursor`) — получить всех участников',
       ],
     },
+    {
+      title: 'Управление статусом сотрудника',
+      steps: [
+        'GET /users/{user_id}/status — получить текущий статус сотрудника',
+        'PUT /users/{user_id}/status с `emoji`, `title` и опционально `is_away: true` — установить статус',
+        'DELETE /users/{user_id}/status — удалить статус сотрудника',
+      ],
+      notes:
+        'Для установки режима «Нет на месте» передай `is_away: true`. Скоупы: `user_status:read` для чтения, `user_status:write` для записи/удаления.',
+      curl: `curl -X PUT "https://api.pachca.com/api/shared/v1/users/13/status" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"status":{"emoji":"🏖️","title":"В отпуске","is_away":true}}'`,
+    },
   ],
   'pachca-tasks': [
     {
@@ -540,11 +554,14 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
   'pachca-profile': [
     {
       title: 'Установить статус',
-      steps: ['PUT /profile/status с `emoji` и `title`'],
+      steps: [
+        'PUT /profile/status с `emoji` и `title`',
+        'Чтобы включить режим «Нет на месте» — добавь `is_away: true`',
+      ],
       curl: `curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта"}}'`,
+  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true}}'`,
     },
     {
       title: 'Сбросить статус',

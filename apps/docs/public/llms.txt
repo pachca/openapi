@@ -37,6 +37,9 @@
 - [Информация о сотруднике](https://dev.pachca.com/users/get.md): GET /users/{id}
 - [Редактирование сотрудника](https://dev.pachca.com/users/update.md): PUT /users/{id}
 - [Удаление сотрудника](https://dev.pachca.com/users/delete.md): DELETE /users/{id}
+- [Статус сотрудника](https://dev.pachca.com/users/list-status.md): GET /users/{user_id}/status
+- [Новый статус сотрудника](https://dev.pachca.com/users/update-status.md): PUT /users/{user_id}/status
+- [Удаление статуса сотрудника](https://dev.pachca.com/users/remove-status.md): DELETE /users/{user_id}/status
 
 ## Group tags
 - [Новый тег](https://dev.pachca.com/group-tags/create.md): POST /group_tags

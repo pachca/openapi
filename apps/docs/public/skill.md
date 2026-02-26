@@ -59,6 +59,9 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `GET /users/{id}` — Информация о сотруднике
 - `PUT /users/{id}` — Редактирование сотрудника
 - `DELETE /users/{id}` — Удаление сотрудника
+- `GET /users/{user_id}/status` — Статус сотрудника
+- `PUT /users/{user_id}/status` — Новый статус сотрудника
+- `DELETE /users/{user_id}/status` — Удаление статуса сотрудника
 
 ### Group tags
 - `POST /group_tags` — Новый тег

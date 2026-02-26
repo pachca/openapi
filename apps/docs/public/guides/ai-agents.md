@@ -83,6 +83,7 @@
 **Установить статус**
 
 1. PUT /profile/status с `emoji` и `title`
+2. Чтобы включить режим «Нет на месте» — добавь `is_away: true`
 
 **Сбросить статус**
 
@@ -132,6 +133,14 @@
 1. GET /group_tags?names[]=Backend — найти тег по названию
 2. Из ответа взять `id` тега
 3. GET /group_tags/{id}/users с пагинацией (`limit` + `cursor`) — получить всех участников
+
+**Управление статусом сотрудника**
+
+1. GET /users/{user_id}/status — получить текущий статус сотрудника
+2. PUT /users/{user_id}/status с `emoji`, `title` и опционально `is_away: true` — установить статус
+3. DELETE /users/{user_id}/status — удалить статус сотрудника
+
+> Для установки режима «Нет на месте» передай `is_away: true`. Скоупы: `user_status:read` для чтения, `user_status:write` для записи/удаления.
 
 ### pachca-chats
 

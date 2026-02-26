@@ -19,6 +19,9 @@ import org.openapitools.client.models.ApiError
 import org.openapitools.client.models.ChatMemberOperationsListMembers200Response
 import org.openapitools.client.models.OAuthError
 import org.openapitools.client.models.ProfileOperationsGetProfile200Response
+import org.openapitools.client.models.ProfileOperationsGetStatus200Response
+import org.openapitools.client.models.ProfileOperationsUpdateStatus200Response
+import org.openapitools.client.models.StatusUpdateRequest
 import org.openapitools.client.models.UserCreateRequest
 import org.openapitools.client.models.UserUpdateRequest
 
@@ -200,6 +203,108 @@ import io.ktor.http.ParametersBuilder
             val localVariableConfig = RequestConfig<kotlin.Any?>(
             RequestMethod.PUT,
             "/users/{id}".replace("{" + "id" + "}", "$id"),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            )
+
+            return jsonRequest(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+            ).wrap()
+            }
+
+        /**
+        * DELETE /users/{user_id}/status
+        * 
+        * Удаление статуса сотрудника  Метод для удаления статуса сотрудника.
+         * @param userId Идентификатор пользователя 
+         * @return kotlin.Any
+        */
+            @Suppress("UNCHECKED_CAST")
+        open suspend fun userStatusOperationsDeleteUserStatus(userId: kotlin.Int): HttpResponse<kotlin.Any> {
+
+            val localVariableAuthNames = listOf<String>("BearerAuth")
+
+            val localVariableBody = 
+                    io.ktor.client.utils.EmptyContent
+
+            val localVariableQuery = mutableMapOf<String, List<String>>()
+
+            val localVariableHeaders = mutableMapOf<String, String>()
+
+            val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.DELETE,
+            "/users/{user_id}/status".replace("{" + "user_id" + "}", "$userId"),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            )
+
+            return request(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+            ).wrap()
+            }
+
+        /**
+        * GET /users/{user_id}/status
+        * 
+        * Статус сотрудника  Метод для получения информации о статусе сотрудника.
+         * @param userId Идентификатор пользователя 
+         * @return ProfileOperationsGetStatus200Response
+        */
+            @Suppress("UNCHECKED_CAST")
+        open suspend fun userStatusOperationsGetUserStatus(userId: kotlin.Int): HttpResponse<ProfileOperationsGetStatus200Response> {
+
+            val localVariableAuthNames = listOf<String>("BearerAuth")
+
+            val localVariableBody = 
+                    io.ktor.client.utils.EmptyContent
+
+            val localVariableQuery = mutableMapOf<String, List<String>>()
+
+            val localVariableHeaders = mutableMapOf<String, String>()
+
+            val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.GET,
+            "/users/{user_id}/status".replace("{" + "user_id" + "}", "$userId"),
+            query = localVariableQuery,
+            headers = localVariableHeaders,
+            requiresAuthentication = true,
+            )
+
+            return request(
+            localVariableConfig,
+            localVariableBody,
+            localVariableAuthNames
+            ).wrap()
+            }
+
+        /**
+        * PUT /users/{user_id}/status
+        * 
+        * Новый статус сотрудника  Метод для установки нового статуса сотруднику.
+         * @param userId Идентификатор пользователя 
+         * @param statusUpdateRequest  
+         * @return ProfileOperationsUpdateStatus200Response
+        */
+            @Suppress("UNCHECKED_CAST")
+        open suspend fun userStatusOperationsUpdateUserStatus(userId: kotlin.Int, statusUpdateRequest: StatusUpdateRequest): HttpResponse<ProfileOperationsUpdateStatus200Response> {
+
+            val localVariableAuthNames = listOf<String>("BearerAuth")
+
+            val localVariableBody = statusUpdateRequest
+
+            val localVariableQuery = mutableMapOf<String, List<String>>()
+
+            val localVariableHeaders = mutableMapOf<String, String>()
+
+            val localVariableConfig = RequestConfig<kotlin.Any?>(
+            RequestMethod.PUT,
+            "/users/{user_id}/status".replace("{" + "user_id" + "}", "$userId"),
             query = localVariableQuery,
             headers = localVariableHeaders,
             requiresAuthentication = true,

@@ -30,11 +30,13 @@ class UserStatus:
             title (str): Текст статуса Example: Очень занят.
             expires_at (datetime.datetime | None): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
                 Example: 2024-04-08T10:00:00.000Z.
+            is_away (bool): Режим «Нет на месте»
      """
 
     emoji: str
     title: str
     expires_at: datetime.datetime | None
+    is_away: bool
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -52,6 +54,8 @@ class UserStatus:
         else:
             expires_at = self.expires_at
 
+        is_away = self.is_away
+
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -59,6 +63,7 @@ class UserStatus:
             "emoji": emoji,
             "title": title,
             "expires_at": expires_at,
+            "is_away": is_away,
         })
 
         return field_dict
@@ -90,10 +95,13 @@ class UserStatus:
         expires_at = _parse_expires_at(d.pop("expires_at"))
 
 
+        is_away = d.pop("is_away")
+
         user_status = cls(
             emoji=emoji,
             title=title,
             expires_at=expires_at,
+            is_away=is_away,
         )
 
 

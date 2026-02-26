@@ -9,6 +9,9 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 | [**userOperationsGetUser**](UsersApi.md#userOperationsGetUser) | **GET** /users/{id} |  |
 | [**userOperationsListUsers**](UsersApi.md#userOperationsListUsers) | **GET** /users |  |
 | [**userOperationsUpdateUser**](UsersApi.md#userOperationsUpdateUser) | **PUT** /users/{id} |  |
+| [**userStatusOperationsDeleteUserStatus**](UsersApi.md#userStatusOperationsDeleteUserStatus) | **DELETE** /users/{user_id}/status |  |
+| [**userStatusOperationsGetUserStatus**](UsersApi.md#userStatusOperationsGetUserStatus) | **GET** /users/{user_id}/status |  |
+| [**userStatusOperationsUpdateUserStatus**](UsersApi.md#userStatusOperationsUpdateUserStatus) | **PUT** /users/{user_id}/status |  |
 
 
 <a id="userOperationsCreateUser"></a>
@@ -245,6 +248,152 @@ try {
 ### Return type
 
 [**ProfileOperationsGetProfile200Response**](ProfileOperationsGetProfile200Response.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+<a id="userStatusOperationsDeleteUserStatus"></a>
+# **userStatusOperationsDeleteUserStatus**
+> kotlin.Any userStatusOperationsDeleteUserStatus(userId)
+
+
+
+Удаление статуса сотрудника  Метод для удаления статуса сотрудника.
+
+### Example
+```kotlin
+// Import classes:
+//import org.openapitools.client.infrastructure.*
+//import org.openapitools.client.models.*
+
+val apiInstance = UsersApi()
+val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+try {
+    val result : kotlin.Any = apiInstance.userStatusOperationsDeleteUserStatus(userId)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling UsersApi#userStatusOperationsDeleteUserStatus")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling UsersApi#userStatusOperationsDeleteUserStatus")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **userId** | **kotlin.Int**| Идентификатор пользователя | |
+
+### Return type
+
+[**kotlin.Any**](kotlin.Any.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="userStatusOperationsGetUserStatus"></a>
+# **userStatusOperationsGetUserStatus**
+> ProfileOperationsGetStatus200Response userStatusOperationsGetUserStatus(userId)
+
+
+
+Статус сотрудника  Метод для получения информации о статусе сотрудника.
+
+### Example
+```kotlin
+// Import classes:
+//import org.openapitools.client.infrastructure.*
+//import org.openapitools.client.models.*
+
+val apiInstance = UsersApi()
+val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+try {
+    val result : ProfileOperationsGetStatus200Response = apiInstance.userStatusOperationsGetUserStatus(userId)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling UsersApi#userStatusOperationsGetUserStatus")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling UsersApi#userStatusOperationsGetUserStatus")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **userId** | **kotlin.Int**| Идентификатор пользователя | |
+
+### Return type
+
+[**ProfileOperationsGetStatus200Response**](ProfileOperationsGetStatus200Response.md)
+
+### Authorization
+
+
+Configure BearerAuth:
+    ApiClient.accessToken = ""
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+<a id="userStatusOperationsUpdateUserStatus"></a>
+# **userStatusOperationsUpdateUserStatus**
+> ProfileOperationsUpdateStatus200Response userStatusOperationsUpdateUserStatus(userId, statusUpdateRequest)
+
+
+
+Новый статус сотрудника  Метод для установки нового статуса сотруднику.
+
+### Example
+```kotlin
+// Import classes:
+//import org.openapitools.client.infrastructure.*
+//import org.openapitools.client.models.*
+
+val apiInstance = UsersApi()
+val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+val statusUpdateRequest : StatusUpdateRequest = {"status":{"emoji":"🏖️","title":"В отпуске","expires_at":"2024-04-15T00:00:00.000Z","is_away":true}} // StatusUpdateRequest | 
+try {
+    val result : ProfileOperationsUpdateStatus200Response = apiInstance.userStatusOperationsUpdateUserStatus(userId, statusUpdateRequest)
+    println(result)
+} catch (e: ClientException) {
+    println("4xx response calling UsersApi#userStatusOperationsUpdateUserStatus")
+    e.printStackTrace()
+} catch (e: ServerException) {
+    println("5xx response calling UsersApi#userStatusOperationsUpdateUserStatus")
+    e.printStackTrace()
+}
+```
+
+### Parameters
+| **userId** | **kotlin.Int**| Идентификатор пользователя | |
+| Name | Type | Description  | Notes |
+| ------------- | ------------- | ------------- | ------------- |
+| **statusUpdateRequest** | [**StatusUpdateRequest**](StatusUpdateRequest.md)|  | |
+
+### Return type
+
+[**ProfileOperationsUpdateStatus200Response**](ProfileOperationsUpdateStatus200Response.md)
 
 ### Authorization
 

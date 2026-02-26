@@ -937,6 +937,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Статус сотрудника
+         *
+         *     Метод для получения информации о статусе сотрудника.
+         */
+        get: operations["UserStatusOperations_getUserStatus"];
+        /**
+         * @description Новый статус сотрудника
+         *
+         *     Метод для установки нового статуса сотруднику.
+         */
+        put: operations["UserStatusOperations_updateUserStatus"];
+        post?: never;
+        /**
+         * @description Удаление статуса сотрудника
+         *
+         *     Метод для удаления статуса сотрудника.
+         */
+        delete: operations["UserStatusOperations_deleteUserStatus"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/views/open": {
         parameters: {
             query?: never;
@@ -2064,7 +2095,7 @@ export interface components {
          * @description Скоуп доступа OAuth токена
          * @enum {string}
          */
-        OAuthScope: "chats:read" | "chats:create" | "chats:update" | "chats:archive" | "chats:leave" | "chat_members:read" | "chat_members:write" | "chat_exports:read" | "chat_exports:write" | "messages:read" | "messages:create" | "messages:update" | "messages:delete" | "reactions:read" | "reactions:write" | "pins:write" | "threads:read" | "threads:create" | "link_previews:write" | "users:read" | "users:create" | "users:update" | "users:delete" | "group_tags:read" | "group_tags:write" | "bots:write" | "profile:read" | "profile_status:read" | "profile_status:write" | "custom_properties:read" | "audit_events:read" | "tasks:read" | "tasks:create" | "tasks:update" | "tasks:delete" | "files:read" | "files:write" | "uploads:write" | "views:write" | "webhooks:read" | "webhooks:write" | "webhooks:events:read" | "webhooks:events:delete";
+        OAuthScope: "chats:read" | "chats:create" | "chats:update" | "chats:archive" | "chats:leave" | "chat_members:read" | "chat_members:write" | "chat_exports:read" | "chat_exports:write" | "messages:read" | "messages:create" | "messages:update" | "messages:delete" | "reactions:read" | "reactions:write" | "pins:write" | "threads:read" | "threads:create" | "link_previews:write" | "users:read" | "users:create" | "users:update" | "users:delete" | "group_tags:read" | "group_tags:write" | "bots:write" | "profile:read" | "profile_status:read" | "profile_status:write" | "user_status:read" | "user_status:write" | "custom_properties:read" | "audit_events:read" | "tasks:read" | "tasks:create" | "tasks:update" | "tasks:delete" | "files:read" | "files:write" | "uploads:write" | "views:write" | "webhooks:read" | "webhooks:write" | "webhooks:events:read" | "webhooks:events:delete";
         /** @description Запрос на открытие представления */
         OpenViewRequest: {
             /**
@@ -2217,6 +2248,8 @@ export interface components {
                  * @description Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
                  */
                 expires_at?: string;
+                /** @description Режим «Нет на месте» */
+                is_away?: boolean;
             };
         };
         /**
@@ -2676,6 +2709,11 @@ export interface components {
              * @example 2024-04-08T10:00:00.000Z
              */
             expires_at: string | null;
+            /**
+             * @description Режим «Нет на месте»
+             * @example false
+             */
+            is_away: boolean;
         };
         /** @description Запрос на редактирование сотрудника */
         UserUpdateRequest: {
@@ -5070,7 +5108,8 @@ export interface operations {
                      *           "user_status": {
                      *             "emoji": "🎮",
                      *             "title": "Очень занят",
-                     *             "expires_at": "2024-04-08T10:00:00.000Z"
+                     *             "expires_at": "2024-04-08T10:00:00.000Z",
+                     *             "is_away": false
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -5106,7 +5145,8 @@ export interface operations {
                      *           "user_status": {
                      *             "emoji": "🚀",
                      *             "title": "Лечу",
-                     *             "expires_at": null
+                     *             "expires_at": null,
+                     *             "is_away": false
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -6447,7 +6487,8 @@ export interface operations {
                      *       "data": {
                      *         "emoji": "🎮",
                      *         "title": "Очень занят",
-                     *         "expires_at": "2024-04-08T10:00:00.000Z"
+                     *         "expires_at": "2024-04-08T10:00:00.000Z",
+                     *         "is_away": false
                      *       }
                      *     }
                      */
@@ -6509,7 +6550,8 @@ export interface operations {
                      *       "data": {
                      *         "emoji": "🎮",
                      *         "title": "Очень занят",
-                     *         "expires_at": "2024-04-08T10:00:00.000Z"
+                     *         "expires_at": "2024-04-08T10:00:00.000Z",
+                     *         "is_away": false
                      *       }
                      *     }
                      */
@@ -7254,7 +7296,8 @@ export interface operations {
                      *           "user_status": {
                      *             "emoji": "🎮",
                      *             "title": "Очень занят",
-                     *             "expires_at": "2024-04-08T10:00:00.000Z"
+                     *             "expires_at": "2024-04-08T10:00:00.000Z",
+                     *             "is_away": false
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -7290,7 +7333,8 @@ export interface operations {
                      *           "user_status": {
                      *             "emoji": "🚀",
                      *             "title": "Лечу",
-                     *             "expires_at": null
+                     *             "expires_at": null,
+                     *             "is_away": false
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -7680,6 +7724,212 @@ export interface operations {
             path: {
                 /** @description Идентификатор пользователя */
                 id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description There is no content to send for this request, but the headers may be useful. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmptyResponse"];
+                };
+            };
+            /** @description Access is unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description The server cannot find the requested resource. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    UserStatusOperations_getUserStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Идентификатор пользователя */
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "data": {
+                     *         "emoji": "🎮",
+                     *         "title": "Очень занят",
+                     *         "expires_at": "2024-04-08T10:00:00.000Z",
+                     *         "is_away": false
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        data: components["schemas"]["UserStatus"] | null;
+                    };
+                };
+            };
+            /** @description Access is unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description The server cannot find the requested resource. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    UserStatusOperations_updateUserStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Идентификатор пользователя */
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "status": {
+                 *         "emoji": "🏖️",
+                 *         "title": "В отпуске",
+                 *         "expires_at": "2024-04-15T00:00:00.000Z",
+                 *         "is_away": true
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["StatusUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "data": {
+                     *         "emoji": "🏖️",
+                     *         "title": "В отпуске",
+                     *         "expires_at": "2024-04-15T00:00:00.000Z",
+                     *         "is_away": true
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        data: components["schemas"]["UserStatus"];
+                    };
+                };
+            };
+            /** @description The server could not understand the request due to invalid syntax. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Access is unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description The server cannot find the requested resource. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Client error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    UserStatusOperations_deleteUserStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Идентификатор пользователя */
+                user_id: number;
             };
             cookie?: never;
         };

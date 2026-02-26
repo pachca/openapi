@@ -62,6 +62,10 @@
 
     * `profile_statusColonWrite` (value: `"profile_status:write"`)
 
+    * `user_statusColonRead` (value: `"user_status:read"`)
+
+    * `user_statusColonWrite` (value: `"user_status:write"`)
+
     * `custom_propertiesColonRead` (value: `"custom_properties:read"`)
 
     * `audit_eventsColonRead` (value: `"audit_events:read"`)

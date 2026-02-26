@@ -22,7 +22,7 @@ import com.squareup.moshi.JsonClass
 /**
  * Скоуп доступа OAuth токена
  *
- * Values: chatsColonRead,chatsColonCreate,chatsColonUpdate,chatsColonArchive,chatsColonLeave,chat_membersColonRead,chat_membersColonWrite,chat_exportsColonRead,chat_exportsColonWrite,messagesColonRead,messagesColonCreate,messagesColonUpdate,messagesColonDelete,reactionsColonRead,reactionsColonWrite,pinsColonWrite,threadsColonRead,threadsColonCreate,link_previewsColonWrite,usersColonRead,usersColonCreate,usersColonUpdate,usersColonDelete,group_tagsColonRead,group_tagsColonWrite,botsColonWrite,profileColonRead,profile_statusColonRead,profile_statusColonWrite,custom_propertiesColonRead,audit_eventsColonRead,tasksColonRead,tasksColonCreate,tasksColonUpdate,tasksColonDelete,filesColonRead,filesColonWrite,uploadsColonWrite,viewsColonWrite,webhooksColonRead,webhooksColonWrite,webhooksColonEventsColonRead,webhooksColonEventsColonDelete
+ * Values: chatsColonRead,chatsColonCreate,chatsColonUpdate,chatsColonArchive,chatsColonLeave,chat_membersColonRead,chat_membersColonWrite,chat_exportsColonRead,chat_exportsColonWrite,messagesColonRead,messagesColonCreate,messagesColonUpdate,messagesColonDelete,reactionsColonRead,reactionsColonWrite,pinsColonWrite,threadsColonRead,threadsColonCreate,link_previewsColonWrite,usersColonRead,usersColonCreate,usersColonUpdate,usersColonDelete,group_tagsColonRead,group_tagsColonWrite,botsColonWrite,profileColonRead,profile_statusColonRead,profile_statusColonWrite,user_statusColonRead,user_statusColonWrite,custom_propertiesColonRead,audit_eventsColonRead,tasksColonRead,tasksColonCreate,tasksColonUpdate,tasksColonDelete,filesColonRead,filesColonWrite,uploadsColonWrite,viewsColonWrite,webhooksColonRead,webhooksColonWrite,webhooksColonEventsColonRead,webhooksColonEventsColonDelete
  */
 
 @JsonClass(generateAdapter = false)
@@ -114,6 +114,12 @@ enum class OAuthScope(val value: kotlin.String) {
 
     @Json(name = "profile_status:write")
     profile_statusColonWrite("profile_status:write"),
+
+    @Json(name = "user_status:read")
+    user_statusColonRead("user_status:read"),
+
+    @Json(name = "user_status:write")
+    user_statusColonWrite("user_status:write"),
 
     @Json(name = "custom_properties:read")
     custom_propertiesColonRead("custom_properties:read"),

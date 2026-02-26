@@ -510,6 +510,27 @@ internal protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /users/{id}`.
     /// - Remark: Generated from `#/paths//users/{id}/delete(UserOperations_deleteUser)`.
     func UserOperations_deleteUser(_ input: Operations.UserOperations_deleteUser.Input) async throws -> Operations.UserOperations_deleteUser.Output
+    /// Статус сотрудника
+    ///
+    /// Метод для получения информации о статусе сотрудника.
+    ///
+    /// - Remark: HTTP `GET /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/get(UserStatusOperations_getUserStatus)`.
+    func UserStatusOperations_getUserStatus(_ input: Operations.UserStatusOperations_getUserStatus.Input) async throws -> Operations.UserStatusOperations_getUserStatus.Output
+    /// Новый статус сотрудника
+    ///
+    /// Метод для установки нового статуса сотруднику.
+    ///
+    /// - Remark: HTTP `PUT /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)`.
+    func UserStatusOperations_updateUserStatus(_ input: Operations.UserStatusOperations_updateUserStatus.Input) async throws -> Operations.UserStatusOperations_updateUserStatus.Output
+    /// Удаление статуса сотрудника
+    ///
+    /// Метод для удаления статуса сотрудника.
+    ///
+    /// - Remark: HTTP `DELETE /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)`.
+    func UserStatusOperations_deleteUserStatus(_ input: Operations.UserStatusOperations_deleteUserStatus.Input) async throws -> Operations.UserStatusOperations_deleteUserStatus.Output
     /// Открытие представления
     ///
     /// Метод для открытия модального окна с представлением для пользователя.
@@ -1476,6 +1497,53 @@ extension APIProtocol {
         headers: Operations.UserOperations_deleteUser.Input.Headers = .init()
     ) async throws -> Operations.UserOperations_deleteUser.Output {
         try await UserOperations_deleteUser(Operations.UserOperations_deleteUser.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// Статус сотрудника
+    ///
+    /// Метод для получения информации о статусе сотрудника.
+    ///
+    /// - Remark: HTTP `GET /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/get(UserStatusOperations_getUserStatus)`.
+    internal func UserStatusOperations_getUserStatus(
+        path: Operations.UserStatusOperations_getUserStatus.Input.Path,
+        headers: Operations.UserStatusOperations_getUserStatus.Input.Headers = .init()
+    ) async throws -> Operations.UserStatusOperations_getUserStatus.Output {
+        try await UserStatusOperations_getUserStatus(Operations.UserStatusOperations_getUserStatus.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// Новый статус сотрудника
+    ///
+    /// Метод для установки нового статуса сотруднику.
+    ///
+    /// - Remark: HTTP `PUT /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)`.
+    internal func UserStatusOperations_updateUserStatus(
+        path: Operations.UserStatusOperations_updateUserStatus.Input.Path,
+        headers: Operations.UserStatusOperations_updateUserStatus.Input.Headers = .init(),
+        body: Operations.UserStatusOperations_updateUserStatus.Input.Body
+    ) async throws -> Operations.UserStatusOperations_updateUserStatus.Output {
+        try await UserStatusOperations_updateUserStatus(Operations.UserStatusOperations_updateUserStatus.Input(
+            path: path,
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Удаление статуса сотрудника
+    ///
+    /// Метод для удаления статуса сотрудника.
+    ///
+    /// - Remark: HTTP `DELETE /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)`.
+    internal func UserStatusOperations_deleteUserStatus(
+        path: Operations.UserStatusOperations_deleteUserStatus.Input.Path,
+        headers: Operations.UserStatusOperations_deleteUserStatus.Input.Headers = .init()
+    ) async throws -> Operations.UserStatusOperations_deleteUserStatus.Output {
+        try await UserStatusOperations_deleteUserStatus(Operations.UserStatusOperations_deleteUserStatus.Input(
             path: path,
             headers: headers
         ))
@@ -4144,6 +4212,8 @@ internal enum Components {
             case profile_colon_read = "profile:read"
             case profile_status_colon_read = "profile_status:read"
             case profile_status_colon_write = "profile_status:write"
+            case user_status_colon_read = "user_status:read"
+            case user_status_colon_write = "user_status:write"
             case custom_properties_colon_read = "custom_properties:read"
             case audit_events_colon_read = "audit_events:read"
             case tasks_colon_read = "tasks:read"
@@ -4517,25 +4587,33 @@ internal enum Components {
                 ///
                 /// - Remark: Generated from `#/components/schemas/StatusUpdateRequest/status/expires_at`.
                 internal var expires_at: Foundation.Date?
+                /// Режим «Нет на месте»
+                ///
+                /// - Remark: Generated from `#/components/schemas/StatusUpdateRequest/status/is_away`.
+                internal var is_away: Swift.Bool?
                 /// Creates a new `statusPayload`.
                 ///
                 /// - Parameters:
                 ///   - emoji: Emoji символ статуса
                 ///   - title: Текст статуса
                 ///   - expires_at: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+                ///   - is_away: Режим «Нет на месте»
                 internal init(
                     emoji: Swift.String,
                     title: Swift.String,
-                    expires_at: Foundation.Date? = nil
+                    expires_at: Foundation.Date? = nil,
+                    is_away: Swift.Bool? = nil
                 ) {
                     self.emoji = emoji
                     self.title = title
                     self.expires_at = expires_at
+                    self.is_away = is_away
                 }
                 internal enum CodingKeys: String, CodingKey {
                     case emoji
                     case title
                     case expires_at
+                    case is_away
                 }
             }
             /// - Remark: Generated from `#/components/schemas/StatusUpdateRequest/status`.
@@ -5632,25 +5710,33 @@ internal enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/UserStatus/expires_at`.
             internal var expires_at: Foundation.Date?
+            /// Режим «Нет на месте»
+            ///
+            /// - Remark: Generated from `#/components/schemas/UserStatus/is_away`.
+            internal var is_away: Swift.Bool
             /// Creates a new `UserStatus`.
             ///
             /// - Parameters:
             ///   - emoji: Emoji символ статуса
             ///   - title: Текст статуса
             ///   - expires_at: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+            ///   - is_away: Режим «Нет на месте»
             internal init(
                 emoji: Swift.String,
                 title: Swift.String,
-                expires_at: Foundation.Date? = nil
+                expires_at: Foundation.Date? = nil,
+                is_away: Swift.Bool
             ) {
                 self.emoji = emoji
                 self.title = title
                 self.expires_at = expires_at
+                self.is_away = is_away
             }
             internal enum CodingKeys: String, CodingKey {
                 case emoji
                 case title
                 case expires_at
+                case is_away
             }
         }
         /// Запрос на редактирование сотрудника
@@ -25928,6 +26014,1024 @@ internal enum Operations {
             /// - Throws: An error if `self` is not `.notFound`.
             /// - SeeAlso: `.notFound`.
             internal var notFound: Operations.UserOperations_deleteUser.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        internal enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            internal init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            internal var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            internal static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Статус сотрудника
+    ///
+    /// Метод для получения информации о статусе сотрудника.
+    ///
+    /// - Remark: HTTP `GET /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/get(UserStatusOperations_getUserStatus)`.
+    internal enum UserStatusOperations_getUserStatus {
+        internal static let id: Swift.String = "UserStatusOperations_getUserStatus"
+        internal struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/path`.
+            internal struct Path: Sendable, Hashable {
+                /// Идентификатор пользователя
+                ///
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/path/user_id`.
+                internal var user_id: Swift.Int32
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - user_id: Идентификатор пользователя
+                internal init(user_id: Swift.Int32) {
+                    self.user_id = user_id
+                }
+            }
+            internal var path: Operations.UserStatusOperations_getUserStatus.Input.Path
+            /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/header`.
+            internal struct Headers: Sendable, Hashable {
+                internal var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UserStatusOperations_getUserStatus.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                internal init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UserStatusOperations_getUserStatus.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            internal var headers: Operations.UserStatusOperations_getUserStatus.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            internal init(
+                path: Operations.UserStatusOperations_getUserStatus.Input.Path,
+                headers: Operations.UserStatusOperations_getUserStatus.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        internal enum Output: Sendable, Hashable {
+            internal struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/200/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// Обертка ответа с данными
+                    ///
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/200/content/json`.
+                    internal struct jsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/200/content/json/data`.
+                        internal struct dataPayload: Codable, Hashable, Sendable {
+                            /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/200/content/json/data/value1`.
+                            internal var value1: Components.Schemas.UserStatus
+                            /// Creates a new `dataPayload`.
+                            ///
+                            /// - Parameters:
+                            ///   - value1:
+                            internal init(value1: Components.Schemas.UserStatus) {
+                                self.value1 = value1
+                            }
+                            internal init(from decoder: any Decoder) throws {
+                                self.value1 = try .init(from: decoder)
+                            }
+                            internal func encode(to encoder: any Encoder) throws {
+                                try self.value1.encode(to: encoder)
+                            }
+                        }
+                        /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/200/content/json/data`.
+                        internal var data: Operations.UserStatusOperations_getUserStatus.Output.Ok.Body.jsonPayload.dataPayload?
+                        /// Creates a new `jsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        internal init(data: Operations.UserStatusOperations_getUserStatus.Output.Ok.Body.jsonPayload.dataPayload? = nil) {
+                            self.data = data
+                        }
+                        internal enum CodingKeys: String, CodingKey {
+                            case data
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/200/content/application\/json`.
+                    case json(Operations.UserStatusOperations_getUserStatus.Output.Ok.Body.jsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Operations.UserStatusOperations_getUserStatus.Output.Ok.Body.jsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_getUserStatus.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_getUserStatus.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// The request has succeeded.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/get(UserStatusOperations_getUserStatus)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.UserStatusOperations_getUserStatus.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            internal var ok: Operations.UserStatusOperations_getUserStatus.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/401/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_getUserStatus.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_getUserStatus.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is unauthorized.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/get(UserStatusOperations_getUserStatus)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.UserStatusOperations_getUserStatus.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            internal var unauthorized: Operations.UserStatusOperations_getUserStatus.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/403/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_getUserStatus.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_getUserStatus.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is forbidden.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/get(UserStatusOperations_getUserStatus)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.UserStatusOperations_getUserStatus.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            internal var forbidden: Operations.UserStatusOperations_getUserStatus.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/404/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_getUserStatus.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_getUserStatus.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// The server cannot find the requested resource.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/get(UserStatusOperations_getUserStatus)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.UserStatusOperations_getUserStatus.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            internal var notFound: Operations.UserStatusOperations_getUserStatus.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        internal enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            internal init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            internal var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            internal static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Новый статус сотрудника
+    ///
+    /// Метод для установки нового статуса сотруднику.
+    ///
+    /// - Remark: HTTP `PUT /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)`.
+    internal enum UserStatusOperations_updateUserStatus {
+        internal static let id: Swift.String = "UserStatusOperations_updateUserStatus"
+        internal struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/path`.
+            internal struct Path: Sendable, Hashable {
+                /// Идентификатор пользователя
+                ///
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/path/user_id`.
+                internal var user_id: Swift.Int32
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - user_id: Идентификатор пользователя
+                internal init(user_id: Swift.Int32) {
+                    self.user_id = user_id
+                }
+            }
+            internal var path: Operations.UserStatusOperations_updateUserStatus.Input.Path
+            /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/header`.
+            internal struct Headers: Sendable, Hashable {
+                internal var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UserStatusOperations_updateUserStatus.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                internal init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UserStatusOperations_updateUserStatus.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            internal var headers: Operations.UserStatusOperations_updateUserStatus.Input.Headers
+            /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/requestBody`.
+            internal enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/requestBody/content/application\/json`.
+                case json(Components.Schemas.StatusUpdateRequest)
+            }
+            internal var body: Operations.UserStatusOperations_updateUserStatus.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            internal init(
+                path: Operations.UserStatusOperations_updateUserStatus.Input.Path,
+                headers: Operations.UserStatusOperations_updateUserStatus.Input.Headers = .init(),
+                body: Operations.UserStatusOperations_updateUserStatus.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        internal enum Output: Sendable, Hashable {
+            internal struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/200/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// Обертка ответа с данными
+                    ///
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/200/content/json`.
+                    internal struct jsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/200/content/json/data`.
+                        internal var data: Components.Schemas.UserStatus
+                        /// Creates a new `jsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        internal init(data: Components.Schemas.UserStatus) {
+                            self.data = data
+                        }
+                        internal enum CodingKeys: String, CodingKey {
+                            case data
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/200/content/application\/json`.
+                    case json(Operations.UserStatusOperations_updateUserStatus.Output.Ok.Body.jsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Operations.UserStatusOperations_updateUserStatus.Output.Ok.Body.jsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_updateUserStatus.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_updateUserStatus.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// The request has succeeded.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.UserStatusOperations_updateUserStatus.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            internal var ok: Operations.UserStatusOperations_updateUserStatus.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/400/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_updateUserStatus.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_updateUserStatus.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// The server could not understand the request due to invalid syntax.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.UserStatusOperations_updateUserStatus.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            internal var badRequest: Operations.UserStatusOperations_updateUserStatus.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/401/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/401/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_updateUserStatus.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_updateUserStatus.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is unauthorized.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.UserStatusOperations_updateUserStatus.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            internal var unauthorized: Operations.UserStatusOperations_updateUserStatus.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/403/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/403/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_updateUserStatus.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_updateUserStatus.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is forbidden.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.UserStatusOperations_updateUserStatus.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            internal var forbidden: Operations.UserStatusOperations_updateUserStatus.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/404/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_updateUserStatus.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_updateUserStatus.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// The server cannot find the requested resource.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.UserStatusOperations_updateUserStatus.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            internal var notFound: Operations.UserStatusOperations_updateUserStatus.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/422/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/PUT/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_updateUserStatus.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_updateUserStatus.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Client error
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/put(UserStatusOperations_updateUserStatus)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.UserStatusOperations_updateUserStatus.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            internal var unprocessableContent: Operations.UserStatusOperations_updateUserStatus.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        internal enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            internal init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            internal var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            internal static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Удаление статуса сотрудника
+    ///
+    /// Метод для удаления статуса сотрудника.
+    ///
+    /// - Remark: HTTP `DELETE /users/{user_id}/status`.
+    /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)`.
+    internal enum UserStatusOperations_deleteUserStatus {
+        internal static let id: Swift.String = "UserStatusOperations_deleteUserStatus"
+        internal struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/path`.
+            internal struct Path: Sendable, Hashable {
+                /// Идентификатор пользователя
+                ///
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/path/user_id`.
+                internal var user_id: Swift.Int32
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - user_id: Идентификатор пользователя
+                internal init(user_id: Swift.Int32) {
+                    self.user_id = user_id
+                }
+            }
+            internal var path: Operations.UserStatusOperations_deleteUserStatus.Input.Path
+            /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/header`.
+            internal struct Headers: Sendable, Hashable {
+                internal var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UserStatusOperations_deleteUserStatus.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                internal init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UserStatusOperations_deleteUserStatus.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            internal var headers: Operations.UserStatusOperations_deleteUserStatus.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            internal init(
+                path: Operations.UserStatusOperations_deleteUserStatus.Input.Path,
+                headers: Operations.UserStatusOperations_deleteUserStatus.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        internal enum Output: Sendable, Hashable {
+            internal struct NoContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/204/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/204/content/application\/json`.
+                    case json(Components.Schemas.EmptyResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.EmptyResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_deleteUserStatus.Output.NoContent.Body
+                /// Creates a new `NoContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_deleteUserStatus.Output.NoContent.Body) {
+                    self.body = body
+                }
+            }
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.UserStatusOperations_deleteUserStatus.Output.NoContent)
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            internal var noContent: Operations.UserStatusOperations_deleteUserStatus.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/401/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/401/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_deleteUserStatus.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_deleteUserStatus.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is unauthorized.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.UserStatusOperations_deleteUserStatus.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            internal var unauthorized: Operations.UserStatusOperations_deleteUserStatus.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/403/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/403/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_deleteUserStatus.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_deleteUserStatus.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is forbidden.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.UserStatusOperations_deleteUserStatus.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            internal var forbidden: Operations.UserStatusOperations_deleteUserStatus.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/404/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.UserStatusOperations_deleteUserStatus.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.UserStatusOperations_deleteUserStatus.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// The server cannot find the requested resource.
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.UserStatusOperations_deleteUserStatus.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            internal var notFound: Operations.UserStatusOperations_deleteUserStatus.Output.NotFound {
                 get throws {
                     switch self {
                     case let .notFound(response):

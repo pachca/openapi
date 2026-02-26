@@ -102,6 +102,9 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 | *UsersApi* | [**userOperationsGetUser**](docs/UsersApi.md#useroperationsgetuser) | **GET** /users/{id} |  |
 | *UsersApi* | [**userOperationsListUsers**](docs/UsersApi.md#useroperationslistusers) | **GET** /users |  |
 | *UsersApi* | [**userOperationsUpdateUser**](docs/UsersApi.md#useroperationsupdateuser) | **PUT** /users/{id} |  |
+| *UsersApi* | [**userStatusOperationsDeleteUserStatus**](docs/UsersApi.md#userstatusoperationsdeleteuserstatus) | **DELETE** /users/{user_id}/status |  |
+| *UsersApi* | [**userStatusOperationsGetUserStatus**](docs/UsersApi.md#userstatusoperationsgetuserstatus) | **GET** /users/{user_id}/status |  |
+| *UsersApi* | [**userStatusOperationsUpdateUserStatus**](docs/UsersApi.md#userstatusoperationsupdateuserstatus) | **PUT** /users/{user_id}/status |  |
 | *ViewsApi* | [**formOperationsOpenView**](docs/ViewsApi.md#formoperationsopenview) | **POST** /views/open |  |
 
 

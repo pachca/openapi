@@ -25,6 +25,7 @@ import com.squareup.moshi.JsonClass
  * @param emoji Emoji символ статуса
  * @param title Текст статуса
  * @param expiresAt Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+ * @param isAway Режим «Нет на месте»
  */
 
 
@@ -40,7 +41,11 @@ data class UserStatus (
 
     /* Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
     @Json(name = "expires_at")
-    val expiresAt: java.time.OffsetDateTime?
+    val expiresAt: java.time.OffsetDateTime?,
+
+    /* Режим «Нет на месте» */
+    @Json(name = "is_away")
+    val isAway: kotlin.Boolean
 
 ) {
 

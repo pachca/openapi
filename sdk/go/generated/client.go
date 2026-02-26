@@ -190,6 +190,8 @@ const (
 	ThreadsCreate        OAuthScope = "threads:create"
 	ThreadsRead          OAuthScope = "threads:read"
 	UploadsWrite         OAuthScope = "uploads:write"
+	UserStatusRead       OAuthScope = "user_status:read"
+	UserStatusWrite      OAuthScope = "user_status:write"
 	UsersCreate          OAuthScope = "users:create"
 	UsersDelete          OAuthScope = "users:delete"
 	UsersRead            OAuthScope = "users:read"
@@ -1211,6 +1213,9 @@ type StatusUpdateRequest struct {
 		// ExpiresAt Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
 		ExpiresAt *time.Time `json:"expires_at,omitempty"`
 
+		// IsAway Режим «Нет на месте»
+		IsAway *bool `json:"is_away,omitempty"`
+
 		// Title Текст статуса
 		Title string `json:"title"`
 	} `json:"status"`
@@ -1518,6 +1523,9 @@ type UserStatus struct {
 
 	// ExpiresAt Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
 	ExpiresAt *time.Time `json:"expires_at"`
+
+	// IsAway Режим «Нет на месте»
+	IsAway bool `json:"is_away"`
 
 	// Title Текст статуса
 	Title string `json:"title"`
@@ -2099,6 +2107,9 @@ type UserOperationsCreateUserJSONRequestBody = UserCreateRequest
 
 // UserOperationsUpdateUserJSONRequestBody defines body for UserOperationsUpdateUser for application/json ContentType.
 type UserOperationsUpdateUserJSONRequestBody = UserUpdateRequest
+
+// UserStatusOperationsUpdateUserStatusJSONRequestBody defines body for UserStatusOperationsUpdateUserStatus for application/json ContentType.
+type UserStatusOperationsUpdateUserStatusJSONRequestBody = StatusUpdateRequest
 
 // FormOperationsOpenViewJSONRequestBody defines body for FormOperationsOpenView for application/json ContentType.
 type FormOperationsOpenViewJSONRequestBody = OpenViewRequest
@@ -2838,6 +2849,17 @@ type ClientInterface interface {
 	UserOperationsUpdateUserWithBody(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UserOperationsUpdateUser(ctx context.Context, id int32, body UserOperationsUpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserStatusOperationsDeleteUserStatus request
+	UserStatusOperationsDeleteUserStatus(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserStatusOperationsGetUserStatus request
+	UserStatusOperationsGetUserStatus(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserStatusOperationsUpdateUserStatusWithBody request with any body
+	UserStatusOperationsUpdateUserStatusWithBody(ctx context.Context, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserStatusOperationsUpdateUserStatus(ctx context.Context, userId int32, body UserStatusOperationsUpdateUserStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// FormOperationsOpenViewWithBody request with any body
 	FormOperationsOpenViewWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3717,6 +3739,54 @@ func (c *Client) UserOperationsUpdateUserWithBody(ctx context.Context, id int32,
 
 func (c *Client) UserOperationsUpdateUser(ctx context.Context, id int32, body UserOperationsUpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserOperationsUpdateUserRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserStatusOperationsDeleteUserStatus(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserStatusOperationsDeleteUserStatusRequest(c.Server, userId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserStatusOperationsGetUserStatus(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserStatusOperationsGetUserStatusRequest(c.Server, userId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserStatusOperationsUpdateUserStatusWithBody(ctx context.Context, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserStatusOperationsUpdateUserStatusRequestWithBody(c.Server, userId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserStatusOperationsUpdateUserStatus(ctx context.Context, userId int32, body UserStatusOperationsUpdateUserStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserStatusOperationsUpdateUserStatusRequest(c.Server, userId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6454,6 +6524,121 @@ func NewUserOperationsUpdateUserRequestWithBody(server string, id int32, content
 	return req, nil
 }
 
+// NewUserStatusOperationsDeleteUserStatusRequest generates requests for UserStatusOperationsDeleteUserStatus
+func NewUserStatusOperationsDeleteUserStatusRequest(server string, userId int32) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "user_id", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/status", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserStatusOperationsGetUserStatusRequest generates requests for UserStatusOperationsGetUserStatus
+func NewUserStatusOperationsGetUserStatusRequest(server string, userId int32) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "user_id", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/status", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserStatusOperationsUpdateUserStatusRequest calls the generic UserStatusOperationsUpdateUserStatus builder with application/json body
+func NewUserStatusOperationsUpdateUserStatusRequest(server string, userId int32, body UserStatusOperationsUpdateUserStatusJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserStatusOperationsUpdateUserStatusRequestWithBody(server, userId, "application/json", bodyReader)
+}
+
+// NewUserStatusOperationsUpdateUserStatusRequestWithBody generates requests for UserStatusOperationsUpdateUserStatus with any type of body
+func NewUserStatusOperationsUpdateUserStatusRequestWithBody(server string, userId int32, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "user_id", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/%s/status", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewFormOperationsOpenViewRequest calls the generic FormOperationsOpenView builder with application/json body
 func NewFormOperationsOpenViewRequest(server string, body FormOperationsOpenViewJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -6836,6 +7021,17 @@ type ClientWithResponsesInterface interface {
 	UserOperationsUpdateUserWithBodyWithResponse(ctx context.Context, id int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserOperationsUpdateUserResponse, error)
 
 	UserOperationsUpdateUserWithResponse(ctx context.Context, id int32, body UserOperationsUpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*UserOperationsUpdateUserResponse, error)
+
+	// UserStatusOperationsDeleteUserStatusWithResponse request
+	UserStatusOperationsDeleteUserStatusWithResponse(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*UserStatusOperationsDeleteUserStatusResponse, error)
+
+	// UserStatusOperationsGetUserStatusWithResponse request
+	UserStatusOperationsGetUserStatusWithResponse(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*UserStatusOperationsGetUserStatusResponse, error)
+
+	// UserStatusOperationsUpdateUserStatusWithBodyWithResponse request with any body
+	UserStatusOperationsUpdateUserStatusWithBodyWithResponse(ctx context.Context, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserStatusOperationsUpdateUserStatusResponse, error)
+
+	UserStatusOperationsUpdateUserStatusWithResponse(ctx context.Context, userId int32, body UserStatusOperationsUpdateUserStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*UserStatusOperationsUpdateUserStatusResponse, error)
 
 	// FormOperationsOpenViewWithBodyWithResponse request with any body
 	FormOperationsOpenViewWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FormOperationsOpenViewResponse, error)
@@ -8387,6 +8583,88 @@ func (r UserOperationsUpdateUserResponse) StatusCode() int {
 	return 0
 }
 
+type UserStatusOperationsDeleteUserStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON204      *EmptyResponse
+	JSON401      *OAuthError
+	JSON403      *OAuthError
+	JSON404      *ApiError
+}
+
+// Status returns HTTPResponse.Status
+func (r UserStatusOperationsDeleteUserStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserStatusOperationsDeleteUserStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserStatusOperationsGetUserStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data *UserStatus `json:"data"`
+	}
+	JSON401 *OAuthError
+	JSON403 *OAuthError
+	JSON404 *ApiError
+}
+
+// Status returns HTTPResponse.Status
+func (r UserStatusOperationsGetUserStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserStatusOperationsGetUserStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserStatusOperationsUpdateUserStatusResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Data Статус пользователя
+		Data UserStatus `json:"data"`
+	}
+	JSON400 *ApiError
+	JSON401 *OAuthError
+	JSON403 *OAuthError
+	JSON404 *ApiError
+	JSON422 *ApiError
+}
+
+// Status returns HTTPResponse.Status
+func (r UserStatusOperationsUpdateUserStatusResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserStatusOperationsUpdateUserStatusResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type FormOperationsOpenViewResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -9107,6 +9385,41 @@ func (c *ClientWithResponses) UserOperationsUpdateUserWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseUserOperationsUpdateUserResponse(rsp)
+}
+
+// UserStatusOperationsDeleteUserStatusWithResponse request returning *UserStatusOperationsDeleteUserStatusResponse
+func (c *ClientWithResponses) UserStatusOperationsDeleteUserStatusWithResponse(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*UserStatusOperationsDeleteUserStatusResponse, error) {
+	rsp, err := c.UserStatusOperationsDeleteUserStatus(ctx, userId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserStatusOperationsDeleteUserStatusResponse(rsp)
+}
+
+// UserStatusOperationsGetUserStatusWithResponse request returning *UserStatusOperationsGetUserStatusResponse
+func (c *ClientWithResponses) UserStatusOperationsGetUserStatusWithResponse(ctx context.Context, userId int32, reqEditors ...RequestEditorFn) (*UserStatusOperationsGetUserStatusResponse, error) {
+	rsp, err := c.UserStatusOperationsGetUserStatus(ctx, userId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserStatusOperationsGetUserStatusResponse(rsp)
+}
+
+// UserStatusOperationsUpdateUserStatusWithBodyWithResponse request with arbitrary body returning *UserStatusOperationsUpdateUserStatusResponse
+func (c *ClientWithResponses) UserStatusOperationsUpdateUserStatusWithBodyWithResponse(ctx context.Context, userId int32, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserStatusOperationsUpdateUserStatusResponse, error) {
+	rsp, err := c.UserStatusOperationsUpdateUserStatusWithBody(ctx, userId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserStatusOperationsUpdateUserStatusResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserStatusOperationsUpdateUserStatusWithResponse(ctx context.Context, userId int32, body UserStatusOperationsUpdateUserStatusJSONRequestBody, reqEditors ...RequestEditorFn) (*UserStatusOperationsUpdateUserStatusResponse, error) {
+	rsp, err := c.UserStatusOperationsUpdateUserStatus(ctx, userId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserStatusOperationsUpdateUserStatusResponse(rsp)
 }
 
 // FormOperationsOpenViewWithBodyWithResponse request with arbitrary body returning *FormOperationsOpenViewResponse
@@ -12074,6 +12387,166 @@ func ParseUserOperationsUpdateUserResponse(rsp *http.Response) (*UserOperationsU
 		var dest struct {
 			// Data Сотрудник
 			Data User `json:"data"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserStatusOperationsDeleteUserStatusResponse parses an HTTP response from a UserStatusOperationsDeleteUserStatusWithResponse call
+func ParseUserStatusOperationsDeleteUserStatusResponse(rsp *http.Response) (*UserStatusOperationsDeleteUserStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserStatusOperationsDeleteUserStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
+		var dest EmptyResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON204 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserStatusOperationsGetUserStatusResponse parses an HTTP response from a UserStatusOperationsGetUserStatusWithResponse call
+func ParseUserStatusOperationsGetUserStatusResponse(rsp *http.Response) (*UserStatusOperationsGetUserStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserStatusOperationsGetUserStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data *UserStatus `json:"data"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest OAuthError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserStatusOperationsUpdateUserStatusResponse parses an HTTP response from a UserStatusOperationsUpdateUserStatusWithResponse call
+func ParseUserStatusOperationsUpdateUserStatusResponse(rsp *http.Response) (*UserStatusOperationsUpdateUserStatusResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserStatusOperationsUpdateUserStatusResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Data Статус пользователя
+			Data UserStatus `json:"data"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err

@@ -131,6 +131,8 @@ from .user_operations_list_users_response_200 import UserOperationsListUsersResp
 from .user_operations_update_user_response_200 import UserOperationsUpdateUserResponse200
 from .user_role import UserRole
 from .user_status import UserStatus
+from .user_status_operations_get_user_status_response_200 import UserStatusOperationsGetUserStatusResponse200
+from .user_status_operations_update_user_status_response_200 import UserStatusOperationsUpdateUserStatusResponse200
 from .user_update_request import UserUpdateRequest
 from .user_update_request_user import UserUpdateRequestUser
 from .user_update_request_user_custom_properties_item import UserUpdateRequestUserCustomPropertiesItem
@@ -298,6 +300,8 @@ __all__ = (
     "UserOperationsUpdateUserResponse200",
     "UserRole",
     "UserStatus",
+    "UserStatusOperationsGetUserStatusResponse200",
+    "UserStatusOperationsUpdateUserStatusResponse200",
     "UserUpdateRequest",
     "UserUpdateRequestUser",
     "UserUpdateRequestUserCustomPropertiesItem",

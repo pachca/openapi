@@ -39,6 +39,8 @@ class OAuthScope(str, Enum):
     USERSDELETE = "users:delete"
     USERSREAD = "users:read"
     USERSUPDATE = "users:update"
+    USER_STATUSREAD = "user_status:read"
+    USER_STATUSWRITE = "user_status:write"
     VIEWSWRITE = "views:write"
     WEBHOOKSEVENTSDELETE = "webhooks:events:delete"
     WEBHOOKSEVENTSREAD = "webhooks:events:read"

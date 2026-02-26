@@ -29,11 +29,13 @@ class StatusUpdateRequestStatus:
             emoji (str): Emoji символ статуса
             title (str): Текст статуса
             expires_at (datetime.datetime | Unset): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+            is_away (bool | Unset): Режим «Нет на месте»
      """
 
     emoji: str
     title: str
     expires_at: datetime.datetime | Unset = UNSET
+    is_away: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -49,6 +51,8 @@ class StatusUpdateRequestStatus:
         if not isinstance(self.expires_at, Unset):
             expires_at = self.expires_at.isoformat()
 
+        is_away = self.is_away
+
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -58,6 +62,8 @@ class StatusUpdateRequestStatus:
         })
         if expires_at is not UNSET:
             field_dict["expires_at"] = expires_at
+        if is_away is not UNSET:
+            field_dict["is_away"] = is_away
 
         return field_dict
 
@@ -80,10 +86,13 @@ class StatusUpdateRequestStatus:
 
 
 
+        is_away = d.pop("is_away", UNSET)
+
         status_update_request_status = cls(
             emoji=emoji,
             title=title,
             expires_at=expires_at,
+            is_away=is_away,
         )
 
 

@@ -37,7 +37,7 @@ class UploadParams:
             x_amz_signature (str): Уникальная подпись для загрузки файла Example:
                 87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475.
             key (str): Уникальный ключ для загрузки файла Example:
-                attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename.
+                attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}.
             direct_url (str): Адрес для загрузки файла Example: https://api.pachca.com/api/v3/direct_upload.
      """
 

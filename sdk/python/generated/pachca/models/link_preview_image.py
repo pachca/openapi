@@ -24,7 +24,7 @@ class LinkPreviewImage:
 
         Attributes:
             key (str): Путь к изображению, полученный в результате [загрузки файла](POST /direct_url) Example:
-                attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename.
+                attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}.
             name (str): Название изображения (рекомендуется писать вместе с расширением) Example: files-to-server.jpg.
             size (int): Размер изображения в байтах Example: 695604.
      """

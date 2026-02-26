@@ -372,7 +372,7 @@ export interface paths {
          *
          *     1. [Получение подписи, ключа и других параметров](POST /uploads) — сделать `POST`-запрос без тела запроса для получения параметров загрузки.
          *     2. **Загрузка файла** — после получения всех параметров, нужно сделать `POST` запрос c форматом `multipart/form-data` на адрес `direct_url`, включая те же поля, что пришли (content-disposition, acl, policy, x-amz-credential, x-amz-algorithm, x-amz-date, x-amz-signature, key) и сам файл. При успешной загрузке — `HTTP` статус `201`.
-         *     3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `$filename` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/$filename`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
+         *     3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `${filename}` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
          */
         post: operations["DirectUploadOperations_uploadFile"];
         delete?: never;
@@ -1696,7 +1696,7 @@ export interface components {
             image?: {
                 /**
                  * @description Путь к изображению, полученный в результате [загрузки файла](POST /direct_url)
-                 * @example attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename
+                 * @example attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}
                  */
                 key: string;
                 /**
@@ -2480,7 +2480,7 @@ export interface components {
             "x-amz-signature": string;
             /**
              * @description Уникальный ключ для загрузки файла
-             * @example attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/$filename
+             * @example attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}
              */
             key: string;
             /**
@@ -7138,7 +7138,7 @@ export interface operations {
                      *       "x-amz-algorithm": "AWS4-HMAC-SHA256",
                      *       "x-amz-date": "20211122T065734Z",
                      *       "x-amz-signature": "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
-                     *       "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/$filename",
+                     *       "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
                      *       "direct_url": "https://api.pachca.com/api/v3/direct_upload"
                      *     }
                      */

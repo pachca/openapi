@@ -32,7 +32,7 @@ export async function generateMetadata({
 
   const firstParagraph = extractFirstParagraph(data.content);
   let title = data.frontmatter.title;
-  let description: string | undefined = firstParagraph || data.frontmatter.description;
+  let description: string | undefined = data.frontmatter.description || firstParagraph;
   let ogImage = `/api/og?type=guide&slug=${slug}`;
 
   if (slug === 'updates') {

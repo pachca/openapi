@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { LogoLink } from './pachka-logo';
-import { ThemeToggle } from './theme-toggle';
 import { SearchButton } from './search-button';
 import { SidebarNav } from './sidebar-nav';
+import { MobileSettingsButtons } from './sidebar-footer';
 import type { NavigationSection } from '@/lib/openapi/types';
 import { usePathname } from 'next/navigation';
 
@@ -47,7 +47,7 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <ThemeToggle />
+          <MobileSettingsButtons />
           <SearchButton variant="header" />
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -87,10 +87,10 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
         }}
       >
         <div
-          className="overflow-y-auto custom-scrollbar h-full"
+          className="overflow-y-auto custom-scrollbar h-full flex flex-col"
           id="mobile-sidebar-scroll-container"
         >
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 flex-1">
             <SidebarNav navigation={navigation} />
           </div>
         </div>

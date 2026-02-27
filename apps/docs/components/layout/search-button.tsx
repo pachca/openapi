@@ -32,7 +32,7 @@ export function SearchButton({ className = '', variant = 'sidebar' }: SearchButt
         className={` ${
           isHeader
             ? 'w-9 h-9 flex justify-center cursor-pointer items-center rounded-lg text-text-secondary hover:text-text-primary'
-            : 'w-full py-1.5 pr-4 relative text-[14px] leading-[1.4] font-medium group cursor-pointer border border-background-border bg-background text-left px-2 pl-9 rounded-md text-text-tertiary hover:text-text-secondary'
+            : 'w-full py-1.5 pr-4 relative text-[14px] leading-[1.4] font-medium group cursor-pointer border border-background-border bg-background text-left px-2 pl-9 rounded-lg text-text-tertiary hover:text-text-secondary'
         } ${className}`}
       >
         <Search

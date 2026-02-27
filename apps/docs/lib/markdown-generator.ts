@@ -1,5 +1,4 @@
 import type { Endpoint, Schema, Response } from './openapi/types';
-import { displayConfig } from './display-config';
 import { generateRequestExample, generateResponseExample } from './openapi/example-generator';
 import { generateCurl } from './code-generators/curl';
 import { generateJavaScript } from './code-generators/javascript';
@@ -135,7 +134,7 @@ export function schemaToMarkdown(
       content += '\n';
 
       // Add example if available
-      if (displayConfig.showSchemaExamples && prop.example !== undefined) {
+      if (prop.example !== undefined) {
         const exampleStr =
           typeof prop.example === 'string' ? prop.example : JSON.stringify(prop.example);
         content += `${indent}  - Пример: \`${exampleStr}\`\n`;
@@ -280,7 +279,7 @@ function formatParameters(endpoint: Endpoint): string {
       const type = param.schema?.type || 'string';
       const description = param.description || '';
       content += `- \`${param.name}\` (${type}, ${required}): ${description}\n`;
-      if (displayConfig.showSchemaExamples && param.schema?.example !== undefined) {
+      if (param.schema?.example !== undefined) {
         content += `  - Пример: \`${param.schema.example}\`\n`;
       }
     }
@@ -297,7 +296,7 @@ function formatParameters(endpoint: Endpoint): string {
       }
       const description = param.description || '';
       content += `- \`${param.name}\` (${type}, ${required}): ${description}\n`;
-      if (displayConfig.showSchemaExamples && param.schema?.example !== undefined) {
+      if (param.schema?.example !== undefined) {
         content += `  - Пример: \`${param.schema.example}\`\n`;
       }
       if (param.schema?.default !== undefined) {
@@ -314,7 +313,7 @@ function formatParameters(endpoint: Endpoint): string {
       const type = param.schema?.type || 'string';
       const description = param.description || '';
       content += `- \`${param.name}\` (${type}, ${required}): ${description}\n`;
-      if (displayConfig.showSchemaExamples && param.schema?.example !== undefined) {
+      if (param.schema?.example !== undefined) {
         content += `  - Пример: \`${param.schema.example}\`\n`;
       }
     }

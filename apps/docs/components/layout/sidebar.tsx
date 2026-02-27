@@ -3,6 +3,7 @@
 import { SidebarScrollWrapper } from './sidebar-scroll-wrapper';
 import { SidebarNav } from './sidebar-nav';
 import { SidebarHeader } from './sidebar-header';
+import { SidebarFooter } from './sidebar-footer';
 import { MobileSidebar } from './mobile-sidebar';
 import type { NavigationSection } from '@/lib/openapi/types';
 
@@ -22,6 +23,7 @@ function SidebarClient({ navigation }: SidebarClientProps) {
         <SidebarScrollWrapper>
           <SidebarNav navigation={navigation} />
         </SidebarScrollWrapper>
+        <SidebarFooter />
       </aside>
     </>
   );

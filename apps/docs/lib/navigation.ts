@@ -22,6 +22,7 @@ const TAG_TRANSLATIONS: Record<string, string> = {
   Views: 'Формы',
   Bots: 'Боты и Webhook',
   Security: 'Безопасность',
+  Search: 'Поиск',
 };
 
 export async function generateNavigation(): Promise<NavigationSection[]> {

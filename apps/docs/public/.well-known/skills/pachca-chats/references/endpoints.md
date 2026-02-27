@@ -88,9 +88,6 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort[{field}]=value&availabilit
 
 **Ответ:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 - `data` (array[object], **обязательный**): 
   - `id` (integer, **обязательный**): Идентификатор созданного чата
   - `name` (string, **обязательный**): Название
@@ -103,6 +100,9 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort[{field}]=value&availabilit
   - `public` (boolean, **обязательный**): Открытый доступ
   - `last_message_at` (string, **обязательный**): Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `meet_room_url` (string, **обязательный**): Ссылка на Видеочат
+- `meta` (object, опциональный): Метаданные пагинации
+  - `paginate` (object, опциональный): Вспомогательная информация
+    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 
 ---
 
@@ -400,9 +400,6 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/members?role=value&limit=
 
 **Ответ:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 - `data` (array[object], **обязательный**): 
   - `id` (integer, **обязательный**): Идентификатор пользователя
   - `first_name` (string, **обязательный**): Имя
@@ -428,6 +425,9 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/members?role=value&limit=
   - `last_activity_at` (string, **обязательный**): Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `time_zone` (string, **обязательный**): Часовой пояс пользователя
   - `image_url` (string, **обязательный**): Ссылка на скачивание аватарки пользователя
+- `meta` (object, опциональный): Метаданные пагинации
+  - `paginate` (object, опциональный): Вспомогательная информация
+    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 
 ---
 

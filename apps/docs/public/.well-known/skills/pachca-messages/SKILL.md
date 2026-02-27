@@ -42,6 +42,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - настроить бота, вебхук, webhook → **pachca-bots**
 - показать форму, интерактивная форма, модальное окно → **pachca-forms**
 - создать задачу, список задач, напоминание → **pachca-tasks**
+- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
 - аудит, журнал событий, безопасность → **pachca-security**
 
 ## Пошаговые сценарии
@@ -413,7 +414,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 - `message.entity_type`: допустимые значения — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
 - `message.display_avatar_url`: максимум 255 символов
 - `message.display_name`: максимум 255 символов
-- `limit`: максимум 50
+- `limit`: максимум — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
 
 ## Подробнее

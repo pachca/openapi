@@ -37,6 +37,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - настроить бота, вебхук, webhook → **pachca-bots**
 - показать форму, интерактивная форма, модальное окно → **pachca-forms**
 - создать задачу, список задач, напоминание → **pachca-tasks**
+- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
 - аудит, журнал событий, безопасность → **pachca-security**
 
 ## Пошаговые сценарии
@@ -270,8 +271,8 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 ## Ограничения и gotchas
 
-- `limit`: максимум 50
 - `role`: допустимые значения — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
+- `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
 
 ## Подробнее

@@ -160,9 +160,6 @@ echo $response;
 
 **Схема ответа:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 - `data` (array[object], **обязательный**)
   - `id` (integer, int32, **обязательный**): Идентификатор пользователя
   - `first_name` (string, **обязательный**): Имя
@@ -177,6 +174,7 @@ echo $response;
       - `admin`: Администратор
       - `user`: Сотрудник
       - `multi_guest`: Мульти-гость
+      - `guest`: Гость
   - `suspended` (boolean, **обязательный**): Деактивация пользователя
   - `invite_status` (string, **обязательный**): Статус приглашения
     - **Возможные значения:**
@@ -198,22 +196,22 @@ echo $response;
     - `title` (string, **обязательный**): Текст статуса
     - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
     - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
+    - `away_message` (object, **обязательный**): Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+      - `text` (string, **обязательный**): Текст сообщения
   - `bot` (boolean, **обязательный**): Является ботом
   - `sso` (boolean, **обязательный**): Использует ли пользователь SSO
   - `created_at` (string, date-time, **обязательный**): Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `last_activity_at` (string, date-time, **обязательный**): Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `time_zone` (string, **обязательный**): Часовой пояс пользователя
   - `image_url` (string, **обязательный**): Ссылка на скачивание аватарки пользователя
+- `meta` (object, опциональный): Метаданные пагинации
+  - `paginate` (object, опциональный): Вспомогательная информация
+    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 
 **Пример ответа:**
 
 ```json
 {
-  "meta": {
-    "paginate": {
-      "next_page": "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
-    }
-  },
   "data": [
     {
       "id": 12,
@@ -247,7 +245,12 @@ echo $response;
       "time_zone": "Europe/Moscow",
       "image_url": null
     }
-  ]
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
+    }
+  }
 }
 ```
 

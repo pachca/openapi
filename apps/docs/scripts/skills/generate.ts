@@ -432,15 +432,31 @@ function extractGotchas(endpoints: Endpoint[]): string[] {
         }
       }
     }
+  }
 
+  // Collect all maximum values per query parameter across endpoints
+  const paramMaximums = new Map<string, { max: number; endpoint: string }[]>();
+  for (const ep of endpoints) {
     const queryParams = ep.parameters.filter((p) => p.in === 'query');
     for (const p of queryParams) {
       if (p.schema?.maximum) {
-        const key = `max:${p.name}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        gotchas.push(`\`${p.name}\`: максимум ${p.schema.maximum}`);
+        const entries = paramMaximums.get(p.name) ?? [];
+        entries.push({
+          max: p.schema.maximum as number,
+          endpoint: `${ep.method.toUpperCase()} ${ep.path}`,
+        });
+        paramMaximums.set(p.name, entries);
       }
+    }
+  }
+
+  for (const [name, entries] of paramMaximums) {
+    const uniqueValues = [...new Set(entries.map((e) => e.max))];
+    if (uniqueValues.length === 1) {
+      gotchas.push(`\`${name}\`: максимум ${uniqueValues[0]}`);
+    } else {
+      const details = entries.map((e) => `${e.max} (${e.endpoint})`).join(', ');
+      gotchas.push(`\`${name}\`: максимум — ${details}`);
     }
   }
 

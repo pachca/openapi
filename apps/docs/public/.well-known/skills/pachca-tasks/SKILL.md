@@ -30,6 +30,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 - отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
 - настроить бота, вебхук, webhook → **pachca-bots**
 - показать форму, интерактивная форма, модальное окно → **pachca-forms**
+- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
 - аудит, журнал событий, безопасность → **pachca-security**
 
 ## Пошаговые сценарии
@@ -136,8 +137,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ## Ограничения и gotchas
 
 - `task.kind`: допустимые значения — `call` (Позвонить контакту), `meeting` (Встреча), `reminder` (Простое напоминание), `event` (Событие), `email` (Написать письмо)
+- `task.status`: допустимые значения — `done` (Выполнено), `undone` (Активно)
 - `limit`: максимум 50
-- `task.status`: допустимые значения — `done` (Выполнено), `undone` (Не выполнено)
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
 
 ## Подробнее

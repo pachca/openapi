@@ -68,16 +68,20 @@ enum FileType {
   admin: "Администратор",
   user: "Сотрудник",
   multi_guest: "Мульти-гость",
+  guest: "Гость",
 })
 enum UserRole {
   @doc("Администратор")
   admin: "admin",
-  
+
   @doc("Сотрудник")
   user: "user",
-  
+
   @doc("Мульти-гость")
   multi_guest: "multi_guest",
+
+  @doc("Гость")
+  guest: "guest",
 }
 
 @doc("Статус приглашения пользователя")
@@ -177,6 +181,19 @@ enum TaskKind {
   email: "email",
 }
 
+@doc("Статус напоминания")
+@extension("x-enum-descriptions", #{
+  done: "Выполнено",
+  undone: "Активно",
+})
+enum TaskStatus {
+  @doc("Выполнено")
+  done: "done",
+
+  @doc("Активно")
+  undone: "undone",
+}
+
 @doc("Порядок сортировки")
 @extension("x-enum-descriptions", #{
   asc: "По возрастанию",
@@ -188,6 +205,19 @@ enum SortOrder {
   
   @doc("По убыванию")
   desc: "desc",
+}
+
+@doc("Сортировка результатов поиска")
+@extension("x-enum-descriptions", #{
+  by_score: "По релевантности",
+  alphabetical: "По алфавиту",
+})
+enum SearchSortOrder {
+  @doc("По релевантности")
+  by_score: "by_score",
+
+  @doc("По алфавиту")
+  alphabetical: "alphabetical",
 }
 
 @doc("Доступность чатов для пользователя")
@@ -286,6 +316,19 @@ enum SearchEntityType {
   
   @doc("Задача")
   Task: "Task",
+}
+
+@doc("Тип чата")
+@extension("x-enum-descriptions", #{
+  discussion: "Канал или беседа",
+  thread: "Тред",
+})
+enum ChatSubtype {
+  @doc("Канал или беседа")
+  discussion: "discussion",
+
+  @doc("Тред")
+  thread: "thread",
 }
 
 @doc("Коды ошибок валидации")
@@ -564,6 +607,15 @@ enum AuditEventKey {
 
   @doc("Срабатывание правила DLP-системы")
   dlp_violation_detected: "dlp_violation_detected",
+
+  @doc("Поиск сотрудников через API")
+  search_users_api: "search_users_api",
+
+  @doc("Поиск чатов через API")
+  search_chats_api: "search_chats_api",
+
+  @doc("Поиск сообщений через API")
+  search_messages_api: "search_messages_api",
 }
 
 // ============================================================================
@@ -619,6 +671,13 @@ model UserStatus {
   @doc("Режим «Нет на месте»")
   @example(false)
   is_away: boolean;
+
+  @doc("Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.")
+  away_message: {
+    @doc("Текст сообщения")
+    @example("Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.")
+    text: string;
+  } | null;
 }
 
 @doc("Файл")
@@ -857,7 +916,11 @@ model Message {
   @doc("Идентификатор чата, в котором находится сообщение")
   @example(334)
   chat_id: int32;
-  
+
+  @doc("Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.")
+  @example(334)
+  root_chat_id: int32;
+
   @doc("Текст сообщения")
   @example("Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)")
   content: string;
@@ -894,6 +957,14 @@ model Message {
   
   @doc("Полное имя отправителя сообщения")
   display_name: string | null;
+
+  @doc("Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2021-08-28T16:10:00.000Z"))
+  changed_at: utcDateTime | null;
+
+  @doc("Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(null)
+  deleted_at: utcDateTime | null;
 }
 
 @doc("Тег")
@@ -960,12 +1031,8 @@ model Task {
   chat_id: int32 | null;
 
   @doc("Статус напоминания")
-  @example("undone")
-  @extension("x-enum-descriptions", #{
-    done: "Выполнено",
-    undone: "Активно"
-  })
-  status: "done" | "undone";
+  @example(TaskStatus.undone)
+  status: TaskStatus;
 
   @doc("Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2020-06-04T10:37:57.000Z"))
@@ -997,6 +1064,26 @@ model PaginationMeta {
   };
 }
 
+@doc("Мета-информация для пагинации поисковых результатов")
+model SearchPaginationMeta {
+  @doc("Общее количество найденных результатов")
+  @example(42)
+  total: int32;
+
+  @doc("Вспомогательная информация")
+  paginate: {
+    @doc("Курсор пагинации следующей страницы")
+    @example("eyJxZCO2MiwiZGlyIjomSNYjIn3")
+    next_page: string;
+  };
+}
+
+@doc("Обертка ответа поисковых результатов с данными и пагинацией")
+model SearchPaginatedDataResponse<T> {
+  data: T;
+  meta: SearchPaginationMeta;
+}
+
 @doc("Обертка ответа с данными")
 model DataResponse<T> {
   data: T;
@@ -1004,8 +1091,8 @@ model DataResponse<T> {
 
 @doc("Обертка ответа с данными и пагинацией")
 model PaginatedDataResponse<T> {
-  meta?: PaginationMeta;
   data: T;
+  meta?: PaginationMeta;
 }
 
 @doc("При безошибочном выполнении запроса тело ответа отсутствует")
@@ -1062,6 +1149,9 @@ model EmptyResponse {}
   webhooks_write: "Создание и управление вебхуками",
   webhooks_events_read: "Просмотр лога вебхуков",
   webhooks_events_delete: "Удаление записи в логе вебхука",
+  search_users: "Поиск сотрудников",
+  search_chats: "Поиск чатов",
+  search_messages: "Поиск сообщений",
 })
 enum OAuthScope {
   @doc("Просмотр чатов и списка чатов")
@@ -1198,6 +1288,15 @@ enum OAuthScope {
 
   @doc("Удаление записи в логе вебхука")
   webhooks_events_delete: "webhooks:events:delete",
+
+  @doc("Поиск сотрудников")
+  search_users: "search:users",
+
+  @doc("Поиск чатов")
+  search_chats: "search:chats",
+
+  @doc("Поиск сообщений")
+  search_messages: "search:messages",
 }
 
 @doc("Информация о текущем OAuth токене")
@@ -1414,13 +1513,8 @@ model UserUpdateRequest {
     title?: string;
     
     @doc("Уровень доступа")
-    @example("user")
-    @extension("x-enum-descriptions", #{
-      admin: "Администратор",
-      user: "Сотрудник",
-      multi_guest: "Мульти-гость"
-    })
-    role?: "admin" | "user" | "multi_guest";
+    @example(UserRole.user)
+    role?: UserRole;
     
     @doc("Деактивация пользователя")
     @example(false)
@@ -1457,6 +1551,10 @@ model StatusUpdateRequest {
 
     @doc("Режим «Нет на месте»")
     is_away?: boolean;
+
+    @doc("Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях.")
+    @maxLength(1024)
+    away_message?: string;
   };
 }
 
@@ -1552,12 +1650,8 @@ model MessageCreateRequest {
       name: string;
       
       @doc("Тип файла")
-      @example("image")
-      @extension("x-enum-descriptions", #{
-        file: "Файл",
-        image: "Изображение"
-      })
-      file_type: "file" | "image";
+      @example(FileType.image)
+      file_type: FileType;
       
       @doc("Размер файла в байтах, отображаемый пользователю")
       @example(12345)
@@ -1759,12 +1853,8 @@ model TaskUpdateRequest {
     performer_ids?: int32[];
 
     @doc("Статус")
-    @example("done")
-    @extension("x-enum-descriptions", #{
-      done: "Выполнено",
-      undone: "Не выполнено"
-    })
-    status?: "done" | "undone";
+    @example(TaskStatus.done)
+    status?: TaskStatus;
 
     @doc("Напоминание на весь день (без указания времени)")
     all_day?: boolean;
@@ -2906,7 +2996,8 @@ interface ProfileOperations {
           emoji: "🎮",
           title: "Очень занят",
           expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-          is_away: false
+          is_away: false,
+          away_message: null
         }
       }
     }
@@ -2949,7 +3040,8 @@ interface ProfileOperations {
           emoji: "🎮",
           title: "Очень занят",
           expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-          is_away: false
+          is_away: false,
+          away_message: null
         }
       }
     }
@@ -3096,11 +3188,6 @@ interface UserOperations {
     returnType: #{
       _: 200,
       body: #{
-        meta: #{
-          paginate: #{
-            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-          }
-        },
         data: #[
         #{
           id: 12,
@@ -3152,7 +3239,8 @@ interface UserOperations {
             emoji: "🎮",
             title: "Очень занят",
             expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-            is_away: false
+            is_away: false,
+            away_message: null
           },
           bot: false,
           sso: false,
@@ -3184,7 +3272,8 @@ interface UserOperations {
             emoji: "🚀",
             title: "Лечу",
             expires_at: null,
-            is_away: false
+            is_away: false,
+            away_message: null
           },
           bot: false,
           sso: false,
@@ -3193,7 +3282,12 @@ interface UserOperations {
           time_zone: "Europe/Moscow",
           image_url: null
         }
-      ]
+      ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+          }
+        }
       }
     }
   })
@@ -3307,7 +3401,7 @@ interface UserOperations {
       request: #{
         user: #{
           nickname: "olegpetrov",
-          role: "user",
+          role: UserRole.user,
           list_tags: #["Product"]
         }
       }
@@ -3429,7 +3523,8 @@ interface UserStatusOperations {
           emoji: "🎮",
           title: "Очень занят",
           expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-          is_away: false
+          is_away: false,
+          away_message: null
         }
       }
     }
@@ -3469,7 +3564,8 @@ interface UserStatusOperations {
           emoji: "🏖️",
           title: "В отпуске",
           expires_at: utcDateTime.fromISO("2024-04-15T00:00:00.000Z"),
-          is_away: true
+          is_away: true,
+          away_message: "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
         }
       }
     },
@@ -3480,7 +3576,10 @@ interface UserStatusOperations {
           emoji: "🏖️",
           title: "В отпуске",
           expires_at: utcDateTime.fromISO("2024-04-15T00:00:00.000Z"),
-          is_away: true
+          is_away: true,
+          away_message: #{
+            text: "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
+          }
         }
       }
     }
@@ -3650,11 +3749,6 @@ interface GroupTagOperations {
     returnType: #{
       _: 200,
       body: #{
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
-          }
-        },
         data: #[
           #{
             id: 9111,
@@ -3666,7 +3760,12 @@ interface GroupTagOperations {
             name: "iOS",
             users_count: 4
           }
-        ]
+        ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
+          }
+        }
       }
     }
   })
@@ -3770,7 +3869,8 @@ interface GroupTagOperations {
             emoji: "🎮",
             title: "Очень занят",
             expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-            is_away: false
+            is_away: false,
+            away_message: null
           },
           bot: false,
           sso: false,
@@ -3804,7 +3904,8 @@ interface GroupTagOperations {
             emoji: "🚀",
             title: "Лечу",
             expires_at: null,
-            is_away: false
+            is_away: false,
+            away_message: null
           },
           bot: false,
           sso: false,
@@ -4073,11 +4174,6 @@ interface ChatOperations {
     returnType: #{
       _: 200,
       body: #{
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
-          }
-        },
         data: #[
         #{
           id: 334,
@@ -4105,7 +4201,12 @@ interface ChatOperations {
           last_message_at: utcDateTime.fromISO("2021-08-28T15:56:12.000Z"),
           meet_room_url: "https://meet.pachca.com/development-43sz53n8"
         }
-      ]
+      ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
+          }
+        }
       }
     }
   })
@@ -4294,11 +4395,6 @@ interface ChatMemberOperations {
     returnType: #{
       _: 200,
       body: #{
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
-          }
-        },
         data: #[
         #{
           id: 12,
@@ -4329,7 +4425,12 @@ interface ChatMemberOperations {
           time_zone: "Europe/Moscow",
           image_url: null
         }
-      ]
+      ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
+          }
+        }
       }
     }
   })
@@ -4746,6 +4847,7 @@ interface MessageOperations {
           entity_type: MessageEntityType.discussion,
           entity_id: 334,
           chat_id: 334,
+          root_chat_id: 334,
           content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
           user_id: 185,
           created_at: utcDateTime.fromISO("2021-08-28T15:57:23.000Z"),
@@ -4761,7 +4863,9 @@ interface MessageOperations {
           forwarding: null,
           parent_message_id: null,
           display_avatar_url: null,
-          display_name: null
+          display_name: null,
+          changed_at: null,
+          deleted_at: null
         }
       }
     }
@@ -4806,6 +4910,7 @@ interface MessageOperations {
           entity_type: MessageEntityType.discussion,
           entity_id: 198,
           chat_id: 198,
+          root_chat_id: 198,
           content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
           user_id: 12,
           created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
@@ -4832,7 +4937,9 @@ interface MessageOperations {
           forwarding: null,
           parent_message_id: 194274,
           display_avatar_url: null,
-          display_name: null
+          display_name: null,
+          changed_at: null,
+          deleted_at: null
         }
       }
     }
@@ -4883,6 +4990,7 @@ interface MessageOperations {
           entity_type: MessageEntityType.discussion,
           entity_id: 17452,
           chat_id: 17452,
+          root_chat_id: 17452,
           content: "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
           user_id: 65,
           created_at: utcDateTime.fromISO("2022-06-08T09:32:57.000Z"),
@@ -4893,7 +5001,9 @@ interface MessageOperations {
           forwarding: null,
           parent_message_id: null,
           display_avatar_url: null,
-          display_name: null
+          display_name: null,
+          changed_at: utcDateTime.fromISO("2022-06-08T10:15:00.000Z"),
+          deleted_at: null
         }
       }
     }
@@ -5045,6 +5155,7 @@ interface ChatMessageOperations {
             entity_type: MessageEntityType.discussion,
             entity_id: 198,
             chat_id: 198,
+            root_chat_id: 198,
             content: "Это сообщение тоже попадёт в экспорт",
             user_id: 12,
             created_at: utcDateTime.fromISO("2023-09-18T13:43:32.000Z"),
@@ -5061,13 +5172,16 @@ interface ChatMessageOperations {
             forwarding: null,
             parent_message_id: null,
             display_avatar_url: null,
-            display_name: null
+            display_name: null,
+            changed_at: null,
+            deleted_at: null
           },
           #{
             id: 1194276,
             entity_type: MessageEntityType.discussion,
             entity_id: 198,
             chat_id: 198,
+            root_chat_id: 198,
             content: "**Andrew** добавил **Export bot** в беседу",
             user_id: 12,
             created_at: utcDateTime.fromISO("2023-09-18T13:43:27.000Z"),
@@ -5078,13 +5192,16 @@ interface ChatMessageOperations {
             forwarding: null,
             parent_message_id: null,
             display_avatar_url: null,
-            display_name: null
+            display_name: null,
+            changed_at: null,
+            deleted_at: null
           },
           #{
             id: 1194275,
             entity_type: MessageEntityType.discussion,
             entity_id: 198,
             chat_id: 198,
+            root_chat_id: 198,
             content: "**Andrew** создал беседу",
             user_id: 12,
             created_at: utcDateTime.fromISO("2023-09-18T13:43:19.000Z"),
@@ -5095,7 +5212,9 @@ interface ChatMessageOperations {
             forwarding: null,
             parent_message_id: null,
             display_avatar_url: null,
-            display_name: null
+            display_name: null,
+            changed_at: null,
+            deleted_at: null
           }
         ],
         meta: #{
@@ -5162,12 +5281,12 @@ interface ReadMemberOperations {
     returnType: #{
       _: 200,
       body: #{
+        data: #[12, 13, 14, 15, 16],
         meta: #{
           paginate: #{
             next_page: "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
           }
-        },
-        data: #[12, 13, 14, 15, 16]
+        }
       }
     }
   })
@@ -5471,6 +5590,270 @@ Unfurl (разворачивание ссылок)
 }
 
 // ============================================================================
+// Search Operations
+// ============================================================================
+
+@route("/search")
+@tag("Search")
+interface SearchOperations {
+  @extension("x-requirements", #{
+    scope: "search:users",
+  })
+  @doc("""
+Поиск сотрудников
+
+Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
+""")
+  @route("/users")
+  @get
+  @opExample(#{
+    parameters: #{
+      query: "Олег",
+      limit: 10
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #[
+          #{
+            id: 12,
+            first_name: "Олег",
+            last_name: "Петров",
+            nickname: "olegpetrov",
+            email: "olegp@example.com",
+            phone_number: "",
+            department: "Продукт",
+            title: "CIO",
+            role: UserRole.admin,
+            suspended: false,
+            invite_status: InviteStatus.confirmed,
+            list_tags: #["Product", "Design"],
+            custom_properties: #[#{
+              id: 1678,
+              name: "Город",
+              data_type: CustomPropertyDataType.string,
+              value: "Санкт-Петербург"
+            }],
+            user_status: null,
+            bot: false,
+            sso: false,
+            created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
+            last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
+            time_zone: "Europe/Moscow",
+            image_url: null
+          }
+        ],
+        meta: #{
+          total: 1,
+          paginate: #{
+            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+          }
+        }
+      }
+    }
+  })
+  searchUsers(
+    @doc("Текст поискового запроса")
+    @query query?: string,
+    @doc("Количество возвращаемых результатов за один запрос")
+    @query @maxValue(200)
+    limit?: int32 = 200,
+    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @query cursor?: string,
+    @doc("Сортировка результатов")
+    @query sort?: SearchSortOrder,
+    @doc("Направление сортировки")
+    @query order?: SortOrder,
+    @doc("Фильтр по дате создания (от)")
+    @query created_from?: utcDateTime,
+    @doc("Фильтр по дате создания (до)")
+    @query created_to?: utcDateTime,
+    @doc("Фильтр по ролям сотрудников")
+    @query company_roles?: UserRole[]
+  ): {
+    @statusCode _: 200;
+    @body body: SearchPaginatedDataResponse<User[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "search:chats",
+  })
+  @doc("""
+Поиск чатов
+
+Метод для полнотекстового поиска каналов и бесед.
+""")
+  @route("/chats")
+  @get
+  @opExample(#{
+    parameters: #{
+      query: "Разработка",
+      limit: 10
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #[
+          #{
+            id: 198,
+            name: "Канал разработки",
+            created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
+            owner_id: 12,
+            member_ids: #[12, 13, 14],
+            group_tag_ids: #[9111],
+            channel: true,
+            personal: false,
+            public: true,
+            last_message_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
+            meet_room_url: "https://meet.pachca.com/dev-94bb21b5"
+          }
+        ],
+        meta: #{
+          total: 1,
+          paginate: #{
+            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+          }
+        }
+      }
+    }
+  })
+  searchChats(
+    @doc("Текст поискового запроса")
+    @query query?: string,
+    @doc("Количество возвращаемых результатов за один запрос")
+    @query @maxValue(100)
+    limit?: int32 = 100,
+    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @query cursor?: string,
+    @doc("Направление сортировки")
+    @query order?: SortOrder,
+    @doc("Фильтр по дате создания (от)")
+    @query created_from?: utcDateTime,
+    @doc("Фильтр по дате создания (до)")
+    @query created_to?: utcDateTime,
+    @doc("Фильтр по активности чата")
+    @query active?: boolean,
+    @doc("Фильтр по типу чата")
+    @query chat_subtype?: ChatSubtype,
+    @doc("Фильтр по личным чатам")
+    @query personal?: boolean
+  ): {
+    @statusCode _: 200;
+    @body body: SearchPaginatedDataResponse<Chat[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "search:messages",
+  })
+  @doc("""
+Поиск сообщений
+
+Метод для полнотекстового поиска сообщений.
+""")
+  @route("/messages")
+  @get
+  @opExample(#{
+    parameters: #{
+      query: "футболки",
+      limit: 10
+    },
+    returnType: #{
+      _: 200,
+      body: #{
+        data: #[
+          #{
+            id: 194275,
+            entity_type: MessageEntityType.discussion,
+            entity_id: 334,
+            chat_id: 334,
+            root_chat_id: 334,
+            content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+            user_id: 185,
+            created_at: utcDateTime.fromISO("2021-08-28T15:57:23.000Z"),
+            url: "https://app.pachca.com/chats/334?message=194275",
+            files: #[],
+            buttons: #[],
+            thread: null,
+            forwarding: null,
+            parent_message_id: null,
+            display_avatar_url: null,
+            display_name: null,
+            changed_at: null,
+            deleted_at: null
+          }
+        ],
+        meta: #{
+          total: 1,
+          paginate: #{
+            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+          }
+        }
+      }
+    }
+  })
+  searchMessages(
+    @doc("Текст поискового запроса")
+    @query query?: string,
+    @doc("Количество возвращаемых результатов за один запрос")
+    @query @maxValue(200)
+    limit?: int32 = 200,
+    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @query cursor?: string,
+    @doc("Направление сортировки")
+    @query order?: SortOrder,
+    @doc("Фильтр по дате создания (от)")
+    @query created_from?: utcDateTime,
+    @doc("Фильтр по дате создания (до)")
+    @query created_to?: utcDateTime,
+    @doc("Фильтр по ID чатов")
+    @query chat_ids?: int32[],
+    @doc("Фильтр по ID авторов сообщений")
+    @query user_ids?: int32[],
+    @doc("Фильтр по активности чата")
+    @query active?: boolean
+  ): {
+    @statusCode _: 200;
+    @body body: SearchPaginatedDataResponse<Message[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  };
+}
+
+// ============================================================================
 // Task Operations
 // ============================================================================
 
@@ -5520,7 +5903,7 @@ interface TaskOperations {
           priority: 2,
           user_id: 12,
           chat_id: null,
-          status: "undone",
+          status: TaskStatus.undone,
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
           all_day: false,
@@ -5579,7 +5962,7 @@ interface TaskOperations {
           priority: 2,
           user_id: 12,
           chat_id: null,
-          status: "undone",
+          status: TaskStatus.undone,
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
           all_day: false,
@@ -5598,7 +5981,7 @@ interface TaskOperations {
           priority: 3,
           user_id: 12,
           chat_id: null,
-          status: "done",
+          status: TaskStatus.done,
           created_at: utcDateTime.fromISO("2020-06-04T11:20:00.000Z"),
           performer_ids: #[12, 13],
           all_day: false,
@@ -5662,7 +6045,7 @@ interface TaskOperations {
           priority: 2,
           user_id: 12,
           chat_id: null,
-          status: "undone",
+          status: TaskStatus.undone,
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
           all_day: false,
@@ -5709,7 +6092,7 @@ interface TaskOperations {
       id: 22283,
       request: #{
         task: #{
-          status: "done"
+          status: TaskStatus.done
         }
       }
     },
@@ -5724,7 +6107,7 @@ interface TaskOperations {
           priority: 2,
           user_id: 12,
           chat_id: null,
-          status: "done",
+          status: TaskStatus.done,
           created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
           performer_ids: #[12],
           all_day: false,
@@ -6070,11 +6453,6 @@ interface BotOperations {
     returnType: #{
       _: 200,
       body: #{
-        meta: #{
-          paginate: #{
-            next_page: "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
-          }
-        },
         data: #[
         #{
           id: "01KAJZ2XDSS2S3DSW9EXJZ0TBV",
@@ -6122,7 +6500,12 @@ interface BotOperations {
           },
           created_at: utcDateTime.fromISO("2025-11-20T11:19:34Z")
         }
-      ]
+      ],
+        meta: #{
+          paginate: #{
+            next_page: "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
+          }
+        }
       }
     }
   })
@@ -6210,11 +6593,6 @@ interface SecurityOperations {
     returnType: #{
       _: 200,
       body: #{
-        meta: #{
-          paginate: #{
-            next_page: "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
-          }
-        },
         data: #[
         #{
           id: "a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14",
@@ -6230,7 +6608,12 @@ interface SecurityOperations {
           ip_address: "192.168.1.100",
           user_agent: "Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"
         }
-      ]
+      ],
+        meta: #{
+          paginate: #{
+            next_page: "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
+          }
+        }
       }
     }
   })

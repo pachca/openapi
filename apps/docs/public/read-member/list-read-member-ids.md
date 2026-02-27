@@ -154,27 +154,27 @@ echo $response;
 
 **Схема ответа:**
 
+- `data` (array[integer], **обязательный**)
 - `meta` (object, опциональный): Метаданные пагинации
   - `paginate` (object, опциональный): Вспомогательная информация
     - `next_page` (string, опциональный): Курсор пагинации следующей страницы
-- `data` (array[integer], **обязательный**)
 
 **Пример ответа:**
 
 ```json
 {
-  "meta": {
-    "paginate": {
-      "next_page": "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
-    }
-  },
   "data": [
     12,
     13,
     14,
     15,
     16
-  ]
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
+    }
+  }
 }
 ```
 

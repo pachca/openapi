@@ -159,9 +159,6 @@ echo $response;
 
 **Схема ответа:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 - `data` (array[object], **обязательный**)
   - `id` (integer, int32, **обязательный**): Идентификатор сообщения
   - `entity_type` (string, **обязательный**): Тип сущности, к которой относится сообщение
@@ -171,6 +168,7 @@ echo $response;
       - `user`: Пользователь
   - `entity_id` (integer, int32, **обязательный**): Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя)
   - `chat_id` (integer, int32, **обязательный**): Идентификатор чата, в котором находится сообщение
+  - `root_chat_id` (integer, int32, **обязательный**): Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.
   - `content` (string, **обязательный**): Текст сообщения
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя, создавшего сообщение
   - `created_at` (string, date-time, **обязательный**): Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
@@ -204,6 +202,11 @@ echo $response;
   - `parent_message_id` (integer, int32, **обязательный**): Идентификатор сообщения, к которому написан ответ
   - `display_avatar_url` (string, **обязательный**): Ссылка на аватарку отправителя сообщения
   - `display_name` (string, **обязательный**): Полное имя отправителя сообщения
+  - `changed_at` (string, date-time, **обязательный**): Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `deleted_at` (string, date-time, **обязательный**): Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+- `meta` (object, опциональный): Метаданные пагинации
+  - `paginate` (object, опциональный): Вспомогательная информация
+    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 
 **Пример ответа:**
 
@@ -215,6 +218,7 @@ echo $response;
       "entity_type": "discussion",
       "entity_id": 198,
       "chat_id": 198,
+      "root_chat_id": 198,
       "content": "Это сообщение тоже попадёт в экспорт",
       "user_id": 12,
       "created_at": "2023-09-18T13:43:32.000Z",
@@ -231,13 +235,16 @@ echo $response;
       "forwarding": null,
       "parent_message_id": null,
       "display_avatar_url": null,
-      "display_name": null
+      "display_name": null,
+      "changed_at": null,
+      "deleted_at": null
     },
     {
       "id": 1194276,
       "entity_type": "discussion",
       "entity_id": 198,
       "chat_id": 198,
+      "root_chat_id": 198,
       "content": "**Andrew** добавил **Export bot** в беседу",
       "user_id": 12,
       "created_at": "2023-09-18T13:43:27.000Z",
@@ -248,13 +255,16 @@ echo $response;
       "forwarding": null,
       "parent_message_id": null,
       "display_avatar_url": null,
-      "display_name": null
+      "display_name": null,
+      "changed_at": null,
+      "deleted_at": null
     },
     {
       "id": 1194275,
       "entity_type": "discussion",
       "entity_id": 198,
       "chat_id": 198,
+      "root_chat_id": 198,
       "content": "**Andrew** создал беседу",
       "user_id": 12,
       "created_at": "2023-09-18T13:43:19.000Z",
@@ -265,7 +275,9 @@ echo $response;
       "forwarding": null,
       "parent_message_id": null,
       "display_avatar_url": null,
-      "display_name": null
+      "display_name": null,
+      "changed_at": null,
+      "deleted_at": null
     }
   ],
   "meta": {

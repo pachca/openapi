@@ -112,6 +112,11 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ### Link Previews
 - `POST /messages/{id}/link_previews` — Unfurl (разворачивание ссылок)
 
+### Search
+- `GET /search/chats` — Поиск чатов
+- `GET /search/messages` — Поиск сообщений
+- `GET /search/users` — Поиск сотрудников
+
 ### Tasks
 - `POST /tasks` — Новое напоминание
 - `GET /tasks` — Список напоминаний

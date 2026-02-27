@@ -167,9 +167,6 @@ echo $response;
 
 **Схема ответа:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 - `data` (array[object], **обязательный**)
   - `id` (integer, int32, **обязательный**): Идентификатор созданного чата
   - `name` (string, **обязательный**): Название
@@ -182,16 +179,14 @@ echo $response;
   - `public` (boolean, **обязательный**): Открытый доступ
   - `last_message_at` (string, date-time, **обязательный**): Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `meet_room_url` (string, **обязательный**): Ссылка на Видеочат
+- `meta` (object, опциональный): Метаданные пагинации
+  - `paginate` (object, опциональный): Вспомогательная информация
+    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 
 **Пример ответа:**
 
 ```json
 {
-  "meta": {
-    "paginate": {
-      "next_page": "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
-    }
-  },
   "data": [
     {
       "id": 334,
@@ -228,7 +223,12 @@ echo $response;
       "last_message_at": "2021-08-28T15:56:12.000Z",
       "meet_room_url": "https://meet.pachca.com/development-43sz53n8"
     }
-  ]
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
+    }
+  }
 }
 ```
 

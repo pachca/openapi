@@ -23,9 +23,16 @@ export async function generateMetadata({
     return { title: 'Страница не найдена' };
   }
 
-  const title = `${update.title} — ${data.frontmatter.title}`;
+  const title = update.title;
   const description = update.content
-    .replace(/[#*`\[\]]/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // [text](url) → text
+    .replace(/\n+[-*]\s+/g, ', ') // list items → comma-separated
+    .replace(/^[-*]\s+/gm, '') // leading list marker
+    .replace(/([:.]),/g, '$1') // fix ",  " after : or .
+    .replace(/[#*`]/g, '') // remaining markdown
+    .replace(/([^.!?:,])\n\n/g, '$1.\n\n') // period before paragraph breaks
+    .replace(/\n+/g, ' ') // newlines → spaces
+    .replace(/\s{2,}/g, ' ') // collapse spaces
     .slice(0, 200)
     .trim();
 

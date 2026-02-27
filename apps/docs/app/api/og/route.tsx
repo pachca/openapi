@@ -2,6 +2,7 @@ import { createOgImageResponse, OG_COLORS, METHOD_COLORS } from '@/lib/og/shared
 import { getEndpointByUrl } from '@/lib/openapi/parser';
 import { generateTitle } from '@/lib/openapi/mapper';
 import { getGuideData } from '@/lib/content-loader';
+import { loadUpdates } from '@/lib/updates-parser';
 import { type NextRequest } from 'next/server';
 
 // In-memory cache: URL → PNG buffer (max 50 entries)
@@ -41,6 +42,8 @@ export async function GET(request: NextRequest) {
 
   if (type === 'method') {
     response = await generateMethodImage(searchParams.get('path') || '');
+  } else if (type === 'updates') {
+    response = await generateUpdatesImage(searchParams.get('date'));
   } else if (type === 'guide') {
     response = await generateGuideImage(searchParams.get('slug') || '');
   } else {
@@ -111,6 +114,67 @@ async function generateMethodImage(path: string) {
         }}
       >
         {endpoint.title}
+      </span>
+    </div>
+  );
+}
+
+async function generateUpdatesImage(date: string | null) {
+  if (!date) {
+    return generateGuideImage('updates');
+  }
+
+  const updates = loadUpdates();
+  const latest = updates.find((u) => u.date === date);
+
+  if (!latest) {
+    return generateGuideImage('updates');
+  }
+
+  return createOgImageResponse(
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          alignSelf: 'flex-start',
+          backgroundColor: '#222629',
+          borderRadius: '16px',
+          padding: '24px 32px',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '22px',
+            fontWeight: 600,
+            color: OG_COLORS.primary,
+            textTransform: 'uppercase',
+            letterSpacing: '0.15em',
+          }}
+        >
+          {latest.displayDate}
+        </span>
+        <span
+          style={{
+            fontSize: '36px',
+            fontWeight: 500,
+            color: OG_COLORS.textPrimary,
+            lineHeight: 1.3,
+          }}
+        >
+          {latest.title}
+        </span>
+      </div>
+      <span
+        style={{
+          fontSize: '82px',
+          fontWeight: 600,
+          color: OG_COLORS.textPrimary,
+          lineHeight: 1.2,
+        }}
+      >
+        Последние обновления
       </span>
     </div>
   );

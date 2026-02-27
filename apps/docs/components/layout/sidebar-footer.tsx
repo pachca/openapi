@@ -147,7 +147,7 @@ function SettingsDropdown<T extends string>({
                 className={`flex items-start gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                   value === optValue
                     ? 'bg-primary text-white'
-                    : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
+                    : 'text-text-primary hover:bg-background-tertiary'
                 }`}
               >
                 <Icon className="w-4 h-4 mt-0.5 shrink-0" />

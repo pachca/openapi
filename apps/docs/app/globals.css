@@ -365,6 +365,14 @@ body {
   --shiki-background: transparent;
 }
 
+/* На тач-устройствах кнопки копирования ссылок всегда видны */
+@media (hover: none), (pointer: coarse) {
+  .copy-link-btn,
+  .heading-link-btn {
+    opacity: 1 !important;
+  }
+}
+
 /* Переключение тем Shiki */
 .code-block-container .shiki,
 .code-block-container .shiki span {

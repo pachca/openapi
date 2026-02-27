@@ -2,6 +2,7 @@ import { loadUpdates, isNewUpdate } from '@/lib/updates-parser';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { toSlug } from '@/lib/utils/transliterate';
 import { MarkdownContent } from './markdown-content';
+import { HeadingLink } from './heading-link';
 
 /**
  * Server component that renders updates from MDX file
@@ -32,7 +33,8 @@ export async function UpdatesList() {
               <span className="text-[11px] font-mono font-bold text-text-tertiary uppercase tracking-widest leading-none mb-2">
                 {update.displayDate}
               </span>
-              <h3 className="text-[32px] font-semibold! text-text-primary leading-tight m-0!">
+              <h3 className="group/heading relative text-[32px] font-semibold! text-text-primary leading-tight m-0!">
+                <HeadingLink id={sectionId} searchParam={update.date} />
                 {update.title}
               </h3>
             </div>

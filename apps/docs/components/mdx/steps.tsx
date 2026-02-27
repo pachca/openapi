@@ -1,5 +1,6 @@
 import React from 'react';
 import { toSlug } from '@/lib/utils/transliterate';
+import { HeadingLink } from '@/components/api/heading-link';
 
 interface StepProps {
   title: string;
@@ -7,12 +8,14 @@ interface StepProps {
 }
 
 export function Step({ title, children }: StepProps) {
+  const id = toSlug(title);
   return (
     <div className="step-item relative pl-10 pb-6 last:pb-0">
       <h3
-        id={toSlug(title)}
-        className="text-[17px] font-bold! text-text-primary h-7 flex items-center mb-2!"
+        id={id}
+        className="group/heading relative text-[17px] font-bold! text-text-primary h-7 flex items-center mb-2!"
       >
+        <HeadingLink id={id} />
         {title}
       </h3>
       <div className="text-[15px] text-text-primary leading-relaxed space-y-3">{children}</div>

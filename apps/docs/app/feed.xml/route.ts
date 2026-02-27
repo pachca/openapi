@@ -22,7 +22,7 @@ export async function GET(): Promise<Response> {
 
   const items = updates.map((update) => {
     const slug = toSlug(update.title);
-    const link = `${baseUrl}/guides/updates#${slug}`;
+    const link = `${baseUrl}/guides/updates?s=${update.date}#${slug}`;
 
     return `    <item>
       <title>${escapeXml(update.title)}</title>

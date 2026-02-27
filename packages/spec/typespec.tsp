@@ -5743,11 +5743,11 @@ interface SearchOperations {
     @query created_from?: utcDateTime,
     @doc("Фильтр по дате создания (до)")
     @query created_to?: utcDateTime,
-    @doc("Фильтр по активности чата (true — активные, false — архивированные)")
+    @doc("Фильтр по активности чата")
     @query active?: boolean,
     @doc("Фильтр по типу чата")
     @query chat_subtype?: ChatSubtype,
-    @doc("Фильтр по личным чатам (true — только личные)")
+    @doc("Фильтр по личным чатам")
     @query personal?: boolean
   ): {
     @statusCode _: 200;
@@ -5833,7 +5833,7 @@ interface SearchOperations {
     @query chat_ids?: int32[],
     @doc("Фильтр по ID авторов сообщений")
     @query user_ids?: int32[],
-    @doc("Фильтр по активности чата (true — активные чаты, false — архивированные)")
+    @doc("Фильтр по активности чата")
     @query active?: boolean
   ): {
     @statusCode _: 200;

@@ -3304,7 +3304,7 @@ paths:
         - name: active
           in: query
           required: false
-          description: Фильтр по активности чата (true — активные, false — архивированные)
+          description: Фильтр по активности чата
           schema:
             type: boolean
           explode: false
@@ -3318,7 +3318,7 @@ paths:
         - name: personal
           in: query
           required: false
-          description: Фильтр по личным чатам (true — только личные)
+          description: Фильтр по личным чатам
           schema:
             type: boolean
           explode: false
@@ -3467,7 +3467,7 @@ paths:
         - name: active
           in: query
           required: false
-          description: Фильтр по активности чата (true — активные чаты, false — архивированные)
+          description: Фильтр по активности чата
           schema:
             type: boolean
           explode: false

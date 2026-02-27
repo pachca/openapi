@@ -221,6 +221,11 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Скрываем main до установки позиции скролла при загрузке с якорем */
+.hash-loading #main-content {
+  visibility: hidden;
+}
+
 /* Disable transitions during theme switch */
 .disable-transitions *,
 .disable-transitions *::before,

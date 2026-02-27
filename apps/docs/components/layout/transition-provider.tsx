@@ -92,12 +92,8 @@ export function TransitionProvider() {
         const targetId = toSlug(decodeURIComponent(href.slice(1)));
         const element = document.getElementById(targetId);
 
-        if (element && mainContent) {
-          const targetPosition = element.offsetTop - 80;
-          mainContent.scrollTo({
-            top: targetPosition,
-            behavior: 'smooth',
-          });
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           window.history.pushState(null, '', `#${targetId}`);
         }
         return;
@@ -118,6 +114,19 @@ export function TransitionProvider() {
     if (firstRender.current) {
       firstRender.current = false;
       lastPathname.current = pathname;
+
+      // Обработка якоря при первой загрузке страницы
+      const hash = window.location.hash;
+      if (hash) {
+        const rawId = decodeURIComponent(hash.slice(1));
+        const element = document.getElementById(rawId) || document.getElementById(toSlug(rawId));
+        if (element) {
+          element.scrollIntoView({ block: 'start' });
+        }
+        document.documentElement.classList.remove('hash-loading');
+      } else {
+        document.documentElement.classList.remove('hash-loading');
+      }
       return;
     }
 

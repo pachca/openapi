@@ -1,5 +1,6 @@
 import { loadUpdates, isNewUpdate } from '@/lib/updates-parser';
 import { parseOpenAPI } from '@/lib/openapi/parser';
+import { toSlug } from '@/lib/utils/transliterate';
 import { MarkdownContent } from './markdown-content';
 
 /**
@@ -18,10 +19,10 @@ export async function UpdatesList() {
 
       {updates.map((update, index) => {
         const isNew = isNewUpdate(update.date);
-        const sectionId = update.title.toLowerCase().replace(/\s+/g, '-');
+        const sectionId = toSlug(update.title);
 
         return (
-          <section key={`${update.date}-${index}`} className="relative" id={sectionId}>
+          <section key={`${update.date}-${index}`} className="relative scroll-mt-20" id={sectionId}>
             <div
               className={`absolute -left-[45.5px] top-0 w-3 h-3 rounded-full border-2 border-background z-10 ${
                 isNew ? 'bg-primary' : 'bg-background-border'

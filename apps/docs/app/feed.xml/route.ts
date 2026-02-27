@@ -1,4 +1,5 @@
 import { loadUpdates } from '@/lib/updates-parser';
+import { toSlug } from '@/lib/utils/transliterate';
 
 const BASE_URL = 'https://dev.pachca.com';
 
@@ -20,10 +21,7 @@ export async function GET(): Promise<Response> {
     updates.length > 0 ? new Date(updates[0].date).toUTCString() : new Date().toUTCString();
 
   const items = updates.map((update) => {
-    const slug = update.title
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w-]/g, '');
+    const slug = toSlug(update.title);
     const link = `${baseUrl}/guides/updates#${slug}`;
 
     return `    <item>

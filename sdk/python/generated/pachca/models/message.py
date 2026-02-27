@@ -83,9 +83,9 @@ class Message:
 
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.file import File
         from ..models.button import Button
         from ..models.thread import Thread
-        from ..models.file import File
         from ..models.forwarding import Forwarding
         id = self.id
 

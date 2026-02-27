@@ -38,7 +38,7 @@ class Task:
             priority (int): Приоритет Example: 2.
             user_id (int): Идентификатор пользователя-создателя напоминания Example: 12.
             chat_id (int | None): Идентификатор чата, к которому привязано напоминание Example: 456.
-            status (TaskStatus): Статус напоминания Example: undone.
+            status (TaskStatus): Статус напоминания
             created_at (datetime.datetime): Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-
                 DDThh:mm:ss.sssZ Example: 2020-06-04T10:37:57.000Z.
             performer_ids (list[int]): Массив идентификаторов пользователей, привязанных к напоминанию как «ответственные»

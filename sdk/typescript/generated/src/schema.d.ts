@@ -755,6 +755,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/search/chats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Поиск чатов
+         *
+         *     Метод для полнотекстового поиска каналов и бесед.
+         */
+        get: operations["SearchOperations_searchChats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Поиск сообщений
+         *
+         *     Метод для полнотекстового поиска сообщений.
+         */
+        get: operations["SearchOperations_searchMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Поиск сотрудников
+         *
+         *     Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
+         */
+        get: operations["SearchOperations_searchUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks": {
         parameters: {
             query?: never;
@@ -1212,7 +1275,7 @@ export interface components {
          * @description Тип аудит-события
          * @enum {string}
          */
-        AuditEventKey: "user_login" | "user_logout" | "user_2fa_fail" | "user_2fa_success" | "user_created" | "user_deleted" | "user_role_changed" | "user_updated" | "tag_created" | "tag_deleted" | "user_added_to_tag" | "user_removed_from_tag" | "chat_created" | "chat_renamed" | "chat_permission_changed" | "user_chat_join" | "user_chat_leave" | "tag_added_to_chat" | "tag_removed_from_chat" | "message_updated" | "message_deleted" | "message_created" | "reaction_created" | "reaction_deleted" | "thread_created" | "access_token_created" | "access_token_updated" | "access_token_destroy" | "kms_encrypt" | "kms_decrypt" | "audit_events_accessed" | "dlp_violation_detected";
+        AuditEventKey: "user_login" | "user_logout" | "user_2fa_fail" | "user_2fa_success" | "user_created" | "user_deleted" | "user_role_changed" | "user_updated" | "tag_created" | "tag_deleted" | "user_added_to_tag" | "user_removed_from_tag" | "chat_created" | "chat_renamed" | "chat_permission_changed" | "user_chat_join" | "user_chat_leave" | "tag_added_to_chat" | "tag_removed_from_chat" | "message_updated" | "message_deleted" | "message_created" | "reaction_created" | "reaction_deleted" | "thread_created" | "access_token_created" | "access_token_updated" | "access_token_destroy" | "kms_encrypt" | "kms_decrypt" | "audit_events_accessed" | "dlp_violation_detected" | "search_users_api" | "search_chats_api" | "search_messages_api";
         /** @description Ответ с данными бота */
         BotResponse: {
             /**
@@ -1450,6 +1513,11 @@ export interface components {
              */
             webhook_timestamp: number;
         };
+        /**
+         * @description Тип чата
+         * @enum {string}
+         */
+        ChatSubtype: "discussion" | "thread";
         /** @description Запрос на обновление чата */
         ChatUpdateRequest: {
             /** @description Собранный объект параметров обновляемого чата */
@@ -1819,6 +1887,12 @@ export interface components {
              */
             chat_id: number;
             /**
+             * Format: int32
+             * @description Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.
+             * @example 334
+             */
+            root_chat_id: number;
+            /**
              * @description Текст сообщения
              * @example Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
              */
@@ -1857,6 +1931,18 @@ export interface components {
             display_avatar_url: string | null;
             /** @description Полное имя отправителя сообщения */
             display_name: string | null;
+            /**
+             * Format: date-time
+             * @description Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+             * @example 2021-08-28T16:10:00.000Z
+             */
+            changed_at: string | null;
+            /**
+             * Format: date-time
+             * @description Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+             * @example null
+             */
+            deleted_at: string | null;
         };
         /** @description Запрос на создание сообщения */
         MessageCreateRequest: {
@@ -1893,9 +1979,8 @@ export interface components {
                     /**
                      * @description Тип файла
                      * @example image
-                     * @enum {string}
                      */
-                    file_type: "file" | "image";
+                    file_type: components["schemas"]["FileType"];
                     /**
                      * Format: int32
                      * @description Размер файла в байтах, отображаемый пользователю
@@ -2095,7 +2180,7 @@ export interface components {
          * @description Скоуп доступа OAuth токена
          * @enum {string}
          */
-        OAuthScope: "chats:read" | "chats:create" | "chats:update" | "chats:archive" | "chats:leave" | "chat_members:read" | "chat_members:write" | "chat_exports:read" | "chat_exports:write" | "messages:read" | "messages:create" | "messages:update" | "messages:delete" | "reactions:read" | "reactions:write" | "pins:write" | "threads:read" | "threads:create" | "link_previews:write" | "users:read" | "users:create" | "users:update" | "users:delete" | "group_tags:read" | "group_tags:write" | "bots:write" | "profile:read" | "profile_status:read" | "profile_status:write" | "user_status:read" | "user_status:write" | "custom_properties:read" | "audit_events:read" | "tasks:read" | "tasks:create" | "tasks:update" | "tasks:delete" | "files:read" | "files:write" | "uploads:write" | "views:write" | "webhooks:read" | "webhooks:write" | "webhooks:events:read" | "webhooks:events:delete";
+        OAuthScope: "chats:read" | "chats:create" | "chats:update" | "chats:archive" | "chats:leave" | "chat_members:read" | "chat_members:write" | "chat_exports:read" | "chat_exports:write" | "messages:read" | "messages:create" | "messages:update" | "messages:delete" | "reactions:read" | "reactions:write" | "pins:write" | "threads:read" | "threads:create" | "link_previews:write" | "users:read" | "users:create" | "users:update" | "users:delete" | "group_tags:read" | "group_tags:write" | "bots:write" | "profile:read" | "profile_status:read" | "profile_status:write" | "user_status:read" | "user_status:write" | "custom_properties:read" | "audit_events:read" | "tasks:read" | "tasks:create" | "tasks:update" | "tasks:delete" | "files:read" | "files:write" | "uploads:write" | "views:write" | "webhooks:read" | "webhooks:write" | "webhooks:events:read" | "webhooks:events:delete" | "search:users" | "search:chats" | "search:messages";
         /** @description Запрос на открытие представления */
         OpenViewRequest: {
             /**
@@ -2231,6 +2316,28 @@ export interface components {
          * @enum {string}
          */
         SearchEntityType: "User" | "Task";
+        /** @description Мета-информация для пагинации поисковых результатов */
+        SearchPaginationMeta: {
+            /**
+             * Format: int32
+             * @description Общее количество найденных результатов
+             * @example 42
+             */
+            total: number;
+            /** @description Вспомогательная информация */
+            paginate: {
+                /**
+                 * @description Курсор пагинации следующей страницы
+                 * @example eyJxZCO2MiwiZGlyIjomSNYjIn3
+                 */
+                next_page: string;
+            };
+        };
+        /**
+         * @description Сортировка результатов поиска
+         * @enum {string}
+         */
+        SearchSortOrder: "by_score" | "alphabetical";
         /**
          * @description Порядок сортировки
          * @enum {string}
@@ -2250,6 +2357,8 @@ export interface components {
                 expires_at?: string;
                 /** @description Режим «Нет на месте» */
                 is_away?: boolean;
+                /** @description Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. */
+                away_message?: string;
             };
         };
         /**
@@ -2302,9 +2411,8 @@ export interface components {
             /**
              * @description Статус напоминания
              * @example undone
-             * @enum {string}
              */
-            status: "done" | "undone";
+            status: components["schemas"]["TaskStatus"];
             /**
              * Format: date-time
              * @description Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
@@ -2381,6 +2489,11 @@ export interface components {
          * @enum {string}
          */
         TaskKind: "call" | "meeting" | "reminder" | "event" | "email";
+        /**
+         * @description Статус напоминания
+         * @enum {string}
+         */
+        TaskStatus: "done" | "undone";
         /** @description Запрос на обновление напоминания */
         TaskUpdateRequest: {
             /** @description Собранный объект параметров обновляемого напоминания */
@@ -2409,9 +2522,8 @@ export interface components {
                 /**
                  * @description Статус
                  * @example done
-                 * @enum {string}
                  */
-                status?: "done" | "undone";
+                status?: components["schemas"]["TaskStatus"];
                 /** @description Напоминание на весь день (без указания времени) */
                 all_day?: boolean;
                 /**
@@ -2690,7 +2802,7 @@ export interface components {
          * @description Роль пользователя в системе
          * @enum {string}
          */
-        UserRole: "admin" | "user" | "multi_guest";
+        UserRole: "admin" | "user" | "multi_guest" | "guest";
         /** @description Статус пользователя */
         UserStatus: {
             /**
@@ -2714,6 +2826,14 @@ export interface components {
              * @example false
              */
             is_away: boolean;
+            /** @description Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате. */
+            away_message: {
+                /**
+                 * @description Текст сообщения
+                 * @example Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.
+                 */
+                text: string;
+            } | null;
         };
         /** @description Запрос на редактирование сотрудника */
         UserUpdateRequest: {
@@ -2757,9 +2877,8 @@ export interface components {
                 /**
                  * @description Уровень доступа
                  * @example user
-                 * @enum {string}
                  */
-                role?: "admin" | "user" | "multi_guest";
+                role?: components["schemas"]["UserRole"];
                 /**
                  * @description Деактивация пользователя
                  * @example false
@@ -3249,11 +3368,6 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
-                     *         }
-                     *       },
                      *       "data": [
                      *         {
                      *           "id": "a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14",
@@ -3269,12 +3383,17 @@ export interface operations {
                      *           "ip_address": "192.168.1.100",
                      *           "user_agent": "Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"
                      *         }
-                     *       ]
+                     *       ],
+                     *       "meta": {
+                     *         "paginate": {
+                     *           "next_page": "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
+                     *         }
+                     *       }
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["AuditEvent"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -3441,11 +3560,6 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
-                     *         }
-                     *       },
                      *       "data": [
                      *         {
                      *           "id": 334,
@@ -3482,12 +3596,17 @@ export interface operations {
                      *           "last_message_at": "2021-08-28T15:56:12.000Z",
                      *           "meet_room_url": "https://meet.pachca.com/development-43sz53n8"
                      *         }
-                     *       ]
+                     *       ],
+                     *       "meta": {
+                     *         "paginate": {
+                     *           "next_page": "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
+                     *         }
+                     *       }
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["Chat"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -4197,11 +4316,6 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
-                     *         }
-                     *       },
                      *       "data": [
                      *         {
                      *           "id": 12,
@@ -4235,12 +4349,17 @@ export interface operations {
                      *           "time_zone": "Europe/Moscow",
                      *           "image_url": null
                      *         }
-                     *       ]
+                     *       ],
+                     *       "meta": {
+                     *         "paginate": {
+                     *           "next_page": "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
+                     *         }
+                     *       }
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["User"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -4681,11 +4800,6 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
-                     *         }
-                     *       },
                      *       "data": [
                      *         {
                      *           "id": 9111,
@@ -4697,12 +4811,17 @@ export interface operations {
                      *           "name": "iOS",
                      *           "users_count": 4
                      *         }
-                     *       ]
+                     *       ],
+                     *       "meta": {
+                     *         "paginate": {
+                     *           "next_page": "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
+                     *         }
+                     *       }
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["GroupTag"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -5109,7 +5228,8 @@ export interface operations {
                      *             "emoji": "🎮",
                      *             "title": "Очень занят",
                      *             "expires_at": "2024-04-08T10:00:00.000Z",
-                     *             "is_away": false
+                     *             "is_away": false,
+                     *             "away_message": null
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -5146,7 +5266,8 @@ export interface operations {
                      *             "emoji": "🚀",
                      *             "title": "Лечу",
                      *             "expires_at": null,
-                     *             "is_away": false
+                     *             "is_away": false,
+                     *             "away_message": null
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -5164,8 +5285,8 @@ export interface operations {
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["User"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -5248,6 +5369,7 @@ export interface operations {
                      *           "entity_type": "discussion",
                      *           "entity_id": 198,
                      *           "chat_id": 198,
+                     *           "root_chat_id": 198,
                      *           "content": "Это сообщение тоже попадёт в экспорт",
                      *           "user_id": 12,
                      *           "created_at": "2023-09-18T13:43:32.000Z",
@@ -5264,13 +5386,16 @@ export interface operations {
                      *           "forwarding": null,
                      *           "parent_message_id": null,
                      *           "display_avatar_url": null,
-                     *           "display_name": null
+                     *           "display_name": null,
+                     *           "changed_at": null,
+                     *           "deleted_at": null
                      *         },
                      *         {
                      *           "id": 1194276,
                      *           "entity_type": "discussion",
                      *           "entity_id": 198,
                      *           "chat_id": 198,
+                     *           "root_chat_id": 198,
                      *           "content": "**Andrew** добавил **Export bot** в беседу",
                      *           "user_id": 12,
                      *           "created_at": "2023-09-18T13:43:27.000Z",
@@ -5281,13 +5406,16 @@ export interface operations {
                      *           "forwarding": null,
                      *           "parent_message_id": null,
                      *           "display_avatar_url": null,
-                     *           "display_name": null
+                     *           "display_name": null,
+                     *           "changed_at": null,
+                     *           "deleted_at": null
                      *         },
                      *         {
                      *           "id": 1194275,
                      *           "entity_type": "discussion",
                      *           "entity_id": 198,
                      *           "chat_id": 198,
+                     *           "root_chat_id": 198,
                      *           "content": "**Andrew** создал беседу",
                      *           "user_id": 12,
                      *           "created_at": "2023-09-18T13:43:19.000Z",
@@ -5298,7 +5426,9 @@ export interface operations {
                      *           "forwarding": null,
                      *           "parent_message_id": null,
                      *           "display_avatar_url": null,
-                     *           "display_name": null
+                     *           "display_name": null,
+                     *           "changed_at": null,
+                     *           "deleted_at": null
                      *         }
                      *       ],
                      *       "meta": {
@@ -5309,8 +5439,8 @@ export interface operations {
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["Message"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -5408,6 +5538,7 @@ export interface operations {
                      *         "entity_type": "discussion",
                      *         "entity_id": 334,
                      *         "chat_id": 334,
+                     *         "root_chat_id": 334,
                      *         "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
                      *         "user_id": 185,
                      *         "created_at": "2021-08-28T15:57:23.000Z",
@@ -5429,7 +5560,9 @@ export interface operations {
                      *         "forwarding": null,
                      *         "parent_message_id": null,
                      *         "display_avatar_url": null,
-                     *         "display_name": null
+                     *         "display_name": null,
+                     *         "changed_at": null,
+                     *         "deleted_at": null
                      *       }
                      *     }
                      */
@@ -5501,6 +5634,7 @@ export interface operations {
                      *         "entity_type": "discussion",
                      *         "entity_id": 198,
                      *         "chat_id": 198,
+                     *         "root_chat_id": 198,
                      *         "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
                      *         "user_id": 12,
                      *         "created_at": "2020-06-08T09:32:57.000Z",
@@ -5527,7 +5661,9 @@ export interface operations {
                      *         "forwarding": null,
                      *         "parent_message_id": 194274,
                      *         "display_avatar_url": null,
-                     *         "display_name": null
+                     *         "display_name": null,
+                     *         "changed_at": null,
+                     *         "deleted_at": null
                      *       }
                      *     }
                      */
@@ -5602,6 +5738,7 @@ export interface operations {
                      *         "entity_type": "discussion",
                      *         "entity_id": 17452,
                      *         "chat_id": 17452,
+                     *         "root_chat_id": 17452,
                      *         "content": "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
                      *         "user_id": 65,
                      *         "created_at": "2022-06-08T09:32:57.000Z",
@@ -5612,7 +5749,9 @@ export interface operations {
                      *         "forwarding": null,
                      *         "parent_message_id": null,
                      *         "display_avatar_url": null,
-                     *         "display_name": null
+                     *         "display_name": null,
+                     *         "changed_at": "2022-06-08T10:15:00.000Z",
+                     *         "deleted_at": null
                      *       }
                      *     }
                      */
@@ -5976,8 +6115,8 @@ export interface operations {
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["Reaction"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -6212,23 +6351,23 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
-                     *         }
-                     *       },
                      *       "data": [
                      *         12,
                      *         13,
                      *         14,
                      *         15,
                      *         16
-                     *       ]
+                     *       ],
+                     *       "meta": {
+                     *         "paginate": {
+                     *           "next_page": "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
+                     *         }
+                     *       }
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: number[];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -6488,7 +6627,8 @@ export interface operations {
                      *         "emoji": "🎮",
                      *         "title": "Очень занят",
                      *         "expires_at": "2024-04-08T10:00:00.000Z",
-                     *         "is_away": false
+                     *         "is_away": false,
+                     *         "away_message": null
                      *       }
                      *     }
                      */
@@ -6551,7 +6691,8 @@ export interface operations {
                      *         "emoji": "🎮",
                      *         "title": "Очень занят",
                      *         "expires_at": "2024-04-08T10:00:00.000Z",
-                     *         "is_away": false
+                     *         "is_away": false,
+                     *         "away_message": null
                      *       }
                      *     }
                      */
@@ -6623,6 +6764,345 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+        };
+    };
+    SearchOperations_searchChats: {
+        parameters: {
+            query?: {
+                /** @description Текст поискового запроса */
+                query?: string;
+                /** @description Количество возвращаемых результатов за один запрос */
+                limit?: number;
+                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                cursor?: string;
+                /** @description Направление сортировки */
+                order?: components["schemas"]["SortOrder"];
+                /** @description Фильтр по дате создания (от) */
+                created_from?: string;
+                /** @description Фильтр по дате создания (до) */
+                created_to?: string;
+                /** @description Фильтр по активности чата */
+                active?: boolean;
+                /** @description Фильтр по типу чата */
+                chat_subtype?: components["schemas"]["ChatSubtype"];
+                /** @description Фильтр по личным чатам */
+                personal?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "data": [
+                     *         {
+                     *           "id": 198,
+                     *           "name": "Канал разработки",
+                     *           "created_at": "2020-06-08T09:32:57.000Z",
+                     *           "owner_id": 12,
+                     *           "member_ids": [
+                     *             12,
+                     *             13,
+                     *             14
+                     *           ],
+                     *           "group_tag_ids": [
+                     *             9111
+                     *           ],
+                     *           "channel": true,
+                     *           "personal": false,
+                     *           "public": true,
+                     *           "last_message_at": "2025-01-20T13:40:07.000Z",
+                     *           "meet_room_url": "https://meet.pachca.com/dev-94bb21b5"
+                     *         }
+                     *       ],
+                     *       "meta": {
+                     *         "total": 1,
+                     *         "paginate": {
+                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        data: components["schemas"]["Chat"][];
+                        meta: components["schemas"]["SearchPaginationMeta"];
+                    };
+                };
+            };
+            /** @description The server could not understand the request due to invalid syntax. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Access is unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description Client error */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+        };
+    };
+    SearchOperations_searchMessages: {
+        parameters: {
+            query?: {
+                /** @description Текст поискового запроса */
+                query?: string;
+                /** @description Количество возвращаемых результатов за один запрос */
+                limit?: number;
+                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                cursor?: string;
+                /** @description Направление сортировки */
+                order?: components["schemas"]["SortOrder"];
+                /** @description Фильтр по дате создания (от) */
+                created_from?: string;
+                /** @description Фильтр по дате создания (до) */
+                created_to?: string;
+                /** @description Фильтр по ID чатов */
+                chat_ids?: number[];
+                /** @description Фильтр по ID авторов сообщений */
+                user_ids?: number[];
+                /** @description Фильтр по активности чата */
+                active?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "data": [
+                     *         {
+                     *           "id": 194275,
+                     *           "entity_type": "discussion",
+                     *           "entity_id": 334,
+                     *           "chat_id": 334,
+                     *           "root_chat_id": 334,
+                     *           "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+                     *           "user_id": 185,
+                     *           "created_at": "2021-08-28T15:57:23.000Z",
+                     *           "url": "https://app.pachca.com/chats/334?message=194275",
+                     *           "files": [],
+                     *           "buttons": [],
+                     *           "thread": null,
+                     *           "forwarding": null,
+                     *           "parent_message_id": null,
+                     *           "display_avatar_url": null,
+                     *           "display_name": null,
+                     *           "changed_at": null,
+                     *           "deleted_at": null
+                     *         }
+                     *       ],
+                     *       "meta": {
+                     *         "total": 1,
+                     *         "paginate": {
+                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        data: components["schemas"]["Message"][];
+                        meta: components["schemas"]["SearchPaginationMeta"];
+                    };
+                };
+            };
+            /** @description The server could not understand the request due to invalid syntax. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Access is unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description Client error */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+        };
+    };
+    SearchOperations_searchUsers: {
+        parameters: {
+            query?: {
+                /** @description Текст поискового запроса */
+                query?: string;
+                /** @description Количество возвращаемых результатов за один запрос */
+                limit?: number;
+                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                cursor?: string;
+                /** @description Сортировка результатов */
+                sort?: components["schemas"]["SearchSortOrder"];
+                /** @description Направление сортировки */
+                order?: components["schemas"]["SortOrder"];
+                /** @description Фильтр по дате создания (от) */
+                created_from?: string;
+                /** @description Фильтр по дате создания (до) */
+                created_to?: string;
+                /** @description Фильтр по ролям сотрудников */
+                company_roles?: components["schemas"]["UserRole"][];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request has succeeded. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "data": [
+                     *         {
+                     *           "id": 12,
+                     *           "first_name": "Олег",
+                     *           "last_name": "Петров",
+                     *           "nickname": "olegpetrov",
+                     *           "email": "olegp@example.com",
+                     *           "phone_number": "",
+                     *           "department": "Продукт",
+                     *           "title": "CIO",
+                     *           "role": "admin",
+                     *           "suspended": false,
+                     *           "invite_status": "confirmed",
+                     *           "list_tags": [
+                     *             "Product",
+                     *             "Design"
+                     *           ],
+                     *           "custom_properties": [
+                     *             {
+                     *               "id": 1678,
+                     *               "name": "Город",
+                     *               "data_type": "string",
+                     *               "value": "Санкт-Петербург"
+                     *             }
+                     *           ],
+                     *           "user_status": null,
+                     *           "bot": false,
+                     *           "sso": false,
+                     *           "created_at": "2020-06-08T09:32:57.000Z",
+                     *           "last_activity_at": "2025-01-20T13:40:07.000Z",
+                     *           "time_zone": "Europe/Moscow",
+                     *           "image_url": null
+                     *         }
+                     *       ],
+                     *       "meta": {
+                     *         "total": 1,
+                     *         "paginate": {
+                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+                     *         }
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        data: components["schemas"]["User"][];
+                        meta: components["schemas"]["SearchPaginationMeta"];
+                    };
+                };
+            };
+            /** @description The server could not understand the request due to invalid syntax. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Access is unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthError"];
+                };
+            };
+            /** @description Client error */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
             /** @description Access is forbidden. */
@@ -6708,8 +7188,8 @@ export interface operations {
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["Task"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -7231,11 +7711,6 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-                     *         }
-                     *       },
                      *       "data": [
                      *         {
                      *           "id": 12,
@@ -7297,7 +7772,8 @@ export interface operations {
                      *             "emoji": "🎮",
                      *             "title": "Очень занят",
                      *             "expires_at": "2024-04-08T10:00:00.000Z",
-                     *             "is_away": false
+                     *             "is_away": false,
+                     *             "away_message": null
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -7334,7 +7810,8 @@ export interface operations {
                      *             "emoji": "🚀",
                      *             "title": "Лечу",
                      *             "expires_at": null,
-                     *             "is_away": false
+                     *             "is_away": false,
+                     *             "away_message": null
                      *           },
                      *           "bot": false,
                      *           "sso": false,
@@ -7343,12 +7820,17 @@ export interface operations {
                      *           "time_zone": "Europe/Moscow",
                      *           "image_url": null
                      *         }
-                     *       ]
+                     *       ],
+                     *       "meta": {
+                     *         "paginate": {
+                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+                     *         }
+                     *       }
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["User"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };
@@ -7791,7 +8273,8 @@ export interface operations {
                      *         "emoji": "🎮",
                      *         "title": "Очень занят",
                      *         "expires_at": "2024-04-08T10:00:00.000Z",
-                     *         "is_away": false
+                     *         "is_away": false,
+                     *         "away_message": null
                      *       }
                      *     }
                      */
@@ -7847,7 +8330,8 @@ export interface operations {
                  *         "emoji": "🏖️",
                  *         "title": "В отпуске",
                  *         "expires_at": "2024-04-15T00:00:00.000Z",
-                 *         "is_away": true
+                 *         "is_away": true,
+                 *         "away_message": "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
                  *       }
                  *     }
                  */
@@ -7867,7 +8351,10 @@ export interface operations {
                      *         "emoji": "🏖️",
                      *         "title": "В отпуске",
                      *         "expires_at": "2024-04-15T00:00:00.000Z",
-                     *         "is_away": true
+                     *         "is_away": true,
+                     *         "away_message": {
+                     *           "text": "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
+                     *         }
                      *       }
                      *     }
                      */
@@ -8215,11 +8702,6 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
-                     *         }
-                     *       },
                      *       "data": [
                      *         {
                      *           "id": "01KAJZ2XDSS2S3DSW9EXJZ0TBV",
@@ -8271,12 +8753,17 @@ export interface operations {
                      *           },
                      *           "created_at": "2025-11-20T11:19:34Z"
                      *         }
-                     *       ]
+                     *       ],
+                     *       "meta": {
+                     *         "paginate": {
+                     *           "next_page": "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
+                     *         }
+                     *       }
                      *     }
                      */
                     "application/json": {
-                        meta?: components["schemas"]["PaginationMeta"];
                         data: components["schemas"]["WebhookEvent"][];
+                        meta?: components["schemas"]["PaginationMeta"];
                     };
                 };
             };

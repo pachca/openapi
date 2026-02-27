@@ -10,5 +10,7 @@
 
     * `multi_guest` (value: `"multi_guest"`)
 
+    * `guest` (value: `"guest"`)
+
 
 

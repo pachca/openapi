@@ -8,7 +8,7 @@ from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
 
-from ..models.user_update_request_user_role import UserUpdateRequestUserRole
+from ..models.user_role import UserRole
 from ..types import UNSET, Unset
 from typing import cast
 
@@ -35,7 +35,7 @@ class UserUpdateRequestUser:
             nickname (str | Unset): Имя пользователя Example: olegpetrov.
             department (str | Unset): Департамент Example: Отдел разработки.
             title (str | Unset): Должность Example: Старший разработчик.
-            role (UserUpdateRequestUserRole | Unset): Уровень доступа Example: user.
+            role (UserRole | Unset): Роль пользователя в системе
             suspended (bool | Unset): Деактивация пользователя
             list_tags (list[str] | Unset): Массив тегов, привязываемых к сотруднику Example: ['Product'].
             custom_properties (list[UserUpdateRequestUserCustomPropertiesItem] | Unset): Задаваемые дополнительные поля
@@ -48,7 +48,7 @@ class UserUpdateRequestUser:
     nickname: str | Unset = UNSET
     department: str | Unset = UNSET
     title: str | Unset = UNSET
-    role: UserUpdateRequestUserRole | Unset = UNSET
+    role: UserRole | Unset = UNSET
     suspended: bool | Unset = UNSET
     list_tags: list[str] | Unset = UNSET
     custom_properties: list[UserUpdateRequestUserCustomPropertiesItem] | Unset = UNSET
@@ -147,11 +147,11 @@ class UserUpdateRequestUser:
         title = d.pop("title", UNSET)
 
         _role = d.pop("role", UNSET)
-        role: UserUpdateRequestUserRole | Unset
+        role: UserRole | Unset
         if isinstance(_role,  Unset):
             role = UNSET
         else:
-            role = UserUpdateRequestUserRole(_role)
+            role = UserRole(_role)
 
 
 

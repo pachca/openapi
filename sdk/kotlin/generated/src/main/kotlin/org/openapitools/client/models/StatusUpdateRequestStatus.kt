@@ -26,6 +26,7 @@ import com.squareup.moshi.JsonClass
  * @param title Текст статуса
  * @param expiresAt Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
  * @param isAway Режим «Нет на месте»
+ * @param awayMessage Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях.
  */
 
 
@@ -45,7 +46,11 @@ data class StatusUpdateRequestStatus (
 
     /* Режим «Нет на месте» */
     @Json(name = "is_away")
-    val isAway: kotlin.Boolean? = null
+    val isAway: kotlin.Boolean? = null,
+
+    /* Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. */
+    @Json(name = "away_message")
+    val awayMessage: kotlin.String? = null
 
 ) {
 

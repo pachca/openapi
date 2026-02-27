@@ -8,7 +8,7 @@ from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
 
-from ..models.message_create_request_message_files_item_file_type import MessageCreateRequestMessageFilesItemFileType
+from ..models.file_type import FileType
 from ..types import UNSET, Unset
 
 
@@ -28,7 +28,7 @@ class MessageCreateRequestMessageFilesItem:
                 attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png.
             name (str): Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с
                 расширением) Example: logo.png.
-            file_type (MessageCreateRequestMessageFilesItemFileType): Тип файла Example: image.
+            file_type (FileType): Тип файла
             size (int): Размер файла в байтах, отображаемый пользователю Example: 12345.
             width (int | Unset): Ширина изображения в px (используется в случае, если file_type указан как image) Example:
                 800.
@@ -38,7 +38,7 @@ class MessageCreateRequestMessageFilesItem:
 
     key: str
     name: str
-    file_type: MessageCreateRequestMessageFilesItemFileType
+    file_type: FileType
     size: int
     width: int | Unset = UNSET
     height: int | Unset = UNSET
@@ -86,7 +86,7 @@ class MessageCreateRequestMessageFilesItem:
 
         name = d.pop("name")
 
-        file_type = MessageCreateRequestMessageFilesItemFileType(d.pop("file_type"))
+        file_type = FileType(d.pop("file_type"))
 
 
 

@@ -27,6 +27,7 @@ docs/ChatMemberWebhookPayload.md
 docs/ChatMessageOperationsListChatMessages200Response.md
 docs/ChatOperationsCreateChat201Response.md
 docs/ChatOperationsListChats200Response.md
+docs/ChatSubtype.md
 docs/ChatUpdateRequest.md
 docs/ChatUpdateRequestChat.md
 docs/ChatsApi.md
@@ -86,7 +87,14 @@ docs/ReactionWebhookPayload.md
 docs/ReactionsApi.md
 docs/ReadMemberApi.md
 docs/ReadMemberOperationsListReadMembers200Response.md
+docs/SearchApi.md
 docs/SearchEntityType.md
+docs/SearchOperationsSearchChats200Response.md
+docs/SearchOperationsSearchMessages200Response.md
+docs/SearchOperationsSearchUsers200Response.md
+docs/SearchPaginationMeta.md
+docs/SearchPaginationMetaPaginate.md
+docs/SearchSortOrder.md
 docs/SecurityApi.md
 docs/SecurityOperationsGetAuditEvents200Response.md
 docs/SortOrder.md
@@ -99,6 +107,7 @@ docs/TaskCreateRequestTaskCustomPropertiesInner.md
 docs/TaskKind.md
 docs/TaskOperationsCreateTask201Response.md
 docs/TaskOperationsListTasks200Response.md
+docs/TaskStatus.md
 docs/TaskUpdateRequest.md
 docs/TaskUpdateRequestTask.md
 docs/TasksApi.md
@@ -114,6 +123,7 @@ docs/UserCreateRequestUserCustomPropertiesInner.md
 docs/UserEventType.md
 docs/UserRole.md
 docs/UserStatus.md
+docs/UserStatusAwayMessage.md
 docs/UserUpdateRequest.md
 docs/UserUpdateRequestUser.md
 docs/UsersApi.md
@@ -154,6 +164,7 @@ src/main/kotlin/org/openapitools/client/apis/MessagesApi.kt
 src/main/kotlin/org/openapitools/client/apis/ProfileApi.kt
 src/main/kotlin/org/openapitools/client/apis/ReactionsApi.kt
 src/main/kotlin/org/openapitools/client/apis/ReadMemberApi.kt
+src/main/kotlin/org/openapitools/client/apis/SearchApi.kt
 src/main/kotlin/org/openapitools/client/apis/SecurityApi.kt
 src/main/kotlin/org/openapitools/client/apis/TasksApi.kt
 src/main/kotlin/org/openapitools/client/apis/ThreadApi.kt
@@ -195,6 +206,7 @@ src/main/kotlin/org/openapitools/client/models/ChatMemberWebhookPayload.kt
 src/main/kotlin/org/openapitools/client/models/ChatMessageOperationsListChatMessages200Response.kt
 src/main/kotlin/org/openapitools/client/models/ChatOperationsCreateChat201Response.kt
 src/main/kotlin/org/openapitools/client/models/ChatOperationsListChats200Response.kt
+src/main/kotlin/org/openapitools/client/models/ChatSubtype.kt
 src/main/kotlin/org/openapitools/client/models/ChatUpdateRequest.kt
 src/main/kotlin/org/openapitools/client/models/ChatUpdateRequestChat.kt
 src/main/kotlin/org/openapitools/client/models/CommonOperationsListProperties200Response.kt
@@ -245,6 +257,12 @@ src/main/kotlin/org/openapitools/client/models/ReactionRequest.kt
 src/main/kotlin/org/openapitools/client/models/ReactionWebhookPayload.kt
 src/main/kotlin/org/openapitools/client/models/ReadMemberOperationsListReadMembers200Response.kt
 src/main/kotlin/org/openapitools/client/models/SearchEntityType.kt
+src/main/kotlin/org/openapitools/client/models/SearchOperationsSearchChats200Response.kt
+src/main/kotlin/org/openapitools/client/models/SearchOperationsSearchMessages200Response.kt
+src/main/kotlin/org/openapitools/client/models/SearchOperationsSearchUsers200Response.kt
+src/main/kotlin/org/openapitools/client/models/SearchPaginationMeta.kt
+src/main/kotlin/org/openapitools/client/models/SearchPaginationMetaPaginate.kt
+src/main/kotlin/org/openapitools/client/models/SearchSortOrder.kt
 src/main/kotlin/org/openapitools/client/models/SecurityOperationsGetAuditEvents200Response.kt
 src/main/kotlin/org/openapitools/client/models/SortOrder.kt
 src/main/kotlin/org/openapitools/client/models/StatusUpdateRequest.kt
@@ -256,6 +274,7 @@ src/main/kotlin/org/openapitools/client/models/TaskCreateRequestTaskCustomProper
 src/main/kotlin/org/openapitools/client/models/TaskKind.kt
 src/main/kotlin/org/openapitools/client/models/TaskOperationsCreateTask201Response.kt
 src/main/kotlin/org/openapitools/client/models/TaskOperationsListTasks200Response.kt
+src/main/kotlin/org/openapitools/client/models/TaskStatus.kt
 src/main/kotlin/org/openapitools/client/models/TaskUpdateRequest.kt
 src/main/kotlin/org/openapitools/client/models/TaskUpdateRequestTask.kt
 src/main/kotlin/org/openapitools/client/models/Thread.kt
@@ -269,6 +288,7 @@ src/main/kotlin/org/openapitools/client/models/UserCreateRequestUserCustomProper
 src/main/kotlin/org/openapitools/client/models/UserEventType.kt
 src/main/kotlin/org/openapitools/client/models/UserRole.kt
 src/main/kotlin/org/openapitools/client/models/UserStatus.kt
+src/main/kotlin/org/openapitools/client/models/UserStatusAwayMessage.kt
 src/main/kotlin/org/openapitools/client/models/UserUpdateRequest.kt
 src/main/kotlin/org/openapitools/client/models/UserUpdateRequestUser.kt
 src/main/kotlin/org/openapitools/client/models/ValidationErrorCode.kt
@@ -293,3 +313,13 @@ src/main/kotlin/org/openapitools/client/models/WebhookLink.kt
 src/main/kotlin/org/openapitools/client/models/WebhookMessageThread.kt
 src/main/kotlin/org/openapitools/client/models/WebhookPayloadUnion.kt
 src/main/kotlin/org/openapitools/client/models/java.io.File.kt
+src/test/kotlin/org/openapitools/client/apis/SearchApiTest.kt
+src/test/kotlin/org/openapitools/client/models/ChatSubtypeTest.kt
+src/test/kotlin/org/openapitools/client/models/SearchOperationsSearchChats200ResponseTest.kt
+src/test/kotlin/org/openapitools/client/models/SearchOperationsSearchMessages200ResponseTest.kt
+src/test/kotlin/org/openapitools/client/models/SearchOperationsSearchUsers200ResponseTest.kt
+src/test/kotlin/org/openapitools/client/models/SearchPaginationMetaPaginateTest.kt
+src/test/kotlin/org/openapitools/client/models/SearchPaginationMetaTest.kt
+src/test/kotlin/org/openapitools/client/models/SearchSortOrderTest.kt
+src/test/kotlin/org/openapitools/client/models/TaskStatusTest.kt
+src/test/kotlin/org/openapitools/client/models/UserStatusAwayMessageTest.kt

@@ -15,6 +15,7 @@
 
 package org.openapitools.client.models
 
+import org.openapitools.client.models.UserStatusAwayMessage
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -26,6 +27,7 @@ import com.squareup.moshi.JsonClass
  * @param title Текст статуса
  * @param expiresAt Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
  * @param isAway Режим «Нет на месте»
+ * @param awayMessage 
  */
 
 
@@ -45,7 +47,10 @@ data class UserStatus (
 
     /* Режим «Нет на месте» */
     @Json(name = "is_away")
-    val isAway: kotlin.Boolean
+    val isAway: kotlin.Boolean,
+
+    @Json(name = "away_message")
+    val awayMessage: UserStatusAwayMessage?
 
 ) {
 

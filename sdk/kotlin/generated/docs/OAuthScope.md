@@ -94,5 +94,11 @@
 
     * `webhooksColonEventsColonDelete` (value: `"webhooks:events:delete"`)
 
+    * `searchColonUsers` (value: `"search:users"`)
+
+    * `searchColonChats` (value: `"search:chats"`)
+
+    * `searchColonMessages` (value: `"search:messages"`)
+
 
 

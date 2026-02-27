@@ -372,7 +372,7 @@ Configure BearerAuth:
 
 val apiInstance = UsersApi()
 val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
-val statusUpdateRequest : StatusUpdateRequest = {"status":{"emoji":"🏖️","title":"В отпуске","expires_at":"2024-04-15T00:00:00.000Z","is_away":true}} // StatusUpdateRequest | 
+val statusUpdateRequest : StatusUpdateRequest = {"status":{"emoji":"🏖️","title":"В отпуске","expires_at":"2024-04-15T00:00:00.000Z","is_away":true,"away_message":"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."}} // StatusUpdateRequest | 
 try {
     val result : ProfileOperationsUpdateStatus200Response = apiInstance.userStatusOperationsUpdateUserStatus(userId, statusUpdateRequest)
     println(result)

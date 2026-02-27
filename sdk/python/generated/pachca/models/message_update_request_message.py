@@ -51,8 +51,8 @@ class MessageUpdateRequestMessage:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.message_update_request_message_files_item import MessageUpdateRequestMessageFilesItem
         from ..models.button import Button
+        from ..models.message_update_request_message_files_item import MessageUpdateRequestMessageFilesItem
         content = self.content
 
         files: list[dict[str, Any]] | Unset = UNSET

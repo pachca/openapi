@@ -30,6 +30,7 @@ import com.squareup.moshi.JsonClass
  * @param entityType Тип сущности, к которой относится сообщение
  * @param entityId Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя)
  * @param chatId Идентификатор чата, в котором находится сообщение
+ * @param rootChatId Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.
  * @param content Текст сообщения
  * @param userId Идентификатор пользователя, создавшего сообщение
  * @param createdAt Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
@@ -41,6 +42,8 @@ import com.squareup.moshi.JsonClass
  * @param parentMessageId Идентификатор сообщения, к которому написан ответ
  * @param displayAvatarUrl Ссылка на аватарку отправителя сообщения
  * @param displayName Полное имя отправителя сообщения
+ * @param changedAt Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+ * @param deletedAt Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
  */
 
 
@@ -61,6 +64,10 @@ data class Message (
     /* Идентификатор чата, в котором находится сообщение */
     @Json(name = "chat_id")
     val chatId: kotlin.Int,
+
+    /* Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`. */
+    @Json(name = "root_chat_id")
+    val rootChatId: kotlin.Int,
 
     /* Текст сообщения */
     @Json(name = "content")
@@ -104,7 +111,15 @@ data class Message (
 
     /* Полное имя отправителя сообщения */
     @Json(name = "display_name")
-    val displayName: kotlin.String?
+    val displayName: kotlin.String?,
+
+    /* Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
+    @Json(name = "changed_at")
+    val changedAt: java.time.OffsetDateTime?,
+
+    /* Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
+    @Json(name = "deleted_at")
+    val deletedAt: java.time.OffsetDateTime?
 
 ) {
 

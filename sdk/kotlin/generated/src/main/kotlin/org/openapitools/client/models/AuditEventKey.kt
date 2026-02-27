@@ -22,7 +22,7 @@ import com.squareup.moshi.JsonClass
 /**
  * Тип аудит-события
  *
- * Values: user_login,user_logout,user_2fa_fail,user_2fa_success,user_created,user_deleted,user_role_changed,user_updated,tag_created,tag_deleted,user_added_to_tag,user_removed_from_tag,chat_created,chat_renamed,chat_permission_changed,user_chat_join,user_chat_leave,tag_added_to_chat,tag_removed_from_chat,message_updated,message_deleted,message_created,reaction_created,reaction_deleted,thread_created,access_token_created,access_token_updated,access_token_destroy,kms_encrypt,kms_decrypt,audit_events_accessed,dlp_violation_detected
+ * Values: user_login,user_logout,user_2fa_fail,user_2fa_success,user_created,user_deleted,user_role_changed,user_updated,tag_created,tag_deleted,user_added_to_tag,user_removed_from_tag,chat_created,chat_renamed,chat_permission_changed,user_chat_join,user_chat_leave,tag_added_to_chat,tag_removed_from_chat,message_updated,message_deleted,message_created,reaction_created,reaction_deleted,thread_created,access_token_created,access_token_updated,access_token_destroy,kms_encrypt,kms_decrypt,audit_events_accessed,dlp_violation_detected,search_users_api,search_chats_api,search_messages_api
  */
 
 @JsonClass(generateAdapter = false)
@@ -122,7 +122,16 @@ enum class AuditEventKey(val value: kotlin.String) {
     audit_events_accessed("audit_events_accessed"),
 
     @Json(name = "dlp_violation_detected")
-    dlp_violation_detected("dlp_violation_detected");
+    dlp_violation_detected("dlp_violation_detected"),
+
+    @Json(name = "search_users_api")
+    search_users_api("search_users_api"),
+
+    @Json(name = "search_chats_api")
+    search_chats_api("search_chats_api"),
+
+    @Json(name = "search_messages_api")
+    search_messages_api("search_messages_api");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use

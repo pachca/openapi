@@ -11,17 +11,10 @@
 | **nickname** | **kotlin.String** | Имя пользователя |  [optional] |
 | **department** | **kotlin.String** | Департамент |  [optional] |
 | **title** | **kotlin.String** | Должность |  [optional] |
-| **role** | [**inline**](#Role) | Уровень доступа |  [optional] |
+| **role** | [**UserRole**](UserRole.md) | Уровень доступа |  [optional] |
 | **suspended** | **kotlin.Boolean** | Деактивация пользователя |  [optional] |
 | **listTags** | **kotlin.collections.List&lt;kotlin.String&gt;** | Массив тегов, привязываемых к сотруднику |  [optional] |
 | **customProperties** | [**kotlin.collections.List&lt;UserCreateRequestUserCustomPropertiesInner&gt;**](UserCreateRequestUserCustomPropertiesInner.md) | Задаваемые дополнительные поля |  [optional] |
-
-
-<a id="Role"></a>
-## Enum: role
-| Name | Value |
-| ---- | ----- |
-| role | admin, user, multi_guest |
 
 
 

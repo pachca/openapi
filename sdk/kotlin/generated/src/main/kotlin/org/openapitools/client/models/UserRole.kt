@@ -22,7 +22,7 @@ import com.squareup.moshi.JsonClass
 /**
  * Роль пользователя в системе
  *
- * Values: admin,user,multi_guest
+ * Values: admin,user,multi_guest,guest
  */
 
 @JsonClass(generateAdapter = false)
@@ -35,7 +35,10 @@ enum class UserRole(val value: kotlin.String) {
     user("user"),
 
     @Json(name = "multi_guest")
-    multi_guest("multi_guest");
+    multi_guest("multi_guest"),
+
+    @Json(name = "guest")
+    guest("guest");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use

@@ -9,7 +9,7 @@ from attrs import field as _attrs_field
 from ..types import UNSET, Unset
 
 from ..models.task_kind import TaskKind
-from ..models.task_update_request_task_status import TaskUpdateRequestTaskStatus
+from ..models.task_status import TaskStatus
 from ..types import UNSET, Unset
 from dateutil.parser import isoparse
 from typing import cast
@@ -39,7 +39,7 @@ class TaskUpdateRequestTask:
             priority (int | Unset): Приоритет: 1, 2 (важно) или 3 (очень важно). Example: 2.
             performer_ids (list[int] | Unset): Массив идентификаторов пользователей, привязываемых к напоминанию как
                 «ответственные»
-            status (TaskUpdateRequestTaskStatus | Unset): Статус Example: done.
+            status (TaskStatus | Unset): Статус напоминания
             all_day (bool | Unset): Напоминание на весь день (без указания времени)
             done_at (datetime.datetime | Unset): Дата и время выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-
                 DDThh:mm:ss.sssZ Example: 2020-06-05T12:00:00.000Z.
@@ -51,7 +51,7 @@ class TaskUpdateRequestTask:
     due_at: datetime.datetime | Unset = UNSET
     priority: int | Unset = UNSET
     performer_ids: list[int] | Unset = UNSET
-    status: TaskUpdateRequestTaskStatus | Unset = UNSET
+    status: TaskStatus | Unset = UNSET
     all_day: bool | Unset = UNSET
     done_at: datetime.datetime | Unset = UNSET
     custom_properties: list[TaskUpdateRequestTaskCustomPropertiesItem] | Unset = UNSET
@@ -162,11 +162,11 @@ class TaskUpdateRequestTask:
 
 
         _status = d.pop("status", UNSET)
-        status: TaskUpdateRequestTaskStatus | Unset
+        status: TaskStatus | Unset
         if isinstance(_status,  Unset):
             status = UNSET
         else:
-            status = TaskUpdateRequestTaskStatus(_status)
+            status = TaskStatus(_status)
 
 
 

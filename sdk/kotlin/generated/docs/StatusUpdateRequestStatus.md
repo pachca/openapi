@@ -8,6 +8,7 @@
 | **title** | **kotlin.String** | Текст статуса |  |
 | **expiresAt** | [**java.time.OffsetDateTime**](java.time.OffsetDateTime.md) | Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ |  [optional] |
 | **isAway** | **kotlin.Boolean** | Режим «Нет на месте» |  [optional] |
+| **awayMessage** | **kotlin.String** | Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. |  [optional] |
 
 
 

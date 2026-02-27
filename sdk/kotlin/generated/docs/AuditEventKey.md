@@ -68,5 +68,11 @@
 
     * `dlp_violation_detected` (value: `"dlp_violation_detected"`)
 
+    * `search_users_api` (value: `"search_users_api"`)
+
+    * `search_chats_api` (value: `"search_chats_api"`)
+
+    * `search_messages_api` (value: `"search_messages_api"`)
+
 
 

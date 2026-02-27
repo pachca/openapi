@@ -14,6 +14,7 @@ tags:
   - name: Read member
   - name: Reactions
   - name: Link Previews
+  - name: Search
   - name: Tasks
   - name: Views
   - name: Bots
@@ -107,17 +108,14 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/AuditEvent"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
-                meta:
-                  paginate:
-                    next_page: eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9
                 data:
                   - id: a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14
                     created_at: 2025-05-15T14:30:00.000Z
@@ -131,6 +129,9 @@ paths:
                     ip_address: 192.168.1.100
                     user_agent: Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0)
                       Alamofire/5.0.0
+                meta:
+                  paginate:
+                    next_page: eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -420,17 +421,14 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/Chat"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
-                meta:
-                  paginate:
-                    next_page: eyJpZCI6MTMsImRpciI6ImRlc2MifQ
                 data:
                   - id: 334
                     name: 🤿 aqua
@@ -460,6 +458,9 @@ paths:
                     public: true
                     last_message_at: 2021-08-28T15:56:12.000Z
                     meet_room_url: https://meet.pachca.com/development-43sz53n8
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6MTMsImRpciI6ImRlc2MifQ
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -1067,17 +1068,14 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/User"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
-                meta:
-                  paginate:
-                    next_page: eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0
                 data:
                   - id: 12
                     first_name: Олег
@@ -1105,6 +1103,9 @@ paths:
                     last_activity_at: 2025-01-20T13:40:07.000Z
                     time_zone: Europe/Moscow
                     image_url: null
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -1634,17 +1635,14 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/GroupTag"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
-                meta:
-                  paginate:
-                    next_page: eyJpZCI6OTExMywiZGlyIjoiYXNjIn0
                 data:
                   - id: 9111
                     name: Design
@@ -1652,6 +1650,9 @@ paths:
                   - id: 9113
                     name: iOS
                     users_count: 4
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6OTExMywiZGlyIjoiYXNjIn0
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -1914,12 +1915,12 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/User"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
                 data:
@@ -1973,6 +1974,7 @@ paths:
                       title: Очень занят
                       expires_at: 2024-04-08T10:00:00.000Z
                       is_away: false
+                      away_message: null
                     bot: false
                     sso: false
                     created_at: 2020-06-08T09:31:17.000Z
@@ -2003,6 +2005,7 @@ paths:
                       title: Лечу
                       expires_at: null
                       is_away: false
+                      away_message: null
                     bot: false
                     sso: false
                     created_at: 2020-06-08T09:32:57.000Z
@@ -2089,6 +2092,7 @@ paths:
                   entity_type: discussion
                   entity_id: 334
                   chat_id: 334
+                  root_chat_id: 334
                   content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое
                     воскресенье)
                   user_id: 185
@@ -2105,6 +2109,8 @@ paths:
                   parent_message_id: null
                   display_avatar_url: null
                   display_name: null
+                  changed_at: null
+                  deleted_at: null
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -2212,12 +2218,12 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/Message"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
                 data:
@@ -2225,6 +2231,7 @@ paths:
                     entity_type: discussion
                     entity_id: 198
                     chat_id: 198
+                    root_chat_id: 198
                     content: Это сообщение тоже попадёт в экспорт
                     user_id: 12
                     created_at: 2023-09-18T13:43:32.000Z
@@ -2241,10 +2248,13 @@ paths:
                     parent_message_id: null
                     display_avatar_url: null
                     display_name: null
+                    changed_at: null
+                    deleted_at: null
                   - id: 1194276
                     entity_type: discussion
                     entity_id: 198
                     chat_id: 198
+                    root_chat_id: 198
                     content: "**Andrew** добавил **Export bot** в беседу"
                     user_id: 12
                     created_at: 2023-09-18T13:43:27.000Z
@@ -2256,10 +2266,13 @@ paths:
                     parent_message_id: null
                     display_avatar_url: null
                     display_name: null
+                    changed_at: null
+                    deleted_at: null
                   - id: 1194275
                     entity_type: discussion
                     entity_id: 198
                     chat_id: 198
+                    root_chat_id: 198
                     content: "**Andrew** создал беседу"
                     user_id: 12
                     created_at: 2023-09-18T13:43:19.000Z
@@ -2271,6 +2284,8 @@ paths:
                     parent_message_id: null
                     display_avatar_url: null
                     display_name: null
+                    changed_at: null
+                    deleted_at: null
                 meta:
                   paginate:
                     next_page: eyJpZCI6MTE5NDI3NSwiZGlyIjoiZGVzYyJ9
@@ -2347,6 +2362,7 @@ paths:
                   entity_type: discussion
                   entity_id: 198
                   chat_id: 198
+                  root_chat_id: 198
                   content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое
                     воскресенье)
                   user_id: 12
@@ -2371,6 +2387,8 @@ paths:
                   parent_message_id: 194274
                   display_avatar_url: null
                   display_name: null
+                  changed_at: null
+                  deleted_at: null
         "401":
           description: Access is unauthorized.
           content:
@@ -2432,6 +2450,7 @@ paths:
                   entity_type: discussion
                   entity_id: 17452
                   chat_id: 17452
+                  root_chat_id: 17452
                   content: "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи,
                     Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет."
                   user_id: 65
@@ -2444,6 +2463,8 @@ paths:
                   parent_message_id: null
                   display_avatar_url: null
                   display_name: null
+                  changed_at: 2022-06-08T10:15:00.000Z
+                  deleted_at: null
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -2944,12 +2965,12 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/Reaction"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
                 data:
@@ -3063,24 +3084,24 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       type: integer
                       format: int32
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
-                meta:
-                  paginate:
-                    next_page: eyJpZCI6MTYsImRpciI6ImFzYyJ9
                 data:
                   - 12
                   - 13
                   - 14
                   - 15
                   - 16
+                meta:
+                  paginate:
+                    next_page: eyJpZCI6MTYsImRpciI6ImFzYyJ9
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -3318,6 +3339,7 @@ paths:
                   title: Очень занят
                   expires_at: 2024-04-08T10:00:00.000Z
                   is_away: false
+                  away_message: null
         "401":
           description: Access is unauthorized.
           content:
@@ -3360,6 +3382,7 @@ paths:
                   title: Очень занят
                   expires_at: 2024-04-08T10:00:00.000Z
                   is_away: false
+                  away_message: null
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -3430,6 +3453,453 @@ paths:
         - Profile
       x-requirements:
         scope: profile_status:write
+  /search/chats:
+    get:
+      operationId: SearchOperations_searchChats
+      description: |-
+        Поиск чатов
+
+        Метод для полнотекстового поиска каналов и бесед.
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Текст поискового запроса
+          schema:
+            type: string
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Количество возвращаемых результатов за один запрос
+          schema:
+            type: integer
+            format: int32
+            maximum: 100
+            default: 100
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор для пагинации (из meta.paginate.next_page)
+          schema:
+            type: string
+          explode: false
+        - name: order
+          in: query
+          required: false
+          description: Направление сортировки
+          schema:
+            $ref: "#/components/schemas/SortOrder"
+          explode: false
+        - name: created_from
+          in: query
+          required: false
+          description: Фильтр по дате создания (от)
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: created_to
+          in: query
+          required: false
+          description: Фильтр по дате создания (до)
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: active
+          in: query
+          required: false
+          description: Фильтр по активности чата
+          schema:
+            type: boolean
+          explode: false
+        - name: chat_subtype
+          in: query
+          required: false
+          description: Фильтр по типу чата
+          schema:
+            $ref: "#/components/schemas/ChatSubtype"
+          explode: false
+        - name: personal
+          in: query
+          required: false
+          description: Фильтр по личным чатам
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Chat"
+                  meta:
+                    $ref: "#/components/schemas/SearchPaginationMeta"
+                description: Обертка ответа поисковых результатов с данными и пагинацией
+              example:
+                data:
+                  - id: 198
+                    name: Канал разработки
+                    created_at: 2020-06-08T09:32:57.000Z
+                    owner_id: 12
+                    member_ids:
+                      - 12
+                      - 13
+                      - 14
+                    group_tag_ids:
+                      - 9111
+                    channel: true
+                    personal: false
+                    public: true
+                    last_message_at: 2025-01-20T13:40:07.000Z
+                    meet_room_url: https://meet.pachca.com/dev-94bb21b5
+                meta:
+                  total: 1
+                  paginate:
+                    next_page: eyJxZCO2MiwiZGlyIjomSNYjIn3
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+        "402":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+      tags:
+        - Search
+      x-requirements:
+        scope: search:chats
+  /search/messages:
+    get:
+      operationId: SearchOperations_searchMessages
+      description: |-
+        Поиск сообщений
+
+        Метод для полнотекстового поиска сообщений.
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Текст поискового запроса
+          schema:
+            type: string
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Количество возвращаемых результатов за один запрос
+          schema:
+            type: integer
+            format: int32
+            maximum: 200
+            default: 200
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор для пагинации (из meta.paginate.next_page)
+          schema:
+            type: string
+          explode: false
+        - name: order
+          in: query
+          required: false
+          description: Направление сортировки
+          schema:
+            $ref: "#/components/schemas/SortOrder"
+          explode: false
+        - name: created_from
+          in: query
+          required: false
+          description: Фильтр по дате создания (от)
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: created_to
+          in: query
+          required: false
+          description: Фильтр по дате создания (до)
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: chat_ids
+          in: query
+          required: false
+          description: Фильтр по ID чатов
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+          explode: false
+        - name: user_ids
+          in: query
+          required: false
+          description: Фильтр по ID авторов сообщений
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+          explode: false
+        - name: active
+          in: query
+          required: false
+          description: Фильтр по активности чата
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Message"
+                  meta:
+                    $ref: "#/components/schemas/SearchPaginationMeta"
+                description: Обертка ответа поисковых результатов с данными и пагинацией
+              example:
+                data:
+                  - id: 194275
+                    entity_type: discussion
+                    entity_id: 334
+                    chat_id: 334
+                    root_chat_id: 334
+                    content: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое
+                      воскресенье)
+                    user_id: 185
+                    created_at: 2021-08-28T15:57:23.000Z
+                    url: https://app.pachca.com/chats/334?message=194275
+                    files: []
+                    buttons: []
+                    thread: null
+                    forwarding: null
+                    parent_message_id: null
+                    display_avatar_url: null
+                    display_name: null
+                    changed_at: null
+                    deleted_at: null
+                meta:
+                  total: 1
+                  paginate:
+                    next_page: eyJxZCO2MiwiZGlyIjomSNYjIn3
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+        "402":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+      tags:
+        - Search
+      x-requirements:
+        scope: search:messages
+  /search/users:
+    get:
+      operationId: SearchOperations_searchUsers
+      description: >-
+        Поиск сотрудников
+
+
+        Метод для полнотекстового поиска сотрудников по имени, email, должности
+        и другим полям.
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Текст поискового запроса
+          schema:
+            type: string
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Количество возвращаемых результатов за один запрос
+          schema:
+            type: integer
+            format: int32
+            maximum: 200
+            default: 200
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор для пагинации (из meta.paginate.next_page)
+          schema:
+            type: string
+          explode: false
+        - name: sort
+          in: query
+          required: false
+          description: Сортировка результатов
+          schema:
+            $ref: "#/components/schemas/SearchSortOrder"
+          explode: false
+        - name: order
+          in: query
+          required: false
+          description: Направление сортировки
+          schema:
+            $ref: "#/components/schemas/SortOrder"
+          explode: false
+        - name: created_from
+          in: query
+          required: false
+          description: Фильтр по дате создания (от)
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: created_to
+          in: query
+          required: false
+          description: Фильтр по дате создания (до)
+          schema:
+            type: string
+            format: date-time
+          explode: false
+        - name: company_roles
+          in: query
+          required: false
+          description: Фильтр по ролям сотрудников
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/UserRole"
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  meta:
+                    $ref: "#/components/schemas/SearchPaginationMeta"
+                description: Обертка ответа поисковых результатов с данными и пагинацией
+              example:
+                data:
+                  - id: 12
+                    first_name: Олег
+                    last_name: Петров
+                    nickname: olegpetrov
+                    email: olegp@example.com
+                    phone_number: ""
+                    department: Продукт
+                    title: CIO
+                    role: admin
+                    suspended: false
+                    invite_status: confirmed
+                    list_tags:
+                      - Product
+                      - Design
+                    custom_properties:
+                      - id: 1678
+                        name: Город
+                        data_type: string
+                        value: Санкт-Петербург
+                    user_status: null
+                    bot: false
+                    sso: false
+                    created_at: 2020-06-08T09:32:57.000Z
+                    last_activity_at: 2025-01-20T13:40:07.000Z
+                    time_zone: Europe/Moscow
+                    image_url: null
+                meta:
+                  total: 1
+                  paginate:
+                    next_page: eyJxZCO2MiwiZGlyIjomSNYjIn3
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+        "402":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthError"
+      tags:
+        - Search
+      x-requirements:
+        scope: search:users
   /tasks:
     post:
       operationId: TaskOperations_createTask
@@ -3576,12 +4046,12 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/Task"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
                 data:
@@ -4117,17 +4587,14 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/User"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
-                meta:
-                  paginate:
-                    next_page: eyJxZCO2MiwiZGlyIjomSNYjIn3
                 data:
                   - id: 12
                     first_name: Олег
@@ -4179,6 +4646,7 @@ paths:
                       title: Очень занят
                       expires_at: 2024-04-08T10:00:00.000Z
                       is_away: false
+                      away_message: null
                     bot: false
                     sso: false
                     created_at: 2020-06-08T09:31:17.000Z
@@ -4209,12 +4677,16 @@ paths:
                       title: Лечу
                       expires_at: null
                       is_away: false
+                      away_message: null
                     bot: false
                     sso: false
                     created_at: 2020-06-08T09:32:57.000Z
                     last_activity_at: 2025-01-20T13:51:25.000Z
                     time_zone: Europe/Moscow
                     image_url: null
+                meta:
+                  paginate:
+                    next_page: eyJxZCO2MiwiZGlyIjomSNYjIn3
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -4520,6 +4992,7 @@ paths:
                   title: Очень занят
                   expires_at: 2024-04-08T10:00:00.000Z
                   is_away: false
+                  away_message: null
         "401":
           description: Access is unauthorized.
           content:
@@ -4575,6 +5048,8 @@ paths:
                   title: В отпуске
                   expires_at: 2024-04-15T00:00:00.000Z
                   is_away: true
+                  away_message:
+                    text: Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -4619,6 +5094,8 @@ paths:
                 title: В отпуске
                 expires_at: 2024-04-15T00:00:00.000Z
                 is_away: true
+                away_message: Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к
+                  @ivanov.
       x-requirements:
         scope: user_status:write
     delete:
@@ -4871,17 +5348,14 @@ paths:
                 required:
                   - data
                 properties:
-                  meta:
-                    $ref: "#/components/schemas/PaginationMeta"
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/WebhookEvent"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
                 description: Обертка ответа с данными и пагинацией
               example:
-                meta:
-                  paginate:
-                    next_page: eyMxFCO2MiwiZGlyIjpiSNYjIn1
                 data:
                   - id: 01KAJZ2XDSS2S3DSW9EXJZ0TBV
                     event_type: company_member_update
@@ -4922,6 +5396,9 @@ paths:
                         - 14
                       created_at: 2025-11-20T11:19:34Z
                     created_at: 2025-11-20T11:19:34Z
+                meta:
+                  paginate:
+                    next_page: eyMxFCO2MiwiZGlyIjpiSNYjIn1
         "400":
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -5238,6 +5715,9 @@ components:
         - kms_decrypt
         - audit_events_accessed
         - dlp_violation_detected
+        - search_users_api
+        - search_chats_api
+        - search_messages_api
       description: Тип аудит-события
     BotResponse:
       type: object
@@ -5539,6 +6019,12 @@ components:
           description: Дата и время отправки вебхука (UTC+0) в формате UNIX
           example: 1747574400
       description: Структура исходящего вебхука об участниках чата
+    ChatSubtype:
+      type: string
+      enum:
+        - discussion
+        - thread
+      description: Тип чата
     ChatUpdateRequest:
       type: object
       required:
@@ -5992,6 +6478,7 @@ components:
         - entity_type
         - entity_id
         - chat_id
+        - root_chat_id
         - content
         - user_id
         - created_at
@@ -6003,6 +6490,8 @@ components:
         - parent_message_id
         - display_avatar_url
         - display_name
+        - changed_at
+        - deleted_at
       properties:
         id:
           type: integer
@@ -6023,6 +6512,13 @@ components:
           type: integer
           format: int32
           description: Идентификатор чата, в котором находится сообщение
+          example: 334
+        root_chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор корневого чата. Для сообщений в тредах —
+            идентификатор чата, в котором был создан тред. Для обычных сообщений
+            совпадает с `chat_id`.
           example: 334
         content:
           type: string
@@ -6081,6 +6577,20 @@ components:
           type: string
           nullable: true
           description: Полное имя отправителя сообщения
+        changed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата и время последнего редактирования сообщения (ISO-8601, UTC+0)
+            в формате YYYY-MM-DDThh:mm:ss.sssZ
+          example: 2021-08-28T16:10:00.000Z
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата и время удаления сообщения (ISO-8601, UTC+0) в формате
+            YYYY-MM-DDThh:mm:ss.sssZ
+          example: null
       description: Сообщение
     MessageCreateRequest:
       type: object
@@ -6121,10 +6631,8 @@ components:
                       (рекомендуется писать вместе с расширением)
                     example: logo.png
                   file_type:
-                    type: string
-                    enum:
-                      - file
-                      - image
+                    allOf:
+                      - $ref: "#/components/schemas/FileType"
                     description: Тип файла
                     example: image
                   size:
@@ -6418,6 +6926,9 @@ components:
         - webhooks:write
         - webhooks:events:read
         - webhooks:events:delete
+        - search:users
+        - search:chats
+        - search:messages
       description: Скоуп доступа OAuth токена
     OpenViewRequest:
       type: object
@@ -6594,6 +7105,34 @@ components:
         - User
         - Task
       description: Тип сущности для поиска
+    SearchPaginationMeta:
+      type: object
+      required:
+        - total
+        - paginate
+      properties:
+        total:
+          type: integer
+          format: int32
+          description: Общее количество найденных результатов
+          example: 42
+        paginate:
+          type: object
+          properties:
+            next_page:
+              type: string
+              description: Курсор пагинации следующей страницы
+              example: eyJxZCO2MiwiZGlyIjomSNYjIn3
+          required:
+            - next_page
+          description: Вспомогательная информация
+      description: Мета-информация для пагинации поисковых результатов
+    SearchSortOrder:
+      type: string
+      enum:
+        - by_score
+        - alphabetical
+      description: Сортировка результатов поиска
     SortOrder:
       type: string
       enum:
@@ -6622,6 +7161,11 @@ components:
             is_away:
               type: boolean
               description: Режим «Нет на месте»
+            away_message:
+              type: string
+              maxLength: 1024
+              description: Текст сообщения при режиме «Нет на месте». Отображается в профиле и
+                при личных сообщениях/упоминаниях.
           required:
             - emoji
             - title
@@ -6687,10 +7231,8 @@ components:
           description: Идентификатор чата, к которому привязано напоминание
           example: 456
         status:
-          type: string
-          enum:
-            - done
-            - undone
+          allOf:
+            - $ref: "#/components/schemas/TaskStatus"
           description: Статус напоминания
           example: undone
         created_at:
@@ -6793,6 +7335,12 @@ components:
         - event
         - email
       description: Тип задачи
+    TaskStatus:
+      type: string
+      enum:
+        - done
+        - undone
+      description: Статус напоминания
     TaskUpdateRequest:
       type: object
       required:
@@ -6829,10 +7377,8 @@ components:
               description: Массив идентификаторов пользователей, привязываемых к напоминанию
                 как «ответственные»
             status:
-              type: string
-              enum:
-                - done
-                - undone
+              allOf:
+                - $ref: "#/components/schemas/TaskStatus"
               description: Статус
               example: done
             all_day:
@@ -7172,6 +7718,7 @@ components:
         - admin
         - user
         - multi_guest
+        - guest
       description: Роль пользователя в системе
     UserStatus:
       type: object
@@ -7180,6 +7727,7 @@ components:
         - title
         - expires_at
         - is_away
+        - away_message
       properties:
         emoji:
           type: string
@@ -7200,6 +7748,19 @@ components:
           type: boolean
           description: Режим «Нет на месте»
           example: false
+        away_message:
+          type: object
+          properties:
+            text:
+              type: string
+              description: Текст сообщения
+              example: Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.
+          required:
+            - text
+          nullable: true
+          description: Сообщение при режиме «Нет на месте». Отображается в профиле
+            пользователя, а также при отправке ему личного сообщения или
+            упоминании в чате.
       description: Статус пользователя
     UserUpdateRequest:
       type: object
@@ -7238,11 +7799,8 @@ components:
               description: Должность
               example: Старший разработчик
             role:
-              type: string
-              enum:
-                - admin
-                - user
-                - multi_guest
+              allOf:
+                - $ref: "#/components/schemas/UserRole"
               description: Уровень доступа
               example: user
             suspended:

@@ -17,6 +17,7 @@ package org.openapitools.client.models
 
 import org.openapitools.client.models.TaskCreateRequestTaskCustomPropertiesInner
 import org.openapitools.client.models.TaskKind
+import org.openapitools.client.models.TaskStatus
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -60,7 +61,7 @@ data class TaskUpdateRequestTask (
 
     /* Статус */
     @Json(name = "status")
-    val status: TaskUpdateRequestTask.Status? = null,
+    val status: TaskStatus? = null,
 
     /* Напоминание на весь день (без указания времени) */
     @Json(name = "all_day")
@@ -76,16 +77,6 @@ data class TaskUpdateRequestTask (
 
 ) {
 
-    /**
-     * Статус
-     *
-     * Values: done,undone
-     */
-    @JsonClass(generateAdapter = false)
-    enum class Status(val value: kotlin.String) {
-        @Json(name = "done") done("done"),
-        @Json(name = "undone") undone("undone");
-    }
 
 }
 

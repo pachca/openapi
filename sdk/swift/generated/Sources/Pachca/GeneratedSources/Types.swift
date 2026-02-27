@@ -400,6 +400,27 @@ internal protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /profile/status`.
     /// - Remark: Generated from `#/paths//profile/status/delete(ProfileOperations_deleteStatus)`.
     func ProfileOperations_deleteStatus(_ input: Operations.ProfileOperations_deleteStatus.Input) async throws -> Operations.ProfileOperations_deleteStatus.Output
+    /// Поиск чатов
+    ///
+    /// Метод для полнотекстового поиска каналов и бесед.
+    ///
+    /// - Remark: HTTP `GET /search/chats`.
+    /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)`.
+    func SearchOperations_searchChats(_ input: Operations.SearchOperations_searchChats.Input) async throws -> Operations.SearchOperations_searchChats.Output
+    /// Поиск сообщений
+    ///
+    /// Метод для полнотекстового поиска сообщений.
+    ///
+    /// - Remark: HTTP `GET /search/messages`.
+    /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)`.
+    func SearchOperations_searchMessages(_ input: Operations.SearchOperations_searchMessages.Input) async throws -> Operations.SearchOperations_searchMessages.Output
+    /// Поиск сотрудников
+    ///
+    /// Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
+    ///
+    /// - Remark: HTTP `GET /search/users`.
+    /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)`.
+    func SearchOperations_searchUsers(_ input: Operations.SearchOperations_searchUsers.Input) async throws -> Operations.SearchOperations_searchUsers.Output
     /// Список напоминаний
     ///
     /// Метод для получения списка напоминаний.
@@ -1297,6 +1318,51 @@ extension APIProtocol {
     internal func ProfileOperations_deleteStatus(headers: Operations.ProfileOperations_deleteStatus.Input.Headers = .init()) async throws -> Operations.ProfileOperations_deleteStatus.Output {
         try await ProfileOperations_deleteStatus(Operations.ProfileOperations_deleteStatus.Input(headers: headers))
     }
+    /// Поиск чатов
+    ///
+    /// Метод для полнотекстового поиска каналов и бесед.
+    ///
+    /// - Remark: HTTP `GET /search/chats`.
+    /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)`.
+    internal func SearchOperations_searchChats(
+        query: Operations.SearchOperations_searchChats.Input.Query = .init(),
+        headers: Operations.SearchOperations_searchChats.Input.Headers = .init()
+    ) async throws -> Operations.SearchOperations_searchChats.Output {
+        try await SearchOperations_searchChats(Operations.SearchOperations_searchChats.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Поиск сообщений
+    ///
+    /// Метод для полнотекстового поиска сообщений.
+    ///
+    /// - Remark: HTTP `GET /search/messages`.
+    /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)`.
+    internal func SearchOperations_searchMessages(
+        query: Operations.SearchOperations_searchMessages.Input.Query = .init(),
+        headers: Operations.SearchOperations_searchMessages.Input.Headers = .init()
+    ) async throws -> Operations.SearchOperations_searchMessages.Output {
+        try await SearchOperations_searchMessages(Operations.SearchOperations_searchMessages.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Поиск сотрудников
+    ///
+    /// Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
+    ///
+    /// - Remark: HTTP `GET /search/users`.
+    /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)`.
+    internal func SearchOperations_searchUsers(
+        query: Operations.SearchOperations_searchUsers.Input.Query = .init(),
+        headers: Operations.SearchOperations_searchUsers.Input.Headers = .init()
+    ) async throws -> Operations.SearchOperations_searchUsers.Output {
+        try await SearchOperations_searchUsers(Operations.SearchOperations_searchUsers.Input(
+            query: query,
+            headers: headers
+        ))
+    }
     /// Список напоминаний
     ///
     /// Метод для получения списка напоминаний.
@@ -2025,6 +2091,9 @@ internal enum Components {
             case kms_decrypt = "kms_decrypt"
             case audit_events_accessed = "audit_events_accessed"
             case dlp_violation_detected = "dlp_violation_detected"
+            case search_users_api = "search_users_api"
+            case search_chats_api = "search_chats_api"
+            case search_messages_api = "search_messages_api"
         }
         /// Ответ с данными бота
         ///
@@ -2549,6 +2618,13 @@ internal enum Components {
                 case created_at
                 case webhook_timestamp
             }
+        }
+        /// Тип чата
+        ///
+        /// - Remark: Generated from `#/components/schemas/ChatSubtype`.
+        internal enum ChatSubtype: String, Codable, Hashable, Sendable, CaseIterable {
+            case discussion = "discussion"
+            case thread = "thread"
         }
         /// Запрос на обновление чата
         ///
@@ -3469,6 +3545,10 @@ internal enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/Message/chat_id`.
             internal var chat_id: Swift.Int32
+            /// Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.
+            ///
+            /// - Remark: Generated from `#/components/schemas/Message/root_chat_id`.
+            internal var root_chat_id: Swift.Int32
             /// Текст сообщения
             ///
             /// - Remark: Generated from `#/components/schemas/Message/content`.
@@ -3553,6 +3633,14 @@ internal enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/Message/display_name`.
             internal var display_name: Swift.String?
+            /// Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+            ///
+            /// - Remark: Generated from `#/components/schemas/Message/changed_at`.
+            internal var changed_at: Foundation.Date?
+            /// Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+            ///
+            /// - Remark: Generated from `#/components/schemas/Message/deleted_at`.
+            internal var deleted_at: Foundation.Date?
             /// Creates a new `Message`.
             ///
             /// - Parameters:
@@ -3560,6 +3648,7 @@ internal enum Components {
             ///   - entity_type: Тип сущности, к которой относится сообщение
             ///   - entity_id: Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя)
             ///   - chat_id: Идентификатор чата, в котором находится сообщение
+            ///   - root_chat_id: Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.
             ///   - content: Текст сообщения
             ///   - user_id: Идентификатор пользователя, создавшего сообщение
             ///   - created_at: Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
@@ -3571,11 +3660,14 @@ internal enum Components {
             ///   - parent_message_id: Идентификатор сообщения, к которому написан ответ
             ///   - display_avatar_url: Ссылка на аватарку отправителя сообщения
             ///   - display_name: Полное имя отправителя сообщения
+            ///   - changed_at: Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+            ///   - deleted_at: Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
             internal init(
                 id: Swift.Int32,
                 entity_type: Components.Schemas.Message.entity_typePayload,
                 entity_id: Swift.Int32,
                 chat_id: Swift.Int32,
+                root_chat_id: Swift.Int32,
                 content: Swift.String,
                 user_id: Swift.Int32,
                 created_at: Foundation.Date,
@@ -3586,12 +3678,15 @@ internal enum Components {
                 forwarding: Components.Schemas.Message.forwardingPayload? = nil,
                 parent_message_id: Swift.Int32? = nil,
                 display_avatar_url: Swift.String? = nil,
-                display_name: Swift.String? = nil
+                display_name: Swift.String? = nil,
+                changed_at: Foundation.Date? = nil,
+                deleted_at: Foundation.Date? = nil
             ) {
                 self.id = id
                 self.entity_type = entity_type
                 self.entity_id = entity_id
                 self.chat_id = chat_id
+                self.root_chat_id = root_chat_id
                 self.content = content
                 self.user_id = user_id
                 self.created_at = created_at
@@ -3603,12 +3698,15 @@ internal enum Components {
                 self.parent_message_id = parent_message_id
                 self.display_avatar_url = display_avatar_url
                 self.display_name = display_name
+                self.changed_at = changed_at
+                self.deleted_at = deleted_at
             }
             internal enum CodingKeys: String, CodingKey {
                 case id
                 case entity_type
                 case entity_id
                 case chat_id
+                case root_chat_id
                 case content
                 case user_id
                 case created_at
@@ -3620,6 +3718,8 @@ internal enum Components {
                 case parent_message_id
                 case display_avatar_url
                 case display_name
+                case changed_at
+                case deleted_at
             }
         }
         /// Запрос на создание сообщения
@@ -3675,9 +3775,22 @@ internal enum Components {
                     /// Тип файла
                     ///
                     /// - Remark: Generated from `#/components/schemas/MessageCreateRequest/message/filesPayload/file_type`.
-                    internal enum file_typePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                        case file = "file"
-                        case image = "image"
+                    internal struct file_typePayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/components/schemas/MessageCreateRequest/message/filesPayload/file_type/value1`.
+                        internal var value1: Components.Schemas.FileType
+                        /// Creates a new `file_typePayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - value1:
+                        internal init(value1: Components.Schemas.FileType) {
+                            self.value1 = value1
+                        }
+                        internal init(from decoder: any Decoder) throws {
+                            self.value1 = try decoder.decodeFromSingleValueContainer()
+                        }
+                        internal func encode(to encoder: any Encoder) throws {
+                            try encoder.encodeToSingleValueContainer(self.value1)
+                        }
                     }
                     /// Тип файла
                     ///
@@ -4228,6 +4341,9 @@ internal enum Components {
             case webhooks_colon_write = "webhooks:write"
             case webhooks_colon_events_colon_read = "webhooks:events:read"
             case webhooks_colon_events_colon_delete = "webhooks:events:delete"
+            case search_colon_users = "search:users"
+            case search_colon_chats = "search:chats"
+            case search_colon_messages = "search:messages"
         }
         /// Запрос на открытие представления
         ///
@@ -4562,6 +4678,61 @@ internal enum Components {
             case User = "User"
             case Task = "Task"
         }
+        /// Мета-информация для пагинации поисковых результатов
+        ///
+        /// - Remark: Generated from `#/components/schemas/SearchPaginationMeta`.
+        internal struct SearchPaginationMeta: Codable, Hashable, Sendable {
+            /// Общее количество найденных результатов
+            ///
+            /// - Remark: Generated from `#/components/schemas/SearchPaginationMeta/total`.
+            internal var total: Swift.Int32
+            /// Вспомогательная информация
+            ///
+            /// - Remark: Generated from `#/components/schemas/SearchPaginationMeta/paginate`.
+            internal struct paginatePayload: Codable, Hashable, Sendable {
+                /// Курсор пагинации следующей страницы
+                ///
+                /// - Remark: Generated from `#/components/schemas/SearchPaginationMeta/paginate/next_page`.
+                internal var next_page: Swift.String
+                /// Creates a new `paginatePayload`.
+                ///
+                /// - Parameters:
+                ///   - next_page: Курсор пагинации следующей страницы
+                internal init(next_page: Swift.String) {
+                    self.next_page = next_page
+                }
+                internal enum CodingKeys: String, CodingKey {
+                    case next_page
+                }
+            }
+            /// Вспомогательная информация
+            ///
+            /// - Remark: Generated from `#/components/schemas/SearchPaginationMeta/paginate`.
+            internal var paginate: Components.Schemas.SearchPaginationMeta.paginatePayload
+            /// Creates a new `SearchPaginationMeta`.
+            ///
+            /// - Parameters:
+            ///   - total: Общее количество найденных результатов
+            ///   - paginate: Вспомогательная информация
+            internal init(
+                total: Swift.Int32,
+                paginate: Components.Schemas.SearchPaginationMeta.paginatePayload
+            ) {
+                self.total = total
+                self.paginate = paginate
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case total
+                case paginate
+            }
+        }
+        /// Сортировка результатов поиска
+        ///
+        /// - Remark: Generated from `#/components/schemas/SearchSortOrder`.
+        internal enum SearchSortOrder: String, Codable, Hashable, Sendable, CaseIterable {
+            case by_score = "by_score"
+            case alphabetical = "alphabetical"
+        }
         /// Порядок сортировки
         ///
         /// - Remark: Generated from `#/components/schemas/SortOrder`.
@@ -4591,6 +4762,10 @@ internal enum Components {
                 ///
                 /// - Remark: Generated from `#/components/schemas/StatusUpdateRequest/status/is_away`.
                 internal var is_away: Swift.Bool?
+                /// Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях.
+                ///
+                /// - Remark: Generated from `#/components/schemas/StatusUpdateRequest/status/away_message`.
+                internal var away_message: Swift.String?
                 /// Creates a new `statusPayload`.
                 ///
                 /// - Parameters:
@@ -4598,22 +4773,26 @@ internal enum Components {
                 ///   - title: Текст статуса
                 ///   - expires_at: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
                 ///   - is_away: Режим «Нет на месте»
+                ///   - away_message: Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях.
                 internal init(
                     emoji: Swift.String,
                     title: Swift.String,
                     expires_at: Foundation.Date? = nil,
-                    is_away: Swift.Bool? = nil
+                    is_away: Swift.Bool? = nil,
+                    away_message: Swift.String? = nil
                 ) {
                     self.emoji = emoji
                     self.title = title
                     self.expires_at = expires_at
                     self.is_away = is_away
+                    self.away_message = away_message
                 }
                 internal enum CodingKeys: String, CodingKey {
                     case emoji
                     case title
                     case expires_at
                     case is_away
+                    case away_message
                 }
             }
             /// - Remark: Generated from `#/components/schemas/StatusUpdateRequest/status`.
@@ -4688,9 +4867,22 @@ internal enum Components {
             /// Статус напоминания
             ///
             /// - Remark: Generated from `#/components/schemas/Task/status`.
-            internal enum statusPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                case done = "done"
-                case undone = "undone"
+            internal struct statusPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/Task/status/value1`.
+                internal var value1: Components.Schemas.TaskStatus
+                /// Creates a new `statusPayload`.
+                ///
+                /// - Parameters:
+                ///   - value1:
+                internal init(value1: Components.Schemas.TaskStatus) {
+                    self.value1 = value1
+                }
+                internal init(from decoder: any Decoder) throws {
+                    self.value1 = try decoder.decodeFromSingleValueContainer()
+                }
+                internal func encode(to encoder: any Encoder) throws {
+                    try encoder.encodeToSingleValueContainer(self.value1)
+                }
             }
             /// Статус напоминания
             ///
@@ -4926,6 +5118,13 @@ internal enum Components {
             case event = "event"
             case email = "email"
         }
+        /// Статус напоминания
+        ///
+        /// - Remark: Generated from `#/components/schemas/TaskStatus`.
+        internal enum TaskStatus: String, Codable, Hashable, Sendable, CaseIterable {
+            case done = "done"
+            case undone = "undone"
+        }
         /// Запрос на обновление напоминания
         ///
         /// - Remark: Generated from `#/components/schemas/TaskUpdateRequest`.
@@ -4977,9 +5176,22 @@ internal enum Components {
                 /// Статус
                 ///
                 /// - Remark: Generated from `#/components/schemas/TaskUpdateRequest/task/status`.
-                internal enum statusPayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case done = "done"
-                    case undone = "undone"
+                internal struct statusPayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/TaskUpdateRequest/task/status/value1`.
+                    internal var value1: Components.Schemas.TaskStatus
+                    /// Creates a new `statusPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - value1:
+                    internal init(value1: Components.Schemas.TaskStatus) {
+                        self.value1 = value1
+                    }
+                    internal init(from decoder: any Decoder) throws {
+                        self.value1 = try decoder.decodeFromSingleValueContainer()
+                    }
+                    internal func encode(to encoder: any Encoder) throws {
+                        try encoder.encodeToSingleValueContainer(self.value1)
+                    }
                 }
                 /// Статус
                 ///
@@ -5693,6 +5905,7 @@ internal enum Components {
             case admin = "admin"
             case user = "user"
             case multi_guest = "multi_guest"
+            case guest = "guest"
         }
         /// Статус пользователя
         ///
@@ -5714,6 +5927,29 @@ internal enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/UserStatus/is_away`.
             internal var is_away: Swift.Bool
+            /// Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+            ///
+            /// - Remark: Generated from `#/components/schemas/UserStatus/away_message`.
+            internal struct away_messagePayload: Codable, Hashable, Sendable {
+                /// Текст сообщения
+                ///
+                /// - Remark: Generated from `#/components/schemas/UserStatus/away_message/text`.
+                internal var text: Swift.String
+                /// Creates a new `away_messagePayload`.
+                ///
+                /// - Parameters:
+                ///   - text: Текст сообщения
+                internal init(text: Swift.String) {
+                    self.text = text
+                }
+                internal enum CodingKeys: String, CodingKey {
+                    case text
+                }
+            }
+            /// Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+            ///
+            /// - Remark: Generated from `#/components/schemas/UserStatus/away_message`.
+            internal var away_message: Components.Schemas.UserStatus.away_messagePayload?
             /// Creates a new `UserStatus`.
             ///
             /// - Parameters:
@@ -5721,22 +5957,26 @@ internal enum Components {
             ///   - title: Текст статуса
             ///   - expires_at: Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
             ///   - is_away: Режим «Нет на месте»
+            ///   - away_message: Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
             internal init(
                 emoji: Swift.String,
                 title: Swift.String,
                 expires_at: Foundation.Date? = nil,
-                is_away: Swift.Bool
+                is_away: Swift.Bool,
+                away_message: Components.Schemas.UserStatus.away_messagePayload? = nil
             ) {
                 self.emoji = emoji
                 self.title = title
                 self.expires_at = expires_at
                 self.is_away = is_away
+                self.away_message = away_message
             }
             internal enum CodingKeys: String, CodingKey {
                 case emoji
                 case title
                 case expires_at
                 case is_away
+                case away_message
             }
         }
         /// Запрос на редактирование сотрудника
@@ -5778,10 +6018,22 @@ internal enum Components {
                 /// Уровень доступа
                 ///
                 /// - Remark: Generated from `#/components/schemas/UserUpdateRequest/user/role`.
-                internal enum rolePayload: String, Codable, Hashable, Sendable, CaseIterable {
-                    case admin = "admin"
-                    case user = "user"
-                    case multi_guest = "multi_guest"
+                internal struct rolePayload: Codable, Hashable, Sendable {
+                    /// - Remark: Generated from `#/components/schemas/UserUpdateRequest/user/role/value1`.
+                    internal var value1: Components.Schemas.UserRole
+                    /// Creates a new `rolePayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - value1:
+                    internal init(value1: Components.Schemas.UserRole) {
+                        self.value1 = value1
+                    }
+                    internal init(from decoder: any Decoder) throws {
+                        self.value1 = try decoder.decodeFromSingleValueContainer()
+                    }
+                    internal func encode(to encoder: any Encoder) throws {
+                        try encoder.encodeToSingleValueContainer(self.value1)
+                    }
                 }
                 /// Уровень доступа
                 ///
@@ -7227,25 +7479,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/audit_events/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/audit_events/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/audit_events/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.AuditEvent]
+                        /// - Remark: Generated from `#/paths/audit_events/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.AuditEvent]
+                            data: [Components.Schemas.AuditEvent],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/audit_events/GET/responses/200/content/application\/json`.
@@ -8085,25 +8337,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/chats/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/chats/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/chats/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.Chat]
+                        /// - Remark: Generated from `#/paths/chats/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.Chat]
+                            data: [Components.Schemas.Chat],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/chats/GET/responses/200/content/application\/json`.
@@ -11681,25 +11933,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/chats/{id}/members/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/chats/{id}/members/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/chats/{id}/members/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.User]
+                        /// - Remark: Generated from `#/paths/chats/{id}/members/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.User]
+                            data: [Components.Schemas.User],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/chats/{id}/members/GET/responses/200/content/application\/json`.
@@ -13925,25 +14177,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/group_tags/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/group_tags/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/group_tags/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.GroupTag]
+                        /// - Remark: Generated from `#/paths/group_tags/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.GroupTag]
+                            data: [Components.Schemas.GroupTag],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/group_tags/GET/responses/200/content/application\/json`.
@@ -15663,25 +15915,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/group_tags/{id}/users/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/group_tags/{id}/users/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/group_tags/{id}/users/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.User]
+                        /// - Remark: Generated from `#/paths/group_tags/{id}/users/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.User]
+                            data: [Components.Schemas.User],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/group_tags/{id}/users/GET/responses/200/content/application\/json`.
@@ -16118,25 +16370,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/messages/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/messages/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/messages/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.Message]
+                        /// - Remark: Generated from `#/paths/messages/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.Message]
+                            data: [Components.Schemas.Message],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/messages/GET/responses/200/content/application\/json`.
@@ -18942,25 +19194,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/messages/{id}/reactions/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/messages/{id}/reactions/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/messages/{id}/reactions/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.Reaction]
+                        /// - Remark: Generated from `#/paths/messages/{id}/reactions/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.Reaction]
+                            data: [Components.Schemas.Reaction],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/messages/{id}/reactions/GET/responses/200/content/application\/json`.
@@ -20203,25 +20455,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/messages/{id}/read_member_ids/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/messages/{id}/read_member_ids/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/messages/{id}/read_member_ids/GET/responses/200/content/json/data`.
                         internal var data: [Swift.Int32]
+                        /// - Remark: Generated from `#/paths/messages/{id}/read_member_ids/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Swift.Int32]
+                            data: [Swift.Int32],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/messages/{id}/read_member_ids/GET/responses/200/content/application\/json`.
@@ -22080,6 +22332,1256 @@ internal enum Operations {
             }
         }
     }
+    /// Поиск чатов
+    ///
+    /// Метод для полнотекстового поиска каналов и бесед.
+    ///
+    /// - Remark: HTTP `GET /search/chats`.
+    /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)`.
+    internal enum SearchOperations_searchChats {
+        internal static let id: Swift.String = "SearchOperations_searchChats"
+        internal struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/search/chats/GET/query`.
+            internal struct Query: Sendable, Hashable {
+                /// Текст поискового запроса
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/query`.
+                internal var query: Swift.String?
+                /// Количество возвращаемых результатов за один запрос
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/limit`.
+                internal var limit: Swift.Int32?
+                /// Курсор для пагинации (из meta.paginate.next_page)
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/cursor`.
+                internal var cursor: Swift.String?
+                /// Направление сортировки
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/order`.
+                internal var order: Components.Schemas.SortOrder?
+                /// Фильтр по дате создания (от)
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/created_from`.
+                internal var created_from: Foundation.Date?
+                /// Фильтр по дате создания (до)
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/created_to`.
+                internal var created_to: Foundation.Date?
+                /// Фильтр по активности чата
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/active`.
+                internal var active: Swift.Bool?
+                /// Фильтр по типу чата
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/chat_subtype`.
+                internal var chat_subtype: Components.Schemas.ChatSubtype?
+                /// Фильтр по личным чатам
+                ///
+                /// - Remark: Generated from `#/paths/search/chats/GET/query/personal`.
+                internal var personal: Swift.Bool?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - query: Текст поискового запроса
+                ///   - limit: Количество возвращаемых результатов за один запрос
+                ///   - cursor: Курсор для пагинации (из meta.paginate.next_page)
+                ///   - order: Направление сортировки
+                ///   - created_from: Фильтр по дате создания (от)
+                ///   - created_to: Фильтр по дате создания (до)
+                ///   - active: Фильтр по активности чата
+                ///   - chat_subtype: Фильтр по типу чата
+                ///   - personal: Фильтр по личным чатам
+                internal init(
+                    query: Swift.String? = nil,
+                    limit: Swift.Int32? = nil,
+                    cursor: Swift.String? = nil,
+                    order: Components.Schemas.SortOrder? = nil,
+                    created_from: Foundation.Date? = nil,
+                    created_to: Foundation.Date? = nil,
+                    active: Swift.Bool? = nil,
+                    chat_subtype: Components.Schemas.ChatSubtype? = nil,
+                    personal: Swift.Bool? = nil
+                ) {
+                    self.query = query
+                    self.limit = limit
+                    self.cursor = cursor
+                    self.order = order
+                    self.created_from = created_from
+                    self.created_to = created_to
+                    self.active = active
+                    self.chat_subtype = chat_subtype
+                    self.personal = personal
+                }
+            }
+            internal var query: Operations.SearchOperations_searchChats.Input.Query
+            /// - Remark: Generated from `#/paths/search/chats/GET/header`.
+            internal struct Headers: Sendable, Hashable {
+                internal var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchOperations_searchChats.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                internal init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchOperations_searchChats.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            internal var headers: Operations.SearchOperations_searchChats.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            internal init(
+                query: Operations.SearchOperations_searchChats.Input.Query = .init(),
+                headers: Operations.SearchOperations_searchChats.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        internal enum Output: Sendable, Hashable {
+            internal struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/chats/GET/responses/200/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// Обертка ответа поисковых результатов с данными и пагинацией
+                    ///
+                    /// - Remark: Generated from `#/paths/search/chats/GET/responses/200/content/json`.
+                    internal struct jsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/search/chats/GET/responses/200/content/json/data`.
+                        internal var data: [Components.Schemas.Chat]
+                        /// - Remark: Generated from `#/paths/search/chats/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.SearchPaginationMeta
+                        /// Creates a new `jsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        ///   - meta:
+                        internal init(
+                            data: [Components.Schemas.Chat],
+                            meta: Components.Schemas.SearchPaginationMeta
+                        ) {
+                            self.data = data
+                            self.meta = meta
+                        }
+                        internal enum CodingKeys: String, CodingKey {
+                            case data
+                            case meta
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/search/chats/GET/responses/200/content/application\/json`.
+                    case json(Operations.SearchOperations_searchChats.Output.Ok.Body.jsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Operations.SearchOperations_searchChats.Output.Ok.Body.jsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchChats.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchChats.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// The request has succeeded.
+            ///
+            /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.SearchOperations_searchChats.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            internal var ok: Operations.SearchOperations_searchChats.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/chats/GET/responses/400/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/chats/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchChats.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchChats.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// The server could not understand the request due to invalid syntax.
+            ///
+            /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.SearchOperations_searchChats.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            internal var badRequest: Operations.SearchOperations_searchChats.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/chats/GET/responses/401/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/chats/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchChats.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchChats.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is unauthorized.
+            ///
+            /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.SearchOperations_searchChats.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            internal var unauthorized: Operations.SearchOperations_searchChats.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Code402: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/chats/GET/responses/402/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/chats/GET/responses/402/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchChats.Output.Code402.Body
+                /// Creates a new `Code402`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchChats.Output.Code402.Body) {
+                    self.body = body
+                }
+            }
+            /// Client error
+            ///
+            /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)/responses/402`.
+            ///
+            /// HTTP response code: `402 code402`.
+            case code402(Operations.SearchOperations_searchChats.Output.Code402)
+            /// The associated value of the enum case if `self` is `.code402`.
+            ///
+            /// - Throws: An error if `self` is not `.code402`.
+            /// - SeeAlso: `.code402`.
+            internal var code402: Operations.SearchOperations_searchChats.Output.Code402 {
+                get throws {
+                    switch self {
+                    case let .code402(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "code402",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/chats/GET/responses/403/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/chats/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchChats.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchChats.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is forbidden.
+            ///
+            /// - Remark: Generated from `#/paths//search/chats/get(SearchOperations_searchChats)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.SearchOperations_searchChats.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            internal var forbidden: Operations.SearchOperations_searchChats.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        internal enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            internal init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            internal var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            internal static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Поиск сообщений
+    ///
+    /// Метод для полнотекстового поиска сообщений.
+    ///
+    /// - Remark: HTTP `GET /search/messages`.
+    /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)`.
+    internal enum SearchOperations_searchMessages {
+        internal static let id: Swift.String = "SearchOperations_searchMessages"
+        internal struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/search/messages/GET/query`.
+            internal struct Query: Sendable, Hashable {
+                /// Текст поискового запроса
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/query`.
+                internal var query: Swift.String?
+                /// Количество возвращаемых результатов за один запрос
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/limit`.
+                internal var limit: Swift.Int32?
+                /// Курсор для пагинации (из meta.paginate.next_page)
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/cursor`.
+                internal var cursor: Swift.String?
+                /// Направление сортировки
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/order`.
+                internal var order: Components.Schemas.SortOrder?
+                /// Фильтр по дате создания (от)
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/created_from`.
+                internal var created_from: Foundation.Date?
+                /// Фильтр по дате создания (до)
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/created_to`.
+                internal var created_to: Foundation.Date?
+                /// Фильтр по ID чатов
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/chat_ids`.
+                internal var chat_ids: [Swift.Int32]?
+                /// Фильтр по ID авторов сообщений
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/user_ids`.
+                internal var user_ids: [Swift.Int32]?
+                /// Фильтр по активности чата
+                ///
+                /// - Remark: Generated from `#/paths/search/messages/GET/query/active`.
+                internal var active: Swift.Bool?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - query: Текст поискового запроса
+                ///   - limit: Количество возвращаемых результатов за один запрос
+                ///   - cursor: Курсор для пагинации (из meta.paginate.next_page)
+                ///   - order: Направление сортировки
+                ///   - created_from: Фильтр по дате создания (от)
+                ///   - created_to: Фильтр по дате создания (до)
+                ///   - chat_ids: Фильтр по ID чатов
+                ///   - user_ids: Фильтр по ID авторов сообщений
+                ///   - active: Фильтр по активности чата
+                internal init(
+                    query: Swift.String? = nil,
+                    limit: Swift.Int32? = nil,
+                    cursor: Swift.String? = nil,
+                    order: Components.Schemas.SortOrder? = nil,
+                    created_from: Foundation.Date? = nil,
+                    created_to: Foundation.Date? = nil,
+                    chat_ids: [Swift.Int32]? = nil,
+                    user_ids: [Swift.Int32]? = nil,
+                    active: Swift.Bool? = nil
+                ) {
+                    self.query = query
+                    self.limit = limit
+                    self.cursor = cursor
+                    self.order = order
+                    self.created_from = created_from
+                    self.created_to = created_to
+                    self.chat_ids = chat_ids
+                    self.user_ids = user_ids
+                    self.active = active
+                }
+            }
+            internal var query: Operations.SearchOperations_searchMessages.Input.Query
+            /// - Remark: Generated from `#/paths/search/messages/GET/header`.
+            internal struct Headers: Sendable, Hashable {
+                internal var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchOperations_searchMessages.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                internal init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchOperations_searchMessages.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            internal var headers: Operations.SearchOperations_searchMessages.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            internal init(
+                query: Operations.SearchOperations_searchMessages.Input.Query = .init(),
+                headers: Operations.SearchOperations_searchMessages.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        internal enum Output: Sendable, Hashable {
+            internal struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/messages/GET/responses/200/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// Обертка ответа поисковых результатов с данными и пагинацией
+                    ///
+                    /// - Remark: Generated from `#/paths/search/messages/GET/responses/200/content/json`.
+                    internal struct jsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/search/messages/GET/responses/200/content/json/data`.
+                        internal var data: [Components.Schemas.Message]
+                        /// - Remark: Generated from `#/paths/search/messages/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.SearchPaginationMeta
+                        /// Creates a new `jsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        ///   - meta:
+                        internal init(
+                            data: [Components.Schemas.Message],
+                            meta: Components.Schemas.SearchPaginationMeta
+                        ) {
+                            self.data = data
+                            self.meta = meta
+                        }
+                        internal enum CodingKeys: String, CodingKey {
+                            case data
+                            case meta
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/search/messages/GET/responses/200/content/application\/json`.
+                    case json(Operations.SearchOperations_searchMessages.Output.Ok.Body.jsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Operations.SearchOperations_searchMessages.Output.Ok.Body.jsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchMessages.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchMessages.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// The request has succeeded.
+            ///
+            /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.SearchOperations_searchMessages.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            internal var ok: Operations.SearchOperations_searchMessages.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/messages/GET/responses/400/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/messages/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchMessages.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchMessages.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// The server could not understand the request due to invalid syntax.
+            ///
+            /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.SearchOperations_searchMessages.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            internal var badRequest: Operations.SearchOperations_searchMessages.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/messages/GET/responses/401/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/messages/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchMessages.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchMessages.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is unauthorized.
+            ///
+            /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.SearchOperations_searchMessages.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            internal var unauthorized: Operations.SearchOperations_searchMessages.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Code402: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/messages/GET/responses/402/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/messages/GET/responses/402/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchMessages.Output.Code402.Body
+                /// Creates a new `Code402`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchMessages.Output.Code402.Body) {
+                    self.body = body
+                }
+            }
+            /// Client error
+            ///
+            /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)/responses/402`.
+            ///
+            /// HTTP response code: `402 code402`.
+            case code402(Operations.SearchOperations_searchMessages.Output.Code402)
+            /// The associated value of the enum case if `self` is `.code402`.
+            ///
+            /// - Throws: An error if `self` is not `.code402`.
+            /// - SeeAlso: `.code402`.
+            internal var code402: Operations.SearchOperations_searchMessages.Output.Code402 {
+                get throws {
+                    switch self {
+                    case let .code402(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "code402",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/messages/GET/responses/403/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/messages/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchMessages.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchMessages.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is forbidden.
+            ///
+            /// - Remark: Generated from `#/paths//search/messages/get(SearchOperations_searchMessages)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.SearchOperations_searchMessages.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            internal var forbidden: Operations.SearchOperations_searchMessages.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        internal enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            internal init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            internal var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            internal static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Поиск сотрудников
+    ///
+    /// Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
+    ///
+    /// - Remark: HTTP `GET /search/users`.
+    /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)`.
+    internal enum SearchOperations_searchUsers {
+        internal static let id: Swift.String = "SearchOperations_searchUsers"
+        internal struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/search/users/GET/query`.
+            internal struct Query: Sendable, Hashable {
+                /// Текст поискового запроса
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/query`.
+                internal var query: Swift.String?
+                /// Количество возвращаемых результатов за один запрос
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/limit`.
+                internal var limit: Swift.Int32?
+                /// Курсор для пагинации (из meta.paginate.next_page)
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/cursor`.
+                internal var cursor: Swift.String?
+                /// Сортировка результатов
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/sort`.
+                internal var sort: Components.Schemas.SearchSortOrder?
+                /// Направление сортировки
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/order`.
+                internal var order: Components.Schemas.SortOrder?
+                /// Фильтр по дате создания (от)
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/created_from`.
+                internal var created_from: Foundation.Date?
+                /// Фильтр по дате создания (до)
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/created_to`.
+                internal var created_to: Foundation.Date?
+                /// Фильтр по ролям сотрудников
+                ///
+                /// - Remark: Generated from `#/paths/search/users/GET/query/company_roles`.
+                internal var company_roles: [Components.Schemas.UserRole]?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - query: Текст поискового запроса
+                ///   - limit: Количество возвращаемых результатов за один запрос
+                ///   - cursor: Курсор для пагинации (из meta.paginate.next_page)
+                ///   - sort: Сортировка результатов
+                ///   - order: Направление сортировки
+                ///   - created_from: Фильтр по дате создания (от)
+                ///   - created_to: Фильтр по дате создания (до)
+                ///   - company_roles: Фильтр по ролям сотрудников
+                internal init(
+                    query: Swift.String? = nil,
+                    limit: Swift.Int32? = nil,
+                    cursor: Swift.String? = nil,
+                    sort: Components.Schemas.SearchSortOrder? = nil,
+                    order: Components.Schemas.SortOrder? = nil,
+                    created_from: Foundation.Date? = nil,
+                    created_to: Foundation.Date? = nil,
+                    company_roles: [Components.Schemas.UserRole]? = nil
+                ) {
+                    self.query = query
+                    self.limit = limit
+                    self.cursor = cursor
+                    self.sort = sort
+                    self.order = order
+                    self.created_from = created_from
+                    self.created_to = created_to
+                    self.company_roles = company_roles
+                }
+            }
+            internal var query: Operations.SearchOperations_searchUsers.Input.Query
+            /// - Remark: Generated from `#/paths/search/users/GET/header`.
+            internal struct Headers: Sendable, Hashable {
+                internal var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchOperations_searchUsers.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                internal init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.SearchOperations_searchUsers.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            internal var headers: Operations.SearchOperations_searchUsers.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            internal init(
+                query: Operations.SearchOperations_searchUsers.Input.Query = .init(),
+                headers: Operations.SearchOperations_searchUsers.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        internal enum Output: Sendable, Hashable {
+            internal struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/users/GET/responses/200/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// Обертка ответа поисковых результатов с данными и пагинацией
+                    ///
+                    /// - Remark: Generated from `#/paths/search/users/GET/responses/200/content/json`.
+                    internal struct jsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/search/users/GET/responses/200/content/json/data`.
+                        internal var data: [Components.Schemas.User]
+                        /// - Remark: Generated from `#/paths/search/users/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.SearchPaginationMeta
+                        /// Creates a new `jsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        ///   - meta:
+                        internal init(
+                            data: [Components.Schemas.User],
+                            meta: Components.Schemas.SearchPaginationMeta
+                        ) {
+                            self.data = data
+                            self.meta = meta
+                        }
+                        internal enum CodingKeys: String, CodingKey {
+                            case data
+                            case meta
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/search/users/GET/responses/200/content/application\/json`.
+                    case json(Operations.SearchOperations_searchUsers.Output.Ok.Body.jsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Operations.SearchOperations_searchUsers.Output.Ok.Body.jsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchUsers.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchUsers.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// The request has succeeded.
+            ///
+            /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.SearchOperations_searchUsers.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            internal var ok: Operations.SearchOperations_searchUsers.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/users/GET/responses/400/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/users/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchUsers.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchUsers.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// The server could not understand the request due to invalid syntax.
+            ///
+            /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.SearchOperations_searchUsers.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            internal var badRequest: Operations.SearchOperations_searchUsers.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/users/GET/responses/401/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/users/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchUsers.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchUsers.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is unauthorized.
+            ///
+            /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.SearchOperations_searchUsers.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            internal var unauthorized: Operations.SearchOperations_searchUsers.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Code402: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/users/GET/responses/402/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/users/GET/responses/402/content/application\/json`.
+                    case json(Components.Schemas.ApiError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.ApiError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchUsers.Output.Code402.Body
+                /// Creates a new `Code402`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchUsers.Output.Code402.Body) {
+                    self.body = body
+                }
+            }
+            /// Client error
+            ///
+            /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)/responses/402`.
+            ///
+            /// HTTP response code: `402 code402`.
+            case code402(Operations.SearchOperations_searchUsers.Output.Code402)
+            /// The associated value of the enum case if `self` is `.code402`.
+            ///
+            /// - Throws: An error if `self` is not `.code402`.
+            /// - SeeAlso: `.code402`.
+            internal var code402: Operations.SearchOperations_searchUsers.Output.Code402 {
+                get throws {
+                    switch self {
+                    case let .code402(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "code402",
+                            response: self
+                        )
+                    }
+                }
+            }
+            internal struct Forbidden: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/search/users/GET/responses/403/content`.
+                internal enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/search/users/GET/responses/403/content/application\/json`.
+                    case json(Components.Schemas.OAuthError)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    internal var json: Components.Schemas.OAuthError {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                internal var body: Operations.SearchOperations_searchUsers.Output.Forbidden.Body
+                /// Creates a new `Forbidden`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                internal init(body: Operations.SearchOperations_searchUsers.Output.Forbidden.Body) {
+                    self.body = body
+                }
+            }
+            /// Access is forbidden.
+            ///
+            /// - Remark: Generated from `#/paths//search/users/get(SearchOperations_searchUsers)/responses/403`.
+            ///
+            /// HTTP response code: `403 forbidden`.
+            case forbidden(Operations.SearchOperations_searchUsers.Output.Forbidden)
+            /// The associated value of the enum case if `self` is `.forbidden`.
+            ///
+            /// - Throws: An error if `self` is not `.forbidden`.
+            /// - SeeAlso: `.forbidden`.
+            internal var forbidden: Operations.SearchOperations_searchUsers.Output.Forbidden {
+                get throws {
+                    switch self {
+                    case let .forbidden(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "forbidden",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        internal enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            internal init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            internal var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            internal static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
     /// Список напоминаний
     ///
     /// Метод для получения списка напоминаний.
@@ -22146,25 +23648,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/tasks/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/tasks/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/tasks/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.Task]
+                        /// - Remark: Generated from `#/paths/tasks/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.Task]
+                            data: [Components.Schemas.Task],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/tasks/GET/responses/200/content/application\/json`.
@@ -24401,25 +25903,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/users/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/users/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/users/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.User]
+                        /// - Remark: Generated from `#/paths/users/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.User]
+                            data: [Components.Schemas.User],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/users/GET/responses/200/content/application\/json`.
@@ -27525,25 +29027,25 @@ internal enum Operations {
                     ///
                     /// - Remark: Generated from `#/paths/webhooks/events/GET/responses/200/content/json`.
                     internal struct jsonPayload: Codable, Hashable, Sendable {
-                        /// - Remark: Generated from `#/paths/webhooks/events/GET/responses/200/content/json/meta`.
-                        internal var meta: Components.Schemas.PaginationMeta?
                         /// - Remark: Generated from `#/paths/webhooks/events/GET/responses/200/content/json/data`.
                         internal var data: [Components.Schemas.WebhookEvent]
+                        /// - Remark: Generated from `#/paths/webhooks/events/GET/responses/200/content/json/meta`.
+                        internal var meta: Components.Schemas.PaginationMeta?
                         /// Creates a new `jsonPayload`.
                         ///
                         /// - Parameters:
-                        ///   - meta:
                         ///   - data:
+                        ///   - meta:
                         internal init(
-                            meta: Components.Schemas.PaginationMeta? = nil,
-                            data: [Components.Schemas.WebhookEvent]
+                            data: [Components.Schemas.WebhookEvent],
+                            meta: Components.Schemas.PaginationMeta? = nil
                         ) {
-                            self.meta = meta
                             self.data = data
+                            self.meta = meta
                         }
                         internal enum CodingKeys: String, CodingKey {
-                            case meta
                             case data
+                            case meta
                         }
                     }
                     /// - Remark: Generated from `#/paths/webhooks/events/GET/responses/200/content/application\/json`.

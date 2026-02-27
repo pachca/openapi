@@ -12,6 +12,8 @@ from dateutil.parser import isoparse
 from typing import cast
 import datetime
 
+if TYPE_CHECKING:
+  from ..models.user_status_away_message_type_0 import UserStatusAwayMessageType0
 
 
 
@@ -31,12 +33,15 @@ class UserStatus:
             expires_at (datetime.datetime | None): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
                 Example: 2024-04-08T10:00:00.000Z.
             is_away (bool): Режим «Нет на месте»
+            away_message (None | UserStatusAwayMessageType0): Сообщение при режиме «Нет на месте». Отображается в профиле
+                пользователя, а также при отправке ему личного сообщения или упоминании в чате.
      """
 
     emoji: str
     title: str
     expires_at: datetime.datetime | None
     is_away: bool
+    away_message: None | UserStatusAwayMessageType0
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -44,6 +49,7 @@ class UserStatus:
 
 
     def to_dict(self) -> dict[str, Any]:
+        from ..models.user_status_away_message_type_0 import UserStatusAwayMessageType0
         emoji = self.emoji
 
         title = self.title
@@ -56,6 +62,12 @@ class UserStatus:
 
         is_away = self.is_away
 
+        away_message: dict[str, Any] | None
+        if isinstance(self.away_message, UserStatusAwayMessageType0):
+            away_message = self.away_message.to_dict()
+        else:
+            away_message = self.away_message
+
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -64,6 +76,7 @@ class UserStatus:
             "title": title,
             "expires_at": expires_at,
             "is_away": is_away,
+            "away_message": away_message,
         })
 
         return field_dict
@@ -72,6 +85,7 @@ class UserStatus:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.user_status_away_message_type_0 import UserStatusAwayMessageType0
         d = dict(src_dict)
         emoji = d.pop("emoji")
 
@@ -97,11 +111,30 @@ class UserStatus:
 
         is_away = d.pop("is_away")
 
+        def _parse_away_message(data: object) -> None | UserStatusAwayMessageType0:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                away_message_type_0 = UserStatusAwayMessageType0.from_dict(data)
+
+
+
+                return away_message_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(None | UserStatusAwayMessageType0, data)
+
+        away_message = _parse_away_message(d.pop("away_message"))
+
+
         user_status = cls(
             emoji=emoji,
             title=title,
             expires_at=expires_at,
             is_away=is_away,
+            away_message=away_message,
         )
 
 

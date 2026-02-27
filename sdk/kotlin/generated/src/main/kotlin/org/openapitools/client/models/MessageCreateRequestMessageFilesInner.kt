@@ -15,6 +15,7 @@
 
 package org.openapitools.client.models
 
+import org.openapitools.client.models.FileType
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -43,7 +44,7 @@ data class MessageCreateRequestMessageFilesInner (
 
     /* Тип файла */
     @Json(name = "file_type")
-    val fileType: MessageCreateRequestMessageFilesInner.FileType,
+    val fileType: FileType,
 
     /* Размер файла в байтах, отображаемый пользователю */
     @Json(name = "size")
@@ -59,16 +60,6 @@ data class MessageCreateRequestMessageFilesInner (
 
 ) {
 
-    /**
-     * Тип файла
-     *
-     * Values: file,image
-     */
-    @JsonClass(generateAdapter = false)
-    enum class FileType(val value: kotlin.String) {
-        @Json(name = "file") file("file"),
-        @Json(name = "image") image("image");
-    }
 
 }
 

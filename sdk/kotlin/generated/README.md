@@ -89,6 +89,9 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 | *ReactionsApi* | [**reactionOperationsListReactions**](docs/ReactionsApi.md#reactionoperationslistreactions) | **GET** /messages/{id}/reactions |  |
 | *ReactionsApi* | [**reactionOperationsRemoveReaction**](docs/ReactionsApi.md#reactionoperationsremovereaction) | **DELETE** /messages/{id}/reactions |  |
 | *ReadMemberApi* | [**readMemberOperationsListReadMembers**](docs/ReadMemberApi.md#readmemberoperationslistreadmembers) | **GET** /messages/{id}/read_member_ids |  |
+| *SearchApi* | [**searchOperationsSearchChats**](docs/SearchApi.md#searchoperationssearchchats) | **GET** /search/chats |  |
+| *SearchApi* | [**searchOperationsSearchMessages**](docs/SearchApi.md#searchoperationssearchmessages) | **GET** /search/messages |  |
+| *SearchApi* | [**searchOperationsSearchUsers**](docs/SearchApi.md#searchoperationssearchusers) | **GET** /search/users |  |
 | *SecurityApi* | [**securityOperationsGetAuditEvents**](docs/SecurityApi.md#securityoperationsgetauditevents) | **GET** /audit_events |  |
 | *TasksApi* | [**taskOperationsCreateTask**](docs/TasksApi.md#taskoperationscreatetask) | **POST** /tasks |  |
 | *TasksApi* | [**taskOperationsDeleteTask**](docs/TasksApi.md#taskoperationsdeletetask) | **DELETE** /tasks/{id} |  |
@@ -137,6 +140,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
  - [org.openapitools.client.models.ChatMessageOperationsListChatMessages200Response](docs/ChatMessageOperationsListChatMessages200Response.md)
  - [org.openapitools.client.models.ChatOperationsCreateChat201Response](docs/ChatOperationsCreateChat201Response.md)
  - [org.openapitools.client.models.ChatOperationsListChats200Response](docs/ChatOperationsListChats200Response.md)
+ - [org.openapitools.client.models.ChatSubtype](docs/ChatSubtype.md)
  - [org.openapitools.client.models.ChatUpdateRequest](docs/ChatUpdateRequest.md)
  - [org.openapitools.client.models.ChatUpdateRequestChat](docs/ChatUpdateRequestChat.md)
  - [org.openapitools.client.models.CommonOperationsListProperties200Response](docs/CommonOperationsListProperties200Response.md)
@@ -187,6 +191,12 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
  - [org.openapitools.client.models.ReactionWebhookPayload](docs/ReactionWebhookPayload.md)
  - [org.openapitools.client.models.ReadMemberOperationsListReadMembers200Response](docs/ReadMemberOperationsListReadMembers200Response.md)
  - [org.openapitools.client.models.SearchEntityType](docs/SearchEntityType.md)
+ - [org.openapitools.client.models.SearchOperationsSearchChats200Response](docs/SearchOperationsSearchChats200Response.md)
+ - [org.openapitools.client.models.SearchOperationsSearchMessages200Response](docs/SearchOperationsSearchMessages200Response.md)
+ - [org.openapitools.client.models.SearchOperationsSearchUsers200Response](docs/SearchOperationsSearchUsers200Response.md)
+ - [org.openapitools.client.models.SearchPaginationMeta](docs/SearchPaginationMeta.md)
+ - [org.openapitools.client.models.SearchPaginationMetaPaginate](docs/SearchPaginationMetaPaginate.md)
+ - [org.openapitools.client.models.SearchSortOrder](docs/SearchSortOrder.md)
  - [org.openapitools.client.models.SecurityOperationsGetAuditEvents200Response](docs/SecurityOperationsGetAuditEvents200Response.md)
  - [org.openapitools.client.models.SortOrder](docs/SortOrder.md)
  - [org.openapitools.client.models.StatusUpdateRequest](docs/StatusUpdateRequest.md)
@@ -198,6 +208,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
  - [org.openapitools.client.models.TaskKind](docs/TaskKind.md)
  - [org.openapitools.client.models.TaskOperationsCreateTask201Response](docs/TaskOperationsCreateTask201Response.md)
  - [org.openapitools.client.models.TaskOperationsListTasks200Response](docs/TaskOperationsListTasks200Response.md)
+ - [org.openapitools.client.models.TaskStatus](docs/TaskStatus.md)
  - [org.openapitools.client.models.TaskUpdateRequest](docs/TaskUpdateRequest.md)
  - [org.openapitools.client.models.TaskUpdateRequestTask](docs/TaskUpdateRequestTask.md)
  - [org.openapitools.client.models.Thread](docs/Thread.md)
@@ -211,6 +222,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
  - [org.openapitools.client.models.UserEventType](docs/UserEventType.md)
  - [org.openapitools.client.models.UserRole](docs/UserRole.md)
  - [org.openapitools.client.models.UserStatus](docs/UserStatus.md)
+ - [org.openapitools.client.models.UserStatusAwayMessage](docs/UserStatusAwayMessage.md)
  - [org.openapitools.client.models.UserUpdateRequest](docs/UserUpdateRequest.md)
  - [org.openapitools.client.models.UserUpdateRequestUser](docs/UserUpdateRequestUser.md)
  - [org.openapitools.client.models.ValidationErrorCode](docs/ValidationErrorCode.md)

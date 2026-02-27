@@ -16,6 +16,7 @@
 package org.openapitools.client.models
 
 import org.openapitools.client.models.UserCreateRequestUserCustomPropertiesInner
+import org.openapitools.client.models.UserRole
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -69,7 +70,7 @@ data class UserUpdateRequestUser (
 
     /* Уровень доступа */
     @Json(name = "role")
-    val role: UserUpdateRequestUser.Role? = null,
+    val role: UserRole? = null,
 
     /* Деактивация пользователя */
     @Json(name = "suspended")
@@ -85,17 +86,6 @@ data class UserUpdateRequestUser (
 
 ) {
 
-    /**
-     * Уровень доступа
-     *
-     * Values: admin,user,multi_guest
-     */
-    @JsonClass(generateAdapter = false)
-    enum class Role(val value: kotlin.String) {
-        @Json(name = "admin") admin("admin"),
-        @Json(name = "user") user("user"),
-        @Json(name = "multi_guest") multi_guest("multi_guest");
-    }
 
 }
 

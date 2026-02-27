@@ -37,6 +37,8 @@ class Message:
             entity_id (int): Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя)
                 Example: 334.
             chat_id (int): Идентификатор чата, в котором находится сообщение Example: 334.
+            root_chat_id (int): Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был
+                создан тред. Для обычных сообщений совпадает с `chat_id`. Example: 334.
             content (str): Текст сообщения Example: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое
                 воскресенье).
             user_id (int): Идентификатор пользователя, создавшего сообщение Example: 185.
@@ -50,12 +52,17 @@ class Message:
             parent_message_id (int | None): Идентификатор сообщения, к которому написан ответ
             display_avatar_url (None | str): Ссылка на аватарку отправителя сообщения
             display_name (None | str): Полное имя отправителя сообщения
+            changed_at (datetime.datetime | None): Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в
+                формате YYYY-MM-DDThh:mm:ss.sssZ Example: 2021-08-28T16:10:00.000Z.
+            deleted_at (datetime.datetime | None): Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-
+                DDThh:mm:ss.sssZ
      """
 
     id: int
     entity_type: MessageEntityType
     entity_id: int
     chat_id: int
+    root_chat_id: int
     content: str
     user_id: int
     created_at: datetime.datetime
@@ -67,6 +74,8 @@ class Message:
     parent_message_id: int | None
     display_avatar_url: None | str
     display_name: None | str
+    changed_at: datetime.datetime | None
+    deleted_at: datetime.datetime | None
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -74,10 +83,10 @@ class Message:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.forwarding import Forwarding
         from ..models.file import File
-        from ..models.thread import Thread
+        from ..models.forwarding import Forwarding
         from ..models.button import Button
+        from ..models.thread import Thread
         id = self.id
 
         entity_type = self.entity_type.value
@@ -85,6 +94,8 @@ class Message:
         entity_id = self.entity_id
 
         chat_id = self.chat_id
+
+        root_chat_id = self.root_chat_id
 
         content = self.content
 
@@ -126,6 +137,18 @@ class Message:
         display_name: None | str
         display_name = self.display_name
 
+        changed_at: None | str
+        if isinstance(self.changed_at, datetime.datetime):
+            changed_at = self.changed_at.isoformat()
+        else:
+            changed_at = self.changed_at
+
+        deleted_at: None | str
+        if isinstance(self.deleted_at, datetime.datetime):
+            deleted_at = self.deleted_at.isoformat()
+        else:
+            deleted_at = self.deleted_at
+
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -134,6 +157,7 @@ class Message:
             "entity_type": entity_type,
             "entity_id": entity_id,
             "chat_id": chat_id,
+            "root_chat_id": root_chat_id,
             "content": content,
             "user_id": user_id,
             "created_at": created_at,
@@ -145,6 +169,8 @@ class Message:
             "parent_message_id": parent_message_id,
             "display_avatar_url": display_avatar_url,
             "display_name": display_name,
+            "changed_at": changed_at,
+            "deleted_at": deleted_at,
         })
 
         return field_dict
@@ -168,6 +194,8 @@ class Message:
         entity_id = d.pop("entity_id")
 
         chat_id = d.pop("chat_id")
+
+        root_chat_id = d.pop("root_chat_id")
 
         content = d.pop("content")
 
@@ -239,11 +267,48 @@ class Message:
         display_name = _parse_display_name(d.pop("display_name"))
 
 
+        def _parse_changed_at(data: object) -> datetime.datetime | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                changed_at_type_0 = isoparse(data)
+
+
+
+                return changed_at_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | None, data)
+
+        changed_at = _parse_changed_at(d.pop("changed_at"))
+
+
+        def _parse_deleted_at(data: object) -> datetime.datetime | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                deleted_at_type_0 = isoparse(data)
+
+
+
+                return deleted_at_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(datetime.datetime | None, data)
+
+        deleted_at = _parse_deleted_at(d.pop("deleted_at"))
+
+
         message = cls(
             id=id,
             entity_type=entity_type,
             entity_id=entity_id,
             chat_id=chat_id,
+            root_chat_id=root_chat_id,
             content=content,
             user_id=user_id,
             created_at=created_at,
@@ -255,6 +320,8 @@ class Message:
             parent_message_id=parent_message_id,
             display_avatar_url=display_avatar_url,
             display_name=display_name,
+            changed_at=changed_at,
+            deleted_at=deleted_at,
         )
 
 

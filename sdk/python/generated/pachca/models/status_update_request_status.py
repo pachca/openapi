@@ -30,12 +30,15 @@ class StatusUpdateRequestStatus:
             title (str): Текст статуса
             expires_at (datetime.datetime | Unset): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
             is_away (bool | Unset): Режим «Нет на месте»
+            away_message (str | Unset): Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных
+                сообщениях/упоминаниях.
      """
 
     emoji: str
     title: str
     expires_at: datetime.datetime | Unset = UNSET
     is_away: bool | Unset = UNSET
+    away_message: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -53,6 +56,8 @@ class StatusUpdateRequestStatus:
 
         is_away = self.is_away
 
+        away_message = self.away_message
+
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -64,6 +69,8 @@ class StatusUpdateRequestStatus:
             field_dict["expires_at"] = expires_at
         if is_away is not UNSET:
             field_dict["is_away"] = is_away
+        if away_message is not UNSET:
+            field_dict["away_message"] = away_message
 
         return field_dict
 
@@ -88,11 +95,14 @@ class StatusUpdateRequestStatus:
 
         is_away = d.pop("is_away", UNSET)
 
+        away_message = d.pop("away_message", UNSET)
+
         status_update_request_status = cls(
             emoji=emoji,
             title=title,
             expires_at=expires_at,
             is_away=is_away,
+            away_message=away_message,
         )
 
 

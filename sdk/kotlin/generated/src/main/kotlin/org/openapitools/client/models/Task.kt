@@ -17,6 +17,7 @@ package org.openapitools.client.models
 
 import org.openapitools.client.models.CustomProperty
 import org.openapitools.client.models.TaskKind
+import org.openapitools.client.models.TaskStatus
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -71,7 +72,7 @@ data class Task (
 
     /* Статус напоминания */
     @Json(name = "status")
-    val status: Task.Status,
+    val status: TaskStatus,
 
     /* Дата и время создания напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ */
     @Json(name = "created_at")
@@ -91,16 +92,6 @@ data class Task (
 
 ) {
 
-    /**
-     * Статус напоминания
-     *
-     * Values: done,undone
-     */
-    @JsonClass(generateAdapter = false)
-    enum class Status(val value: kotlin.String) {
-        @Json(name = "done") done("done"),
-        @Json(name = "undone") undone("undone");
-    }
 
 }
 

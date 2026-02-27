@@ -22,7 +22,7 @@ import com.squareup.moshi.JsonClass
 /**
  * Скоуп доступа OAuth токена
  *
- * Values: chatsColonRead,chatsColonCreate,chatsColonUpdate,chatsColonArchive,chatsColonLeave,chat_membersColonRead,chat_membersColonWrite,chat_exportsColonRead,chat_exportsColonWrite,messagesColonRead,messagesColonCreate,messagesColonUpdate,messagesColonDelete,reactionsColonRead,reactionsColonWrite,pinsColonWrite,threadsColonRead,threadsColonCreate,link_previewsColonWrite,usersColonRead,usersColonCreate,usersColonUpdate,usersColonDelete,group_tagsColonRead,group_tagsColonWrite,botsColonWrite,profileColonRead,profile_statusColonRead,profile_statusColonWrite,user_statusColonRead,user_statusColonWrite,custom_propertiesColonRead,audit_eventsColonRead,tasksColonRead,tasksColonCreate,tasksColonUpdate,tasksColonDelete,filesColonRead,filesColonWrite,uploadsColonWrite,viewsColonWrite,webhooksColonRead,webhooksColonWrite,webhooksColonEventsColonRead,webhooksColonEventsColonDelete
+ * Values: chatsColonRead,chatsColonCreate,chatsColonUpdate,chatsColonArchive,chatsColonLeave,chat_membersColonRead,chat_membersColonWrite,chat_exportsColonRead,chat_exportsColonWrite,messagesColonRead,messagesColonCreate,messagesColonUpdate,messagesColonDelete,reactionsColonRead,reactionsColonWrite,pinsColonWrite,threadsColonRead,threadsColonCreate,link_previewsColonWrite,usersColonRead,usersColonCreate,usersColonUpdate,usersColonDelete,group_tagsColonRead,group_tagsColonWrite,botsColonWrite,profileColonRead,profile_statusColonRead,profile_statusColonWrite,user_statusColonRead,user_statusColonWrite,custom_propertiesColonRead,audit_eventsColonRead,tasksColonRead,tasksColonCreate,tasksColonUpdate,tasksColonDelete,filesColonRead,filesColonWrite,uploadsColonWrite,viewsColonWrite,webhooksColonRead,webhooksColonWrite,webhooksColonEventsColonRead,webhooksColonEventsColonDelete,searchColonUsers,searchColonChats,searchColonMessages
  */
 
 @JsonClass(generateAdapter = false)
@@ -161,7 +161,16 @@ enum class OAuthScope(val value: kotlin.String) {
     webhooksColonEventsColonRead("webhooks:events:read"),
 
     @Json(name = "webhooks:events:delete")
-    webhooksColonEventsColonDelete("webhooks:events:delete");
+    webhooksColonEventsColonDelete("webhooks:events:delete"),
+
+    @Json(name = "search:users")
+    searchColonUsers("search:users"),
+
+    @Json(name = "search:chats")
+    searchColonChats("search:chats"),
+
+    @Json(name = "search:messages")
+    searchColonMessages("search:messages");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use

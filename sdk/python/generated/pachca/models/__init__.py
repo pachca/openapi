@@ -33,6 +33,7 @@ from .chat_operations_create_chat_response_201 import ChatOperationsCreateChatRe
 from .chat_operations_get_chat_response_200 import ChatOperationsGetChatResponse200
 from .chat_operations_list_chats_response_200 import ChatOperationsListChatsResponse200
 from .chat_operations_update_chat_response_200 import ChatOperationsUpdateChatResponse200
+from .chat_subtype import ChatSubtype
 from .chat_update_request import ChatUpdateRequest
 from .chat_update_request_chat import ChatUpdateRequestChat
 from .common_operations_list_properties_response_200 import CommonOperationsListPropertiesResponse200
@@ -68,7 +69,6 @@ from .message import Message
 from .message_create_request import MessageCreateRequest
 from .message_create_request_message import MessageCreateRequestMessage
 from .message_create_request_message_files_item import MessageCreateRequestMessageFilesItem
-from .message_create_request_message_files_item_file_type import MessageCreateRequestMessageFilesItemFileType
 from .message_entity_type import MessageEntityType
 from .message_operations_create_message_response_201 import MessageOperationsCreateMessageResponse201
 from .message_operations_get_message_response_200 import MessageOperationsGetMessageResponse200
@@ -97,6 +97,12 @@ from .reaction_webhook_payload import ReactionWebhookPayload
 from .reaction_webhook_payload_type import ReactionWebhookPayloadType
 from .read_member_operations_list_read_members_response_200 import ReadMemberOperationsListReadMembersResponse200
 from .search_entity_type import SearchEntityType
+from .search_operations_search_chats_response_200 import SearchOperationsSearchChatsResponse200
+from .search_operations_search_messages_response_200 import SearchOperationsSearchMessagesResponse200
+from .search_operations_search_users_response_200 import SearchOperationsSearchUsersResponse200
+from .search_pagination_meta import SearchPaginationMeta
+from .search_pagination_meta_paginate import SearchPaginationMetaPaginate
+from .search_sort_order import SearchSortOrder
 from .security_operations_get_audit_events_response_200 import SecurityOperationsGetAuditEventsResponse200
 from .sort_order import SortOrder
 from .status_update_request import StatusUpdateRequest
@@ -114,7 +120,6 @@ from .task_status import TaskStatus
 from .task_update_request import TaskUpdateRequest
 from .task_update_request_task import TaskUpdateRequestTask
 from .task_update_request_task_custom_properties_item import TaskUpdateRequestTaskCustomPropertiesItem
-from .task_update_request_task_status import TaskUpdateRequestTaskStatus
 from .thread import Thread
 from .thread_operations_create_thread_response_201 import ThreadOperationsCreateThreadResponse201
 from .thread_operations_get_thread_response_200 import ThreadOperationsGetThreadResponse200
@@ -131,12 +136,12 @@ from .user_operations_list_users_response_200 import UserOperationsListUsersResp
 from .user_operations_update_user_response_200 import UserOperationsUpdateUserResponse200
 from .user_role import UserRole
 from .user_status import UserStatus
+from .user_status_away_message_type_0 import UserStatusAwayMessageType0
 from .user_status_operations_get_user_status_response_200 import UserStatusOperationsGetUserStatusResponse200
 from .user_status_operations_update_user_status_response_200 import UserStatusOperationsUpdateUserStatusResponse200
 from .user_update_request import UserUpdateRequest
 from .user_update_request_user import UserUpdateRequestUser
 from .user_update_request_user_custom_properties_item import UserUpdateRequestUserCustomPropertiesItem
-from .user_update_request_user_role import UserUpdateRequestUserRole
 from .validation_error_code import ValidationErrorCode
 from .view_block import ViewBlock
 from .view_block_checkbox import ViewBlockCheckbox
@@ -202,6 +207,7 @@ __all__ = (
     "ChatOperationsGetChatResponse200",
     "ChatOperationsListChatsResponse200",
     "ChatOperationsUpdateChatResponse200",
+    "ChatSubtype",
     "ChatUpdateRequest",
     "ChatUpdateRequestChat",
     "CommonOperationsListPropertiesResponse200",
@@ -237,7 +243,6 @@ __all__ = (
     "MessageCreateRequest",
     "MessageCreateRequestMessage",
     "MessageCreateRequestMessageFilesItem",
-    "MessageCreateRequestMessageFilesItemFileType",
     "MessageEntityType",
     "MessageOperationsCreateMessageResponse201",
     "MessageOperationsGetMessageResponse200",
@@ -266,6 +271,12 @@ __all__ = (
     "ReactionWebhookPayloadType",
     "ReadMemberOperationsListReadMembersResponse200",
     "SearchEntityType",
+    "SearchOperationsSearchChatsResponse200",
+    "SearchOperationsSearchMessagesResponse200",
+    "SearchOperationsSearchUsersResponse200",
+    "SearchPaginationMeta",
+    "SearchPaginationMetaPaginate",
+    "SearchSortOrder",
     "SecurityOperationsGetAuditEventsResponse200",
     "SortOrder",
     "StatusUpdateRequest",
@@ -283,7 +294,6 @@ __all__ = (
     "TaskUpdateRequest",
     "TaskUpdateRequestTask",
     "TaskUpdateRequestTaskCustomPropertiesItem",
-    "TaskUpdateRequestTaskStatus",
     "Thread",
     "ThreadOperationsCreateThreadResponse201",
     "ThreadOperationsGetThreadResponse200",
@@ -300,12 +310,12 @@ __all__ = (
     "UserOperationsUpdateUserResponse200",
     "UserRole",
     "UserStatus",
+    "UserStatusAwayMessageType0",
     "UserStatusOperationsGetUserStatusResponse200",
     "UserStatusOperationsUpdateUserStatusResponse200",
     "UserUpdateRequest",
     "UserUpdateRequestUser",
     "UserUpdateRequestUserCustomPropertiesItem",
-    "UserUpdateRequestUserRole",
     "ValidationErrorCode",
     "ViewBlock",
     "ViewBlockCheckbox",

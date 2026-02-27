@@ -65,8 +65,8 @@ class MessageCreateRequestMessage:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.message_create_request_message_files_item import MessageCreateRequestMessageFilesItem
         from ..models.button import Button
+        from ..models.message_create_request_message_files_item import MessageCreateRequestMessageFilesItem
         entity_id = self.entity_id
 
         content = self.content

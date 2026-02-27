@@ -41,7 +41,7 @@ interface SidebarItemProps {
 
 export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
   const pathname = usePathname();
-  const isActive = pathname === item.href;
+  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
   const itemRef = useRef<HTMLAnchorElement>(null);
   const { isLoading, handleClick } = useNavigationLoading(item.href, 200);
 

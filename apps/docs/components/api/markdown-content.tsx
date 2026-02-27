@@ -30,6 +30,7 @@ import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
+import { HeadingLink } from './heading-link';
 
 // Simple markdown components for server rendering
 const components = {
@@ -66,7 +67,11 @@ const components = {
   h2: ({ id, children }: { id?: string; children: React.ReactNode }) => {
     const generatedId = id || toSlug(String(children));
     return (
-      <h2 id={generatedId} className="text-2xl font-bold text-text-primary mt-12 mb-6 scroll-mt-20">
+      <h2
+        id={generatedId}
+        className="group/heading relative text-2xl font-bold text-text-primary mt-12 mb-6 scroll-mt-20"
+      >
+        <HeadingLink id={generatedId} />
         {children}
       </h2>
     );
@@ -74,7 +79,11 @@ const components = {
   h3: ({ id, children }: { id?: string; children: React.ReactNode }) => {
     const generatedId = id || toSlug(String(children));
     return (
-      <h3 id={generatedId} className="text-xl font-bold text-text-primary mt-8 mb-4 scroll-mt-20">
+      <h3
+        id={generatedId}
+        className="group/heading relative text-xl font-bold text-text-primary mt-8 mb-4 scroll-mt-20"
+      >
+        <HeadingLink id={generatedId} />
         {children}
       </h3>
     );

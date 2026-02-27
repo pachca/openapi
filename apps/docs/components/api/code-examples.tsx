@@ -104,7 +104,7 @@ export function CodeExamples({ endpoint, baseUrl, title, hideResponse }: CodeExa
                         className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                           activeTab === lang
                             ? 'bg-primary text-white'
-                            : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
+                            : 'text-text-primary hover:bg-background-tertiary'
                         }`}
                       >
                         {languages[lang]}

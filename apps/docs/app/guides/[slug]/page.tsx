@@ -4,6 +4,7 @@ import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { UpdatesList } from '@/components/api/updates-list';
 import { getGuideData, getAllGuideSlugs, extractFirstParagraph } from '@/lib/content-loader';
+import { loadUpdates } from '@/lib/updates-parser';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -14,10 +15,13 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
   const data = getGuideData(slug);
 
   if (!data) {
@@ -27,10 +31,31 @@ export async function generateMetadata({
   }
 
   const firstParagraph = extractFirstParagraph(data.content);
-  const description = firstParagraph || data.frontmatter.description;
+  let title = data.frontmatter.title;
+  let description: string | undefined = firstParagraph || data.frontmatter.description;
+  let ogImage = `/api/og?type=guide&slug=${slug}`;
+
+  if (slug === 'updates') {
+    const dateParam = typeof resolvedSearchParams.s === 'string' ? resolvedSearchParams.s : null;
+
+    if (dateParam) {
+      const updates = loadUpdates();
+      const update = updates.find((u) => u.date === dateParam);
+
+      if (update) {
+        title = `${update.title} — ${data.frontmatter.title}`;
+        description = update.content
+          .replace(/[#*`\[\]]/g, '')
+          .slice(0, 200)
+          .trim();
+      }
+    }
+
+    ogImage = `/api/og?type=updates${dateParam ? `&date=${dateParam}` : ''}`;
+  }
 
   return {
-    title: data.frontmatter.title,
+    title,
     description,
     alternates: {
       canonical: `/guides/${slug}`,
@@ -43,7 +68,7 @@ export async function generateMetadata({
       siteName: 'Пачка',
       locale: 'ru_RU',
       description,
-      images: [`/api/og?type=guide&slug=${slug}`],
+      images: [ogImage],
     },
   };
 }

@@ -8,6 +8,10 @@ import { useDisplaySettings } from '@/components/layout/display-settings-context
 import { CopiedTooltip } from './copied-tooltip';
 import { InlineCodeText } from './inline-code-text';
 
+function isTouchDevice() {
+  return typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0;
+}
+
 // Контекст для хранения целевого пути из URL hash
 const ExpandToPathContext = createContext<string | null>(null);
 
@@ -77,7 +81,15 @@ function generateEnumId(fieldPath: string, enumValue: string): string {
 }
 
 // Компонент для отображения возможных значений enum
-function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string }) {
+function EnumValues({
+  schema,
+  fieldPath,
+  hideDescriptions,
+}: {
+  schema: Schema;
+  fieldPath?: string;
+  hideDescriptions?: boolean;
+}) {
   // Скролл к enum значению при загрузке страницы или после переключения таба
   useEffect(() => {
     if (typeof window === 'undefined' || !fieldPath || !schema.enum) return;
@@ -152,7 +164,7 @@ function EnumValues({ schema, fieldPath }: { schema: Schema; fieldPath?: string 
                   className="text-[13px]! font-medium"
                 />
               </div>
-              {enumDescription && (
+              {enumDescription && !hideDescriptions && (
                 <div className="text-[13px] text-text-primary leading-relaxed pl-0.5">
                   <InlineCodeText text={enumDescription} />
                 </div>
@@ -259,6 +271,9 @@ function CopyableName({ name }: { name: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (e: MouseEvent) => {
+    // На тач-устройствах не перехватываем клик, чтобы работал toggle секции
+    if (isTouchDevice()) return;
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -273,8 +288,7 @@ function CopyableName({ name }: { name: string }) {
     <CopiedTooltip open={copied}>
       <span
         onClick={handleCopy}
-        className="font-bold font-mono text-[14px] text-text-primary break-all inline-block max-w-full cursor-pointer hover:text-accent-emphasis transition-colors"
-        title="Нажмите, чтобы скопировать"
+        className="font-bold font-mono text-[14px] text-text-primary break-all inline-block max-w-full transition-colors cursor-pointer hover:text-accent-emphasis"
       >
         {name}
       </span>
@@ -308,7 +322,7 @@ function CopyLinkButton({ paramId, hasChevron }: { paramId: string; hasChevron?:
     <CopiedTooltip open={copied}>
       <button
         onClick={handleCopyLink}
-        className={`absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[6px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-150 p-1 rounded bg-background hover:bg-background-tertiary hover:text-text-primary shrink-0`}
+        className={`copy-link-btn absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[6px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-150 p-1 rounded bg-background hover:bg-background-tertiary hover:text-text-primary shrink-0`}
         title="Скопировать ссылку"
         type="button"
       >
@@ -645,7 +659,7 @@ function SchemaTreeInner({
           <InlineCodeText text={schema.description} />
         </div>
       )}
-      <EnumValues schema={schema} fieldPath={parentPath} />
+      <EnumValues schema={schema} fieldPath={parentPath} hideDescriptions={!showDescriptions} />
     </div>
   );
 }
@@ -910,7 +924,11 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
             </MetadataRow>
           )}
 
-          <EnumValues schema={schema.items?.enum ? schema.items : schema} fieldPath={currentPath} />
+          <EnumValues
+            schema={schema.items?.enum ? schema.items : schema}
+            fieldPath={currentPath}
+            hideDescriptions={!showDescriptions}
+          />
           {schema.default !== undefined && (
             <MetadataRow label="По умолчанию">
               <CodeBadge>

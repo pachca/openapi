@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Sidebar } from '@/components/layout/sidebar-wrapper';
 import { TransitionProvider } from '@/components/layout/transition-provider';
+import { DisplaySettingsProvider } from '@/components/layout/display-settings-context';
 import { Inter } from 'next/font/google';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import './globals.css';
@@ -143,16 +144,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Перейти к содержимому
         </a>
         <Tooltip.Provider delayDuration={0}>
-          <TransitionProvider />
-          <div className="flex w-full overflow-hidden main-container-padding">
-            <Sidebar />
-            <main
-              id="main-content"
-              className="flex-1 overflow-y-auto bg-background custom-scrollbar flex flex-col min-w-0"
-            >
-              {children}
-            </main>
-          </div>
+          <DisplaySettingsProvider>
+            <TransitionProvider />
+            <div className="flex w-full overflow-hidden main-container-padding">
+              <Sidebar />
+              <main
+                id="main-content"
+                className="flex-1 overflow-y-auto bg-background custom-scrollbar flex flex-col min-w-0"
+              >
+                {children}
+              </main>
+            </div>
+          </DisplaySettingsProvider>
         </Tooltip.Provider>
       </body>
     </html>

@@ -121,7 +121,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
 
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="z-50 min-w-[220px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-in fade-in zoom-in-95 duration-100"
+                  className="z-50 min-w-[220px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-dropdown"
                   align="start"
                 >
                   <DropdownMenu.Item

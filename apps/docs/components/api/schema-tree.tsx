@@ -4,7 +4,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import type { MouseEvent } from 'react';
 import { ChevronDown, Link as LinkIcon, Check } from 'lucide-react';
 import type { Schema } from '@/lib/openapi/types';
-import { displayConfig } from '@/lib/display-config';
+import { useDisplaySettings } from '@/components/layout/display-settings-context';
 import { CopiedTooltip } from './copied-tooltip';
 import { InlineCodeText } from './inline-code-text';
 
@@ -430,6 +430,8 @@ function SchemaTreeInner({
   required = false,
   parentPath,
 }: SchemaTreeProps) {
+  const { showSchemaExamples, showDescriptions } = useDisplaySettings();
+
   // Обработка anyOf/oneOf/allOf
   // Но если allOf содержит только один элемент - это не полиморфизм, а просто расширение
   const shouldShowVariants =
@@ -445,7 +447,7 @@ function SchemaTreeInner({
           <SchemaHeader name={name} schema={schema} required={required} variantType={variantType} />
         )}
         {/* Описание показывается только для множественных вариантов */}
-        {schema.description && (
+        {showDescriptions && schema.description && (
           <div className="text-[14px] text-text-secondary leading-relaxed mb-2">
             <InlineCodeText text={schema.description} />
           </div>
@@ -535,7 +537,7 @@ function SchemaTreeInner({
           <SchemaHeader name={name} schema={schema} required={required} typeOverride="object" />
         )}
         {/* description показывается только на root-уровне (когда есть name) */}
-        {name && schema.description && (
+        {showDescriptions && name && schema.description && (
           <div className="text-[14px] text-text-secondary leading-relaxed mb-2 mt-1">
             <InlineCodeText text={schema.description} />
           </div>
@@ -579,14 +581,14 @@ function SchemaTreeInner({
         {name && (
           <SchemaHeader name={name} schema={schema} required={required} typeOverride="array" />
         )}
-        {schema.description && (
+        {showDescriptions && schema.description && (
           <div className="text-[14px] text-text-secondary leading-relaxed mb-2 mt-1">
             <InlineCodeText text={schema.description} />
           </div>
         )}
 
         {/* Пример массива */}
-        {displayConfig.showSchemaExamples && schema.example !== undefined && (
+        {showSchemaExamples && schema.example !== undefined && (
           <MetadataRow label="Пример">
             <CopyableCode value={JSON.stringify(schema.example)} />
           </MetadataRow>
@@ -638,7 +640,7 @@ function SchemaTreeInner({
           {schema.format && ` (${schema.format})`}
         </span>
       </div>
-      {schema.description && (
+      {showDescriptions && schema.description && (
         <div className="text-[14px] text-text-secondary leading-relaxed">
           <InlineCodeText text={schema.description} />
         </div>
@@ -735,6 +737,8 @@ function CodeBadge({ children }: { children: React.ReactNode }) {
 }
 
 export function PropertyRow({ name, schema, required, level, parentPath }: PropertyRowProps) {
+  const { showSchemaExamples, showDescriptions } = useDisplaySettings();
+
   // Генерируем уникальный ID для параметра
   const paramId = generateParamId(name, parentPath);
   const currentPath = parentPath ? `${parentPath}.${name}` : name;
@@ -887,26 +891,24 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         />
 
         {/* Описание показывается только если нет вариантов (anyOf/oneOf/allOf) */}
-        {schema.description && !hasMultipleVariants && (
+        {showDescriptions && schema.description && !hasMultipleVariants && (
           <div className="text-[14px] text-text-primary leading-relaxed mb-0 mt-1">
             <InlineCodeText text={schema.description} />
           </div>
         )}
 
         <div className="flex flex-col gap-1 mt-1 empty:hidden">
-          {displayConfig.showSchemaExamples &&
-            schema.example !== undefined &&
-            !hasMultipleVariants && (
-              <MetadataRow label="Пример">
-                <CopyableCode
-                  value={
-                    typeof schema.example === 'string'
-                      ? schema.example
-                      : JSON.stringify(schema.example)
-                  }
-                />
-              </MetadataRow>
-            )}
+          {showSchemaExamples && schema.example !== undefined && !hasMultipleVariants && (
+            <MetadataRow label="Пример">
+              <CopyableCode
+                value={
+                  typeof schema.example === 'string'
+                    ? schema.example
+                    : JSON.stringify(schema.example)
+                }
+              />
+            </MetadataRow>
+          )}
 
           <EnumValues schema={schema.items?.enum ? schema.items : schema} fieldPath={currentPath} />
           {schema.default !== undefined && (

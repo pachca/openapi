@@ -426,7 +426,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": {\n    \"emoji\": \"🏖️\",\n    \"title\": \"В отпуске\",\n    \"expires_at\": \"2024-04-15T00:00:00.000Z\",\n    \"is_away\": true\n  }\n}",
+              "raw": "{\n  \"status\": {\n    \"emoji\": \"🏖️\",\n    \"title\": \"В отпуске\",\n    \"expires_at\": \"2024-04-15T00:00:00.000Z\",\n    \"is_away\": true,\n    \"away_message\": \"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1400,6 +1400,62 @@
                   "language": "json"
                 }
               }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Поиск чатов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/chats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search",
+                "chats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Поиск сообщений",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search",
+                "messages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Поиск сотрудников",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search",
+                "users"
+              ]
             }
           }
         }

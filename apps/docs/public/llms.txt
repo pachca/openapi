@@ -90,6 +90,11 @@
 ## Link Previews
 - [Unfurl (разворачивание ссылок)](https://dev.pachca.com/link-previews/add-link-previews.md): POST /messages/{id}/link_previews
 
+## Search
+- [Поиск чатов](https://dev.pachca.com/search/list-chats.md): GET /search/chats
+- [Поиск сообщений](https://dev.pachca.com/search/list-messages.md): GET /search/messages
+- [Поиск сотрудников](https://dev.pachca.com/search/list-users.md): GET /search/users
+
 ## Tasks
 - [Новое напоминание](https://dev.pachca.com/tasks/create.md): POST /tasks
 - [Список напоминаний](https://dev.pachca.com/tasks/list.md): GET /tasks
@@ -121,6 +126,7 @@
 | pachca-bots | Управление ботами, входящие/исходящие вебхуки, разворачивание ссылок (unfurling) |
 | pachca-forms | Интерактивные формы с полями ввода и кнопками для ботов |
 | pachca-tasks | Создание, получение, обновление и удаление задач (напоминаний) |
+| pachca-search | Полнотекстовый поиск по сотрудникам, чатам и сообщениям |
 | pachca-security | Журнал аудита событий и DLP-система |
 
 Установка: `npx skills add pachca/openapi`

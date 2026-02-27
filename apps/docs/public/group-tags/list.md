@@ -162,23 +162,18 @@ echo $response;
 
 **Схема ответа:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 - `data` (array[object], **обязательный**)
   - `id` (integer, int32, **обязательный**): Идентификатор тега
   - `name` (string, **обязательный**): Название тега
   - `users_count` (integer, int32, **обязательный**): Количество сотрудников, которые имеют этот тег
+- `meta` (object, опциональный): Метаданные пагинации
+  - `paginate` (object, опциональный): Вспомогательная информация
+    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 
 **Пример ответа:**
 
 ```json
 {
-  "meta": {
-    "paginate": {
-      "next_page": "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
-    }
-  },
   "data": [
     {
       "id": 9111,
@@ -190,7 +185,12 @@ echo $response;
       "name": "iOS",
       "users_count": 4
     }
-  ]
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
+    }
+  }
 }
 ```
 

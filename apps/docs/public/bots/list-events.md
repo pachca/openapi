@@ -154,9 +154,6 @@ echo $response;
 
 **Схема ответа:**
 
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 - `data` (array[object], **обязательный**)
   - `id` (string, **обязательный**): Идентификатор события
   - `event_type` (string, **обязательный**): Тип события
@@ -259,16 +256,14 @@ echo $response;
       - `created_at` (string, date-time, **обязательный**): Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
       - `webhook_timestamp` (integer, int32, **обязательный**): Дата и время отправки вебхука (UTC+0) в формате UNIX
   - `created_at` (string, date-time, **обязательный**): Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+- `meta` (object, опциональный): Метаданные пагинации
+  - `paginate` (object, опциональный): Вспомогательная информация
+    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
 
 **Пример ответа:**
 
 ```json
 {
-  "meta": {
-    "paginate": {
-      "next_page": "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
-    }
-  },
   "data": [
     {
       "id": "01KAJZ2XDSS2S3DSW9EXJZ0TBV",
@@ -320,7 +315,12 @@ echo $response;
       },
       "created_at": "2025-11-20T11:19:34Z"
     }
-  ]
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
+    }
+  }
 }
 ```
 

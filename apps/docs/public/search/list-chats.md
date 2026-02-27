@@ -1,29 +1,27 @@
-# Журнал аудита событий
+# Поиск чатов
 
 **Метод**: `GET`
 
-**Путь**: `/audit_events`
+**Путь**: `/search/chats`
 
-> **Скоуп:** `audit_events:read`
+> **Скоуп:** `search:chats`
 
-> **Внимание:** Доступно только на тарифе **Корпорация**
-
-Метод для получения логов событий на основе указанных фильтров.
+Метод для полнотекстового поиска каналов и бесед.
 
 ## Параметры
 
 ### Query параметры
 
-- `start_time` (string, **обязательный**): Начальная метка времени (включительно)
-- `end_time` (string, **обязательный**): Конечная метка времени (исключительно)
-- `event_key` (string (enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, message_created, reaction_created, reaction_deleted, thread_created, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected, search_users_api, search_chats_api, search_messages_api), опциональный): Фильтр по конкретному типу события
-- `actor_id` (integer, опциональный): Идентификатор пользователя, выполнившего действие
-- `actor_type` (string, опциональный): Тип актора
-- `entity_id` (integer, опциональный): Идентификатор затронутой сущности
-- `entity_type` (string, опциональный): Тип сущности
-- `limit` (integer, опциональный): Количество записей для возврата
-  - По умолчанию: `50`
-- `cursor` (string, опциональный): Курсор для пагинации из meta.paginate.next_page
+- `query` (string, опциональный): Текст поискового запроса
+- `limit` (integer, опциональный): Количество возвращаемых результатов за один запрос
+  - По умолчанию: `100`
+- `cursor` (string, опциональный): Курсор для пагинации (из meta.paginate.next_page)
+- `order` (string (enum: asc, desc), опциональный): Направление сортировки
+- `created_from` (string, опциональный): Фильтр по дате создания (от)
+- `created_to` (string, опциональный): Фильтр по дате создания (до)
+- `active` (boolean, опциональный): Фильтр по активности чата (true — активные, false — архивированные)
+- `chat_subtype` (string (enum: discussion, thread), опциональный): Фильтр по типу чата
+- `personal` (boolean, опциональный): Фильтр по личным чатам (true — только личные)
 
 
 ## Примеры запроса
@@ -31,14 +29,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/search/chats?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=100&cursor=string&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&active=true&chat_subtype=discussion&personal=true" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/search/chats?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=100&cursor=string&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&active=true&chat_subtype=discussion&personal=true', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -55,15 +53,15 @@ console.log(data);
 import requests
 
 params = {
-    'start_time': '2024-04-08T10:00:00.000Z',
-    'end_time': '2024-04-08T10:00:00.000Z',
-    'event_key': 'user_login',
-    'actor_id': 12345,
-    'actor_type': 'string',
-    'entity_id': 12345,
-    'entity_type': 'string',
-    'limit': 50,
+    'query': 'Пример текста',
+    'limit': 100,
     'cursor': 'string',
+    'order': 'asc',
+    'created_from': '2024-04-08T10:00:00.000Z',
+    'created_to': '2024-04-08T10:00:00.000Z',
+    'active': True,
+    'chat_subtype': 'discussion',
+    'personal': True,
 }
 
 headers = {
@@ -71,7 +69,7 @@ headers = {
 }
 
 response = requests.get(
-    'https://api.pachca.com/api/shared/v1/audit_events',
+    'https://api.pachca.com/api/shared/v1/search/chats',
     params=params,
     headers=headers
 )
@@ -87,7 +85,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string',
+    path: '/api/shared/v1/search/chats?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=100&cursor=string&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&active=true&chat_subtype=discussion&personal=true',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -119,17 +117,17 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/audit_events')
+uri = URI('https://api.pachca.com/api/shared/v1/search/chats')
 params = {
-  'start_time' => '2024-04-08T10:00:00.000Z',
-  'end_time' => '2024-04-08T10:00:00.000Z',
-  'event_key' => 'user_login',
-  'actor_id' => 12345,
-  'actor_type' => 'string',
-  'entity_id' => 12345,
-  'entity_type' => 'string',
-  'limit' => 50,
+  'query' => 'Пример текста',
+  'limit' => 100,
   'cursor' => 'string',
+  'order' => 'asc',
+  'created_from' => '2024-04-08T10:00:00.000Z',
+  'created_to' => '2024-04-08T10:00:00.000Z',
+  'active' => true,
+  'chat_subtype' => 'discussion',
+  'personal' => true,
 }
 uri.query = URI.encode_www_form(params)
 
@@ -148,11 +146,11 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['start_time' => '2024-04-08T10:00:00.000Z', 'end_time' => '2024-04-08T10:00:00.000Z', 'event_key' => 'user_login', 'actor_id' => 12345, 'actor_type' => 'string', 'entity_id' => 12345, 'entity_type' => 'string', 'limit' => 50, 'cursor' => 'string'];
+$params = ['query' => 'Пример текста', 'limit' => 100, 'cursor' => 'string', 'order' => 'asc', 'created_from' => '2024-04-08T10:00:00.000Z', 'created_to' => '2024-04-08T10:00:00.000Z', 'active' => true, 'chat_subtype' => 'discussion', 'personal' => true];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/audit_events?' . http_build_query($params)',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/search/chats?' . http_build_query($params)',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'GET',
     CURLOPT_HTTPHEADER => [
@@ -174,57 +172,21 @@ echo $response;
 **Схема ответа:**
 
 - `data` (array[object], **обязательный**)
-  - `id` (string, **обязательный**): Уникальный идентификатор события
-  - `created_at` (string, date-time, **обязательный**): Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-  - `event_key` (string, **обязательный**): Ключ типа события
-    - **Возможные значения:**
-      - `user_login`: Пользователь успешно вошел в систему
-      - `user_logout`: Пользователь вышел из системы
-      - `user_2fa_fail`: Неудачная попытка двухфакторной аутентификации
-      - `user_2fa_success`: Успешная двухфакторная аутентификация
-      - `user_created`: Создана новая учетная запись пользователя
-      - `user_deleted`: Учетная запись пользователя удалена
-      - `user_role_changed`: Роль пользователя была изменена
-      - `user_updated`: Данные пользователя обновлены
-      - `tag_created`: Создан новый тег
-      - `tag_deleted`: Тег удален
-      - `user_added_to_tag`: Пользователь добавлен в тег
-      - `user_removed_from_tag`: Пользователь удален из тега
-      - `chat_created`: Создан новый чат
-      - `chat_renamed`: Чат переименован
-      - `chat_permission_changed`: Изменены права доступа к чату
-      - `user_chat_join`: Пользователь присоединился к чату
-      - `user_chat_leave`: Пользователь покинул чат
-      - `tag_added_to_chat`: Тег добавлен в чат
-      - `tag_removed_from_chat`: Тег удален из чата
-      - `message_updated`: Сообщение отредактировано
-      - `message_deleted`: Сообщение удалено
-      - `message_created`: Сообщение создано
-      - `reaction_created`: Реакция добавлена
-      - `reaction_deleted`: Реакция удалена
-      - `thread_created`: Тред создан
-      - `access_token_created`: Создан новый токен доступа
-      - `access_token_updated`: Токен доступа обновлен
-      - `access_token_destroy`: Токен доступа удален
-      - `kms_encrypt`: Данные зашифрованы
-      - `kms_decrypt`: Данные расшифрованы
-      - `audit_events_accessed`: Доступ к журналам аудита получен
-      - `dlp_violation_detected`: Срабатывание правила DLP-системы
-      - `search_users_api`
-      - `search_chats_api`
-      - `search_messages_api`
-  - `entity_id` (string, **обязательный**): Идентификатор затронутой сущности
-  - `entity_type` (string, **обязательный**): Тип затронутой сущности
-  - `actor_id` (string, **обязательный**): Идентификатор пользователя, выполнившего действие
-  - `actor_type` (string, **обязательный**): Тип актора
-  - `details` (Record<string, object>, **обязательный**): Дополнительные детали события
-    **Структура значений Record:**
-    - Тип значения: `any`
-  - `ip_address` (string, **обязательный**): IP-адрес, с которого было выполнено действие
-  - `user_agent` (string, **обязательный**): User agent клиента
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
+  - `id` (integer, int32, **обязательный**): Идентификатор созданного чата
+  - `name` (string, **обязательный**): Название
+  - `created_at` (string, date-time, **обязательный**): Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `owner_id` (integer, int32, **обязательный**): Идентификатор пользователя, создавшего чат
+  - `member_ids` (array[integer], **обязательный**): Массив идентификаторов пользователей, участников
+  - `group_tag_ids` (array[integer], **обязательный**): Массив идентификаторов тегов, участников
+  - `channel` (boolean, **обязательный**): Является каналом
+  - `personal` (boolean, **обязательный**): Является личным чатом
+  - `public` (boolean, **обязательный**): Открытый доступ
+  - `last_message_at` (string, date-time, **обязательный**): Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `meet_room_url` (string, **обязательный**): Ссылка на Видеочат
+- `meta` (object, **обязательный**): Мета-информация для пагинации поисковых результатов
+  - `total` (integer, int32, **обязательный**): Общее количество найденных результатов
+  - `paginate` (object, **обязательный**): Вспомогательная информация
+    - `next_page` (string, **обязательный**): Курсор пагинации следующей страницы
 
 **Пример ответа:**
 
@@ -232,23 +194,29 @@ echo $response;
 {
   "data": [
     {
-      "id": "a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14",
-      "created_at": "2025-05-15T14:30:00.000Z",
-      "event_key": "user_chat_join",
-      "entity_id": "12345678",
-      "entity_type": "Chat",
-      "actor_id": "98765",
-      "actor_type": "User",
-      "details": {
-        "inviter_id": "45678"
-      },
-      "ip_address": "192.168.1.100",
-      "user_agent": "Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"
+      "id": 198,
+      "name": "Канал разработки",
+      "created_at": "2020-06-08T09:32:57.000Z",
+      "owner_id": 12,
+      "member_ids": [
+        12,
+        13,
+        14
+      ],
+      "group_tag_ids": [
+        9111
+      ],
+      "channel": true,
+      "personal": false,
+      "public": true,
+      "last_message_at": "2025-01-20T13:40:07.000Z",
+      "meet_room_url": "https://meet.pachca.com/dev-94bb21b5"
     }
   ],
   "meta": {
+    "total": 1,
     "paginate": {
-      "next_page": "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
     }
   }
 }
@@ -308,14 +276,7 @@ echo $response;
 - `error` (string, **обязательный**): Код ошибки
 - `error_description` (string, **обязательный**): Описание ошибки
 
-### 403: Access is forbidden.
-
-**Схема ответа при ошибке:**
-
-- `error` (string, **обязательный**): Код ошибки
-- `error_description` (string, **обязательный**): Описание ошибки
-
-### 422: Client error
+### 402: Client error
 
 **Схема ответа при ошибке:**
 
@@ -361,4 +322,11 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:**
+
+- `error` (string, **обязательный**): Код ошибки
+- `error_description` (string, **обязательный**): Описание ошибки
 

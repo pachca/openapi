@@ -24,6 +24,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 | [pachca-bots](../pachca-bots/SKILL.md) | настроить бота, вебхук, webhook |
 | [pachca-forms](../pachca-forms/SKILL.md) | показать форму, интерактивная форма, модальное окно |
 | [pachca-tasks](../pachca-tasks/SKILL.md) | создать задачу, список задач, напоминание |
+| [pachca-search](../pachca-search/SKILL.md) | поиск сообщений, найти сообщение, полнотекстовый поиск |
 | [pachca-security](../pachca-security/SKILL.md) | аудит, журнал событий, безопасность |
 
 ## Быстрый старт

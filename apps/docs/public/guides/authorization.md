@@ -89,6 +89,8 @@ Authorization: Bearer <ACCESS_TOKEN>
 - **Персональный токен** — вы выбираете скоупы вручную при создании. Токен получит только запрошенные разрешения.
 - **Токен бота** — скоупы задаются автоматически и не настраиваются. Все боты (входящие вебхуки, исходящие вебхуки, unfurl-боты) получают одинаковый фиксированный набор разрешений.
 
+При добавлении новых скоупов в API существующие токены не обновляются автоматически. Персональный токен необходимо пересоздать, выбрав нужные скоупы, а токен бота — пересоздать через удаление и создание нового бота.
+
 Проверить скоупы текущего токена можно методом [Информация о токене](GET /oauth/token/info).
 
 ### Скоупы персональных токенов
@@ -111,7 +113,7 @@ Authorization: Bearer <ACCESS_TOKEN>
 - **Файлы:** `files:read`, `uploads:write`
 - **Вебхуки:** `webhooks:events:read`, `webhooks:events:delete`
 
-> **Внимание:** Боты не имеют доступа к: `audit_events:read`, `chat_exports:read/write`, `users:create/update/delete`, `user_status:read/write`, `group_tags:write`, `webhooks:read/write`, `bots:write`.
+> **Внимание:** Боты не имеют доступа к: `audit_events:read`, `chat_exports:read/write`, `users:create/update/delete`, `user_status:read/write`, `group_tags:write`, `search:users/chats/messages`, `webhooks:read/write`, `bots:write`.
 
 
 ## Ошибки авторизации

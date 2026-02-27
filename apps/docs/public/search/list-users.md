@@ -1,29 +1,26 @@
-# Журнал аудита событий
+# Поиск сотрудников
 
 **Метод**: `GET`
 
-**Путь**: `/audit_events`
+**Путь**: `/search/users`
 
-> **Скоуп:** `audit_events:read`
+> **Скоуп:** `search:users`
 
-> **Внимание:** Доступно только на тарифе **Корпорация**
-
-Метод для получения логов событий на основе указанных фильтров.
+Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
 
 ## Параметры
 
 ### Query параметры
 
-- `start_time` (string, **обязательный**): Начальная метка времени (включительно)
-- `end_time` (string, **обязательный**): Конечная метка времени (исключительно)
-- `event_key` (string (enum: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, user_role_changed, user_updated, tag_created, tag_deleted, user_added_to_tag, user_removed_from_tag, chat_created, chat_renamed, chat_permission_changed, user_chat_join, user_chat_leave, tag_added_to_chat, tag_removed_from_chat, message_updated, message_deleted, message_created, reaction_created, reaction_deleted, thread_created, access_token_created, access_token_updated, access_token_destroy, kms_encrypt, kms_decrypt, audit_events_accessed, dlp_violation_detected, search_users_api, search_chats_api, search_messages_api), опциональный): Фильтр по конкретному типу события
-- `actor_id` (integer, опциональный): Идентификатор пользователя, выполнившего действие
-- `actor_type` (string, опциональный): Тип актора
-- `entity_id` (integer, опциональный): Идентификатор затронутой сущности
-- `entity_type` (string, опциональный): Тип сущности
-- `limit` (integer, опциональный): Количество записей для возврата
-  - По умолчанию: `50`
-- `cursor` (string, опциональный): Курсор для пагинации из meta.paginate.next_page
+- `query` (string, опциональный): Текст поискового запроса
+- `limit` (integer, опциональный): Количество возвращаемых результатов за один запрос
+  - По умолчанию: `200`
+- `cursor` (string, опциональный): Курсор для пагинации (из meta.paginate.next_page)
+- `sort` (string (enum: by_score, alphabetical), опциональный): Сортировка результатов
+- `order` (string (enum: asc, desc), опциональный): Направление сортировки
+- `created_from` (string, опциональный): Фильтр по дате создания (от)
+- `created_to` (string, опциональный): Фильтр по дате создания (до)
+- `company_roles` (array, опциональный): Фильтр по ролям сотрудников
 
 
 ## Примеры запроса
@@ -31,14 +28,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/search/users?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=200&cursor=string&sort=by_score&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&company_roles[]=admin" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/search/users?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=200&cursor=string&sort=by_score&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&company_roles[]=admin', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -55,15 +52,16 @@ console.log(data);
 import requests
 
 params = {
-    'start_time': '2024-04-08T10:00:00.000Z',
-    'end_time': '2024-04-08T10:00:00.000Z',
-    'event_key': 'user_login',
-    'actor_id': 12345,
-    'actor_type': 'string',
-    'entity_id': 12345,
-    'entity_type': 'string',
-    'limit': 50,
+    'query': 'Пример текста',
+    'limit': 200,
     'cursor': 'string',
+    'sort': 'by_score',
+    'order': 'asc',
+    'created_from': '2024-04-08T10:00:00.000Z',
+    'created_to': '2024-04-08T10:00:00.000Z',
+    'company_roles': [
+    'admin'
+],
 }
 
 headers = {
@@ -71,7 +69,7 @@ headers = {
 }
 
 response = requests.get(
-    'https://api.pachca.com/api/shared/v1/audit_events',
+    'https://api.pachca.com/api/shared/v1/search/users',
     params=params,
     headers=headers
 )
@@ -87,7 +85,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string',
+    path: '/api/shared/v1/search/users?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=200&cursor=string&sort=by_score&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&company_roles[]=admin',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -119,17 +117,18 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/audit_events')
+uri = URI('https://api.pachca.com/api/shared/v1/search/users')
 params = {
-  'start_time' => '2024-04-08T10:00:00.000Z',
-  'end_time' => '2024-04-08T10:00:00.000Z',
-  'event_key' => 'user_login',
-  'actor_id' => 12345,
-  'actor_type' => 'string',
-  'entity_id' => 12345,
-  'entity_type' => 'string',
-  'limit' => 50,
+  'query' => 'Пример текста',
+  'limit' => 200,
   'cursor' => 'string',
+  'sort' => 'by_score',
+  'order' => 'asc',
+  'created_from' => '2024-04-08T10:00:00.000Z',
+  'created_to' => '2024-04-08T10:00:00.000Z',
+  'company_roles' => [
+  'admin'
+],
 }
 uri.query = URI.encode_www_form(params)
 
@@ -148,11 +147,13 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['start_time' => '2024-04-08T10:00:00.000Z', 'end_time' => '2024-04-08T10:00:00.000Z', 'event_key' => 'user_login', 'actor_id' => 12345, 'actor_type' => 'string', 'entity_id' => 12345, 'entity_type' => 'string', 'limit' => 50, 'cursor' => 'string'];
+$params = ['query' => 'Пример текста', 'limit' => 200, 'cursor' => 'string', 'sort' => 'by_score', 'order' => 'asc', 'created_from' => '2024-04-08T10:00:00.000Z', 'created_to' => '2024-04-08T10:00:00.000Z', 'company_roles' => [
+    'admin'
+]];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/audit_events?' . http_build_query($params)',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/search/users?' . http_build_query($params)',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'GET',
     CURLOPT_HTTPHEADER => [
@@ -174,57 +175,53 @@ echo $response;
 **Схема ответа:**
 
 - `data` (array[object], **обязательный**)
-  - `id` (string, **обязательный**): Уникальный идентификатор события
-  - `created_at` (string, date-time, **обязательный**): Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-  - `event_key` (string, **обязательный**): Ключ типа события
+  - `id` (integer, int32, **обязательный**): Идентификатор пользователя
+  - `first_name` (string, **обязательный**): Имя
+  - `last_name` (string, **обязательный**): Фамилия
+  - `nickname` (string, **обязательный**): Имя пользователя
+  - `email` (string, **обязательный**): Электронная почта
+  - `phone_number` (string, **обязательный**): Телефон
+  - `department` (string, **обязательный**): Департамент
+  - `title` (string, **обязательный**): Должность
+  - `role` (string, **обязательный**): Уровень доступа
     - **Возможные значения:**
-      - `user_login`: Пользователь успешно вошел в систему
-      - `user_logout`: Пользователь вышел из системы
-      - `user_2fa_fail`: Неудачная попытка двухфакторной аутентификации
-      - `user_2fa_success`: Успешная двухфакторная аутентификация
-      - `user_created`: Создана новая учетная запись пользователя
-      - `user_deleted`: Учетная запись пользователя удалена
-      - `user_role_changed`: Роль пользователя была изменена
-      - `user_updated`: Данные пользователя обновлены
-      - `tag_created`: Создан новый тег
-      - `tag_deleted`: Тег удален
-      - `user_added_to_tag`: Пользователь добавлен в тег
-      - `user_removed_from_tag`: Пользователь удален из тега
-      - `chat_created`: Создан новый чат
-      - `chat_renamed`: Чат переименован
-      - `chat_permission_changed`: Изменены права доступа к чату
-      - `user_chat_join`: Пользователь присоединился к чату
-      - `user_chat_leave`: Пользователь покинул чат
-      - `tag_added_to_chat`: Тег добавлен в чат
-      - `tag_removed_from_chat`: Тег удален из чата
-      - `message_updated`: Сообщение отредактировано
-      - `message_deleted`: Сообщение удалено
-      - `message_created`: Сообщение создано
-      - `reaction_created`: Реакция добавлена
-      - `reaction_deleted`: Реакция удалена
-      - `thread_created`: Тред создан
-      - `access_token_created`: Создан новый токен доступа
-      - `access_token_updated`: Токен доступа обновлен
-      - `access_token_destroy`: Токен доступа удален
-      - `kms_encrypt`: Данные зашифрованы
-      - `kms_decrypt`: Данные расшифрованы
-      - `audit_events_accessed`: Доступ к журналам аудита получен
-      - `dlp_violation_detected`: Срабатывание правила DLP-системы
-      - `search_users_api`
-      - `search_chats_api`
-      - `search_messages_api`
-  - `entity_id` (string, **обязательный**): Идентификатор затронутой сущности
-  - `entity_type` (string, **обязательный**): Тип затронутой сущности
-  - `actor_id` (string, **обязательный**): Идентификатор пользователя, выполнившего действие
-  - `actor_type` (string, **обязательный**): Тип актора
-  - `details` (Record<string, object>, **обязательный**): Дополнительные детали события
-    **Структура значений Record:**
-    - Тип значения: `any`
-  - `ip_address` (string, **обязательный**): IP-адрес, с которого было выполнено действие
-  - `user_agent` (string, **обязательный**): User agent клиента
-- `meta` (object, опциональный): Метаданные пагинации
-  - `paginate` (object, опциональный): Вспомогательная информация
-    - `next_page` (string, опциональный): Курсор пагинации следующей страницы
+      - `admin`: Администратор
+      - `user`: Сотрудник
+      - `multi_guest`: Мульти-гость
+      - `guest`: Гость
+  - `suspended` (boolean, **обязательный**): Деактивация пользователя
+  - `invite_status` (string, **обязательный**): Статус приглашения
+    - **Возможные значения:**
+      - `confirmed`: Принято
+      - `sent`: Отправлено
+  - `list_tags` (array[string], **обязательный**): Массив тегов, привязанных к сотруднику
+  - `custom_properties` (array[object], **обязательный**): Дополнительные поля сотрудника
+    - `id` (integer, int32, **обязательный**): Идентификатор поля
+    - `name` (string, **обязательный**): Название поля
+    - `data_type` (string, **обязательный**): Тип поля
+      - **Возможные значения:**
+        - `string`: Строковое значение
+        - `number`: Числовое значение
+        - `date`: Дата
+        - `link`: Ссылка
+    - `value` (string, **обязательный**): Значение
+  - `user_status` (object, **обязательный**): Статус
+    - `emoji` (string, **обязательный**): Emoji символ статуса
+    - `title` (string, **обязательный**): Текст статуса
+    - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
+    - `away_message` (object, **обязательный**): Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
+      - `text` (string, **обязательный**): Текст сообщения
+  - `bot` (boolean, **обязательный**): Является ботом
+  - `sso` (boolean, **обязательный**): Использует ли пользователь SSO
+  - `created_at` (string, date-time, **обязательный**): Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `last_activity_at` (string, date-time, **обязательный**): Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `time_zone` (string, **обязательный**): Часовой пояс пользователя
+  - `image_url` (string, **обязательный**): Ссылка на скачивание аватарки пользователя
+- `meta` (object, **обязательный**): Мета-информация для пагинации поисковых результатов
+  - `total` (integer, int32, **обязательный**): Общее количество найденных результатов
+  - `paginate` (object, **обязательный**): Вспомогательная информация
+    - `next_page` (string, **обязательный**): Курсор пагинации следующей страницы
 
 **Пример ответа:**
 
@@ -232,23 +229,42 @@ echo $response;
 {
   "data": [
     {
-      "id": "a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14",
-      "created_at": "2025-05-15T14:30:00.000Z",
-      "event_key": "user_chat_join",
-      "entity_id": "12345678",
-      "entity_type": "Chat",
-      "actor_id": "98765",
-      "actor_type": "User",
-      "details": {
-        "inviter_id": "45678"
-      },
-      "ip_address": "192.168.1.100",
-      "user_agent": "Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"
+      "id": 12,
+      "first_name": "Олег",
+      "last_name": "Петров",
+      "nickname": "olegpetrov",
+      "email": "olegp@example.com",
+      "phone_number": "",
+      "department": "Продукт",
+      "title": "CIO",
+      "role": "admin",
+      "suspended": false,
+      "invite_status": "confirmed",
+      "list_tags": [
+        "Product",
+        "Design"
+      ],
+      "custom_properties": [
+        {
+          "id": 1678,
+          "name": "Город",
+          "data_type": "string",
+          "value": "Санкт-Петербург"
+        }
+      ],
+      "user_status": null,
+      "bot": false,
+      "sso": false,
+      "created_at": "2020-06-08T09:32:57.000Z",
+      "last_activity_at": "2025-01-20T13:40:07.000Z",
+      "time_zone": "Europe/Moscow",
+      "image_url": null
     }
   ],
   "meta": {
+    "total": 1,
     "paginate": {
-      "next_page": "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
     }
   }
 }
@@ -308,14 +324,7 @@ echo $response;
 - `error` (string, **обязательный**): Код ошибки
 - `error_description` (string, **обязательный**): Описание ошибки
 
-### 403: Access is forbidden.
-
-**Схема ответа при ошибке:**
-
-- `error` (string, **обязательный**): Код ошибки
-- `error_description` (string, **обязательный**): Описание ошибки
-
-### 422: Client error
+### 402: Client error
 
 **Схема ответа при ошибке:**
 
@@ -361,4 +370,11 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+
+### 403: Access is forbidden.
+
+**Схема ответа при ошибке:**
+
+- `error` (string, **обязательный**): Код ошибки
+- `error_description` (string, **обязательный**): Описание ошибки
 

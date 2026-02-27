@@ -29,6 +29,7 @@
 - [Прочтение сообщения](/read-member/list-read-member-ids) — Информация о прочтении
 - [Реакции на сообщения](/reactions/add-reactions) — Реакции на сообщения
 - [Ссылки](/link-previews/add-link-previews) — Разворачивание ссылок (unfurl)
+- [Поиск](/search/list-chats)
 - [Напоминания](/tasks/create) — Создание и управление напоминаниями
 - [Формы](/views/create-open) — Модальные окна с полями ввода
 - [Боты и Webhook](/bots/list-events) — Информация о ботах и вебхуках

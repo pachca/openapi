@@ -9,9 +9,10 @@ import { useState, useEffect, useRef } from 'react';
 
 interface SidebarNavProps {
   navigation: NavigationSection[];
+  onNavigate?: () => void;
 }
 
-export function SidebarNav({ navigation }: SidebarNavProps) {
+export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
   const isInternalNav = useRef(false);
 
@@ -25,6 +26,7 @@ export function SidebarNav({ navigation }: SidebarNavProps) {
 
   const handleItemClick = () => {
     isInternalNav.current = true;
+    onNavigate?.();
   };
 
   // При внешней навигации: раскрываем секцию и прокручиваем к ней

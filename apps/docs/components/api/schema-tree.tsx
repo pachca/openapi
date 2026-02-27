@@ -31,14 +31,7 @@ if (typeof window !== 'undefined') {
 // Функция для извлечения пути из param ID
 function getPathFromParamId(paramId: string): string {
   // param-data-accounts-name -> data.accounts.name
-  // param-data-accounts-name -> убираем 'param-' и заменяем '-' на '.'
   let path = paramId.replace(/^param-/, '');
-
-  // Если путь содержит имя схемы (формат SchemaName___fieldPath), извлекаем только путь к полю
-  const schemaSeparatorIndex = path.indexOf('___');
-  if (schemaSeparatorIndex !== -1) {
-    path = path.substring(schemaSeparatorIndex + 3);
-  }
 
   // Для enum значений (содержат --), берём только путь до enum
   const enumSeparatorIndex = path.indexOf('--');
@@ -46,7 +39,7 @@ function getPathFromParamId(paramId: string): string {
     path = path.substring(0, enumSeparatorIndex);
   }
 
-  // Заменяем одиночные дефисы на точки (но не двойные)
+  // Заменяем одиночные дефисы на точки
   return path.replace(/-/g, '.');
 }
 
@@ -770,16 +763,7 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
       const hash = window.location.hash;
       if (!hash) return;
 
-      // Извлекаем путь из хеша, убирая префикс схемы если есть
-      // Хеш может быть: #param-url или #param-MessageWebhookPayload___url
-      let hashParamId = hash.slice(1); // убираем #
-      const schemaSeparatorIndex = hashParamId.indexOf('___');
-      if (schemaSeparatorIndex !== -1) {
-        // Извлекаем только часть после имени схемы
-        const fieldPath = hashParamId.substring(schemaSeparatorIndex + 3);
-        hashParamId = `param-${fieldPath}`;
-      }
-
+      const hashParamId = hash.slice(1); // убираем #
       if (hashParamId !== paramId) return;
 
       // Скролл к элементу с задержкой для открытия секций

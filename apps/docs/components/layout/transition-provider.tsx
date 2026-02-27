@@ -89,12 +89,12 @@ export function TransitionProvider() {
       if (href?.startsWith('#')) {
         e.preventDefault();
         e.stopPropagation();
-        const targetId = toSlug(decodeURIComponent(href.slice(1)));
-        const element = document.getElementById(targetId);
+        const rawId = decodeURIComponent(href.slice(1));
+        const element = document.getElementById(rawId) || document.getElementById(toSlug(rawId));
 
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          window.history.pushState(null, '', `#${targetId}`);
+          window.history.pushState(null, '', `#${element.id}`);
         }
         return;
       }

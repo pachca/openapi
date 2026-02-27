@@ -2,63 +2,20 @@ import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
 import { getAdjacentItems } from '@/lib/navigation';
 import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
-import { getGuideData, getAllGuideSlugs, extractFirstParagraph } from '@/lib/content-loader';
+import { UpdatesList } from '@/components/api/updates-list';
+import { getGuideData } from '@/lib/content-loader';
 import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
 
-export async function generateStaticParams() {
-  const slugs = getAllGuideSlugs();
-  return slugs.filter((slug) => slug !== 'updates').map((slug) => ({ slug }));
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const data = getGuideData(slug);
-
-  if (!data) {
-    return {
-      title: 'Страница не найдена',
-    };
-  }
-
-  const firstParagraph = extractFirstParagraph(data.content);
-  const title = data.frontmatter.title;
-  const description: string | undefined = data.frontmatter.description || firstParagraph;
-  const ogImage = `/api/og?type=guide&slug=${slug}`;
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: `/guides/${slug}`,
-      types: {
-        'text/markdown': `/guides/${slug}.md`,
-      },
-    },
-    openGraph: {
-      type: 'article',
-      siteName: 'Пачка',
-      locale: 'ru_RU',
-      description,
-      images: [ogImage],
-    },
-  };
-}
-
-export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const data = getGuideData(slug);
+export async function UpdatesPageContent() {
+  const data = getGuideData('updates');
 
   if (!data) {
     notFound();
   }
 
-  const pageUrl = `/guides/${slug}`;
+  const pageUrl = '/guides/updates';
   const adjacent = await getAdjacentItems(pageUrl);
+  const introContent = data.content.split(/<!--\s*update:/)[0].trim();
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -110,7 +67,8 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         }}
       />
       <StaticPageHeader title={data.frontmatter.title} pageUrl={pageUrl} />
-      <MarkdownContent content={data.content} />
+      <MarkdownContent content={introContent} />
+      <UpdatesList />
     </StaticPageWrapper>
   );
 }

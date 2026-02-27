@@ -38,8 +38,10 @@ export function HeadingLink({ id, searchParam }: { id: string; searchParam?: str
     e.preventDefault();
     e.stopPropagation();
 
-    const query = searchParam ? `?s=${encodeURIComponent(searchParam)}` : '';
-    const url = `${window.location.origin}${window.location.pathname}${query}#${id}`;
+    const basePath = searchParam
+      ? `${window.location.origin}/guides/updates/${encodeURIComponent(searchParam)}`
+      : `${window.location.origin}${window.location.pathname}`;
+    const url = `${basePath}#${id}`;
     const success = await copyToClipboard(url);
     if (success) {
       setCopied(true);

@@ -91,7 +91,7 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
           id="mobile-sidebar-scroll-container"
         >
           <div className="p-4 space-y-4 flex-1">
-            <SidebarNav navigation={navigation} />
+            <SidebarNav navigation={navigation} onNavigate={() => setIsOpen(false)} />
           </div>
         </div>
       </div>

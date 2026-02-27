@@ -115,9 +115,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   var savedTheme = localStorage.getItem('theme');
                   var html = document.documentElement;
                   var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  
+
                   html.classList.remove('dark', 'light');
-                  
+
                   if (savedTheme === 'light') {
                     html.classList.add('light');
                   } else if (savedTheme === 'dark' || systemDark) {
@@ -125,6 +125,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   }
                 } catch (e) {}
               })();
+              if (window.location.hash && window.location.hash.indexOf('#param-') !== 0) {
+                document.documentElement.classList.add('hash-loading');
+              }
             `,
           }}
         />

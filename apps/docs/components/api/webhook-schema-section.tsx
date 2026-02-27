@@ -61,23 +61,9 @@ function schemaContainsPath(schema: Schema, targetPath: string, currentPath: str
   return false;
 }
 
-// Извлекает путь из param ID
+// Извлекает путь из param ID (без префикса "param-")
 function getPathFromParamId(paramId: string): string {
   return paramId.replace(/^param-/, '');
-}
-
-// Разбирает путь на имя схемы и путь к полю
-// Формат: "SchemaName___fieldPath" или просто "fieldPath"
-// Используем ___ как разделитель, чтобы не конфликтовать с -- для enum значений
-function parseSchemaPath(path: string): { schemaName: string | null; fieldPath: string } {
-  const separatorIndex = path.indexOf('___');
-  if (separatorIndex > 0) {
-    return {
-      schemaName: path.substring(0, separatorIndex),
-      fieldPath: path.substring(separatorIndex + 3),
-    };
-  }
-  return { schemaName: null, fieldPath: path };
 }
 
 export function WebhookSchemaSection({
@@ -104,21 +90,16 @@ export function WebhookSchemaSection({
       const hash = window.location.hash;
       if (hash && hash.startsWith('#param-')) {
         const targetPath = getPathFromParamId(hash.slice(1));
-        const { schemaName: targetSchemaName, fieldPath } = parseSchemaPath(targetPath);
 
-        // Если в пути указано имя схемы, проверяем совпадение
-        if (targetSchemaName) {
-          // Открываем только если имя схемы совпадает
-          if (
-            schemaName &&
-            targetSchemaName === schemaName &&
-            schemaContainsPath(schema, fieldPath)
-          ) {
+        if (schemaName) {
+          // Если передано имя схемы, проверяем что paramId начинается с него
+          // DOM IDs: param-SchemaName-field or param-SchemaName--enumValue
+          if (targetPath.startsWith(`${schemaName}-`) || targetPath.startsWith(`${schemaName}--`)) {
             setIsOpen(true);
             hasAutoOpened.current = true;
           }
         } else {
-          // Старый формат без имени схемы - проверяем по содержимому
+          // Без имени схемы — проверяем по содержимому
           if (schemaContainsPath(schema, targetPath)) {
             setIsOpen(true);
             hasAutoOpened.current = true;
@@ -164,7 +145,7 @@ export function WebhookSchemaSection({
 
       {(isOpen || hideHeader) && (
         <div className={`px-4 py-0 ${!hideHeader ? 'border-t border-background-border' : ''}`}>
-          <SchemaTree schema={schema} />
+          <SchemaTree schema={schema} parentPath={schemaName} />
         </div>
       )}
     </div>

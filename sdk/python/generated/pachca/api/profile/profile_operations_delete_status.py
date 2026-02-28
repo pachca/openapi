@@ -8,7 +8,6 @@ from ...client import AuthenticatedClient, Client
 from ...types import Response, UNSET
 from ... import errors
 
-from ...models.empty_response import EmptyResponse
 from ...models.o_auth_error import OAuthError
 from typing import cast
 
@@ -33,12 +32,9 @@ def _get_kwargs(
 
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> EmptyResponse | OAuthError | None:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | OAuthError | None:
     if response.status_code == 204:
-        response_204 = EmptyResponse.from_dict(response.json())
-
-
-
+        response_204 = cast(Any, None)
         return response_204
 
     if response.status_code == 401:
@@ -61,7 +57,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[EmptyResponse | OAuthError]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | OAuthError]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -74,7 +70,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient | Client,
 
-) -> Response[EmptyResponse | OAuthError]:
+) -> Response[Any | OAuthError]:
     """  Удаление статуса
 
     Метод для удаления своего статуса.
@@ -84,7 +80,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EmptyResponse | OAuthError]
+        Response[Any | OAuthError]
      """
 
 
@@ -102,7 +98,7 @@ def sync(
     *,
     client: AuthenticatedClient | Client,
 
-) -> EmptyResponse | OAuthError | None:
+) -> Any | OAuthError | None:
     """  Удаление статуса
 
     Метод для удаления своего статуса.
@@ -112,7 +108,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EmptyResponse | OAuthError
+        Any | OAuthError
      """
 
 
@@ -125,7 +121,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient | Client,
 
-) -> Response[EmptyResponse | OAuthError]:
+) -> Response[Any | OAuthError]:
     """  Удаление статуса
 
     Метод для удаления своего статуса.
@@ -135,7 +131,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[EmptyResponse | OAuthError]
+        Response[Any | OAuthError]
      """
 
 
@@ -153,7 +149,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient | Client,
 
-) -> EmptyResponse | OAuthError | None:
+) -> Any | OAuthError | None:
     """  Удаление статуса
 
     Метод для удаления своего статуса.
@@ -163,7 +159,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        EmptyResponse | OAuthError
+        Any | OAuthError
      """
 
 

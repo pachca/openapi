@@ -37,12 +37,12 @@ class OpenViewRequestView:
     """ Собранный объект представления
 
         Attributes:
-            title (str): Заголовок представления
+            title (str): Заголовок представления Example: Уведомление об отпуске.
             blocks (list[ViewBlockCheckbox | ViewBlockDate | ViewBlockDivider | ViewBlockFileInput | ViewBlockHeader |
                 ViewBlockInput | ViewBlockMarkdown | ViewBlockPlainText | ViewBlockRadio | ViewBlockSelect | ViewBlockTime]):
                 Массив блоков представления
-            close_text (str | Unset): Текст кнопки закрытия представления Default: 'Отменить'.
-            submit_text (str | Unset): Текст кнопки отправки формы Default: 'Отправить'.
+            close_text (str | Unset): Текст кнопки закрытия представления Default: 'Отменить'. Example: Закрыть.
+            submit_text (str | Unset): Текст кнопки отправки формы Default: 'Отправить'. Example: Отправить заявку.
      """
 
     title: str
@@ -57,16 +57,16 @@ class OpenViewRequestView:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.view_block_plain_text import ViewBlockPlainText
-        from ..models.view_block_select import ViewBlockSelect
-        from ..models.view_block_radio import ViewBlockRadio
+        from ..models.view_block_file_input import ViewBlockFileInput
+        from ..models.view_block_header import ViewBlockHeader
+        from ..models.view_block_divider import ViewBlockDivider
         from ..models.view_block_markdown import ViewBlockMarkdown
-        from ..models.view_block_input import ViewBlockInput
+        from ..models.view_block_radio import ViewBlockRadio
+        from ..models.view_block_time import ViewBlockTime
         from ..models.view_block_checkbox import ViewBlockCheckbox
         from ..models.view_block_date import ViewBlockDate
-        from ..models.view_block_divider import ViewBlockDivider
-        from ..models.view_block_header import ViewBlockHeader
-        from ..models.view_block_file_input import ViewBlockFileInput
-        from ..models.view_block_time import ViewBlockTime
+        from ..models.view_block_select import ViewBlockSelect
+        from ..models.view_block_input import ViewBlockInput
         title = self.title
 
         blocks = []

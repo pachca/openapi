@@ -116,10 +116,9 @@ import io.ktor.http.ParametersBuilder
          * @param id Идентификатор сообщения 
          * @param code Emoji символ реакции 
          * @param name Текстовое имя эмодзи (используется для кастомных эмодзи) (optional)
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun reactionOperationsRemoveReaction(id: kotlin.Int, code: kotlin.String, name: kotlin.String?): HttpResponse<kotlin.Any> {
+        open suspend fun reactionOperationsRemoveReaction(id: kotlin.Int, code: kotlin.String, name: kotlin.String?): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

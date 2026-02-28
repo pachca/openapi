@@ -29,13 +29,14 @@ class MessageCreateRequestMessage:
     """ Собранный объект параметров создаваемого сообщения
 
         Attributes:
-            entity_id (int): Идентификатор сущности Example: 198.
+            entity_id (int): Идентификатор сущности Example: 334.
             content (str): Текст сообщения Example: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое
                 воскресенье).
             entity_type (MessageEntityType | Unset): Тип сущности для сообщений Default: MessageEntityType.DISCUSSION.
             files (list[MessageCreateRequestMessageFilesItem] | Unset): Прикрепляемые файлы
             buttons (list[list[Button]] | Unset): Массив строк, каждая из которых представлена массивом кнопок. Максимум 100
-                кнопок у сообщения, до 8 кнопок в строке.
+                кнопок у сообщения, до 8 кнопок в строке. Example: [[{'text': 'Подробнее', 'url':
+                'https://example.com/details'}, {'text': 'Отлично!', 'data': 'awesome'}]].
             parent_message_id (int | Unset): Идентификатор сообщения. Указывается в случае, если вы отправляете ответ на
                 другое сообщение. Example: 194270.
             display_avatar_url (str | Unset): Ссылка на специальную аватарку отправителя для этого сообщения. Использование

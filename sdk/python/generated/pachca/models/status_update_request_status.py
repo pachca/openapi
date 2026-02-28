@@ -26,12 +26,13 @@ T = TypeVar("T", bound="StatusUpdateRequestStatus")
 class StatusUpdateRequestStatus:
     """ 
         Attributes:
-            emoji (str): Emoji символ статуса
-            title (str): Текст статуса
+            emoji (str): Emoji символ статуса Example: 🎮.
+            title (str): Текст статуса Example: Очень занят.
             expires_at (datetime.datetime | Unset): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-            is_away (bool | Unset): Режим «Нет на месте»
+                Example: 2024-04-08T10:00:00.000Z.
+            is_away (bool | Unset): Режим «Нет на месте» Example: True.
             away_message (str | Unset): Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных
-                сообщениях/упоминаниях.
+                сообщениях/упоминаниях. Example: Вернусь после 15:00.
      """
 
     emoji: str

@@ -119,9 +119,9 @@ def sync_detailed(
     Метод для получения актуального списка пользователей, прочитавших сообщение.
 
     Args:
-        id (int):
-        limit (int | Unset):  Default: 300.
-        cursor (str | Unset):
+        id (int):  Example: 194275.
+        limit (int | Unset):  Default: 300. Example: 300.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -158,9 +158,9 @@ def sync(
     Метод для получения актуального списка пользователей, прочитавших сообщение.
 
     Args:
-        id (int):
-        limit (int | Unset):  Default: 300.
-        cursor (str | Unset):
+        id (int):  Example: 194275.
+        limit (int | Unset):  Default: 300. Example: 300.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -192,9 +192,9 @@ async def asyncio_detailed(
     Метод для получения актуального списка пользователей, прочитавших сообщение.
 
     Args:
-        id (int):
-        limit (int | Unset):  Default: 300.
-        cursor (str | Unset):
+        id (int):  Example: 194275.
+        limit (int | Unset):  Default: 300. Example: 300.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -231,9 +231,9 @@ async def asyncio(
     Метод для получения актуального списка пользователей, прочитавших сообщение.
 
     Args:
-        id (int):
-        limit (int | Unset):  Default: 300.
-        cursor (str | Unset):
+        id (int):  Example: 194275.
+        limit (int | Unset):  Default: 300. Example: 300.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

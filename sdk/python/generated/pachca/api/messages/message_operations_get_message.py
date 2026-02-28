@@ -92,7 +92,7 @@ def sync_detailed(
     Для получения сообщения вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -127,7 +127,7 @@ def sync(
     Для получения сообщения вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -157,7 +157,7 @@ async def asyncio_detailed(
     Для получения сообщения вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -192,7 +192,7 @@ async def asyncio(
     Для получения сообщения вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

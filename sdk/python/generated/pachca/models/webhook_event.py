@@ -33,7 +33,7 @@ class WebhookEvent:
     """ Событие исходящего вебхука
 
         Attributes:
-            id (str): Идентификатор события Example: a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14.
+            id (str): Идентификатор события Example: 01KAJZ2XDSS2S3DSW9EXJZ0TBV.
             event_type (str): Тип события Example: message_new.
             payload (ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload |
                 LinkSharedWebhookPayload | MessageWebhookPayload | ReactionWebhookPayload): Объединение всех типов payload
@@ -53,12 +53,12 @@ class WebhookEvent:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.chat_member_webhook_payload import ChatMemberWebhookPayload
         from ..models.reaction_webhook_payload import ReactionWebhookPayload
-        from ..models.link_shared_webhook_payload import LinkSharedWebhookPayload
-        from ..models.message_webhook_payload import MessageWebhookPayload
-        from ..models.button_webhook_payload import ButtonWebhookPayload
         from ..models.company_member_webhook_payload import CompanyMemberWebhookPayload
+        from ..models.chat_member_webhook_payload import ChatMemberWebhookPayload
+        from ..models.link_shared_webhook_payload import LinkSharedWebhookPayload
+        from ..models.button_webhook_payload import ButtonWebhookPayload
+        from ..models.message_webhook_payload import MessageWebhookPayload
         id = self.id
 
         event_type = self.event_type

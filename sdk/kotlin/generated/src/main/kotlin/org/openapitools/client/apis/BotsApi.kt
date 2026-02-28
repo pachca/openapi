@@ -42,10 +42,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Удаление события  Данный метод доступен для работы только с &#x60;access_token&#x60; бота  Метод для удаления события из истории событий бота.  Для удаления события вам необходимо знать &#x60;access_token&#x60; бота, которому принадлежит событие, и &#x60;id&#x60; события.
          * @param id Идентификатор события 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun botOperationsDeleteWebhookEvent(id: kotlin.String): HttpResponse<kotlin.Any> {
+        open suspend fun botOperationsDeleteWebhookEvent(id: kotlin.String): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

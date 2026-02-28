@@ -40,10 +40,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Открытие представления  Метод для открытия модального окна с представлением для пользователя.  Чтобы открыть модальное окно с представлением, ваше приложение должно иметь действительный, неистекший &#x60;trigger_id&#x60;.
          * @param openViewRequest  
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun formOperationsOpenView(openViewRequest: OpenViewRequest): HttpResponse<kotlin.Any> {
+        open suspend fun formOperationsOpenView(openViewRequest: OpenViewRequest): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

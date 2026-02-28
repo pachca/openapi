@@ -26,7 +26,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = CommonApi()
-val entityType : SearchEntityType =  // SearchEntityType | Тип сущности
+val entityType : SearchEntityType = User // SearchEntityType | Тип сущности
 try {
     val result : CommonOperationsListProperties200Response = apiInstance.commonOperationsListProperties(entityType)
     println(result)
@@ -137,7 +137,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = CommonApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор экспорта
+val id : kotlin.Int = 22322 // kotlin.Int | Идентификатор экспорта
 try {
     apiInstance.exportOperationsDownloadExport(id)
 } catch (e: ClientException) {
@@ -171,7 +171,7 @@ Configure BearerAuth:
 
 <a id="exportOperationsRequestExport"></a>
 # **exportOperationsRequestExport**
-> kotlin.Any exportOperationsRequestExport(exportRequest)
+> exportOperationsRequestExport(exportRequest)
 
 
 
@@ -184,10 +184,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = CommonApi()
-val exportRequest : ExportRequest = {"start_at":"2025-03-20","end_at":"2025-03-20","webhook_url":"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2","chat_ids":[1381521]} // ExportRequest | 
+val exportRequest : ExportRequest =  // ExportRequest | 
 try {
-    val result : kotlin.Any = apiInstance.exportOperationsRequestExport(exportRequest)
-    println(result)
+    apiInstance.exportOperationsRequestExport(exportRequest)
 } catch (e: ClientException) {
     println("4xx response calling CommonApi#exportOperationsRequestExport")
     e.printStackTrace()
@@ -204,7 +203,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 

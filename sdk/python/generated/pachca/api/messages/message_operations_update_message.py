@@ -117,7 +117,7 @@ def sync_detailed(
     редактируемые параметры сообщения указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
         body (MessageUpdateRequest): Запрос на редактирование сообщения
 
     Raises:
@@ -156,7 +156,7 @@ def sync(
     редактируемые параметры сообщения указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
         body (MessageUpdateRequest): Запрос на редактирование сообщения
 
     Raises:
@@ -190,7 +190,7 @@ async def asyncio_detailed(
     редактируемые параметры сообщения указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
         body (MessageUpdateRequest): Запрос на редактирование сообщения
 
     Raises:
@@ -229,7 +229,7 @@ async def asyncio(
     редактируемые параметры сообщения указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 194275.
         body (MessageUpdateRequest): Запрос на редактирование сообщения
 
     Raises:

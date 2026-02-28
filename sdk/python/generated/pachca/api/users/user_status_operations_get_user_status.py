@@ -90,7 +90,7 @@ def sync_detailed(
     Метод для получения информации о статусе сотрудника.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -123,7 +123,7 @@ def sync(
     Метод для получения информации о статусе сотрудника.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -151,7 +151,7 @@ async def asyncio_detailed(
     Метод для получения информации о статусе сотрудника.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -184,7 +184,7 @@ async def asyncio(
     Метод для получения информации о статусе сотрудника.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

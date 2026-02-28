@@ -121,7 +121,7 @@ def sync_detailed(
     настройки бота» находится во вкладке «Основное» в настройках бота).
 
     Args:
-        id (int):
+        id (int):  Example: 1738816.
         body (BotUpdateRequest): Запрос на обновление бота
 
     Raises:
@@ -164,7 +164,7 @@ def sync(
     настройки бота» находится во вкладке «Основное» в настройках бота).
 
     Args:
-        id (int):
+        id (int):  Example: 1738816.
         body (BotUpdateRequest): Запрос на обновление бота
 
     Raises:
@@ -202,7 +202,7 @@ async def asyncio_detailed(
     настройки бота» находится во вкладке «Основное» в настройках бота).
 
     Args:
-        id (int):
+        id (int):  Example: 1738816.
         body (BotUpdateRequest): Запрос на обновление бота
 
     Raises:
@@ -245,7 +245,7 @@ async def asyncio(
     настройки бота» находится во вкладке «Основное» в настройках бота).
 
     Args:
-        id (int):
+        id (int):  Example: 1738816.
         body (BotUpdateRequest): Запрос на обновление бота
 
     Raises:

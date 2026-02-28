@@ -76,10 +76,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Удаление напоминания  Метод для удаления напоминания.  Для удаления напоминания вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор напоминания 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun taskOperationsDeleteTask(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun taskOperationsDeleteTask(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

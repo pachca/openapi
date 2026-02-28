@@ -9,7 +9,6 @@ from ...types import Response, UNSET
 from ... import errors
 
 from ...models.api_error import ApiError
-from ...models.empty_response import EmptyResponse
 from ...models.o_auth_error import OAuthError
 from ...models.open_view_request import OpenViewRequest
 from typing import cast
@@ -43,12 +42,9 @@ def _get_kwargs(
 
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ApiError | EmptyResponse | OAuthError | None:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ApiError | OAuthError | None:
     if response.status_code == 201:
-        response_201 = EmptyResponse.from_dict(response.json())
-
-
-
+        response_201 = cast(Any, None)
         return response_201
 
     if response.status_code == 400:
@@ -92,7 +88,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[ApiError | EmptyResponse | OAuthError]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ApiError | OAuthError]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -106,7 +102,7 @@ def sync_detailed(
     client: AuthenticatedClient | Client,
     body: OpenViewRequest,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Открытие представления
 
     Метод для открытия модального окна с представлением для пользователя.
@@ -122,7 +118,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -142,7 +138,7 @@ def sync(
     client: AuthenticatedClient | Client,
     body: OpenViewRequest,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Открытие представления
 
     Метод для открытия модального окна с представлением для пользователя.
@@ -158,7 +154,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 
@@ -173,7 +169,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient | Client,
     body: OpenViewRequest,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Открытие представления
 
     Метод для открытия модального окна с представлением для пользователя.
@@ -189,7 +185,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -209,7 +205,7 @@ async def asyncio(
     client: AuthenticatedClient | Client,
     body: OpenViewRequest,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Открытие представления
 
     Метод для открытия модального окна с представлением для пользователя.
@@ -225,7 +221,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 

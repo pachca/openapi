@@ -34,7 +34,7 @@ class ViewBlockDate:
             label (str): Подпись к полю Example: Дата начала отпуска.
             initial_date (datetime.date | Unset): Начальное значение в поле в формате YYYY-MM-DD Example: 2025-07-01.
             required (bool | Unset): Обязательность Example: True.
-            hint (str | Unset): Подсказка, которая отображается под полем серым цветом
+            hint (str | Unset): Подсказка, которая отображается под полем серым цветом Example: Укажите дату начала отпуска.
      """
 
     type_: ViewBlockDateType

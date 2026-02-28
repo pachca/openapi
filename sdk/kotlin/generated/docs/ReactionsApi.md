@@ -24,8 +24,8 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = ReactionsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
-val reactionRequest : ReactionRequest = {"code":"👍","name":":+1:"} // ReactionRequest | 
+val id : kotlin.Int = 7231942 // kotlin.Int | Идентификатор сообщения
+val reactionRequest : ReactionRequest =  // ReactionRequest | 
 try {
     val result : Reaction = apiInstance.reactionOperationsAddReaction(id, reactionRequest)
     println(result)
@@ -74,9 +74,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ReactionsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
 try {
     val result : ReactionOperationsListReactions200Response = apiInstance.reactionOperationsListReactions(id, limit, cursor)
     println(result)
@@ -113,7 +113,7 @@ Configure BearerAuth:
 
 <a id="reactionOperationsRemoveReaction"></a>
 # **reactionOperationsRemoveReaction**
-> kotlin.Any reactionOperationsRemoveReaction(id, code, name)
+> reactionOperationsRemoveReaction(id, code, name)
 
 
 
@@ -126,12 +126,11 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ReactionsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
-val code : kotlin.String = code_example // kotlin.String | Emoji символ реакции
-val name : kotlin.String = name_example // kotlin.String | Текстовое имя эмодзи (используется для кастомных эмодзи)
+val id : kotlin.Int = 7231942 // kotlin.Int | Идентификатор сообщения
+val code : kotlin.String = 👍 // kotlin.String | Emoji символ реакции
+val name : kotlin.String = :+1: // kotlin.String | Текстовое имя эмодзи (используется для кастомных эмодзи)
 try {
-    val result : kotlin.Any = apiInstance.reactionOperationsRemoveReaction(id, code, name)
-    println(result)
+    apiInstance.reactionOperationsRemoveReaction(id, code, name)
 } catch (e: ClientException) {
     println("4xx response calling ReactionsApi#reactionOperationsRemoveReaction")
     e.printStackTrace()
@@ -150,7 +149,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 

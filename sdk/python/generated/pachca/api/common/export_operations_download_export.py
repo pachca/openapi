@@ -108,7 +108,7 @@ def sync_detailed(
     скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
     Args:
-        id (int):
+        id (int):  Example: 22322.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -146,7 +146,7 @@ def sync(
     скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
     Args:
-        id (int):
+        id (int):  Example: 22322.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -179,7 +179,7 @@ async def asyncio_detailed(
     скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
     Args:
-        id (int):
+        id (int):  Example: 22322.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -217,7 +217,7 @@ async def asyncio(
     скачивание файла. Большинство HTTP-клиентов автоматически следуют редиректу и скачивают файл.
 
     Args:
-        id (int):
+        id (int):  Example: 22322.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

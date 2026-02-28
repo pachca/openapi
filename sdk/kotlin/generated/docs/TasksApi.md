@@ -26,7 +26,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = TasksApi()
-val taskCreateRequest : TaskCreateRequest = {"task":{"kind":"reminder","content":"Забрать со склада 21 заказ","due_at":"2020-06-05T12:00:00.000+03:00","priority":2,"custom_properties":[{"id":78,"value":"Синий склад"}]}} // TaskCreateRequest | 
+val taskCreateRequest : TaskCreateRequest =  // TaskCreateRequest | 
 try {
     val result : TaskOperationsCreateTask201Response = apiInstance.taskOperationsCreateTask(taskCreateRequest)
     println(result)
@@ -61,7 +61,7 @@ Configure BearerAuth:
 
 <a id="taskOperationsDeleteTask"></a>
 # **taskOperationsDeleteTask**
-> kotlin.Any taskOperationsDeleteTask(id)
+> taskOperationsDeleteTask(id)
 
 
 
@@ -74,10 +74,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = TasksApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор напоминания
+val id : kotlin.Int = 22283 // kotlin.Int | Идентификатор напоминания
 try {
-    val result : kotlin.Any = apiInstance.taskOperationsDeleteTask(id)
-    println(result)
+    apiInstance.taskOperationsDeleteTask(id)
 } catch (e: ClientException) {
     println("4xx response calling TasksApi#taskOperationsDeleteTask")
     e.printStackTrace()
@@ -94,7 +93,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -122,7 +121,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = TasksApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор напоминания
+val id : kotlin.Int = 22283 // kotlin.Int | Идентификатор напоминания
 try {
     val result : TaskOperationsCreateTask201Response = apiInstance.taskOperationsGetTask(id)
     println(result)
@@ -170,8 +169,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = TasksApi()
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
 try {
     val result : TaskOperationsListTasks200Response = apiInstance.taskOperationsListTasks(limit, cursor)
     println(result)
@@ -220,8 +219,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = TasksApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор напоминания
-val taskUpdateRequest : TaskUpdateRequest = {"task":{"status":"done"}} // TaskUpdateRequest | 
+val id : kotlin.Int = 22283 // kotlin.Int | Идентификатор напоминания
+val taskUpdateRequest : TaskUpdateRequest =  // TaskUpdateRequest | 
 try {
     val result : TaskOperationsCreateTask201Response = apiInstance.taskOperationsUpdateTask(id, taskUpdateRequest)
     println(result)

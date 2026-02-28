@@ -11,7 +11,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 
 <a id="botOperationsDeleteWebhookEvent"></a>
 # **botOperationsDeleteWebhookEvent**
-> kotlin.Any botOperationsDeleteWebhookEvent(id)
+> botOperationsDeleteWebhookEvent(id)
 
 
 
@@ -24,10 +24,9 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = BotsApi()
-val id : kotlin.String = id_example // kotlin.String | Идентификатор события
+val id : kotlin.String = 01KAJZ2XDSS2S3DSW9EXJZ0TBV // kotlin.String | Идентификатор события
 try {
-    val result : kotlin.Any = apiInstance.botOperationsDeleteWebhookEvent(id)
-    println(result)
+    apiInstance.botOperationsDeleteWebhookEvent(id)
 } catch (e: ClientException) {
     println("4xx response calling BotsApi#botOperationsDeleteWebhookEvent")
     e.printStackTrace()
@@ -44,7 +43,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -72,8 +71,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = BotsApi()
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
 try {
     val result : BotOperationsGetWebhookEvents200Response = apiInstance.botOperationsGetWebhookEvents(limit, cursor)
     println(result)
@@ -122,8 +121,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = BotsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор бота
-val botUpdateRequest : BotUpdateRequest = {"bot":{"webhook":{"outgoing_url":"https://www.website.com/tasks/new"}}} // BotUpdateRequest | 
+val id : kotlin.Int = 1738816 // kotlin.Int | Идентификатор бота
+val botUpdateRequest : BotUpdateRequest =  // BotUpdateRequest | 
 try {
     val result : BotOperationsUpdateBot200Response = apiInstance.botOperationsUpdateBot(id, botUpdateRequest)
     println(result)

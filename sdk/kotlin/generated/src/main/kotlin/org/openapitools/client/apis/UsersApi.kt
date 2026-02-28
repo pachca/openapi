@@ -79,10 +79,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Удаление сотрудника  Метод для удаления сотрудника.  Для удаления сотрудника вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор пользователя 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun userOperationsDeleteUser(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun userOperationsDeleteUser(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -220,10 +219,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Удаление статуса сотрудника  Метод для удаления статуса сотрудника.
          * @param userId Идентификатор пользователя 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun userStatusOperationsDeleteUserStatus(userId: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun userStatusOperationsDeleteUserStatus(userId: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

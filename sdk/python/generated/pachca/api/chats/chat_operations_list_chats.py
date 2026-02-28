@@ -151,11 +151,11 @@ def sync_detailed(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (datetime.datetime | Unset):
-        last_message_at_before (datetime.datetime | Unset):
+        last_message_at_after (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        last_message_at_before (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
         personal (bool | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -203,11 +203,11 @@ def sync(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (datetime.datetime | Unset):
-        last_message_at_before (datetime.datetime | Unset):
+        last_message_at_after (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        last_message_at_before (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
         personal (bool | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -250,11 +250,11 @@ async def asyncio_detailed(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (datetime.datetime | Unset):
-        last_message_at_before (datetime.datetime | Unset):
+        last_message_at_after (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        last_message_at_before (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
         personal (bool | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -302,11 +302,11 @@ async def asyncio(
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
         availability (ChatAvailability | Unset): Доступность чатов для пользователя Default:
             ChatAvailability.IS_MEMBER.
-        last_message_at_after (datetime.datetime | Unset):
-        last_message_at_before (datetime.datetime | Unset):
+        last_message_at_after (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        last_message_at_before (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
         personal (bool | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

@@ -117,7 +117,7 @@ def sync_detailed(
     редактируемые параметры тега указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 9111.
         body (GroupTagRequest): Запрос на создание или редактирование тега
 
     Raises:
@@ -156,7 +156,7 @@ def sync(
     редактируемые параметры тега указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 9111.
         body (GroupTagRequest): Запрос на создание или редактирование тега
 
     Raises:
@@ -190,7 +190,7 @@ async def asyncio_detailed(
     редактируемые параметры тега указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 9111.
         body (GroupTagRequest): Запрос на создание или редактирование тега
 
     Raises:
@@ -229,7 +229,7 @@ async def asyncio(
     редактируемые параметры тега указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 9111.
         body (GroupTagRequest): Запрос на создание или редактирование тега
 
     Raises:

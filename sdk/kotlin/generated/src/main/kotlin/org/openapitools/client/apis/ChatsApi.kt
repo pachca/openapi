@@ -45,10 +45,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Архивация чата  Метод для отправки чата в архив.  Для отправки чата в архив вам необходимо знать &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор чата 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatOperationsArchiveChat(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun chatOperationsArchiveChat(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -145,7 +144,7 @@ import io.ktor.http.ParametersBuilder
         * GET /chats
         * 
         * Список чатов  Метод для получения списка чатов по заданным параметрам.
-         * @param sortLeftCurlyBracketFieldRightCurlyBracket Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям &#x60;id&#x60; (идентификатор чата) и &#x60;last_message_at&#x60; (дата и время создания последнего сообщения). (optional)
+         * @param sortLeftCurlyBracketFieldRightCurlyBracket Составной параметр сортировки сущностей выборки (optional)
          * @param availability Параметр, который отвечает за доступность и выборку чатов для пользователя (optional)
          * @param lastMessageAtAfter Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). (optional)
          * @param lastMessageAtBefore Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). (optional)
@@ -193,10 +192,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Разархивация чата  Метод для возвращения чата из архива.  Для разархивации чата вам необходимо знать её &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор чата 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatOperationsUnarchiveChat(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun chatOperationsUnarchiveChat(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

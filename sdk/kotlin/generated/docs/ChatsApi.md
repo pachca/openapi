@@ -14,7 +14,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 
 <a id="chatOperationsArchiveChat"></a>
 # **chatOperationsArchiveChat**
-> kotlin.Any chatOperationsArchiveChat(id)
+> chatOperationsArchiveChat(id)
 
 
 
@@ -27,10 +27,9 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = ChatsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
 try {
-    val result : kotlin.Any = apiInstance.chatOperationsArchiveChat(id)
-    println(result)
+    apiInstance.chatOperationsArchiveChat(id)
 } catch (e: ClientException) {
     println("4xx response calling ChatsApi#chatOperationsArchiveChat")
     e.printStackTrace()
@@ -47,7 +46,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -75,7 +74,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ChatsApi()
-val chatCreateRequest : ChatCreateRequest = {"chat":{"name":"🤿 aqua","member_ids":[186,187],"channel":true,"public":false}} // ChatCreateRequest | 
+val chatCreateRequest : ChatCreateRequest =  // ChatCreateRequest | 
 try {
     val result : ChatOperationsCreateChat201Response = apiInstance.chatOperationsCreateChat(chatCreateRequest)
     println(result)
@@ -123,7 +122,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ChatsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
 try {
     val result : ChatOperationsCreateChat201Response = apiInstance.chatOperationsGetChat(id)
     println(result)
@@ -171,13 +170,13 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ChatsApi()
-val sortLeftCurlyBracketFieldRightCurlyBracket : SortOrder =  // SortOrder | Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).
-val availability : ChatAvailability =  // ChatAvailability | Параметр, который отвечает за доступность и выборку чатов для пользователя
-val lastMessageAtAfter : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
-val lastMessageAtBefore : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
-val personal : kotlin.Boolean = true // kotlin.Boolean | Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
+val sortLeftCurlyBracketFieldRightCurlyBracket : SortOrder = desc // SortOrder | Составной параметр сортировки сущностей выборки
+val availability : ChatAvailability = is_member // ChatAvailability | Параметр, который отвечает за доступность и выборку чатов для пользователя
+val lastMessageAtAfter : java.time.OffsetDateTime = 2025-01-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+val lastMessageAtBefore : java.time.OffsetDateTime = 2025-02-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+val personal : kotlin.Boolean = false // kotlin.Boolean | Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
 try {
     val result : ChatOperationsListChats200Response = apiInstance.chatOperationsListChats(sortLeftCurlyBracketFieldRightCurlyBracket, availability, lastMessageAtAfter, lastMessageAtBefore, personal, limit, cursor)
     println(result)
@@ -191,7 +190,7 @@ try {
 ```
 
 ### Parameters
-| **sortLeftCurlyBracketFieldRightCurlyBracket** | [**SortOrder**](.md)| Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям &#x60;id&#x60; (идентификатор чата) и &#x60;last_message_at&#x60; (дата и время создания последнего сообщения). | [optional] [enum: asc, desc] |
+| **sortLeftCurlyBracketFieldRightCurlyBracket** | [**SortOrder**](.md)| Составной параметр сортировки сущностей выборки | [optional] [enum: asc, desc] |
 | **availability** | [**ChatAvailability**](.md)| Параметр, который отвечает за доступность и выборку чатов для пользователя | [optional] [enum: is_member, public] |
 | **lastMessageAtAfter** | **java.time.OffsetDateTime**| Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). | [optional] |
 | **lastMessageAtBefore** | **java.time.OffsetDateTime**| Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). | [optional] |
@@ -218,7 +217,7 @@ Configure BearerAuth:
 
 <a id="chatOperationsUnarchiveChat"></a>
 # **chatOperationsUnarchiveChat**
-> kotlin.Any chatOperationsUnarchiveChat(id)
+> chatOperationsUnarchiveChat(id)
 
 
 
@@ -231,10 +230,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ChatsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
 try {
-    val result : kotlin.Any = apiInstance.chatOperationsUnarchiveChat(id)
-    println(result)
+    apiInstance.chatOperationsUnarchiveChat(id)
 } catch (e: ClientException) {
     println("4xx response calling ChatsApi#chatOperationsUnarchiveChat")
     e.printStackTrace()
@@ -251,7 +249,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -279,8 +277,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ChatsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
-val chatUpdateRequest : ChatUpdateRequest = {"chat":{"name":"Бассейн","public":true}} // ChatUpdateRequest | 
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
+val chatUpdateRequest : ChatUpdateRequest =  // ChatUpdateRequest | 
 try {
     val result : ChatOperationsCreateChat201Response = apiInstance.chatOperationsUpdateChat(id, chatUpdateRequest)
     println(result)

@@ -10,7 +10,6 @@ from ... import errors
 
 from ...models.add_tags_request import AddTagsRequest
 from ...models.api_error import ApiError
-from ...models.empty_response import EmptyResponse
 from ...models.o_auth_error import OAuthError
 from typing import cast
 
@@ -44,12 +43,9 @@ def _get_kwargs(
 
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ApiError | EmptyResponse | OAuthError | None:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ApiError | OAuthError | None:
     if response.status_code == 204:
-        response_204 = EmptyResponse.from_dict(response.json())
-
-
-
+        response_204 = cast(Any, None)
         return response_204
 
     if response.status_code == 400:
@@ -93,7 +89,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[ApiError | EmptyResponse | OAuthError]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ApiError | OAuthError]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -108,7 +104,7 @@ def sync_detailed(
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Добавление тегов
 
     Метод для добавления тегов в состав участников беседы или канала.
@@ -118,7 +114,7 @@ def sync_detailed(
     появляется в чате, при удалении из тега — удаляется из чата.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -126,7 +122,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -148,7 +144,7 @@ def sync(
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Добавление тегов
 
     Метод для добавления тегов в состав участников беседы или канала.
@@ -158,7 +154,7 @@ def sync(
     появляется в чате, при удалении из тега — удаляется из чата.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -166,7 +162,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 
@@ -183,7 +179,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Добавление тегов
 
     Метод для добавления тегов в состав участников беседы или канала.
@@ -193,7 +189,7 @@ async def asyncio_detailed(
     появляется в чате, при удалении из тега — удаляется из чата.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -201,7 +197,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -223,7 +219,7 @@ async def asyncio(
     client: AuthenticatedClient | Client,
     body: AddTagsRequest,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Добавление тегов
 
     Метод для добавления тегов в состав участников беседы или канала.
@@ -233,7 +229,7 @@ async def asyncio(
     появляется в чате, при удалении из тега — удаляется из чата.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (AddTagsRequest): Запрос на добавление тегов в чат
 
     Raises:
@@ -241,7 +237,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 

@@ -1922,6 +1922,417 @@ internal enum Components {
                 case payload
             }
         }
+        /// При: tag_removed_from_chat
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsChatId`.
+        internal struct AuditDetailsChatId: Codable, Hashable, Sendable {
+            /// Идентификатор чата
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsChatId/chat_id`.
+            internal var chat_id: Swift.Int32
+            /// Creates a new `AuditDetailsChatId`.
+            ///
+            /// - Parameters:
+            ///   - chat_id: Идентификатор чата
+            internal init(chat_id: Swift.Int32) {
+                self.chat_id = chat_id
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case chat_id
+            }
+        }
+        /// При: chat_permission_changed
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsChatPermission`.
+        internal struct AuditDetailsChatPermission: Codable, Hashable, Sendable {
+            /// Публичный доступ
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsChatPermission/public_access`.
+            internal var public_access: Swift.Bool
+            /// Creates a new `AuditDetailsChatPermission`.
+            ///
+            /// - Parameters:
+            ///   - public_access: Публичный доступ
+            internal init(public_access: Swift.Bool) {
+                self.public_access = public_access
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case public_access
+            }
+        }
+        /// При: chat_renamed
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsChatRenamed`.
+        internal struct AuditDetailsChatRenamed: Codable, Hashable, Sendable {
+            /// Прежнее название чата
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsChatRenamed/old_name`.
+            internal var old_name: Swift.String
+            /// Новое название чата
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsChatRenamed/new_name`.
+            internal var new_name: Swift.String
+            /// Creates a new `AuditDetailsChatRenamed`.
+            ///
+            /// - Parameters:
+            ///   - old_name: Прежнее название чата
+            ///   - new_name: Новое название чата
+            internal init(
+                old_name: Swift.String,
+                new_name: Swift.String
+            ) {
+                self.old_name = old_name
+                self.new_name = new_name
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case old_name
+                case new_name
+            }
+        }
+        /// При: dlp_violation_detected
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp`.
+        internal struct AuditDetailsDlp: Codable, Hashable, Sendable {
+            /// Идентификатор правила DLP
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp/dlp_rule_id`.
+            internal var dlp_rule_id: Swift.Int32
+            /// Название правила DLP
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp/dlp_rule_name`.
+            internal var dlp_rule_name: Swift.String
+            /// Идентификатор сообщения
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp/message_id`.
+            internal var message_id: Swift.Int32
+            /// Идентификатор чата
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp/chat_id`.
+            internal var chat_id: Swift.Int32
+            /// Идентификатор пользователя
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp/user_id`.
+            internal var user_id: Swift.Int32
+            /// Описание действия
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp/action_message`.
+            internal var action_message: Swift.String
+            /// Результат проверки условий правила (true — условия сработали)
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsDlp/conditions_matched`.
+            internal var conditions_matched: Swift.Bool
+            /// Creates a new `AuditDetailsDlp`.
+            ///
+            /// - Parameters:
+            ///   - dlp_rule_id: Идентификатор правила DLP
+            ///   - dlp_rule_name: Название правила DLP
+            ///   - message_id: Идентификатор сообщения
+            ///   - chat_id: Идентификатор чата
+            ///   - user_id: Идентификатор пользователя
+            ///   - action_message: Описание действия
+            ///   - conditions_matched: Результат проверки условий правила (true — условия сработали)
+            internal init(
+                dlp_rule_id: Swift.Int32,
+                dlp_rule_name: Swift.String,
+                message_id: Swift.Int32,
+                chat_id: Swift.Int32,
+                user_id: Swift.Int32,
+                action_message: Swift.String,
+                conditions_matched: Swift.Bool
+            ) {
+                self.dlp_rule_id = dlp_rule_id
+                self.dlp_rule_name = dlp_rule_name
+                self.message_id = message_id
+                self.chat_id = chat_id
+                self.user_id = user_id
+                self.action_message = action_message
+                self.conditions_matched = conditions_matched
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case dlp_rule_id
+                case dlp_rule_name
+                case message_id
+                case chat_id
+                case user_id
+                case action_message
+                case conditions_matched
+            }
+        }
+        /// Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsEmpty`.
+        internal typealias AuditDetailsEmpty = OpenAPIRuntime.OpenAPIObjectContainer
+        /// При: user_added_to_tag, user_removed_from_tag, user_chat_leave
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsInitiator`.
+        internal struct AuditDetailsInitiator: Codable, Hashable, Sendable {
+            /// Идентификатор инициатора действия
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsInitiator/initiator_id`.
+            internal var initiator_id: Swift.Int32
+            /// Creates a new `AuditDetailsInitiator`.
+            ///
+            /// - Parameters:
+            ///   - initiator_id: Идентификатор инициатора действия
+            internal init(initiator_id: Swift.Int32) {
+                self.initiator_id = initiator_id
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case initiator_id
+            }
+        }
+        /// При: user_chat_join
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsInviter`.
+        internal struct AuditDetailsInviter: Codable, Hashable, Sendable {
+            /// Идентификатор пригласившего
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsInviter/inviter_id`.
+            internal var inviter_id: Swift.Int32
+            /// Creates a new `AuditDetailsInviter`.
+            ///
+            /// - Parameters:
+            ///   - inviter_id: Идентификатор пригласившего
+            internal init(inviter_id: Swift.Int32) {
+                self.inviter_id = inviter_id
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case inviter_id
+            }
+        }
+        /// При: kms_encrypt, kms_decrypt
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsKms`.
+        internal struct AuditDetailsKms: Codable, Hashable, Sendable {
+            /// Идентификатор чата
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsKms/chat_id`.
+            internal var chat_id: Swift.Int32
+            /// Идентификатор сообщения
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsKms/message_id`.
+            internal var message_id: Swift.Int32
+            /// Причина операции
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsKms/reason`.
+            internal var reason: Swift.String
+            /// Creates a new `AuditDetailsKms`.
+            ///
+            /// - Parameters:
+            ///   - chat_id: Идентификатор чата
+            ///   - message_id: Идентификатор сообщения
+            ///   - reason: Причина операции
+            internal init(
+                chat_id: Swift.Int32,
+                message_id: Swift.Int32,
+                reason: Swift.String
+            ) {
+                self.chat_id = chat_id
+                self.message_id = message_id
+                self.reason = reason
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case chat_id
+                case message_id
+                case reason
+            }
+        }
+        /// При: user_role_changed
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsRoleChanged`.
+        internal struct AuditDetailsRoleChanged: Codable, Hashable, Sendable {
+            /// Новая роль
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsRoleChanged/new_company_role`.
+            internal var new_company_role: Swift.String
+            /// Предыдущая роль
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsRoleChanged/previous_company_role`.
+            internal var previous_company_role: Swift.String
+            /// Идентификатор инициатора
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsRoleChanged/initiator_id`.
+            internal var initiator_id: Swift.Int32
+            /// Creates a new `AuditDetailsRoleChanged`.
+            ///
+            /// - Parameters:
+            ///   - new_company_role: Новая роль
+            ///   - previous_company_role: Предыдущая роль
+            ///   - initiator_id: Идентификатор инициатора
+            internal init(
+                new_company_role: Swift.String,
+                previous_company_role: Swift.String,
+                initiator_id: Swift.Int32
+            ) {
+                self.new_company_role = new_company_role
+                self.previous_company_role = previous_company_role
+                self.initiator_id = initiator_id
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case new_company_role
+                case previous_company_role
+                case initiator_id
+            }
+        }
+        /// При: search_users_api, search_chats_api, search_messages_api
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsSearch`.
+        internal struct AuditDetailsSearch: Codable, Hashable, Sendable {
+            /// Тип поиска
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsSearch/search_type`.
+            internal var search_type: Swift.String
+            /// Указан ли поисковый запрос
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsSearch/query_present`.
+            internal var query_present: Swift.Bool
+            /// Использован ли курсор
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsSearch/cursor_present`.
+            internal var cursor_present: Swift.Bool
+            /// Количество возвращённых результатов
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsSearch/limit`.
+            internal var limit: Swift.Int32
+            /// Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsSearch/filters`.
+            internal struct filtersPayload: Codable, Hashable, Sendable {
+                /// A container of undocumented properties.
+                internal var additionalProperties: [String: OpenAPIRuntime.OpenAPIValueContainer]
+                /// Creates a new `filtersPayload`.
+                ///
+                /// - Parameters:
+                ///   - additionalProperties: A container of undocumented properties.
+                internal init(additionalProperties: [String: OpenAPIRuntime.OpenAPIValueContainer] = .init()) {
+                    self.additionalProperties = additionalProperties
+                }
+                internal init(from decoder: any Decoder) throws {
+                    additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
+                }
+                internal func encode(to encoder: any Encoder) throws {
+                    try encoder.encodeAdditionalProperties(additionalProperties)
+                }
+            }
+            /// Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsSearch/filters`.
+            internal var filters: Components.Schemas.AuditDetailsSearch.filtersPayload
+            /// Creates a new `AuditDetailsSearch`.
+            ///
+            /// - Parameters:
+            ///   - search_type: Тип поиска
+            ///   - query_present: Указан ли поисковый запрос
+            ///   - cursor_present: Использован ли курсор
+            ///   - limit: Количество возвращённых результатов
+            ///   - filters: Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+            internal init(
+                search_type: Swift.String,
+                query_present: Swift.Bool,
+                cursor_present: Swift.Bool,
+                limit: Swift.Int32,
+                filters: Components.Schemas.AuditDetailsSearch.filtersPayload
+            ) {
+                self.search_type = search_type
+                self.query_present = query_present
+                self.cursor_present = cursor_present
+                self.limit = limit
+                self.filters = filters
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case search_type
+                case query_present
+                case cursor_present
+                case limit
+                case filters
+            }
+        }
+        /// При: tag_added_to_chat
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsTagChat`.
+        internal struct AuditDetailsTagChat: Codable, Hashable, Sendable {
+            /// Идентификатор чата
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsTagChat/chat_id`.
+            internal var chat_id: Swift.Int32
+            /// Название тега
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsTagChat/tag_name`.
+            internal var tag_name: Swift.String
+            /// Creates a new `AuditDetailsTagChat`.
+            ///
+            /// - Parameters:
+            ///   - chat_id: Идентификатор чата
+            ///   - tag_name: Название тега
+            internal init(
+                chat_id: Swift.Int32,
+                tag_name: Swift.String
+            ) {
+                self.chat_id = chat_id
+                self.tag_name = tag_name
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case chat_id
+                case tag_name
+            }
+        }
+        /// При: tag_created, tag_deleted
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsTagName`.
+        internal struct AuditDetailsTagName: Codable, Hashable, Sendable {
+            /// Название тега
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsTagName/name`.
+            internal var name: Swift.String
+            /// Creates a new `AuditDetailsTagName`.
+            ///
+            /// - Parameters:
+            ///   - name: Название тега
+            internal init(name: Swift.String) {
+                self.name = name
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case name
+            }
+        }
+        /// При: access_token_created, access_token_updated, access_token_destroy
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsTokenScopes`.
+        internal struct AuditDetailsTokenScopes: Codable, Hashable, Sendable {
+            /// Скоупы токена
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsTokenScopes/scopes`.
+            internal var scopes: [Swift.String]
+            /// Creates a new `AuditDetailsTokenScopes`.
+            ///
+            /// - Parameters:
+            ///   - scopes: Скоупы токена
+            internal init(scopes: [Swift.String]) {
+                self.scopes = scopes
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case scopes
+            }
+        }
+        /// При: user_updated
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditDetailsUserUpdated`.
+        internal struct AuditDetailsUserUpdated: Codable, Hashable, Sendable {
+            /// Список изменённых полей
+            ///
+            /// - Remark: Generated from `#/components/schemas/AuditDetailsUserUpdated/changed_attrs`.
+            internal var changed_attrs: [Swift.String]
+            /// Creates a new `AuditDetailsUserUpdated`.
+            ///
+            /// - Parameters:
+            ///   - changed_attrs: Список изменённых полей
+            internal init(changed_attrs: [Swift.String]) {
+                self.changed_attrs = changed_attrs
+            }
+            internal enum CodingKeys: String, CodingKey {
+                case changed_attrs
+            }
+        }
         /// Событие аудита
         ///
         /// - Remark: Generated from `#/components/schemas/AuditEvent`.
@@ -1974,27 +2385,27 @@ internal enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/AuditEvent/actor_type`.
             internal var actor_type: Swift.String
-            /// Дополнительные детали события
+            /// Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
             ///
             /// - Remark: Generated from `#/components/schemas/AuditEvent/details`.
             internal struct detailsPayload: Codable, Hashable, Sendable {
-                /// A container of undocumented properties.
-                internal var additionalProperties: [String: OpenAPIRuntime.OpenAPIValueContainer]
+                /// - Remark: Generated from `#/components/schemas/AuditEvent/details/value1`.
+                internal var value1: Components.Schemas.AuditEventDetailsUnion
                 /// Creates a new `detailsPayload`.
                 ///
                 /// - Parameters:
-                ///   - additionalProperties: A container of undocumented properties.
-                internal init(additionalProperties: [String: OpenAPIRuntime.OpenAPIValueContainer] = .init()) {
-                    self.additionalProperties = additionalProperties
+                ///   - value1:
+                internal init(value1: Components.Schemas.AuditEventDetailsUnion) {
+                    self.value1 = value1
                 }
                 internal init(from decoder: any Decoder) throws {
-                    additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
+                    self.value1 = try .init(from: decoder)
                 }
                 internal func encode(to encoder: any Encoder) throws {
-                    try encoder.encodeAdditionalProperties(additionalProperties)
+                    try self.value1.encode(to: encoder)
                 }
             }
-            /// Дополнительные детали события
+            /// Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
             ///
             /// - Remark: Generated from `#/components/schemas/AuditEvent/details`.
             internal var details: Components.Schemas.AuditEvent.detailsPayload
@@ -2016,7 +2427,7 @@ internal enum Components {
             ///   - entity_type: Тип затронутой сущности
             ///   - actor_id: Идентификатор пользователя, выполнившего действие
             ///   - actor_type: Тип актора
-            ///   - details: Дополнительные детали события
+            ///   - details: Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
             ///   - ip_address: IP-адрес, с которого было выполнено действие
             ///   - user_agent: User agent клиента
             internal init(
@@ -2053,6 +2464,197 @@ internal enum Components {
                 case details
                 case ip_address
                 case user_agent
+            }
+        }
+        /// Дополнительные детали события аудита. Структура зависит от значения event_key
+        ///
+        /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion`.
+        internal struct AuditEventDetailsUnion: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value1`.
+            internal var value1: Components.Schemas.AuditDetailsEmpty?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value2`.
+            internal var value2: Components.Schemas.AuditDetailsUserUpdated?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value3`.
+            internal var value3: Components.Schemas.AuditDetailsRoleChanged?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value4`.
+            internal var value4: Components.Schemas.AuditDetailsTagName?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value5`.
+            internal var value5: Components.Schemas.AuditDetailsInitiator?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value6`.
+            internal var value6: Components.Schemas.AuditDetailsInviter?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value7`.
+            internal var value7: Components.Schemas.AuditDetailsChatRenamed?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value8`.
+            internal var value8: Components.Schemas.AuditDetailsChatPermission?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value9`.
+            internal var value9: Components.Schemas.AuditDetailsTagChat?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value10`.
+            internal var value10: Components.Schemas.AuditDetailsChatId?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value11`.
+            internal var value11: Components.Schemas.AuditDetailsTokenScopes?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value12`.
+            internal var value12: Components.Schemas.AuditDetailsKms?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value13`.
+            internal var value13: Components.Schemas.AuditDetailsDlp?
+            /// - Remark: Generated from `#/components/schemas/AuditEventDetailsUnion/value14`.
+            internal var value14: Components.Schemas.AuditDetailsSearch?
+            /// Creates a new `AuditEventDetailsUnion`.
+            ///
+            /// - Parameters:
+            ///   - value1:
+            ///   - value2:
+            ///   - value3:
+            ///   - value4:
+            ///   - value5:
+            ///   - value6:
+            ///   - value7:
+            ///   - value8:
+            ///   - value9:
+            ///   - value10:
+            ///   - value11:
+            ///   - value12:
+            ///   - value13:
+            ///   - value14:
+            internal init(
+                value1: Components.Schemas.AuditDetailsEmpty? = nil,
+                value2: Components.Schemas.AuditDetailsUserUpdated? = nil,
+                value3: Components.Schemas.AuditDetailsRoleChanged? = nil,
+                value4: Components.Schemas.AuditDetailsTagName? = nil,
+                value5: Components.Schemas.AuditDetailsInitiator? = nil,
+                value6: Components.Schemas.AuditDetailsInviter? = nil,
+                value7: Components.Schemas.AuditDetailsChatRenamed? = nil,
+                value8: Components.Schemas.AuditDetailsChatPermission? = nil,
+                value9: Components.Schemas.AuditDetailsTagChat? = nil,
+                value10: Components.Schemas.AuditDetailsChatId? = nil,
+                value11: Components.Schemas.AuditDetailsTokenScopes? = nil,
+                value12: Components.Schemas.AuditDetailsKms? = nil,
+                value13: Components.Schemas.AuditDetailsDlp? = nil,
+                value14: Components.Schemas.AuditDetailsSearch? = nil
+            ) {
+                self.value1 = value1
+                self.value2 = value2
+                self.value3 = value3
+                self.value4 = value4
+                self.value5 = value5
+                self.value6 = value6
+                self.value7 = value7
+                self.value8 = value8
+                self.value9 = value9
+                self.value10 = value10
+                self.value11 = value11
+                self.value12 = value12
+                self.value13 = value13
+                self.value14 = value14
+            }
+            internal init(from decoder: any Decoder) throws {
+                var errors: [any Error] = []
+                do {
+                    self.value1 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value2 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value3 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value4 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value5 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value6 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value7 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value8 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value9 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value10 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value11 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value12 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value13 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                do {
+                    self.value14 = try .init(from: decoder)
+                } catch {
+                    errors.append(error)
+                }
+                try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                    [
+                        self.value1,
+                        self.value2,
+                        self.value3,
+                        self.value4,
+                        self.value5,
+                        self.value6,
+                        self.value7,
+                        self.value8,
+                        self.value9,
+                        self.value10,
+                        self.value11,
+                        self.value12,
+                        self.value13,
+                        self.value14
+                    ],
+                    type: Self.self,
+                    codingPath: decoder.codingPath,
+                    errors: errors
+                )
+            }
+            internal func encode(to encoder: any Encoder) throws {
+                try self.value1?.encode(to: encoder)
+                try self.value2?.encode(to: encoder)
+                try self.value3?.encode(to: encoder)
+                try self.value4?.encode(to: encoder)
+                try self.value5?.encode(to: encoder)
+                try self.value6?.encode(to: encoder)
+                try self.value7?.encode(to: encoder)
+                try self.value8?.encode(to: encoder)
+                try self.value9?.encode(to: encoder)
+                try self.value10?.encode(to: encoder)
+                try self.value11?.encode(to: encoder)
+                try self.value12?.encode(to: encoder)
+                try self.value13?.encode(to: encoder)
+                try self.value14?.encode(to: encoder)
             }
         }
         /// Тип аудит-события
@@ -2884,10 +3486,6 @@ internal enum Components {
                 case data_type
             }
         }
-        /// При безошибочном выполнении запроса тело ответа отсутствует
-        ///
-        /// - Remark: Generated from `#/components/schemas/EmptyResponse`.
-        internal typealias EmptyResponse = OpenAPIRuntime.OpenAPIObjectContainer
         /// Запрос на экспорт сообщений
         ///
         /// - Remark: Generated from `#/components/schemas/ExportRequest`.
@@ -7390,7 +7988,7 @@ internal enum Operations {
                 /// Идентификатор пользователя, выполнившего действие
                 ///
                 /// - Remark: Generated from `#/paths/audit_events/GET/query/actor_id`.
-                internal var actor_id: Swift.Int32?
+                internal var actor_id: Swift.String?
                 /// Тип актора
                 ///
                 /// - Remark: Generated from `#/paths/audit_events/GET/query/actor_type`.
@@ -7398,7 +7996,7 @@ internal enum Operations {
                 /// Идентификатор затронутой сущности
                 ///
                 /// - Remark: Generated from `#/paths/audit_events/GET/query/entity_id`.
-                internal var entity_id: Swift.Int32?
+                internal var entity_id: Swift.String?
                 /// Тип сущности
                 ///
                 /// - Remark: Generated from `#/paths/audit_events/GET/query/entity_type`.
@@ -7427,9 +8025,9 @@ internal enum Operations {
                     start_time: Foundation.Date,
                     end_time: Foundation.Date,
                     event_key: Components.Schemas.AuditEventKey? = nil,
-                    actor_id: Swift.Int32? = nil,
+                    actor_id: Swift.String? = nil,
                     actor_type: Swift.String? = nil,
-                    entity_id: Swift.Int32? = nil,
+                    entity_id: Swift.String? = nil,
                     entity_type: Swift.String? = nil,
                     limit: Swift.Int32? = nil,
                     cursor: Swift.String? = nil
@@ -8229,7 +8827,7 @@ internal enum Operations {
                         try encoder.encodeToSingleValueContainer(self.value1)
                     }
                 }
-                /// Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).
+                /// Составной параметр сортировки сущностей выборки
                 ///
                 /// - Remark: Generated from `#/paths/chats/GET/query/sort[{field}]`.
                 internal var sort_lbrack__lcub_field_rcub__rbrack_: Operations.ChatOperations_listChats.Input.Query.sort_lbrack__lcub_field_rcub__rbrack_Payload?
@@ -8278,7 +8876,7 @@ internal enum Operations {
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
-                ///   - sort_lbrack__lcub_field_rcub__rbrack_: Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).
+                ///   - sort_lbrack__lcub_field_rcub__rbrack_: Составной параметр сортировки сущностей выборки
                 ///   - availability: Параметр, который отвечает за доступность и выборку чатов для пользователя
                 ///   - last_message_at_after: Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
                 ///   - last_message_at_before: Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
@@ -9031,32 +9629,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/exports/POST/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/exports/POST/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ExportOperations_requestExport.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ExportOperations_requestExport.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -9064,6 +9638,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ExportOperations_requestExport.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/exports/post(ExportOperations_requestExport)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -10507,32 +11089,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/archive/PUT/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/archive/PUT/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatOperations_archiveChat.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatOperations_archiveChat.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -10540,6 +11098,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatOperations_archiveChat.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/archive/put(ChatOperations_archiveChat)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -10803,32 +11369,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/group_tags/POST/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/group_tags/POST/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatMemberOperations_addTags.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatMemberOperations_addTags.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -10836,6 +11378,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatMemberOperations_addTags.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/group_tags/post(ChatMemberOperations_addTags)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -11201,32 +11751,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/group_tags/{tag_id}/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/group_tags/{tag_id}/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatMemberOperations_removeTag.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatMemberOperations_removeTag.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -11234,6 +11760,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatMemberOperations_removeTag.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/group_tags/{tag_id}/delete(ChatMemberOperations_removeTag)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -11486,32 +12020,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/leave/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/leave/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatMemberOperations_leaveChat.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatMemberOperations_leaveChat.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -11519,6 +12029,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatMemberOperations_leaveChat.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/leave/delete(ChatMemberOperations_leaveChat)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -12348,32 +12866,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/members/POST/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/members/POST/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatMemberOperations_addMembers.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatMemberOperations_addMembers.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -12381,6 +12875,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatMemberOperations_addMembers.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/members/post(ChatMemberOperations_addMembers)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -12757,32 +13259,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/members/{user_id}/PUT/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/members/{user_id}/PUT/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatMemberOperations_updateMemberRole.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatMemberOperations_updateMemberRole.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -12790,6 +13268,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatMemberOperations_updateMemberRole.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/members/{user_id}/put(ChatMemberOperations_updateMemberRole)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -13155,32 +13641,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/members/{user_id}/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/members/{user_id}/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatMemberOperations_removeMember.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatMemberOperations_removeMember.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -13188,6 +13650,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatMemberOperations_removeMember.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/members/{user_id}/delete(ChatMemberOperations_removeMember)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -13442,32 +13912,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/chats/{id}/unarchive/PUT/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/chats/{id}/unarchive/PUT/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ChatOperations_unarchiveChat.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ChatOperations_unarchiveChat.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -13475,6 +13921,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ChatOperations_unarchiveChat.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//chats/{id}/unarchive/put(ChatOperations_unarchiveChat)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -15597,32 +16051,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/group_tags/{id}/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/group_tags/{id}/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.GroupTagOperations_deleteTag.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.GroupTagOperations_deleteTag.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -15630,6 +16060,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.GroupTagOperations_deleteTag.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//group_tags/{id}/delete(GroupTagOperations_deleteTag)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -16305,7 +16743,7 @@ internal enum Operations {
                         try encoder.encodeToSingleValueContainer(self.value1)
                     }
                 }
-                /// Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).
+                /// Составной параметр сортировки сущностей выборки
                 ///
                 /// - Remark: Generated from `#/paths/messages/GET/query/sort[{field}]`.
                 internal var sort_lbrack__lcub_field_rcub__rbrack_: Operations.ChatMessageOperations_listChatMessages.Input.Query.sort_lbrack__lcub_field_rcub__rbrack_Payload?
@@ -16321,7 +16759,7 @@ internal enum Operations {
                 ///
                 /// - Parameters:
                 ///   - chat_id: Идентификатор чата (беседа, канал, диалог или чат треда)
-                ///   - sort_lbrack__lcub_field_rcub__rbrack_: Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).
+                ///   - sort_lbrack__lcub_field_rcub__rbrack_: Составной параметр сортировки сущностей выборки
                 ///   - limit: Количество возвращаемых сущностей за один запрос
                 ///   - cursor: Курсор для пагинации (из `meta.paginate.next_page`)
                 internal init(
@@ -17847,32 +18285,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/messages/{id}/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/messages/{id}/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.MessageOperations_deleteMessage.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.MessageOperations_deleteMessage.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -17880,6 +18294,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.MessageOperations_deleteMessage.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//messages/{id}/delete(MessageOperations_deleteMessage)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -18149,32 +18571,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/messages/{id}/link_previews/POST/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/messages/{id}/link_previews/POST/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.LinkPreviewOperations_createLinkPreviews.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.LinkPreviewOperations_createLinkPreviews.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -18182,6 +18580,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.LinkPreviewOperations_createLinkPreviews.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//messages/{id}/link_previews/post(LinkPreviewOperations_createLinkPreviews)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -18538,32 +18944,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct Created: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/messages/{id}/pin/POST/responses/201/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/messages/{id}/pin/POST/responses/201/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.MessageOperations_pinMessage.Output.Created.Body
                 /// Creates a new `Created`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.MessageOperations_pinMessage.Output.Created.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// The request has succeeded and a new resource has been created as a result.
             ///
@@ -18571,6 +18953,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `201 created`.
             case created(Operations.MessageOperations_pinMessage.Output.Created)
+            /// The request has succeeded and a new resource has been created as a result.
+            ///
+            /// - Remark: Generated from `#/paths//messages/{id}/pin/post(MessageOperations_pinMessage)/responses/201`.
+            ///
+            /// HTTP response code: `201 created`.
+            internal static var created: Self {
+                .created(.init())
+            }
             /// The associated value of the enum case if `self` is `.created`.
             ///
             /// - Throws: An error if `self` is not `.created`.
@@ -18876,32 +19266,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/messages/{id}/pin/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/messages/{id}/pin/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.MessageOperations_unpinMessage.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.MessageOperations_unpinMessage.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -18909,6 +19275,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.MessageOperations_unpinMessage.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//messages/{id}/pin/delete(MessageOperations_unpinMessage)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -20035,32 +20409,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/messages/{id}/reactions/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/messages/{id}/reactions/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ReactionOperations_removeReaction.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ReactionOperations_removeReaction.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -20068,6 +20418,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ReactionOperations_removeReaction.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//messages/{id}/reactions/delete(ReactionOperations_removeReaction)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -22149,32 +22507,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/profile/status/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/profile/status/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.ProfileOperations_deleteStatus.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.ProfileOperations_deleteStatus.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -22182,6 +22516,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.ProfileOperations_deleteStatus.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//profile/status/delete(ProfileOperations_deleteStatus)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -25076,32 +25418,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/tasks/{id}/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/tasks/{id}/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.TaskOperations_deleteTask.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.TaskOperations_deleteTask.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -25109,6 +25427,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.TaskOperations_deleteTask.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//tasks/{id}/delete(TaskOperations_deleteTask)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -27325,32 +27651,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/users/{id}/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/users/{id}/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.UserOperations_deleteUser.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.UserOperations_deleteUser.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -27358,6 +27660,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.UserOperations_deleteUser.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//users/{id}/delete(UserOperations_deleteUser)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -28343,32 +28653,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/users/{user_id}/status/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.UserStatusOperations_deleteUserStatus.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.UserStatusOperations_deleteUserStatus.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -28376,6 +28662,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.UserStatusOperations_deleteUserStatus.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//users/{user_id}/status/delete(UserStatusOperations_deleteUserStatus)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.
@@ -28621,32 +28915,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct Created: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/views/open/POST/responses/201/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/views/open/POST/responses/201/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.FormOperations_openView.Output.Created.Body
                 /// Creates a new `Created`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.FormOperations_openView.Output.Created.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// The request has succeeded and a new resource has been created as a result.
             ///
@@ -28654,6 +28924,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `201 created`.
             case created(Operations.FormOperations_openView.Output.Created)
+            /// The request has succeeded and a new resource has been created as a result.
+            ///
+            /// - Remark: Generated from `#/paths//views/open/post(FormOperations_openView)/responses/201`.
+            ///
+            /// HTTP response code: `201 created`.
+            internal static var created: Self {
+                .created(.init())
+            }
             /// The associated value of the enum case if `self` is `.created`.
             ///
             /// - Throws: An error if `self` is not `.created`.
@@ -29386,32 +29664,8 @@ internal enum Operations {
         }
         internal enum Output: Sendable, Hashable {
             internal struct NoContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/webhooks/events/{id}/DELETE/responses/204/content`.
-                internal enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/webhooks/events/{id}/DELETE/responses/204/content/application\/json`.
-                    case json(Components.Schemas.EmptyResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    internal var json: Components.Schemas.EmptyResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                internal var body: Operations.BotOperations_deleteWebhookEvent.Output.NoContent.Body
                 /// Creates a new `NoContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                internal init(body: Operations.BotOperations_deleteWebhookEvent.Output.NoContent.Body) {
-                    self.body = body
-                }
+                internal init() {}
             }
             /// There is no content to send for this request, but the headers may be useful. 
             ///
@@ -29419,6 +29673,14 @@ internal enum Operations {
             ///
             /// HTTP response code: `204 noContent`.
             case noContent(Operations.BotOperations_deleteWebhookEvent.Output.NoContent)
+            /// There is no content to send for this request, but the headers may be useful. 
+            ///
+            /// - Remark: Generated from `#/paths//webhooks/events/{id}/delete(BotOperations_deleteWebhookEvent)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            internal static var noContent: Self {
+                .noContent(.init())
+            }
             /// The associated value of the enum case if `self` is `.noContent`.
             ///
             /// - Throws: An error if `self` is not `.noContent`.

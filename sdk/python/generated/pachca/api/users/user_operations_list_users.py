@@ -114,9 +114,9 @@ def sync_detailed(
     Метод для получения актуального списка сотрудников вашей компании.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -153,9 +153,9 @@ def sync(
     Метод для получения актуального списка сотрудников вашей компании.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -187,9 +187,9 @@ async def asyncio_detailed(
     Метод для получения актуального списка сотрудников вашей компании.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -226,9 +226,9 @@ async def asyncio(
     Метод для получения актуального списка сотрудников вашей компании.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

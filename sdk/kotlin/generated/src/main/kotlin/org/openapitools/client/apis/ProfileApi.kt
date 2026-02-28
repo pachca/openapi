@@ -76,10 +76,9 @@ import io.ktor.http.ParametersBuilder
         * DELETE /profile/status
         * 
         * Удаление статуса  Метод для удаления своего статуса.
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun profileOperationsDeleteStatus(): HttpResponse<kotlin.Any> {
+        open suspend fun profileOperationsDeleteStatus(): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

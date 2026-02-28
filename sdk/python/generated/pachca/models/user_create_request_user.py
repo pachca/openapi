@@ -30,10 +30,10 @@ class UserCreateRequestUser:
             email (str): Электронная почта Example: olegp@example.com.
             first_name (str | Unset): Имя Example: Олег.
             last_name (str | Unset): Фамилия Example: Петров.
-            phone_number (str | Unset): Телефон
-            nickname (str | Unset): Имя пользователя
+            phone_number (str | Unset): Телефон Example: +79001234567.
+            nickname (str | Unset): Имя пользователя Example: olegpetrov.
             department (str | Unset): Департамент Example: Продукт.
-            title (str | Unset): Должность
+            title (str | Unset): Должность Example: CIO.
             role (UserRole | Unset): Роль пользователя в системе
             suspended (bool | Unset): Деактивация пользователя
             list_tags (list[str] | Unset): Массив тегов, привязываемых к сотруднику Example: ['Product', 'Design'].

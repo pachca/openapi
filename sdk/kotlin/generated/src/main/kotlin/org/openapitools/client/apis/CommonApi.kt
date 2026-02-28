@@ -164,10 +164,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Экспорт сообщений  Метод для запрашивания экспорта сообщений за указанный период.
          * @param exportRequest  
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun exportOperationsRequestExport(exportRequest: ExportRequest): HttpResponse<kotlin.Any> {
+        open suspend fun exportOperationsRequestExport(exportRequest: ExportRequest): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

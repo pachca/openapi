@@ -156,13 +156,13 @@ def sync_detailed(
     Метод для полнотекстового поиска каналов и бесед.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 100.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Разработка.
+        limit (int | Unset):  Default: 100. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        active (bool | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        active (bool | Unset):  Example: True.
         chat_subtype (ChatSubtype | Unset): Тип чата
         personal (bool | Unset):
 
@@ -213,13 +213,13 @@ def sync(
     Метод для полнотекстового поиска каналов и бесед.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 100.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Разработка.
+        limit (int | Unset):  Default: 100. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        active (bool | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        active (bool | Unset):  Example: True.
         chat_subtype (ChatSubtype | Unset): Тип чата
         personal (bool | Unset):
 
@@ -265,13 +265,13 @@ async def asyncio_detailed(
     Метод для полнотекстового поиска каналов и бесед.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 100.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Разработка.
+        limit (int | Unset):  Default: 100. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        active (bool | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        active (bool | Unset):  Example: True.
         chat_subtype (ChatSubtype | Unset): Тип чата
         personal (bool | Unset):
 
@@ -322,13 +322,13 @@ async def asyncio(
     Метод для полнотекстового поиска каналов и бесед.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 100.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Разработка.
+        limit (int | Unset):  Default: 100. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        active (bool | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        active (bool | Unset):  Example: True.
         chat_subtype (ChatSubtype | Unset): Тип чата
         personal (bool | Unset):
 

@@ -34,7 +34,8 @@ class ViewBlockSelect:
             label (str): Подпись к выпадающему списку Example: Выберите команду.
             options (list[ViewBlockSelectableOption] | Unset): Массив доступных пунктов в выпадающем списке
             required (bool | Unset): Обязательность
-            hint (str | Unset): Подсказка, которая отображается под выпадающим списком серым цветом
+            hint (str | Unset): Подсказка, которая отображается под выпадающим списком серым цветом Example: Выберите одну
+                из команд.
      """
 
     type_: ViewBlockSelectType

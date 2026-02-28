@@ -161,14 +161,14 @@ def sync_detailed(
     Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 200.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 200. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         sort (SearchSortOrder | Unset): Сортировка результатов поиска
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        company_roles (list[UserRole] | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        company_roles (list[UserRole] | Unset):  Example: ['admin', 'user'].
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -215,14 +215,14 @@ def sync(
     Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 200.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 200. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         sort (SearchSortOrder | Unset): Сортировка результатов поиска
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        company_roles (list[UserRole] | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        company_roles (list[UserRole] | Unset):  Example: ['admin', 'user'].
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -264,14 +264,14 @@ async def asyncio_detailed(
     Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 200.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 200. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         sort (SearchSortOrder | Unset): Сортировка результатов поиска
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        company_roles (list[UserRole] | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        company_roles (list[UserRole] | Unset):  Example: ['admin', 'user'].
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -318,14 +318,14 @@ async def asyncio(
     Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
 
     Args:
-        query (str | Unset):
-        limit (int | Unset):  Default: 200.
-        cursor (str | Unset):
+        query (str | Unset):  Example: Олег.
+        limit (int | Unset):  Default: 200. Example: 10.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
         sort (SearchSortOrder | Unset): Сортировка результатов поиска
         order (SortOrder | Unset): Порядок сортировки
-        created_from (datetime.datetime | Unset):
-        created_to (datetime.datetime | Unset):
-        company_roles (list[UserRole] | Unset):
+        created_from (datetime.datetime | Unset):  Example: 2025-01-01T00:00:00.000Z.
+        created_to (datetime.datetime | Unset):  Example: 2025-02-01T00:00:00.000Z.
+        company_roles (list[UserRole] | Unset):  Example: ['admin', 'user'].
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

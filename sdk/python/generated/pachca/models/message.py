@@ -41,7 +41,7 @@ class Message:
                 создан тред. Для обычных сообщений совпадает с `chat_id`. Example: 334.
             content (str): Текст сообщения Example: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое
                 воскресенье).
-            user_id (int): Идентификатор пользователя, создавшего сообщение Example: 185.
+            user_id (int): Идентификатор пользователя, создавшего сообщение Example: 12.
             created_at (datetime.datetime): Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-
                 DDThh:mm:ss.sssZ Example: 2021-08-28T15:57:23.000Z.
             url (str): Прямая ссылка на сообщение Example: https://app.pachca.com/chats/334?message=194275.
@@ -83,10 +83,10 @@ class Message:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.button import Button
         from ..models.thread import Thread
-        from ..models.forwarding import Forwarding
+        from ..models.button import Button
         from ..models.file import File
+        from ..models.forwarding import Forwarding
         id = self.id
 
         entity_type = self.entity_type.value

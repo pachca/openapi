@@ -24,8 +24,8 @@ class ChatUpdateRequestChat:
     """ Собранный объект параметров обновляемого чата
 
         Attributes:
-            name (str | Unset): Название
-            public (bool | Unset): Открытый доступ
+            name (str | Unset): Название Example: Бассейн.
+            public (bool | Unset): Открытый доступ Example: True.
      """
 
     name: str | Unset = UNSET

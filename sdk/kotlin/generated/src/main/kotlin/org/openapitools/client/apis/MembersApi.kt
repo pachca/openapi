@@ -45,10 +45,9 @@ import io.ktor.http.ParametersBuilder
         * Добавление пользователей  Метод для добавления пользователей в состав участников беседы, канала или треда.
          * @param id Идентификатор чата (беседа, канал или чат треда) 
          * @param addMembersRequest  
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsAddMembers(id: kotlin.Int, addMembersRequest: AddMembersRequest): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsAddMembers(id: kotlin.Int, addMembersRequest: AddMembersRequest): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -79,10 +78,9 @@ import io.ktor.http.ParametersBuilder
         * Добавление тегов  Метод для добавления тегов в состав участников беседы или канала.  После добавления тега все его участники автоматически становятся участниками чата. Состав участников тега и чата синхронизируется автоматически: при добавлении нового участника в тег он сразу появляется в чате, при удалении из тега — удаляется из чата.
          * @param id Идентификатор чата 
          * @param addTagsRequest  
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsAddTags(id: kotlin.Int, addTagsRequest: AddTagsRequest): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsAddTags(id: kotlin.Int, addTagsRequest: AddTagsRequest): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -112,10 +110,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Выход из беседы или канала  Метод для самостоятельного выхода из беседы или канала.
          * @param id Идентификатор чата 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsLeaveChat(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsLeaveChat(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -187,10 +184,9 @@ import io.ktor.http.ParametersBuilder
         * Исключение пользователя  Метод для исключения пользователя из состава участников беседы или канала.  Если пользователь является владельцем чата, то исключить его нельзя. Он может только самостоятельно выйти из чата, воспользовавшись методом [Выход из беседы или канала](DELETE /chats/{id}/leave).
          * @param id Идентификатор чата 
          * @param userId Идентификатор пользователя 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsRemoveMember(id: kotlin.Int, userId: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsRemoveMember(id: kotlin.Int, userId: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -222,10 +218,9 @@ import io.ktor.http.ParametersBuilder
         * Исключение тега  Метод для исключения тега из состава участников беседы или канала.  Для исключения тега вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор чата 
          * @param tagId Идентификатор тега 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsRemoveTag(id: kotlin.Int, tagId: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsRemoveTag(id: kotlin.Int, tagId: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -258,10 +253,9 @@ import io.ktor.http.ParametersBuilder
          * @param id Идентификатор чата 
          * @param userId Идентификатор пользователя 
          * @param updateMemberRoleRequest  
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun chatMemberOperationsUpdateMemberRole(id: kotlin.Int, userId: kotlin.Int, updateMemberRoleRequest: UpdateMemberRoleRequest): HttpResponse<kotlin.Any> {
+        open suspend fun chatMemberOperationsUpdateMemberRole(id: kotlin.Int, userId: kotlin.Int, updateMemberRoleRequest: UpdateMemberRoleRequest): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

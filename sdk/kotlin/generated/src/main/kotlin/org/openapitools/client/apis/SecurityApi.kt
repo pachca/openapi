@@ -52,7 +52,7 @@ import io.ktor.http.ParametersBuilder
          * @return SecurityOperationsGetAuditEvents200Response
         */
             @Suppress("UNCHECKED_CAST")
-        open suspend fun securityOperationsGetAuditEvents(startTime: java.time.OffsetDateTime, endTime: java.time.OffsetDateTime, eventKey: AuditEventKey?, actorId: kotlin.Int?, actorType: kotlin.String?, entityId: kotlin.Int?, entityType: kotlin.String?, limit: kotlin.Int?, cursor: kotlin.String?): HttpResponse<SecurityOperationsGetAuditEvents200Response> {
+        open suspend fun securityOperationsGetAuditEvents(startTime: java.time.OffsetDateTime, endTime: java.time.OffsetDateTime, eventKey: AuditEventKey?, actorId: kotlin.String?, actorType: kotlin.String?, entityId: kotlin.String?, entityType: kotlin.String?, limit: kotlin.Int?, cursor: kotlin.String?): HttpResponse<SecurityOperationsGetAuditEvents200Response> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

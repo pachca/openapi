@@ -118,8 +118,8 @@ def sync_detailed(
     использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.
 
     Args:
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -162,8 +162,8 @@ def sync(
     использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.
 
     Args:
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -201,8 +201,8 @@ async def asyncio_detailed(
     использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.
 
     Args:
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -245,8 +245,8 @@ async def asyncio(
     использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.
 
     Args:
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

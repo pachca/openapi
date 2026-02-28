@@ -9,7 +9,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 
 <a id="linkPreviewOperationsCreateLinkPreviews"></a>
 # **linkPreviewOperationsCreateLinkPreviews**
-> kotlin.Any linkPreviewOperationsCreateLinkPreviews(id, linkPreviewsRequest)
+> linkPreviewOperationsCreateLinkPreviews(id, linkPreviewsRequest)
 
 
 
@@ -22,11 +22,10 @@ Unfurl (разворачивание ссылок)  Метод для созда
 //import org.openapitools.client.models.*
 
 val apiInstance = LinkPreviewsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
 val linkPreviewsRequest : LinkPreviewsRequest =  // LinkPreviewsRequest | 
 try {
-    val result : kotlin.Any = apiInstance.linkPreviewOperationsCreateLinkPreviews(id, linkPreviewsRequest)
-    println(result)
+    apiInstance.linkPreviewOperationsCreateLinkPreviews(id, linkPreviewsRequest)
 } catch (e: ClientException) {
     println("4xx response calling LinkPreviewsApi#linkPreviewOperationsCreateLinkPreviews")
     e.printStackTrace()
@@ -44,7 +43,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 

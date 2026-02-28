@@ -27,7 +27,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = GroupTagsApi()
-val groupTagRequest : GroupTagRequest = {"group_tag":{"name":"Название тега"}} // GroupTagRequest | 
+val groupTagRequest : GroupTagRequest =  // GroupTagRequest | 
 try {
     val result : GroupTagOperationsCreateTag201Response = apiInstance.groupTagOperationsCreateTag(groupTagRequest)
     println(result)
@@ -62,7 +62,7 @@ Configure BearerAuth:
 
 <a id="groupTagOperationsDeleteTag"></a>
 # **groupTagOperationsDeleteTag**
-> kotlin.Any groupTagOperationsDeleteTag(id)
+> groupTagOperationsDeleteTag(id)
 
 
 
@@ -75,10 +75,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = GroupTagsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор тега
+val id : kotlin.Int = 9111 // kotlin.Int | Идентификатор тега
 try {
-    val result : kotlin.Any = apiInstance.groupTagOperationsDeleteTag(id)
-    println(result)
+    apiInstance.groupTagOperationsDeleteTag(id)
 } catch (e: ClientException) {
     println("4xx response calling GroupTagsApi#groupTagOperationsDeleteTag")
     e.printStackTrace()
@@ -95,7 +94,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -123,7 +122,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = GroupTagsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор тега
+val id : kotlin.Int = 9111 // kotlin.Int | Идентификатор тега
 try {
     val result : GroupTagOperationsCreateTag201Response = apiInstance.groupTagOperationsGetTag(id)
     println(result)
@@ -171,9 +170,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = GroupTagsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор тега
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
+val id : kotlin.Int = 9111 // kotlin.Int | Идентификатор тега
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
 try {
     val result : ChatMemberOperationsListMembers200Response = apiInstance.groupTagOperationsGetTagUsers(id, limit, cursor)
     println(result)
@@ -223,9 +222,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = GroupTagsApi()
-val names : kotlin.collections.List<kotlin.String> =  // kotlin.collections.List<kotlin.String> | Массив названий тегов, по которым вы хотите отфильтровать список
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
+val names : kotlin.collections.List<kotlin.String> = ["Design","Product"] // kotlin.collections.List<kotlin.String> | Массив названий тегов, по которым вы хотите отфильтровать список
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
 try {
     val result : GroupTagOperationsListTags200Response = apiInstance.groupTagOperationsListTags(names, limit, cursor)
     println(result)
@@ -275,8 +274,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = GroupTagsApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор тега
-val groupTagRequest : GroupTagRequest = {"group_tag":{"name":"Новое название тега"}} // GroupTagRequest | 
+val id : kotlin.Int = 9111 // kotlin.Int | Идентификатор тега
+val groupTagRequest : GroupTagRequest =  // GroupTagRequest | 
 try {
     val result : GroupTagOperationsCreateTag201Response = apiInstance.groupTagOperationsUpdateTag(id, groupTagRequest)
     println(result)

@@ -28,10 +28,10 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = MessagesApi()
-val chatId : kotlin.Int = 56 // kotlin.Int | Идентификатор чата (беседа, канал, диалог или чат треда)
-val sortLeftCurlyBracketFieldRightCurlyBracket : SortOrder =  // SortOrder | Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
+val chatId : kotlin.Int = 198 // kotlin.Int | Идентификатор чата (беседа, канал, диалог или чат треда)
+val sortLeftCurlyBracketFieldRightCurlyBracket : SortOrder = desc // SortOrder | Составной параметр сортировки сущностей выборки
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
 try {
     val result : ChatMessageOperationsListChatMessages200Response = apiInstance.chatMessageOperationsListChatMessages(chatId, sortLeftCurlyBracketFieldRightCurlyBracket, limit, cursor)
     println(result)
@@ -46,7 +46,7 @@ try {
 
 ### Parameters
 | **chatId** | **kotlin.Int**| Идентификатор чата (беседа, канал, диалог или чат треда) | |
-| **sortLeftCurlyBracketFieldRightCurlyBracket** | [**SortOrder**](.md)| Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю &#x60;id&#x60; (идентификатор сообщения). | [optional] [enum: asc, desc] |
+| **sortLeftCurlyBracketFieldRightCurlyBracket** | [**SortOrder**](.md)| Составной параметр сортировки сущностей выборки | [optional] [enum: asc, desc] |
 | **limit** | **kotlin.Int**| Количество возвращаемых сущностей за один запрос | [optional] [default to 50] |
 | Name | Type | Description  | Notes |
 | ------------- | ------------- | ------------- | ------------- |
@@ -82,7 +82,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MessagesApi()
-val messageCreateRequest : MessageCreateRequest = {"message":{"entity_type":"discussion","entity_id":198,"content":"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)","buttons":[[{"text":"Подробнее","url":"https://example.com/details"},{"text":"Отлично!","data":"awesome"}]]}} // MessageCreateRequest | 
+val messageCreateRequest : MessageCreateRequest =  // MessageCreateRequest | 
 try {
     val result : MessageOperationsCreateMessage201Response = apiInstance.messageOperationsCreateMessage(messageCreateRequest)
     println(result)
@@ -117,7 +117,7 @@ Configure BearerAuth:
 
 <a id="messageOperationsDeleteMessage"></a>
 # **messageOperationsDeleteMessage**
-> kotlin.Any messageOperationsDeleteMessage(id)
+> messageOperationsDeleteMessage(id)
 
 
 
@@ -130,10 +130,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MessagesApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
 try {
-    val result : kotlin.Any = apiInstance.messageOperationsDeleteMessage(id)
-    println(result)
+    apiInstance.messageOperationsDeleteMessage(id)
 } catch (e: ClientException) {
     println("4xx response calling MessagesApi#messageOperationsDeleteMessage")
     e.printStackTrace()
@@ -150,7 +149,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -178,7 +177,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MessagesApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
 try {
     val result : MessageOperationsCreateMessage201Response = apiInstance.messageOperationsGetMessage(id)
     println(result)
@@ -213,7 +212,7 @@ Configure BearerAuth:
 
 <a id="messageOperationsPinMessage"></a>
 # **messageOperationsPinMessage**
-> kotlin.Any messageOperationsPinMessage(id)
+> messageOperationsPinMessage(id)
 
 
 
@@ -226,10 +225,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MessagesApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
 try {
-    val result : kotlin.Any = apiInstance.messageOperationsPinMessage(id)
-    println(result)
+    apiInstance.messageOperationsPinMessage(id)
 } catch (e: ClientException) {
     println("4xx response calling MessagesApi#messageOperationsPinMessage")
     e.printStackTrace()
@@ -246,7 +244,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -261,7 +259,7 @@ Configure BearerAuth:
 
 <a id="messageOperationsUnpinMessage"></a>
 # **messageOperationsUnpinMessage**
-> kotlin.Any messageOperationsUnpinMessage(id)
+> messageOperationsUnpinMessage(id)
 
 
 
@@ -274,10 +272,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MessagesApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
 try {
-    val result : kotlin.Any = apiInstance.messageOperationsUnpinMessage(id)
-    println(result)
+    apiInstance.messageOperationsUnpinMessage(id)
 } catch (e: ClientException) {
     println("4xx response calling MessagesApi#messageOperationsUnpinMessage")
     e.printStackTrace()
@@ -294,7 +291,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -322,8 +319,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MessagesApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
-val messageUpdateRequest : MessageUpdateRequest = {"message":{"content":"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.","files":[]}} // MessageUpdateRequest | 
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
+val messageUpdateRequest : MessageUpdateRequest =  // MessageUpdateRequest | 
 try {
     val result : MessageOperationsCreateMessage201Response = apiInstance.messageOperationsUpdateMessage(id, messageUpdateRequest)
     println(result)

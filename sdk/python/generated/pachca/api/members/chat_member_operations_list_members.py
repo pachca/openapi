@@ -132,11 +132,11 @@ def sync_detailed(
     открытыми).
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         role (ChatMemberRoleFilter | Unset): Роль участника чата (с фильтром все) Default:
             ChatMemberRoleFilter.ALL.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -179,11 +179,11 @@ def sync(
     открытыми).
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         role (ChatMemberRoleFilter | Unset): Роль участника чата (с фильтром все) Default:
             ChatMemberRoleFilter.ALL.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -221,11 +221,11 @@ async def asyncio_detailed(
     открытыми).
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         role (ChatMemberRoleFilter | Unset): Роль участника чата (с фильтром все) Default:
             ChatMemberRoleFilter.ALL.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -268,11 +268,11 @@ async def asyncio(
     открытыми).
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         role (ChatMemberRoleFilter | Unset): Роль участника чата (с фильтром все) Default:
             ChatMemberRoleFilter.ALL.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

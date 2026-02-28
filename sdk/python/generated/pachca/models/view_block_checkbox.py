@@ -34,7 +34,8 @@ class ViewBlockCheckbox:
             label (str): Подпись к группе чекбоксов Example: Рассылки.
             options (list[ViewBlockCheckboxOption] | Unset): Массив чекбоксов
             required (bool | Unset): Обязательность
-            hint (str | Unset): Подсказка, которая отображается под группой чекбоксов серым цветом
+            hint (str | Unset): Подсказка, которая отображается под группой чекбоксов серым цветом Example: Выберите
+                интересующие вас рассылки.
      """
 
     type_: ViewBlockCheckboxType

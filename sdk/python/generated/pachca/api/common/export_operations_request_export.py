@@ -9,7 +9,6 @@ from ...types import Response, UNSET
 from ... import errors
 
 from ...models.api_error import ApiError
-from ...models.empty_response import EmptyResponse
 from ...models.export_request import ExportRequest
 from ...models.o_auth_error import OAuthError
 from typing import cast
@@ -43,12 +42,9 @@ def _get_kwargs(
 
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ApiError | ApiError | OAuthError | EmptyResponse | OAuthError | None:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ApiError | ApiError | OAuthError | OAuthError | None:
     if response.status_code == 204:
-        response_204 = EmptyResponse.from_dict(response.json())
-
-
-
+        response_204 = cast(Any, None)
         return response_204
 
     if response.status_code == 400:
@@ -102,7 +98,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[ApiError | ApiError | OAuthError | EmptyResponse | OAuthError]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ApiError | ApiError | OAuthError | OAuthError]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -116,7 +112,7 @@ def sync_detailed(
     client: AuthenticatedClient | Client,
     body: ExportRequest,
 
-) -> Response[ApiError | ApiError | OAuthError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | ApiError | OAuthError | OAuthError]:
     """  Экспорт сообщений
 
     Метод для запрашивания экспорта сообщений за указанный период.
@@ -129,7 +125,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | ApiError | OAuthError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | ApiError | OAuthError | OAuthError]
      """
 
 
@@ -149,7 +145,7 @@ def sync(
     client: AuthenticatedClient | Client,
     body: ExportRequest,
 
-) -> ApiError | ApiError | OAuthError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | ApiError | OAuthError | OAuthError | None:
     """  Экспорт сообщений
 
     Метод для запрашивания экспорта сообщений за указанный период.
@@ -162,7 +158,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | ApiError | OAuthError | EmptyResponse | OAuthError
+        Any | ApiError | ApiError | OAuthError | OAuthError
      """
 
 
@@ -177,7 +173,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient | Client,
     body: ExportRequest,
 
-) -> Response[ApiError | ApiError | OAuthError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | ApiError | OAuthError | OAuthError]:
     """  Экспорт сообщений
 
     Метод для запрашивания экспорта сообщений за указанный период.
@@ -190,7 +186,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | ApiError | OAuthError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | ApiError | OAuthError | OAuthError]
      """
 
 
@@ -210,7 +206,7 @@ async def asyncio(
     client: AuthenticatedClient | Client,
     body: ExportRequest,
 
-) -> ApiError | ApiError | OAuthError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | ApiError | OAuthError | OAuthError | None:
     """  Экспорт сообщений
 
     Метод для запрашивания экспорта сообщений за указанный период.
@@ -223,7 +219,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | ApiError | OAuthError | EmptyResponse | OAuthError
+        Any | ApiError | ApiError | OAuthError | OAuthError
      """
 
 

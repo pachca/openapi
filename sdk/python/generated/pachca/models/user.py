@@ -52,7 +52,8 @@ class User:
             last_activity_at (datetime.datetime): Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-
                 MM-DDThh:mm:ss.sssZ Example: 2025-01-20T13:40:07.000Z.
             time_zone (str): Часовой пояс пользователя Example: Europe/Moscow.
-            image_url (None | str): Ссылка на скачивание аватарки пользователя
+            image_url (None | str): Ссылка на скачивание аватарки пользователя Example:
+                https://app.pachca.com/users/12/photo.jpg.
      """
 
     id: int

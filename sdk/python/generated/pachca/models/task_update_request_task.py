@@ -38,7 +38,7 @@ class TaskUpdateRequestTask:
                 2020-06-05T12:00:00.000+03:00.
             priority (int | Unset): Приоритет: 1, 2 (важно) или 3 (очень важно). Example: 2.
             performer_ids (list[int] | Unset): Массив идентификаторов пользователей, привязываемых к напоминанию как
-                «ответственные»
+                «ответственные» Example: [12].
             status (TaskStatus | Unset): Статус напоминания
             all_day (bool | Unset): Напоминание на весь день (без указания времени)
             done_at (datetime.datetime | Unset): Дата и время выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-

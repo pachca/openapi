@@ -29,7 +29,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val userCreateRequest : UserCreateRequest = {"user":{"first_name":"Олег","last_name":"Петров","email":"olegp@example.com","department":"Продукт","list_tags":["Product","Design"],"custom_properties":[{"id":1678,"value":"Санкт-Петербург"}]},"skip_email_notify":true} // UserCreateRequest | 
+val userCreateRequest : UserCreateRequest =  // UserCreateRequest | 
 try {
     val result : ProfileOperationsGetProfile200Response = apiInstance.userOperationsCreateUser(userCreateRequest)
     println(result)
@@ -64,7 +64,7 @@ Configure BearerAuth:
 
 <a id="userOperationsDeleteUser"></a>
 # **userOperationsDeleteUser**
-> kotlin.Any userOperationsDeleteUser(id)
+> userOperationsDeleteUser(id)
 
 
 
@@ -77,10 +77,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+val id : kotlin.Int = 12 // kotlin.Int | Идентификатор пользователя
 try {
-    val result : kotlin.Any = apiInstance.userOperationsDeleteUser(id)
-    println(result)
+    apiInstance.userOperationsDeleteUser(id)
 } catch (e: ClientException) {
     println("4xx response calling UsersApi#userOperationsDeleteUser")
     e.printStackTrace()
@@ -97,7 +96,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -125,7 +124,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+val id : kotlin.Int = 12 // kotlin.Int | Идентификатор пользователя
 try {
     val result : ProfileOperationsGetProfile200Response = apiInstance.userOperationsGetUser(id)
     println(result)
@@ -173,9 +172,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val query : kotlin.String = query_example // kotlin.String | Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
+val query : kotlin.String = Олег // kotlin.String | Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
 try {
     val result : ChatMemberOperationsListMembers200Response = apiInstance.userOperationsListUsers(query, limit, cursor)
     println(result)
@@ -225,8 +224,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
-val userUpdateRequest : UserUpdateRequest = {"user":{"nickname":"olegpetrov","role":"user","list_tags":["Product"]}} // UserUpdateRequest | 
+val id : kotlin.Int = 12 // kotlin.Int | Идентификатор пользователя
+val userUpdateRequest : UserUpdateRequest =  // UserUpdateRequest | 
 try {
     val result : ProfileOperationsGetProfile200Response = apiInstance.userOperationsUpdateUser(id, userUpdateRequest)
     println(result)
@@ -262,7 +261,7 @@ Configure BearerAuth:
 
 <a id="userStatusOperationsDeleteUserStatus"></a>
 # **userStatusOperationsDeleteUserStatus**
-> kotlin.Any userStatusOperationsDeleteUserStatus(userId)
+> userStatusOperationsDeleteUserStatus(userId)
 
 
 
@@ -275,10 +274,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+val userId : kotlin.Int = 12 // kotlin.Int | Идентификатор пользователя
 try {
-    val result : kotlin.Any = apiInstance.userStatusOperationsDeleteUserStatus(userId)
-    println(result)
+    apiInstance.userStatusOperationsDeleteUserStatus(userId)
 } catch (e: ClientException) {
     println("4xx response calling UsersApi#userStatusOperationsDeleteUserStatus")
     e.printStackTrace()
@@ -295,7 +293,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -323,7 +321,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+val userId : kotlin.Int = 12 // kotlin.Int | Идентификатор пользователя
 try {
     val result : ProfileOperationsGetStatus200Response = apiInstance.userStatusOperationsGetUserStatus(userId)
     println(result)
@@ -371,8 +369,8 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = UsersApi()
-val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
-val statusUpdateRequest : StatusUpdateRequest = {"status":{"emoji":"🏖️","title":"В отпуске","expires_at":"2024-04-15T00:00:00.000Z","is_away":true,"away_message":"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."}} // StatusUpdateRequest | 
+val userId : kotlin.Int = 12 // kotlin.Int | Идентификатор пользователя
+val statusUpdateRequest : StatusUpdateRequest =  // StatusUpdateRequest | 
 try {
     val result : ProfileOperationsUpdateStatus200Response = apiInstance.userStatusOperationsUpdateUserStatus(userId, statusUpdateRequest)
     println(result)

@@ -114,7 +114,7 @@ def sync_detailed(
     Метод для установки нового статуса сотруднику.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
         body (StatusUpdateRequest): Запрос на установку статуса
 
     Raises:
@@ -150,7 +150,7 @@ def sync(
     Метод для установки нового статуса сотруднику.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
         body (StatusUpdateRequest): Запрос на установку статуса
 
     Raises:
@@ -181,7 +181,7 @@ async def asyncio_detailed(
     Метод для установки нового статуса сотруднику.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
         body (StatusUpdateRequest): Запрос на установку статуса
 
     Raises:
@@ -217,7 +217,7 @@ async def asyncio(
     Метод для установки нового статуса сотруднику.
 
     Args:
-        user_id (int):
+        user_id (int):  Example: 12.
         body (StatusUpdateRequest): Запрос на установку статуса
 
     Raises:

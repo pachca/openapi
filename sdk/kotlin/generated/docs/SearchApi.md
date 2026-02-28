@@ -24,15 +24,15 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = SearchApi()
-val query : kotlin.String = query_example // kotlin.String | Текст поискового запроса
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых результатов за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
-val order : SortOrder =  // SortOrder | Направление сортировки
-val createdFrom : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтр по дате создания (от)
-val createdTo : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтр по дате создания (до)
+val query : kotlin.String = Разработка // kotlin.String | Текст поискового запроса
+val limit : kotlin.Int = 10 // kotlin.Int | Количество возвращаемых результатов за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
+val order : SortOrder = desc // SortOrder | Направление сортировки
+val createdFrom : java.time.OffsetDateTime = 2025-01-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтр по дате создания (от)
+val createdTo : java.time.OffsetDateTime = 2025-02-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтр по дате создания (до)
 val active : kotlin.Boolean = true // kotlin.Boolean | Фильтр по активности чата
-val chatSubtype : ChatSubtype =  // ChatSubtype | Фильтр по типу чата
-val personal : kotlin.Boolean = true // kotlin.Boolean | Фильтр по личным чатам
+val chatSubtype : ChatSubtype = discussion // ChatSubtype | Фильтр по типу чата
+val personal : kotlin.Boolean = false // kotlin.Boolean | Фильтр по личным чатам
 try {
     val result : SearchOperationsSearchChats200Response = apiInstance.searchOperationsSearchChats(query, limit, cursor, order, createdFrom, createdTo, active, chatSubtype, personal)
     println(result)
@@ -88,14 +88,14 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = SearchApi()
-val query : kotlin.String = query_example // kotlin.String | Текст поискового запроса
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых результатов за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
-val order : SortOrder =  // SortOrder | Направление сортировки
-val createdFrom : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтр по дате создания (от)
-val createdTo : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтр по дате создания (до)
-val chatIds : kotlin.collections.List<kotlin.Int> =  // kotlin.collections.List<kotlin.Int> | Фильтр по ID чатов
-val userIds : kotlin.collections.List<kotlin.Int> =  // kotlin.collections.List<kotlin.Int> | Фильтр по ID авторов сообщений
+val query : kotlin.String = футболки // kotlin.String | Текст поискового запроса
+val limit : kotlin.Int = 10 // kotlin.Int | Количество возвращаемых результатов за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
+val order : SortOrder = desc // SortOrder | Направление сортировки
+val createdFrom : java.time.OffsetDateTime = 2025-01-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтр по дате создания (от)
+val createdTo : java.time.OffsetDateTime = 2025-02-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтр по дате создания (до)
+val chatIds : kotlin.collections.List<kotlin.Int> = [198,334] // kotlin.collections.List<kotlin.Int> | Фильтр по ID чатов
+val userIds : kotlin.collections.List<kotlin.Int> = [12,185] // kotlin.collections.List<kotlin.Int> | Фильтр по ID авторов сообщений
 val active : kotlin.Boolean = true // kotlin.Boolean | Фильтр по активности чата
 try {
     val result : SearchOperationsSearchMessages200Response = apiInstance.searchOperationsSearchMessages(query, limit, cursor, order, createdFrom, createdTo, chatIds, userIds, active)
@@ -152,14 +152,14 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = SearchApi()
-val query : kotlin.String = query_example // kotlin.String | Текст поискового запроса
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых результатов за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
-val sort : SearchSortOrder =  // SearchSortOrder | Сортировка результатов
-val order : SortOrder =  // SortOrder | Направление сортировки
-val createdFrom : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтр по дате создания (от)
-val createdTo : java.time.OffsetDateTime = 2013-10-20T19:20:30+01:00 // java.time.OffsetDateTime | Фильтр по дате создания (до)
-val companyRoles : kotlin.collections.List<UserRole> =  // kotlin.collections.List<UserRole> | Фильтр по ролям сотрудников
+val query : kotlin.String = Олег // kotlin.String | Текст поискового запроса
+val limit : kotlin.Int = 10 // kotlin.Int | Количество возвращаемых результатов за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
+val sort : SearchSortOrder = by_score // SearchSortOrder | Сортировка результатов
+val order : SortOrder = desc // SortOrder | Направление сортировки
+val createdFrom : java.time.OffsetDateTime = 2025-01-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтр по дате создания (от)
+val createdTo : java.time.OffsetDateTime = 2025-02-01T00:00:00.000Z // java.time.OffsetDateTime | Фильтр по дате создания (до)
+val companyRoles : kotlin.collections.List<UserRole> = ["admin","user"] // kotlin.collections.List<UserRole> | Фильтр по ролям сотрудников
 try {
     val result : SearchOperationsSearchUsers200Response = apiInstance.searchOperationsSearchUsers(query, limit, cursor, sort, order, createdFrom, createdTo, companyRoles)
     println(result)

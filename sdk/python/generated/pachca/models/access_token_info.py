@@ -31,7 +31,7 @@ class AccessTokenInfo:
             token (str): Маскированный токен (видны первые 8 и последние 4 символа) Example: cH5kR9mN...x7Qp.
             name (None | str): Пользовательское имя токена Example: Мой API токен.
             user_id (int): Идентификатор владельца токена Example: 12.
-            scopes (list[OAuthScope]): Список скоупов токена
+            scopes (list[OAuthScope]): Список скоупов токена Example: ['messages:read', 'chats:read'].
             created_at (datetime.datetime): Дата создания токена Example: 2025-01-15T10:30:00.000Z.
             revoked_at (datetime.datetime | None): Дата отзыва токена
             expires_in (int | None): Время жизни токена в секундах

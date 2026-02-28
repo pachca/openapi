@@ -14,19 +14,19 @@ from ..types import UNSET, Unset
 
 
 
-T = TypeVar("T", bound="AuditEventDetails")
+T = TypeVar("T", bound="AuditDetailsInviter")
 
 
 
 @_attrs_define
-class AuditEventDetails:
-    """ Дополнительные детали события
+class AuditDetailsInviter:
+    """ При: user_chat_join
 
-        Example:
-            {'inviter_id': '45678'}
-
+        Attributes:
+            inviter_id (int): Идентификатор пригласившего
      """
 
+    inviter_id: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -34,9 +34,14 @@ class AuditEventDetails:
 
 
     def to_dict(self) -> dict[str, Any]:
-        
+        inviter_id = self.inviter_id
+
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
+        field_dict.update({
+            "inviter_id": inviter_id,
+        })
 
         return field_dict
 
@@ -45,12 +50,15 @@ class AuditEventDetails:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        audit_event_details = cls(
+        inviter_id = d.pop("inviter_id")
+
+        audit_details_inviter = cls(
+            inviter_id=inviter_id,
         )
 
 
-        audit_event_details.additional_properties = d
-        return audit_event_details
+        audit_details_inviter.additional_properties = d
+        return audit_details_inviter
 
     @property
     def additional_keys(self) -> list[str]:

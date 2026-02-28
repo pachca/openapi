@@ -44,7 +44,7 @@ import io.ktor.http.ParametersBuilder
         * 
         * Список сообщений чата  Метод для получения списка сообщений бесед, каналов, тредов и личных сообщений.  Для получения сообщений вам необходимо знать &#x60;chat_id&#x60; требуемой беседы, канала, треда или диалога, и указать его в &#x60;URL&#x60; запроса. Сообщения будут возвращены в порядке убывания даты отправки (то есть, сначала будут идти последние сообщения чата). Для получения более ранних сообщений чата доступны параметры &#x60;limit&#x60; и &#x60;cursor&#x60;.
          * @param chatId Идентификатор чата (беседа, канал, диалог или чат треда) 
-         * @param sortLeftCurlyBracketFieldRightCurlyBracket Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю &#x60;id&#x60; (идентификатор сообщения). (optional)
+         * @param sortLeftCurlyBracketFieldRightCurlyBracket Составной параметр сортировки сущностей выборки (optional)
          * @param limit Количество возвращаемых сущностей за один запрос (optional, default to 50)
          * @param cursor Курсор для пагинации (из &#x60;meta.paginate.next_page&#x60;) (optional)
          * @return ChatMessageOperationsListChatMessages200Response
@@ -118,10 +118,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Удаление сообщения  Метод для удаления сообщения.  Удаление сообщения доступно отправителю, админам и редакторам в чате. В личных сообщениях оба пользователя являются редакторами. Ограничений по давности отправки сообщения нет.  Для удаления сообщения вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор сообщения 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun messageOperationsDeleteMessage(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun messageOperationsDeleteMessage(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -186,10 +185,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Закрепление сообщения  Метод для закрепления сообщения в чате.  Для закрепления сообщения вам необходимо знать &#x60;id&#x60; сообщения и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор сообщения 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun messageOperationsPinMessage(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun messageOperationsPinMessage(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 
@@ -220,10 +218,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Открепление сообщения  Метод для открепления сообщения из чата.  Для открепления сообщения вам необходимо знать &#x60;id&#x60; сообщения и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор сообщения 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun messageOperationsUnpinMessage(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun messageOperationsUnpinMessage(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

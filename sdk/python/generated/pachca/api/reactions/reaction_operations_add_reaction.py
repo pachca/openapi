@@ -125,7 +125,7 @@ def sync_detailed(
     - Общее количество реакций на сообщение не может превышать **1000**
 
     Args:
-        id (int):
+        id (int):  Example: 7231942.
         body (ReactionRequest): Запрос на добавление реакции
 
     Raises:
@@ -172,7 +172,7 @@ def sync(
     - Общее количество реакций на сообщение не может превышать **1000**
 
     Args:
-        id (int):
+        id (int):  Example: 7231942.
         body (ReactionRequest): Запрос на добавление реакции
 
     Raises:
@@ -214,7 +214,7 @@ async def asyncio_detailed(
     - Общее количество реакций на сообщение не может превышать **1000**
 
     Args:
-        id (int):
+        id (int):  Example: 7231942.
         body (ReactionRequest): Запрос на добавление реакции
 
     Raises:
@@ -261,7 +261,7 @@ async def asyncio(
     - Общее количество реакций на сообщение не может превышать **1000**
 
     Args:
-        id (int):
+        id (int):  Example: 7231942.
         body (ReactionRequest): Запрос на добавление реакции
 
     Raises:

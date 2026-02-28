@@ -5,8 +5,22 @@ from .add_members_request import AddMembersRequest
 from .add_tags_request import AddTagsRequest
 from .api_error import ApiError
 from .api_error_item import ApiErrorItem
+from .audit_details_chat_id import AuditDetailsChatId
+from .audit_details_chat_permission import AuditDetailsChatPermission
+from .audit_details_chat_renamed import AuditDetailsChatRenamed
+from .audit_details_dlp import AuditDetailsDlp
+from .audit_details_empty import AuditDetailsEmpty
+from .audit_details_initiator import AuditDetailsInitiator
+from .audit_details_inviter import AuditDetailsInviter
+from .audit_details_kms import AuditDetailsKms
+from .audit_details_role_changed import AuditDetailsRoleChanged
+from .audit_details_search import AuditDetailsSearch
+from .audit_details_search_filters import AuditDetailsSearchFilters
+from .audit_details_tag_chat import AuditDetailsTagChat
+from .audit_details_tag_name import AuditDetailsTagName
+from .audit_details_token_scopes import AuditDetailsTokenScopes
+from .audit_details_user_updated import AuditDetailsUserUpdated
 from .audit_event import AuditEvent
-from .audit_event_details import AuditEventDetails
 from .audit_event_key import AuditEventKey
 from .bot_operations_get_webhook_events_response_200 import BotOperationsGetWebhookEventsResponse200
 from .bot_operations_update_bot_response_200 import BotOperationsUpdateBotResponse200
@@ -42,7 +56,6 @@ from .company_member_webhook_payload_type import CompanyMemberWebhookPayloadType
 from .custom_property import CustomProperty
 from .custom_property_data_type import CustomPropertyDataType
 from .custom_property_definition import CustomPropertyDefinition
-from .empty_response import EmptyResponse
 from .export_request import ExportRequest
 from .file import File
 from .file_type import FileType
@@ -179,8 +192,22 @@ __all__ = (
     "AddTagsRequest",
     "ApiError",
     "ApiErrorItem",
+    "AuditDetailsChatId",
+    "AuditDetailsChatPermission",
+    "AuditDetailsChatRenamed",
+    "AuditDetailsDlp",
+    "AuditDetailsEmpty",
+    "AuditDetailsInitiator",
+    "AuditDetailsInviter",
+    "AuditDetailsKms",
+    "AuditDetailsRoleChanged",
+    "AuditDetailsSearch",
+    "AuditDetailsSearchFilters",
+    "AuditDetailsTagChat",
+    "AuditDetailsTagName",
+    "AuditDetailsTokenScopes",
+    "AuditDetailsUserUpdated",
     "AuditEvent",
-    "AuditEventDetails",
     "AuditEventKey",
     "BotOperationsGetWebhookEventsResponse200",
     "BotOperationsUpdateBotResponse200",
@@ -216,7 +243,6 @@ __all__ = (
     "CustomProperty",
     "CustomPropertyDataType",
     "CustomPropertyDefinition",
-    "EmptyResponse",
     "ExportRequest",
     "File",
     "FileType",

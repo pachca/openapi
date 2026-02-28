@@ -24,9 +24,9 @@ def _get_kwargs(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     event_key: AuditEventKey | Unset = UNSET,
-    actor_id: int | Unset = UNSET,
+    actor_id: str | Unset = UNSET,
     actor_type: str | Unset = UNSET,
-    entity_id: int | Unset = UNSET,
+    entity_id: str | Unset = UNSET,
     entity_type: str | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -134,9 +134,9 @@ def sync_detailed(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     event_key: AuditEventKey | Unset = UNSET,
-    actor_id: int | Unset = UNSET,
+    actor_id: str | Unset = UNSET,
     actor_type: str | Unset = UNSET,
-    entity_id: int | Unset = UNSET,
+    entity_id: str | Unset = UNSET,
     entity_type: str | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -147,15 +147,15 @@ def sync_detailed(
     Метод для получения логов событий на основе указанных фильтров.
 
     Args:
-        start_time (datetime.datetime):
-        end_time (datetime.datetime):
+        start_time (datetime.datetime):  Example: 2025-05-01T09:11:00Z.
+        end_time (datetime.datetime):  Example: 2025-05-02T09:11:00Z.
         event_key (AuditEventKey | Unset): Тип аудит-события
-        actor_id (int | Unset):
-        actor_type (str | Unset):
-        entity_id (int | Unset):
-        entity_type (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        actor_id (str | Unset):  Example: 98765.
+        actor_type (str | Unset):  Example: User.
+        entity_id (str | Unset):  Example: 98765.
+        entity_type (str | Unset):  Example: User.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -191,9 +191,9 @@ def sync(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     event_key: AuditEventKey | Unset = UNSET,
-    actor_id: int | Unset = UNSET,
+    actor_id: str | Unset = UNSET,
     actor_type: str | Unset = UNSET,
-    entity_id: int | Unset = UNSET,
+    entity_id: str | Unset = UNSET,
     entity_type: str | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -204,15 +204,15 @@ def sync(
     Метод для получения логов событий на основе указанных фильтров.
 
     Args:
-        start_time (datetime.datetime):
-        end_time (datetime.datetime):
+        start_time (datetime.datetime):  Example: 2025-05-01T09:11:00Z.
+        end_time (datetime.datetime):  Example: 2025-05-02T09:11:00Z.
         event_key (AuditEventKey | Unset): Тип аудит-события
-        actor_id (int | Unset):
-        actor_type (str | Unset):
-        entity_id (int | Unset):
-        entity_type (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        actor_id (str | Unset):  Example: 98765.
+        actor_type (str | Unset):  Example: User.
+        entity_id (str | Unset):  Example: 98765.
+        entity_type (str | Unset):  Example: User.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -243,9 +243,9 @@ async def asyncio_detailed(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     event_key: AuditEventKey | Unset = UNSET,
-    actor_id: int | Unset = UNSET,
+    actor_id: str | Unset = UNSET,
     actor_type: str | Unset = UNSET,
-    entity_id: int | Unset = UNSET,
+    entity_id: str | Unset = UNSET,
     entity_type: str | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -256,15 +256,15 @@ async def asyncio_detailed(
     Метод для получения логов событий на основе указанных фильтров.
 
     Args:
-        start_time (datetime.datetime):
-        end_time (datetime.datetime):
+        start_time (datetime.datetime):  Example: 2025-05-01T09:11:00Z.
+        end_time (datetime.datetime):  Example: 2025-05-02T09:11:00Z.
         event_key (AuditEventKey | Unset): Тип аудит-события
-        actor_id (int | Unset):
-        actor_type (str | Unset):
-        entity_id (int | Unset):
-        entity_type (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        actor_id (str | Unset):  Example: 98765.
+        actor_type (str | Unset):  Example: User.
+        entity_id (str | Unset):  Example: 98765.
+        entity_type (str | Unset):  Example: User.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -300,9 +300,9 @@ async def asyncio(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
     event_key: AuditEventKey | Unset = UNSET,
-    actor_id: int | Unset = UNSET,
+    actor_id: str | Unset = UNSET,
     actor_type: str | Unset = UNSET,
-    entity_id: int | Unset = UNSET,
+    entity_id: str | Unset = UNSET,
     entity_type: str | Unset = UNSET,
     limit: int | Unset = 50,
     cursor: str | Unset = UNSET,
@@ -313,15 +313,15 @@ async def asyncio(
     Метод для получения логов событий на основе указанных фильтров.
 
     Args:
-        start_time (datetime.datetime):
-        end_time (datetime.datetime):
+        start_time (datetime.datetime):  Example: 2025-05-01T09:11:00Z.
+        end_time (datetime.datetime):  Example: 2025-05-02T09:11:00Z.
         event_key (AuditEventKey | Unset): Тип аудит-события
-        actor_id (int | Unset):
-        actor_type (str | Unset):
-        entity_id (int | Unset):
-        entity_type (str | Unset):
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        actor_id (str | Unset):  Example: 98765.
+        actor_type (str | Unset):  Example: User.
+        entity_id (str | Unset):  Example: 98765.
+        entity_type (str | Unset):  Example: User.
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

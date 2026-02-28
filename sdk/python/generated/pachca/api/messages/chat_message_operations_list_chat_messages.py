@@ -135,10 +135,10 @@ def sync_detailed(
     параметры `limit` и `cursor`.
 
     Args:
-        chat_id (int):
+        chat_id (int):  Example: 198.
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -182,10 +182,10 @@ def sync(
     параметры `limit` и `cursor`.
 
     Args:
-        chat_id (int):
+        chat_id (int):  Example: 198.
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -224,10 +224,10 @@ async def asyncio_detailed(
     параметры `limit` и `cursor`.
 
     Args:
-        chat_id (int):
+        chat_id (int):  Example: 198.
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -271,10 +271,10 @@ async def asyncio(
     параметры `limit` и `cursor`.
 
     Args:
-        chat_id (int):
+        chat_id (int):  Example: 198.
         sortfield (SortOrder | Unset): Порядок сортировки Default: SortOrder.DESC.
-        limit (int | Unset):  Default: 50.
-        cursor (str | Unset):
+        limit (int | Unset):  Default: 50. Example: 1.
+        cursor (str | Unset):  Example: eyJpZCI6MTAsImRpciI6ImFzYyJ9.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

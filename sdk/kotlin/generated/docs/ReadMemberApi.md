@@ -22,9 +22,9 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = ReadMemberApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
+val id : kotlin.Int = 194275 // kotlin.Int | Идентификатор сообщения
+val limit : kotlin.Int = 300 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из `meta.paginate.next_page`)
 try {
     val result : ReadMemberOperationsListReadMembers200Response = apiInstance.readMemberOperationsListReadMembers(id, limit, cursor)
     println(result)

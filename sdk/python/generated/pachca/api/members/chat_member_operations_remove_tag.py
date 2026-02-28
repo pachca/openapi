@@ -9,7 +9,6 @@ from ...types import Response, UNSET
 from ... import errors
 
 from ...models.api_error import ApiError
-from ...models.empty_response import EmptyResponse
 from ...models.o_auth_error import OAuthError
 from typing import cast
 
@@ -36,12 +35,9 @@ def _get_kwargs(
 
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ApiError | EmptyResponse | OAuthError | None:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ApiError | OAuthError | None:
     if response.status_code == 204:
-        response_204 = EmptyResponse.from_dict(response.json())
-
-
-
+        response_204 = cast(Any, None)
         return response_204
 
     if response.status_code == 401:
@@ -71,7 +67,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[ApiError | EmptyResponse | OAuthError]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ApiError | OAuthError]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -86,7 +82,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient | Client,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Исключение тега
 
     Метод для исключения тега из состава участников беседы или канала.
@@ -94,15 +90,15 @@ def sync_detailed(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
-        tag_id (int):
+        id (int):  Example: 334.
+        tag_id (int):  Example: 86.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -124,7 +120,7 @@ def sync(
     *,
     client: AuthenticatedClient | Client,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Исключение тега
 
     Метод для исключения тега из состава участников беседы или канала.
@@ -132,15 +128,15 @@ def sync(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
-        tag_id (int):
+        id (int):  Example: 334.
+        tag_id (int):  Example: 86.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 
@@ -157,7 +153,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient | Client,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Исключение тега
 
     Метод для исключения тега из состава участников беседы или канала.
@@ -165,15 +161,15 @@ async def asyncio_detailed(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
-        tag_id (int):
+        id (int):  Example: 334.
+        tag_id (int):  Example: 86.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -195,7 +191,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient | Client,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Исключение тега
 
     Метод для исключения тега из состава участников беседы или канала.
@@ -203,15 +199,15 @@ async def asyncio(
     Для исключения тега вам необходимо знать его `id` и указать его в `URL` запроса.
 
     Args:
-        id (int):
-        tag_id (int):
+        id (int):  Example: 334.
+        tag_id (int):  Example: 86.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 

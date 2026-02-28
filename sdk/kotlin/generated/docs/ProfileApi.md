@@ -58,7 +58,7 @@ Configure BearerAuth:
 
 <a id="profileOperationsDeleteStatus"></a>
 # **profileOperationsDeleteStatus**
-> kotlin.Any profileOperationsDeleteStatus()
+> profileOperationsDeleteStatus()
 
 
 
@@ -72,8 +72,7 @@ Configure BearerAuth:
 
 val apiInstance = ProfileApi()
 try {
-    val result : kotlin.Any = apiInstance.profileOperationsDeleteStatus()
-    println(result)
+    apiInstance.profileOperationsDeleteStatus()
 } catch (e: ClientException) {
     println("4xx response calling ProfileApi#profileOperationsDeleteStatus")
     e.printStackTrace()
@@ -88,7 +87,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -206,7 +205,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ProfileApi()
-val statusUpdateRequest : StatusUpdateRequest = {"status":{"emoji":"🎮","title":"Очень занят","expires_at":"2024-04-08T10:00:00.000Z"}} // StatusUpdateRequest | 
+val statusUpdateRequest : StatusUpdateRequest =  // StatusUpdateRequest | 
 try {
     val result : ProfileOperationsUpdateStatus200Response = apiInstance.profileOperationsUpdateStatus(statusUpdateRequest)
     println(result)

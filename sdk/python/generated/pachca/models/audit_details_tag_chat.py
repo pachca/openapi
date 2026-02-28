@@ -14,16 +14,21 @@ from ..types import UNSET, Unset
 
 
 
-T = TypeVar("T", bound="EmptyResponse")
+T = TypeVar("T", bound="AuditDetailsTagChat")
 
 
 
 @_attrs_define
-class EmptyResponse:
-    """ При безошибочном выполнении запроса тело ответа отсутствует
+class AuditDetailsTagChat:
+    """ При: tag_added_to_chat
 
+        Attributes:
+            chat_id (int): Идентификатор чата
+            tag_name (str): Название тега
      """
 
+    chat_id: int
+    tag_name: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -31,9 +36,17 @@ class EmptyResponse:
 
 
     def to_dict(self) -> dict[str, Any]:
-        
+        chat_id = self.chat_id
+
+        tag_name = self.tag_name
+
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
+        field_dict.update({
+            "chat_id": chat_id,
+            "tag_name": tag_name,
+        })
 
         return field_dict
 
@@ -42,12 +55,18 @@ class EmptyResponse:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        empty_response = cls(
+        chat_id = d.pop("chat_id")
+
+        tag_name = d.pop("tag_name")
+
+        audit_details_tag_chat = cls(
+            chat_id=chat_id,
+            tag_name=tag_name,
         )
 
 
-        empty_response.additional_properties = d
-        return empty_response
+        audit_details_tag_chat.additional_properties = d
+        return audit_details_tag_chat
 
     @property
     def additional_keys(self) -> list[str]:

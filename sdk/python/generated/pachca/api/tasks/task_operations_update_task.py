@@ -117,7 +117,7 @@ def sync_detailed(
     редактируемые параметры напоминания указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 22283.
         body (TaskUpdateRequest): Запрос на обновление напоминания
 
     Raises:
@@ -156,7 +156,7 @@ def sync(
     редактируемые параметры напоминания указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 22283.
         body (TaskUpdateRequest): Запрос на обновление напоминания
 
     Raises:
@@ -190,7 +190,7 @@ async def asyncio_detailed(
     редактируемые параметры напоминания указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 22283.
         body (TaskUpdateRequest): Запрос на обновление напоминания
 
     Raises:
@@ -229,7 +229,7 @@ async def asyncio(
     редактируемые параметры напоминания указываются в теле запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 22283.
         body (TaskUpdateRequest): Запрос на обновление напоминания
 
     Raises:

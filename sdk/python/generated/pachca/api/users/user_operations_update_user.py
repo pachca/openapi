@@ -119,7 +119,7 @@ def sync_detailed(
     /custom_properties).
 
     Args:
-        id (int):
+        id (int):  Example: 12.
         body (UserUpdateRequest): Запрос на редактирование сотрудника
 
     Raises:
@@ -160,7 +160,7 @@ def sync(
     /custom_properties).
 
     Args:
-        id (int):
+        id (int):  Example: 12.
         body (UserUpdateRequest): Запрос на редактирование сотрудника
 
     Raises:
@@ -196,7 +196,7 @@ async def asyncio_detailed(
     /custom_properties).
 
     Args:
-        id (int):
+        id (int):  Example: 12.
         body (UserUpdateRequest): Запрос на редактирование сотрудника
 
     Raises:
@@ -237,7 +237,7 @@ async def asyncio(
     /custom_properties).
 
     Args:
-        id (int):
+        id (int):  Example: 12.
         body (UserUpdateRequest): Запрос на редактирование сотрудника
 
     Raises:

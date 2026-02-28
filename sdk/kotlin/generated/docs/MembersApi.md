@@ -15,7 +15,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 
 <a id="chatMemberOperationsAddMembers"></a>
 # **chatMemberOperationsAddMembers**
-> kotlin.Any chatMemberOperationsAddMembers(id, addMembersRequest)
+> chatMemberOperationsAddMembers(id, addMembersRequest)
 
 
 
@@ -28,11 +28,10 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата (беседа, канал или чат треда)
-val addMembersRequest : AddMembersRequest = {"member_ids":[186,187],"silent":true} // AddMembersRequest | 
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата (беседа, канал или чат треда)
+val addMembersRequest : AddMembersRequest =  // AddMembersRequest | 
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsAddMembers(id, addMembersRequest)
-    println(result)
+    apiInstance.chatMemberOperationsAddMembers(id, addMembersRequest)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsAddMembers")
     e.printStackTrace()
@@ -50,7 +49,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -65,7 +64,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsAddTags"></a>
 # **chatMemberOperationsAddTags**
-> kotlin.Any chatMemberOperationsAddTags(id, addTagsRequest)
+> chatMemberOperationsAddTags(id, addTagsRequest)
 
 
 
@@ -78,11 +77,10 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
-val addTagsRequest : AddTagsRequest = {"group_tag_ids":[86,18]} // AddTagsRequest | 
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
+val addTagsRequest : AddTagsRequest =  // AddTagsRequest | 
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsAddTags(id, addTagsRequest)
-    println(result)
+    apiInstance.chatMemberOperationsAddTags(id, addTagsRequest)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsAddTags")
     e.printStackTrace()
@@ -100,7 +98,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -115,7 +113,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsLeaveChat"></a>
 # **chatMemberOperationsLeaveChat**
-> kotlin.Any chatMemberOperationsLeaveChat(id)
+> chatMemberOperationsLeaveChat(id)
 
 
 
@@ -128,10 +126,9 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsLeaveChat(id)
-    println(result)
+    apiInstance.chatMemberOperationsLeaveChat(id)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsLeaveChat")
     e.printStackTrace()
@@ -148,7 +145,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -176,10 +173,10 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
-val role : ChatMemberRoleFilter =  // ChatMemberRoleFilter | Роль в чате
-val limit : kotlin.Int = 56 // kotlin.Int | Количество возвращаемых сущностей за один запрос
-val cursor : kotlin.String = cursor_example // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
+val role : ChatMemberRoleFilter = all // ChatMemberRoleFilter | Роль в чате
+val limit : kotlin.Int = 1 // kotlin.Int | Количество возвращаемых сущностей за один запрос
+val cursor : kotlin.String = eyJpZCI6MTAsImRpciI6ImFzYyJ9 // kotlin.String | Курсор для пагинации (из meta.paginate.next_page)
 try {
     val result : ChatMemberOperationsListMembers200Response = apiInstance.chatMemberOperationsListMembers(id, role, limit, cursor)
     println(result)
@@ -217,7 +214,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsRemoveMember"></a>
 # **chatMemberOperationsRemoveMember**
-> kotlin.Any chatMemberOperationsRemoveMember(id, userId)
+> chatMemberOperationsRemoveMember(id, userId)
 
 
 
@@ -230,11 +227,10 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
-val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
+val userId : kotlin.Int = 186 // kotlin.Int | Идентификатор пользователя
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsRemoveMember(id, userId)
-    println(result)
+    apiInstance.chatMemberOperationsRemoveMember(id, userId)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsRemoveMember")
     e.printStackTrace()
@@ -252,7 +248,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -267,7 +263,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsRemoveTag"></a>
 # **chatMemberOperationsRemoveTag**
-> kotlin.Any chatMemberOperationsRemoveTag(id, tagId)
+> chatMemberOperationsRemoveTag(id, tagId)
 
 
 
@@ -280,11 +276,10 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
-val tagId : kotlin.Int = 56 // kotlin.Int | Идентификатор тега
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
+val tagId : kotlin.Int = 86 // kotlin.Int | Идентификатор тега
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsRemoveTag(id, tagId)
-    println(result)
+    apiInstance.chatMemberOperationsRemoveTag(id, tagId)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsRemoveTag")
     e.printStackTrace()
@@ -302,7 +297,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 
@@ -317,7 +312,7 @@ Configure BearerAuth:
 
 <a id="chatMemberOperationsUpdateMemberRole"></a>
 # **chatMemberOperationsUpdateMemberRole**
-> kotlin.Any chatMemberOperationsUpdateMemberRole(id, userId, updateMemberRoleRequest)
+> chatMemberOperationsUpdateMemberRole(id, userId, updateMemberRoleRequest)
 
 
 
@@ -330,12 +325,11 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = MembersApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор чата
-val userId : kotlin.Int = 56 // kotlin.Int | Идентификатор пользователя
-val updateMemberRoleRequest : UpdateMemberRoleRequest = {"role":"admin"} // UpdateMemberRoleRequest | 
+val id : kotlin.Int = 334 // kotlin.Int | Идентификатор чата
+val userId : kotlin.Int = 186 // kotlin.Int | Идентификатор пользователя
+val updateMemberRoleRequest : UpdateMemberRoleRequest =  // UpdateMemberRoleRequest | 
 try {
-    val result : kotlin.Any = apiInstance.chatMemberOperationsUpdateMemberRole(id, userId, updateMemberRoleRequest)
-    println(result)
+    apiInstance.chatMemberOperationsUpdateMemberRole(id, userId, updateMemberRoleRequest)
 } catch (e: ClientException) {
     println("4xx response calling MembersApi#chatMemberOperationsUpdateMemberRole")
     e.printStackTrace()
@@ -354,7 +348,7 @@ try {
 
 ### Return type
 
-[**kotlin.Any**](kotlin.Any.md)
+null (empty response body)
 
 ### Authorization
 

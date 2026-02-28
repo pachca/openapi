@@ -37,7 +37,7 @@ class TaskCreateRequestTask:
                 2020-06-05T12:00:00.000+03:00.
             priority (int | Unset): Приоритет: 1, 2 (важно) или 3 (очень важно). Default: 1. Example: 2.
             performer_ids (list[int] | Unset): Массив идентификаторов пользователей, привязываемых к напоминанию как
-                «ответственные» (по умолчанию ответственным назначается вы)
+                «ответственные» (по умолчанию ответственным назначается вы) Example: [12, 13].
             chat_id (int | Unset): Идентификатор чата, к которому привязывается напоминание Example: 456.
             all_day (bool | Unset): Напоминание на весь день (без указания времени)
             custom_properties (list[TaskCreateRequestTaskCustomPropertiesItem] | Unset): Задаваемые дополнительные поля

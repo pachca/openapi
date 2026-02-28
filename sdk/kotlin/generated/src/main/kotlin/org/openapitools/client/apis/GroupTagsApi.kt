@@ -76,10 +76,9 @@ import io.ktor.http.ParametersBuilder
         * 
         * Удаление тега  Метод для удаления тега.  Для удаления тега вам необходимо знать его &#x60;id&#x60; и указать его в &#x60;URL&#x60; запроса.
          * @param id Идентификатор тега 
-         * @return kotlin.Any
+         * @return void
         */
-            @Suppress("UNCHECKED_CAST")
-        open suspend fun groupTagOperationsDeleteTag(id: kotlin.Int): HttpResponse<kotlin.Any> {
+        open suspend fun groupTagOperationsDeleteTag(id: kotlin.Int): HttpResponse<Unit> {
 
             val localVariableAuthNames = listOf<String>("BearerAuth")
 

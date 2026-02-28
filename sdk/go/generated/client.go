@@ -1156,6 +1156,135 @@ type ApiErrorItem struct {
 	Value *string `json:"value"`
 }
 
+// AuditDetailsChatId При: tag_removed_from_chat
+type AuditDetailsChatId struct {
+	// ChatId Идентификатор чата
+	ChatId int32 `json:"chat_id"`
+}
+
+// AuditDetailsChatPermission При: chat_permission_changed
+type AuditDetailsChatPermission struct {
+	// PublicAccess Публичный доступ
+	PublicAccess bool `json:"public_access"`
+}
+
+// AuditDetailsChatRenamed При: chat_renamed
+type AuditDetailsChatRenamed struct {
+	// NewName Новое название чата
+	NewName string `json:"new_name"`
+
+	// OldName Прежнее название чата
+	OldName string `json:"old_name"`
+}
+
+// AuditDetailsDlp При: dlp_violation_detected
+type AuditDetailsDlp struct {
+	// ActionMessage Описание действия
+	ActionMessage string `json:"action_message"`
+
+	// ChatId Идентификатор чата
+	ChatId int32 `json:"chat_id"`
+
+	// ConditionsMatched Результат проверки условий правила (true — условия сработали)
+	ConditionsMatched bool `json:"conditions_matched"`
+
+	// DlpRuleId Идентификатор правила DLP
+	DlpRuleId int32 `json:"dlp_rule_id"`
+
+	// DlpRuleName Название правила DLP
+	DlpRuleName string `json:"dlp_rule_name"`
+
+	// MessageId Идентификатор сообщения
+	MessageId int32 `json:"message_id"`
+
+	// UserId Идентификатор пользователя
+	UserId int32 `json:"user_id"`
+}
+
+// AuditDetailsEmpty Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed
+type AuditDetailsEmpty = map[string]interface{}
+
+// AuditDetailsInitiator При: user_added_to_tag, user_removed_from_tag, user_chat_leave
+type AuditDetailsInitiator struct {
+	// InitiatorId Идентификатор инициатора действия
+	InitiatorId int32 `json:"initiator_id"`
+}
+
+// AuditDetailsInviter При: user_chat_join
+type AuditDetailsInviter struct {
+	// InviterId Идентификатор пригласившего
+	InviterId int32 `json:"inviter_id"`
+}
+
+// AuditDetailsKms При: kms_encrypt, kms_decrypt
+type AuditDetailsKms struct {
+	// ChatId Идентификатор чата
+	ChatId int32 `json:"chat_id"`
+
+	// MessageId Идентификатор сообщения
+	MessageId int32 `json:"message_id"`
+
+	// Reason Причина операции
+	Reason string `json:"reason"`
+}
+
+// AuditDetailsRoleChanged При: user_role_changed
+type AuditDetailsRoleChanged struct {
+	// InitiatorId Идентификатор инициатора
+	InitiatorId int32 `json:"initiator_id"`
+
+	// NewCompanyRole Новая роль
+	NewCompanyRole string `json:"new_company_role"`
+
+	// PreviousCompanyRole Предыдущая роль
+	PreviousCompanyRole string `json:"previous_company_role"`
+}
+
+// AuditDetailsSearch При: search_users_api, search_chats_api, search_messages_api
+type AuditDetailsSearch struct {
+	// CursorPresent Использован ли курсор
+	CursorPresent bool `json:"cursor_present"`
+
+	// Filters Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+	Filters map[string]interface{} `json:"filters"`
+
+	// Limit Количество возвращённых результатов
+	Limit int32 `json:"limit"`
+
+	// QueryPresent Указан ли поисковый запрос
+	QueryPresent bool `json:"query_present"`
+
+	// SearchType Тип поиска
+	SearchType string `json:"search_type"`
+}
+
+// AuditDetailsTagChat При: tag_added_to_chat
+type AuditDetailsTagChat struct {
+	// ChatId Идентификатор чата
+	ChatId int32 `json:"chat_id"`
+
+	// TagName Название тега
+	TagName string `json:"tag_name"`
+}
+
+// AuditDetailsTagName При: tag_created, tag_deleted
+type AuditDetailsTagName struct {
+	// Name Название тега
+	Name string `json:"name"`
+}
+
+// AuditDetailsTokenScopes При: access_token_created, access_token_updated, access_token_destroy
+type AuditDetailsTokenScopes struct {
+	// Scopes Скоупы токена
+	Scopes []string `json:"scopes"`
+}
+
+// AuditDetailsUserUpdated При: user_updated
+type AuditDetailsUserUpdated struct {
+	// ChangedAttrs Список изменённых полей
+	ChangedAttrs []string `json:"changed_attrs"`
+}
+
 // AuditEvent Событие аудита
 type AuditEvent struct {
 	// ActorId Идентификатор пользователя, выполнившего действие
@@ -1167,8 +1296,8 @@ type AuditEvent struct {
 	// CreatedAt Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
 	CreatedAt time.Time `json:"created_at"`
 
-	// Details Дополнительные детали события
-	Details map[string]interface{} `json:"details"`
+	// Details Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
+	Details AuditEventDetailsUnion `json:"details"`
 
 	// EntityId Идентификатор затронутой сущности
 	EntityId string `json:"entity_id"`
@@ -1187,6 +1316,11 @@ type AuditEvent struct {
 
 	// UserAgent User agent клиента
 	UserAgent string `json:"user_agent"`
+}
+
+// AuditEventDetailsUnion Дополнительные детали события аудита. Структура зависит от значения event_key
+type AuditEventDetailsUnion struct {
+	union json.RawMessage
 }
 
 // AuditEventKey Тип аудит-события
@@ -1419,9 +1553,6 @@ type CustomPropertyDefinition struct {
 	// Name Название поля
 	Name string `json:"name"`
 }
-
-// EmptyResponse При безошибочном выполнении запроса тело ответа отсутствует
-type EmptyResponse = map[string]interface{}
 
 // ExportRequest Запрос на экспорт сообщений
 type ExportRequest struct {
@@ -2635,13 +2766,13 @@ type SecurityOperationsGetAuditEventsParams struct {
 	EventKey *AuditEventKey `form:"event_key,omitempty" json:"event_key,omitempty"`
 
 	// ActorId Идентификатор пользователя, выполнившего действие
-	ActorId *int32 `form:"actor_id,omitempty" json:"actor_id,omitempty"`
+	ActorId *string `form:"actor_id,omitempty" json:"actor_id,omitempty"`
 
 	// ActorType Тип актора
 	ActorType *string `form:"actor_type,omitempty" json:"actor_type,omitempty"`
 
 	// EntityId Идентификатор затронутой сущности
-	EntityId *int32 `form:"entity_id,omitempty" json:"entity_id,omitempty"`
+	EntityId *string `form:"entity_id,omitempty" json:"entity_id,omitempty"`
 
 	// EntityType Тип сущности
 	EntityType *string `form:"entity_type,omitempty" json:"entity_type,omitempty"`
@@ -2655,7 +2786,7 @@ type SecurityOperationsGetAuditEventsParams struct {
 
 // ChatOperationsListChatsParams defines parameters for ChatOperationsListChats.
 type ChatOperationsListChatsParams struct {
-	// SortField Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).
+	// SortField Составной параметр сортировки сущностей выборки
 	SortField *SortOrder `form:"sort[{field}],omitempty" json:"sort[{field}],omitempty"`
 
 	// Availability Параметр, который отвечает за доступность и выборку чатов для пользователя
@@ -2721,7 +2852,7 @@ type ChatMessageOperationsListChatMessagesParams struct {
 	// ChatId Идентификатор чата (беседа, канал, диалог или чат треда)
 	ChatId int32 `form:"chat_id" json:"chat_id"`
 
-	// SortField Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).
+	// SortField Составной параметр сортировки сущностей выборки
 	SortField *SortOrder `form:"sort[{field}],omitempty" json:"sort[{field}],omitempty"`
 
 	// Limit Количество возвращаемых сущностей за один запрос
@@ -2937,6 +3068,380 @@ type UserStatusOperationsUpdateUserStatusJSONRequestBody = StatusUpdateRequest
 
 // FormOperationsOpenViewJSONRequestBody defines body for FormOperationsOpenView for application/json ContentType.
 type FormOperationsOpenViewJSONRequestBody = OpenViewRequest
+
+// AsAuditDetailsEmpty returns the union data inside the AuditEventDetailsUnion as a AuditDetailsEmpty
+func (t AuditEventDetailsUnion) AsAuditDetailsEmpty() (AuditDetailsEmpty, error) {
+	var body AuditDetailsEmpty
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsEmpty overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsEmpty
+func (t *AuditEventDetailsUnion) FromAuditDetailsEmpty(v AuditDetailsEmpty) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsEmpty performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsEmpty
+func (t *AuditEventDetailsUnion) MergeAuditDetailsEmpty(v AuditDetailsEmpty) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsUserUpdated returns the union data inside the AuditEventDetailsUnion as a AuditDetailsUserUpdated
+func (t AuditEventDetailsUnion) AsAuditDetailsUserUpdated() (AuditDetailsUserUpdated, error) {
+	var body AuditDetailsUserUpdated
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsUserUpdated overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsUserUpdated
+func (t *AuditEventDetailsUnion) FromAuditDetailsUserUpdated(v AuditDetailsUserUpdated) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsUserUpdated performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsUserUpdated
+func (t *AuditEventDetailsUnion) MergeAuditDetailsUserUpdated(v AuditDetailsUserUpdated) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsRoleChanged returns the union data inside the AuditEventDetailsUnion as a AuditDetailsRoleChanged
+func (t AuditEventDetailsUnion) AsAuditDetailsRoleChanged() (AuditDetailsRoleChanged, error) {
+	var body AuditDetailsRoleChanged
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsRoleChanged overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsRoleChanged
+func (t *AuditEventDetailsUnion) FromAuditDetailsRoleChanged(v AuditDetailsRoleChanged) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsRoleChanged performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsRoleChanged
+func (t *AuditEventDetailsUnion) MergeAuditDetailsRoleChanged(v AuditDetailsRoleChanged) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsTagName returns the union data inside the AuditEventDetailsUnion as a AuditDetailsTagName
+func (t AuditEventDetailsUnion) AsAuditDetailsTagName() (AuditDetailsTagName, error) {
+	var body AuditDetailsTagName
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsTagName overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsTagName
+func (t *AuditEventDetailsUnion) FromAuditDetailsTagName(v AuditDetailsTagName) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsTagName performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsTagName
+func (t *AuditEventDetailsUnion) MergeAuditDetailsTagName(v AuditDetailsTagName) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsInitiator returns the union data inside the AuditEventDetailsUnion as a AuditDetailsInitiator
+func (t AuditEventDetailsUnion) AsAuditDetailsInitiator() (AuditDetailsInitiator, error) {
+	var body AuditDetailsInitiator
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsInitiator overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsInitiator
+func (t *AuditEventDetailsUnion) FromAuditDetailsInitiator(v AuditDetailsInitiator) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsInitiator performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsInitiator
+func (t *AuditEventDetailsUnion) MergeAuditDetailsInitiator(v AuditDetailsInitiator) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsInviter returns the union data inside the AuditEventDetailsUnion as a AuditDetailsInviter
+func (t AuditEventDetailsUnion) AsAuditDetailsInviter() (AuditDetailsInviter, error) {
+	var body AuditDetailsInviter
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsInviter overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsInviter
+func (t *AuditEventDetailsUnion) FromAuditDetailsInviter(v AuditDetailsInviter) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsInviter performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsInviter
+func (t *AuditEventDetailsUnion) MergeAuditDetailsInviter(v AuditDetailsInviter) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsChatRenamed returns the union data inside the AuditEventDetailsUnion as a AuditDetailsChatRenamed
+func (t AuditEventDetailsUnion) AsAuditDetailsChatRenamed() (AuditDetailsChatRenamed, error) {
+	var body AuditDetailsChatRenamed
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsChatRenamed overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsChatRenamed
+func (t *AuditEventDetailsUnion) FromAuditDetailsChatRenamed(v AuditDetailsChatRenamed) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsChatRenamed performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsChatRenamed
+func (t *AuditEventDetailsUnion) MergeAuditDetailsChatRenamed(v AuditDetailsChatRenamed) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsChatPermission returns the union data inside the AuditEventDetailsUnion as a AuditDetailsChatPermission
+func (t AuditEventDetailsUnion) AsAuditDetailsChatPermission() (AuditDetailsChatPermission, error) {
+	var body AuditDetailsChatPermission
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsChatPermission overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsChatPermission
+func (t *AuditEventDetailsUnion) FromAuditDetailsChatPermission(v AuditDetailsChatPermission) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsChatPermission performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsChatPermission
+func (t *AuditEventDetailsUnion) MergeAuditDetailsChatPermission(v AuditDetailsChatPermission) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsTagChat returns the union data inside the AuditEventDetailsUnion as a AuditDetailsTagChat
+func (t AuditEventDetailsUnion) AsAuditDetailsTagChat() (AuditDetailsTagChat, error) {
+	var body AuditDetailsTagChat
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsTagChat overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsTagChat
+func (t *AuditEventDetailsUnion) FromAuditDetailsTagChat(v AuditDetailsTagChat) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsTagChat performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsTagChat
+func (t *AuditEventDetailsUnion) MergeAuditDetailsTagChat(v AuditDetailsTagChat) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsChatId returns the union data inside the AuditEventDetailsUnion as a AuditDetailsChatId
+func (t AuditEventDetailsUnion) AsAuditDetailsChatId() (AuditDetailsChatId, error) {
+	var body AuditDetailsChatId
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsChatId overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsChatId
+func (t *AuditEventDetailsUnion) FromAuditDetailsChatId(v AuditDetailsChatId) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsChatId performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsChatId
+func (t *AuditEventDetailsUnion) MergeAuditDetailsChatId(v AuditDetailsChatId) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsTokenScopes returns the union data inside the AuditEventDetailsUnion as a AuditDetailsTokenScopes
+func (t AuditEventDetailsUnion) AsAuditDetailsTokenScopes() (AuditDetailsTokenScopes, error) {
+	var body AuditDetailsTokenScopes
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsTokenScopes overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsTokenScopes
+func (t *AuditEventDetailsUnion) FromAuditDetailsTokenScopes(v AuditDetailsTokenScopes) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsTokenScopes performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsTokenScopes
+func (t *AuditEventDetailsUnion) MergeAuditDetailsTokenScopes(v AuditDetailsTokenScopes) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsKms returns the union data inside the AuditEventDetailsUnion as a AuditDetailsKms
+func (t AuditEventDetailsUnion) AsAuditDetailsKms() (AuditDetailsKms, error) {
+	var body AuditDetailsKms
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsKms overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsKms
+func (t *AuditEventDetailsUnion) FromAuditDetailsKms(v AuditDetailsKms) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsKms performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsKms
+func (t *AuditEventDetailsUnion) MergeAuditDetailsKms(v AuditDetailsKms) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsDlp returns the union data inside the AuditEventDetailsUnion as a AuditDetailsDlp
+func (t AuditEventDetailsUnion) AsAuditDetailsDlp() (AuditDetailsDlp, error) {
+	var body AuditDetailsDlp
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsDlp overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsDlp
+func (t *AuditEventDetailsUnion) FromAuditDetailsDlp(v AuditDetailsDlp) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsDlp performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsDlp
+func (t *AuditEventDetailsUnion) MergeAuditDetailsDlp(v AuditDetailsDlp) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAuditDetailsSearch returns the union data inside the AuditEventDetailsUnion as a AuditDetailsSearch
+func (t AuditEventDetailsUnion) AsAuditDetailsSearch() (AuditDetailsSearch, error) {
+	var body AuditDetailsSearch
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAuditDetailsSearch overwrites any union data inside the AuditEventDetailsUnion as the provided AuditDetailsSearch
+func (t *AuditEventDetailsUnion) FromAuditDetailsSearch(v AuditDetailsSearch) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAuditDetailsSearch performs a merge with any union data inside the AuditEventDetailsUnion, using the provided AuditDetailsSearch
+func (t *AuditEventDetailsUnion) MergeAuditDetailsSearch(v AuditDetailsSearch) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t AuditEventDetailsUnion) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *AuditEventDetailsUnion) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsViewBlockHeader returns the union data inside the ViewBlockUnion as a ViewBlockHeader
 func (t ViewBlockUnion) AsViewBlockHeader() (ViewBlockHeader, error) {
@@ -4778,7 +5283,7 @@ func NewSecurityOperationsGetAuditEventsRequest(server string, params *SecurityO
 
 		if params.ActorId != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "actor_id", *params.ActorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "actor_id", *params.ActorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -4810,7 +5315,7 @@ func NewSecurityOperationsGetAuditEventsRequest(server string, params *SecurityO
 
 		if params.EntityId != nil {
 
-			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "entity_id", *params.EntityId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "entity_id", *params.EntityId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -8562,7 +9067,6 @@ func (r ChatOperationsCreateChatResponse) StatusCode() int {
 type ExportOperationsRequestExportResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *struct {
@@ -8677,7 +9181,6 @@ func (r ChatOperationsUpdateChatResponse) StatusCode() int {
 type ChatOperationsArchiveChatResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -8702,7 +9205,6 @@ func (r ChatOperationsArchiveChatResponse) StatusCode() int {
 type ChatMemberOperationsAddTagsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *OAuthError
@@ -8729,7 +9231,6 @@ func (r ChatMemberOperationsAddTagsResponse) StatusCode() int {
 type ChatMemberOperationsRemoveTagResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -8754,7 +9255,6 @@ func (r ChatMemberOperationsRemoveTagResponse) StatusCode() int {
 type ChatMemberOperationsLeaveChatResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *OAuthError
@@ -8813,7 +9313,6 @@ func (r ChatMemberOperationsListMembersResponse) StatusCode() int {
 type ChatMemberOperationsAddMembersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *OAuthError
@@ -8840,7 +9339,6 @@ func (r ChatMemberOperationsAddMembersResponse) StatusCode() int {
 type ChatMemberOperationsRemoveMemberResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -8865,7 +9363,6 @@ func (r ChatMemberOperationsRemoveMemberResponse) StatusCode() int {
 type ChatMemberOperationsUpdateMemberRoleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *OAuthError
@@ -8892,7 +9389,6 @@ func (r ChatMemberOperationsUpdateMemberRoleResponse) StatusCode() int {
 type ChatOperationsUnarchiveChatResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -9026,7 +9522,6 @@ func (r GroupTagOperationsCreateTagResponse) StatusCode() int {
 type GroupTagOperationsDeleteTagResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -9202,7 +9697,6 @@ func (r MessageOperationsCreateMessageResponse) StatusCode() int {
 type MessageOperationsDeleteMessageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -9285,7 +9779,6 @@ func (r MessageOperationsUpdateMessageResponse) StatusCode() int {
 type LinkPreviewOperationsCreateLinkPreviewsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *OAuthError
@@ -9312,7 +9805,6 @@ func (r LinkPreviewOperationsCreateLinkPreviewsResponse) StatusCode() int {
 type MessageOperationsUnpinMessageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -9337,7 +9829,6 @@ func (r MessageOperationsUnpinMessageResponse) StatusCode() int {
 type MessageOperationsPinMessageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -9363,7 +9854,6 @@ func (r MessageOperationsPinMessageResponse) StatusCode() int {
 type ReactionOperationsRemoveReactionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *OAuthError
@@ -9562,7 +10052,6 @@ func (r ProfileOperationsGetProfileResponse) StatusCode() int {
 type ProfileOperationsDeleteStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 }
@@ -9794,7 +10283,6 @@ func (r TaskOperationsCreateTaskResponse) StatusCode() int {
 type TaskOperationsDeleteTaskResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -9989,7 +10477,6 @@ func (r UserOperationsCreateUserResponse) StatusCode() int {
 type UserOperationsDeleteUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -10072,7 +10559,6 @@ func (r UserOperationsUpdateUserResponse) StatusCode() int {
 type UserStatusOperationsDeleteUserStatusResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -10154,7 +10640,6 @@ func (r UserStatusOperationsUpdateUserStatusResponse) StatusCode() int {
 type FormOperationsOpenViewResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *EmptyResponse
 	JSON400      *ApiError
 	JSON401      *OAuthError
 	JSON403      *OAuthError
@@ -10212,7 +10697,6 @@ func (r BotOperationsGetWebhookEventsResponse) StatusCode() int {
 type BotOperationsDeleteWebhookEventResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON204      *EmptyResponse
 	JSON401      *OAuthError
 	JSON403      *OAuthError
 	JSON404      *ApiError
@@ -11223,13 +11707,6 @@ func ParseExportOperationsRequestExportResponse(rsp *http.Response) (*ExportOper
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11435,13 +11912,6 @@ func ParseChatOperationsArchiveChatResponse(rsp *http.Response) (*ChatOperations
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11482,13 +11952,6 @@ func ParseChatMemberOperationsAddTagsResponse(rsp *http.Response) (*ChatMemberOp
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11543,13 +12006,6 @@ func ParseChatMemberOperationsRemoveTagResponse(rsp *http.Response) (*ChatMember
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11590,13 +12046,6 @@ func ParseChatMemberOperationsLeaveChatResponse(rsp *http.Response) (*ChatMember
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11717,13 +12166,6 @@ func ParseChatMemberOperationsAddMembersResponse(rsp *http.Response) (*ChatMembe
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11778,13 +12220,6 @@ func ParseChatMemberOperationsRemoveMemberResponse(rsp *http.Response) (*ChatMem
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11825,13 +12260,6 @@ func ParseChatMemberOperationsUpdateMemberRoleResponse(rsp *http.Response) (*Cha
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -11886,13 +12314,6 @@ func ParseChatOperationsUnarchiveChatResponse(rsp *http.Response) (*ChatOperatio
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -12121,13 +12542,6 @@ func ParseGroupTagOperationsDeleteTagResponse(rsp *http.Response) (*GroupTagOper
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -12471,13 +12885,6 @@ func ParseMessageOperationsDeleteMessageResponse(rsp *http.Response) (*MessageOp
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -12632,13 +13039,6 @@ func ParseLinkPreviewOperationsCreateLinkPreviewsResponse(rsp *http.Response) (*
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -12693,13 +13093,6 @@ func ParseMessageOperationsUnpinMessageResponse(rsp *http.Response) (*MessageOpe
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -12740,13 +13133,6 @@ func ParseMessageOperationsPinMessageResponse(rsp *http.Response) (*MessageOpera
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -12794,13 +13180,6 @@ func ParseReactionOperationsRemoveReactionResponse(rsp *http.Response) (*Reactio
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -13177,13 +13556,6 @@ func ParseProfileOperationsDeleteStatusResponse(rsp *http.Response) (*ProfileOpe
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -13609,13 +13981,6 @@ func ParseTaskOperationsDeleteTaskResponse(rsp *http.Response) (*TaskOperationsD
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -13976,13 +14341,6 @@ func ParseUserOperationsDeleteUserResponse(rsp *http.Response) (*UserOperationsD
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -14137,13 +14495,6 @@ func ParseUserStatusOperationsDeleteUserStatusResponse(rsp *http.Response) (*Use
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -14297,13 +14648,6 @@ func ParseFormOperationsOpenViewResponse(rsp *http.Response) (*FormOperationsOpe
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ApiError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -14417,13 +14761,6 @@ func ParseBotOperationsDeleteWebhookEventResponse(rsp *http.Response) (*BotOpera
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
-		var dest EmptyResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON204 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest OAuthError
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

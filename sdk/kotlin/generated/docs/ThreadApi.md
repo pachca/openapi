@@ -23,7 +23,7 @@ All URIs are relative to *https://api.pachca.com/api/shared/v1*
 //import org.openapitools.client.models.*
 
 val apiInstance = ThreadApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор сообщения
+val id : kotlin.Int = 154332686 // kotlin.Int | Идентификатор сообщения
 try {
     val result : ThreadOperationsCreateThread201Response = apiInstance.threadOperationsCreateThread(id)
     println(result)
@@ -71,7 +71,7 @@ Configure BearerAuth:
 //import org.openapitools.client.models.*
 
 val apiInstance = ThreadApi()
-val id : kotlin.Int = 56 // kotlin.Int | Идентификатор треда
+val id : kotlin.Int = 265142 // kotlin.Int | Идентификатор треда
 try {
     val result : ThreadOperationsCreateThread201Response = apiInstance.threadOperationsGetThread(id)
     println(result)

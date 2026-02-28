@@ -15,6 +15,7 @@
 
 package org.openapitools.client.models
 
+import org.openapitools.client.models.AuditEventDetailsUnion
 import org.openapitools.client.models.AuditEventKey
 
 import com.squareup.moshi.Json
@@ -30,7 +31,7 @@ import com.squareup.moshi.JsonClass
  * @param entityType Тип затронутой сущности
  * @param actorId Идентификатор пользователя, выполнившего действие
  * @param actorType Тип актора
- * @param details Дополнительные детали события
+ * @param details Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
  * @param ipAddress IP-адрес, с которого было выполнено действие
  * @param userAgent User agent клиента
  */
@@ -66,9 +67,9 @@ data class AuditEvent (
     @Json(name = "actor_type")
     val actorType: kotlin.String,
 
-    /* Дополнительные детали события */
+    /* Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект */
     @Json(name = "details")
-    val details: kotlin.collections.Map<kotlin.String, kotlin.Any>,
+    val details: AuditEventDetailsUnion,
 
     /* IP-адрес, с которого было выполнено действие */
     @Json(name = "ip_address")

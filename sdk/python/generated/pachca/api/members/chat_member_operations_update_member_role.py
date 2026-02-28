@@ -9,7 +9,6 @@ from ...types import Response, UNSET
 from ... import errors
 
 from ...models.api_error import ApiError
-from ...models.empty_response import EmptyResponse
 from ...models.o_auth_error import OAuthError
 from ...models.update_member_role_request import UpdateMemberRoleRequest
 from typing import cast
@@ -45,12 +44,9 @@ def _get_kwargs(
 
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> ApiError | EmptyResponse | OAuthError | None:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | ApiError | OAuthError | None:
     if response.status_code == 204:
-        response_204 = EmptyResponse.from_dict(response.json())
-
-
-
+        response_204 = cast(Any, None)
         return response_204
 
     if response.status_code == 400:
@@ -94,7 +90,7 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Res
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[ApiError | EmptyResponse | OAuthError]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any | ApiError | OAuthError]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -110,7 +106,7 @@ def sync_detailed(
     client: AuthenticatedClient | Client,
     body: UpdateMemberRoleRequest,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Редактирование роли
 
     Метод для редактирования роли пользователя или бота в беседе или канале.
@@ -121,8 +117,8 @@ def sync_detailed(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        id (int):
-        user_id (int):
+        id (int):  Example: 334.
+        user_id (int):  Example: 186.
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
     Raises:
@@ -130,7 +126,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -154,7 +150,7 @@ def sync(
     client: AuthenticatedClient | Client,
     body: UpdateMemberRoleRequest,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Редактирование роли
 
     Метод для редактирования роли пользователя или бота в беседе или канале.
@@ -165,8 +161,8 @@ def sync(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        id (int):
-        user_id (int):
+        id (int):  Example: 334.
+        user_id (int):  Example: 186.
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
     Raises:
@@ -174,7 +170,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 
@@ -193,7 +189,7 @@ async def asyncio_detailed(
     client: AuthenticatedClient | Client,
     body: UpdateMemberRoleRequest,
 
-) -> Response[ApiError | EmptyResponse | OAuthError]:
+) -> Response[Any | ApiError | OAuthError]:
     """  Редактирование роли
 
     Метод для редактирования роли пользователя или бота в беседе или канале.
@@ -204,8 +200,8 @@ async def asyncio_detailed(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        id (int):
-        user_id (int):
+        id (int):  Example: 334.
+        user_id (int):  Example: 186.
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
     Raises:
@@ -213,7 +209,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[ApiError | EmptyResponse | OAuthError]
+        Response[Any | ApiError | OAuthError]
      """
 
 
@@ -237,7 +233,7 @@ async def asyncio(
     client: AuthenticatedClient | Client,
     body: UpdateMemberRoleRequest,
 
-) -> ApiError | EmptyResponse | OAuthError | None:
+) -> Any | ApiError | OAuthError | None:
     """  Редактирование роли
 
     Метод для редактирования роли пользователя или бота в беседе или канале.
@@ -248,8 +244,8 @@ async def asyncio(
     Владельцу чата роль изменить нельзя. Он всегда имеет права Админа в чате.
 
     Args:
-        id (int):
-        user_id (int):
+        id (int):  Example: 334.
+        user_id (int):  Example: 186.
         body (UpdateMemberRoleRequest): Запрос на изменение роли участника
 
     Raises:
@@ -257,7 +253,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        ApiError | EmptyResponse | OAuthError
+        Any | ApiError | OAuthError
      """
 
 

@@ -117,7 +117,7 @@ def sync_detailed(
     запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (ChatUpdateRequest): Запрос на обновление чата
 
     Raises:
@@ -156,7 +156,7 @@ def sync(
     запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (ChatUpdateRequest): Запрос на обновление чата
 
     Raises:
@@ -190,7 +190,7 @@ async def asyncio_detailed(
     запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (ChatUpdateRequest): Запрос на обновление чата
 
     Raises:
@@ -229,7 +229,7 @@ async def asyncio(
     запроса.
 
     Args:
-        id (int):
+        id (int):  Example: 334.
         body (ChatUpdateRequest): Запрос на обновление чата
 
     Raises:

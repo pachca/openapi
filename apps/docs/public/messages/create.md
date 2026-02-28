@@ -27,26 +27,39 @@
       - `thread`: Тред
       - `user`: Пользователь
   - `entity_id` (integer, int32, **обязательный**): Идентификатор сущности
+    - Пример: `334`
   - `content` (string, **обязательный**): Текст сообщения
+    - Пример: `Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)`
   - `files` (array[object], опциональный): Прикрепляемые файлы
     - `key` (string, **обязательный**): Путь к файлу, полученный в результате [загрузки файла](POST /direct_url)
+      - Пример: `attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png`
     - `name` (string, **обязательный**): Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)
+      - Пример: `logo.png`
     - `file_type` (string, **обязательный**): Тип файла
       - **Возможные значения:**
         - `file`: Обычный файл
         - `image`: Изображение
     - `size` (integer, int32, **обязательный**): Размер файла в байтах, отображаемый пользователю
+      - Пример: `12345`
     - `width` (integer, int32, опциональный): Ширина изображения в px (используется в случае, если file_type указан как image)
+      - Пример: `800`
     - `height` (integer, int32, опциональный): Высота изображения в px (используется в случае, если file_type указан как image)
+      - Пример: `600`
   - `buttons` (array[array], опциональный): Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.
+    - Пример: `[[{"text":"Подробнее","url":"https://example.com/details"},{"text":"Отлично!","data":"awesome"}]]`
   - `parent_message_id` (integer, int32, опциональный): Идентификатор сообщения. Указывается в случае, если вы отправляете ответ на другое сообщение.
+    - Пример: `194270`
   - `display_avatar_url` (string, опциональный): Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.
+    - Пример: `https://example.com/avatar.png`
     - Максимальная длина: 255 символов
   - `display_name` (string, опциональный): Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.
+    - Пример: `Бот Поддержки`
     - Максимальная длина: 255 символов
   - `skip_invite_mentions` (boolean, опциональный): Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.
+    - Пример: `false`
     - По умолчанию: `false`
   - `link_preview` (boolean, опциональный): Отображение предпросмотра первой найденной ссылки в тексте сообщения
+    - Пример: `false`
     - По умолчанию: `false`
 
 ### Пример
@@ -55,8 +68,18 @@
 {
   "message": {
     "entity_type": "discussion",
-    "entity_id": 198,
+    "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+    "files": [
+      {
+        "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+        "name": "logo.png",
+        "file_type": "image",
+        "size": 12345,
+        "width": 800,
+        "height": 600
+      }
+    ],
     "buttons": [
       [
         {
@@ -68,7 +91,12 @@
           "data": "awesome"
         }
       ]
-    ]
+    ],
+    "parent_message_id": 194270,
+    "display_avatar_url": "https://example.com/avatar.png",
+    "display_name": "Бот Поддержки",
+    "skip_invite_mentions": false,
+    "link_preview": false
   }
 }
 ```
@@ -84,8 +112,18 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
   -d '{
   "message": {
     "entity_type": "discussion",
-    "entity_id": 198,
+    "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+    "files": [
+      {
+        "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+        "name": "logo.png",
+        "file_type": "image",
+        "size": 12345,
+        "width": 800,
+        "height": 600
+      }
+    ],
     "buttons": [
       [
         {
@@ -97,7 +135,12 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
           "data": "awesome"
         }
       ]
-    ]
+    ],
+    "parent_message_id": 194270,
+    "display_avatar_url": "https://example.com/avatar.png",
+    "display_name": "Бот Поддержки",
+    "skip_invite_mentions": false,
+    "link_preview": false
   }
 }'
 ```
@@ -114,8 +157,18 @@ const response = await fetch('https://api.pachca.com/api/shared/v1/messages', {
   body: JSON.stringify({
       "message": {
           "entity_type": "discussion",
-          "entity_id": 198,
+          "entity_id": 334,
           "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+          "files": [
+              {
+                  "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+                  "name": "logo.png",
+                  "file_type": "image",
+                  "size": 12345,
+                  "width": 800,
+                  "height": 600
+              }
+          ],
           "buttons": [
               [
                   {
@@ -127,7 +180,12 @@ const response = await fetch('https://api.pachca.com/api/shared/v1/messages', {
                       "data": "awesome"
                   }
               ]
-          ]
+          ],
+          "parent_message_id": 194270,
+          "display_avatar_url": "https://example.com/avatar.png",
+          "display_name": "Бот Поддержки",
+          "skip_invite_mentions": false,
+          "link_preview": false
       }
   })
 });
@@ -144,8 +202,18 @@ import requests
 data = {
     'message': {
         'entity_type': 'discussion',
-        'entity_id': 198,
+        'entity_id': 334,
         'content': 'Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)',
+        'files': [
+            {
+                'key': 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png',
+                'name': 'logo.png',
+                'file_type': 'image',
+                'size': 12345,
+                'width': 800,
+                'height': 600
+            }
+        ],
         'buttons': [
             [
                 {
@@ -157,7 +225,12 @@ data = {
                     'data': 'awesome'
                 }
             ]
-        ]
+        ],
+        'parent_message_id': 194270,
+        'display_avatar_url': 'https://example.com/avatar.png',
+        'display_name': 'Бот Поддержки',
+        'skip_invite_mentions': False,
+        'link_preview': False
     }
 }
 
@@ -206,8 +279,18 @@ const req = https.request(options, (res) => {
 req.write(JSON.stringify({
     "message": {
         "entity_type": "discussion",
-        "entity_id": 198,
+        "entity_id": 334,
         "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+        "files": [
+            {
+                "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+                "name": "logo.png",
+                "file_type": "image",
+                "size": 12345,
+                "width": 800,
+                "height": 600
+            }
+        ],
         "buttons": [
             [
                 {
@@ -219,7 +302,12 @@ req.write(JSON.stringify({
                     "data": "awesome"
                 }
             ]
-        ]
+        ],
+        "parent_message_id": 194270,
+        "display_avatar_url": "https://example.com/avatar.png",
+        "display_name": "Бот Поддержки",
+        "skip_invite_mentions": false,
+        "link_preview": false
     }
 }));
 req.on('error', (error) => {
@@ -243,8 +331,18 @@ request['Content-Type'] = 'application/json'
 request.body = {
   'message' => {
     'entity_type' => 'discussion',
-    'entity_id' => 198,
+    'entity_id' => 334,
     'content' => 'Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)',
+    'files' => [
+      {
+        'key' => 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png',
+        'name' => 'logo.png',
+        'file_type' => 'image',
+        'size' => 12345,
+        'width' => 800,
+        'height' => 600
+      }
+    ],
     'buttons' => [
       [
         {
@@ -256,7 +354,12 @@ request.body = {
           'data' => 'awesome'
         }
       ]
-    ]
+    ],
+    'parent_message_id' => 194270,
+    'display_avatar_url' => 'https://example.com/avatar.png',
+    'display_name' => 'Бот Поддержки',
+    'skip_invite_mentions' => false,
+    'link_preview' => false
   }
 }.to_json
 
@@ -285,8 +388,18 @@ curl_setopt_array($curl, [
     CURLOPT_POSTFIELDS => json_encode([
     'message' => [
         'entity_type' => 'discussion',
-        'entity_id' => 198,
+        'entity_id' => 334,
         'content' => 'Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)',
+        'files' => [
+            [
+                'key' => 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png',
+                'name' => 'logo.png',
+                'file_type' => 'image',
+                'size' => 12345,
+                'width' => 800,
+                'height' => 600
+            ]
+        ],
         'buttons' => [
             [
                 [
@@ -298,7 +411,12 @@ curl_setopt_array($curl, [
                     'data' => 'awesome'
                 ]
             ]
-        ]
+        ],
+        'parent_message_id' => 194270,
+        'display_avatar_url' => 'https://example.com/avatar.png',
+        'display_name' => 'Бот Поддержки',
+        'skip_invite_mentions' => false,
+        'link_preview' => false
     ]
 ]),
 ]);
@@ -318,49 +436,80 @@ echo $response;
 
 - `data` (object, **обязательный**): Сообщение
   - `id` (integer, int32, **обязательный**): Идентификатор сообщения
+    - Пример: `194275`
   - `entity_type` (string, **обязательный**): Тип сущности, к которой относится сообщение
     - **Возможные значения:**
       - `discussion`: Беседа или канал
       - `thread`: Тред
       - `user`: Пользователь
   - `entity_id` (integer, int32, **обязательный**): Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя)
+    - Пример: `334`
   - `chat_id` (integer, int32, **обязательный**): Идентификатор чата, в котором находится сообщение
+    - Пример: `334`
   - `root_chat_id` (integer, int32, **обязательный**): Идентификатор корневого чата. Для сообщений в тредах — идентификатор чата, в котором был создан тред. Для обычных сообщений совпадает с `chat_id`.
+    - Пример: `334`
   - `content` (string, **обязательный**): Текст сообщения
+    - Пример: `Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)`
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя, создавшего сообщение
+    - Пример: `12`
   - `created_at` (string, date-time, **обязательный**): Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2021-08-28T15:57:23.000Z`
   - `url` (string, **обязательный**): Прямая ссылка на сообщение
+    - Пример: `https://app.pachca.com/chats/334?message=194275`
   - `files` (array[object], **обязательный**): Прикрепленные файлы
     - `id` (integer, int32, **обязательный**): Идентификатор файла
+      - Пример: `3560`
     - `key` (string, **обязательный**): Путь к файлу
+      - Пример: `attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png`
     - `name` (string, **обязательный**): Название файла с расширением
+      - Пример: `congrat.png`
     - `file_type` (string, **обязательный**): Тип файла
       - **Возможные значения:**
         - `file`: Обычный файл
         - `image`: Изображение
     - `url` (string, **обязательный**): Прямая ссылка на скачивание файла
+      - Пример: `https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8`
     - `width` (integer, int32, опциональный): Ширина изображения в пикселях
+      - Пример: `1920`
     - `height` (integer, int32, опциональный): Высота изображения в пикселях
+      - Пример: `1080`
   - `buttons` (array[array], **обязательный**): Массив строк, каждая из которых представлена массивом кнопок
   - `thread` (object, **обязательный**): Тред сообщения
     - `id` (integer, int64, **обязательный**): Идентификатор созданного треда (используется для отправки [новых комментариев](POST /messages) в тред)
+      - Пример: `265142`
     - `chat_id` (integer, int64, **обязательный**): Идентификатор чата треда (используется для отправки [новых комментариев](POST /messages) в тред и получения [списка комментариев](GET /messages))
+      - Пример: `2637266155`
     - `message_id` (integer, int64, **обязательный**): Идентификатор сообщения, к которому был создан тред
+      - Пример: `154332686`
     - `message_chat_id` (integer, int64, **обязательный**): Идентификатор чата сообщения
+      - Пример: `2637266154`
     - `updated_at` (string, date-time, **обязательный**): Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+      - Пример: `2023-02-01T19:20:47.204Z`
   - `forwarding` (object, **обязательный**): Информация о пересланном сообщении
     - `original_message_id` (integer, int32, **обязательный**): Идентификатор оригинального сообщения
+      - Пример: `194275`
     - `original_chat_id` (integer, int32, **обязательный**): Идентификатор чата, в котором находится оригинальное сообщение
+      - Пример: `334`
     - `author_id` (integer, int32, **обязательный**): Идентификатор пользователя, создавшего оригинальное сообщение
+      - Пример: `12`
     - `original_created_at` (string, date-time, **обязательный**): Дата и время создания оригинального сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+      - Пример: `2025-01-15T10:30:00.000Z`
     - `original_thread_id` (integer, int32, **обязательный**): Идентификатор треда, в котором находится оригинальное сообщение
+      - Пример: `null`
     - `original_thread_message_id` (integer, int32, **обязательный**): Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение
+      - Пример: `null`
     - `original_thread_parent_chat_id` (integer, int32, **обязательный**): Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение
+      - Пример: `null`
   - `parent_message_id` (integer, int32, **обязательный**): Идентификатор сообщения, к которому написан ответ
+    - Пример: `null`
   - `display_avatar_url` (string, **обязательный**): Ссылка на аватарку отправителя сообщения
+    - Пример: `null`
   - `display_name` (string, **обязательный**): Полное имя отправителя сообщения
+    - Пример: `null`
   - `changed_at` (string, date-time, **обязательный**): Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2021-08-28T16:10:00.000Z`
   - `deleted_at` (string, date-time, **обязательный**): Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `null`
 
 **Пример ответа:**
 
@@ -373,28 +522,49 @@ echo $response;
     "chat_id": 334,
     "root_chat_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-    "user_id": 185,
+    "user_id": 12,
     "created_at": "2021-08-28T15:57:23.000Z",
     "url": "https://app.pachca.com/chats/334?message=194275",
-    "files": [],
+    "files": [
+      {
+        "id": 3560,
+        "key": "attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png",
+        "name": "congrat.png",
+        "file_type": "image",
+        "url": "https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8",
+        "width": 1920,
+        "height": 1080
+      }
+    ],
     "buttons": [
       [
         {
           "text": "Подробнее",
-          "url": "https://example.com/details"
-        },
-        {
-          "text": "Отлично!",
+          "url": "https://example.com/details",
           "data": "awesome"
         }
       ]
     ],
-    "thread": null,
-    "forwarding": null,
+    "thread": {
+      "id": 265142,
+      "chat_id": 2637266155,
+      "message_id": 154332686,
+      "message_chat_id": 2637266154,
+      "updated_at": "2023-02-01T19:20:47.204Z"
+    },
+    "forwarding": {
+      "original_message_id": 194275,
+      "original_chat_id": 334,
+      "author_id": 12,
+      "original_created_at": "2025-01-15T10:30:00.000Z",
+      "original_thread_id": null,
+      "original_thread_message_id": null,
+      "original_thread_parent_chat_id": null
+    },
     "parent_message_id": null,
     "display_avatar_url": null,
     "display_name": null,
-    "changed_at": null,
+    "changed_at": "2021-08-28T16:10:00.000Z",
     "deleted_at": null
   }
 }
@@ -406,8 +576,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -446,20 +619,59 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 422: Client error
 
@@ -467,8 +679,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -507,4 +722,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

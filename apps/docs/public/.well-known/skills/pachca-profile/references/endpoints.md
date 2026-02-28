@@ -164,7 +164,9 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
   "status": {
     "emoji": "🎮",
     "title": "Очень занят",
-    "expires_at": "2024-04-08T10:00:00.000Z"
+    "expires_at": "2024-04-08T10:00:00.000Z",
+    "is_away": true,
+    "away_message": "Вернусь после 15:00"
   }
 }'
 ```

@@ -138,42 +138,37 @@ function EnumValues({
   if (!schema.enum) return null;
 
   return (
-    <div className="mt-3 mb-1 border border-background-border rounded-lg w-full">
-      <div className="px-3 flex items-center border-b bg-background-tertiary border-background-border min-h-(--boxed-header-height) rounded-t-lg">
-        <span className="text-[13px] font-medium text-text-primary">Возможные значения</span>
-      </div>
-      <div className="divide-y divide-background-border/40">
-        {schema.enum.map((v, i) => {
-          const enumValue = Array.isArray(v) ? `Array [ ${v.length} ]` : String(v);
-          const enumDescription = schema['x-enum-descriptions']?.[String(v)];
-          const isLast = i === schema.enum!.length - 1;
-          const enumId = fieldPath ? generateEnumId(fieldPath, String(v)) : undefined;
+    <ValuesBox title="Возможные значения">
+      {schema.enum.map((v, i) => {
+        const enumValue = Array.isArray(v) ? `Array [ ${v.length} ]` : String(v);
+        const enumDescription = schema['x-enum-descriptions']?.[String(v)];
+        const isLast = i === schema.enum!.length - 1;
+        const enumId = fieldPath ? generateEnumId(fieldPath, String(v)) : undefined;
 
-          return (
-            <div
-              key={i}
-              id={enumId}
-              className={`px-3 py-3 flex flex-col gap-2 scroll-mt-20 transition-colors duration-500 ${
-                isLast ? 'rounded-b-lg' : ''
-              }`}
-            >
-              <div className="flex">
-                <CopyableCode
-                  value={String(v)}
-                  displayValue={enumValue}
-                  className="text-[13px]! font-medium"
-                />
-              </div>
-              {enumDescription && !hideDescriptions && (
-                <div className="text-[13px] text-text-primary leading-relaxed pl-0.5">
-                  <InlineCodeText text={enumDescription} />
-                </div>
-              )}
+        return (
+          <div
+            key={i}
+            id={enumId}
+            className={`px-3 py-3 flex flex-col gap-2 scroll-mt-20 transition-colors duration-500 ${
+              isLast ? 'rounded-b-lg' : ''
+            }`}
+          >
+            <div className="flex">
+              <CopyableCode
+                value={String(v)}
+                displayValue={enumValue}
+                className="text-[13px]! font-medium"
+              />
             </div>
-          );
-        })}
-      </div>
-    </div>
+            {enumDescription && !hideDescriptions && (
+              <div className="text-[13px] text-text-primary leading-relaxed pl-0.5">
+                <InlineCodeText text={enumDescription} />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </ValuesBox>
   );
 }
 
@@ -231,7 +226,33 @@ function generateParamId(name: string, parentPath?: string): string {
   return `param-${path.replace(/\./g, '-').replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
 
-function CopyableCode({
+export function ValuesBox({ title, children }: { title: string; children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="mt-3 mb-1 border border-background-border rounded-lg w-full">
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`px-3 flex items-center gap-2 bg-background-tertiary min-h-(--boxed-header-height) cursor-pointer select-none group/values ${isOpen ? 'rounded-t-lg' : 'rounded-lg'}`}
+      >
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-text-secondary group-hover/values:text-text-primary transition-all duration-200 shrink-0 ${
+            isOpen ? 'rotate-0' : '-rotate-90'
+          }`}
+          strokeWidth={2.5}
+        />
+        <span className="text-[13px] font-medium text-text-primary">{title}</span>
+      </div>
+      {isOpen && (
+        <div className="divide-y divide-background-border/40 border-t border-background-border">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CopyableCode({
   value,
   displayValue,
   className,
@@ -322,7 +343,7 @@ function CopyLinkButton({ paramId, hasChevron }: { paramId: string; hasChevron?:
     <CopiedTooltip open={copied}>
       <button
         onClick={handleCopyLink}
-        className={`copy-link-btn absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[6px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-150 p-1 rounded bg-background hover:bg-background-tertiary hover:text-text-primary shrink-0`}
+        className={`copy-link-btn absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[5px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-150 p-1 rounded bg-background hover:bg-background-tertiary hover:text-text-primary shrink-0`}
         title="Скопировать ссылку"
         type="button"
       >
@@ -498,6 +519,8 @@ function SchemaTreeInner({
       ...singleSchema,
       description: name ? singleSchema.description : schema.description || singleSchema.description,
       nullable: schema.nullable !== undefined ? schema.nullable : singleSchema.nullable,
+      example: schema.example !== undefined ? schema.example : singleSchema.example,
+      default: schema.default !== undefined ? schema.default : singleSchema.default,
     };
     return (
       <SchemaTreeInner
@@ -682,7 +705,7 @@ function VariantSection({
   // Для вариантов сложнее определить путь, поэтому раскрываем все варианты если есть targetPath в этой ветке
   const shouldAutoExpand = targetPath && parentPath ? isPathPrefix(parentPath, targetPath) : false;
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(!!shouldAutoExpand);
 
   // Обновляем состояние раскрытия при изменении targetPath
   useEffect(() => {
@@ -729,6 +752,7 @@ export interface PropertyRowProps {
   required?: boolean;
   level: number;
   parentPath?: string;
+  children?: React.ReactNode;
 }
 
 function MetadataRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -750,7 +774,14 @@ function CodeBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function PropertyRow({ name, schema, required, level, parentPath }: PropertyRowProps) {
+export function PropertyRow({
+  name,
+  schema,
+  required,
+  level,
+  parentPath,
+  children,
+}: PropertyRowProps) {
   const { showSchemaExamples, showDescriptions } = useDisplaySettings();
 
   // Генерируем уникальный ID для параметра
@@ -854,7 +885,9 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         required={required}
         level={level}
         parentPath={parentPath}
-      />
+      >
+        {children}
+      </PropertyRow>
     );
   }
 
@@ -912,6 +945,13 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
         )}
 
         <div className="flex flex-col gap-1 mt-1 empty:hidden">
+          <EnumValues
+            schema={schema.items?.enum ? schema.items : schema}
+            fieldPath={currentPath}
+            hideDescriptions={!showDescriptions}
+          />
+          {children}
+
           {showSchemaExamples && schema.example !== undefined && !hasMultipleVariants && (
             <MetadataRow label="Пример">
               <CopyableCode
@@ -923,12 +963,6 @@ export function PropertyRow({ name, schema, required, level, parentPath }: Prope
               />
             </MetadataRow>
           )}
-
-          <EnumValues
-            schema={schema.items?.enum ? schema.items : schema}
-            fieldPath={currentPath}
-            hideDescriptions={!showDescriptions}
-          />
           {schema.default !== undefined && (
             <MetadataRow label="По умолчанию">
               <CodeBadge>

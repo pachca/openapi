@@ -510,6 +510,9 @@ enum ValidationErrorCode {
   kms_decrypt: "Данные расшифрованы",
   audit_events_accessed: "Доступ к журналам аудита получен",
   dlp_violation_detected: "Срабатывание правила DLP-системы",
+  search_users_api: "Поиск сотрудников через API",
+  search_chats_api: "Поиск чатов через API",
+  search_messages_api: "Поиск сообщений через API",
 })
 enum AuditEventKey {
   @doc("Пользователь успешно вошел в систему")
@@ -633,8 +636,9 @@ model CustomProperty {
   name: string;
   
   @doc("Тип поля")
+  @example(CustomPropertyDataType.string)
   data_type: CustomPropertyDataType;
-  
+
   @doc("Значение")
   @example("Санкт-Петербург")
   value: string;
@@ -645,12 +649,13 @@ model CustomPropertyDefinition {
   @doc("Идентификатор поля")
   @example(1678)
   id: int32;
-  
+
   @doc("Название поля")
   @example("Город")
   name: string;
-  
+
   @doc("Тип поля")
+  @example(CustomPropertyDataType.string)
   data_type: CustomPropertyDataType;
 }
 
@@ -695,6 +700,7 @@ model File {
   name: string;
   
   @doc("Тип файла")
+  @example(FileType.image)
   file_type: FileType;
   
   @doc("Прямая ссылка на скачивание файла")
@@ -713,13 +719,16 @@ model File {
 @doc("Кнопка")
 model Button {
   @doc("Текст, отображаемый на кнопке")
+  @example("Подробнее")
   @maxLength(255)
   text: string;
 
   @doc("Ссылка, которая будет открыта по нажатию кнопки")
+  @example("https://example.com/details")
   url?: string;
 
   @doc("Данные, которые будут отправлены в исходном вебхуке по нажатию кнопки")
+  @example("awesome")
   @maxLength(255)
   data?: string;
 }
@@ -750,24 +759,31 @@ model Thread {
 @doc("Информация о пересланном сообщении")
 model Forwarding {
   @doc("Идентификатор оригинального сообщения")
+  @example(194275)
   original_message_id: int32;
-  
+
   @doc("Идентификатор чата, в котором находится оригинальное сообщение")
+  @example(334)
   original_chat_id: int32;
-  
+
   @doc("Идентификатор пользователя, создавшего оригинальное сообщение")
+  @example(12)
   author_id: int32;
-  
+
   @doc("Дата и время создания оригинального сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+  @example(utcDateTime.fromISO("2025-01-15T10:30:00.000Z"))
   original_created_at: utcDateTime;
-  
+
   @doc("Идентификатор треда, в котором находится оригинальное сообщение")
+  @example(null)
   original_thread_id: int32 | null;
-  
+
   @doc("Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение")
+  @example(null)
   original_thread_message_id: int32 | null;
-  
+
   @doc("Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение")
+  @example(null)
   original_thread_parent_chat_id: int32 | null;
 }
 
@@ -810,6 +826,7 @@ model User {
   title: string;
   
   @doc("Уровень доступа")
+  @example(UserRole.admin)
   role: UserRole;
   
   @doc("Деактивация пользователя")
@@ -817,6 +834,7 @@ model User {
   suspended: boolean;
   
   @doc("Статус приглашения")
+  @example(InviteStatus.confirmed)
   invite_status: InviteStatus;
   
   @doc("Массив тегов, привязанных к сотруднику")
@@ -850,6 +868,7 @@ model User {
   time_zone: string;
   
   @doc("Ссылка на скачивание аватарки пользователя")
+  @example("https://app.pachca.com/users/12/photo.jpg")
   image_url: string | null;
 }
 
@@ -905,8 +924,9 @@ model Message {
   @doc("Идентификатор сообщения")
   @example(194275)
   id: int32;
-  
+
   @doc("Тип сущности, к которой относится сообщение")
+  @example(MessageEntityType.discussion)
   entity_type: MessageEntityType;
   
   @doc("Идентификатор сущности, к которой относится сообщение (беседы/канала, треда или пользователя)")
@@ -926,7 +946,7 @@ model Message {
   content: string;
   
   @doc("Идентификатор пользователя, создавшего сообщение")
-  @example(185)
+  @example(12)
   user_id: int32;
   
   @doc("Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
@@ -950,12 +970,15 @@ model Message {
   forwarding: Forwarding | null;
   
   @doc("Идентификатор сообщения, к которому написан ответ")
+  @example(null)
   parent_message_id: int32 | null;
-  
+
   @doc("Ссылка на аватарку отправителя сообщения")
+  @example(null)
   display_avatar_url: string | null;
-  
+
   @doc("Полное имя отправителя сообщения")
+  @example(null)
   display_name: string | null;
 
   @doc("Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
@@ -1008,6 +1031,7 @@ model Task {
   id: int32;
 
   @doc("Тип")
+  @example(TaskKind.reminder)
   kind: TaskKind;
 
   @doc("Описание")
@@ -1027,7 +1051,7 @@ model Task {
   user_id: int32;
 
   @doc("Идентификатор чата, к которому привязано напоминание")
-  @example(456)
+  @example(334)
   chat_id: int32 | null;
 
   @doc("Статус напоминания")
@@ -1095,8 +1119,6 @@ model PaginatedDataResponse<T> {
   meta?: PaginationMeta;
 }
 
-@doc("При безошибочном выполнении запроса тело ответа отсутствует")
-model EmptyResponse {}
 
 // ============================================================================
 // OAuth Models
@@ -1318,6 +1340,7 @@ model AccessTokenInfo {
   user_id: int64;
 
   @doc("Список скоупов токена")
+  @example(#[OAuthScope.messages_read, OAuthScope.chats_read])
   scopes: OAuthScope[];
 
   @doc("Дата создания токена")
@@ -1362,9 +1385,11 @@ model ApiErrorItem {
   message: string;
   
   @doc("Код ошибки")
+  @example(ValidationErrorCode.blank)
   code: ValidationErrorCode;
   
   @doc("Дополнительные данные об ошибке")
+  @example(null)
   payload: string | null;
 }
 
@@ -1440,19 +1465,23 @@ model UserCreateRequest {
     email: string;
     
     @doc("Телефон")
+    @example("+79001234567")
     phone_number?: string;
-    
+
     @doc("Имя пользователя")
+    @example("olegpetrov")
     nickname?: string;
-    
+
     @doc("Департамент")
     @example("Продукт")
     department?: string;
-    
+
     @doc("Должность")
+    @example("CIO")
     title?: string;
-    
+
     @doc("Уровень доступа")
+    @example(UserRole.user)
     role?: UserRole;
 
     @doc("Деактивация пользователя")
@@ -1541,19 +1570,24 @@ model UserUpdateRequest {
 model StatusUpdateRequest {
   status: {
     @doc("Emoji символ статуса")
+    @example("🎮")
     emoji: string;
 
     @doc("Текст статуса")
+    @example("Очень занят")
     title: string;
 
     @doc("Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
+    @example(utcDateTime.fromISO("2024-04-08T10:00:00.000Z"))
     expires_at?: utcDateTime;
 
     @doc("Режим «Нет на месте»")
+    @example(true)
     is_away?: boolean;
 
     @doc("Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях.")
     @maxLength(1024)
+    @example("Вернусь после 15:00")
     away_message?: string;
   };
 }
@@ -1572,18 +1606,23 @@ model ChatCreateRequest {
   @doc("Собранный объект параметров создаваемого чата")
   chat: {
     @doc("Название")
+    @example("🤿 aqua")
     name: string;
-    
+
     @doc("Массив идентификаторов пользователей, которые станут участниками")
+    @example(#[186, 187])
     member_ids?: int32[];
-    
+
     @doc("Массив идентификаторов тегов, которые станут участниками")
+    @example(#[86, 18])
     group_tag_ids?: int32[];
-    
+
     @doc("Является каналом")
+    @example(true)
     channel?: boolean = false;
-    
+
     @doc("Открытый доступ")
+    @example(false)
     public?: boolean = false;
   };
 }
@@ -1593,9 +1632,11 @@ model ChatUpdateRequest {
   @doc("Собранный объект параметров обновляемого чата")
   chat: {
     @doc("Название")
+    @example("Бассейн")
     name?: string;
-    
+
     @doc("Открытый доступ")
+    @example(true)
     public?: boolean;
   };
 }
@@ -1621,6 +1662,7 @@ model AddTagsRequest {
 @doc("Запрос на изменение роли участника")
 model UpdateMemberRoleRequest {
   @doc("Роль")
+  @example(ChatMemberRole.admin)
   role: ChatMemberRole;
 }
 
@@ -1629,10 +1671,11 @@ model MessageCreateRequest {
   @doc("Собранный объект параметров создаваемого сообщения")
   message: {
     @doc("Тип сущности")
+    @example(MessageEntityType.discussion)
     entity_type?: MessageEntityType = MessageEntityType.discussion;
     
     @doc("Идентификатор сущности")
-    @example(198)
+    @example(334)
     entity_id: int32;
     
     @doc("Текст сообщения")
@@ -1667,8 +1710,9 @@ model MessageCreateRequest {
     }[];
     
     @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.")
+    @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }, #{ text: "Отлично!", data: "awesome" }]])
     buttons?: Button[][];
-    
+
     @doc("Идентификатор сообщения. Указывается в случае, если вы отправляете ответ на другое сообщение.")
     @example(194270)
     parent_message_id?: int32;
@@ -1729,6 +1773,7 @@ model MessageUpdateRequest {
     }[];
     
     @doc("Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.")
+    @example(#[#[#{ text: "Подробнее", url: "https://example.com/details" }]])
     buttons?: Button[][];
     
     @doc("Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.")
@@ -1785,6 +1830,7 @@ model LinkPreview {
 @doc("Запрос на разворачивание ссылок")
 model LinkPreviewsRequest {
   @doc("`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.")
+  @extension("x-record-key-example", "https://website.com/articles/123")
   link_previews: Record<LinkPreview>;
 }
 
@@ -1793,12 +1839,13 @@ model TaskCreateRequest {
   @doc("Собранный объект параметров создаваемого напоминания")
   task: {
     @doc("Тип")
+    @example(TaskKind.reminder)
     kind: TaskKind;
-    
+
     @doc("Описание (по умолчанию — название типа)")
     @example("Забрать со склада 21 заказ")
     content?: string;
-    
+
     @doc("Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени).")
     @example(utcDateTime.fromISO("2020-06-05T12:00:00.000+03:00"))
     due_at?: utcDateTime;
@@ -1806,8 +1853,9 @@ model TaskCreateRequest {
     @doc("Приоритет: 1, 2 (важно) или 3 (очень важно).")
     @example(2)
     priority?: int32 = 1;
-    
+
     @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)")
+    @example(#[12, 13])
     performer_ids?: int32[];
 
     @doc("Идентификатор чата, к которому привязывается напоминание")
@@ -1815,6 +1863,7 @@ model TaskCreateRequest {
     chat_id?: int32;
 
     @doc("Напоминание на весь день (без указания времени)")
+    @example(false)
     all_day?: boolean;
 
     @doc("Задаваемые дополнительные поля")
@@ -1835,6 +1884,7 @@ model TaskUpdateRequest {
   @doc("Собранный объект параметров обновляемого напоминания")
   task: {
     @doc("Тип")
+    @example(TaskKind.reminder)
     kind?: TaskKind;
 
     @doc("Описание")
@@ -1850,6 +1900,7 @@ model TaskUpdateRequest {
     priority?: int32;
 
     @doc("Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»")
+    @example(#[12])
     performer_ids?: int32[];
 
     @doc("Статус")
@@ -1857,6 +1908,7 @@ model TaskUpdateRequest {
     status?: TaskStatus;
 
     @doc("Напоминание на весь день (без указания времени)")
+    @example(false)
     all_day?: boolean;
 
     @doc("Дата и время выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
@@ -2003,15 +2055,18 @@ model ViewBlockInput {
   multiline?: boolean;
   
   @doc("Начальное значение в поле")
+  @example("Начальный текст")
   @maxLength(3000)
   initial_value?: string;
-  
+
   @doc("Минимальная длина текста, который должен написать пользователь. Если пользователь напишет меньше, он получит ошибку.")
+  @example(10)
   @minValue(0)
   @maxValue(3000)
   min_length?: int32;
-  
+
   @doc("Максимальная длина текста, который должен написать пользователь. Если пользователь напишет больше, он получит ошибку.")
+  @example(500)
   @minValue(1)
   @maxValue(3000)
   max_length?: int32;
@@ -2048,11 +2103,13 @@ model ViewBlockSelect {
   @doc("Массив доступных пунктов в выпадающем списке")
   @maxItems(100)
   options?: ViewBlockSelectableOption[];
-  
+
   @doc("Обязательность")
+  @example(false)
   required?: boolean;
-  
+
   @doc("Подсказка, которая отображается под выпадающим списком серым цветом")
+  @example("Выберите одну из команд")
   @maxLength(2000)
   hint?: string;
 }
@@ -2112,11 +2169,13 @@ model ViewBlockCheckbox {
   @doc("Массив чекбоксов")
   @maxItems(10)
   options?: ViewBlockCheckboxOption[];
-  
+
   @doc("Обязательность")
+  @example(false)
   required?: boolean;
-  
+
   @doc("Подсказка, которая отображается под группой чекбоксов серым цветом")
+  @example("Выберите интересующие вас рассылки")
   @maxLength(2000)
   hint?: string;
 }
@@ -2147,8 +2206,9 @@ model ViewBlockDate {
   @doc("Обязательность")
   @example(true)
   required?: boolean;
-  
+
   @doc("Подсказка, которая отображается под полем серым цветом")
+  @example("Укажите дату начала отпуска")
   @maxLength(2000)
   hint?: string;
 }
@@ -2175,8 +2235,9 @@ model ViewBlockTime {
   @doc("Начальное значение в поле в формате HH:mm")
   @example(plainTime.fromISO("11:00"))
   initial_time?: plainTime;
-  
+
   @doc("Обязательность")
+  @example(false)
   required?: boolean;
   
   @doc("Подсказка, которая отображается под полем серым цветом")
@@ -2263,33 +2324,40 @@ model OpenViewRequest {
   @extension("x-enum-descriptions", #{
     modal: "Модальное окно"
   })
+  @example("modal")
   type: "modal";
-  
+
   @doc("Уникальный идентификатор события (полученный, например, в исходящем вебхуке о нажатии кнопки)")
+  @example("791a056b-006c-49dd-834b-c633fde52fe8")
   trigger_id: string;
-  
+
   @doc("Необязательная строка, которая будет отправлена в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для передачи в формате `JSON` какой то дополнительной информации вместе с заполненной пользователем формой.")
   @maxLength(3000)
+  @example("{\"timeoff_id\":4378}")
   private_metadata?: string;
-  
+
   @doc("Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь.")
   @maxLength(255)
+  @example("timeoff_reguest_form")
   callback_id?: string;
-  
+
   @doc("Собранный объект представления")
   view: {
     @doc("Заголовок представления")
     @maxLength(24)
+    @example("Уведомление об отпуске")
     title: string;
-    
+
     @doc("Текст кнопки закрытия представления")
     @maxLength(24)
+    @example("Закрыть")
     close_text?: string = "Отменить";
-    
+
     @doc("Текст кнопки отправки формы")
     @maxLength(24)
+    @example("Отправить заявку")
     submit_text?: string = "Отправить";
-    
+
     @doc("Массив блоков представления")
     @maxItems(100)
     blocks: ViewBlockUnion[];
@@ -2323,6 +2391,137 @@ model BotResponse {
   };
 }
 
+@doc("Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed")
+model AuditDetailsEmpty {}
+
+@doc("При: user_updated")
+model AuditDetailsUserUpdated {
+  @doc("Список изменённых полей")
+  changed_attrs: string[];
+}
+
+@doc("При: user_role_changed")
+model AuditDetailsRoleChanged {
+  @doc("Новая роль")
+  new_company_role: string;
+  @doc("Предыдущая роль")
+  previous_company_role: string;
+  @doc("Идентификатор инициатора")
+  initiator_id: int32;
+}
+
+@doc("При: tag_created, tag_deleted")
+model AuditDetailsTagName {
+  @doc("Название тега")
+  name: string;
+}
+
+@doc("При: user_added_to_tag, user_removed_from_tag, user_chat_leave")
+model AuditDetailsInitiator {
+  @doc("Идентификатор инициатора действия")
+  initiator_id: int32;
+}
+
+@doc("При: user_chat_join")
+model AuditDetailsInviter {
+  @doc("Идентификатор пригласившего")
+  inviter_id: int32;
+}
+
+@doc("При: chat_renamed")
+model AuditDetailsChatRenamed {
+  @doc("Прежнее название чата")
+  old_name: string;
+  @doc("Новое название чата")
+  new_name: string;
+}
+
+@doc("При: chat_permission_changed")
+model AuditDetailsChatPermission {
+  @doc("Публичный доступ")
+  public_access: boolean;
+}
+
+@doc("При: tag_added_to_chat")
+model AuditDetailsTagChat {
+  @doc("Идентификатор чата")
+  chat_id: int32;
+  @doc("Название тега")
+  tag_name: string;
+}
+
+@doc("При: tag_removed_from_chat")
+model AuditDetailsChatId {
+  @doc("Идентификатор чата")
+  chat_id: int32;
+}
+
+@doc("При: access_token_created, access_token_updated, access_token_destroy")
+model AuditDetailsTokenScopes {
+  @doc("Скоупы токена")
+  scopes: string[];
+}
+
+@doc("При: kms_encrypt, kms_decrypt")
+model AuditDetailsKms {
+  @doc("Идентификатор чата")
+  chat_id: int32;
+  @doc("Идентификатор сообщения")
+  message_id: int32;
+  @doc("Причина операции")
+  reason: string;
+}
+
+@doc("При: dlp_violation_detected")
+model AuditDetailsDlp {
+  @doc("Идентификатор правила DLP")
+  dlp_rule_id: int32;
+  @doc("Название правила DLP")
+  dlp_rule_name: string;
+  @doc("Идентификатор сообщения")
+  message_id: int32;
+  @doc("Идентификатор чата")
+  chat_id: int32;
+  @doc("Идентификатор пользователя")
+  user_id: int32;
+  @doc("Описание действия")
+  action_message: string;
+  @doc("Результат проверки условий правила (true — условия сработали)")
+  conditions_matched: boolean;
+}
+
+@doc("При: search_users_api, search_chats_api, search_messages_api")
+model AuditDetailsSearch {
+  @doc("Тип поиска")
+  search_type: string;
+  @doc("Указан ли поисковый запрос")
+  query_present: boolean;
+  @doc("Использован ли курсор")
+  cursor_present: boolean;
+  @doc("Количество возвращённых результатов")
+  limit: int32;
+  @doc("Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)")
+  filters: Record<unknown>;
+}
+
+@doc("Дополнительные детали события аудита. Структура зависит от значения event_key")
+union AuditEventDetailsUnion {
+  AuditDetailsEmpty,
+  AuditDetailsUserUpdated,
+  AuditDetailsRoleChanged,
+  AuditDetailsTagName,
+  AuditDetailsInitiator,
+  AuditDetailsInviter,
+  AuditDetailsChatRenamed,
+  AuditDetailsChatPermission,
+  AuditDetailsTagChat,
+  AuditDetailsChatId,
+  AuditDetailsTokenScopes,
+  AuditDetailsKms,
+  AuditDetailsDlp,
+  AuditDetailsSearch,
+}
+
 @doc("Событие аудита")
 model AuditEvent {
   @doc("Уникальный идентификатор события")
@@ -2334,28 +2533,27 @@ model AuditEvent {
   created_at: utcDateTime;
   
   @doc("Ключ типа события")
-  @example(AuditEventKey.user_chat_join)
+  @example(AuditEventKey.user_login)
   event_key: AuditEventKey;
   
   @doc("Идентификатор затронутой сущности")
-  @example("12345678")
+  @example("98765")
   entity_id: string;
-  
+
   @doc("Тип затронутой сущности")
-  @example("Chat")
+  @example("User")
   entity_type: string;
-  
+
   @doc("Идентификатор пользователя, выполнившего действие")
   @example("98765")
   actor_id: string;
-  
+
   @doc("Тип актора")
   @example("User")
   actor_type: string;
-  
-  @doc("Дополнительные детали события")
-  @example(#{inviter_id: "45678"})
-  details: Record<unknown>;
+
+  @doc("Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект")
+  details: AuditEventDetailsUnion;
   
   @doc("IP-адрес, с которого было выполнено действие")
   @example("192.168.1.100")
@@ -2395,9 +2593,11 @@ model MessageWebhookPayload {
   id: int32;
   
   @doc("Тип события")
+  @example(WebhookEventType.new)
   event: WebhookEventType;
-  
+
   @doc("Тип сущности, к которой относится сообщение")
+  @example(MessageEntityType.discussion)
   entity_type: MessageEntityType;
   
   @doc("Идентификатор сущности, к которой относится сообщение")
@@ -2446,6 +2646,7 @@ model ReactionWebhookPayload {
   type: "reaction";
   
   @doc("Тип события")
+  @example(ReactionEventType.new)
   event: ReactionEventType;
   
   @doc("Идентификатор сообщения, к которому относится реакция")
@@ -2524,6 +2725,7 @@ model ChatMemberWebhookPayload {
   type: "chat_member";
   
   @doc("Тип события")
+  @example(MemberEventType.add)
   event: MemberEventType;
   
   @doc("Идентификатор чата, в котором изменился состав участников")
@@ -2557,6 +2759,7 @@ model CompanyMemberWebhookPayload {
   type: "company_member";
   
   @doc("Тип события")
+  @example(UserEventType.invite)
   event: UserEventType;
   
   @doc("Массив идентификаторов пользователей, с которыми произошло событие")
@@ -2632,7 +2835,7 @@ union WebhookPayloadUnion {
 @doc("Событие исходящего вебхука")
 model WebhookEvent {
   @doc("Идентификатор события")
-  @example("a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14")
+  @example("01KAJZ2XDSS2S3DSW9EXJZ0TBV")
   id: string;
   
   @doc("Тип события")
@@ -2690,35 +2893,9 @@ interface CommonOperations {
 По умолчанию в вашей компании все сущности имеют только базовые поля. Но администратор вашей компании может добавлять дополнительные поля, редактировать их и удалять. Если при создании сотрудников (или напоминаний) вы используете дополнительные поля, которые не являются актуальными (удалены или не существуют) - вы получите ошибку.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      entity_type: SearchEntityType.User
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-          #{
-            id: 1487,
-            name: "Адрес",
-            data_type: CustomPropertyDataType.string
-          },
-          #{
-            id: 1489,
-            name: "Номер доступа",
-            data_type: CustomPropertyDataType.number
-          },
-          #{
-            id: 1572,
-            name: "Дата рождения",
-            data_type: CustomPropertyDataType.date
-          }
-        ]
-      }
-    }
-  })
   listProperties(
     @doc("Тип сущности")
+    @extension("example", "User")
     @query entity_type: SearchEntityType
   ): {
     @statusCode _: 200;
@@ -2752,22 +2929,6 @@ interface UploadOperations {
 Данный метод необходимо использовать для загрузки каждого файла.
 """)
   @post
-  @opExample(#{
-    returnType: #{
-      _: 201,
-      body: #{
-        contentDisposition: "attachment",
-        acl: "private",
-        policy: "eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12",
-        xAmzCredential: "286471_server/20211122/kz-6x/s3/aws4_request",
-        xAmzAlgorithm: "AWS4-HMAC-SHA256",
-        xAmzDate: "20211122T065734Z",
-        xAmzSignature: "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
-        key: "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/\${filename}",
-        directUrl: "https://api.pachca.com/api/v3/direct_upload"
-      }
-    }
-  })
   getUploadParams(): {
     @statusCode _: 201;
     @body body: UploadParams;
@@ -2851,20 +3012,10 @@ interface ExportOperations {
 Метод для запрашивания экспорта сообщений за указанный период.
 """)
   @post
-  @opExample(#{
-    parameters: #{
-      request: #{
-        start_at: plainDate.fromISO("2025-03-20"),
-        end_at: plainDate.fromISO("2025-03-20"),
-        webhook_url: "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
-        chat_ids: #[1381521]
-      }
-    }
-  })
   
   requestExport(@body request: ExportRequest): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -2897,7 +3048,7 @@ interface ExportOperations {
 
   downloadExport(
     @doc("Идентификатор экспорта")
-    @example(22322)
+    @extension("example", 22322)
     @path id: int32
   ): {
     @statusCode _: 302;
@@ -2933,40 +3084,6 @@ interface ProfileOperations {
 Метод для получения информации о своем профиле.
 """)
   @get
-  @opExample(#{
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 12,
-          first_name: "Олег",
-          last_name: "Петров",
-          nickname: "",
-          email: "olegp@example.com",
-          phone_number: "",
-          department: "Продукт",
-          title: "CIO",
-          role: UserRole.admin,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Product", "Design"],
-          custom_properties: #[#{
-            id: 1678,
-            name: "Город",
-            data_type: CustomPropertyDataType.string,
-            value: "Санкт-Петербург"
-          }],
-          user_status: null,
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        }
-      }
-    }
-  })
   getProfile(): {
     @statusCode _: 200;
     @body body: DataResponse<User>;
@@ -2988,20 +3105,6 @@ interface ProfileOperations {
 """)
   @route("/status")
   @get
-  @opExample(#{
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          emoji: "🎮",
-          title: "Очень занят",
-          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-          is_away: false,
-          away_message: null
-        }
-      }
-    }
-  })
   getStatus(): {
     @statusCode _: 200;
     @body body: DataResponse<UserStatus | null>;
@@ -3023,29 +3126,6 @@ interface ProfileOperations {
 """)
   @route("/status")
   @put
-  @opExample(#{
-    parameters: #{
-      request: #{
-        status: #{
-          emoji: "🎮",
-          title: "Очень занят",
-          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z")
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          emoji: "🎮",
-          title: "Очень занят",
-          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-          is_away: false,
-          away_message: null
-        }
-      }
-    }
-  })
   updateStatus(@body request: StatusUpdateRequest): {
     @statusCode _: 200;
     @body body: DataResponse<UserStatus>;
@@ -3076,7 +3156,7 @@ interface ProfileOperations {
   
   deleteStatus(): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -3104,56 +3184,6 @@ interface UserOperations {
 Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
 """)
   @post
-  @opExample(#{
-    parameters: #{
-      request: #{
-        user: #{
-          first_name: "Олег",
-          last_name: "Петров",
-          email: "olegp@example.com",
-          department: "Продукт",
-          list_tags: #["Product", "Design"],
-          custom_properties: #[#{
-            id: 1678,
-            value: "Санкт-Петербург"
-          }]
-        },
-        skip_email_notify: true
-      }
-    },
-    returnType: #{
-      _: 201,
-      body: #{
-        data: #{
-          id: 12,
-          first_name: "Олег",
-          last_name: "Петров",
-          nickname: "",
-          email: "olegp@example.com",
-        phone_number: "",
-        department: "Продукт",
-        title: "",
-        role: UserRole.admin,
-        suspended: false,
-        invite_status: InviteStatus.confirmed,
-        list_tags: #["Product", "Design"],
-        custom_properties: #[#{
-          id: 1678,
-          name: "Город",
-          data_type: CustomPropertyDataType.string,
-          value: "Санкт-Петербург"
-        }],
-        user_status: null,
-        bot: false,
-        sso: false,
-        created_at: utcDateTime.fromISO("2023-06-08T09:31:17.000Z"),
-        last_activity_at: utcDateTime.fromISO("2023-06-08T09:31:17.000Z"),
-        time_zone: "Europe/Moscow",
-        image_url: null
-      }
-    }
-    }
-  })
   createUser(@body request: UserCreateRequest): {
     @statusCode _: 201;
     @body body: DataResponse<User>;
@@ -3180,126 +3210,18 @@ interface UserOperations {
 Метод для получения актуального списка сотрудников вашей компании.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      query: "example.com",
-      limit: 3
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-        #{
-          id: 12,
-          first_name: "Олег",
-          last_name: "Петров",
-          nickname: "olegpetrov",
-          email: "olegp@example.com",
-          phone_number: "",
-          department: "Продукт",
-          title: "CIO",
-          role: UserRole.admin,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Product", "Design"],
-          custom_properties: #[#{
-            id: 1678,
-            name: "Город",
-            data_type: CustomPropertyDataType.string,
-            value: "Санкт-Петербург"
-          }],
-          user_status: null,
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:10:11.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        },
-        #{
-          id: 13,
-          first_name: "Сергей",
-          last_name: "Кузнецов",
-          nickname: "skuz",
-          email: "sergkuzn@example.com",
-          phone_number: "",
-          department: "Разработка",
-          title: "iOS Developer",
-          role: UserRole.user,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Development", "Android"],
-          custom_properties: #[#{
-            id: 1678,
-            name: "Город",
-            data_type: CustomPropertyDataType.string,
-            value: "Москва"
-          }],
-          user_status: #{
-            emoji: "🎮",
-            title: "Очень занят",
-            expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-            is_away: false,
-            away_message: null
-          },
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:31:17.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T07:00:32.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        },
-        #{
-          id: 14,
-          first_name: "Дмитрий",
-          last_name: "Смирнов",
-          nickname: "dsmir",
-          email: "ds@example.com",
-          phone_number: "",
-          department: "Разработка",
-          title: "Android Developer",
-          role: UserRole.user,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Development", "Frontend"],
-          custom_properties: #[#{
-            id: 1678,
-            name: "Город",
-            data_type: CustomPropertyDataType.string,
-            value: "Санкт-Петербург"
-          }],
-          user_status: #{
-            emoji: "🚀",
-            title: "Лечу",
-            expires_at: null,
-            is_away: false,
-            away_message: null
-          },
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T13:51:25.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        }
-      ],
-        meta: #{
-          paginate: #{
-            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-          }
-        }
-      }
-    }
-  })
   listUsers(
     @doc("Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).")
+    @extension("example", "Олег")
     @query query?: string,
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -3330,45 +3252,9 @@ interface UserOperations {
 """)
   @route("/{id}")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 12
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 12,
-          first_name: "Олег",
-          last_name: "Петров",
-        nickname: "",
-        email: "olegp@example.com",
-        phone_number: "",
-        department: "Продукт",
-        title: "CIO",
-        role: UserRole.admin,
-        suspended: false,
-        invite_status: InviteStatus.confirmed,
-        list_tags: #["Product", "Design"],
-        custom_properties: #[#{
-          id: 1678,
-          name: "Город",
-          data_type: CustomPropertyDataType.string,
-          value: "Санкт-Петербург"
-        }],
-        user_status: null,
-        bot: false,
-        sso: false,
-        created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
-        last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-        time_zone: "Europe/Moscow",
-        image_url: null
-      }
-    }
-    }
-  })
   getUser(
     @doc("Идентификатор пользователя")
+    @extension("example", 12)
     @path id: int32
   ): {
     @statusCode _: 200;
@@ -3395,54 +3281,9 @@ interface UserOperations {
 Для редактирования сотрудника вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры сотрудника указываются в теле запроса. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
 """)
   @put
-  @opExample(#{
-    parameters: #{
-      id: 12,
-      request: #{
-        user: #{
-          nickname: "olegpetrov",
-          role: UserRole.user,
-          list_tags: #["Product"]
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 12,
-          first_name: "Олег",
-        last_name: "Петров",
-        nickname: "olegpetrov",
-        email: "olegp@example.com",
-        phone_number: "",
-        department: "Продукт",
-        title: "CIO",
-        role: UserRole.user,
-        suspended: false,
-        invite_status: InviteStatus.confirmed,
-        list_tags: #["Product"],
-        custom_properties: #[
-          #{
-            id: 1678,
-            name: "Город",
-            data_type: CustomPropertyDataType.string,
-            value: "Санкт-Петербург"
-          }
-        ],
-        user_status: null,
-        bot: false,
-        sso: false,
-        created_at: utcDateTime.fromISO("2023-07-08T09:31:17.000Z"),
-        last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-        time_zone: "Europe/Moscow",
-        image_url: null
-      }
-    }
-    }
-  })
   updateUser(
     @doc("Идентификатор пользователя")
+    @extension("example", 12)
     @path id: int32,
     @body request: UserUpdateRequest
   ): {
@@ -3476,13 +3317,14 @@ interface UserOperations {
 Для удаления сотрудника вам необходимо знать его `id` и указать его в `URL` запроса.
 """)
   @delete
-  
+
   deleteUser(
     @doc("Идентификатор пользователя")
+    @extension("example", 12)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -3512,25 +3354,9 @@ interface UserStatusOperations {
 """)
   @route("/{user_id}/status")
   @get
-  @opExample(#{
-    parameters: #{
-      user_id: 13
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          emoji: "🎮",
-          title: "Очень занят",
-          expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-          is_away: false,
-          away_message: null
-        }
-      }
-    }
-  })
   getUserStatus(
     @doc("Идентификатор пользователя")
+    @extension("example", 12)
     @path user_id: int32
   ): {
     @statusCode _: 200;
@@ -3556,36 +3382,9 @@ interface UserStatusOperations {
 """)
   @route("/{user_id}/status")
   @put
-  @opExample(#{
-    parameters: #{
-      user_id: 13,
-      request: #{
-        status: #{
-          emoji: "🏖️",
-          title: "В отпуске",
-          expires_at: utcDateTime.fromISO("2024-04-15T00:00:00.000Z"),
-          is_away: true,
-          away_message: "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          emoji: "🏖️",
-          title: "В отпуске",
-          expires_at: utcDateTime.fromISO("2024-04-15T00:00:00.000Z"),
-          is_away: true,
-          away_message: #{
-            text: "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
-          }
-        }
-      }
-    }
-  })
   updateUserStatus(
     @doc("Идентификатор пользователя")
+    @extension("example", 12)
     @path user_id: int32,
     @body request: StatusUpdateRequest
   ): {
@@ -3621,10 +3420,11 @@ interface UserStatusOperations {
 
   deleteUserStatus(
     @doc("Идентификатор пользователя")
+    @extension("example", 12)
     @path user_id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -3653,25 +3453,6 @@ interface GroupTagOperations {
 Метод для создания нового тега.
 """)
   @post
-  @opExample(#{
-    parameters: #{
-      request: #{
-        group_tag: #{
-          name: "Название тега"
-        }
-      }
-    },
-    returnType: #{
-      _: 201,
-      body: #{
-        data: #{
-          id: 1,
-          name: "Название тега",
-          users_count: 0
-        }
-      }
-    }
-  })
   createTag(@body request: GroupTagRequest): {
     @statusCode _: 201;
     @body body: DataResponse<GroupTag>;
@@ -3701,23 +3482,9 @@ interface GroupTagOperations {
 """)
   @route("/{id}")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 9111
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 9111,
-          name: "Design",
-          users_count: 6
-        }
-      }
-    }
-  })
   getTag(
     @doc("Идентификатор тега")
+    @extension("example", 9111)
     @path id: int32
   ): {
     @statusCode _: 200;
@@ -3742,43 +3509,19 @@ interface GroupTagOperations {
 Метод для получения актуального списка тегов сотрудников. Названия тегов являются уникальными в компании.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      limit: 2
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-          #{
-            id: 9111,
-            name: "Design",
-            users_count: 6
-          },
-          #{
-            id: 9113,
-            name: "iOS",
-            users_count: 4
-          }
-        ],
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
-          }
-        }
-      }
-    }
-  })
   listTags(
     @doc("Массив названий тегов, по которым вы хотите отфильтровать список")
+    @extension("example", #["Design", "Product"])
     @query(#{ explode: true })
     names?: TagNamesFilter,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -3807,131 +3550,18 @@ interface GroupTagOperations {
 """)
   @route("/{id}/users")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 1
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-        #{
-          id: 12,
-          first_name: "Олег",
-          last_name: "Петров",
-          nickname: "olegpetrov",
-          email: "olegp@example.com",
-          phone_number: "",
-          department: "Продукт",
-          title: "CIO",
-          role: UserRole.admin,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Product", "Design"],
-          custom_properties: #[
-            #{
-              id: 1678,
-              name: "Город",
-              data_type: CustomPropertyDataType.string,
-              value: "Санкт-Петербург"
-            }
-          ],
-          user_status: null,
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:10:11.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        },
-        #{
-          id: 13,
-          first_name: "Сергей",
-          last_name: "Кузнецов",
-          nickname: "skuz",
-          email: "sergkuzn@example.com",
-          phone_number: "",
-          department: "Разработка",
-          title: "iOS Developer",
-          role: UserRole.user,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Development", "Android"],
-          custom_properties: #[
-            #{
-              id: 1678,
-              name: "Город",
-              data_type: CustomPropertyDataType.string,
-              value: "Москва"
-            }
-          ],
-          user_status: #{
-            emoji: "🎮",
-            title: "Очень занят",
-            expires_at: utcDateTime.fromISO("2024-04-08T10:00:00.000Z"),
-            is_away: false,
-            away_message: null
-          },
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:31:17.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T07:00:32.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        },
-        #{
-          id: 14,
-          first_name: "Дмитрий",
-          last_name: "Смирнов",
-          nickname: "dsmir",
-          email: "ds@example.com",
-          phone_number: "",
-          department: "Разработка",
-          title: "Android Developer",
-          role: UserRole.user,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Development", "Frontend"],
-          custom_properties: #[
-            #{
-              id: 1678,
-              name: "Город",
-              data_type: CustomPropertyDataType.string,
-              value: "Санкт-Петербург"
-            }
-          ],
-          user_status: #{
-            emoji: "🚀",
-            title: "Лечу",
-            expires_at: null,
-            is_away: false,
-            away_message: null
-          },
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T13:51:25.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        }
-      ],
-      meta: #{
-        paginate: #{
-          next_page: "eyJpZCI6MTQsImRpciI6ImFzYyJ9"
-        }
-      }
-    }
-  }
-  })
   getTagUsers(
     @doc("Идентификатор тега")
+    @extension("example", 9111)
     @path id: int32,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -3964,28 +3594,9 @@ interface GroupTagOperations {
 Для редактирования тега вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры тега указываются в теле запроса.
 """)
   @put
-  @opExample(#{
-    parameters: #{
-      id: 1,
-      request: #{
-        group_tag: #{
-          name: "Новое название тега"
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 1,
-          name: "Новое название тега",
-          users_count: 0
-        }
-      }
-    }
-  })
   updateTag(
     @doc("Идентификатор тега")
+    @extension("example", 9111)
     @path id: int32,
     @body request: GroupTagRequest
   ): {
@@ -4019,13 +3630,14 @@ interface GroupTagOperations {
 Для удаления тега вам необходимо знать его `id` и указать его в `URL` запроса.
 """)
   @delete
-  
+
   deleteTag(
     @doc("Идентификатор тега")
+    @extension("example", 9111)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4058,36 +3670,6 @@ interface ChatOperations {
 При создании чата вы автоматически становитесь участником.
 """)
   @post
-  @opExample(#{
-    parameters: #{
-      request: #{
-        chat: #{
-          name: "🤿 aqua",
-          member_ids: #[186, 187],
-          channel: true,
-          public: false
-        }
-      }
-    },
-    returnType: #{
-      _: 201,
-      body: #{
-        data: #{
-          id: 334,
-          name: "🤿 aqua",
-          created_at: utcDateTime.fromISO("2021-08-28T15:56:53.000Z"),
-          owner_id: 185,
-          member_ids: #[185, 186, 187],
-          group_tag_ids: #[],
-          channel: true,
-          personal: false,
-          public: false,
-          last_message_at: utcDateTime.fromISO("2021-08-28T15:56:53.000Z"),
-          meet_room_url: "https://meet.pachca.com/aqua-94bb21b5"
-        }
-      }
-    }
-  })
   createChat(@body request: ChatCreateRequest): {
     @statusCode _: 201;
     @body body: DataResponse<Chat>;
@@ -4117,31 +3699,9 @@ interface ChatOperations {
 """)
   @route("/{id}")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 334
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 334,
-          name: "🤿 aqua",
-          created_at: utcDateTime.fromISO("2021-08-28T15:56:53.000Z"),
-          owner_id: 185,
-          member_ids: #[185, 186, 187],
-          group_tag_ids: #[],
-          channel: true,
-          personal: false,
-          public: false,
-          last_message_at: utcDateTime.fromISO("2021-08-28T15:58:13.000Z"),
-          meet_room_url: "https://meet.pachca.com/aqua-94bb21b5"
-        }
-      }
-    }
-  })
   getChat(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32
   ): {
     @statusCode _: 200;
@@ -4166,67 +3726,34 @@ interface ChatOperations {
 Метод для получения списка чатов по заданным параметрам.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      personal: false,
-      limit: 10
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-        #{
-          id: 334,
-          name: "🤿 aqua",
-          created_at: utcDateTime.fromISO("2021-08-28T15:56:53.000Z"),
-          owner_id: 185,
-          member_ids: #[185, 186, 187],
-          group_tag_ids: #[],
-          channel: true,
-          personal: false,
-          public: false,
-          last_message_at: utcDateTime.fromISO("2021-08-28T15:58:13.000Z"),
-          meet_room_url: "https://meet.pachca.com/aqua-94bb21b5"
-        },
-        #{
-          id: 333,
-          name: "development",
-          created_at: utcDateTime.fromISO("2021-08-28T15:54:22.000Z"),
-          owner_id: 185,
-          member_ids: #[185],
-          group_tag_ids: #[22, 24],
-          channel: false,
-          personal: false,
-          public: true,
-          last_message_at: utcDateTime.fromISO("2021-08-28T15:56:12.000Z"),
-          meet_room_url: "https://meet.pachca.com/development-43sz53n8"
-        }
-      ],
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
-          }
-        }
-      }
-    }
-  })
   listChats(
-    @doc("Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).")
+    @doc("Составной параметр сортировки сущностей выборки")
+    @extension("x-param-names", #[
+      #{ name: "sort[id]", description: "Идентификатор чата" },
+      #{ name: "sort[last_message_at]", description: "Дата и время создания последнего сообщения" }
+    ])
+    @extension("example", "desc")
     @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc,
     @doc("Параметр, который отвечает за доступность и выборку чатов для пользователя")
+    @extension("example", "is_member")
     @query availability?: ChatAvailability = ChatAvailability.is_member,
     @doc("Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
+    @extension("example", "2025-01-01T00:00:00.000Z")
     @query last_message_at_after?: utcDateTime,
     @doc("Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
+    @extension("example", "2025-02-01T00:00:00.000Z")
     @query last_message_at_before?: utcDateTime,
     @doc("Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.")
+    @extension("example", false)
     @query personal?: boolean,
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -4256,37 +3783,9 @@ interface ChatOperations {
 Для обновления нужно знать `id` чата и указать его в `URL`. Все обновляемые поля передаются в теле запроса.
 """)
   @put
-  @opExample(#{
-    parameters: #{
-      id: 334,
-      request: #{
-        chat: #{
-          name: "Бассейн",
-          public: true
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 334,
-          name: "Бассейн",
-          created_at: utcDateTime.fromISO("2021-08-28T15:56:53.000Z"),
-          owner_id: 185,
-          member_ids: #[185, 186, 187],
-          group_tag_ids: #[],
-          channel: true,
-          personal: false,
-          public: true,
-          last_message_at: utcDateTime.fromISO("2021-08-28T15:58:23.000Z"),
-          meet_room_url: "https://meet.pachca.com/aqua-94bb21b5"
-        }
-      }
-    }
-  })
   updateChat(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32,
     @body request: ChatUpdateRequest
   ): {
@@ -4321,13 +3820,14 @@ interface ChatOperations {
 """)
   @route("/{id}/archive")
   @put
-  
+
   archiveChat(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4351,13 +3851,14 @@ interface ChatOperations {
 """)
   @route("/{id}/unarchive")
   @put
-  
+
   unarchiveChat(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4388,63 +3889,21 @@ interface ChatMemberOperations {
 """)
   @route("/chats/{id}/members")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 334
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-        #{
-          id: 12,
-          first_name: "Олег",
-          last_name: "Петров",
-          nickname: "olegpetrov",
-          email: "olegp@example.com",
-          phone_number: "",
-          department: "Продукт",
-          title: "CIO",
-          role: UserRole.admin,
-          suspended: false,
-          invite_status: InviteStatus.confirmed,
-          list_tags: #["Product", "Design"],
-          custom_properties: #[
-            #{
-              id: 1678,
-              name: "Город",
-              data_type: CustomPropertyDataType.string,
-              value: "Санкт-Петербург"
-            }
-          ],
-          user_status: null,
-          bot: false,
-          sso: false,
-          created_at: utcDateTime.fromISO("2020-06-08T09:10:11.000Z"),
-          last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-          time_zone: "Europe/Moscow",
-          image_url: null
-        }
-      ],
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
-          }
-        }
-      }
-    }
-  })
   listMembers(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32,
     @doc("Роль в чате")
+    @extension("example", "all")
     @query role?: ChatMemberRoleFilter = ChatMemberRoleFilter.all,
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -4476,23 +3935,15 @@ interface ChatMemberOperations {
 """)
   @route("/chats/{id}/members")
   @post
-  @opExample(#{
-    parameters: #{
-      id: 334,
-      request: #{
-        member_ids: #[186, 187],
-        silent: true
-      }
-    }
-  })
 
   addMembers(
     @doc("Идентификатор чата (беседа, канал или чат треда)")
+    @extension("example", 334)
     @path id: int32,
     @body request: AddMembersRequest
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4525,12 +3976,14 @@ interface ChatMemberOperations {
 
   removeMember(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32,
     @doc("Идентификатор пользователя")
+    @extension("example", 186)
     @path user_id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4554,22 +4007,15 @@ interface ChatMemberOperations {
 """)
   @route("/chats/{id}/group_tags")
   @post
-  @opExample(#{
-    parameters: #{
-      id: 334,
-      request: #{
-        group_tag_ids: #[86, 18]
-      }
-    }
-  })
 
   addTags(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32,
     @body request: AddTagsRequest
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4602,12 +4048,14 @@ interface ChatMemberOperations {
 
   removeTag(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32,
     @doc("Идентификатор тега")
+    @extension("example", 86)
     @path tag_id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4633,25 +4081,18 @@ interface ChatMemberOperations {
 """)
   @route("/chats/{id}/members/{user_id}")
   @put
-  @opExample(#{
-    parameters: #{
-      id: 334,
-      user_id: 186,
-      request: #{
-        role: ChatMemberRole.admin
-      }
-    }
-  })
 
   updateMemberRole(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32,
     @doc("Идентификатор пользователя")
+    @extension("example", 186)
     @path user_id: int32,
     @body request: UpdateMemberRoleRequest
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4679,13 +4120,14 @@ interface ChatMemberOperations {
 """)
   @route("/chats/{id}/leave")
   @delete
-  
+
   leaveChat(
     @doc("Идентификатор чата")
+    @extension("example", 334)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -4722,25 +4164,9 @@ interface ThreadOperations {
 """)
   @route("/messages/{id}/thread")
   @post
-  @opExample(#{
-    parameters: #{
-      id: 154332686
-    },
-    returnType: #{
-      _: 201,
-      body: #{
-        data: #{
-          id: 265142,
-          chat_id: 2637266155,
-          message_id: 154332686,
-          message_chat_id: 2637266154,
-          updated_at: utcDateTime.fromISO("2023-02-01T19:20:47.204Z")
-        }
-      }
-    }
-  })
   createThread(
     @doc("Идентификатор сообщения")
+    @extension("example", 154332686)
     @path id: int32
   ): {
     @statusCode _: 201;
@@ -4768,25 +4194,9 @@ interface ThreadOperations {
 """)
   @route("/threads/{id}")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 265142
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 265142,
-          chat_id: 2637266155,
-          message_id: 154332686,
-          message_chat_id: 2637266154,
-          updated_at: utcDateTime.fromISO("2023-02-01T19:20:47.204Z")
-        }
-      }
-    }
-  })
   getThread(
     @doc("Идентификатор треда")
+    @extension("example", 265142)
     @path id: int32
   ): {
     @statusCode _: 200;
@@ -4823,53 +4233,6 @@ interface MessageOperations {
 Для отправки личного сообщения пользователю создавать чат не требуется. Достаточно указать `entity_type: "user"` и идентификатор пользователя. Чат будет создан автоматически, если между вами ещё не было переписки. Между двумя пользователями может быть только один личный чат.
 """)
   @post
-  @opExample(#{
-    parameters: #{
-      request: #{
-        message: #{
-          entity_type: MessageEntityType.discussion,
-          entity_id: 198,
-          content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-          buttons: #[
-            #[
-              #{ text: "Подробнее", url: "https://example.com/details" },
-              #{ text: "Отлично!", data: "awesome" }
-            ]
-          ]
-        }
-      }
-    },
-    returnType: #{
-      _: 201,
-      body: #{
-        data: #{
-          id: 194275,
-          entity_type: MessageEntityType.discussion,
-          entity_id: 334,
-          chat_id: 334,
-          root_chat_id: 334,
-          content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-          user_id: 185,
-          created_at: utcDateTime.fromISO("2021-08-28T15:57:23.000Z"),
-          url: "https://app.pachca.com/chats/334?message=194275",
-          files: #[],
-          buttons: #[
-            #[
-              #{ text: "Подробнее", url: "https://example.com/details" },
-              #{ text: "Отлично!", data: "awesome" }
-            ]
-          ],
-          thread: null,
-          forwarding: null,
-          parent_message_id: null,
-          display_avatar_url: null,
-          display_name: null,
-          changed_at: null,
-          deleted_at: null
-        }
-      }
-    }
-  })
   createMessage(@body request: MessageCreateRequest): {
     @statusCode _: 201;
     @body body: DataResponse<Message>;
@@ -4898,54 +4261,9 @@ interface MessageOperations {
 Для получения сообщения вам необходимо знать его `id` и указать его в `URL` запроса.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      id: 194275
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 194275,
-          entity_type: MessageEntityType.discussion,
-          entity_id: 198,
-          chat_id: 198,
-          root_chat_id: 198,
-          content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-          user_id: 12,
-          created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
-          url: "https://app.pachca.com/chats/198?message=194275",
-          files: #[
-            #{
-              id: 3560,
-              key: "attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png",
-              name: "congrat.png",
-              file_type: FileType.image,
-              url: "https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8",
-              width: 1920,
-              height: 1080
-            }
-          ],
-          buttons: #[],
-          thread: #{
-            id: 29873,
-            chat_id: 1949863,
-            message_id: 194275,
-            message_chat_id: 198,
-            updated_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z")
-          },
-          forwarding: null,
-          parent_message_id: 194274,
-          display_avatar_url: null,
-          display_name: null,
-          changed_at: null,
-          deleted_at: null
-        }
-      }
-    }
-  })
   getMessage(
     @doc("Идентификатор сообщения")
+    @extension("example", 194275)
     @path id: int32
   ): {
     @statusCode _: 200;
@@ -4972,44 +4290,9 @@ interface MessageOperations {
 Для редактирования сообщения вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры сообщения указываются в теле запроса.
 """)
   @put
-  @opExample(#{
-    parameters: #{
-      id: 194275,
-      request: #{
-        message: #{
-          content: "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
-          files: #[]
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 7231942,
-          entity_type: MessageEntityType.discussion,
-          entity_id: 17452,
-          chat_id: 17452,
-          root_chat_id: 17452,
-          content: "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
-          user_id: 65,
-          created_at: utcDateTime.fromISO("2022-06-08T09:32:57.000Z"),
-          url: "https://app.pachca.com/chats/17452?message=7231942",
-          files: #[],
-          buttons: #[],
-          thread: null,
-          forwarding: null,
-          parent_message_id: null,
-          display_avatar_url: null,
-          display_name: null,
-          changed_at: utcDateTime.fromISO("2022-06-08T10:15:00.000Z"),
-          deleted_at: null
-        }
-      }
-    }
-  })
   updateMessage(
     @doc("Идентификатор сообщения")
+    @extension("example", 194275)
     @path id: int32,
     @body request: MessageUpdateRequest
   ): {
@@ -5045,13 +4328,14 @@ interface MessageOperations {
 Для удаления сообщения вам необходимо знать его `id` и указать его в `URL` запроса.
 """)
   @delete
-  
+
   deleteMessage(
     @doc("Идентификатор сообщения")
+    @extension("example", 194275)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -5075,13 +4359,14 @@ interface MessageOperations {
 """)
   @route("/{id}/pin")
   @post
-  
+
   pinMessage(
     @doc("Идентификатор сообщения")
+    @extension("example", 194275)
     @path id: int32
   ): {
     @statusCode _: 201;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -5108,13 +4393,14 @@ interface MessageOperations {
 """)
   @route("/{id}/pin")
   @delete
-  
+
   unpinMessage(
     @doc("Идентификатор сообщения")
+    @extension("example", 194275)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -5141,101 +4427,24 @@ interface ChatMessageOperations {
 Для получения сообщений вам необходимо знать `chat_id` требуемой беседы, канала, треда или диалога, и указать его в `URL` запроса. Сообщения будут возвращены в порядке убывания даты отправки (то есть, сначала будут идти последние сообщения чата). Для получения более ранних сообщений чата доступны параметры `limit` и `cursor`.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      chat_id: 198,
-      limit: 10
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-          #{
-            id: 1194277,
-            entity_type: MessageEntityType.discussion,
-            entity_id: 198,
-            chat_id: 198,
-            root_chat_id: 198,
-            content: "Это сообщение тоже попадёт в экспорт",
-            user_id: 12,
-            created_at: utcDateTime.fromISO("2023-09-18T13:43:32.000Z"),
-            url: "https://app.pachca.com/chats/198?message=1194277",
-            files: #[],
-            buttons: #[],
-            thread: #{
-              id: 2633,
-              chat_id: 44997,
-              message_id: 1194277,
-              message_chat_id: 198,
-              updated_at: utcDateTime.fromISO("2023-09-18T13:43:32.000Z")
-            },
-            forwarding: null,
-            parent_message_id: null,
-            display_avatar_url: null,
-            display_name: null,
-            changed_at: null,
-            deleted_at: null
-          },
-          #{
-            id: 1194276,
-            entity_type: MessageEntityType.discussion,
-            entity_id: 198,
-            chat_id: 198,
-            root_chat_id: 198,
-            content: "**Andrew** добавил **Export bot** в беседу",
-            user_id: 12,
-            created_at: utcDateTime.fromISO("2023-09-18T13:43:27.000Z"),
-            url: "https://app.pachca.com/chats/198?message=1194276",
-            files: #[],
-            buttons: #[],
-            thread: null,
-            forwarding: null,
-            parent_message_id: null,
-            display_avatar_url: null,
-            display_name: null,
-            changed_at: null,
-            deleted_at: null
-          },
-          #{
-            id: 1194275,
-            entity_type: MessageEntityType.discussion,
-            entity_id: 198,
-            chat_id: 198,
-            root_chat_id: 198,
-            content: "**Andrew** создал беседу",
-            user_id: 12,
-            created_at: utcDateTime.fromISO("2023-09-18T13:43:19.000Z"),
-            url: "https://app.pachca.com/chats/198?message=1194275",
-            files: #[],
-            buttons: #[],
-            thread: null,
-            forwarding: null,
-            parent_message_id: null,
-            display_avatar_url: null,
-            display_name: null,
-            changed_at: null,
-            deleted_at: null
-          }
-        ],
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6MTE5NDI3NSwiZGlyIjoiZGVzYyJ9"
-          }
-        }
-      }
-    }
-  })
   listChatMessages(
     @doc("Идентификатор чата (беседа, канал, диалог или чат треда)")
+    @extension("example", 198)
     @query chat_id: int32,
-    @doc("Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).")
+    @doc("Составной параметр сортировки сущностей выборки")
+    @extension("x-param-names", #[
+      #{ name: "sort[id]", description: "Идентификатор сообщения" }
+    ])
+    @extension("example", "desc")
     @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -5274,31 +4483,18 @@ interface ReadMemberOperations {
 """)
   @route("/messages/{id}/read_member_ids")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 194275
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[12, 13, 14, 15, 16],
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
-          }
-        }
-      }
-    }
-  })
   listReadMembers(
     @doc("Идентификатор сообщения")
+    @extension("example", 194275)
     @path id: int32,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
+    @extension("example", 300)
     @minValue(1)
     @maxValue(300)
     limit?: int32 = 300,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -5345,27 +4541,10 @@ interface ReactionOperations {
 - Общее количество реакций на сообщение не может превышать **1000**
 """)
   @post
-  @opExample(#{
-    parameters: #{
-      id: 7231942,
-      request: #{
-        code: "👍",
-        name: ":+1:"
-      }
-    },
-    returnType: #{
-      _: 201,
-      body: #{
-        user_id: 355929,
-        created_at: utcDateTime.fromISO("2026-01-24T12:18:34.000Z"),
-        code: "👍",
-        name: ":+1::skin-tone-1:"
-      }
-    }
-  })
 
   addReaction(
     @doc("Идентификатор сообщения")
+    @extension("example", 7231942)
     @path id: int32,
     @body request: ReactionRequest
   ): {
@@ -5401,26 +4580,22 @@ interface ReactionOperations {
 Удалять можно только те реакции, которые были поставлены авторизованным пользователем.
 """)
   @delete
-  @opExample(#{
-    parameters: #{
-      id: 7231942,
-      code: "👍",
-      name: ":+1:"
-    }
-  })
 
   removeReaction(
     @doc("Идентификатор сообщения")
+    @extension("example", 7231942)
     @path id: int32,
 
     @doc("Emoji символ реакции")
+    @extension("example", "👍")
     @query code: string,
 
     @doc("Текстовое имя эмодзи (используется для кастомных эмодзи)")
+    @extension("example", ":+1:")
     @query name?: string
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -5447,75 +4622,18 @@ interface ReactionOperations {
 Метод для получения актуального списка реакций на сообщение.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      id: 194275,
-      limit: 50
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-          #{
-            user_id: 76243,
-            created_at: utcDateTime.fromISO("2023-09-11T14:59:35.000Z"),
-            code: "👍",
-            name: ":+1:"
-          },
-          #{
-            user_id: 10764,
-            created_at: utcDateTime.fromISO("2023-09-11T15:00:31.000Z"),
-            code: "👍",
-            name: ":+1:"
-          },
-          #{
-            user_id: 27494,
-            created_at: utcDateTime.fromISO("2023-09-11T15:01:27.000Z"),
-            code: "👍",
-            name: ":+1:"
-          },
-          #{
-            user_id: 27494,
-            created_at: utcDateTime.fromISO("2023-09-11T15:01:47.000Z"),
-            code: "🔥",
-            name: ":fire:"
-          },
-          #{
-            user_id: 11887,
-            created_at: utcDateTime.fromISO("2023-09-11T15:12:49.000Z"),
-            code: "👍",
-            name: ":+1:"
-          },
-          #{
-            user_id: 11887,
-            created_at: utcDateTime.fromISO("2023-09-11T15:13:46.000Z"),
-            code: "⭐",
-            name: ":star:"
-          },
-          #{
-            user_id: 11887,
-            created_at: utcDateTime.fromISO("2023-09-11T15:13:47.000Z"),
-            code: "🔥",
-            name: ":fire:"
-          }
-        ],
-        meta: #{
-          paginate: #{
-            next_page: "eyJpZCI6NzcsImRpciI6ImFzYyJ9"
-          }
-        }
-      }
-    }
-  })
   listReactions(
     @doc("Идентификатор сообщения")
+    @extension("example", 194275)
     @path id: int32,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -5562,15 +4680,14 @@ Unfurl (разворачивание ссылок)
 """)
   @route("/messages/{id}/link_previews")
   @post
-  
   createLinkPreviews(
     @doc("Идентификатор сообщения")
-    @example(194275)
+    @extension("example", 194275)
     @path id: int32,
     @body request: LinkPreviewsRequest
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -5606,69 +4723,31 @@ interface SearchOperations {
 """)
   @route("/users")
   @get
-  @opExample(#{
-    parameters: #{
-      query: "Олег",
-      limit: 10
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-          #{
-            id: 12,
-            first_name: "Олег",
-            last_name: "Петров",
-            nickname: "olegpetrov",
-            email: "olegp@example.com",
-            phone_number: "",
-            department: "Продукт",
-            title: "CIO",
-            role: UserRole.admin,
-            suspended: false,
-            invite_status: InviteStatus.confirmed,
-            list_tags: #["Product", "Design"],
-            custom_properties: #[#{
-              id: 1678,
-              name: "Город",
-              data_type: CustomPropertyDataType.string,
-              value: "Санкт-Петербург"
-            }],
-            user_status: null,
-            bot: false,
-            sso: false,
-            created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
-            last_activity_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-            time_zone: "Europe/Moscow",
-            image_url: null
-          }
-        ],
-        meta: #{
-          total: 1,
-          paginate: #{
-            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-          }
-        }
-      }
-    }
-  })
   searchUsers(
     @doc("Текст поискового запроса")
+    @extension("example", "Олег")
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
+    @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
     @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Сортировка результатов")
+    @extension("example", "by_score")
     @query sort?: SearchSortOrder,
     @doc("Направление сортировки")
+    @extension("example", "desc")
     @query order?: SortOrder,
     @doc("Фильтр по дате создания (от)")
+    @extension("example", "2025-01-01T00:00:00.000Z")
     @query created_from?: utcDateTime,
     @doc("Фильтр по дате создания (до)")
+    @extension("example", "2025-02-01T00:00:00.000Z")
     @query created_to?: utcDateTime,
     @doc("Фильтр по ролям сотрудников")
+    @extension("example", #["admin", "user"])
     @query company_roles?: UserRole[]
   ): {
     @statusCode _: 200;
@@ -5697,57 +4776,34 @@ interface SearchOperations {
 """)
   @route("/chats")
   @get
-  @opExample(#{
-    parameters: #{
-      query: "Разработка",
-      limit: 10
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-          #{
-            id: 198,
-            name: "Канал разработки",
-            created_at: utcDateTime.fromISO("2020-06-08T09:32:57.000Z"),
-            owner_id: 12,
-            member_ids: #[12, 13, 14],
-            group_tag_ids: #[9111],
-            channel: true,
-            personal: false,
-            public: true,
-            last_message_at: utcDateTime.fromISO("2025-01-20T13:40:07.000Z"),
-            meet_room_url: "https://meet.pachca.com/dev-94bb21b5"
-          }
-        ],
-        meta: #{
-          total: 1,
-          paginate: #{
-            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-          }
-        }
-      }
-    }
-  })
   searchChats(
     @doc("Текст поискового запроса")
+    @extension("example", "Разработка")
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
+    @extension("example", 10)
     @query @maxValue(100)
     limit?: int32 = 100,
     @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")
+    @extension("example", "desc")
     @query order?: SortOrder,
     @doc("Фильтр по дате создания (от)")
+    @extension("example", "2025-01-01T00:00:00.000Z")
     @query created_from?: utcDateTime,
     @doc("Фильтр по дате создания (до)")
+    @extension("example", "2025-02-01T00:00:00.000Z")
     @query created_to?: utcDateTime,
     @doc("Фильтр по активности чата")
+    @extension("example", true)
     @query active?: boolean,
     @doc("Фильтр по типу чата")
+    @extension("example", "discussion")
     @query chat_subtype?: ChatSubtype,
     @doc("Фильтр по личным чатам")
+    @extension("example", false)
     @query personal?: boolean
   ): {
     @statusCode _: 200;
@@ -5776,64 +4832,34 @@ interface SearchOperations {
 """)
   @route("/messages")
   @get
-  @opExample(#{
-    parameters: #{
-      query: "футболки",
-      limit: 10
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-          #{
-            id: 194275,
-            entity_type: MessageEntityType.discussion,
-            entity_id: 334,
-            chat_id: 334,
-            root_chat_id: 334,
-            content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-            user_id: 185,
-            created_at: utcDateTime.fromISO("2021-08-28T15:57:23.000Z"),
-            url: "https://app.pachca.com/chats/334?message=194275",
-            files: #[],
-            buttons: #[],
-            thread: null,
-            forwarding: null,
-            parent_message_id: null,
-            display_avatar_url: null,
-            display_name: null,
-            changed_at: null,
-            deleted_at: null
-          }
-        ],
-        meta: #{
-          total: 1,
-          paginate: #{
-            next_page: "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-          }
-        }
-      }
-    }
-  })
   searchMessages(
     @doc("Текст поискового запроса")
+    @extension("example", "футболки")
     @query query?: string,
     @doc("Количество возвращаемых результатов за один запрос")
+    @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
     @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")
+    @extension("example", "desc")
     @query order?: SortOrder,
     @doc("Фильтр по дате создания (от)")
+    @extension("example", "2025-01-01T00:00:00.000Z")
     @query created_from?: utcDateTime,
     @doc("Фильтр по дате создания (до)")
+    @extension("example", "2025-02-01T00:00:00.000Z")
     @query created_to?: utcDateTime,
     @doc("Фильтр по ID чатов")
+    @extension("example", #[198, 334])
     @query chat_ids?: int32[],
     @doc("Фильтр по ID авторов сообщений")
+    @extension("example", #[12, 185])
     @query user_ids?: int32[],
     @doc("Фильтр по активности чата")
+    @extension("example", true)
     @query active?: boolean
   ): {
     @statusCode _: 200;
@@ -5877,46 +4903,6 @@ interface TaskOperations {
 Напоминание можно привязать к чату, указав `chat_id`. Для привязки к чату необходимо быть его участником.
 """)
   @post
-  @opExample(#{
-    parameters: #{
-      request: #{
-        task: #{
-          kind: TaskKind.reminder,
-          content: "Забрать со склада 21 заказ",
-          due_at: utcDateTime.fromISO("2020-06-05T12:00:00.000+03:00"),
-          priority: 2,
-          custom_properties: #[#{
-            id: 78,
-            value: "Синий склад"
-          }]
-        }
-      }
-    },
-    returnType: #{
-      _: 201,
-      body: #{
-        data: #{
-          id: 22283,
-          kind: TaskKind.reminder,
-          content: "Забрать со склада 21 заказ",
-          due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
-          priority: 2,
-          user_id: 12,
-          chat_id: null,
-          status: TaskStatus.undone,
-          created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
-          performer_ids: #[12],
-          all_day: false,
-          custom_properties: #[#{
-            id: 78,
-            name: "Место",
-            data_type: CustomPropertyDataType.string,
-            value: "Синий склад"
-          }]
-        }
-      }
-    }
-  })
   createTask(@body request: TaskCreateRequest): {
     @statusCode _: 201;
     @body body: DataResponse<Task>;
@@ -5946,63 +4932,15 @@ interface TaskOperations {
 Метод для получения списка напоминаний.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      limit: 2
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-        #{
-          id: 22283,
-          kind: TaskKind.reminder,
-          content: "Забрать со склада 21 заказ",
-          due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
-          priority: 2,
-          user_id: 12,
-          chat_id: null,
-          status: TaskStatus.undone,
-          created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
-          performer_ids: #[12],
-          all_day: false,
-          custom_properties: #[#{
-            id: 78,
-            name: "Место",
-            data_type: CustomPropertyDataType.string,
-            value: "Синий склад"
-          }]
-        },
-        #{
-          id: 22284,
-          kind: TaskKind.call,
-          content: "Позвонить клиенту",
-          due_at: utcDateTime.fromISO("2020-06-06T14:00:00.000Z"),
-          priority: 3,
-          user_id: 12,
-          chat_id: null,
-          status: TaskStatus.done,
-          created_at: utcDateTime.fromISO("2020-06-04T11:20:00.000Z"),
-          performer_ids: #[12, 13],
-          all_day: false,
-          custom_properties: #[]
-        }
-      ],
-      meta: #{
-        paginate: #{
-          next_page: "eyJpZCI6MjIyODQsImRpciI6ImFzYyJ9"
-        }
-      }
-      }
-    }
-  })
   listTasks(
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -6030,37 +4968,9 @@ interface TaskOperations {
 """)
   @route("/{id}")
   @get
-  @opExample(#{
-    parameters: #{
-      id: 22283
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 22283,
-          kind: TaskKind.reminder,
-          content: "Забрать со склада 21 заказ",
-          due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
-          priority: 2,
-          user_id: 12,
-          chat_id: null,
-          status: TaskStatus.undone,
-          created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
-          performer_ids: #[12],
-          all_day: false,
-          custom_properties: #[#{
-            id: 78,
-            name: "Место",
-            data_type: CustomPropertyDataType.string,
-            value: "Синий склад"
-          }]
-        }
-      }
-    }
-  })
   getTask(
     @doc("Идентификатор напоминания")
+    @extension("example", 22283)
     @path id: int32
   ): {
     @statusCode _: 200;
@@ -6087,42 +4997,9 @@ interface TaskOperations {
 Для редактирования напоминания вам необходимо знать его `id` и указать его в `URL` запроса. Все редактируемые параметры напоминания указываются в теле запроса.
 """)
   @put
-  @opExample(#{
-    parameters: #{
-      id: 22283,
-      request: #{
-        task: #{
-          status: TaskStatus.done
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 22283,
-          kind: TaskKind.reminder,
-          content: "Забрать со склада 21 заказ",
-          due_at: utcDateTime.fromISO("2020-06-05T09:00:00.000Z"),
-          priority: 2,
-          user_id: 12,
-          chat_id: null,
-          status: TaskStatus.done,
-          created_at: utcDateTime.fromISO("2020-06-04T10:37:57.000Z"),
-          performer_ids: #[12],
-          all_day: false,
-          custom_properties: #[#{
-            id: 78,
-            name: "Место",
-            data_type: CustomPropertyDataType.string,
-            value: "Синий склад"
-          }]
-        }
-      }
-    }
-  })
   updateTask(
     @doc("Идентификатор напоминания")
+    @extension("example", 22283)
     @path id: int32,
     @body request: TaskUpdateRequest
   ): {
@@ -6159,10 +5036,11 @@ interface TaskOperations {
 
   deleteTask(
     @doc("Идентификатор напоминания")
+    @extension("example", 22283)
     @path id: int32
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -6194,159 +5072,9 @@ interface FormOperations {
 """)
   @route("/open")
   @post
-  @opExample(#{
-    parameters: #{
-      request: #{
-        trigger_id: "791a056b-006c-49dd-834b-c633fde52fe8",
-        type: "modal",
-        private_metadata: "{'timeoff_id':4378}",
-        callback_id: "timeoff_reguest_form",
-        view: #{
-          title: "Уведомление об отпуске",
-          close_text: "Закрыть",
-          submit_text: "Отправить заявку",
-          blocks: #[
-            #{
-              type: "plain_text",
-              text: "Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе."
-            },
-            #{
-              type: "markdown",
-              text: "Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)"
-            },
-            #{
-              type: "header",
-              text: "Основная информация"
-            },
-            #{
-              type: "date",
-              name: "date_start",
-              label: "Дата начала отпуска",
-              initial_date: plainDate.fromISO("2025-07-01"),
-              required: true
-            },
-            #{
-              type: "date",
-              name: "date_end",
-              label: "Дата окончания отпуска",
-              initial_date: plainDate.fromISO("2025-07-28"),
-              required: true
-            },
-            #{
-              type: "file_input",
-              name: "request_doc",
-              label: "Заявление",
-              filetypes: #["pdf","jpg","png"],
-              max_files: 1,
-              required: true,
-              hint: "Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)"
-            },
-            #{
-              type: "radio",
-              name: "accessibility",
-              label: "Доступность",
-              options: #[
-                #{
-                  text: "Ничего",
-                  value: "nothing",
-                  selected: true
-                },
-                #{
-                  text: "Только телефон",
-                  value: "phone_only"
-                },
-                #{
-                  text: "Телефон и ноутбук",
-                  value: "phone_notebook"
-                }
-              ],
-              required: true,
-              hint: "Если вы не планируете выходить на связь, то выберите вариант Ничего"
-            },
-            #{
-              type: "divider"
-            },
-            #{
-              type: "header",
-              text: "Дополнительно"
-            },
-            #{
-              type: "input",
-              name: "info",
-              label: "Описание отпуска",
-              placeholder: "Куда собираетесь и что будете делать",
-              multiline: true,
-              hint: "Возможно вам подскаджут, какие места лучше посетить"
-            },
-            #{
-              type: "checkbox",
-              name: "newsletters",
-              label: "Рассылки",
-              options: #[
-                #{
-                  text: "Получать уведомления о новых задачах в команде",
-                  value: "new_tasks",
-                  description: "Каждый день бот будет присылать список новых задач в вашей команде"
-                },
-                #{
-                  text: "Получать уведомления об обновлениях в проектах",
-                  value: "project_updates",
-                  description: "Два раза в неделю бот будет присылать обновления по проектам"
-                }
-              ]
-            },
-            #{
-              type: "select",
-              name: "team",
-              label: "Выберите команду",
-              options: #[
-                #{
-                  text: "Все команды",
-                  value: "all"
-                },
-                #{
-                  text: "Web",
-                  value: "web",
-                  selected: true
-                },
-                #{
-                  text: "iOS",
-                  value: "ios"
-                },
-                #{
-                  text: "Android",
-                  value: "android"
-                },
-                #{
-                  text: "Back",
-                  value: "back"
-                },
-                #{
-                  text: "Design",
-                  value: "design"
-                },
-                #{
-                  text: "Success",
-                  value: "success"
-                }
-              ]
-            },
-            #{
-              type: "time",
-              name: "newsletter_time",
-              label: "Время рассылки",
-              initial_time: plainTime.fromISO("11:00"),
-              hint: "Укажите, в какое время присылать выбранные рассылки"
-            }
-          ]
-        }
-      }
-    }
-  })
-  
   openView(@body request: OpenViewRequest): {
     @statusCode _: 201;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -6385,31 +5113,9 @@ interface BotOperations {
 """)
   @route("/bots/{id}")
   @put
-  @opExample(#{
-    parameters: #{
-      id: 1738816,
-      request: #{
-        bot: #{
-          webhook: #{
-            outgoing_url: "https://www.website.com/tasks/new"
-          }
-        }
-      }
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 1738816,
-          webhook: #{
-            outgoing_url: "https://www.website.com/tasks/new"
-          }
-        }
-      }
-    }
-  })
   updateBot(
     @doc("Идентификатор бота")
+    @extension("example", 1738816)
     @path id: int32,
     @body request: BotUpdateRequest
   ): {
@@ -6446,77 +5152,16 @@ interface BotOperations {
 """)
   @route("/webhooks/events")
   @get
-  @opExample(#{
-    parameters: #{
-      limit: 10
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-        #{
-          id: "01KAJZ2XDSS2S3DSW9EXJZ0TBV",
-          event_type: "company_member_update",
-          payload: #{
-            event: UserEventType.update,
-            type: "company_member",
-            webhook_timestamp: 1763635376,
-            user_ids: #[13],
-            created_at: utcDateTime.fromISO("2025-11-20T10:42:56Z")
-          },
-          created_at: utcDateTime.fromISO("2025-11-20T10:42:56Z")
-        },
-        #{
-          id: "01KAJZ5CMZFVK4FSZQOISFBZCS",
-          event_type: "message_new",
-          payload: #{
-            event: WebhookEventType.new,
-            type: "message",
-            webhook_timestamp: 1763637142,
-            chat_id: 43,
-            user_id: 13,
-            id: 4432345,
-            created_at: utcDateTime.fromISO("2025-11-20T11:12:22.000Z"),
-            parent_message_id: null,
-            content: "Проверьте последнюю задачу",
-            entity_type: MessageEntityType.discussion,
-            entity_id: 43,
-            thread: null,
-            url: "https://app.pachca.com/chats/43?message=4432345"
-          },
-          created_at: utcDateTime.fromISO("2025-11-20T11:12:22.000Z")
-        },
-        #{
-          id: "01KAJP5CMZFPA5FSZQOCHKBOIW",
-          event_type: "chat_member_add",
-          payload: #{
-            event: MemberEventType.add,
-            type: "chat_member",
-            webhook_timestamp: 1763637574,
-            chat_id: 43,
-            thread_id: null,
-            user_ids: #[14],
-            created_at: utcDateTime.fromISO("2025-11-20T11:19:34Z")
-          },
-          created_at: utcDateTime.fromISO("2025-11-20T11:19:34Z")
-        }
-      ],
-        meta: #{
-          paginate: #{
-            next_page: "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
-          }
-        }
-      }
-    }
-  })
   getWebhookEvents(
     @doc("Количество возвращаемых сущностей за один запрос")
-    @query 
+    @query
+    @extension("example", 1)
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
     
     @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -6549,13 +5194,14 @@ interface BotOperations {
 """)
   @route("/webhooks/events/{id}")
   @delete
-  
+
   deleteWebhookEvent(
     @doc("Идентификатор события")
+    @extension("example", "01KAJZ2XDSS2S3DSW9EXJZ0TBV")
     @path id: string
   ): {
     @statusCode _: 204;
-    @body body: EmptyResponse;
+
   } | {
     @statusCode _: 401;
     @body body: OAuthError;
@@ -6585,71 +5231,43 @@ interface SecurityOperations {
 Метод для получения логов событий на основе указанных фильтров.
 """)
   @get
-  @opExample(#{
-    parameters: #{
-      start_time: utcDateTime.fromISO("2025-05-01T09:11:00.000Z"),
-      end_time: utcDateTime.fromISO("2025-05-02T09:11:00.000Z")
-    },
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #[
-        #{
-          id: "a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14",
-          created_at: utcDateTime.fromISO("2025-05-15T14:30:00.000Z"),
-          event_key: AuditEventKey.user_chat_join,
-          entity_id: "12345678",
-          entity_type: "Chat",
-          actor_id: "98765",
-          actor_type: "User",
-          details: #{
-            inviter_id: "45678"
-          },
-          ip_address: "192.168.1.100",
-          user_agent: "Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"
-        }
-      ],
-        meta: #{
-          paginate: #{
-            next_page: "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
-          }
-        }
-      }
-    }
-  })
   getAuditEvents(
     @doc("Начальная метка времени (включительно)")
-    @example(utcDateTime.fromISO("2025-05-01T09:11:00Z"))
+    @extension("example", "2025-05-01T09:11:00Z")
     @query start_time: utcDateTime,
     
     @doc("Конечная метка времени (исключительно)")
-    @example(utcDateTime.fromISO("2025-05-02T09:11:00Z"))
+    @extension("example", "2025-05-02T09:11:00Z")
     @query end_time: utcDateTime,
     
     @doc("Фильтр по конкретному типу события")
-    @example(AuditEventKey.user_login)
+    @extension("example", "user_login")
     @query event_key?: AuditEventKey,
     
     @doc("Идентификатор пользователя, выполнившего действие")
-    @query actor_id?: int32,
-    
+    @extension("example", "98765")
+    @query actor_id?: string,
+
     @doc("Тип актора")
-    @example("User")
+    @extension("example", "User")
     @query actor_type?: string,
-    
+
     @doc("Идентификатор затронутой сущности")
-    @query entity_id?: int32,
-    
+    @extension("example", "98765")
+    @query entity_id?: string,
+
     @doc("Тип сущности")
-    @example("Chat")
+    @extension("example", "User")
     @query entity_type?: string,
-    
+
     @doc("Количество записей для возврата")
-    @query 
+    @query
+    @extension("example", 1)
     @maxValue(50)
     limit?: int32 = 50,
     
     @doc("Курсор для пагинации из meta.paginate.next_page")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
     @statusCode _: 200;
@@ -6678,24 +5296,6 @@ interface OAuthOperations {
 Метод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.
 """)
   @get
-  @opExample(#{
-    returnType: #{
-      _: 200,
-      body: #{
-        data: #{
-          id: 4827,
-          token: "cH5kR9mN...x7Qp",
-          name: "Мой API токен",
-          user_id: 12,
-          scopes: #[OAuthScope.messages_read, OAuthScope.messages_create],
-          created_at: utcDateTime.fromISO("2025-01-15T10:30:00.000Z"),
-          revoked_at: null,
-          expires_in: null,
-          last_used_at: utcDateTime.fromISO("2025-02-24T14:20:00.000Z")
-        }
-      }
-    }
-  })
   getTokenInfo(): {
     @statusCode _: 200;
     @body body: DataResponse<AccessTokenInfo>;

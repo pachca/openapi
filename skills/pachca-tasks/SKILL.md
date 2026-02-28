@@ -99,7 +99,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ```json
 {
   "task": {
-    "kind": "call"
+    "kind": "reminder"
   }
 }
 ```

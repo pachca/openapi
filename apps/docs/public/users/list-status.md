@@ -13,6 +13,7 @@
 ### Path параметры
 
 - `user_id` (integer, **обязательный**): Идентификатор пользователя
+  - Пример: `12`
 
 
 ## Примеры запроса
@@ -20,14 +21,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/users/12345/status" \
+curl "https://api.pachca.com/api/shared/v1/users/12/status" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/users/12345/status', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/users/12/status', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -48,7 +49,7 @@ headers = {
 }
 
 response = requests.get(
-    'https://api.pachca.com/api/shared/v1/users/12345/status',
+    'https://api.pachca.com/api/shared/v1/users/12/status',
     headers=headers
 )
 
@@ -63,7 +64,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/users/12345/status',
+    path: '/api/shared/v1/users/12/status',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -95,7 +96,7 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/users/12345/status')
+uri = URI('https://api.pachca.com/api/shared/v1/users/12/status')
 request = Net::HTTP::Get.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
 
@@ -114,7 +115,7 @@ puts JSON.parse(response.body)
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/users/12345/status',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/users/12/status',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'GET',
     CURLOPT_HTTPHEADER => [
@@ -137,11 +138,16 @@ echo $response;
 
 - `data` (object, **обязательный**): Статус пользователя
   - `emoji` (string, **обязательный**): Emoji символ статуса
+    - Пример: `🎮`
   - `title` (string, **обязательный**): Текст статуса
+    - Пример: `Очень занят`
   - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2024-04-08T10:00:00.000Z`
   - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
+    - Пример: `false`
   - `away_message` (object, **обязательный**): Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
     - `text` (string, **обязательный**): Текст сообщения
+      - Пример: `Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.`
 
 **Пример ответа:**
 
@@ -152,7 +158,9 @@ echo $response;
     "title": "Очень занят",
     "expires_at": "2024-04-08T10:00:00.000Z",
     "is_away": false,
-    "away_message": null
+    "away_message": {
+      "text": "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
+    }
   }
 }
 ```
@@ -162,14 +170,36 @@ echo $response;
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 404: The server cannot find the requested resource.
 
@@ -177,8 +207,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -217,4 +250,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

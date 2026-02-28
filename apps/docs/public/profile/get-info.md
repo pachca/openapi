@@ -128,14 +128,23 @@ echo $response;
 
 - `data` (object, **обязательный**): Информация о текущем OAuth токене
   - `id` (integer, int64, **обязательный**): Идентификатор токена
+    - Пример: `4827`
   - `token` (string, **обязательный**): Маскированный токен (видны первые 8 и последние 4 символа)
+    - Пример: `cH5kR9mN...x7Qp`
   - `name` (string, **обязательный**): Пользовательское имя токена
+    - Пример: `Мой API токен`
   - `user_id` (integer, int64, **обязательный**): Идентификатор владельца токена
+    - Пример: `12`
   - `scopes` (array[string], **обязательный**): Список скоупов токена
+    - Пример: `["messages:read","chats:read"]`
   - `created_at` (string, date-time, **обязательный**): Дата создания токена
+    - Пример: `2025-01-15T10:30:00.000Z`
   - `revoked_at` (string, date-time, **обязательный**): Дата отзыва токена
+    - Пример: `null`
   - `expires_in` (integer, int32, **обязательный**): Время жизни токена в секундах
+    - Пример: `null`
   - `last_used_at` (string, date-time, **обязательный**): Дата последнего использования токена
+    - Пример: `2025-02-24T14:20:00.000Z`
 
 **Пример ответа:**
 
@@ -148,7 +157,7 @@ echo $response;
     "user_id": 12,
     "scopes": [
       "messages:read",
-      "messages:create"
+      "chats:read"
     ],
     "created_at": "2025-01-15T10:30:00.000Z",
     "revoked_at": null,
@@ -163,5 +172,16 @@ echo $response;
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 

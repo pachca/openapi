@@ -1132,7 +1132,13 @@ export interface components {
              * @example 12
              */
             user_id: number;
-            /** @description Список скоупов токена */
+            /**
+             * @description Список скоупов токена
+             * @example [
+             *       "messages:read",
+             *       "chats:read"
+             *     ]
+             */
             scopes: components["schemas"]["OAuthScope"][];
             /**
              * Format: date-time
@@ -1208,10 +1214,153 @@ export interface components {
              * @example Поле не может быть пустым
              */
             message: string;
-            /** @description Код ошибки */
+            /**
+             * @description Код ошибки
+             * @example blank
+             */
             code: components["schemas"]["ValidationErrorCode"];
-            /** @description Дополнительные данные об ошибке */
+            /**
+             * @description Дополнительные данные об ошибке
+             * @example null
+             */
             payload: string | null;
+        };
+        /** @description При: tag_removed_from_chat */
+        AuditDetailsChatId: {
+            /**
+             * Format: int32
+             * @description Идентификатор чата
+             */
+            chat_id: number;
+        };
+        /** @description При: chat_permission_changed */
+        AuditDetailsChatPermission: {
+            /** @description Публичный доступ */
+            public_access: boolean;
+        };
+        /** @description При: chat_renamed */
+        AuditDetailsChatRenamed: {
+            /** @description Прежнее название чата */
+            old_name: string;
+            /** @description Новое название чата */
+            new_name: string;
+        };
+        /** @description При: dlp_violation_detected */
+        AuditDetailsDlp: {
+            /**
+             * Format: int32
+             * @description Идентификатор правила DLP
+             */
+            dlp_rule_id: number;
+            /** @description Название правила DLP */
+            dlp_rule_name: string;
+            /**
+             * Format: int32
+             * @description Идентификатор сообщения
+             */
+            message_id: number;
+            /**
+             * Format: int32
+             * @description Идентификатор чата
+             */
+            chat_id: number;
+            /**
+             * Format: int32
+             * @description Идентификатор пользователя
+             */
+            user_id: number;
+            /** @description Описание действия */
+            action_message: string;
+            /** @description Результат проверки условий правила (true — условия сработали) */
+            conditions_matched: boolean;
+        };
+        /** @description Пустые детали. При: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted, chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted, thread_created, audit_events_accessed */
+        AuditDetailsEmpty: Record<string, never>;
+        /** @description При: user_added_to_tag, user_removed_from_tag, user_chat_leave */
+        AuditDetailsInitiator: {
+            /**
+             * Format: int32
+             * @description Идентификатор инициатора действия
+             */
+            initiator_id: number;
+        };
+        /** @description При: user_chat_join */
+        AuditDetailsInviter: {
+            /**
+             * Format: int32
+             * @description Идентификатор пригласившего
+             */
+            inviter_id: number;
+        };
+        /** @description При: kms_encrypt, kms_decrypt */
+        AuditDetailsKms: {
+            /**
+             * Format: int32
+             * @description Идентификатор чата
+             */
+            chat_id: number;
+            /**
+             * Format: int32
+             * @description Идентификатор сообщения
+             */
+            message_id: number;
+            /** @description Причина операции */
+            reason: string;
+        };
+        /** @description При: user_role_changed */
+        AuditDetailsRoleChanged: {
+            /** @description Новая роль */
+            new_company_role: string;
+            /** @description Предыдущая роль */
+            previous_company_role: string;
+            /**
+             * Format: int32
+             * @description Идентификатор инициатора
+             */
+            initiator_id: number;
+        };
+        /** @description При: search_users_api, search_chats_api, search_messages_api */
+        AuditDetailsSearch: {
+            /** @description Тип поиска */
+            search_type: string;
+            /** @description Указан ли поисковый запрос */
+            query_present: boolean;
+            /** @description Использован ли курсор */
+            cursor_present: boolean;
+            /**
+             * Format: int32
+             * @description Количество возвращённых результатов
+             */
+            limit: number;
+            /** @description Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages) */
+            filters: {
+                [key: string]: unknown;
+            };
+        };
+        /** @description При: tag_added_to_chat */
+        AuditDetailsTagChat: {
+            /**
+             * Format: int32
+             * @description Идентификатор чата
+             */
+            chat_id: number;
+            /** @description Название тега */
+            tag_name: string;
+        };
+        /** @description При: tag_created, tag_deleted */
+        AuditDetailsTagName: {
+            /** @description Название тега */
+            name: string;
+        };
+        /** @description При: access_token_created, access_token_updated, access_token_destroy */
+        AuditDetailsTokenScopes: {
+            /** @description Скоупы токена */
+            scopes: string[];
+        };
+        /** @description При: user_updated */
+        AuditDetailsUserUpdated: {
+            /** @description Список изменённых полей */
+            changed_attrs: string[];
         };
         /** @description Событие аудита */
         AuditEvent: {
@@ -1228,17 +1377,17 @@ export interface components {
             created_at: string;
             /**
              * @description Ключ типа события
-             * @example user_chat_join
+             * @example user_login
              */
             event_key: components["schemas"]["AuditEventKey"];
             /**
              * @description Идентификатор затронутой сущности
-             * @example 12345678
+             * @example 98765
              */
             entity_id: string;
             /**
              * @description Тип затронутой сущности
-             * @example Chat
+             * @example User
              */
             entity_type: string;
             /**
@@ -1251,15 +1400,8 @@ export interface components {
              * @example User
              */
             actor_type: string;
-            /**
-             * @description Дополнительные детали события
-             * @example {
-             *       "inviter_id": "45678"
-             *     }
-             */
-            details: {
-                [key: string]: unknown;
-            };
+            /** @description Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект */
+            details: components["schemas"]["AuditEventDetailsUnion"];
             /**
              * @description IP-адрес, с которого было выполнено действие
              * @example 192.168.1.100
@@ -1271,6 +1413,8 @@ export interface components {
              */
             user_agent: string;
         };
+        /** @description Дополнительные детали события аудита. Структура зависит от значения event_key */
+        AuditEventDetailsUnion: components["schemas"]["AuditDetailsEmpty"] | components["schemas"]["AuditDetailsUserUpdated"] | components["schemas"]["AuditDetailsRoleChanged"] | components["schemas"]["AuditDetailsTagName"] | components["schemas"]["AuditDetailsInitiator"] | components["schemas"]["AuditDetailsInviter"] | components["schemas"]["AuditDetailsChatRenamed"] | components["schemas"]["AuditDetailsChatPermission"] | components["schemas"]["AuditDetailsTagChat"] | components["schemas"]["AuditDetailsChatId"] | components["schemas"]["AuditDetailsTokenScopes"] | components["schemas"]["AuditDetailsKms"] | components["schemas"]["AuditDetailsDlp"] | components["schemas"]["AuditDetailsSearch"];
         /**
          * @description Тип аудит-события
          * @enum {string}
@@ -1309,11 +1453,20 @@ export interface components {
         };
         /** @description Кнопка */
         Button: {
-            /** @description Текст, отображаемый на кнопке */
+            /**
+             * @description Текст, отображаемый на кнопке
+             * @example Подробнее
+             */
             text: string;
-            /** @description Ссылка, которая будет открыта по нажатию кнопки */
+            /**
+             * @description Ссылка, которая будет открыта по нажатию кнопки
+             * @example https://example.com/details
+             */
             url?: string;
-            /** @description Данные, которые будут отправлены в исходном вебхуке по нажатию кнопки */
+            /**
+             * @description Данные, которые будут отправлены в исходном вебхуке по нажатию кнопки
+             * @example awesome
+             */
             data?: string;
         };
         /** @description Структура исходящего вебхука о нажатии кнопки */
@@ -1442,20 +1595,37 @@ export interface components {
         ChatCreateRequest: {
             /** @description Собранный объект параметров создаваемого чата */
             chat: {
-                /** @description Название */
+                /**
+                 * @description Название
+                 * @example 🤿 aqua
+                 */
                 name: string;
-                /** @description Массив идентификаторов пользователей, которые станут участниками */
+                /**
+                 * @description Массив идентификаторов пользователей, которые станут участниками
+                 * @example [
+                 *       186,
+                 *       187
+                 *     ]
+                 */
                 member_ids?: number[];
-                /** @description Массив идентификаторов тегов, которые станут участниками */
+                /**
+                 * @description Массив идентификаторов тегов, которые станут участниками
+                 * @example [
+                 *       86,
+                 *       18
+                 *     ]
+                 */
                 group_tag_ids?: number[];
                 /**
                  * @description Является каналом
                  * @default false
+                 * @example true
                  */
                 channel: boolean;
                 /**
                  * @description Открытый доступ
                  * @default false
+                 * @example false
                  */
                 public: boolean;
             };
@@ -1478,7 +1648,10 @@ export interface components {
              * @enum {string}
              */
             type: "chat_member";
-            /** @description Тип события */
+            /**
+             * @description Тип события
+             * @example add
+             */
             event: components["schemas"]["MemberEventType"];
             /**
              * Format: int32
@@ -1522,9 +1695,15 @@ export interface components {
         ChatUpdateRequest: {
             /** @description Собранный объект параметров обновляемого чата */
             chat: {
-                /** @description Название */
+                /**
+                 * @description Название
+                 * @example Бассейн
+                 */
                 name?: string;
-                /** @description Открытый доступ */
+                /**
+                 * @description Открытый доступ
+                 * @example true
+                 */
                 public?: boolean;
             };
         };
@@ -1536,7 +1715,10 @@ export interface components {
              * @enum {string}
              */
             type: "company_member";
-            /** @description Тип события */
+            /**
+             * @description Тип события
+             * @example invite
+             */
             event: components["schemas"]["UserEventType"];
             /**
              * @description Массив идентификаторов пользователей, с которыми произошло событие
@@ -1572,7 +1754,10 @@ export interface components {
              * @example Город
              */
             name: string;
-            /** @description Тип поля */
+            /**
+             * @description Тип поля
+             * @example string
+             */
             data_type: components["schemas"]["CustomPropertyDataType"];
             /**
              * @description Значение
@@ -1598,11 +1783,12 @@ export interface components {
              * @example Город
              */
             name: string;
-            /** @description Тип поля */
+            /**
+             * @description Тип поля
+             * @example string
+             */
             data_type: components["schemas"]["CustomPropertyDataType"];
         };
-        /** @description При безошибочном выполнении запроса тело ответа отсутствует */
-        EmptyResponse: Record<string, never>;
         /** @description Запрос на экспорт сообщений */
         ExportRequest: {
             /**
@@ -1653,7 +1839,10 @@ export interface components {
              * @example congrat.png
              */
             name: string;
-            /** @description Тип файла */
+            /**
+             * @description Тип файла
+             * @example image
+             */
             file_type: components["schemas"]["FileType"];
             /**
              * @description Прямая ссылка на скачивание файла
@@ -1706,36 +1895,43 @@ export interface components {
             /**
              * Format: int32
              * @description Идентификатор оригинального сообщения
+             * @example 194275
              */
             original_message_id: number;
             /**
              * Format: int32
              * @description Идентификатор чата, в котором находится оригинальное сообщение
+             * @example 334
              */
             original_chat_id: number;
             /**
              * Format: int32
              * @description Идентификатор пользователя, создавшего оригинальное сообщение
+             * @example 12
              */
             author_id: number;
             /**
              * Format: date-time
              * @description Дата и время создания оригинального сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+             * @example 2025-01-15T10:30:00.000Z
              */
             original_created_at: string;
             /**
              * Format: int32
              * @description Идентификатор треда, в котором находится оригинальное сообщение
+             * @example null
              */
             original_thread_id: number | null;
             /**
              * Format: int32
              * @description Идентификатор сообщения, к которому был создан тред, в котором находится оригинальное сообщение
+             * @example null
              */
             original_thread_message_id: number | null;
             /**
              * Format: int32
              * @description Идентификатор чата сообщения, к которому был создан тред, в котором находится оригинальное сообщение
+             * @example null
              */
             original_thread_parent_chat_id: number | null;
         };
@@ -1872,7 +2068,10 @@ export interface components {
              * @example 194275
              */
             id: number;
-            /** @description Тип сущности, к которой относится сообщение */
+            /**
+             * @description Тип сущности, к которой относится сообщение
+             * @example discussion
+             */
             entity_type: components["schemas"]["MessageEntityType"];
             /**
              * Format: int32
@@ -1900,7 +2099,7 @@ export interface components {
             /**
              * Format: int32
              * @description Идентификатор пользователя, создавшего сообщение
-             * @example 185
+             * @example 12
              */
             user_id: number;
             /**
@@ -1925,11 +2124,18 @@ export interface components {
             /**
              * Format: int32
              * @description Идентификатор сообщения, к которому написан ответ
+             * @example null
              */
             parent_message_id: number | null;
-            /** @description Ссылка на аватарку отправителя сообщения */
+            /**
+             * @description Ссылка на аватарку отправителя сообщения
+             * @example null
+             */
             display_avatar_url: string | null;
-            /** @description Полное имя отправителя сообщения */
+            /**
+             * @description Полное имя отправителя сообщения
+             * @example null
+             */
             display_name: string | null;
             /**
              * Format: date-time
@@ -1951,12 +2157,13 @@ export interface components {
                 /**
                  * @description Тип сущности
                  * @default discussion
+                 * @example discussion
                  */
                 entity_type: components["schemas"]["MessageEntityType"];
                 /**
                  * Format: int32
                  * @description Идентификатор сущности
-                 * @example 198
+                 * @example 334
                  */
                 entity_id: number;
                 /**
@@ -2000,7 +2207,21 @@ export interface components {
                      */
                     height?: number;
                 }[];
-                /** @description Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. */
+                /**
+                 * @description Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке.
+                 * @example [
+                 *       [
+                 *         {
+                 *           "text": "Подробнее",
+                 *           "url": "https://example.com/details"
+                 *         },
+                 *         {
+                 *           "text": "Отлично!",
+                 *           "data": "awesome"
+                 *         }
+                 *       ]
+                 *     ]
+                 */
                 buttons?: components["schemas"]["Button"][][];
                 /**
                  * Format: int32
@@ -2082,7 +2303,17 @@ export interface components {
                      */
                     height?: number;
                 }[];
-                /** @description Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив. */
+                /**
+                 * @description Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив.
+                 * @example [
+                 *       [
+                 *         {
+                 *           "text": "Подробнее",
+                 *           "url": "https://example.com/details"
+                 *         }
+                 *       ]
+                 *     ]
+                 */
                 buttons?: components["schemas"]["Button"][][];
                 /**
                  * @description Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.
@@ -2110,9 +2341,15 @@ export interface components {
              * @example 1245817
              */
             id: number;
-            /** @description Тип события */
+            /**
+             * @description Тип события
+             * @example new
+             */
             event: components["schemas"]["WebhookEventType"];
-            /** @description Тип сущности, к которой относится сообщение */
+            /**
+             * @description Тип сущности, к которой относится сообщение
+             * @example discussion
+             */
             entity_type: components["schemas"]["MessageEntityType"];
             /**
              * Format: int32
@@ -2185,27 +2422,42 @@ export interface components {
         OpenViewRequest: {
             /**
              * @description Способ открытия представления
+             * @example modal
              * @enum {string}
              */
             type: "modal";
-            /** @description Уникальный идентификатор события (полученный, например, в исходящем вебхуке о нажатии кнопки) */
+            /**
+             * @description Уникальный идентификатор события (полученный, например, в исходящем вебхуке о нажатии кнопки)
+             * @example 791a056b-006c-49dd-834b-c633fde52fe8
+             */
             trigger_id: string;
-            /** @description Необязательная строка, которая будет отправлена в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для передачи в формате `JSON` какой то дополнительной информации вместе с заполненной пользователем формой. */
+            /**
+             * @description Необязательная строка, которая будет отправлена в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для передачи в формате `JSON` какой то дополнительной информации вместе с заполненной пользователем формой.
+             * @example {"timeoff_id":4378}
+             */
             private_metadata?: string;
-            /** @description Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь. */
+            /**
+             * @description Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь.
+             * @example timeoff_reguest_form
+             */
             callback_id?: string;
             /** @description Собранный объект представления */
             view: {
-                /** @description Заголовок представления */
+                /**
+                 * @description Заголовок представления
+                 * @example Уведомление об отпуске
+                 */
                 title: string;
                 /**
                  * @description Текст кнопки закрытия представления
                  * @default Отменить
+                 * @example Закрыть
                  */
                 close_text: string;
                 /**
                  * @description Текст кнопки отправки формы
                  * @default Отправить
+                 * @example Отправить заявку
                  */
                 submit_text: string;
                 /** @description Массив блоков представления */
@@ -2274,7 +2526,10 @@ export interface components {
              * @enum {string}
              */
             type: "reaction";
-            /** @description Тип события */
+            /**
+             * @description Тип события
+             * @example new
+             */
             event: components["schemas"]["ReactionEventType"];
             /**
              * Format: int32
@@ -2346,18 +2601,31 @@ export interface components {
         /** @description Запрос на установку статуса */
         StatusUpdateRequest: {
             status: {
-                /** @description Emoji символ статуса */
+                /**
+                 * @description Emoji символ статуса
+                 * @example 🎮
+                 */
                 emoji: string;
-                /** @description Текст статуса */
+                /**
+                 * @description Текст статуса
+                 * @example Очень занят
+                 */
                 title: string;
                 /**
                  * Format: date-time
                  * @description Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+                 * @example 2024-04-08T10:00:00.000Z
                  */
                 expires_at?: string;
-                /** @description Режим «Нет на месте» */
+                /**
+                 * @description Режим «Нет на месте»
+                 * @example true
+                 */
                 is_away?: boolean;
-                /** @description Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. */
+                /**
+                 * @description Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях.
+                 * @example Вернусь после 15:00
+                 */
                 away_message?: string;
             };
         };
@@ -2377,7 +2645,10 @@ export interface components {
              * @example 22283
              */
             id: number;
-            /** @description Тип */
+            /**
+             * @description Тип
+             * @example reminder
+             */
             kind: components["schemas"]["TaskKind"];
             /**
              * @description Описание
@@ -2405,7 +2676,7 @@ export interface components {
             /**
              * Format: int32
              * @description Идентификатор чата, к которому привязано напоминание
-             * @example 456
+             * @example 334
              */
             chat_id: number | null;
             /**
@@ -2438,7 +2709,10 @@ export interface components {
         TaskCreateRequest: {
             /** @description Собранный объект параметров создаваемого напоминания */
             task: {
-                /** @description Тип */
+                /**
+                 * @description Тип
+                 * @example reminder
+                 */
                 kind: components["schemas"]["TaskKind"];
                 /**
                  * @description Описание (по умолчанию — название типа)
@@ -2458,7 +2732,13 @@ export interface components {
                  * @example 2
                  */
                 priority: number;
-                /** @description Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы) */
+                /**
+                 * @description Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)
+                 * @example [
+                 *       12,
+                 *       13
+                 *     ]
+                 */
                 performer_ids?: number[];
                 /**
                  * Format: int32
@@ -2466,7 +2746,10 @@ export interface components {
                  * @example 456
                  */
                 chat_id?: number;
-                /** @description Напоминание на весь день (без указания времени) */
+                /**
+                 * @description Напоминание на весь день (без указания времени)
+                 * @example false
+                 */
                 all_day?: boolean;
                 /** @description Задаваемые дополнительные поля */
                 custom_properties?: {
@@ -2498,7 +2781,10 @@ export interface components {
         TaskUpdateRequest: {
             /** @description Собранный объект параметров обновляемого напоминания */
             task: {
-                /** @description Тип */
+                /**
+                 * @description Тип
+                 * @example reminder
+                 */
                 kind?: components["schemas"]["TaskKind"];
                 /**
                  * @description Описание
@@ -2517,14 +2803,22 @@ export interface components {
                  * @example 2
                  */
                 priority?: number;
-                /** @description Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» */
+                /**
+                 * @description Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»
+                 * @example [
+                 *       12
+                 *     ]
+                 */
                 performer_ids?: number[];
                 /**
                  * @description Статус
                  * @example done
                  */
                 status?: components["schemas"]["TaskStatus"];
-                /** @description Напоминание на весь день (без указания времени) */
+                /**
+                 * @description Напоминание на весь день (без указания времени)
+                 * @example false
+                 */
                 all_day?: boolean;
                 /**
                  * Format: date-time
@@ -2583,7 +2877,10 @@ export interface components {
         };
         /** @description Запрос на изменение роли участника */
         UpdateMemberRoleRequest: {
-            /** @description Роль */
+            /**
+             * @description Роль
+             * @example admin
+             */
             role: components["schemas"]["ChatMemberRole"];
         };
         /** @description Параметры для загрузки файла */
@@ -2677,14 +2974,20 @@ export interface components {
              * @example CIO
              */
             title: string;
-            /** @description Уровень доступа */
+            /**
+             * @description Уровень доступа
+             * @example admin
+             */
             role: components["schemas"]["UserRole"];
             /**
              * @description Деактивация пользователя
              * @example false
              */
             suspended: boolean;
-            /** @description Статус приглашения */
+            /**
+             * @description Статус приглашения
+             * @example confirmed
+             */
             invite_status: components["schemas"]["InviteStatus"];
             /**
              * @description Массив тегов, привязанных к сотруднику
@@ -2725,7 +3028,10 @@ export interface components {
              * @example Europe/Moscow
              */
             time_zone: string;
-            /** @description Ссылка на скачивание аватарки пользователя */
+            /**
+             * @description Ссылка на скачивание аватарки пользователя
+             * @example https://app.pachca.com/users/12/photo.jpg
+             */
             image_url: string | null;
         };
         /** @description Запрос на создание сотрудника */
@@ -2746,18 +3052,30 @@ export interface components {
                  * @example olegp@example.com
                  */
                 email: string;
-                /** @description Телефон */
+                /**
+                 * @description Телефон
+                 * @example +79001234567
+                 */
                 phone_number?: string;
-                /** @description Имя пользователя */
+                /**
+                 * @description Имя пользователя
+                 * @example olegpetrov
+                 */
                 nickname?: string;
                 /**
                  * @description Департамент
                  * @example Продукт
                  */
                 department?: string;
-                /** @description Должность */
+                /**
+                 * @description Должность
+                 * @example CIO
+                 */
                 title?: string;
-                /** @description Уровень доступа */
+                /**
+                 * @description Уровень доступа
+                 * @example user
+                 */
                 role?: components["schemas"]["UserRole"];
                 /**
                  * @description Деактивация пользователя
@@ -2948,9 +3266,15 @@ export interface components {
             label: string;
             /** @description Массив чекбоксов */
             options?: components["schemas"]["ViewBlockCheckboxOption"][];
-            /** @description Обязательность */
+            /**
+             * @description Обязательность
+             * @example false
+             */
             required?: boolean;
-            /** @description Подсказка, которая отображается под группой чекбоксов серым цветом */
+            /**
+             * @description Подсказка, которая отображается под группой чекбоксов серым цветом
+             * @example Выберите интересующие вас рассылки
+             */
             hint?: string;
         };
         ViewBlockCheckboxOption: {
@@ -3004,7 +3328,10 @@ export interface components {
              * @example true
              */
             required?: boolean;
-            /** @description Подсказка, которая отображается под полем серым цветом */
+            /**
+             * @description Подсказка, которая отображается под полем серым цветом
+             * @example Укажите дату начала отпуска
+             */
             hint?: string;
         };
         /** @description Блок divider — разделитель */
@@ -3103,16 +3430,21 @@ export interface components {
              * @example true
              */
             multiline?: boolean;
-            /** @description Начальное значение в поле */
+            /**
+             * @description Начальное значение в поле
+             * @example Начальный текст
+             */
             initial_value?: string;
             /**
              * Format: int32
              * @description Минимальная длина текста, который должен написать пользователь. Если пользователь напишет меньше, он получит ошибку.
+             * @example 10
              */
             min_length?: number;
             /**
              * Format: int32
              * @description Максимальная длина текста, который должен написать пользователь. Если пользователь напишет больше, он получит ошибку.
+             * @example 500
              */
             max_length?: number;
             /**
@@ -3205,9 +3537,15 @@ export interface components {
             label: string;
             /** @description Массив доступных пунктов в выпадающем списке */
             options?: components["schemas"]["ViewBlockSelectableOption"][];
-            /** @description Обязательность */
+            /**
+             * @description Обязательность
+             * @example false
+             */
             required?: boolean;
-            /** @description Подсказка, которая отображается под выпадающим списком серым цветом */
+            /**
+             * @description Подсказка, которая отображается под выпадающим списком серым цветом
+             * @example Выберите одну из команд
+             */
             hint?: string;
         };
         /** @description Опция для блоков select, radio и checkbox */
@@ -3257,7 +3595,10 @@ export interface components {
              * @example 11:00
              */
             initial_time?: string;
-            /** @description Обязательность */
+            /**
+             * @description Обязательность
+             * @example false
+             */
             required?: boolean;
             /**
              * @description Подсказка, которая отображается под полем серым цветом
@@ -3271,7 +3612,7 @@ export interface components {
         WebhookEvent: {
             /**
              * @description Идентификатор события
-             * @example a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14
+             * @example 01KAJZ2XDSS2S3DSW9EXJZ0TBV
              */
             id: string;
             /**
@@ -3335,23 +3676,50 @@ export interface operations {
     SecurityOperations_getAuditEvents: {
         parameters: {
             query: {
-                /** @description Начальная метка времени (включительно) */
+                /**
+                 * @description Начальная метка времени (включительно)
+                 * @example 2025-05-01T09:11:00Z
+                 */
                 start_time: string;
-                /** @description Конечная метка времени (исключительно) */
+                /**
+                 * @description Конечная метка времени (исключительно)
+                 * @example 2025-05-02T09:11:00Z
+                 */
                 end_time: string;
-                /** @description Фильтр по конкретному типу события */
+                /**
+                 * @description Фильтр по конкретному типу события
+                 * @example user_login
+                 */
                 event_key?: components["schemas"]["AuditEventKey"];
-                /** @description Идентификатор пользователя, выполнившего действие */
-                actor_id?: number;
-                /** @description Тип актора */
+                /**
+                 * @description Идентификатор пользователя, выполнившего действие
+                 * @example 98765
+                 */
+                actor_id?: string;
+                /**
+                 * @description Тип актора
+                 * @example User
+                 */
                 actor_type?: string;
-                /** @description Идентификатор затронутой сущности */
-                entity_id?: number;
-                /** @description Тип сущности */
+                /**
+                 * @description Идентификатор затронутой сущности
+                 * @example 98765
+                 */
+                entity_id?: string;
+                /**
+                 * @description Тип сущности
+                 * @example User
+                 */
                 entity_type?: string;
-                /** @description Количество записей для возврата */
+                /**
+                 * @description Количество записей для возврата
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации из meta.paginate.next_page */
+                /**
+                 * @description Курсор для пагинации из meta.paginate.next_page
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
@@ -3366,31 +3734,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": "a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14",
-                     *           "created_at": "2025-05-15T14:30:00.000Z",
-                     *           "event_key": "user_chat_join",
-                     *           "entity_id": "12345678",
-                     *           "entity_type": "Chat",
-                     *           "actor_id": "98765",
-                     *           "actor_type": "User",
-                     *           "details": {
-                     *             "inviter_id": "45678"
-                     *           },
-                     *           "ip_address": "192.168.1.100",
-                     *           "user_agent": "Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJfa2QiOiJuIiwiY3JlYXRlZF9hdCI6IjIwMjUtMDUtMTUgMTQ6MzA6MDAuMDAwWiJ9"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["AuditEvent"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -3440,22 +3783,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор бота */
+                /**
+                 * @description Идентификатор бота
+                 * @example 1738816
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "bot": {
-                 *         "webhook": {
-                 *           "outgoing_url": "https://www.website.com/tasks/new"
-                 *         }
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["BotUpdateRequest"];
             };
         };
@@ -3466,16 +3803,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 1738816,
-                     *         "webhook": {
-                     *           "outgoing_url": "https://www.website.com/tasks/new"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["BotResponse"];
                     };
@@ -3531,19 +3858,40 @@ export interface operations {
     ChatOperations_listChats: {
         parameters: {
             query?: {
-                /** @description Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения). */
+                /**
+                 * @description Составной параметр сортировки сущностей выборки
+                 * @example desc
+                 */
                 "sort[{field}]"?: components["schemas"]["SortOrder"];
-                /** @description Параметр, который отвечает за доступность и выборку чатов для пользователя */
+                /**
+                 * @description Параметр, который отвечает за доступность и выборку чатов для пользователя
+                 * @example is_member
+                 */
                 availability?: components["schemas"]["ChatAvailability"];
-                /** @description Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). */
+                /**
+                 * @description Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+                 * @example 2025-01-01T00:00:00.000Z
+                 */
                 last_message_at_after?: string;
-                /** @description Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ). */
+                /**
+                 * @description Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+                 * @example 2025-02-01T00:00:00.000Z
+                 */
                 last_message_at_before?: string;
-                /** @description Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты. */
+                /**
+                 * @description Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
+                 * @example false
+                 */
                 personal?: boolean;
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                /**
+                 * @description Курсор для пагинации (из meta.paginate.next_page)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
@@ -3558,52 +3906,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 334,
-                     *           "name": "🤿 aqua",
-                     *           "created_at": "2021-08-28T15:56:53.000Z",
-                     *           "owner_id": 185,
-                     *           "member_ids": [
-                     *             185,
-                     *             186,
-                     *             187
-                     *           ],
-                     *           "group_tag_ids": [],
-                     *           "channel": true,
-                     *           "personal": false,
-                     *           "public": false,
-                     *           "last_message_at": "2021-08-28T15:58:13.000Z",
-                     *           "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
-                     *         },
-                     *         {
-                     *           "id": 333,
-                     *           "name": "development",
-                     *           "created_at": "2021-08-28T15:54:22.000Z",
-                     *           "owner_id": 185,
-                     *           "member_ids": [
-                     *             185
-                     *           ],
-                     *           "group_tag_ids": [
-                     *             22,
-                     *             24
-                     *           ],
-                     *           "channel": false,
-                     *           "personal": false,
-                     *           "public": true,
-                     *           "last_message_at": "2021-08-28T15:56:12.000Z",
-                     *           "meet_room_url": "https://meet.pachca.com/development-43sz53n8"
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Chat"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -3657,19 +3959,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "chat": {
-                 *         "name": "🤿 aqua",
-                 *         "member_ids": [
-                 *           186,
-                 *           187
-                 *         ],
-                 *         "channel": true,
-                 *         "public": false
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["ChatCreateRequest"];
             };
         };
@@ -3680,27 +3969,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 334,
-                     *         "name": "🤿 aqua",
-                     *         "created_at": "2021-08-28T15:56:53.000Z",
-                     *         "owner_id": 185,
-                     *         "member_ids": [
-                     *           185,
-                     *           186,
-                     *           187
-                     *         ],
-                     *         "group_tag_ids": [],
-                     *         "channel": true,
-                     *         "personal": false,
-                     *         "public": false,
-                     *         "last_message_at": "2021-08-28T15:56:53.000Z",
-                     *         "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Chat"];
                     };
@@ -3753,16 +4021,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "start_at": "2025-03-20",
-                 *       "end_at": "2025-03-20",
-                 *       "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
-                 *       "chat_ids": [
-                 *         1381521
-                 *       ]
-                 *     }
-                 */
                 "application/json": components["schemas"]["ExportRequest"];
             };
         };
@@ -3772,9 +4030,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -3819,7 +4075,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор экспорта */
+                /**
+                 * @description Идентификатор экспорта
+                 * @example 22322
+                 */
                 id: number;
             };
             cookie?: never;
@@ -3868,7 +4127,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
@@ -3881,27 +4143,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 334,
-                     *         "name": "🤿 aqua",
-                     *         "created_at": "2021-08-28T15:56:53.000Z",
-                     *         "owner_id": 185,
-                     *         "member_ids": [
-                     *           185,
-                     *           186,
-                     *           187
-                     *         ],
-                     *         "group_tag_ids": [],
-                     *         "channel": true,
-                     *         "personal": false,
-                     *         "public": false,
-                     *         "last_message_at": "2021-08-28T15:58:13.000Z",
-                     *         "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Chat"];
                     };
@@ -3941,21 +4182,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "chat": {
-                 *         "name": "Бассейн",
-                 *         "public": true
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["ChatUpdateRequest"];
             };
         };
@@ -3966,27 +4202,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 334,
-                     *         "name": "Бассейн",
-                     *         "created_at": "2021-08-28T15:56:53.000Z",
-                     *         "owner_id": 185,
-                     *         "member_ids": [
-                     *           185,
-                     *           186,
-                     *           187
-                     *         ],
-                     *         "group_tag_ids": [],
-                     *         "channel": true,
-                     *         "personal": false,
-                     *         "public": true,
-                     *         "last_message_at": "2021-08-28T15:58:23.000Z",
-                     *         "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Chat"];
                     };
@@ -4044,7 +4259,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
@@ -4056,9 +4274,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -4094,21 +4310,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "group_tag_ids": [
-                 *         86,
-                 *         18
-                 *       ]
-                 *     }
-                 */
                 "application/json": components["schemas"]["AddTagsRequest"];
             };
         };
@@ -4118,9 +4329,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -4174,9 +4383,15 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
-                /** @description Идентификатор тега */
+                /**
+                 * @description Идентификатор тега
+                 * @example 86
+                 */
                 tag_id: number;
             };
             cookie?: never;
@@ -4188,9 +4403,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -4226,7 +4439,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
@@ -4238,9 +4454,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -4292,16 +4506,28 @@ export interface operations {
     ChatMemberOperations_listMembers: {
         parameters: {
             query?: {
-                /** @description Роль в чате */
+                /**
+                 * @description Роль в чате
+                 * @example all
+                 */
                 role?: components["schemas"]["ChatMemberRoleFilter"];
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                /**
+                 * @description Курсор для пагинации (из meta.paginate.next_page)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
@@ -4314,49 +4540,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 12,
-                     *           "first_name": "Олег",
-                     *           "last_name": "Петров",
-                     *           "nickname": "olegpetrov",
-                     *           "email": "olegp@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Продукт",
-                     *           "title": "CIO",
-                     *           "role": "admin",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Product",
-                     *             "Design"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Санкт-Петербург"
-                     *             }
-                     *           ],
-                     *           "user_status": null,
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:10:11.000Z",
-                     *           "last_activity_at": "2025-01-20T13:40:07.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTIwiwiZGlyIjoiYXNjIn0"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -4415,22 +4598,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата (беседа, канал или чат треда) */
+                /**
+                 * @description Идентификатор чата (беседа, канал или чат треда)
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "member_ids": [
-                 *         186,
-                 *         187
-                 *       ],
-                 *       "silent": true
-                 *     }
-                 */
                 "application/json": components["schemas"]["AddMembersRequest"];
             };
         };
@@ -4440,9 +4617,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -4496,20 +4671,21 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 186
+                 */
                 user_id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "role": "admin"
-                 *     }
-                 */
                 "application/json": components["schemas"]["UpdateMemberRoleRequest"];
             };
         };
@@ -4519,9 +4695,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -4575,9 +4749,15 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 186
+                 */
                 user_id: number;
             };
             cookie?: never;
@@ -4589,9 +4769,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -4627,7 +4805,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор чата */
+                /**
+                 * @description Идентификатор чата
+                 * @example 334
+                 */
                 id: number;
             };
             cookie?: never;
@@ -4639,9 +4820,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -4675,7 +4854,10 @@ export interface operations {
     CommonOperations_listProperties: {
         parameters: {
             query: {
-                /** @description Тип сущности */
+                /**
+                 * @description Тип сущности
+                 * @example User
+                 */
                 entity_type: components["schemas"]["SearchEntityType"];
             };
             header?: never;
@@ -4690,27 +4872,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 1487,
-                     *           "name": "Адрес",
-                     *           "data_type": "string"
-                     *         },
-                     *         {
-                     *           "id": 1489,
-                     *           "name": "Номер доступа",
-                     *           "data_type": "number"
-                     *         },
-                     *         {
-                     *           "id": 1572,
-                     *           "name": "Дата рождения",
-                     *           "data_type": "date"
-                     *         }
-                     *       ]
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["CustomPropertyDefinition"][];
                     };
@@ -4779,11 +4940,23 @@ export interface operations {
     GroupTagOperations_listTags: {
         parameters: {
             query?: {
-                /** @description Массив названий тегов, по которым вы хотите отфильтровать список */
+                /**
+                 * @description Массив названий тегов, по которым вы хотите отфильтровать список
+                 * @example [
+                 *       "Design",
+                 *       "Product"
+                 *     ]
+                 */
                 names?: components["schemas"]["TagNamesFilter"];
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из `meta.paginate.next_page`) */
+                /**
+                 * @description Курсор для пагинации (из `meta.paginate.next_page`)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
@@ -4798,27 +4971,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 9111,
-                     *           "name": "Design",
-                     *           "users_count": 6
-                     *         },
-                     *         {
-                     *           "id": 9113,
-                     *           "name": "iOS",
-                     *           "users_count": 4
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6OTExMywiZGlyIjoiYXNjIn0"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["GroupTag"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -4872,13 +5024,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "group_tag": {
-                 *         "name": "Название тега"
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["GroupTagRequest"];
             };
         };
@@ -4889,15 +5034,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 1,
-                     *         "name": "Название тега",
-                     *         "users_count": 0
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["GroupTag"];
                     };
@@ -4946,7 +5082,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор тега */
+                /**
+                 * @description Идентификатор тега
+                 * @example 9111
+                 */
                 id: number;
             };
             cookie?: never;
@@ -4959,15 +5098,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 9111,
-                     *         "name": "Design",
-                     *         "users_count": 6
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["GroupTag"];
                     };
@@ -5007,20 +5137,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор тега */
+                /**
+                 * @description Идентификатор тега
+                 * @example 9111
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "group_tag": {
-                 *         "name": "Новое название тега"
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["GroupTagRequest"];
             };
         };
@@ -5031,15 +5157,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 1,
-                     *         "name": "Новое название тега",
-                     *         "users_count": 0
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["GroupTag"];
                     };
@@ -5097,7 +5214,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор тега */
+                /**
+                 * @description Идентификатор тега
+                 * @example 9111
+                 */
                 id: number;
             };
             cookie?: never;
@@ -5109,9 +5229,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -5145,14 +5263,23 @@ export interface operations {
     GroupTagOperations_getTagUsers: {
         parameters: {
             query?: {
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из `meta.paginate.next_page`) */
+                /**
+                 * @description Курсор для пагинации (из `meta.paginate.next_page`)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
             path: {
-                /** @description Идентификатор тега */
+                /**
+                 * @description Идентификатор тега
+                 * @example 9111
+                 */
                 id: number;
             };
             cookie?: never;
@@ -5165,125 +5292,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 12,
-                     *           "first_name": "Олег",
-                     *           "last_name": "Петров",
-                     *           "nickname": "olegpetrov",
-                     *           "email": "olegp@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Продукт",
-                     *           "title": "CIO",
-                     *           "role": "admin",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Product",
-                     *             "Design"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Санкт-Петербург"
-                     *             }
-                     *           ],
-                     *           "user_status": null,
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:10:11.000Z",
-                     *           "last_activity_at": "2025-01-20T13:40:07.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         },
-                     *         {
-                     *           "id": 13,
-                     *           "first_name": "Сергей",
-                     *           "last_name": "Кузнецов",
-                     *           "nickname": "skuz",
-                     *           "email": "sergkuzn@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Разработка",
-                     *           "title": "iOS Developer",
-                     *           "role": "user",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Development",
-                     *             "Android"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Москва"
-                     *             }
-                     *           ],
-                     *           "user_status": {
-                     *             "emoji": "🎮",
-                     *             "title": "Очень занят",
-                     *             "expires_at": "2024-04-08T10:00:00.000Z",
-                     *             "is_away": false,
-                     *             "away_message": null
-                     *           },
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:31:17.000Z",
-                     *           "last_activity_at": "2025-01-20T07:00:32.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         },
-                     *         {
-                     *           "id": 14,
-                     *           "first_name": "Дмитрий",
-                     *           "last_name": "Смирнов",
-                     *           "nickname": "dsmir",
-                     *           "email": "ds@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Разработка",
-                     *           "title": "Android Developer",
-                     *           "role": "user",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Development",
-                     *             "Frontend"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Санкт-Петербург"
-                     *             }
-                     *           ],
-                     *           "user_status": {
-                     *             "emoji": "🚀",
-                     *             "title": "Лечу",
-                     *             "expires_at": null,
-                     *             "is_away": false,
-                     *             "away_message": null
-                     *           },
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:32:57.000Z",
-                     *           "last_activity_at": "2025-01-20T13:51:25.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTQsImRpciI6ImFzYyJ9"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -5340,13 +5348,25 @@ export interface operations {
     ChatMessageOperations_listChatMessages: {
         parameters: {
             query: {
-                /** @description Идентификатор чата (беседа, канал, диалог или чат треда) */
+                /**
+                 * @description Идентификатор чата (беседа, канал, диалог или чат треда)
+                 * @example 198
+                 */
                 chat_id: number;
-                /** @description Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения). */
+                /**
+                 * @description Составной параметр сортировки сущностей выборки
+                 * @example desc
+                 */
                 "sort[{field}]"?: components["schemas"]["SortOrder"];
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из `meta.paginate.next_page`) */
+                /**
+                 * @description Курсор для пагинации (из `meta.paginate.next_page`)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
@@ -5361,83 +5381,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 1194277,
-                     *           "entity_type": "discussion",
-                     *           "entity_id": 198,
-                     *           "chat_id": 198,
-                     *           "root_chat_id": 198,
-                     *           "content": "Это сообщение тоже попадёт в экспорт",
-                     *           "user_id": 12,
-                     *           "created_at": "2023-09-18T13:43:32.000Z",
-                     *           "url": "https://app.pachca.com/chats/198?message=1194277",
-                     *           "files": [],
-                     *           "buttons": [],
-                     *           "thread": {
-                     *             "id": 2633,
-                     *             "chat_id": 44997,
-                     *             "message_id": 1194277,
-                     *             "message_chat_id": 198,
-                     *             "updated_at": "2023-09-18T13:43:32.000Z"
-                     *           },
-                     *           "forwarding": null,
-                     *           "parent_message_id": null,
-                     *           "display_avatar_url": null,
-                     *           "display_name": null,
-                     *           "changed_at": null,
-                     *           "deleted_at": null
-                     *         },
-                     *         {
-                     *           "id": 1194276,
-                     *           "entity_type": "discussion",
-                     *           "entity_id": 198,
-                     *           "chat_id": 198,
-                     *           "root_chat_id": 198,
-                     *           "content": "**Andrew** добавил **Export bot** в беседу",
-                     *           "user_id": 12,
-                     *           "created_at": "2023-09-18T13:43:27.000Z",
-                     *           "url": "https://app.pachca.com/chats/198?message=1194276",
-                     *           "files": [],
-                     *           "buttons": [],
-                     *           "thread": null,
-                     *           "forwarding": null,
-                     *           "parent_message_id": null,
-                     *           "display_avatar_url": null,
-                     *           "display_name": null,
-                     *           "changed_at": null,
-                     *           "deleted_at": null
-                     *         },
-                     *         {
-                     *           "id": 1194275,
-                     *           "entity_type": "discussion",
-                     *           "entity_id": 198,
-                     *           "chat_id": 198,
-                     *           "root_chat_id": 198,
-                     *           "content": "**Andrew** создал беседу",
-                     *           "user_id": 12,
-                     *           "created_at": "2023-09-18T13:43:19.000Z",
-                     *           "url": "https://app.pachca.com/chats/198?message=1194275",
-                     *           "files": [],
-                     *           "buttons": [],
-                     *           "thread": null,
-                     *           "forwarding": null,
-                     *           "parent_message_id": null,
-                     *           "display_avatar_url": null,
-                     *           "display_name": null,
-                     *           "changed_at": null,
-                     *           "deleted_at": null
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTE5NDI3NSwiZGlyIjoiZGVzYyJ9"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Message"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -5500,27 +5443,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "message": {
-                 *         "entity_type": "discussion",
-                 *         "entity_id": 198,
-                 *         "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-                 *         "buttons": [
-                 *           [
-                 *             {
-                 *               "text": "Подробнее",
-                 *               "url": "https://example.com/details"
-                 *             },
-                 *             {
-                 *               "text": "Отлично!",
-                 *               "data": "awesome"
-                 *             }
-                 *           ]
-                 *         ]
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["MessageCreateRequest"];
             };
         };
@@ -5531,41 +5453,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 194275,
-                     *         "entity_type": "discussion",
-                     *         "entity_id": 334,
-                     *         "chat_id": 334,
-                     *         "root_chat_id": 334,
-                     *         "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-                     *         "user_id": 185,
-                     *         "created_at": "2021-08-28T15:57:23.000Z",
-                     *         "url": "https://app.pachca.com/chats/334?message=194275",
-                     *         "files": [],
-                     *         "buttons": [
-                     *           [
-                     *             {
-                     *               "text": "Подробнее",
-                     *               "url": "https://example.com/details"
-                     *             },
-                     *             {
-                     *               "text": "Отлично!",
-                     *               "data": "awesome"
-                     *             }
-                     *           ]
-                     *         ],
-                     *         "thread": null,
-                     *         "forwarding": null,
-                     *         "parent_message_id": null,
-                     *         "display_avatar_url": null,
-                     *         "display_name": null,
-                     *         "changed_at": null,
-                     *         "deleted_at": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Message"];
                     };
@@ -5614,7 +5501,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
@@ -5627,46 +5517,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 194275,
-                     *         "entity_type": "discussion",
-                     *         "entity_id": 198,
-                     *         "chat_id": 198,
-                     *         "root_chat_id": 198,
-                     *         "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-                     *         "user_id": 12,
-                     *         "created_at": "2020-06-08T09:32:57.000Z",
-                     *         "url": "https://app.pachca.com/chats/198?message=194275",
-                     *         "files": [
-                     *           {
-                     *             "id": 3560,
-                     *             "key": "attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png",
-                     *             "name": "congrat.png",
-                     *             "file_type": "image",
-                     *             "url": "https://pachca-prod-uploads.s3.storage.selcloud.ru/attaches/files/12/21zu7934-02e1-44d9-8df2-0f970c259796/congrat.png?response-cache-control=max-age%3D3600%3B&response-content-disposition=attachment&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=142155_staply%2F20231107%2Fru-1a%2Fs3%2Faws4_request&X-Amz-Date=20231107T160412&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=98765asgfadsfdSaDSd4sdfg35asdf67sadf8",
-                     *             "width": 1920,
-                     *             "height": 1080
-                     *           }
-                     *         ],
-                     *         "buttons": [],
-                     *         "thread": {
-                     *           "id": 29873,
-                     *           "chat_id": 1949863,
-                     *           "message_id": 194275,
-                     *           "message_chat_id": 198,
-                     *           "updated_at": "2020-06-08T09:32:57.000Z"
-                     *         },
-                     *         "forwarding": null,
-                     *         "parent_message_id": 194274,
-                     *         "display_avatar_url": null,
-                     *         "display_name": null,
-                     *         "changed_at": null,
-                     *         "deleted_at": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Message"];
                     };
@@ -5706,21 +5556,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "message": {
-                 *         "content": "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
-                 *         "files": []
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["MessageUpdateRequest"];
             };
         };
@@ -5731,30 +5576,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 7231942,
-                     *         "entity_type": "discussion",
-                     *         "entity_id": 17452,
-                     *         "chat_id": 17452,
-                     *         "root_chat_id": 17452,
-                     *         "content": "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
-                     *         "user_id": 65,
-                     *         "created_at": "2022-06-08T09:32:57.000Z",
-                     *         "url": "https://app.pachca.com/chats/17452?message=7231942",
-                     *         "files": [],
-                     *         "buttons": [],
-                     *         "thread": null,
-                     *         "forwarding": null,
-                     *         "parent_message_id": null,
-                     *         "display_avatar_url": null,
-                     *         "display_name": null,
-                     *         "changed_at": "2022-06-08T10:15:00.000Z",
-                     *         "deleted_at": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Message"];
                     };
@@ -5812,7 +5633,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
@@ -5824,9 +5648,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -5862,7 +5684,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
@@ -5878,9 +5703,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -5934,7 +5757,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
@@ -5946,9 +5772,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -5993,7 +5817,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
@@ -6005,9 +5832,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -6041,14 +5866,23 @@ export interface operations {
     ReactionOperations_listReactions: {
         parameters: {
             query?: {
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из `meta.paginate.next_page`) */
+                /**
+                 * @description Курсор для пагинации (из `meta.paginate.next_page`)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
@@ -6061,59 +5895,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "user_id": 76243,
-                     *           "created_at": "2023-09-11T14:59:35.000Z",
-                     *           "code": "👍",
-                     *           "name": ":+1:"
-                     *         },
-                     *         {
-                     *           "user_id": 10764,
-                     *           "created_at": "2023-09-11T15:00:31.000Z",
-                     *           "code": "👍",
-                     *           "name": ":+1:"
-                     *         },
-                     *         {
-                     *           "user_id": 27494,
-                     *           "created_at": "2023-09-11T15:01:27.000Z",
-                     *           "code": "👍",
-                     *           "name": ":+1:"
-                     *         },
-                     *         {
-                     *           "user_id": 27494,
-                     *           "created_at": "2023-09-11T15:01:47.000Z",
-                     *           "code": "🔥",
-                     *           "name": ":fire:"
-                     *         },
-                     *         {
-                     *           "user_id": 11887,
-                     *           "created_at": "2023-09-11T15:12:49.000Z",
-                     *           "code": "👍",
-                     *           "name": ":+1:"
-                     *         },
-                     *         {
-                     *           "user_id": 11887,
-                     *           "created_at": "2023-09-11T15:13:46.000Z",
-                     *           "code": "⭐",
-                     *           "name": ":star:"
-                     *         },
-                     *         {
-                     *           "user_id": 11887,
-                     *           "created_at": "2023-09-11T15:13:47.000Z",
-                     *           "code": "🔥",
-                     *           "name": ":fire:"
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6NzcsImRpciI6ImFzYyJ9"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Reaction"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -6172,19 +5953,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 7231942
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "code": "👍",
-                 *       "name": ":+1:"
-                 *     }
-                 */
                 "application/json": components["schemas"]["ReactionRequest"];
             };
         };
@@ -6195,14 +5973,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "user_id": 355929,
-                     *       "created_at": "2026-01-24T12:18:34.000Z",
-                     *       "code": "👍",
-                     *       "name": ":+1::skin-tone-1:"
-                     *     }
-                     */
                     "application/json": components["schemas"]["Reaction"];
                 };
             };
@@ -6256,14 +6026,23 @@ export interface operations {
     ReactionOperations_removeReaction: {
         parameters: {
             query: {
-                /** @description Emoji символ реакции */
+                /**
+                 * @description Emoji символ реакции
+                 * @example 👍
+                 */
                 code: string;
-                /** @description Текстовое имя эмодзи (используется для кастомных эмодзи) */
+                /**
+                 * @description Текстовое имя эмодзи (используется для кастомных эмодзи)
+                 * @example :+1:
+                 */
                 name?: string;
             };
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 7231942
+                 */
                 id: number;
             };
             cookie?: never;
@@ -6275,9 +6054,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -6329,14 +6106,23 @@ export interface operations {
     ReadMemberOperations_listReadMembers: {
         parameters: {
             query?: {
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 300
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из `meta.paginate.next_page`) */
+                /**
+                 * @description Курсор для пагинации (из `meta.paginate.next_page`)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 194275
+                 */
                 id: number;
             };
             cookie?: never;
@@ -6349,22 +6135,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         12,
-                     *         13,
-                     *         14,
-                     *         15,
-                     *         16
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MTYsImRpciI6ImFzYyJ9"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: number[];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -6423,7 +6193,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор сообщения */
+                /**
+                 * @description Идентификатор сообщения
+                 * @example 154332686
+                 */
                 id: number;
             };
             cookie?: never;
@@ -6436,17 +6209,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 265142,
-                     *         "chat_id": 2637266155,
-                     *         "message_id": 154332686,
-                     *         "message_chat_id": 2637266154,
-                     *         "updated_at": "2023-02-01T19:20:47.204Z"
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Thread"];
                     };
@@ -6496,24 +6258,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 4827,
-                     *         "token": "cH5kR9mN...x7Qp",
-                     *         "name": "Мой API токен",
-                     *         "user_id": 12,
-                     *         "scopes": [
-                     *           "messages:read",
-                     *           "messages:create"
-                     *         ],
-                     *         "created_at": "2025-01-15T10:30:00.000Z",
-                     *         "revoked_at": null,
-                     *         "expires_in": null,
-                     *         "last_used_at": "2025-02-24T14:20:00.000Z"
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["AccessTokenInfo"];
                     };
@@ -6545,42 +6289,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 12,
-                     *         "first_name": "Олег",
-                     *         "last_name": "Петров",
-                     *         "nickname": "",
-                     *         "email": "olegp@example.com",
-                     *         "phone_number": "",
-                     *         "department": "Продукт",
-                     *         "title": "CIO",
-                     *         "role": "admin",
-                     *         "suspended": false,
-                     *         "invite_status": "confirmed",
-                     *         "list_tags": [
-                     *           "Product",
-                     *           "Design"
-                     *         ],
-                     *         "custom_properties": [
-                     *           {
-                     *             "id": 1678,
-                     *             "name": "Город",
-                     *             "data_type": "string",
-                     *             "value": "Санкт-Петербург"
-                     *           }
-                     *         ],
-                     *         "user_status": null,
-                     *         "bot": false,
-                     *         "sso": false,
-                     *         "created_at": "2020-06-08T09:32:57.000Z",
-                     *         "last_activity_at": "2025-01-20T13:40:07.000Z",
-                     *         "time_zone": "Europe/Moscow",
-                     *         "image_url": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"];
                     };
@@ -6621,17 +6329,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "emoji": "🎮",
-                     *         "title": "Очень занят",
-                     *         "expires_at": "2024-04-08T10:00:00.000Z",
-                     *         "is_away": false,
-                     *         "away_message": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["UserStatus"] | null;
                     };
@@ -6666,15 +6363,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "status": {
-                 *         "emoji": "🎮",
-                 *         "title": "Очень занят",
-                 *         "expires_at": "2024-04-08T10:00:00.000Z"
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["StatusUpdateRequest"];
             };
         };
@@ -6685,17 +6373,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "emoji": "🎮",
-                     *         "title": "Очень занят",
-                     *         "expires_at": "2024-04-08T10:00:00.000Z",
-                     *         "is_away": false,
-                     *         "away_message": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["UserStatus"];
                     };
@@ -6753,9 +6430,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -6780,23 +6455,50 @@ export interface operations {
     SearchOperations_searchChats: {
         parameters: {
             query?: {
-                /** @description Текст поискового запроса */
+                /**
+                 * @description Текст поискового запроса
+                 * @example Разработка
+                 */
                 query?: string;
-                /** @description Количество возвращаемых результатов за один запрос */
+                /**
+                 * @description Количество возвращаемых результатов за один запрос
+                 * @example 10
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                /**
+                 * @description Курсор для пагинации (из meta.paginate.next_page)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
-                /** @description Направление сортировки */
+                /**
+                 * @description Направление сортировки
+                 * @example desc
+                 */
                 order?: components["schemas"]["SortOrder"];
-                /** @description Фильтр по дате создания (от) */
+                /**
+                 * @description Фильтр по дате создания (от)
+                 * @example 2025-01-01T00:00:00.000Z
+                 */
                 created_from?: string;
-                /** @description Фильтр по дате создания (до) */
+                /**
+                 * @description Фильтр по дате создания (до)
+                 * @example 2025-02-01T00:00:00.000Z
+                 */
                 created_to?: string;
-                /** @description Фильтр по активности чата */
+                /**
+                 * @description Фильтр по активности чата
+                 * @example true
+                 */
                 active?: boolean;
-                /** @description Фильтр по типу чата */
+                /**
+                 * @description Фильтр по типу чата
+                 * @example discussion
+                 */
                 chat_subtype?: components["schemas"]["ChatSubtype"];
-                /** @description Фильтр по личным чатам */
+                /**
+                 * @description Фильтр по личным чатам
+                 * @example false
+                 */
                 personal?: boolean;
             };
             header?: never;
@@ -6811,37 +6513,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 198,
-                     *           "name": "Канал разработки",
-                     *           "created_at": "2020-06-08T09:32:57.000Z",
-                     *           "owner_id": 12,
-                     *           "member_ids": [
-                     *             12,
-                     *             13,
-                     *             14
-                     *           ],
-                     *           "group_tag_ids": [
-                     *             9111
-                     *           ],
-                     *           "channel": true,
-                     *           "personal": false,
-                     *           "public": true,
-                     *           "last_message_at": "2025-01-20T13:40:07.000Z",
-                     *           "meet_room_url": "https://meet.pachca.com/dev-94bb21b5"
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "total": 1,
-                     *         "paginate": {
-                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Chat"][];
                         meta: components["schemas"]["SearchPaginationMeta"];
@@ -6889,23 +6560,56 @@ export interface operations {
     SearchOperations_searchMessages: {
         parameters: {
             query?: {
-                /** @description Текст поискового запроса */
+                /**
+                 * @description Текст поискового запроса
+                 * @example футболки
+                 */
                 query?: string;
-                /** @description Количество возвращаемых результатов за один запрос */
+                /**
+                 * @description Количество возвращаемых результатов за один запрос
+                 * @example 10
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                /**
+                 * @description Курсор для пагинации (из meta.paginate.next_page)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
-                /** @description Направление сортировки */
+                /**
+                 * @description Направление сортировки
+                 * @example desc
+                 */
                 order?: components["schemas"]["SortOrder"];
-                /** @description Фильтр по дате создания (от) */
+                /**
+                 * @description Фильтр по дате создания (от)
+                 * @example 2025-01-01T00:00:00.000Z
+                 */
                 created_from?: string;
-                /** @description Фильтр по дате создания (до) */
+                /**
+                 * @description Фильтр по дате создания (до)
+                 * @example 2025-02-01T00:00:00.000Z
+                 */
                 created_to?: string;
-                /** @description Фильтр по ID чатов */
+                /**
+                 * @description Фильтр по ID чатов
+                 * @example [
+                 *       198,
+                 *       334
+                 *     ]
+                 */
                 chat_ids?: number[];
-                /** @description Фильтр по ID авторов сообщений */
+                /**
+                 * @description Фильтр по ID авторов сообщений
+                 * @example [
+                 *       12,
+                 *       185
+                 *     ]
+                 */
                 user_ids?: number[];
-                /** @description Фильтр по активности чата */
+                /**
+                 * @description Фильтр по активности чата
+                 * @example true
+                 */
                 active?: boolean;
             };
             header?: never;
@@ -6920,38 +6624,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 194275,
-                     *           "entity_type": "discussion",
-                     *           "entity_id": 334,
-                     *           "chat_id": 334,
-                     *           "root_chat_id": 334,
-                     *           "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
-                     *           "user_id": 185,
-                     *           "created_at": "2021-08-28T15:57:23.000Z",
-                     *           "url": "https://app.pachca.com/chats/334?message=194275",
-                     *           "files": [],
-                     *           "buttons": [],
-                     *           "thread": null,
-                     *           "forwarding": null,
-                     *           "parent_message_id": null,
-                     *           "display_avatar_url": null,
-                     *           "display_name": null,
-                     *           "changed_at": null,
-                     *           "deleted_at": null
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "total": 1,
-                     *         "paginate": {
-                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Message"][];
                         meta: components["schemas"]["SearchPaginationMeta"];
@@ -6999,21 +6671,48 @@ export interface operations {
     SearchOperations_searchUsers: {
         parameters: {
             query?: {
-                /** @description Текст поискового запроса */
+                /**
+                 * @description Текст поискового запроса
+                 * @example Олег
+                 */
                 query?: string;
-                /** @description Количество возвращаемых результатов за один запрос */
+                /**
+                 * @description Количество возвращаемых результатов за один запрос
+                 * @example 10
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                /**
+                 * @description Курсор для пагинации (из meta.paginate.next_page)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
-                /** @description Сортировка результатов */
+                /**
+                 * @description Сортировка результатов
+                 * @example by_score
+                 */
                 sort?: components["schemas"]["SearchSortOrder"];
-                /** @description Направление сортировки */
+                /**
+                 * @description Направление сортировки
+                 * @example desc
+                 */
                 order?: components["schemas"]["SortOrder"];
-                /** @description Фильтр по дате создания (от) */
+                /**
+                 * @description Фильтр по дате создания (от)
+                 * @example 2025-01-01T00:00:00.000Z
+                 */
                 created_from?: string;
-                /** @description Фильтр по дате создания (до) */
+                /**
+                 * @description Фильтр по дате создания (до)
+                 * @example 2025-02-01T00:00:00.000Z
+                 */
                 created_to?: string;
-                /** @description Фильтр по ролям сотрудников */
+                /**
+                 * @description Фильтр по ролям сотрудников
+                 * @example [
+                 *       "admin",
+                 *       "user"
+                 *     ]
+                 */
                 company_roles?: components["schemas"]["UserRole"][];
             };
             header?: never;
@@ -7028,50 +6727,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 12,
-                     *           "first_name": "Олег",
-                     *           "last_name": "Петров",
-                     *           "nickname": "olegpetrov",
-                     *           "email": "olegp@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Продукт",
-                     *           "title": "CIO",
-                     *           "role": "admin",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Product",
-                     *             "Design"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Санкт-Петербург"
-                     *             }
-                     *           ],
-                     *           "user_status": null,
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:32:57.000Z",
-                     *           "last_activity_at": "2025-01-20T13:40:07.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "total": 1,
-                     *         "paginate": {
-                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"][];
                         meta: components["schemas"]["SearchPaginationMeta"];
@@ -7119,9 +6774,15 @@ export interface operations {
     TaskOperations_listTasks: {
         parameters: {
             query?: {
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из `meta.paginate.next_page`) */
+                /**
+                 * @description Курсор для пагинации (из `meta.paginate.next_page`)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
@@ -7136,57 +6797,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 22283,
-                     *           "kind": "reminder",
-                     *           "content": "Забрать со склада 21 заказ",
-                     *           "due_at": "2020-06-05T09:00:00.000Z",
-                     *           "priority": 2,
-                     *           "user_id": 12,
-                     *           "chat_id": null,
-                     *           "status": "undone",
-                     *           "created_at": "2020-06-04T10:37:57.000Z",
-                     *           "performer_ids": [
-                     *             12
-                     *           ],
-                     *           "all_day": false,
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 78,
-                     *               "name": "Место",
-                     *               "data_type": "string",
-                     *               "value": "Синий склад"
-                     *             }
-                     *           ]
-                     *         },
-                     *         {
-                     *           "id": 22284,
-                     *           "kind": "call",
-                     *           "content": "Позвонить клиенту",
-                     *           "due_at": "2020-06-06T14:00:00.000Z",
-                     *           "priority": 3,
-                     *           "user_id": 12,
-                     *           "chat_id": null,
-                     *           "status": "done",
-                     *           "created_at": "2020-06-04T11:20:00.000Z",
-                     *           "performer_ids": [
-                     *             12,
-                     *             13
-                     *           ],
-                     *           "all_day": false,
-                     *           "custom_properties": []
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJpZCI6MjIyODQsImRpciI6ImFzYyJ9"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Task"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -7231,22 +6841,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "task": {
-                 *         "kind": "reminder",
-                 *         "content": "Забрать со склада 21 заказ",
-                 *         "due_at": "2020-06-05T12:00:00.000+03:00",
-                 *         "priority": 2,
-                 *         "custom_properties": [
-                 *           {
-                 *             "id": 78,
-                 *             "value": "Синий склад"
-                 *           }
-                 *         ]
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["TaskCreateRequest"];
             };
         };
@@ -7257,33 +6851,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 22283,
-                     *         "kind": "reminder",
-                     *         "content": "Забрать со склада 21 заказ",
-                     *         "due_at": "2020-06-05T09:00:00.000Z",
-                     *         "priority": 2,
-                     *         "user_id": 12,
-                     *         "chat_id": null,
-                     *         "status": "undone",
-                     *         "created_at": "2020-06-04T10:37:57.000Z",
-                     *         "performer_ids": [
-                     *           12
-                     *         ],
-                     *         "all_day": false,
-                     *         "custom_properties": [
-                     *           {
-                     *             "id": 78,
-                     *             "name": "Место",
-                     *             "data_type": "string",
-                     *             "value": "Синий склад"
-                     *           }
-                     *         ]
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Task"];
                     };
@@ -7341,7 +6908,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор напоминания */
+                /**
+                 * @description Идентификатор напоминания
+                 * @example 22283
+                 */
                 id: number;
             };
             cookie?: never;
@@ -7354,33 +6924,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 22283,
-                     *         "kind": "reminder",
-                     *         "content": "Забрать со склада 21 заказ",
-                     *         "due_at": "2020-06-05T09:00:00.000Z",
-                     *         "priority": 2,
-                     *         "user_id": 12,
-                     *         "chat_id": null,
-                     *         "status": "undone",
-                     *         "created_at": "2020-06-04T10:37:57.000Z",
-                     *         "performer_ids": [
-                     *           12
-                     *         ],
-                     *         "all_day": false,
-                     *         "custom_properties": [
-                     *           {
-                     *             "id": 78,
-                     *             "name": "Место",
-                     *             "data_type": "string",
-                     *             "value": "Синий склад"
-                     *           }
-                     *         ]
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Task"];
                     };
@@ -7420,20 +6963,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор напоминания */
+                /**
+                 * @description Идентификатор напоминания
+                 * @example 22283
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "task": {
-                 *         "status": "done"
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["TaskUpdateRequest"];
             };
         };
@@ -7444,33 +6983,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 22283,
-                     *         "kind": "reminder",
-                     *         "content": "Забрать со склада 21 заказ",
-                     *         "due_at": "2020-06-05T09:00:00.000Z",
-                     *         "priority": 2,
-                     *         "user_id": 12,
-                     *         "chat_id": null,
-                     *         "status": "done",
-                     *         "created_at": "2020-06-04T10:37:57.000Z",
-                     *         "performer_ids": [
-                     *           12
-                     *         ],
-                     *         "all_day": false,
-                     *         "custom_properties": [
-                     *           {
-                     *             "id": 78,
-                     *             "name": "Место",
-                     *             "data_type": "string",
-                     *             "value": "Синий склад"
-                     *           }
-                     *         ]
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Task"];
                     };
@@ -7528,7 +7040,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор напоминания */
+                /**
+                 * @description Идентификатор напоминания
+                 * @example 22283
+                 */
                 id: number;
             };
             cookie?: never;
@@ -7540,9 +7055,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -7578,7 +7091,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор треда */
+                /**
+                 * @description Идентификатор треда
+                 * @example 265142
+                 */
                 id: number;
             };
             cookie?: never;
@@ -7591,17 +7107,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 265142,
-                     *         "chat_id": 2637266155,
-                     *         "message_id": 154332686,
-                     *         "message_chat_id": 2637266154,
-                     *         "updated_at": "2023-02-01T19:20:47.204Z"
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["Thread"];
                     };
@@ -7651,19 +7156,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "Content-Disposition": "attachment",
-                     *       "acl": "private",
-                     *       "policy": "eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12",
-                     *       "x-amz-credential": "286471_server/20211122/kz-6x/s3/aws4_request",
-                     *       "x-amz-algorithm": "AWS4-HMAC-SHA256",
-                     *       "x-amz-date": "20211122T065734Z",
-                     *       "x-amz-signature": "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
-                     *       "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
-                     *       "direct_url": "https://api.pachca.com/api/v3/direct_upload"
-                     *     }
-                     */
                     "application/json": components["schemas"]["UploadParams"];
                 };
             };
@@ -7690,11 +7182,20 @@ export interface operations {
     UserOperations_listUsers: {
         parameters: {
             query?: {
-                /** @description Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм). */
+                /**
+                 * @description Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).
+                 * @example Олег
+                 */
                 query?: string;
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из `meta.paginate.next_page`) */
+                /**
+                 * @description Курсор для пагинации (из `meta.paginate.next_page`)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
@@ -7709,125 +7210,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": 12,
-                     *           "first_name": "Олег",
-                     *           "last_name": "Петров",
-                     *           "nickname": "olegpetrov",
-                     *           "email": "olegp@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Продукт",
-                     *           "title": "CIO",
-                     *           "role": "admin",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Product",
-                     *             "Design"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Санкт-Петербург"
-                     *             }
-                     *           ],
-                     *           "user_status": null,
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:10:11.000Z",
-                     *           "last_activity_at": "2025-01-20T13:40:07.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         },
-                     *         {
-                     *           "id": 13,
-                     *           "first_name": "Сергей",
-                     *           "last_name": "Кузнецов",
-                     *           "nickname": "skuz",
-                     *           "email": "sergkuzn@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Разработка",
-                     *           "title": "iOS Developer",
-                     *           "role": "user",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Development",
-                     *             "Android"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Москва"
-                     *             }
-                     *           ],
-                     *           "user_status": {
-                     *             "emoji": "🎮",
-                     *             "title": "Очень занят",
-                     *             "expires_at": "2024-04-08T10:00:00.000Z",
-                     *             "is_away": false,
-                     *             "away_message": null
-                     *           },
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:31:17.000Z",
-                     *           "last_activity_at": "2025-01-20T07:00:32.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         },
-                     *         {
-                     *           "id": 14,
-                     *           "first_name": "Дмитрий",
-                     *           "last_name": "Смирнов",
-                     *           "nickname": "dsmir",
-                     *           "email": "ds@example.com",
-                     *           "phone_number": "",
-                     *           "department": "Разработка",
-                     *           "title": "Android Developer",
-                     *           "role": "user",
-                     *           "suspended": false,
-                     *           "invite_status": "confirmed",
-                     *           "list_tags": [
-                     *             "Development",
-                     *             "Frontend"
-                     *           ],
-                     *           "custom_properties": [
-                     *             {
-                     *               "id": 1678,
-                     *               "name": "Город",
-                     *               "data_type": "string",
-                     *               "value": "Санкт-Петербург"
-                     *             }
-                     *           ],
-                     *           "user_status": {
-                     *             "emoji": "🚀",
-                     *             "title": "Лечу",
-                     *             "expires_at": null,
-                     *             "is_away": false,
-                     *             "away_message": null
-                     *           },
-                     *           "bot": false,
-                     *           "sso": false,
-                     *           "created_at": "2020-06-08T09:32:57.000Z",
-                     *           "last_activity_at": "2025-01-20T13:51:25.000Z",
-                     *           "time_zone": "Europe/Moscow",
-                     *           "image_url": null
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -7881,27 +7263,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "user": {
-                 *         "first_name": "Олег",
-                 *         "last_name": "Петров",
-                 *         "email": "olegp@example.com",
-                 *         "department": "Продукт",
-                 *         "list_tags": [
-                 *           "Product",
-                 *           "Design"
-                 *         ],
-                 *         "custom_properties": [
-                 *           {
-                 *             "id": 1678,
-                 *             "value": "Санкт-Петербург"
-                 *           }
-                 *         ]
-                 *       },
-                 *       "skip_email_notify": true
-                 *     }
-                 */
                 "application/json": components["schemas"]["UserCreateRequest"];
             };
         };
@@ -7912,42 +7273,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 12,
-                     *         "first_name": "Олег",
-                     *         "last_name": "Петров",
-                     *         "nickname": "",
-                     *         "email": "olegp@example.com",
-                     *         "phone_number": "",
-                     *         "department": "Продукт",
-                     *         "title": "",
-                     *         "role": "admin",
-                     *         "suspended": false,
-                     *         "invite_status": "confirmed",
-                     *         "list_tags": [
-                     *           "Product",
-                     *           "Design"
-                     *         ],
-                     *         "custom_properties": [
-                     *           {
-                     *             "id": 1678,
-                     *             "name": "Город",
-                     *             "data_type": "string",
-                     *             "value": "Санкт-Петербург"
-                     *           }
-                     *         ],
-                     *         "user_status": null,
-                     *         "bot": false,
-                     *         "sso": false,
-                     *         "created_at": "2023-06-08T09:31:17.000Z",
-                     *         "last_activity_at": "2023-06-08T09:31:17.000Z",
-                     *         "time_zone": "Europe/Moscow",
-                     *         "image_url": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"];
                     };
@@ -7996,7 +7321,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 12
+                 */
                 id: number;
             };
             cookie?: never;
@@ -8009,42 +7337,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 12,
-                     *         "first_name": "Олег",
-                     *         "last_name": "Петров",
-                     *         "nickname": "",
-                     *         "email": "olegp@example.com",
-                     *         "phone_number": "",
-                     *         "department": "Продукт",
-                     *         "title": "CIO",
-                     *         "role": "admin",
-                     *         "suspended": false,
-                     *         "invite_status": "confirmed",
-                     *         "list_tags": [
-                     *           "Product",
-                     *           "Design"
-                     *         ],
-                     *         "custom_properties": [
-                     *           {
-                     *             "id": 1678,
-                     *             "name": "Город",
-                     *             "data_type": "string",
-                     *             "value": "Санкт-Петербург"
-                     *           }
-                     *         ],
-                     *         "user_status": null,
-                     *         "bot": false,
-                     *         "sso": false,
-                     *         "created_at": "2020-06-08T09:32:57.000Z",
-                     *         "last_activity_at": "2025-01-20T13:40:07.000Z",
-                     *         "time_zone": "Europe/Moscow",
-                     *         "image_url": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"];
                     };
@@ -8084,24 +7376,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 12
+                 */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "user": {
-                 *         "nickname": "olegpetrov",
-                 *         "role": "user",
-                 *         "list_tags": [
-                 *           "Product"
-                 *         ]
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["UserUpdateRequest"];
             };
         };
@@ -8112,41 +7396,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "id": 12,
-                     *         "first_name": "Олег",
-                     *         "last_name": "Петров",
-                     *         "nickname": "olegpetrov",
-                     *         "email": "olegp@example.com",
-                     *         "phone_number": "",
-                     *         "department": "Продукт",
-                     *         "title": "CIO",
-                     *         "role": "user",
-                     *         "suspended": false,
-                     *         "invite_status": "confirmed",
-                     *         "list_tags": [
-                     *           "Product"
-                     *         ],
-                     *         "custom_properties": [
-                     *           {
-                     *             "id": 1678,
-                     *             "name": "Город",
-                     *             "data_type": "string",
-                     *             "value": "Санкт-Петербург"
-                     *           }
-                     *         ],
-                     *         "user_status": null,
-                     *         "bot": false,
-                     *         "sso": false,
-                     *         "created_at": "2023-07-08T09:31:17.000Z",
-                     *         "last_activity_at": "2025-01-20T13:40:07.000Z",
-                     *         "time_zone": "Europe/Moscow",
-                     *         "image_url": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["User"];
                     };
@@ -8204,7 +7453,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 12
+                 */
                 id: number;
             };
             cookie?: never;
@@ -8216,9 +7468,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -8254,7 +7504,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 12
+                 */
                 user_id: number;
             };
             cookie?: never;
@@ -8267,17 +7520,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "emoji": "🎮",
-                     *         "title": "Очень занят",
-                     *         "expires_at": "2024-04-08T10:00:00.000Z",
-                     *         "is_away": false,
-                     *         "away_message": null
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["UserStatus"] | null;
                     };
@@ -8317,24 +7559,16 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 12
+                 */
                 user_id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "status": {
-                 *         "emoji": "🏖️",
-                 *         "title": "В отпуске",
-                 *         "expires_at": "2024-04-15T00:00:00.000Z",
-                 *         "is_away": true,
-                 *         "away_message": "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["StatusUpdateRequest"];
             };
         };
@@ -8345,19 +7579,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": {
-                     *         "emoji": "🏖️",
-                     *         "title": "В отпуске",
-                     *         "expires_at": "2024-04-15T00:00:00.000Z",
-                     *         "is_away": true,
-                     *         "away_message": {
-                     *           "text": "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["UserStatus"];
                     };
@@ -8415,7 +7636,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор пользователя */
+                /**
+                 * @description Идентификатор пользователя
+                 * @example 12
+                 */
                 user_id: number;
             };
             cookie?: never;
@@ -8427,9 +7651,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {
@@ -8469,157 +7691,6 @@ export interface operations {
         };
         requestBody: {
             content: {
-                /**
-                 * @example {
-                 *       "trigger_id": "791a056b-006c-49dd-834b-c633fde52fe8",
-                 *       "type": "modal",
-                 *       "private_metadata": "{'timeoff_id':4378}",
-                 *       "callback_id": "timeoff_reguest_form",
-                 *       "view": {
-                 *         "title": "Уведомление об отпуске",
-                 *         "close_text": "Закрыть",
-                 *         "submit_text": "Отправить заявку",
-                 *         "blocks": [
-                 *           {
-                 *             "type": "plain_text",
-                 *             "text": "Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе."
-                 *           },
-                 *           {
-                 *             "type": "markdown",
-                 *             "text": "Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)"
-                 *           },
-                 *           {
-                 *             "type": "header",
-                 *             "text": "Основная информация"
-                 *           },
-                 *           {
-                 *             "type": "date",
-                 *             "name": "date_start",
-                 *             "label": "Дата начала отпуска",
-                 *             "initial_date": "2025-07-01",
-                 *             "required": true
-                 *           },
-                 *           {
-                 *             "type": "date",
-                 *             "name": "date_end",
-                 *             "label": "Дата окончания отпуска",
-                 *             "initial_date": "2025-07-28",
-                 *             "required": true
-                 *           },
-                 *           {
-                 *             "type": "file_input",
-                 *             "name": "request_doc",
-                 *             "label": "Заявление",
-                 *             "filetypes": [
-                 *               "pdf",
-                 *               "jpg",
-                 *               "png"
-                 *             ],
-                 *             "max_files": 1,
-                 *             "required": true,
-                 *             "hint": "Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)"
-                 *           },
-                 *           {
-                 *             "type": "radio",
-                 *             "name": "accessibility",
-                 *             "label": "Доступность",
-                 *             "options": [
-                 *               {
-                 *                 "text": "Ничего",
-                 *                 "value": "nothing",
-                 *                 "selected": true
-                 *               },
-                 *               {
-                 *                 "text": "Только телефон",
-                 *                 "value": "phone_only"
-                 *               },
-                 *               {
-                 *                 "text": "Телефон и ноутбук",
-                 *                 "value": "phone_notebook"
-                 *               }
-                 *             ],
-                 *             "required": true,
-                 *             "hint": "Если вы не планируете выходить на связь, то выберите вариант Ничего"
-                 *           },
-                 *           {
-                 *             "type": "divider"
-                 *           },
-                 *           {
-                 *             "type": "header",
-                 *             "text": "Дополнительно"
-                 *           },
-                 *           {
-                 *             "type": "input",
-                 *             "name": "info",
-                 *             "label": "Описание отпуска",
-                 *             "placeholder": "Куда собираетесь и что будете делать",
-                 *             "multiline": true,
-                 *             "hint": "Возможно вам подскаджут, какие места лучше посетить"
-                 *           },
-                 *           {
-                 *             "type": "checkbox",
-                 *             "name": "newsletters",
-                 *             "label": "Рассылки",
-                 *             "options": [
-                 *               {
-                 *                 "text": "Получать уведомления о новых задачах в команде",
-                 *                 "value": "new_tasks",
-                 *                 "description": "Каждый день бот будет присылать список новых задач в вашей команде"
-                 *               },
-                 *               {
-                 *                 "text": "Получать уведомления об обновлениях в проектах",
-                 *                 "value": "project_updates",
-                 *                 "description": "Два раза в неделю бот будет присылать обновления по проектам"
-                 *               }
-                 *             ]
-                 *           },
-                 *           {
-                 *             "type": "select",
-                 *             "name": "team",
-                 *             "label": "Выберите команду",
-                 *             "options": [
-                 *               {
-                 *                 "text": "Все команды",
-                 *                 "value": "all"
-                 *               },
-                 *               {
-                 *                 "text": "Web",
-                 *                 "value": "web",
-                 *                 "selected": true
-                 *               },
-                 *               {
-                 *                 "text": "iOS",
-                 *                 "value": "ios"
-                 *               },
-                 *               {
-                 *                 "text": "Android",
-                 *                 "value": "android"
-                 *               },
-                 *               {
-                 *                 "text": "Back",
-                 *                 "value": "back"
-                 *               },
-                 *               {
-                 *                 "text": "Design",
-                 *                 "value": "design"
-                 *               },
-                 *               {
-                 *                 "text": "Success",
-                 *                 "value": "success"
-                 *               }
-                 *             ]
-                 *           },
-                 *           {
-                 *             "type": "time",
-                 *             "name": "newsletter_time",
-                 *             "label": "Время рассылки",
-                 *             "initial_time": "11:00",
-                 *             "hint": "Укажите, в какое время присылать выбранные рассылки"
-                 *           }
-                 *         ]
-                 *       }
-                 *     }
-                 */
                 "application/json": components["schemas"]["OpenViewRequest"];
             };
         };
@@ -8629,9 +7700,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description The server could not understand the request due to invalid syntax. */
             400: {
@@ -8683,9 +7752,15 @@ export interface operations {
     BotOperations_getWebhookEvents: {
         parameters: {
             query?: {
-                /** @description Количество возвращаемых сущностей за один запрос */
+                /**
+                 * @description Количество возвращаемых сущностей за один запрос
+                 * @example 1
+                 */
                 limit?: number;
-                /** @description Курсор для пагинации (из meta.paginate.next_page) */
+                /**
+                 * @description Курсор для пагинации (из meta.paginate.next_page)
+                 * @example eyJpZCI6MTAsImRpciI6ImFzYyJ9
+                 */
                 cursor?: string;
             };
             header?: never;
@@ -8700,67 +7775,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "id": "01KAJZ2XDSS2S3DSW9EXJZ0TBV",
-                     *           "event_type": "company_member_update",
-                     *           "payload": {
-                     *             "event": "update",
-                     *             "type": "company_member",
-                     *             "webhook_timestamp": 1763635376,
-                     *             "user_ids": [
-                     *               13
-                     *             ],
-                     *             "created_at": "2025-11-20T10:42:56Z"
-                     *           },
-                     *           "created_at": "2025-11-20T10:42:56Z"
-                     *         },
-                     *         {
-                     *           "id": "01KAJZ5CMZFVK4FSZQOISFBZCS",
-                     *           "event_type": "message_new",
-                     *           "payload": {
-                     *             "event": "new",
-                     *             "type": "message",
-                     *             "webhook_timestamp": 1763637142,
-                     *             "chat_id": 43,
-                     *             "user_id": 13,
-                     *             "id": 4432345,
-                     *             "created_at": "2025-11-20T11:12:22.000Z",
-                     *             "parent_message_id": null,
-                     *             "content": "Проверьте последнюю задачу",
-                     *             "entity_type": "discussion",
-                     *             "entity_id": 43,
-                     *             "thread": null,
-                     *             "url": "https://app.pachca.com/chats/43?message=4432345"
-                     *           },
-                     *           "created_at": "2025-11-20T11:12:22.000Z"
-                     *         },
-                     *         {
-                     *           "id": "01KAJP5CMZFPA5FSZQOCHKBOIW",
-                     *           "event_type": "chat_member_add",
-                     *           "payload": {
-                     *             "event": "add",
-                     *             "type": "chat_member",
-                     *             "webhook_timestamp": 1763637574,
-                     *             "chat_id": 43,
-                     *             "thread_id": null,
-                     *             "user_ids": [
-                     *               14
-                     *             ],
-                     *             "created_at": "2025-11-20T11:19:34Z"
-                     *           },
-                     *           "created_at": "2025-11-20T11:19:34Z"
-                     *         }
-                     *       ],
-                     *       "meta": {
-                     *         "paginate": {
-                     *           "next_page": "eyMxFCO2MiwiZGlyIjpiSNYjIn1"
-                     *         }
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         data: components["schemas"]["WebhookEvent"][];
                         meta?: components["schemas"]["PaginationMeta"];
@@ -8810,7 +7824,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Идентификатор события */
+                /**
+                 * @description Идентификатор события
+                 * @example 01KAJZ2XDSS2S3DSW9EXJZ0TBV
+                 */
                 id: string;
             };
             cookie?: never;
@@ -8822,9 +7839,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["EmptyResponse"];
-                };
+                content?: never;
             };
             /** @description Access is unauthorized. */
             401: {

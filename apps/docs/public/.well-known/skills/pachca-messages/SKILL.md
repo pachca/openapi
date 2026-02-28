@@ -313,7 +313,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 ```json
 {
   "message": {
-    "entity_id": 198,
+    "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"
   }
 }

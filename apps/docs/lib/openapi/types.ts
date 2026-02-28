@@ -58,6 +58,12 @@ export interface Parameter {
   examples?: Record<string, Example>;
   explode?: boolean;
   style?: string;
+  'x-param-names'?: ParamNameEntry[];
+}
+
+export interface ParamNameEntry {
+  name: string;
+  description?: string;
 }
 
 export interface RequestBody {
@@ -94,6 +100,7 @@ export interface Schema {
   required?: string[];
   enum?: unknown[];
   'x-enum-descriptions'?: Record<string, string>;
+  'x-record-key-example'?: string;
   default?: unknown;
   example?: unknown;
   nullable?: boolean;

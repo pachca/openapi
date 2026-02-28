@@ -108,9 +108,9 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
 ```json
 {
   "type": "modal",
-  "trigger_id": "",
+  "trigger_id": "791a056b-006c-49dd-834b-c633fde52fe8",
   "view": {
-    "title": "",
+    "title": "Уведомление об отпуске",
     "blocks": []
   }
 }

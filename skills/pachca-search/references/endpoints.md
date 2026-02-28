@@ -19,15 +19,15 @@
   - Значения: `asc`, `desc`
 - `created_from` (query, string, опциональный): Фильтр по дате создания (от)
 - `created_to` (query, string, опциональный): Фильтр по дате создания (до)
-- `active` (query, boolean, опциональный): Фильтр по активности чата (true — активные, false — архивированные)
+- `active` (query, boolean, опциональный): Фильтр по активности чата
 - `chat_subtype` (query, string, опциональный): Фильтр по типу чата
   - Значения: `discussion`, `thread`
-- `personal` (query, boolean, опциональный): Фильтр по личным чатам (true — только личные)
+- `personal` (query, boolean, опциональный): Фильтр по личным чатам
 
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/search/chats?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=100&cursor=string&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&active=true&chat_subtype=discussion&personal=true" \
+curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработка&limit=10&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9&order=desc&created_from=2025-01-01T00:00:00.000Z&created_to=2025-02-01T00:00:00.000Z&active=true&chat_subtype=discussion&personal=false" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -73,12 +73,12 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=%D0%9F%D1%80%D0%B8
 - `created_to` (query, string, опциональный): Фильтр по дате создания (до)
 - `chat_ids` (query, array, опциональный): Фильтр по ID чатов
 - `user_ids` (query, array, опциональный): Фильтр по ID авторов сообщений
-- `active` (query, boolean, опциональный): Фильтр по активности чата (true — активные чаты, false — архивированные)
+- `active` (query, boolean, опциональный): Фильтр по активности чата
 
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/search/messages?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=200&cursor=string&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&chat_ids[]=100&user_ids[]=100&active=true" \
+curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболки&limit=10&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9&order=desc&created_from=2025-01-01T00:00:00.000Z&created_to=2025-02-01T00:00:00.000Z&chat_ids[]=198&chat_ids[]=334&user_ids[]=12&user_ids[]=185&active=true" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -143,7 +143,7 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=%D0%9F%D1%80%D0
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/search/users?query=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0&limit=200&cursor=string&sort=by_score&order=asc&created_from=2024-04-08T10%3A00%3A00.000Z&created_to=2024-04-08T10%3A00%3A00.000Z&company_roles[]=admin" \
+curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9&sort=by_score&order=desc&created_from=2025-01-01T00:00:00.000Z&created_to=2025-02-01T00:00:00.000Z&company_roles[]=admin&company_roles[]=user" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

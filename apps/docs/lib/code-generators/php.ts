@@ -1,11 +1,18 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateExample,
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
+import {
+  isRecord,
+  requiresAuth,
+  hasJsonContent,
+  hasMultipartContent,
+  resolveUrl,
+  getQueryParams,
+  resolveParamName,
+} from './utils';
 
 export function generatePHP(
   endpoint: Endpoint,
@@ -17,13 +24,13 @@ export function generatePHP(
   let code = `<?php\n\n`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
+  const queryParams = getQueryParams(endpoint);
   let fullUrl = url;
   if (queryParams.length > 0) {
     const params = queryParams
       .map((p) => {
         const example = generateParameterExample(p);
-        return `'${p.name}' => ${phpRepr(example)}`;
+        return `'${resolveParamName(p)}' => ${phpRepr(example)}`;
       })
       .join(', ');
     code += `$params = [${params}];\n`;
@@ -82,16 +89,10 @@ export function generatePHP(
 
   // Add request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-    // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
-    const body =
-      requestExample ||
-      (endpoint.requestBody.content['application/json']?.schema
-        ? generateExample(endpoint.requestBody.content['application/json'].schema)
-        : null);
 
-    if (body) {
-      code += `    CURLOPT_POSTFIELDS => json_encode(${phpRepr(body)}),\n`;
+    if (requestExample) {
+      code += `    CURLOPT_POSTFIELDS => json_encode(${phpRepr(requestExample)}),\n`;
     }
   }
 

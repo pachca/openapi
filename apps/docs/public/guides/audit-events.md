@@ -20,14 +20,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-02T00%3A00%3A00Z&event_key=user_login&limit=50" \
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&event_key=user_login&limit=50" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-02T00%3A00%3A00Z&event_key=user_login&limit=50', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&event_key=user_login&limit=50', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -71,7 +71,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-02T00%3A00%3A00Z&event_key=user_login&limit=50',
+    path: '/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&event_key=user_login&limit=50',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -152,14 +152,14 @@ echo $response;
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-02T00%3A00%3A00Z&actor_id=133321&actor_type=User" \
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&actor_id=133321&actor_type=User" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-02T00%3A00%3A00Z&actor_id=133321&actor_type=User', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&actor_id=133321&actor_type=User', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -203,7 +203,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-02T00%3A00%3A00Z&actor_id=133321&actor_type=User',
+    path: '/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&actor_id=133321&actor_type=User',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -284,14 +284,14 @@ echo $response;
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-08T00%3A00%3A00Z&event_key=chat_permission_changed" \
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-08T00:00:00Z&event_key=chat_permission_changed" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-08T00%3A00%3A00Z&event_key=chat_permission_changed', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-08T00:00:00Z&event_key=chat_permission_changed', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -334,7 +334,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/audit_events?start_time=2025-05-01T00%3A00%3A00Z&end_time=2025-05-08T00%3A00%3A00Z&event_key=chat_permission_changed',
+    path: '/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-08T00:00:00Z&event_key=chat_permission_changed',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'

@@ -1,11 +1,17 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateExample,
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
+import {
+  requiresAuth,
+  hasJsonContent,
+  hasMultipartContent,
+  resolveUrl,
+  getQueryParams,
+  resolveParamName,
+} from './utils';
 
 export function generateJavaScript(
   endpoint: Endpoint,
@@ -17,17 +23,17 @@ export function generateJavaScript(
   let code = `const response = await fetch('${url}'`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
+  const queryParams = getQueryParams(endpoint);
   if (queryParams.length > 0) {
     const paramParts: string[] = [];
     for (const p of queryParams) {
       const example = generateParameterExample(p);
       if (Array.isArray(example)) {
         for (const val of example) {
-          paramParts.push(`${p.name}[]=${encodeURIComponent(String(val))}`);
+          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
         }
       } else {
-        paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
+        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
       }
     }
     code = `const response = await fetch('${url}?${paramParts.join('&')}'`;
@@ -79,16 +85,10 @@ export function generateJavaScript(
 
     // Add body for POST/PUT/PATCH
     if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-      // Используем явные примеры из OpenAPI (example/examples)
       const requestExample = generateRequestExample(endpoint.requestBody);
-      const body =
-        requestExample ||
-        (endpoint.requestBody.content['application/json']?.schema
-          ? generateExample(endpoint.requestBody.content['application/json'].schema)
-          : null);
 
-      if (body) {
-        code += `,\n  body: JSON.stringify(${JSON.stringify(body, null, 4).replace(/\n/g, '\n  ')})`;
+      if (requestExample) {
+        code += `,\n  body: JSON.stringify(${JSON.stringify(requestExample, null, 4).replace(/\n/g, '\n  ')})`;
       }
     }
 

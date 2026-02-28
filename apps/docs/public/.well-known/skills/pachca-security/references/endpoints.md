@@ -16,9 +16,9 @@
 - `end_time` (query, string, **обязательный**): Конечная метка времени (исключительно)
 - `event_key` (query, string, опциональный): Фильтр по конкретному типу события
   - Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`
-- `actor_id` (query, integer, опциональный): Идентификатор пользователя, выполнившего действие
+- `actor_id` (query, string, опциональный): Идентификатор пользователя, выполнившего действие
 - `actor_type` (query, string, опциональный): Тип актора
-- `entity_id` (query, integer, опциональный): Идентификатор затронутой сущности
+- `entity_id` (query, string, опциональный): Идентификатор затронутой сущности
 - `entity_type` (query, string, опциональный): Тип сущности
 - `limit` (query, integer, опциональный): Количество записей для возврата
 - `cursor` (query, string, опциональный): Курсор для пагинации из meta.paginate.next_page
@@ -26,7 +26,7 @@
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10%3A00%3A00.000Z&end_time=2024-04-08T10%3A00%3A00.000Z&event_key=user_login&actor_id=12345&actor_type=string&entity_id=12345&entity_type=string&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09:11:00Z&end_time=2025-05-02T09:11:00Z&event_key=user_login&actor_id=98765&actor_type=User&entity_id=98765&entity_type=User&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -40,7 +40,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2024-04-08T10
   - `entity_type` (string, **обязательный**): Тип затронутой сущности
   - `actor_id` (string, **обязательный**): Идентификатор пользователя, выполнившего действие
   - `actor_type` (string, **обязательный**): Тип актора
-  - `details` (object, **обязательный**): Дополнительные детали события
+  - `details` (object, **обязательный**): Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
   - `ip_address` (string, **обязательный**): IP-адрес, с которого было выполнено действие
   - `user_agent` (string, **обязательный**): User agent клиента
 - `meta` (object, опциональный): Метаданные пагинации

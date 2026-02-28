@@ -1,11 +1,18 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateExample,
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
+import {
+  isRecord,
+  requiresAuth,
+  hasJsonContent,
+  hasMultipartContent,
+  resolveUrl,
+  getQueryParams,
+  resolveParamName,
+} from './utils';
 
 export function generateRuby(
   endpoint: Endpoint,
@@ -20,12 +27,12 @@ export function generateRuby(
   code += `uri = URI('${url}')\n`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
+  const queryParams = getQueryParams(endpoint);
   if (queryParams.length > 0) {
     code += `params = {\n`;
     queryParams.forEach((p) => {
       const example = generateParameterExample(p);
-      code += `  '${p.name}' => ${rubyRepr(example)},\n`;
+      code += `  '${resolveParamName(p)}' => ${rubyRepr(example)},\n`;
     });
     code += `}\n`;
     code += `uri.query = URI.encode_www_form(params)\n\n`;
@@ -88,16 +95,10 @@ export function generateRuby(
 
   // Add request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
-    // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
-    const body =
-      requestExample ||
-      (endpoint.requestBody.content['application/json']?.schema
-        ? generateExample(endpoint.requestBody.content['application/json'].schema)
-        : null);
 
-    if (body) {
-      code += `\nrequest.body = ${rubyRepr(body)}.to_json\n`;
+    if (requestExample) {
+      code += `\nrequest.body = ${rubyRepr(requestExample)}.to_json\n`;
     }
   }
 

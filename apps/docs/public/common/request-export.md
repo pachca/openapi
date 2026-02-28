@@ -19,10 +19,15 @@
 ### Схема
 
 - `start_at` (string, date, **обязательный**): Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD
+  - Пример: `2025-03-20`
 - `end_at` (string, date, **обязательный**): Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD
+  - Пример: `2025-03-20`
 - `webhook_url` (string, **обязательный**): Адрес, на который будет отправлен вебхук по завершению экспорта
+  - Пример: `https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2`
 - `chat_ids` (array[integer], опциональный): Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.
+  - Пример: `[1381521]`
 - `skip_chats_file` (boolean, опциональный): Пропуск формирования файла со списком чатов (chats.json)
+  - Пример: `false`
 
 ### Пример
 
@@ -33,7 +38,8 @@
   "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
   "chat_ids": [
     1381521
-  ]
+  ],
+  "skip_chats_file": false
 }
 ```
 
@@ -51,7 +57,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
   "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
   "chat_ids": [
     1381521
-  ]
+  ],
+  "skip_chats_file": false
 }'
 ```
 
@@ -70,7 +77,8 @@ const response = await fetch('https://api.pachca.com/api/shared/v1/chats/exports
       "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
       "chat_ids": [
           1381521
-      ]
+      ],
+      "skip_chats_file": false
   })
 });
 
@@ -89,7 +97,8 @@ data = {
     'webhook_url': 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
     'chat_ids': [
         1381521
-    ]
+    ],
+    'skip_chats_file': False
 }
 
 headers = {
@@ -140,7 +149,8 @@ req.write(JSON.stringify({
     "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
     "chat_ids": [
         1381521
-    ]
+    ],
+    "skip_chats_file": false
 }));
 req.on('error', (error) => {
     console.error(error);
@@ -166,7 +176,8 @@ request.body = {
   'webhook_url' => 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
   'chat_ids' => [
     1381521
-  ]
+  ],
+  'skip_chats_file' => false
 }.to_json
 
 response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
@@ -197,7 +208,8 @@ curl_setopt_array($curl, [
     'webhook_url' => 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
     'chat_ids' => [
         1381521
-    ]
+    ],
+    'skip_chats_file' => false
 ]),
 ]);
 
@@ -212,16 +224,17 @@ echo $response;
 
 ### 204: There is no content to send for this request, but the headers may be useful. 
 
-**Схема ответа:**
-
 ### 400: The server could not understand the request due to invalid syntax.
 
 **Схема ответа при ошибке:**
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -260,13 +273,41 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
@@ -277,8 +318,11 @@ echo $response;
 - **ApiError**: Ошибка API (используется для 400, 403, 404, 409, 410, 422)
   - `errors` (array[object], **обязательный**): Массив ошибок
     - `key` (string, **обязательный**): Ключ поля с ошибкой
+      - Пример: `field.name`
     - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+      - Пример: `invalid_value`
     - `message` (string, **обязательный**): Сообщение об ошибке
+      - Пример: `Поле не может быть пустым`
     - `code` (string, **обязательный**): Код ошибки
       - **Возможные значения:**
         - `blank`: Обязательное поле (не может быть пустым)
@@ -317,9 +361,28 @@ echo $response;
         - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
         - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
     - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+      - Пример: `null`
 - **OAuthError**: Ошибка OAuth авторизации (используется для 401 и 403)
   - `error` (string, **обязательный**): Код ошибки
+    - Пример: `invalid_token`
   - `error_description` (string, **обязательный**): Описание ошибки
+    - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 422: Client error
 
@@ -327,8 +390,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -367,4 +433,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

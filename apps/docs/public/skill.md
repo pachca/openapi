@@ -224,11 +224,11 @@ Detailed documentation on specific topics is available at:
 
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [Исходящий Webhook](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
-- [Авторизация](https://dev.pachca.com/guides/authorization) — OAuth 2.0 токены, скоупы и ролевые ограничения
-- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses) — Формат запросов, пагинация, тестирование
+- [Авторизация](https://dev.pachca.com/guides/authorization) — Типы токенов, скоупы и настройка доступа к API
+- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses) — Формат запросов и ответов, тестирование API
 - [Ошибки и лимиты](https://dev.pachca.com/guides/errors) — Коды ошибок HTTP и rate limits
-- [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт данных пространства
-- [Формы](https://dev.pachca.com/guides/forms) — Представления с набором полей для пользователей
-- [DLP-система](https://dev.pachca.com/guides/dlp) — Политики предотвращения утечки данных
-- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Отслеживание событий безопасности
+- [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов: запрос, скачивание и структура архива
+- [Формы](https://dev.pachca.com/guides/forms) — Модальные формы ботов: поля ввода, жизненный цикл и валидация
+- [DLP-система](https://dev.pachca.com/guides/dlp) — Создание правил DLP: условия, контексты и действия
+- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов
 - [Последние обновления](https://dev.pachca.com/guides/updates) — История изменений и новые возможности API

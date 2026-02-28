@@ -13,6 +13,7 @@
 ### Path параметры
 
 - `id` (integer, **обязательный**): Идентификатор чата
+  - Пример: `334`
 
 
 ## Примеры запроса
@@ -20,14 +21,14 @@
 ### cURL
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/leave" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/334/leave" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/chats/12345/leave', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/chats/334/leave', {
   method: 'DELETE',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -48,7 +49,7 @@ headers = {
 }
 
 response = requests.delete(
-    'https://api.pachca.com/api/shared/v1/chats/12345/leave',
+    'https://api.pachca.com/api/shared/v1/chats/334/leave',
     headers=headers
 )
 
@@ -63,7 +64,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/chats/12345/leave',
+    path: '/api/shared/v1/chats/334/leave',
     method: 'DELETE',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -95,7 +96,7 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/chats/12345/leave')
+uri = URI('https://api.pachca.com/api/shared/v1/chats/334/leave')
 request = Net::HTTP::Delete.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
 
@@ -114,7 +115,7 @@ puts JSON.parse(response.body)
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/chats/12345/leave',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/chats/334/leave',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'DELETE',
     CURLOPT_HTTPHEADER => [
@@ -133,16 +134,17 @@ echo $response;
 
 ### 204: There is no content to send for this request, but the headers may be useful. 
 
-**Схема ответа:**
-
 ### 400: The server could not understand the request due to invalid syntax.
 
 **Схема ответа при ошибке:**
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -181,20 +183,59 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 404: The server cannot find the requested resource.
 
@@ -202,8 +243,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -242,6 +286,23 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 422: Client error
 
@@ -249,8 +310,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -289,4 +353,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

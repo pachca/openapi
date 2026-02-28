@@ -8,13 +8,13 @@
 - [Обзор](https://dev.pachca.com/.md): Создавайте уникальные решения на одной платформе
 - [AI агенты](https://dev.pachca.com/guides/ai-agents.md): Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [Исходящий Webhook](https://dev.pachca.com/guides/webhook.md): Получение уведомлений о событиях в реальном времени
-- [Авторизация](https://dev.pachca.com/guides/authorization.md): OAuth 2.0 токены, скоупы и ролевые ограничения
-- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses.md): Формат запросов, пагинация, тестирование
+- [Авторизация](https://dev.pachca.com/guides/authorization.md): Типы токенов, скоупы и настройка доступа к API
+- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses.md): Формат запросов и ответов, тестирование API
 - [Ошибки и лимиты](https://dev.pachca.com/guides/errors.md): Коды ошибок HTTP и rate limits
-- [Экспорт сообщений](https://dev.pachca.com/guides/export.md): Экспорт данных пространства
-- [Формы](https://dev.pachca.com/guides/forms.md): Представления с набором полей для пользователей
-- [DLP-система](https://dev.pachca.com/guides/dlp.md): Политики предотвращения утечки данных
-- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events.md): Отслеживание событий безопасности
+- [Экспорт сообщений](https://dev.pachca.com/guides/export.md): Экспорт сообщений из чатов: запрос, скачивание и структура архива
+- [Формы](https://dev.pachca.com/guides/forms.md): Модальные формы ботов: поля ввода, жизненный цикл и валидация
+- [DLP-система](https://dev.pachca.com/guides/dlp.md): Создание правил DLP: условия, контексты и действия
+- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events.md): Журнал аудита: типы событий, фильтрация и примеры запросов
 - [Последние обновления](https://dev.pachca.com/guides/updates.md): История изменений и новые возможности API
 
 ## Common

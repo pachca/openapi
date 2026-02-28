@@ -49,7 +49,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"start_at\": \"2025-03-20\",\n  \"end_at\": \"2025-03-20\",\n  \"webhook_url\": \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n  \"chat_ids\": [\n    1381521\n  ]\n}",
+              "raw": "{\n  \"start_at\": \"2025-03-20\",\n  \"end_at\": \"2025-03-20\",\n  \"webhook_url\": \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n  \"chat_ids\": [\n    1381521\n  ],\n  \"skip_chats_file\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -116,6 +116,15 @@
               "path": [
                 "direct_url"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentDisposition\": \"your_api_token_here\",\n  \"acl\": \"your_api_token_here\",\n  \"policy\": \"your_api_token_here\",\n  \"xAmzCredential\": \"your_api_token_here\",\n  \"xAmzAlgorithm\": \"your_api_token_here\",\n  \"xAmzDate\": \"your_api_token_here\",\n  \"xAmzSignature\": \"your_api_token_here\",\n  \"key\": \"your_api_token_here\",\n  \"file\": \"0101010101010101\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -213,7 +222,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": {\n    \"emoji\": \"🎮\",\n    \"title\": \"Очень занят\",\n    \"expires_at\": \"2024-04-08T10:00:00.000Z\"\n  }\n}",
+              "raw": "{\n  \"status\": {\n    \"emoji\": \"🎮\",\n    \"title\": \"Очень занят\",\n    \"expires_at\": \"2024-04-08T10:00:00.000Z\",\n    \"is_away\": true,\n    \"away_message\": \"Вернусь после 15:00\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -265,7 +274,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegp@example.com\",\n    \"department\": \"Продукт\",\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  },\n  \"skip_email_notify\": true\n}",
+              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegp@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Продукт\",\n    \"title\": \"CIO\",\n    \"role\": \"user\",\n    \"suspended\": false,\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  },\n  \"skip_email_notify\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -341,7 +350,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user\": {\n    \"nickname\": \"olegpetrov\",\n    \"role\": \"user\",\n    \"list_tags\": [\n      \"Product\"\n    ]\n  }\n}",
+              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegpetrov@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Отдел разработки\",\n    \"title\": \"Старший разработчик\",\n    \"role\": \"user\",\n    \"suspended\": false,\n    \"list_tags\": [\n      \"Product\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -426,7 +435,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": {\n    \"emoji\": \"🏖️\",\n    \"title\": \"В отпуске\",\n    \"expires_at\": \"2024-04-15T00:00:00.000Z\",\n    \"is_away\": true,\n    \"away_message\": \"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.\"\n  }\n}",
+              "raw": "{\n  \"status\": {\n    \"emoji\": \"🎮\",\n    \"title\": \"Очень занят\",\n    \"expires_at\": \"2024-04-08T10:00:00.000Z\",\n    \"is_away\": true,\n    \"away_message\": \"Вернусь после 15:00\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -485,7 +494,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"group_tag\": {\n    \"name\": \"Название тега\"\n  }\n}",
+              "raw": "{\n  \"group_tag\": {\n    \"name\": \"Новое название тега\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -643,7 +652,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"chat\": {\n    \"name\": \"🤿 aqua\",\n    \"member_ids\": [\n      186,\n      187\n    ],\n    \"channel\": true,\n    \"public\": false\n  }\n}",
+              "raw": "{\n  \"chat\": {\n    \"name\": \"🤿 aqua\",\n    \"member_ids\": [\n      186,\n      187\n    ],\n    \"group_tag_ids\": [\n      86,\n      18\n    ],\n    \"channel\": true,\n    \"public\": false\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1084,7 +1093,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": {\n    \"entity_type\": \"discussion\",\n    \"entity_id\": 198,\n    \"content\": \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        },\n        {\n          \"text\": \"Отлично!\",\n          \"data\": \"awesome\"\n        }\n      ]\n    ]\n  }\n}",
+              "raw": "{\n  \"message\": {\n    \"entity_type\": \"discussion\",\n    \"entity_id\": 334,\n    \"content\": \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        },\n        {\n          \"text\": \"Отлично!\",\n          \"data\": \"awesome\"\n        }\n      ]\n    ],\n    \"parent_message_id\": 194270,\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\",\n    \"skip_invite_mentions\": false,\n    \"link_preview\": false\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1160,7 +1169,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"message\": {\n    \"content\": \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    \"files\": []\n  }\n}",
+              "raw": "{\n  \"message\": {\n    \"content\": \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n    \"files\": [\n      {\n        \"key\": \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n        \"name\": \"logo.png\",\n        \"file_type\": \"image\",\n        \"size\": 12345,\n        \"width\": 800,\n        \"height\": 600\n      }\n    ],\n    \"buttons\": [\n      [\n        {\n          \"text\": \"Подробнее\",\n          \"url\": \"https://example.com/details\"\n        }\n      ]\n    ],\n    \"display_avatar_url\": \"https://example.com/avatar.png\",\n    \"display_name\": \"Бот Поддержки\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1394,7 +1403,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"link_previews\": {\n    \"key\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://website.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
+              "raw": "{\n  \"link_previews\": {\n    \"https://website.com/articles/123\": {\n      \"title\": \"Статья: Отправка файлов\",\n      \"description\": \"Пример отправки файлов на удаленный сервер\",\n      \"image_url\": \"https://website.com/img/landing.png\",\n      \"image\": {\n        \"key\": \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n        \"name\": \"files-to-server.jpg\",\n        \"size\": 695604\n      }\n    }\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1485,7 +1494,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"task\": {\n    \"kind\": \"reminder\",\n    \"content\": \"Забрать со склада 21 заказ\",\n    \"due_at\": \"2020-06-05T12:00:00.000+03:00\",\n    \"priority\": 2,\n    \"custom_properties\": [\n      {\n        \"id\": 78,\n        \"value\": \"Синий склад\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"task\": {\n    \"kind\": \"reminder\",\n    \"content\": \"Забрать со склада 21 заказ\",\n    \"due_at\": \"2020-06-05T12:00:00.000+03:00\",\n    \"priority\": 2,\n    \"performer_ids\": [\n      12,\n      13\n    ],\n    \"chat_id\": 456,\n    \"all_day\": false,\n    \"custom_properties\": [\n      {\n        \"id\": 78,\n        \"value\": \"Синий склад\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1561,7 +1570,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"task\": {\n    \"status\": \"done\"\n  }\n}",
+              "raw": "{\n  \"task\": {\n    \"kind\": \"reminder\",\n    \"content\": \"Забрать со склада 21 заказ\",\n    \"due_at\": \"2020-06-05T12:00:00.000+03:00\",\n    \"priority\": 2,\n    \"performer_ids\": [\n      12\n    ],\n    \"status\": \"done\",\n    \"all_day\": false,\n    \"done_at\": \"2020-06-05T12:00:00.000Z\",\n    \"custom_properties\": [\n      {\n        \"id\": 78,\n        \"value\": \"Синий склад\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1620,7 +1629,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"trigger_id\": \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  \"type\": \"modal\",\n  \"private_metadata\": \"{'timeoff_id':4378}\",\n  \"callback_id\": \"timeoff_reguest_form\",\n  \"view\": {\n    \"title\": \"Уведомление об отпуске\",\n    \"close_text\": \"Закрыть\",\n    \"submit_text\": \"Отправить заявку\",\n    \"blocks\": [\n      {\n        \"type\": \"plain_text\",\n        \"text\": \"Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.\"\n      },\n      {\n        \"type\": \"markdown\",\n        \"text\": \"Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)\"\n      },\n      {\n        \"type\": \"header\",\n        \"text\": \"Основная информация\"\n      },\n      {\n        \"type\": \"date\",\n        \"name\": \"date_start\",\n        \"label\": \"Дата начала отпуска\",\n        \"initial_date\": \"2025-07-01\",\n        \"required\": true\n      },\n      {\n        \"type\": \"date\",\n        \"name\": \"date_end\",\n        \"label\": \"Дата окончания отпуска\",\n        \"initial_date\": \"2025-07-28\",\n        \"required\": true\n      },\n      {\n        \"type\": \"file_input\",\n        \"name\": \"request_doc\",\n        \"label\": \"Заявление\",\n        \"filetypes\": [\n          \"pdf\",\n          \"jpg\",\n          \"png\"\n        ],\n        \"max_files\": 1,\n        \"required\": true,\n        \"hint\": \"Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)\"\n      },\n      {\n        \"type\": \"radio\",\n        \"name\": \"accessibility\",\n        \"label\": \"Доступность\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"selected\": true\n          },\n          {\n            \"text\": \"Только телефон\",\n            \"value\": \"phone_only\"\n          },\n          {\n            \"text\": \"Телефон и ноутбук\",\n            \"value\": \"phone_notebook\"\n          }\n        ],\n        \"required\": true,\n        \"hint\": \"Если вы не планируете выходить на связь, то выберите вариант Ничего\"\n      },\n      {\n        \"type\": \"divider\"\n      },\n      {\n        \"type\": \"header\",\n        \"text\": \"Дополнительно\"\n      },\n      {\n        \"type\": \"input\",\n        \"name\": \"info\",\n        \"label\": \"Описание отпуска\",\n        \"placeholder\": \"Куда собираетесь и что будете делать\",\n        \"multiline\": true,\n        \"hint\": \"Возможно вам подскаджут, какие места лучше посетить\"\n      },\n      {\n        \"type\": \"checkbox\",\n        \"name\": \"newsletters\",\n        \"label\": \"Рассылки\",\n        \"options\": [\n          {\n            \"text\": \"Получать уведомления о новых задачах в команде\",\n            \"value\": \"new_tasks\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\"\n          },\n          {\n            \"text\": \"Получать уведомления об обновлениях в проектах\",\n            \"value\": \"project_updates\",\n            \"description\": \"Два раза в неделю бот будет присылать обновления по проектам\"\n          }\n        ]\n      },\n      {\n        \"type\": \"select\",\n        \"name\": \"team\",\n        \"label\": \"Выберите команду\",\n        \"options\": [\n          {\n            \"text\": \"Все команды\",\n            \"value\": \"all\"\n          },\n          {\n            \"text\": \"Web\",\n            \"value\": \"web\",\n            \"selected\": true\n          },\n          {\n            \"text\": \"iOS\",\n            \"value\": \"ios\"\n          },\n          {\n            \"text\": \"Android\",\n            \"value\": \"android\"\n          },\n          {\n            \"text\": \"Back\",\n            \"value\": \"back\"\n          },\n          {\n            \"text\": \"Design\",\n            \"value\": \"design\"\n          },\n          {\n            \"text\": \"Success\",\n            \"value\": \"success\"\n          }\n        ]\n      },\n      {\n        \"type\": \"time\",\n        \"name\": \"newsletter_time\",\n        \"label\": \"Время рассылки\",\n        \"initial_time\": \"11:00\",\n        \"hint\": \"Укажите, в какое время присылать выбранные рассылки\"\n      }\n    ]\n  }\n}",
+              "raw": "{\n  \"type\": \"modal\",\n  \"trigger_id\": \"791a056b-006c-49dd-834b-c633fde52fe8\",\n  \"private_metadata\": \"{\\\"timeoff_id\\\":4378}\",\n  \"callback_id\": \"timeoff_reguest_form\",\n  \"view\": {\n    \"title\": \"Уведомление об отпуске\",\n    \"close_text\": \"Закрыть\",\n    \"submit_text\": \"Отправить заявку\",\n    \"blocks\": [\n      {\n        \"type\": \"header\",\n        \"text\": \"Основная информация\"\n      },\n      {\n        \"type\": \"plain_text\",\n        \"text\": \"Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе.\"\n      },\n      {\n        \"type\": \"markdown\",\n        \"text\": \"Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)\"\n      },\n      {\n        \"type\": \"divider\"\n      },\n      {\n        \"type\": \"input\",\n        \"name\": \"info\",\n        \"label\": \"Описание отпуска\",\n        \"placeholder\": \"Куда собираетесь и что будете делать\",\n        \"multiline\": true,\n        \"initial_value\": \"Начальный текст\",\n        \"min_length\": 10,\n        \"max_length\": 500,\n        \"required\": true,\n        \"hint\": \"Возможно вам подскаджут, какие места лучше посетить\"\n      },\n      {\n        \"type\": \"select\",\n        \"name\": \"team\",\n        \"label\": \"Выберите команду\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"selected\": true\n          }\n        ],\n        \"required\": false,\n        \"hint\": \"Выберите одну из команд\"\n      },\n      {\n        \"type\": \"radio\",\n        \"name\": \"accessibility\",\n        \"label\": \"Доступность\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"selected\": true\n          }\n        ],\n        \"required\": true,\n        \"hint\": \"Если вы не планируете выходить на связь, то выберите вариант Ничего\"\n      },\n      {\n        \"type\": \"checkbox\",\n        \"name\": \"newsletters\",\n        \"label\": \"Рассылки\",\n        \"options\": [\n          {\n            \"text\": \"Ничего\",\n            \"value\": \"nothing\",\n            \"description\": \"Каждый день бот будет присылать список новых задач в вашей команде\",\n            \"checked\": true\n          }\n        ],\n        \"required\": false,\n        \"hint\": \"Выберите интересующие вас рассылки\"\n      },\n      {\n        \"type\": \"date\",\n        \"name\": \"date_start\",\n        \"label\": \"Дата начала отпуска\",\n        \"initial_date\": \"2025-07-01\",\n        \"required\": true,\n        \"hint\": \"Укажите дату начала отпуска\"\n      },\n      {\n        \"type\": \"time\",\n        \"name\": \"newsletter_time\",\n        \"label\": \"Время рассылки\",\n        \"initial_time\": \"11:00\",\n        \"required\": false,\n        \"hint\": \"Укажите, в какое время присылать выбранные рассылки\"\n      },\n      {\n        \"type\": \"file_input\",\n        \"name\": \"request_doc\",\n        \"label\": \"Заявление\",\n        \"filetypes\": [\n          \"pdf\",\n          \"jpg\",\n          \"png\"\n        ],\n        \"max_files\": 1,\n        \"required\": true,\n        \"hint\": \"Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)\"\n      }\n    ]\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -27,7 +27,7 @@
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/bots/12345" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -77,12 +77,12 @@ Unfurl (разворачивание ссылок)
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages/12345/link_previews" \
+curl "https://api.pachca.com/api/shared/v1/messages/194275/link_previews" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
   "link_previews": {
-    "key": {
+    "https://website.com/articles/123": {
       "title": "Статья: Отправка файлов",
       "description": "Пример отправки файлов на удаленный сервер",
       "image_url": "https://website.com/img/landing.png",
@@ -120,7 +120,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/link_previews" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -158,7 +158,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50&cursor=strin
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/webhooks/events/string" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/webhooks/events/01KAJZ2XDSS2S3DSW9EXJZ0TBV" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

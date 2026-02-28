@@ -36,6 +36,10 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
       186,
       187
     ],
+    "group_tag_ids": [
+      86,
+      18
+    ],
     "channel": true,
     "public": false
   }
@@ -71,7 +75,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 **Параметры:**
 
-- `sort[{field}]` (query, string, опциональный): Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).
+- `sort[{field}]` (query, string, опциональный): Составной параметр сортировки сущностей выборки
 - `availability` (query, string, опциональный): Параметр, который отвечает за доступность и выборку чатов для пользователя
 - `last_message_at_after` (query, string, опциональный): Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `last_message_at_before` (query, string, опциональный): Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
@@ -82,7 +86,7 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats?sort[{field}]=value&availability=value&last_message_at_after=2024-04-08T10%3A00%3A00.000Z&last_message_at_before=2024-04-08T10%3A00%3A00.000Z&personal=true&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/chats?sort[id]=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -136,7 +140,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
   "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
   "chat_ids": [
     1381521
-  ]
+  ],
+  "skip_chats_file": false
 }'
 ```
 
@@ -163,7 +168,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats/exports/12345" \
+curl "https://api.pachca.com/api/shared/v1/chats/exports/22322" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -188,7 +193,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports/12345" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats/12345" \
+curl "https://api.pachca.com/api/shared/v1/chats/334" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -234,7 +239,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -281,7 +286,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345/archive" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334/archive" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -310,7 +315,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345/archive" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats/12345/group_tags" \
+curl "https://api.pachca.com/api/shared/v1/chats/334/group_tags" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -343,7 +348,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/group_tags" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/group_tags/12345" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/334/group_tags/86" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -366,7 +371,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/group_tags/1234
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/leave" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/334/leave" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -394,7 +399,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/leave" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats/12345/members?role=value&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/chats/334/members?role=all&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -453,7 +458,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/members?role=value&limit=
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats/12345/members" \
+curl "https://api.pachca.com/api/shared/v1/chats/334/members" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -487,7 +492,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/12345/members" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/members/12345" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/334/members/186" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -519,7 +524,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/12345/members/12345" 
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345/members/12345" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334/members/186" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -548,7 +553,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345/members/12345" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345/unarchive" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334/unarchive" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

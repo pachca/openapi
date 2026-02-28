@@ -109,8 +109,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 ```json
 {
   "status": {
-    "emoji": "",
-    "title": ""
+    "emoji": "🎮",
+    "title": "Очень занят"
   }
 }
 ```

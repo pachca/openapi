@@ -12,16 +12,21 @@
 
 ### Query параметры
 
-- `sort[{field}]` (string, опциональный): Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна по полям `id` (идентификатор чата) и `last_message_at` (дата и время создания последнего сообщения).
+- `sort[{field}]` (string, опциональный): Составной параметр сортировки сущностей выборки
   - По умолчанию: `desc`
 - `availability` (string, опциональный): Параметр, который отвечает за доступность и выборку чатов для пользователя
   - По умолчанию: `is_member`
 - `last_message_at_after` (string, опциональный): Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+  - Пример: `2025-01-01T00:00:00.000Z`
 - `last_message_at_before` (string, опциональный): Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+  - Пример: `2025-02-01T00:00:00.000Z`
 - `personal` (boolean, опциональный): Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.
+  - Пример: `false`
 - `limit` (integer, опциональный): Количество возвращаемых сущностей за один запрос
+  - Пример: `1`
   - По умолчанию: `50`
 - `cursor` (string, опциональный): Курсор для пагинации (из meta.paginate.next_page)
+  - Пример: `eyJpZCI6MTAsImRpciI6ImFzYyJ9`
 
 
 ## Примеры запроса
@@ -29,14 +34,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats?sort[{field}]=value&availability=value&last_message_at_after=2024-04-08T10%3A00%3A00.000Z&last_message_at_before=2024-04-08T10%3A00%3A00.000Z&personal=true&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/chats?sort[id]=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/chats?sort[{field}]=value&availability=value&last_message_at_after=2024-04-08T10%3A00%3A00.000Z&last_message_at_before=2024-04-08T10%3A00%3A00.000Z&personal=true&limit=50&cursor=string', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/chats?sort[id]=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -53,13 +58,13 @@ console.log(data);
 import requests
 
 params = {
-    'sort[{field}]': 'value',
-    'availability': 'value',
-    'last_message_at_after': '2024-04-08T10:00:00.000Z',
-    'last_message_at_before': '2024-04-08T10:00:00.000Z',
-    'personal': True,
-    'limit': 50,
-    'cursor': 'string',
+    'sort[id]': 'desc',
+    'availability': 'is_member',
+    'last_message_at_after': '2025-01-01T00:00:00.000Z',
+    'last_message_at_before': '2025-02-01T00:00:00.000Z',
+    'personal': False,
+    'limit': 1,
+    'cursor': 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
 }
 
 headers = {
@@ -83,7 +88,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/chats?sort[{field}]=value&availability=value&last_message_at_after=2024-04-08T10%3A00%3A00.000Z&last_message_at_before=2024-04-08T10%3A00%3A00.000Z&personal=true&limit=50&cursor=string',
+    path: '/api/shared/v1/chats?sort[id]=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -117,13 +122,13 @@ require 'json'
 
 uri = URI('https://api.pachca.com/api/shared/v1/chats')
 params = {
-  'sort[{field}]' => 'value',
-  'availability' => 'value',
-  'last_message_at_after' => '2024-04-08T10:00:00.000Z',
-  'last_message_at_before' => '2024-04-08T10:00:00.000Z',
-  'personal' => true,
-  'limit' => 50,
-  'cursor' => 'string',
+  'sort[id]' => 'desc',
+  'availability' => 'is_member',
+  'last_message_at_after' => '2025-01-01T00:00:00.000Z',
+  'last_message_at_before' => '2025-02-01T00:00:00.000Z',
+  'personal' => false,
+  'limit' => 1,
+  'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
 }
 uri.query = URI.encode_www_form(params)
 
@@ -142,7 +147,7 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['sort[{field}]' => 'value', 'availability' => 'value', 'last_message_at_after' => '2024-04-08T10:00:00.000Z', 'last_message_at_before' => '2024-04-08T10:00:00.000Z', 'personal' => true, 'limit' => 50, 'cursor' => 'string'];
+$params = ['sort[id]' => 'desc', 'availability' => 'is_member', 'last_message_at_after' => '2025-01-01T00:00:00.000Z', 'last_message_at_before' => '2025-02-01T00:00:00.000Z', 'personal' => false, 'limit' => 1, 'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9'];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
@@ -169,19 +174,31 @@ echo $response;
 
 - `data` (array[object], **обязательный**)
   - `id` (integer, int32, **обязательный**): Идентификатор созданного чата
+    - Пример: `334`
   - `name` (string, **обязательный**): Название
+    - Пример: `🤿 aqua`
   - `created_at` (string, date-time, **обязательный**): Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2021-08-28T15:56:53.000Z`
   - `owner_id` (integer, int32, **обязательный**): Идентификатор пользователя, создавшего чат
+    - Пример: `185`
   - `member_ids` (array[integer], **обязательный**): Массив идентификаторов пользователей, участников
+    - Пример: `[185,186,187]`
   - `group_tag_ids` (array[integer], **обязательный**): Массив идентификаторов тегов, участников
+    - Пример: `[9111]`
   - `channel` (boolean, **обязательный**): Является каналом
+    - Пример: `true`
   - `personal` (boolean, **обязательный**): Является личным чатом
+    - Пример: `false`
   - `public` (boolean, **обязательный**): Открытый доступ
+    - Пример: `false`
   - `last_message_at` (string, date-time, **обязательный**): Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2021-08-28T15:56:53.000Z`
   - `meet_room_url` (string, **обязательный**): Ссылка на Видеочат
+    - Пример: `https://meet.pachca.com/aqua-94bb21b5`
 - `meta` (object, опциональный): Метаданные пагинации
   - `paginate` (object, опциональный): Вспомогательная информация
     - `next_page` (string, опциональный): Курсор пагинации следующей страницы
+      - Пример: `eyJxZCO2MiwiZGlyIjomSNYjIn3`
 
 **Пример ответа:**
 
@@ -198,35 +215,19 @@ echo $response;
         186,
         187
       ],
-      "group_tag_ids": [],
+      "group_tag_ids": [
+        9111
+      ],
       "channel": true,
       "personal": false,
       "public": false,
-      "last_message_at": "2021-08-28T15:58:13.000Z",
+      "last_message_at": "2021-08-28T15:56:53.000Z",
       "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
-    },
-    {
-      "id": 333,
-      "name": "development",
-      "created_at": "2021-08-28T15:54:22.000Z",
-      "owner_id": 185,
-      "member_ids": [
-        185
-      ],
-      "group_tag_ids": [
-        22,
-        24
-      ],
-      "channel": false,
-      "personal": false,
-      "public": true,
-      "last_message_at": "2021-08-28T15:56:12.000Z",
-      "meet_room_url": "https://meet.pachca.com/development-43sz53n8"
     }
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJpZCI6MTMsImRpciI6ImRlc2MifQ"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
     }
   }
 }
@@ -238,8 +239,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -278,20 +282,59 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 422: Client error
 
@@ -299,8 +342,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -339,4 +385,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

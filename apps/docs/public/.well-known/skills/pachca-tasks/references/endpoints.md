@@ -44,6 +44,12 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
     "content": "Забрать со склада 21 заказ",
     "due_at": "2020-06-05T12:00:00.000+03:00",
     "priority": 2,
+    "performer_ids": [
+      12,
+      13
+    ],
+    "chat_id": 456,
+    "all_day": false,
     "custom_properties": [
       {
         "id": 78,
@@ -94,7 +100,7 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/tasks?limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/tasks?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -142,7 +148,7 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=50&cursor=string" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/tasks/12345" \
+curl "https://api.pachca.com/api/shared/v1/tasks/22283" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -202,12 +208,27 @@ curl "https://api.pachca.com/api/shared/v1/tasks/12345" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/22283" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
   "task": {
-    "status": "done"
+    "kind": "reminder",
+    "content": "Забрать со склада 21 заказ",
+    "due_at": "2020-06-05T12:00:00.000+03:00",
+    "priority": 2,
+    "performer_ids": [
+      12
+    ],
+    "status": "done",
+    "all_day": false,
+    "done_at": "2020-06-05T12:00:00.000Z",
+    "custom_properties": [
+      {
+        "id": 78,
+        "value": "Синий склад"
+      }
+    ]
   }
 }'
 ```
@@ -253,7 +274,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/12345" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/22283" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

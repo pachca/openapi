@@ -224,8 +224,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/13/status" \
 ```json
 {
   "status": {
-    "emoji": "",
-    "title": ""
+    "emoji": "🎮",
+    "title": "Очень занят"
   }
 }
 ```

@@ -13,12 +13,15 @@
 ### Path параметры
 
 - `id` (integer, **обязательный**): Идентификатор сообщения
+  - Пример: `194275`
 
 ### Query параметры
 
 - `limit` (integer, опциональный): Количество возвращаемых сущностей за один запрос
+  - Пример: `1`
   - По умолчанию: `50`
 - `cursor` (string, опциональный): Курсор для пагинации (из `meta.paginate.next_page`)
+  - Пример: `eyJpZCI6MTAsImRpciI6ImFzYyJ9`
 
 
 ## Примеры запроса
@@ -26,14 +29,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages/12345/reactions?limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/messages/194275/reactions?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/messages/12345/reactions?limit=50&cursor=string', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/messages/194275/reactions?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -50,8 +53,8 @@ console.log(data);
 import requests
 
 params = {
-    'limit': 50,
-    'cursor': 'string',
+    'limit': 1,
+    'cursor': 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
 }
 
 headers = {
@@ -59,7 +62,7 @@ headers = {
 }
 
 response = requests.get(
-    'https://api.pachca.com/api/shared/v1/messages/12345/reactions',
+    'https://api.pachca.com/api/shared/v1/messages/194275/reactions',
     params=params,
     headers=headers
 )
@@ -75,7 +78,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/messages/12345/reactions?limit=50&cursor=string',
+    path: '/api/shared/v1/messages/194275/reactions?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -107,10 +110,10 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/messages/12345/reactions')
+uri = URI('https://api.pachca.com/api/shared/v1/messages/194275/reactions')
 params = {
-  'limit' => 50,
-  'cursor' => 'string',
+  'limit' => 1,
+  'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
 }
 uri.query = URI.encode_www_form(params)
 
@@ -129,11 +132,11 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['limit' => 50, 'cursor' => 'string'];
+$params = ['limit' => 1, 'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9'];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages/12345/reactions?' . http_build_query($params)',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages/194275/reactions?' . http_build_query($params)',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'GET',
     CURLOPT_HTTPHEADER => [
@@ -156,12 +159,17 @@ echo $response;
 
 - `data` (array[object], **обязательный**)
   - `user_id` (integer, int32, **обязательный**): Идентификатор пользователя, который добавил реакцию
+    - Пример: `12`
   - `created_at` (string, date-time, **обязательный**): Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2024-01-20T10:30:00.000Z`
   - `code` (string, **обязательный**): Emoji символ реакции
+    - Пример: `👍`
   - `name` (string, опциональный): Название emoji реакции
+    - Пример: `:+1::skin-tone-1:`
 - `meta` (object, опциональный): Метаданные пагинации
   - `paginate` (object, опциональный): Вспомогательная информация
     - `next_page` (string, опциональный): Курсор пагинации следующей страницы
+      - Пример: `eyJxZCO2MiwiZGlyIjomSNYjIn3`
 
 **Пример ответа:**
 
@@ -169,51 +177,15 @@ echo $response;
 {
   "data": [
     {
-      "user_id": 76243,
-      "created_at": "2023-09-11T14:59:35.000Z",
+      "user_id": 12,
+      "created_at": "2024-01-20T10:30:00.000Z",
       "code": "👍",
-      "name": ":+1:"
-    },
-    {
-      "user_id": 10764,
-      "created_at": "2023-09-11T15:00:31.000Z",
-      "code": "👍",
-      "name": ":+1:"
-    },
-    {
-      "user_id": 27494,
-      "created_at": "2023-09-11T15:01:27.000Z",
-      "code": "👍",
-      "name": ":+1:"
-    },
-    {
-      "user_id": 27494,
-      "created_at": "2023-09-11T15:01:47.000Z",
-      "code": "🔥",
-      "name": ":fire:"
-    },
-    {
-      "user_id": 11887,
-      "created_at": "2023-09-11T15:12:49.000Z",
-      "code": "👍",
-      "name": ":+1:"
-    },
-    {
-      "user_id": 11887,
-      "created_at": "2023-09-11T15:13:46.000Z",
-      "code": "⭐",
-      "name": ":star:"
-    },
-    {
-      "user_id": 11887,
-      "created_at": "2023-09-11T15:13:47.000Z",
-      "code": "🔥",
-      "name": ":fire:"
+      "name": ":+1::skin-tone-1:"
     }
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJpZCI6NzcsImRpciI6ImFzYyJ9"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
     }
   }
 }
@@ -225,8 +197,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -265,20 +240,59 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 404: The server cannot find the requested resource.
 
@@ -286,8 +300,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -326,6 +343,23 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 422: Client error
 
@@ -333,8 +367,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -373,4 +410,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

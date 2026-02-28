@@ -66,7 +66,15 @@ export function CodeExamples({ endpoint, baseUrl, title, hideResponse }: CodeExa
   const successCodes = ['200', '201', '204'];
   const successCode = successCodes.find((code) => endpoint.responses[code]) || '200';
   const successResponse = endpoint.responses[successCode];
-  const responseExample = generateResponseExample(successResponse);
+  const rawResponseExample = generateResponseExample(successResponse);
+
+  // Не показываем пустой объект {} как пример ответа (например, для 204 No Content)
+  const isEmptyObject =
+    rawResponseExample !== null &&
+    typeof rawResponseExample === 'object' &&
+    !Array.isArray(rawResponseExample) &&
+    Object.keys(rawResponseExample as Record<string, unknown>).length === 0;
+  const responseExample = isEmptyObject ? undefined : rawResponseExample;
 
   return (
     <div className="flex flex-col">

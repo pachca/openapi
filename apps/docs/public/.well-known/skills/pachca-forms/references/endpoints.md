@@ -31,15 +31,19 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-  "trigger_id": "791a056b-006c-49dd-834b-c633fde52fe8",
   "type": "modal",
-  "private_metadata": "{'timeoff_id':4378}",
+  "trigger_id": "791a056b-006c-49dd-834b-c633fde52fe8",
+  "private_metadata": "{\"timeoff_id\":4378}",
   "callback_id": "timeoff_reguest_form",
   "view": {
     "title": "Уведомление об отпуске",
     "close_text": "Закрыть",
     "submit_text": "Отправить заявку",
     "blocks": [
+      {
+        "type": "header",
+        "text": "Основная информация"
+      },
       {
         "type": "plain_text",
         "text": "Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе."
@@ -49,22 +53,80 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
         "text": "Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)"
       },
       {
-        "type": "header",
-        "text": "Основная информация"
+        "type": "divider"
+      },
+      {
+        "type": "input",
+        "name": "info",
+        "label": "Описание отпуска",
+        "placeholder": "Куда собираетесь и что будете делать",
+        "multiline": true,
+        "initial_value": "Начальный текст",
+        "min_length": 10,
+        "max_length": 500,
+        "required": true,
+        "hint": "Возможно вам подскаджут, какие места лучше посетить"
+      },
+      {
+        "type": "select",
+        "name": "team",
+        "label": "Выберите команду",
+        "options": [
+          {
+            "text": "Ничего",
+            "value": "nothing",
+            "description": "Каждый день бот будет присылать список новых задач в вашей команде",
+            "selected": true
+          }
+        ],
+        "required": false,
+        "hint": "Выберите одну из команд"
+      },
+      {
+        "type": "radio",
+        "name": "accessibility",
+        "label": "Доступность",
+        "options": [
+          {
+            "text": "Ничего",
+            "value": "nothing",
+            "description": "Каждый день бот будет присылать список новых задач в вашей команде",
+            "selected": true
+          }
+        ],
+        "required": true,
+        "hint": "Если вы не планируете выходить на связь, то выберите вариант Ничего"
+      },
+      {
+        "type": "checkbox",
+        "name": "newsletters",
+        "label": "Рассылки",
+        "options": [
+          {
+            "text": "Ничего",
+            "value": "nothing",
+            "description": "Каждый день бот будет присылать список новых задач в вашей команде",
+            "checked": true
+          }
+        ],
+        "required": false,
+        "hint": "Выберите интересующие вас рассылки"
       },
       {
         "type": "date",
         "name": "date_start",
         "label": "Дата начала отпуска",
         "initial_date": "2025-07-01",
-        "required": true
+        "required": true,
+        "hint": "Укажите дату начала отпуска"
       },
       {
-        "type": "date",
-        "name": "date_end",
-        "label": "Дата окончания отпуска",
-        "initial_date": "2025-07-28",
-        "required": true
+        "type": "time",
+        "name": "newsletter_time",
+        "label": "Время рассылки",
+        "initial_time": "11:00",
+        "required": false,
+        "hint": "Укажите, в какое время присылать выбранные рассылки"
       },
       {
         "type": "file_input",
@@ -78,103 +140,6 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
         "max_files": 1,
         "required": true,
         "hint": "Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)"
-      },
-      {
-        "type": "radio",
-        "name": "accessibility",
-        "label": "Доступность",
-        "options": [
-          {
-            "text": "Ничего",
-            "value": "nothing",
-            "selected": true
-          },
-          {
-            "text": "Только телефон",
-            "value": "phone_only"
-          },
-          {
-            "text": "Телефон и ноутбук",
-            "value": "phone_notebook"
-          }
-        ],
-        "required": true,
-        "hint": "Если вы не планируете выходить на связь, то выберите вариант Ничего"
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "header",
-        "text": "Дополнительно"
-      },
-      {
-        "type": "input",
-        "name": "info",
-        "label": "Описание отпуска",
-        "placeholder": "Куда собираетесь и что будете делать",
-        "multiline": true,
-        "hint": "Возможно вам подскаджут, какие места лучше посетить"
-      },
-      {
-        "type": "checkbox",
-        "name": "newsletters",
-        "label": "Рассылки",
-        "options": [
-          {
-            "text": "Получать уведомления о новых задачах в команде",
-            "value": "new_tasks",
-            "description": "Каждый день бот будет присылать список новых задач в вашей команде"
-          },
-          {
-            "text": "Получать уведомления об обновлениях в проектах",
-            "value": "project_updates",
-            "description": "Два раза в неделю бот будет присылать обновления по проектам"
-          }
-        ]
-      },
-      {
-        "type": "select",
-        "name": "team",
-        "label": "Выберите команду",
-        "options": [
-          {
-            "text": "Все команды",
-            "value": "all"
-          },
-          {
-            "text": "Web",
-            "value": "web",
-            "selected": true
-          },
-          {
-            "text": "iOS",
-            "value": "ios"
-          },
-          {
-            "text": "Android",
-            "value": "android"
-          },
-          {
-            "text": "Back",
-            "value": "back"
-          },
-          {
-            "text": "Design",
-            "value": "design"
-          },
-          {
-            "text": "Success",
-            "value": "success"
-          }
-        ]
-      },
-      {
-        "type": "time",
-        "name": "newsletter_time",
-        "label": "Время рассылки",
-        "initial_time": "11:00",
-        "hint": "Укажите, в какое время присылать выбранные рассылки"
       }
     ]
   }

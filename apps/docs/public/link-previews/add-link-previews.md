@@ -21,6 +21,7 @@
 ### Path параметры
 
 - `id` (integer, **обязательный**): Идентификатор сообщения
+  - Пример: `194275`
 
 
 ## Тело запроса
@@ -34,25 +35,49 @@
 - `link_previews` (Record<string, object>, **обязательный**): `JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении.
   **Структура значений Record:**
   - `title` (string, **обязательный**): Заголовок
+    - Пример: `Статья: Отправка файлов`
   - `description` (string, **обязательный**): Описание
+    - Пример: `Пример отправки файлов на удаленный сервер`
   - `image_url` (string, опциональный): Публичная ссылка на изображение (если вы хотите загрузить файл изображения в Пачку, то используйте параметр image)
+    - Пример: `https://website.com/img/landing.png`
   - `image` (object, опциональный): Изображение
     - `key` (string, **обязательный**): Путь к изображению, полученный в результате [загрузки файла](POST /direct_url)
+      - Пример: `attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}`
     - `name` (string, **обязательный**): Название изображения (рекомендуется писать вместе с расширением)
+      - Пример: `files-to-server.jpg`
     - `size` (integer, int32, **обязательный**): Размер изображения в байтах
+      - Пример: `695604`
 
+### Пример
+
+```json
+{
+  "link_previews": {
+    "https://website.com/articles/123": {
+      "title": "Статья: Отправка файлов",
+      "description": "Пример отправки файлов на удаленный сервер",
+      "image_url": "https://website.com/img/landing.png",
+      "image": {
+        "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
+        "name": "files-to-server.jpg",
+        "size": 695604
+      }
+    }
+  }
+}
+```
 
 ## Примеры запроса
 
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages/12345/link_previews" \
+curl "https://api.pachca.com/api/shared/v1/messages/194275/link_previews" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
   "link_previews": {
-    "key": {
+    "https://website.com/articles/123": {
       "title": "Статья: Отправка файлов",
       "description": "Пример отправки файлов на удаленный сервер",
       "image_url": "https://website.com/img/landing.png",
@@ -69,7 +94,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/link_previews" \
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/messages/12345/link_previews', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/messages/194275/link_previews', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -77,7 +102,7 @@ const response = await fetch('https://api.pachca.com/api/shared/v1/messages/1234
   },
   body: JSON.stringify({
       "link_previews": {
-          "key": {
+          "https://website.com/articles/123": {
               "title": "Статья: Отправка файлов",
               "description": "Пример отправки файлов на удаленный сервер",
               "image_url": "https://website.com/img/landing.png",
@@ -102,7 +127,7 @@ import requests
 
 data = {
     'link_previews': {
-        'key': {
+        'https://website.com/articles/123': {
             'title': 'Статья: Отправка файлов',
             'description': 'Пример отправки файлов на удаленный сервер',
             'image_url': 'https://website.com/img/landing.png',
@@ -121,7 +146,7 @@ headers = {
 }
 
 response = requests.post(
-    'https://api.pachca.com/api/shared/v1/messages/12345/link_previews',
+    'https://api.pachca.com/api/shared/v1/messages/194275/link_previews',
     headers=headers,
     json=data
 )
@@ -137,7 +162,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/messages/12345/link_previews',
+    path: '/api/shared/v1/messages/194275/link_previews',
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
@@ -159,7 +184,7 @@ const req = https.request(options, (res) => {
 
 req.write(JSON.stringify({
     "link_previews": {
-        "key": {
+        "https://website.com/articles/123": {
             "title": "Статья: Отправка файлов",
             "description": "Пример отправки файлов на удаленный сервер",
             "image_url": "https://website.com/img/landing.png",
@@ -184,14 +209,14 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/messages/12345/link_previews')
+uri = URI('https://api.pachca.com/api/shared/v1/messages/194275/link_previews')
 request = Net::HTTP::Post.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
 request['Content-Type'] = 'application/json'
 
 request.body = {
   'link_previews' => {
-    'key' => {
+    'https://website.com/articles/123' => {
       'title' => 'Статья: Отправка файлов',
       'description' => 'Пример отправки файлов на удаленный сервер',
       'image_url' => 'https://website.com/img/landing.png',
@@ -219,7 +244,7 @@ puts JSON.parse(response.body)
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages/12345/link_previews',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages/194275/link_previews',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'POST',
     CURLOPT_HTTPHEADER => [
@@ -228,7 +253,7 @@ curl_setopt_array($curl, [
     ],
     CURLOPT_POSTFIELDS => json_encode([
     'link_previews' => [
-        'key' => [
+        'https://website.com/articles/123' => [
             'title' => 'Статья: Отправка файлов',
             'description' => 'Пример отправки файлов на удаленный сервер',
             'image_url' => 'https://website.com/img/landing.png',
@@ -253,16 +278,17 @@ echo $response;
 
 ### 204: There is no content to send for this request, but the headers may be useful. 
 
-**Схема ответа:**
-
 ### 400: The server could not understand the request due to invalid syntax.
 
 **Схема ответа при ошибке:**
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -301,20 +327,59 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 404: The server cannot find the requested resource.
 
@@ -322,8 +387,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -362,6 +430,23 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 422: Client error
 
@@ -369,8 +454,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -409,4 +497,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

@@ -1,7 +1,7 @@
 // Re-export type guards from shared utils
 export { isRecord } from '../utils/type-guards';
 
-import type { Endpoint } from '../openapi/types';
+import type { Endpoint, Parameter } from '../openapi/types';
 import { generateParameterExample } from '../openapi/example-generator';
 
 export function resolveUrl(endpoint: Endpoint, baseUrl: string): string {
@@ -26,4 +26,12 @@ export function hasJsonContent(endpoint: Endpoint): boolean {
 export function hasMultipartContent(endpoint: Endpoint): boolean {
   if (!endpoint.requestBody) return false;
   return 'multipart/form-data' in endpoint.requestBody.content;
+}
+
+export function getQueryParams(endpoint: Endpoint): Parameter[] {
+  return endpoint.parameters.filter((p) => p.in === 'query');
+}
+
+export function resolveParamName(param: Parameter): string {
+  return param['x-param-names']?.[0]?.name || param.name;
 }

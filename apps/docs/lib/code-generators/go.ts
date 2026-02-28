@@ -1,11 +1,18 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateExample,
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
+import {
+  isRecord,
+  requiresAuth,
+  hasJsonContent,
+  hasMultipartContent,
+  resolveUrl,
+  getQueryParams,
+  resolveParamName,
+} from './utils';
 
 export function generateGo(
   endpoint: Endpoint,
@@ -71,7 +78,7 @@ export function generateGo(
   code += `func main() {\n`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
+  const queryParams = getQueryParams(endpoint);
   let fullUrl = url;
   if (queryParams.length > 0) {
     const paramParts: string[] = [];
@@ -79,10 +86,10 @@ export function generateGo(
       const example = generateParameterExample(p);
       if (Array.isArray(example)) {
         for (const val of example) {
-          paramParts.push(`${p.name}[]=${encodeURIComponent(String(val))}`);
+          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
         }
       } else {
-        paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
+        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
       }
     }
     fullUrl = `${url}?${paramParts.join('&')}`;
@@ -92,16 +99,10 @@ export function generateGo(
 
   // Build request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-    // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
-    const body =
-      requestExample ||
-      (endpoint.requestBody.content['application/json']?.schema
-        ? generateExample(endpoint.requestBody.content['application/json'].schema)
-        : null);
 
-    if (body) {
-      code += `    data := map[string]interface{}${goRepr(body)}\n`;
+    if (requestExample) {
+      code += `    data := map[string]interface{}${goRepr(requestExample)}\n`;
       code += `    jsonData, _ := json.Marshal(data)\n\n`;
       code += `    req, _ := http.NewRequest("${method}", url, bytes.NewBuffer(jsonData))\n`;
     } else {

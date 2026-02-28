@@ -13,12 +13,15 @@
 ### Path параметры
 
 - `id` (integer, **обязательный**): Идентификатор тега
+  - Пример: `9111`
 
 ### Query параметры
 
 - `limit` (integer, опциональный): Количество возвращаемых сущностей за один запрос
+  - Пример: `1`
   - По умолчанию: `50`
 - `cursor` (string, опциональный): Курсор для пагинации (из `meta.paginate.next_page`)
+  - Пример: `eyJpZCI6MTAsImRpciI6ImFzYyJ9`
 
 
 ## Примеры запроса
@@ -26,14 +29,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/group_tags/12345/users?limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/group_tags/12345/users?limit=50&cursor=string', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -50,8 +53,8 @@ console.log(data);
 import requests
 
 params = {
-    'limit': 50,
-    'cursor': 'string',
+    'limit': 1,
+    'cursor': 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
 }
 
 headers = {
@@ -59,7 +62,7 @@ headers = {
 }
 
 response = requests.get(
-    'https://api.pachca.com/api/shared/v1/group_tags/12345/users',
+    'https://api.pachca.com/api/shared/v1/group_tags/9111/users',
     params=params,
     headers=headers
 )
@@ -75,7 +78,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/group_tags/12345/users?limit=50&cursor=string',
+    path: '/api/shared/v1/group_tags/9111/users?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -107,10 +110,10 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/group_tags/12345/users')
+uri = URI('https://api.pachca.com/api/shared/v1/group_tags/9111/users')
 params = {
-  'limit' => 50,
-  'cursor' => 'string',
+  'limit' => 1,
+  'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
 }
 uri.query = URI.encode_www_form(params)
 
@@ -129,11 +132,11 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['limit' => 50, 'cursor' => 'string'];
+$params = ['limit' => 1, 'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9'];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/group_tags/12345/users?' . http_build_query($params)',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/group_tags/9111/users?' . http_build_query($params)',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'GET',
     CURLOPT_HTTPHEADER => [
@@ -156,13 +159,21 @@ echo $response;
 
 - `data` (array[object], **обязательный**)
   - `id` (integer, int32, **обязательный**): Идентификатор пользователя
+    - Пример: `12`
   - `first_name` (string, **обязательный**): Имя
+    - Пример: `Олег`
   - `last_name` (string, **обязательный**): Фамилия
+    - Пример: `Петров`
   - `nickname` (string, **обязательный**): Имя пользователя
+    - Пример: ``
   - `email` (string, **обязательный**): Электронная почта
+    - Пример: `olegp@example.com`
   - `phone_number` (string, **обязательный**): Телефон
+    - Пример: ``
   - `department` (string, **обязательный**): Департамент
+    - Пример: `Продукт`
   - `title` (string, **обязательный**): Должность
+    - Пример: `CIO`
   - `role` (string, **обязательный**): Уровень доступа
     - **Возможные значения:**
       - `admin`: Администратор
@@ -170,14 +181,18 @@ echo $response;
       - `multi_guest`: Мульти-гость
       - `guest`: Гость
   - `suspended` (boolean, **обязательный**): Деактивация пользователя
+    - Пример: `false`
   - `invite_status` (string, **обязательный**): Статус приглашения
     - **Возможные значения:**
       - `confirmed`: Принято
       - `sent`: Отправлено
   - `list_tags` (array[string], **обязательный**): Массив тегов, привязанных к сотруднику
+    - Пример: `["Product","Design"]`
   - `custom_properties` (array[object], **обязательный**): Дополнительные поля сотрудника
     - `id` (integer, int32, **обязательный**): Идентификатор поля
+      - Пример: `1678`
     - `name` (string, **обязательный**): Название поля
+      - Пример: `Город`
     - `data_type` (string, **обязательный**): Тип поля
       - **Возможные значения:**
         - `string`: Строковое значение
@@ -185,22 +200,35 @@ echo $response;
         - `date`: Дата
         - `link`: Ссылка
     - `value` (string, **обязательный**): Значение
+      - Пример: `Санкт-Петербург`
   - `user_status` (object, **обязательный**): Статус
     - `emoji` (string, **обязательный**): Emoji символ статуса
+      - Пример: `🎮`
     - `title` (string, **обязательный**): Текст статуса
+      - Пример: `Очень занят`
     - `expires_at` (string, date-time, **обязательный**): Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+      - Пример: `2024-04-08T10:00:00.000Z`
     - `is_away` (boolean, **обязательный**): Режим «Нет на месте»
+      - Пример: `false`
     - `away_message` (object, **обязательный**): Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
       - `text` (string, **обязательный**): Текст сообщения
+        - Пример: `Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov.`
   - `bot` (boolean, **обязательный**): Является ботом
+    - Пример: `false`
   - `sso` (boolean, **обязательный**): Использует ли пользователь SSO
+    - Пример: `false`
   - `created_at` (string, date-time, **обязательный**): Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2020-06-08T09:32:57.000Z`
   - `last_activity_at` (string, date-time, **обязательный**): Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2025-01-20T13:40:07.000Z`
   - `time_zone` (string, **обязательный**): Часовой пояс пользователя
+    - Пример: `Europe/Moscow`
   - `image_url` (string, **обязательный**): Ссылка на скачивание аватарки пользователя
+    - Пример: `https://app.pachca.com/users/12/photo.jpg`
 - `meta` (object, опциональный): Метаданные пагинации
   - `paginate` (object, опциональный): Вспомогательная информация
     - `next_page` (string, опциональный): Курсор пагинации следующей страницы
+      - Пример: `eyJxZCO2MiwiZGlyIjomSNYjIn3`
 
 **Пример ответа:**
 
@@ -211,7 +239,7 @@ echo $response;
       "id": 12,
       "first_name": "Олег",
       "last_name": "Петров",
-      "nickname": "olegpetrov",
+      "nickname": "",
       "email": "olegp@example.com",
       "phone_number": "",
       "department": "Продукт",
@@ -231,94 +259,26 @@ echo $response;
           "value": "Санкт-Петербург"
         }
       ],
-      "user_status": null,
-      "bot": false,
-      "sso": false,
-      "created_at": "2020-06-08T09:10:11.000Z",
-      "last_activity_at": "2025-01-20T13:40:07.000Z",
-      "time_zone": "Europe/Moscow",
-      "image_url": null
-    },
-    {
-      "id": 13,
-      "first_name": "Сергей",
-      "last_name": "Кузнецов",
-      "nickname": "skuz",
-      "email": "sergkuzn@example.com",
-      "phone_number": "",
-      "department": "Разработка",
-      "title": "iOS Developer",
-      "role": "user",
-      "suspended": false,
-      "invite_status": "confirmed",
-      "list_tags": [
-        "Development",
-        "Android"
-      ],
-      "custom_properties": [
-        {
-          "id": 1678,
-          "name": "Город",
-          "data_type": "string",
-          "value": "Москва"
-        }
-      ],
       "user_status": {
         "emoji": "🎮",
         "title": "Очень занят",
         "expires_at": "2024-04-08T10:00:00.000Z",
         "is_away": false,
-        "away_message": null
-      },
-      "bot": false,
-      "sso": false,
-      "created_at": "2020-06-08T09:31:17.000Z",
-      "last_activity_at": "2025-01-20T07:00:32.000Z",
-      "time_zone": "Europe/Moscow",
-      "image_url": null
-    },
-    {
-      "id": 14,
-      "first_name": "Дмитрий",
-      "last_name": "Смирнов",
-      "nickname": "dsmir",
-      "email": "ds@example.com",
-      "phone_number": "",
-      "department": "Разработка",
-      "title": "Android Developer",
-      "role": "user",
-      "suspended": false,
-      "invite_status": "confirmed",
-      "list_tags": [
-        "Development",
-        "Frontend"
-      ],
-      "custom_properties": [
-        {
-          "id": 1678,
-          "name": "Город",
-          "data_type": "string",
-          "value": "Санкт-Петербург"
+        "away_message": {
+          "text": "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
         }
-      ],
-      "user_status": {
-        "emoji": "🚀",
-        "title": "Лечу",
-        "expires_at": null,
-        "is_away": false,
-        "away_message": null
       },
       "bot": false,
       "sso": false,
       "created_at": "2020-06-08T09:32:57.000Z",
-      "last_activity_at": "2025-01-20T13:51:25.000Z",
+      "last_activity_at": "2025-01-20T13:40:07.000Z",
       "time_zone": "Europe/Moscow",
-      "image_url": null
+      "image_url": "https://app.pachca.com/users/12/photo.jpg"
     }
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJpZCI6MTQsImRpciI6ImFzYyJ9"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
     }
   }
 }
@@ -330,8 +290,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -370,20 +333,59 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 404: The server cannot find the requested resource.
 
@@ -391,8 +393,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -431,6 +436,23 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 422: Client error
 
@@ -438,8 +460,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -478,4 +503,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

@@ -18,13 +18,14 @@
 
 - `group_tag` (object, **обязательный**)
   - `name` (string, **обязательный**): Название тега
+    - Пример: `Новое название тега`
 
 ### Пример
 
 ```json
 {
   "group_tag": {
-    "name": "Название тега"
+    "name": "Новое название тега"
   }
 }
 ```
@@ -39,7 +40,7 @@ curl "https://api.pachca.com/api/shared/v1/group_tags" \
   -H "Content-Type: application/json" \
   -d '{
   "group_tag": {
-    "name": "Название тега"
+    "name": "Новое название тега"
   }
 }'
 ```
@@ -55,7 +56,7 @@ const response = await fetch('https://api.pachca.com/api/shared/v1/group_tags', 
   },
   body: JSON.stringify({
       "group_tag": {
-          "name": "Название тега"
+          "name": "Новое название тега"
       }
   })
 });
@@ -71,7 +72,7 @@ import requests
 
 data = {
     'group_tag': {
-        'name': 'Название тега'
+        'name': 'Новое название тега'
     }
 }
 
@@ -119,7 +120,7 @@ const req = https.request(options, (res) => {
 
 req.write(JSON.stringify({
     "group_tag": {
-        "name": "Название тега"
+        "name": "Новое название тега"
     }
 }));
 req.on('error', (error) => {
@@ -142,7 +143,7 @@ request['Content-Type'] = 'application/json'
 
 request.body = {
   'group_tag' => {
-    'name' => 'Название тега'
+    'name' => 'Новое название тега'
   }
 }.to_json
 
@@ -170,7 +171,7 @@ curl_setopt_array($curl, [
     ],
     CURLOPT_POSTFIELDS => json_encode([
     'group_tag' => [
-        'name' => 'Название тега'
+        'name' => 'Новое название тега'
     ]
 ]),
 ]);
@@ -190,17 +191,20 @@ echo $response;
 
 - `data` (object, **обязательный**): Тег
   - `id` (integer, int32, **обязательный**): Идентификатор тега
+    - Пример: `9111`
   - `name` (string, **обязательный**): Название тега
+    - Пример: `Design`
   - `users_count` (integer, int32, **обязательный**): Количество сотрудников, которые имеют этот тег
+    - Пример: `6`
 
 **Пример ответа:**
 
 ```json
 {
   "data": {
-    "id": 1,
-    "name": "Название тега",
-    "users_count": 0
+    "id": 9111,
+    "name": "Design",
+    "users_count": 6
   }
 }
 ```
@@ -211,8 +215,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -251,20 +258,59 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 
 ### 401: Access is unauthorized.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 422: Client error
 
@@ -272,8 +318,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -312,4 +361,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

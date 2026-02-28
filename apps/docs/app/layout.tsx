@@ -2,15 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { Sidebar } from '@/components/layout/sidebar-wrapper';
 import { TransitionProvider } from '@/components/layout/transition-provider';
 import { DisplaySettingsProvider } from '@/components/layout/display-settings-context';
-import { Inter } from 'next/font/google';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap',
-  variable: '--font-inter',
-});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -82,7 +75,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`h-full ${inter.variable}`} suppressHydrationWarning>
+    <html lang="ru" className="h-full" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#36373d" media="(prefers-color-scheme: dark)" />

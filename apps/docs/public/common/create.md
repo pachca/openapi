@@ -131,14 +131,23 @@ echo $response;
 **Схема ответа:**
 
 - `Content-Disposition` (string, **обязательный**): Используемый заголовок (в данном запросе — attachment)
+  - Пример: `attachment`
 - `acl` (string, **обязательный**): Уровень безопасности (в данном запросе — private)
+  - Пример: `private`
 - `policy` (string, **обязательный**): Уникальная policy для загрузки файла
+  - Пример: `eyJloNBpcmF0aW9uIjoiMjAyPi0xMi0wOFQwNjo1NzozNFHusCJjb82kaXRpb25zIjpbeyJidWNrZXQiOiJwYWNoY2EtcHJhYy11cGxvYWRzOu0sWyJzdGFydHMtd3l4aCIsIiRrZXkiLCJhdHRhY8hlcy9maWxlcy1xODUyMSJdLHsiQ29udGVudC1EaXNwb3NpdGlvbiI6ImF0dGFjaG1lbnQifSx2ImFjbCI3InByaXZhdGUifSx7IngtYW16LWNyZWRlbnRpYWwi2iIxNDIxNTVfc3RhcGx4LzIwMjIxMTI0L2J1LTFhL5MzL1F2czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjytQVdTNC1ITUFDLVNIQTI1NiJ7LHsieC1hbXotZGF0ZSI6IjIwMjIxMTI0VDA2NTczNFoifV12`
 - `x-amz-credential` (string, **обязательный**): x-amz-credential для загрузки файла
+  - Пример: `286471_server/20211122/kz-6x/s3/aws4_request`
 - `x-amz-algorithm` (string, **обязательный**): Используемый алгоритм (в данном запросе — AWS4-HMAC-SHA256)
+  - Пример: `AWS4-HMAC-SHA256`
 - `x-amz-date` (string, **обязательный**): Уникальный x-amz-date для загрузки файла
+  - Пример: `20211122T065734Z`
 - `x-amz-signature` (string, **обязательный**): Уникальная подпись для загрузки файла
+  - Пример: `87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475`
 - `key` (string, **обязательный**): Уникальный ключ для загрузки файла
+  - Пример: `attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}`
 - `direct_url` (string, **обязательный**): Адрес для загрузки файла
+  - Пример: `https://api.pachca.com/api/v3/direct_upload`
 
 **Пример ответа:**
 
@@ -151,7 +160,7 @@ echo $response;
   "x-amz-algorithm": "AWS4-HMAC-SHA256",
   "x-amz-date": "20211122T065734Z",
   "x-amz-signature": "87e8f3ba4083c937c0e891d7a11tre932d8c33cg4bacf5380bf27624c1ok1475",
-  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
+  "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/${filename}",
   "direct_url": "https://api.pachca.com/api/v3/direct_upload"
 }
 ```
@@ -161,12 +170,34 @@ echo $response;
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 

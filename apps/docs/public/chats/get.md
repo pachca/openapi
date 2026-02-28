@@ -15,6 +15,7 @@
 ### Path параметры
 
 - `id` (integer, **обязательный**): Идентификатор чата
+  - Пример: `334`
 
 
 ## Примеры запроса
@@ -22,14 +23,14 @@
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats/12345" \
+curl "https://api.pachca.com/api/shared/v1/chats/334" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/chats/12345', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/chats/334', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -50,7 +51,7 @@ headers = {
 }
 
 response = requests.get(
-    'https://api.pachca.com/api/shared/v1/chats/12345',
+    'https://api.pachca.com/api/shared/v1/chats/334',
     headers=headers
 )
 
@@ -65,7 +66,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/chats/12345',
+    path: '/api/shared/v1/chats/334',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -97,7 +98,7 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/chats/12345')
+uri = URI('https://api.pachca.com/api/shared/v1/chats/334')
 request = Net::HTTP::Get.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
 
@@ -116,7 +117,7 @@ puts JSON.parse(response.body)
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/chats/12345',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/chats/334',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'GET',
     CURLOPT_HTTPHEADER => [
@@ -139,16 +140,27 @@ echo $response;
 
 - `data` (object, **обязательный**): Чат
   - `id` (integer, int32, **обязательный**): Идентификатор созданного чата
+    - Пример: `334`
   - `name` (string, **обязательный**): Название
+    - Пример: `🤿 aqua`
   - `created_at` (string, date-time, **обязательный**): Дата и время создания чата (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2021-08-28T15:56:53.000Z`
   - `owner_id` (integer, int32, **обязательный**): Идентификатор пользователя, создавшего чат
+    - Пример: `185`
   - `member_ids` (array[integer], **обязательный**): Массив идентификаторов пользователей, участников
+    - Пример: `[185,186,187]`
   - `group_tag_ids` (array[integer], **обязательный**): Массив идентификаторов тегов, участников
+    - Пример: `[9111]`
   - `channel` (boolean, **обязательный**): Является каналом
+    - Пример: `true`
   - `personal` (boolean, **обязательный**): Является личным чатом
+    - Пример: `false`
   - `public` (boolean, **обязательный**): Открытый доступ
+    - Пример: `false`
   - `last_message_at` (string, date-time, **обязательный**): Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2021-08-28T15:56:53.000Z`
   - `meet_room_url` (string, **обязательный**): Ссылка на Видеочат
+    - Пример: `https://meet.pachca.com/aqua-94bb21b5`
 
 **Пример ответа:**
 
@@ -164,11 +176,13 @@ echo $response;
       186,
       187
     ],
-    "group_tag_ids": [],
+    "group_tag_ids": [
+      9111
+    ],
     "channel": true,
     "personal": false,
     "public": false,
-    "last_message_at": "2021-08-28T15:58:13.000Z",
+    "last_message_at": "2021-08-28T15:56:53.000Z",
     "meet_room_url": "https://meet.pachca.com/aqua-94bb21b5"
   }
 }
@@ -179,14 +193,36 @@ echo $response;
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 404: The server cannot find the requested resource.
 
@@ -194,8 +230,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -234,4 +273,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

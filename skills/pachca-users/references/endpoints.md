@@ -23,7 +23,7 @@ curl "https://api.pachca.com/api/shared/v1/group_tags" \
   -H "Content-Type: application/json" \
   -d '{
   "group_tag": {
-    "name": "Название тега"
+    "name": "Новое название тега"
   }
 }'
 ```
@@ -56,7 +56,7 @@ curl "https://api.pachca.com/api/shared/v1/group_tags" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Design&names[]=iOS&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Design&names[]=Product&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -91,7 +91,7 @@ curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Design&names[]=iOS
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/group_tags/12345" \
+curl "https://api.pachca.com/api/shared/v1/group_tags/9111" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -128,7 +128,7 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/12345" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/group_tags/12345" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/group_tags/9111" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -166,7 +166,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/group_tags/12345" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/group_tags/12345" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/group_tags/9111" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -191,7 +191,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/group_tags/12345" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/group_tags/12345/users?limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -269,7 +269,12 @@ curl "https://api.pachca.com/api/shared/v1/users" \
     "first_name": "Олег",
     "last_name": "Петров",
     "email": "olegp@example.com",
+    "phone_number": "+79001234567",
+    "nickname": "olegpetrov",
     "department": "Продукт",
+    "title": "CIO",
+    "role": "user",
+    "suspended": false,
     "list_tags": [
       "Product",
       "Design"
@@ -334,7 +339,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/users?query=user%40example.com&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -390,7 +395,7 @@ curl "https://api.pachca.com/api/shared/v1/users?query=user%40example.com&limit=
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/users/12345" \
+curl "https://api.pachca.com/api/shared/v1/users/12" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -460,15 +465,28 @@ curl "https://api.pachca.com/api/shared/v1/users/12345" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/users/12345" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/users/12" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
   "user": {
+    "first_name": "Олег",
+    "last_name": "Петров",
+    "email": "olegpetrov@example.com",
+    "phone_number": "+79001234567",
     "nickname": "olegpetrov",
+    "department": "Отдел разработки",
+    "title": "Старший разработчик",
     "role": "user",
+    "suspended": false,
     "list_tags": [
       "Product"
+    ],
+    "custom_properties": [
+      {
+        "id": 1678,
+        "value": "Санкт-Петербург"
+      }
     ]
   }
 }'
@@ -523,7 +541,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12345" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12345" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -546,7 +564,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12345" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/users/12345/status" \
+curl "https://api.pachca.com/api/shared/v1/users/12/status" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -582,16 +600,16 @@ curl "https://api.pachca.com/api/shared/v1/users/12345/status" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/users/12345/status" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/users/12/status" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
   "status": {
-    "emoji": "🏖️",
-    "title": "В отпуске",
-    "expires_at": "2024-04-15T00:00:00.000Z",
+    "emoji": "🎮",
+    "title": "Очень занят",
+    "expires_at": "2024-04-08T10:00:00.000Z",
     "is_away": true,
-    "away_message": "Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."
+    "away_message": "Вернусь после 15:00"
   }
 }'
 ```
@@ -625,7 +643,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12345/status" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12345/status" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12/status" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

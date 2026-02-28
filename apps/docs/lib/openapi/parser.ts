@@ -5,6 +5,7 @@ import type {
   ParsedAPI,
   Endpoint,
   Parameter,
+  ParamNameEntry,
   Schema,
   RequestBody,
   Response,
@@ -136,7 +137,18 @@ function parseParameter(param: Record<string, unknown>, openapi: OpenAPIData): P
     examples: parseExamples(getRecord(resolved, 'examples'), openapi),
     explode: getBoolean(resolved, 'explode'),
     style: getString(resolved, 'style'),
+    'x-param-names': parseParamNames(getArray(resolved, 'x-param-names')),
   };
+}
+
+function parseParamNames(raw: unknown[] | undefined): ParamNameEntry[] | undefined {
+  if (!raw || raw.length === 0) return undefined;
+  return raw
+    .filter((item): item is Record<string, unknown> => isRecord(item))
+    .map((item) => ({
+      name: getString(item, 'name') || '',
+      description: getString(item, 'description'),
+    }));
 }
 
 /**
@@ -304,6 +316,7 @@ function parseSchema(schema: Record<string, unknown>, openapi: OpenAPIData, dept
     readOnly: getBoolean(schema, 'readOnly'),
     writeOnly: getBoolean(schema, 'writeOnly'),
     deprecated: getBoolean(schema, 'deprecated'),
+    'x-record-key-example': getString(schema, 'x-record-key-example'),
   };
 
   // Обрабатываем свойства объекта

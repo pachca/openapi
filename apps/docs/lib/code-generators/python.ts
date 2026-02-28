@@ -1,11 +1,18 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateExample,
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { isRecord, requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
+import {
+  isRecord,
+  requiresAuth,
+  hasJsonContent,
+  hasMultipartContent,
+  resolveUrl,
+  getQueryParams,
+  resolveParamName,
+} from './utils';
 
 export function generatePython(
   endpoint: Endpoint,
@@ -17,12 +24,12 @@ export function generatePython(
   let code = `import requests\n\n`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
+  const queryParams = getQueryParams(endpoint);
   if (queryParams.length > 0) {
     code += `params = {\n`;
     queryParams.forEach((p) => {
       const example = generateParameterExample(p);
-      code += `    '${p.name}': ${pythonRepr(example)},\n`;
+      code += `    '${resolveParamName(p)}': ${pythonRepr(example)},\n`;
     });
     code += `}\n\n`;
   }
@@ -75,16 +82,10 @@ export function generatePython(
   } else {
     // Add request body for POST/PUT/PATCH
     if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
-      // Используем явные примеры из OpenAPI (example/examples)
       const requestExample = generateRequestExample(endpoint.requestBody);
-      const body =
-        requestExample ||
-        (endpoint.requestBody.content['application/json']?.schema
-          ? generateExample(endpoint.requestBody.content['application/json'].schema)
-          : null);
 
-      if (body) {
-        code += `data = ${pythonRepr(body)}\n\n`;
+      if (requestExample) {
+        code += `data = ${pythonRepr(requestExample)}\n\n`;
       }
     }
 

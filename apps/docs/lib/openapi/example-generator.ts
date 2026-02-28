@@ -1,4 +1,4 @@
-import type { Schema, MediaType, RequestBody, Response, Parameter } from './types';
+import type { Schema, RequestBody, Response, Parameter } from './types';
 
 /**
  * Generate example JSON from OpenAPI schema
@@ -13,23 +13,29 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
     return schema.example;
   }
 
-  // Handle allOf - слияние всех схем
+  // Handle allOf - слияние всех схем (не увеличиваем depth — это не реальная вложенность)
   if (schema.allOf) {
     const merged: Record<string, unknown> = {};
+    let primitiveResult: unknown = undefined;
     for (const subSchema of schema.allOf) {
-      const example = generateExample(subSchema as Schema, depth + 1);
+      const example = generateExample(subSchema as Schema, depth);
       if (example && typeof example === 'object' && !Array.isArray(example)) {
         Object.assign(merged, example);
+      } else if (example !== undefined) {
+        primitiveResult = example;
       }
     }
-    return Object.keys(merged).length > 0 ? merged : undefined;
+    if (Object.keys(merged).length > 0) return merged;
+    if (primitiveResult !== undefined) return primitiveResult;
+    if (schema.default !== undefined) return schema.default;
+    return undefined;
   }
 
-  // Handle oneOf / anyOf - берем первый вариант
+  // Handle oneOf / anyOf - берем первый вариант (не увеличиваем depth — это обёртка)
   if (schema.oneOf || schema.anyOf) {
     const options = schema.oneOf || schema.anyOf;
     if (options && options.length > 0) {
-      return generateExample(options[0] as Schema, depth + 1);
+      return generateExample(options[0] as Schema, depth);
     }
   }
 
@@ -50,11 +56,12 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
         return Object.keys(example).length > 0 ? example : {};
       }
 
-      // Если есть additionalProperties
+      // Если есть additionalProperties (Record<T>)
       if (schema.additionalProperties && typeof schema.additionalProperties !== 'boolean') {
         const additionalExample = generateExample(schema.additionalProperties as Schema, depth + 1);
         if (additionalExample !== undefined) {
-          return { key: additionalExample };
+          const recordKey = schema['x-record-key-example'] || 'key';
+          return { [recordKey]: additionalExample };
         }
       }
 
@@ -62,7 +69,16 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
 
     case 'array':
       if (schema.items) {
-        const itemExample = generateExample(schema.items as Schema, depth + 1);
+        const items = schema.items as Schema;
+        // Если элементы массива — union (oneOf/anyOf), показываем по примеру каждого варианта
+        const unionOptions = items.oneOf || items.anyOf;
+        if (unionOptions && unionOptions.length > 1) {
+          const examples = unionOptions
+            .map((opt) => generateExample(opt as Schema, depth))
+            .filter((ex) => ex !== undefined);
+          return examples.length > 0 ? examples : [];
+        }
+        const itemExample = generateExample(items, depth + 1);
         return itemExample !== undefined ? [itemExample] : [];
       }
       return [];
@@ -221,46 +237,24 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
 }
 
 /**
- * Generate request body example
- * Использует ТОЛЬКО явные примеры из OpenAPI метода (example/examples)
- * НЕ генерирует примеры из схемы
+ * Generate request body example from schema
  */
 export function generateRequestExample(requestBody: RequestBody | undefined): unknown {
   if (!requestBody) {
     return undefined;
   }
 
-  // Проверяем application/json и multipart/form-data
   const content =
     requestBody.content['application/json'] || requestBody.content['multipart/form-data'];
-  if (!content) {
+  if (!content?.schema) {
     return undefined;
   }
 
-  // Приоритет 1: явный example на уровне метода
-  if (content.example !== undefined) {
-    return content.example;
-  }
-
-  // Приоритет 2: первый из examples на уровне метода
-  if (content.examples) {
-    const exampleKeys = Object.keys(content.examples);
-    if (exampleKeys.length > 0) {
-      const firstExample = content.examples[exampleKeys[0]];
-      if (firstExample.value !== undefined) {
-        return firstExample.value;
-      }
-    }
-  }
-
-  // НЕ генерируем из схемы - возвращаем undefined
-  return undefined;
+  return generateExample(content.schema);
 }
 
 /**
- * Generate response example
- * Использует ТОЛЬКО явные примеры из OpenAPI метода (example/examples)
- * НЕ генерирует примеры из схемы
+ * Generate response example from schema
  */
 export function generateResponseExample(response: Response | undefined): unknown {
   if (!response) {
@@ -268,28 +262,11 @@ export function generateResponseExample(response: Response | undefined): unknown
   }
 
   const jsonContent = response.content?.['application/json'];
-  if (!jsonContent) {
+  if (!jsonContent?.schema) {
     return undefined;
   }
 
-  // Приоритет 1: явный example на уровне метода
-  if (jsonContent.example !== undefined) {
-    return jsonContent.example;
-  }
-
-  // Приоритет 2: первый из examples на уровне метода
-  if (jsonContent.examples) {
-    const exampleKeys = Object.keys(jsonContent.examples);
-    if (exampleKeys.length > 0) {
-      const firstExample = jsonContent.examples[exampleKeys[0]];
-      if (firstExample.value !== undefined) {
-        return firstExample.value;
-      }
-    }
-  }
-
-  // НЕ генерируем из схемы - возвращаем undefined
-  return undefined;
+  return generateExample(jsonContent.schema);
 }
 
 /**
@@ -300,24 +277,11 @@ export function generateParameterExample(parameter: Parameter | undefined): unkn
     return 'value';
   }
 
-  // Приоритет: явный example > первый из examples > генерация из схемы
   if (parameter.example !== undefined) {
     return parameter.example;
   }
 
-  if (parameter.examples) {
-    const exampleKeys = Object.keys(parameter.examples);
-    if (exampleKeys.length > 0) {
-      const firstExample = parameter.examples[exampleKeys[0]];
-      if (firstExample.value !== undefined) {
-        return firstExample.value;
-      }
-    }
-  }
-
-  // Генерация из схемы
   if (parameter.schema) {
-    // Если у схемы нет описания, но есть описание параметра, используем его
     const schemaWithDescription = {
       ...parameter.schema,
       description: parameter.schema.description || parameter.description,
@@ -327,32 +291,6 @@ export function generateParameterExample(parameter: Parameter | undefined): unkn
   }
 
   return 'value';
-}
-
-/**
- * Get all available examples from a MediaType object
- * Возвращает ТОЛЬКО явные примеры из OpenAPI метода
- * НЕ генерирует примеры из схемы
- */
-export function getAllExamples(mediaType: MediaType): Record<string, unknown> {
-  const examples: Record<string, unknown> = {};
-
-  // Добавляем одиночный example
-  if (mediaType.example !== undefined) {
-    examples['default'] = mediaType.example;
-  }
-
-  // Добавляем множественные examples
-  if (mediaType.examples) {
-    for (const [name, example] of Object.entries(mediaType.examples)) {
-      if (example.value !== undefined) {
-        examples[name] = example.value;
-      }
-    }
-  }
-
-  // НЕ генерируем из схемы - возвращаем только явные примеры
-  return examples;
 }
 
 /**

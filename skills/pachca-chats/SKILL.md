@@ -142,7 +142,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 ```json
 {
   "chat": {
-    "name": ""
+    "name": "🤿 aqua"
   }
 }
 ```

@@ -74,8 +74,18 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
   -d '{
   "message": {
     "entity_type": "discussion",
-    "entity_id": 198,
+    "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+    "files": [
+      {
+        "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+        "name": "logo.png",
+        "file_type": "image",
+        "size": 12345,
+        "width": 800,
+        "height": 600
+      }
+    ],
     "buttons": [
       [
         {
@@ -87,7 +97,12 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
           "data": "awesome"
         }
       ]
-    ]
+    ],
+    "parent_message_id": 194270,
+    "display_avatar_url": "https://example.com/avatar.png",
+    "display_name": "Бот Поддержки",
+    "skip_invite_mentions": false,
+    "link_preview": false
   }
 }'
 ```
@@ -138,14 +153,14 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 **Параметры:**
 
 - `chat_id` (query, integer, **обязательный**): Идентификатор чата (беседа, канал, диалог или чат треда)
-- `sort[{field}]` (query, string, опциональный): Составной параметр сортировки сущностей выборки. На данный момент сортировка доступна только по полю `id` (идентификатор сообщения).
+- `sort[{field}]` (query, string, опциональный): Составной параметр сортировки сущностей выборки
 - `limit` (query, integer, опциональный): Количество возвращаемых сущностей за один запрос
 - `cursor` (query, string, опциональный): Курсор для пагинации (из `meta.paginate.next_page`)
 
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages?chat_id=12345&sort[{field}]=value&limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort[id]=desc&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -202,7 +217,7 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=12345&sort[{field}]=
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages/12345" \
+curl "https://api.pachca.com/api/shared/v1/messages/194275" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -271,13 +286,32 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345" \
 **Пример:**
 
 ```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/messages/12345" \
+curl -X PUT "https://api.pachca.com/api/shared/v1/messages/194275" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
   "message": {
     "content": "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
-    "files": []
+    "files": [
+      {
+        "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+        "name": "logo.png",
+        "file_type": "image",
+        "size": 12345,
+        "width": 800,
+        "height": 600
+      }
+    ],
+    "buttons": [
+      [
+        {
+          "text": "Подробнее",
+          "url": "https://example.com/details"
+        }
+      ]
+    ],
+    "display_avatar_url": "https://example.com/avatar.png",
+    "display_name": "Бот Поддержки"
   }
 }'
 ```
@@ -334,7 +368,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/12345" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/194275" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -359,7 +393,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345" \
 **Пример:**
 
 ```bash
-curl -X POST "https://api.pachca.com/api/shared/v1/messages/12345/pin" \
+curl -X POST "https://api.pachca.com/api/shared/v1/messages/194275/pin" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -384,7 +418,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/messages/12345/pin" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345/pin" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/194275/pin" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -420,7 +454,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345/pin" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages/12345/reactions" \
+curl "https://api.pachca.com/api/shared/v1/messages/7231942/reactions" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -461,7 +495,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/reactions" \
 **Пример:**
 
 ```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345/reactions?code=%F0%9F%91%8D&name=%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%20%D1%82%D0%B5%D0%BA%D1%81%D1%82%D0%B0" \
+curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/7231942/reactions?code=👍&name=:+1:" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -486,7 +520,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/12345/reactions?co
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages/12345/reactions?limit=50&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/messages/194275/reactions?limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -522,7 +556,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/reactions?limit=50&cur
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/messages/12345/read_member_ids?limit=300&cursor=string" \
+curl "https://api.pachca.com/api/shared/v1/messages/194275/read_member_ids?limit=300&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -554,7 +588,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/12345/read_member_ids?limit=
 **Пример:**
 
 ```bash
-curl -X POST "https://api.pachca.com/api/shared/v1/messages/12345/thread" \
+curl -X POST "https://api.pachca.com/api/shared/v1/messages/154332686/thread" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -588,7 +622,7 @@ curl -X POST "https://api.pachca.com/api/shared/v1/messages/12345/thread" \
 **Пример:**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/threads/12345" \
+curl "https://api.pachca.com/api/shared/v1/threads/265142" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

@@ -1,11 +1,17 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateExample,
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { requiresAuth, hasJsonContent, hasMultipartContent, resolveUrl } from './utils';
+import {
+  requiresAuth,
+  hasJsonContent,
+  hasMultipartContent,
+  resolveUrl,
+  getQueryParams,
+  resolveParamName,
+} from './utils';
 
 export function generateNodeJS(
   endpoint: Endpoint,
@@ -55,7 +61,7 @@ export function generateNodeJS(
   let code = `const https = require('https');\n\n`;
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
+  const queryParams = getQueryParams(endpoint);
   let path = new URL(url).pathname;
   if (queryParams.length > 0) {
     const paramParts: string[] = [];
@@ -63,10 +69,10 @@ export function generateNodeJS(
       const example = generateParameterExample(p);
       if (Array.isArray(example)) {
         for (const val of example) {
-          paramParts.push(`${p.name}[]=${encodeURIComponent(String(val))}`);
+          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
         }
       } else {
-        paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
+        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
       }
     }
     path = `${path}?${paramParts.join('&')}`;
@@ -99,16 +105,10 @@ export function generateNodeJS(
 
   // Add request body for POST/PUT/PATCH
   if (['post', 'put', 'patch'].includes(method) && endpoint.requestBody) {
-    // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
-    const body =
-      requestExample ||
-      (endpoint.requestBody.content['application/json']?.schema
-        ? generateExample(endpoint.requestBody.content['application/json'].schema)
-        : null);
 
-    if (body) {
-      code += `req.write(JSON.stringify(${JSON.stringify(body, null, 4)}));\n`;
+    if (requestExample) {
+      code += `req.write(JSON.stringify(${JSON.stringify(requestExample, null, 4)}));\n`;
     }
   }
 

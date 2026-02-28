@@ -15,6 +15,7 @@
 ### Path параметры
 
 - `id` (integer, **обязательный**): Идентификатор сообщения
+  - Пример: `154332686`
 
 
 ## Примеры запроса
@@ -22,14 +23,14 @@
 ### cURL
 
 ```bash
-curl -X POST "https://api.pachca.com/api/shared/v1/messages/12345/thread" \
+curl -X POST "https://api.pachca.com/api/shared/v1/messages/154332686/thread" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/messages/12345/thread', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/messages/154332686/thread', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -50,7 +51,7 @@ headers = {
 }
 
 response = requests.post(
-    'https://api.pachca.com/api/shared/v1/messages/12345/thread',
+    'https://api.pachca.com/api/shared/v1/messages/154332686/thread',
     headers=headers
 )
 
@@ -65,7 +66,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/messages/12345/thread',
+    path: '/api/shared/v1/messages/154332686/thread',
     method: 'POST',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -97,7 +98,7 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/messages/12345/thread')
+uri = URI('https://api.pachca.com/api/shared/v1/messages/154332686/thread')
 request = Net::HTTP::Post.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
 
@@ -116,7 +117,7 @@ puts JSON.parse(response.body)
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages/12345/thread',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages/154332686/thread',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'POST',
     CURLOPT_HTTPHEADER => [
@@ -139,10 +140,15 @@ echo $response;
 
 - `data` (object, **обязательный**): Тред
   - `id` (integer, int64, **обязательный**): Идентификатор созданного треда (используется для отправки [новых комментариев](POST /messages) в тред)
+    - Пример: `265142`
   - `chat_id` (integer, int64, **обязательный**): Идентификатор чата треда (используется для отправки [новых комментариев](POST /messages) в тред и получения [списка комментариев](GET /messages))
+    - Пример: `2637266155`
   - `message_id` (integer, int64, **обязательный**): Идентификатор сообщения, к которому был создан тред
+    - Пример: `154332686`
   - `message_chat_id` (integer, int64, **обязательный**): Идентификатор чата сообщения
+    - Пример: `2637266154`
   - `updated_at` (string, date-time, **обязательный**): Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+    - Пример: `2023-02-01T19:20:47.204Z`
 
 **Пример ответа:**
 
@@ -163,14 +169,36 @@ echo $response;
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 403: Access is forbidden.
 
 **Схема ответа при ошибке:**
 
 - `error` (string, **обязательный**): Код ошибки
+  - Пример: `invalid_token`
 - `error_description` (string, **обязательный**): Описание ошибки
+  - Пример: `Access token is missing`
+
+**Пример ответа:**
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Access token is missing"
+}
+```
 
 ### 404: The server cannot find the requested resource.
 
@@ -178,8 +206,11 @@ echo $response;
 
 - `errors` (array[object], **обязательный**): Массив ошибок
   - `key` (string, **обязательный**): Ключ поля с ошибкой
+    - Пример: `field.name`
   - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
+    - Пример: `invalid_value`
   - `message` (string, **обязательный**): Сообщение об ошибке
+    - Пример: `Поле не может быть пустым`
   - `code` (string, **обязательный**): Код ошибки
     - **Возможные значения:**
       - `blank`: Обязательное поле (не может быть пустым)
@@ -218,4 +249,21 @@ echo $response;
       - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
       - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
   - `payload` (string, **обязательный**): Дополнительные данные об ошибке
+    - Пример: `null`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
+}
+```
 

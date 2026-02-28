@@ -1,11 +1,16 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateExample,
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
 } from '../openapi/example-generator';
-import { requiresAuth, hasMultipartContent, resolveUrl } from './utils';
+import {
+  requiresAuth,
+  hasMultipartContent,
+  resolveUrl,
+  getQueryParams,
+  resolveParamName,
+} from './utils';
 
 export function generateDotNet(
   endpoint: Endpoint,
@@ -26,7 +31,7 @@ export function generateDotNet(
   }
 
   // Add query parameters if any
-  const queryParams = endpoint.parameters.filter((p) => p.in === 'query');
+  const queryParams = getQueryParams(endpoint);
   let fullUrl = url;
   if (queryParams.length > 0) {
     const paramParts: string[] = [];
@@ -34,10 +39,10 @@ export function generateDotNet(
       const example = generateParameterExample(p);
       if (Array.isArray(example)) {
         for (const val of example) {
-          paramParts.push(`${p.name}[]=${encodeURIComponent(String(val))}`);
+          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
         }
       } else {
-        paramParts.push(`${p.name}=${encodeURIComponent(String(example))}`);
+        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
       }
     }
     fullUrl = `${url}?${paramParts.join('&')}`;
@@ -66,16 +71,10 @@ export function generateDotNet(
     code += `            "${fullUrl}", content);\n`;
   } else if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
     // Build request body for POST/PUT/PATCH
-    // Используем явные примеры из OpenAPI (example/examples)
     const requestExample = generateRequestExample(endpoint.requestBody);
-    const body =
-      requestExample ||
-      (endpoint.requestBody.content['application/json']?.schema
-        ? generateExample(endpoint.requestBody.content['application/json'].schema)
-        : null);
 
-    if (body) {
-      const jsonBody = JSON.stringify(body, null, 12).replace(/\n/g, '\n            ');
+    if (requestExample) {
+      const jsonBody = JSON.stringify(requestExample, null, 12).replace(/\n/g, '\n            ');
       code += `        var json = @"\n            ${jsonBody}\n            ";\n`;
       code += `        var content = new StringContent(json, Encoding.UTF8, "application/json");\n\n`;
 

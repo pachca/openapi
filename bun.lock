@@ -83,7 +83,6 @@
       "version": "1.0.0",
       "devDependencies": {
         "@pachca/spec": "workspace:*",
-        "yaml": "^2.0.0",
       },
     },
     "sdk/typescript": {

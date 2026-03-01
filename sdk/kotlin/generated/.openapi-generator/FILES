@@ -341,17 +341,3 @@ src/main/kotlin/org/openapitools/client/models/WebhookLink.kt
 src/main/kotlin/org/openapitools/client/models/WebhookMessageThread.kt
 src/main/kotlin/org/openapitools/client/models/WebhookPayloadUnion.kt
 src/main/kotlin/org/openapitools/client/models/java.io.File.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsChatIdTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsChatPermissionTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsChatRenamedTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsDlpTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsInitiatorTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsInviterTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsKmsTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsRoleChangedTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsSearchTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsTagChatTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsTagNameTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsTokenScopesTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditDetailsUserUpdatedTest.kt
-src/test/kotlin/org/openapitools/client/models/AuditEventDetailsUnionTest.kt

@@ -21,7 +21,7 @@ let package = Package(
                 .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession"),
                 .product(name: "HTTPTypes", package: "swift-http-types"),
             ],
-            path: "sdk/swift",
+            path: ".",
             exclude: [
                 "node_modules",
                 "examples",

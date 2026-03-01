@@ -17,8 +17,8 @@
       "cache": true
     },
     "build": {
-      "dependsOn": ["@pachca/spec#generate", "generate-llms"],
-      "outputs": [".next/**", "!.next/cache/**"],
+      "dependsOn": ["generate", "generate-llms"],
+      "outputs": [".next/**", "!.next/cache/**", ".build/**"],
       "cache": true
     },
     "dev": {

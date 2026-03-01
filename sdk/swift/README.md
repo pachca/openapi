@@ -1,6 +1,6 @@
 # Pachca Swift SDK
 
-Swift клиент для Pachca API.
+Swift клиент для [Pachca API](https://dev.pachca.com).
 
 ## Требования
 
@@ -12,7 +12,7 @@ Swift клиент для Pachca API.
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/swift-sdk", from: "1.0.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
 ]
 ```
 
@@ -21,12 +21,38 @@ dependencies: [
 ```swift
 import PachcaSDK
 
-let client = Client(
-    serverURL: URL(string: "https://api.pachca.com/api/v1")!,
-    transport: URLSessionTransport()
-)
+let pachca = try PachcaClient(token)
 
-let users = try await client.getUsers()
+// Список чатов
+let chats = try await pachca.chat.listChats(.init())
+
+// Создание сообщения
+let message = try await pachca.message.createMessage(.init(
+    body: .json(.init(message: .init(
+        entity_type: .init(value1: .discussion),
+        entity_id: chatId,
+        content: "Hello from Swift SDK!"
+    )))
+))
+
+// Реакция
+try await pachca.reaction.addReaction(.init(
+    path: .init(id: messageId),
+    body: .json(.init(code: "👍"))
+))
+
+// Список пользователей
+let users = try await pachca.user.listUsers(.init())
 ```
 
-Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).
+Полное описание параметров: [документация API](https://dev.pachca.com)
+
+## Разработка
+
+Генерация SDK:
+
+```bash
+cd sdk/swift && bun run generate
+```
+
+Это запускает Apple swift-openapi-generator для `Client.swift` + `Types.swift`, затем `generate-client.ts` для фасада `PachcaClient`.

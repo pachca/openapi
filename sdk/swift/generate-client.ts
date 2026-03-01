@@ -1,0 +1,213 @@
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
+
+const CLIENT_PATH = "generated/Sources/Pachca/GeneratedSources/Client.swift";
+const OUT_DIR = "src";
+
+// ── Types ──────────────────────────────────────────────────────
+
+interface OperationMeta {
+  operationId: string;
+  prefix: string;
+  methodName: string;
+  /** Swift return type, "Void" for no-body responses, null for raw Output (302) */
+  returnType: string | null;
+  /** Swift expression to unwrap the response */
+  unwrapExpr: string;
+}
+
+interface GroupMeta {
+  prefix: string;
+  propertyName: string;
+  typeName: string;
+  operations: OperationMeta[];
+}
+
+// ── Parse generated Client.swift ──────────────────────────────
+
+const clientSource = readFileSync(CLIENT_PATH, "utf-8");
+const operations: OperationMeta[] = [];
+
+// Split into per-operation blocks by matching public func signatures
+const funcPattern = /public func (\w+)\(_ input: Operations\.(\w+)\.Input\) async throws -> Operations\.\w+\.Output \{/g;
+const funcMatches = [...clientSource.matchAll(funcPattern)];
+
+for (let i = 0; i < funcMatches.length; i++) {
+  const match = funcMatches[i];
+  const operationId = match[1];
+
+  // Extract the block for this operation (from this match to the next)
+  const blockStart = match.index!;
+  const blockEnd = i + 1 < funcMatches.length ? funcMatches[i + 1].index! : clientSource.length;
+  const block = clientSource.slice(blockStart, blockEnd);
+
+  // Split operationId into prefix and method name
+  const underscoreIdx = operationId.indexOf("_");
+  if (underscoreIdx === -1) {
+    throw new Error(`operationId "${operationId}" does not contain underscore separator`);
+  }
+  const prefix = operationId.slice(0, underscoreIdx);
+  const methodName = operationId.slice(underscoreIdx + 1);
+
+  // Find the first success return pattern
+  const successReturn = block.match(
+    /return \.(ok|created|noContent|found)\(\.init\((.*?)\)\)/
+  );
+  if (!successReturn) {
+    throw new Error(`operationId "${operationId}": could not find success return pattern`);
+  }
+
+  const statusCase = successReturn[1]; // ok | created | noContent | found
+  const initArgs = successReturn[2];   // "body: body" | "headers: headers" | ""
+
+  if (statusCase === "found") {
+    // 302 — return raw Output, skip unwrapping
+    operations.push({
+      operationId, prefix, methodName,
+      returnType: null,
+      unwrapExpr: `try await client.${operationId}(input)`,
+    });
+  } else if (statusCase === "noContent") {
+    // 204 — Void
+    operations.push({
+      operationId, prefix, methodName,
+      returnType: "Void",
+      unwrapExpr: `_ = try await client.${operationId}(input).noContent`,
+    });
+  } else if (initArgs.includes("body: body")) {
+    // 200 or 201 with JSON body — find the deserialized type
+    // Look for getResponseBodyAsJSON call BEFORE this success return
+    const beforeReturn = block.slice(0, block.indexOf(successReturn[0]));
+    const jsonTypeMatch = [...beforeReturn.matchAll(
+      /getResponseBodyAsJSON\(\s*\n?\s*(.+?)\.self,/g
+    )];
+    if (jsonTypeMatch.length === 0) {
+      throw new Error(`operationId "${operationId}": has body but no getResponseBodyAsJSON call found`);
+    }
+    // Take the last match (closest to the success return)
+    const returnType = jsonTypeMatch[jsonTypeMatch.length - 1][1].trim();
+
+    operations.push({
+      operationId, prefix, methodName,
+      returnType,
+      unwrapExpr: `try await client.${operationId}(input).${statusCase}.body.json`,
+    });
+  } else {
+    // 201 with no body (empty .init())
+    operations.push({
+      operationId, prefix, methodName,
+      returnType: "Void",
+      unwrapExpr: `_ = try await client.${operationId}(input).${statusCase}`,
+    });
+  }
+}
+
+if (operations.length === 0) {
+  throw new Error("No operations found in Client.swift");
+}
+
+// ── Group by prefix ────────────────────────────────────────────
+
+function stripOperationsSuffix(prefix: string): string {
+  return prefix.endsWith("Operations") ? prefix.slice(0, -"Operations".length) : prefix;
+}
+
+function toCamelCase(name: string): string {
+  return name.charAt(0).toLowerCase() + name.slice(1);
+}
+
+function toPascalCase(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+const groupMap = new Map<string, GroupMeta>();
+
+for (const op of operations) {
+  if (!groupMap.has(op.prefix)) {
+    const stripped = stripOperationsSuffix(op.prefix);
+    groupMap.set(op.prefix, {
+      prefix: op.prefix,
+      propertyName: toCamelCase(stripped),
+      typeName: `${toPascalCase(stripped)}Group`,
+      operations: [],
+    });
+  }
+  groupMap.get(op.prefix)!.operations.push(op);
+}
+
+const groups = [...groupMap.values()].sort((a, b) => a.propertyName.localeCompare(b.propertyName));
+
+// ── Generate ResourceGroups.swift ──────────────────────────────
+
+function generateResourceGroups(): string {
+  const lines: string[] = [];
+  lines.push("// Auto-generated by generate-client.ts — do not edit manually.");
+  lines.push("");
+
+  for (const group of groups) {
+    lines.push(`// MARK: - ${group.typeName}`);
+    lines.push(`public struct ${group.typeName}: Sendable {`);
+    lines.push("    let client: Client");
+    lines.push("");
+
+    for (const op of group.operations) {
+      const isVoid = op.returnType === "Void";
+      const isRaw = op.returnType === null;
+      const returnType = isRaw ? `Operations.${op.operationId}.Output` : op.returnType;
+      const returnClause = isVoid ? "" : ` -> ${returnType}`;
+
+      lines.push(`    public func ${op.methodName}(_ input: Operations.${op.operationId}.Input) async throws${returnClause} {`);
+      lines.push(`        ${op.unwrapExpr}`);
+      lines.push("    }");
+      lines.push("");
+    }
+
+    lines.push("}");
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+// ── Generate PachcaClient.swift ────────────────────────────────
+
+function generatePachcaClient(): string {
+  const lines: string[] = [];
+  lines.push("// Auto-generated by generate-client.ts — do not edit manually.");
+  lines.push("import Foundation");
+  lines.push("import OpenAPIRuntime");
+  lines.push("import OpenAPIURLSession");
+  lines.push("");
+  lines.push("public final class PachcaClient: @unchecked Sendable {");
+  lines.push("    private let client: Client");
+  lines.push("");
+  lines.push("    public init(_ token: String) throws {");
+  lines.push("        self.client = Client(");
+  lines.push("            serverURL: try Servers.Server1.url(),");
+  lines.push("            configuration: .init(dateTranscoder: .iso8601WithFractionalSeconds),");
+  lines.push("            transport: URLSessionTransport(),");
+  lines.push("            middlewares: [BearerTokenMiddleware(token: token)]");
+  lines.push("        )");
+  lines.push("    }");
+  lines.push("");
+
+  for (const group of groups) {
+    lines.push(`    public var ${group.propertyName}: ${group.typeName} { ${group.typeName}(client: client) }`);
+  }
+
+  lines.push("}");
+  lines.push("");
+
+  return lines.join("\n");
+}
+
+// ── Write files ────────────────────────────────────────────────
+
+mkdirSync(OUT_DIR, { recursive: true });
+
+writeFileSync(`${OUT_DIR}/PachcaClient.swift`, generatePachcaClient());
+writeFileSync(`${OUT_DIR}/ResourceGroups.swift`, generateResourceGroups());
+
+console.log(`Generated ${groups.length} resource groups with ${operations.length} operations`);
+for (const g of groups) {
+  console.log(`  ${g.propertyName} (${g.typeName}): ${g.operations.map((o) => o.methodName).join(", ")}`);
+}

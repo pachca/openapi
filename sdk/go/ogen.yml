@@ -1,0 +1,9 @@
+generator:
+  features:
+    disable:
+      - "paths/server"
+      - "webhooks/server"
+      - "ogen/unimplemented"
+      - "debug/example_tests"
+  ignore_not_implemented: ["all"]
+  convenient_errors: "auto"

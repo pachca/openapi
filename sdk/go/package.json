@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "setup": "go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest",
-    "generate": "mkdir -p generated && $(go env GOPATH)/bin/oapi-codegen -package pachca -generate types,client ../../packages/spec/openapi.yaml > generated/client.go"
+    "setup": "go install github.com/ogen-go/ogen/cmd/ogen@v1.20.0",
+    "generate": "mkdir -p generated && cd generated && $(go env GOPATH)/bin/ogen --target . --package pachca --clean --config ../ogen.yml ../../packages/spec/openapi.yaml && cd .. && bun generate-client.ts && cd generated && go mod tidy"
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*"

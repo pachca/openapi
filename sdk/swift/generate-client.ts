@@ -1,0 +1,232 @@
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { parse } from "yaml";
+
+const SPEC_PATH = "../../packages/spec/openapi.yaml";
+const OUT_DIR = "src";
+
+// ── Types ──────────────────────────────────────────────────────
+
+interface OperationMeta {
+  operationId: string;
+  prefix: string;
+  methodName: string;
+  successCode: number;
+  hasJsonBody: boolean;
+}
+
+interface GroupMeta {
+  prefix: string;
+  propertyName: string;
+  typeName: string;
+  operations: OperationMeta[];
+}
+
+// ── Parse spec ─────────────────────────────────────────────────
+
+const spec = parse(readFileSync(SPEC_PATH, "utf-8"));
+const operations: OperationMeta[] = [];
+
+const HTTP_METHODS = ["get", "post", "put", "delete", "patch"] as const;
+const SUCCESS_CODES = new Set([200, 201, 204, 302]);
+
+for (const [, pathItem] of Object.entries<any>(spec.paths)) {
+  for (const method of HTTP_METHODS) {
+    const op = pathItem[method];
+    if (!op?.operationId) continue;
+
+    const operationId: string = op.operationId;
+    const underscoreIdx = operationId.indexOf("_");
+    if (underscoreIdx === -1) {
+      throw new Error(`operationId "${operationId}" does not contain underscore separator`);
+    }
+
+    const prefix = operationId.slice(0, underscoreIdx);
+    const methodName = operationId.slice(underscoreIdx + 1);
+
+    // Find first success response code
+    const responseCodes = Object.keys(op.responses || {}).map(Number).filter((c) => c >= 200 && c < 400);
+    if (responseCodes.length === 0) {
+      throw new Error(`operationId "${operationId}" has no success response code`);
+    }
+
+    const successCode = Math.min(...responseCodes);
+
+    if (!SUCCESS_CODES.has(successCode)) {
+      throw new Error(
+        `operationId "${operationId}" has unsupported success code ${successCode}. ` +
+          `Supported: ${[...SUCCESS_CODES].join(", ")}`
+      );
+    }
+
+    const responseObj = op.responses[String(successCode)];
+    const hasJsonBody = !!responseObj?.content?.["application/json"];
+
+    operations.push({ operationId, prefix, methodName, successCode, hasJsonBody });
+  }
+}
+
+// ── Group by prefix ────────────────────────────────────────────
+
+function stripOperationsSuffix(prefix: string): string {
+  return prefix.endsWith("Operations") ? prefix.slice(0, -"Operations".length) : prefix;
+}
+
+function toCamelCase(name: string): string {
+  return name.charAt(0).toLowerCase() + name.slice(1);
+}
+
+function toPascalCase(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+const groupMap = new Map<string, GroupMeta>();
+
+for (const op of operations) {
+  if (!groupMap.has(op.prefix)) {
+    const stripped = stripOperationsSuffix(op.prefix);
+    groupMap.set(op.prefix, {
+      prefix: op.prefix,
+      propertyName: toCamelCase(stripped),
+      typeName: `${toPascalCase(stripped)}Group`,
+      operations: [],
+    });
+  }
+  groupMap.get(op.prefix)!.operations.push(op);
+}
+
+const groups = [...groupMap.values()].sort((a, b) => a.propertyName.localeCompare(b.propertyName));
+
+// ── Generate unwrap code ───────────────────────────────────────
+
+function generateMethodSignature(op: OperationMeta): { returnType: string; body: string; isVoid: boolean; isRaw: boolean } {
+  const inputType = `Operations.${op.operationId}.Input`;
+
+  if (op.successCode === 302) {
+    // Skip unwrapping, return raw Output
+    const outputType = `Operations.${op.operationId}.Output`;
+    return {
+      returnType: outputType,
+      body: `try await client.${op.operationId}(input)`,
+      isVoid: false,
+      isRaw: true,
+    };
+  }
+
+  if (op.successCode === 200 && op.hasJsonBody) {
+    const returnType = `Operations.${op.operationId}.Output.Ok.Body.jsonPayload`;
+    return {
+      returnType,
+      body: `try await client.${op.operationId}(input).ok.body.json`,
+      isVoid: false,
+      isRaw: false,
+    };
+  }
+
+  if (op.successCode === 201 && op.hasJsonBody) {
+    const returnType = `Operations.${op.operationId}.Output.Created.Body.jsonPayload`;
+    return {
+      returnType,
+      body: `try await client.${op.operationId}(input).created.body.json`,
+      isVoid: false,
+      isRaw: false,
+    };
+  }
+
+  if (op.successCode === 201 && !op.hasJsonBody) {
+    return {
+      returnType: "Void",
+      body: `_ = try await client.${op.operationId}(input).created`,
+      isVoid: true,
+      isRaw: false,
+    };
+  }
+
+  if (op.successCode === 204) {
+    return {
+      returnType: "Void",
+      body: `_ = try await client.${op.operationId}(input).noContent`,
+      isVoid: true,
+      isRaw: false,
+    };
+  }
+
+  throw new Error(`Unhandled response pattern for ${op.operationId}: code=${op.successCode}, hasJson=${op.hasJsonBody}`);
+}
+
+// ── Generate ResourceGroups.swift ──────────────────────────────
+
+function generateResourceGroups(): string {
+  const lines: string[] = [];
+  lines.push("// Auto-generated by generate-client.ts — do not edit manually.");
+  lines.push("");
+
+  for (const group of groups) {
+    lines.push(`// MARK: - ${group.typeName}`);
+    lines.push(`public struct ${group.typeName}: Sendable {`);
+    lines.push("    let client: Client");
+    lines.push("");
+
+    for (const op of group.operations) {
+      const sig = generateMethodSignature(op);
+      const discardable = sig.isVoid ? "    @discardableResult\n" : "";
+      const returnClause = sig.isVoid ? "" : ` -> ${sig.returnType}`;
+
+      lines.push(`${discardable}    public func ${op.methodName}(_ input: Operations.${op.operationId}.Input) async throws${returnClause} {`);
+      if (sig.isVoid) {
+        lines.push(`        ${sig.body}`);
+      } else {
+        lines.push(`        ${sig.body}`);
+      }
+      lines.push("    }");
+      lines.push("");
+    }
+
+    lines.push("}");
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+// ── Generate PachcaClient.swift ────────────────────────────────
+
+function generatePachcaClient(): string {
+  const lines: string[] = [];
+  lines.push("// Auto-generated by generate-client.ts — do not edit manually.");
+  lines.push("import Foundation");
+  lines.push("import OpenAPIRuntime");
+  lines.push("import OpenAPIURLSession");
+  lines.push("");
+  lines.push("public final class PachcaClient: @unchecked Sendable {");
+  lines.push("    private let client: Client");
+  lines.push("");
+  lines.push("    public init(_ token: String) throws {");
+  lines.push("        self.client = Client(");
+  lines.push("            serverURL: try Servers.Server1.url(),");
+  lines.push("            transport: URLSessionTransport(),");
+  lines.push("            middlewares: [BearerTokenMiddleware(token: token)]");
+  lines.push("        )");
+  lines.push("    }");
+  lines.push("");
+
+  for (const group of groups) {
+    lines.push(`    public var ${group.propertyName}: ${group.typeName} { ${group.typeName}(client: client) }`);
+  }
+
+  lines.push("}");
+  lines.push("");
+
+  return lines.join("\n");
+}
+
+// ── Write files ────────────────────────────────────────────────
+
+mkdirSync(OUT_DIR, { recursive: true });
+
+writeFileSync(`${OUT_DIR}/PachcaClient.swift`, generatePachcaClient());
+writeFileSync(`${OUT_DIR}/ResourceGroups.swift`, generateResourceGroups());
+
+console.log(`Generated ${groups.length} resource groups with ${operations.length} operations`);
+for (const g of groups) {
+  console.log(`  ${g.propertyName} (${g.typeName}): ${g.operations.map((o) => o.methodName).join(", ")}`);
+}

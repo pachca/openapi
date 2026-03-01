@@ -29,7 +29,7 @@ let chats = try await pachca.chat.listChats(.init())
 // Создание сообщения
 let message = try await pachca.message.createMessage(.init(
     body: .json(.init(message: .init(
-        entity_type: .discussion,
+        entity_type: .init(value1: .discussion),
         entity_id: chatId,
         content: "Hello from Swift SDK!"
     )))

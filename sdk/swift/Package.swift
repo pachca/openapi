@@ -22,6 +22,16 @@ let package = Package(
                 .product(name: "HTTPTypes", package: "swift-http-types"),
             ],
             path: ".",
+            exclude: [
+                "node_modules",
+                "examples",
+                "package.json",
+                "generate-client.ts",
+                "README.md",
+                "Package.resolved",
+                "generated/Sources/Pachca/openapi.yaml",
+                "generated/Sources/Pachca/openapi-generator-config.yaml",
+            ],
             sources: ["generated/Sources/Pachca", "src"]
         )
     ]

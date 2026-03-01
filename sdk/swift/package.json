@@ -7,7 +7,6 @@
     "generate": "mkdir -p generated/Sources/Pachca && cp ../../packages/spec/openapi.yaml generated/Sources/Pachca/openapi.yaml && swift package plugin --allow-writing-to-package-directory generate-code-from-openapi --target PachcaSDK && bun generate-client.ts"
   },
   "devDependencies": {
-    "@pachca/spec": "workspace:*",
-    "yaml": "^2.0.0"
+    "@pachca/spec": "workspace:*"
   }
 }

@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { parse } from "yaml";
 
-const SPEC_PATH = "../../packages/spec/openapi.yaml";
+const CLIENT_PATH = "generated/Sources/Pachca/GeneratedSources/Client.swift";
 const OUT_DIR = "src";
 
 // ── Types ──────────────────────────────────────────────────────
@@ -10,8 +9,10 @@ interface OperationMeta {
   operationId: string;
   prefix: string;
   methodName: string;
-  successCode: number;
-  hasJsonBody: boolean;
+  /** Swift return type, "Void" for no-body responses, null for raw Output (302) */
+  returnType: string | null;
+  /** Swift expression to unwrap the response */
+  unwrapExpr: string;
 }
 
 interface GroupMeta {
@@ -21,48 +22,87 @@ interface GroupMeta {
   operations: OperationMeta[];
 }
 
-// ── Parse spec ─────────────────────────────────────────────────
+// ── Parse generated Client.swift ──────────────────────────────
 
-const spec = parse(readFileSync(SPEC_PATH, "utf-8"));
+const clientSource = readFileSync(CLIENT_PATH, "utf-8");
 const operations: OperationMeta[] = [];
 
-const HTTP_METHODS = ["get", "post", "put", "delete", "patch"] as const;
-const SUCCESS_CODES = new Set([200, 201, 204, 302]);
+// Split into per-operation blocks by matching public func signatures
+const funcPattern = /public func (\w+)\(_ input: Operations\.(\w+)\.Input\) async throws -> Operations\.\w+\.Output \{/g;
+const funcMatches = [...clientSource.matchAll(funcPattern)];
 
-for (const [, pathItem] of Object.entries<any>(spec.paths)) {
-  for (const method of HTTP_METHODS) {
-    const op = pathItem[method];
-    if (!op?.operationId) continue;
+for (let i = 0; i < funcMatches.length; i++) {
+  const match = funcMatches[i];
+  const operationId = match[1];
 
-    const operationId: string = op.operationId;
-    const underscoreIdx = operationId.indexOf("_");
-    if (underscoreIdx === -1) {
-      throw new Error(`operationId "${operationId}" does not contain underscore separator`);
-    }
+  // Extract the block for this operation (from this match to the next)
+  const blockStart = match.index!;
+  const blockEnd = i + 1 < funcMatches.length ? funcMatches[i + 1].index! : clientSource.length;
+  const block = clientSource.slice(blockStart, blockEnd);
 
-    const prefix = operationId.slice(0, underscoreIdx);
-    const methodName = operationId.slice(underscoreIdx + 1);
-
-    // Find first success response code
-    const responseCodes = Object.keys(op.responses || {}).map(Number).filter((c) => c >= 200 && c < 400);
-    if (responseCodes.length === 0) {
-      throw new Error(`operationId "${operationId}" has no success response code`);
-    }
-
-    const successCode = Math.min(...responseCodes);
-
-    if (!SUCCESS_CODES.has(successCode)) {
-      throw new Error(
-        `operationId "${operationId}" has unsupported success code ${successCode}. ` +
-          `Supported: ${[...SUCCESS_CODES].join(", ")}`
-      );
-    }
-
-    const responseObj = op.responses[String(successCode)];
-    const hasJsonBody = !!responseObj?.content?.["application/json"];
-
-    operations.push({ operationId, prefix, methodName, successCode, hasJsonBody });
+  // Split operationId into prefix and method name
+  const underscoreIdx = operationId.indexOf("_");
+  if (underscoreIdx === -1) {
+    throw new Error(`operationId "${operationId}" does not contain underscore separator`);
   }
+  const prefix = operationId.slice(0, underscoreIdx);
+  const methodName = operationId.slice(underscoreIdx + 1);
+
+  // Find the first success return pattern
+  const successReturn = block.match(
+    /return \.(ok|created|noContent|found)\(\.init\((.*?)\)\)/
+  );
+  if (!successReturn) {
+    throw new Error(`operationId "${operationId}": could not find success return pattern`);
+  }
+
+  const statusCase = successReturn[1]; // ok | created | noContent | found
+  const initArgs = successReturn[2];   // "body: body" | "headers: headers" | ""
+
+  if (statusCase === "found") {
+    // 302 — return raw Output, skip unwrapping
+    operations.push({
+      operationId, prefix, methodName,
+      returnType: null,
+      unwrapExpr: `try await client.${operationId}(input)`,
+    });
+  } else if (statusCase === "noContent") {
+    // 204 — Void
+    operations.push({
+      operationId, prefix, methodName,
+      returnType: "Void",
+      unwrapExpr: `_ = try await client.${operationId}(input).noContent`,
+    });
+  } else if (initArgs.includes("body: body")) {
+    // 200 or 201 with JSON body — find the deserialized type
+    // Look for getResponseBodyAsJSON call BEFORE this success return
+    const beforeReturn = block.slice(0, block.indexOf(successReturn[0]));
+    const jsonTypeMatch = [...beforeReturn.matchAll(
+      /getResponseBodyAsJSON\(\s*\n?\s*(.+?)\.self,/g
+    )];
+    if (jsonTypeMatch.length === 0) {
+      throw new Error(`operationId "${operationId}": has body but no getResponseBodyAsJSON call found`);
+    }
+    // Take the last match (closest to the success return)
+    const returnType = jsonTypeMatch[jsonTypeMatch.length - 1][1].trim();
+
+    operations.push({
+      operationId, prefix, methodName,
+      returnType,
+      unwrapExpr: `try await client.${operationId}(input).${statusCase}.body.json`,
+    });
+  } else {
+    // 201 with no body (empty .init())
+    operations.push({
+      operationId, prefix, methodName,
+      returnType: "Void",
+      unwrapExpr: `_ = try await client.${operationId}(input).${statusCase}`,
+    });
+  }
+}
+
+if (operations.length === 0) {
+  throw new Error("No operations found in Client.swift");
 }
 
 // ── Group by prefix ────────────────────────────────────────────
@@ -96,63 +136,6 @@ for (const op of operations) {
 
 const groups = [...groupMap.values()].sort((a, b) => a.propertyName.localeCompare(b.propertyName));
 
-// ── Generate unwrap code ───────────────────────────────────────
-
-function generateMethodSignature(op: OperationMeta): { returnType: string; body: string; isVoid: boolean; isRaw: boolean } {
-  const inputType = `Operations.${op.operationId}.Input`;
-
-  if (op.successCode === 302) {
-    // Skip unwrapping, return raw Output
-    const outputType = `Operations.${op.operationId}.Output`;
-    return {
-      returnType: outputType,
-      body: `try await client.${op.operationId}(input)`,
-      isVoid: false,
-      isRaw: true,
-    };
-  }
-
-  if (op.successCode === 200 && op.hasJsonBody) {
-    const returnType = `Operations.${op.operationId}.Output.Ok.Body.jsonPayload`;
-    return {
-      returnType,
-      body: `try await client.${op.operationId}(input).ok.body.json`,
-      isVoid: false,
-      isRaw: false,
-    };
-  }
-
-  if (op.successCode === 201 && op.hasJsonBody) {
-    const returnType = `Operations.${op.operationId}.Output.Created.Body.jsonPayload`;
-    return {
-      returnType,
-      body: `try await client.${op.operationId}(input).created.body.json`,
-      isVoid: false,
-      isRaw: false,
-    };
-  }
-
-  if (op.successCode === 201 && !op.hasJsonBody) {
-    return {
-      returnType: "Void",
-      body: `_ = try await client.${op.operationId}(input).created`,
-      isVoid: true,
-      isRaw: false,
-    };
-  }
-
-  if (op.successCode === 204) {
-    return {
-      returnType: "Void",
-      body: `_ = try await client.${op.operationId}(input).noContent`,
-      isVoid: true,
-      isRaw: false,
-    };
-  }
-
-  throw new Error(`Unhandled response pattern for ${op.operationId}: code=${op.successCode}, hasJson=${op.hasJsonBody}`);
-}
-
 // ── Generate ResourceGroups.swift ──────────────────────────────
 
 function generateResourceGroups(): string {
@@ -167,16 +150,13 @@ function generateResourceGroups(): string {
     lines.push("");
 
     for (const op of group.operations) {
-      const sig = generateMethodSignature(op);
-      const discardable = sig.isVoid ? "    @discardableResult\n" : "";
-      const returnClause = sig.isVoid ? "" : ` -> ${sig.returnType}`;
+      const isVoid = op.returnType === "Void";
+      const isRaw = op.returnType === null;
+      const returnType = isRaw ? `Operations.${op.operationId}.Output` : op.returnType;
+      const returnClause = isVoid ? "" : ` -> ${returnType}`;
 
-      lines.push(`${discardable}    public func ${op.methodName}(_ input: Operations.${op.operationId}.Input) async throws${returnClause} {`);
-      if (sig.isVoid) {
-        lines.push(`        ${sig.body}`);
-      } else {
-        lines.push(`        ${sig.body}`);
-      }
+      lines.push(`    public func ${op.methodName}(_ input: Operations.${op.operationId}.Input) async throws${returnClause} {`);
+      lines.push(`        ${op.unwrapExpr}`);
       lines.push("    }");
       lines.push("");
     }

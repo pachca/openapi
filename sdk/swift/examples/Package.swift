@@ -11,7 +11,7 @@ let package = Package(
         .executableTarget(
             name: "PachcaExamples",
             dependencies: [
-                .product(name: "PachcaSDK", package: "PachcaSDK"),
+                .product(name: "PachcaSDK", package: "swift"),
             ],
             path: "Sources"
         )

@@ -18,7 +18,7 @@ for chat in chatsResult.data {
 let chatId = chatsResult.data.first!.id
 let messageResult = try await pachca.message.createMessage(.init(
     body: .json(.init(message: .init(
-        entity_type: .discussion,
+        entity_type: .init(value1: .discussion),
         entity_id: chatId,
         content: "Hello from Swift SDK!"
     )))
@@ -26,7 +26,7 @@ let messageResult = try await pachca.message.createMessage(.init(
 print("Sent message #\(messageResult.data.id)")
 
 // Add a reaction
-try await pachca.reaction.addReaction(.init(
+_ = try await pachca.reaction.addReaction(.init(
     path: .init(id: messageResult.data.id),
     body: .json(.init(code: "👍"))
 ))

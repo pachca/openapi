@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "go install github.com/ogen-go/ogen/cmd/ogen@v1.20.0",
-    "generate": "mkdir -p generated && cd generated && $(go env GOPATH)/bin/ogen --target . --package pachca --clean --config ../ogen.yml ../../../packages/spec/openapi.yaml && cd .. && bun generate-client.ts && cd generated && go mod tidy"
+    "generate": "mkdir -p generated && cd generated && $(go env GOPATH)/bin/ogen --target . --package pachca --clean --config ../ogen.yml ../../../packages/spec/openapi.yaml && cd .. && bun generate-client.ts && cd generated && go mod tidy && go build ./..."
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*"

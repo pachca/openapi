@@ -961,7 +961,7 @@ model Message {
   files: File[];
   
   @doc("Массив строк, каждая из которых представлена массивом кнопок")
-  buttons: Button[][];
+  buttons: Button[][] | null;
   
   @doc("Тред сообщения")
   thread: Thread | null;

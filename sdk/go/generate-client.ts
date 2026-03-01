@@ -65,11 +65,14 @@ while ((match = methodRe.exec(clientSrc)) !== null) {
   }
 
   // Parse return type (first element before ", error")
+  // Handle both unnamed "SomeType, error" and named "res SomeType, err error"
   let returnType: string | null = null;
   if (retStr) {
     const parts = retStr.split(",").map((s) => s.trim());
     if (parts[0] && parts[0] !== "error") {
-      returnType = parts[0];
+      // Strip named return variable (e.g. "res SomeType" → "SomeType")
+      const retTokens = parts[0].split(/\s+/);
+      returnType = retTokens.length > 1 ? retTokens.slice(1).join(" ") : retTokens[0];
     }
   }
 
@@ -357,12 +360,6 @@ for (const [group, groupMethods] of groups) {
 // 6. Manual methods: UploadFile and DownloadExport
 // ─────────────────────────────────────────────────
 
-// Find the return type of UploadOperationsGetUploadParams to reference it
-const uploadParamsMethod = methods.find(
-  (m) => m.fullName === "UploadOperationsGetUploadParams"
-);
-const uploadParamsReturnType = uploadParamsMethod?.returnType || "*UploadOperationsGetUploadParamsCreated";
-
 w("");
 w("// UploadFile uploads a file to S3 using params from GetUploadParams.");
 w("// This handles step 2 of the 3-step upload flow:");
@@ -370,29 +367,29 @@ w("//   1. Call Uploads.GetUploadParams() to get signing params and direct_url")
 w("//   2. Call Uploads.UploadFile() with those params (this method)");
 w("//   3. Use the key to attach the file to a message or other entity");
 w(
-  `func (s *UploadsService) UploadFile(ctx context.Context, directURL string, uploadParams ${uploadParamsReturnType}, file io.Reader, filename string) error {`
+  "func (s *UploadsService) UploadFile(ctx context.Context, uploadParams *UploadParams, file io.Reader, filename string) error {"
 );
 w("\tvar body bytes.Buffer");
 w("\twriter := multipart.NewWriter(&body)");
 w("");
 w(
-  '\tkey := strings.Replace(uploadParams.Data.Key, "${filename}", filename, 1)'
+  '\tkey := strings.Replace(uploadParams.Key, "${filename}", filename, 1)'
 );
 w("");
 w(
-  '\t_ = writer.WriteField("Content-Disposition", uploadParams.Data.ContentDisposition)'
+  '\t_ = writer.WriteField("Content-Disposition", uploadParams.ContentMinusDisposition)'
 );
-w('\t_ = writer.WriteField("acl", uploadParams.Data.Acl)');
-w('\t_ = writer.WriteField("policy", uploadParams.Data.Policy)');
+w('\t_ = writer.WriteField("acl", uploadParams.ACL)');
+w('\t_ = writer.WriteField("policy", uploadParams.Policy)');
 w(
-  '\t_ = writer.WriteField("x-amz-credential", uploadParams.Data.XAmzCredential)'
+  '\t_ = writer.WriteField("x-amz-credential", uploadParams.XMinusAmzMinusCredential)'
 );
 w(
-  '\t_ = writer.WriteField("x-amz-algorithm", uploadParams.Data.XAmzAlgorithm)'
+  '\t_ = writer.WriteField("x-amz-algorithm", uploadParams.XMinusAmzMinusAlgorithm)'
 );
-w('\t_ = writer.WriteField("x-amz-date", uploadParams.Data.XAmzDate)');
+w('\t_ = writer.WriteField("x-amz-date", uploadParams.XMinusAmzMinusDate)');
 w(
-  '\t_ = writer.WriteField("x-amz-signature", uploadParams.Data.XAmzSignature)'
+  '\t_ = writer.WriteField("x-amz-signature", uploadParams.XMinusAmzMinusSignature)'
 );
 w('\t_ = writer.WriteField("key", key)');
 w("");
@@ -408,7 +405,7 @@ w("\t\treturn err");
 w("\t}");
 w("");
 w(
-  '\treq, err := http.NewRequestWithContext(ctx, "POST", directURL, &body)'
+  '\treq, err := http.NewRequestWithContext(ctx, "POST", uploadParams.DirectURL, &body)'
 );
 w("\tif err != nil {");
 w("\t\treturn err");

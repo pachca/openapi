@@ -1,4 +1,7 @@
-// Echo bot example demonstrating the Pachca Go SDK.
+// Echo bot example demonstrating the Pachca Go SDK (ogen).
+//
+// Runs 8 steps that exercise the core API patterns:
+// create, read, nested resource, idempotent POST, thread reply, pin, update, unpin.
 //
 // Usage:
 //
@@ -11,6 +14,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	pachca "github.com/pachca/openapi/sdk/go/generated"
 )
@@ -35,58 +39,95 @@ func main() {
 
 	ctx := context.Background()
 
-	// POST: Create a message
-	fmt.Println("Creating message...")
-	created, err := client.Messages.CreateMessage(ctx, &pachca.MessageOperationsCreateMessageReq{
-		Message: pachca.MessageOperationsCreateMessageReqMessage{
-			EntityType: "discussion",
+	// ── Step 1: POST — Create a message ──────────────────────────────
+	fmt.Println("1. Creating message...")
+	createRes, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
+		Message: pachca.MessageCreateRequestMessage{
+			EntityType: pachca.NewOptMessageEntityType(pachca.MessageEntityTypeDiscussion),
 			EntityID:   int32(chatID),
-			Content:    "Hello from ogen SDK!",
+			Content:    "SDK test Go 🚀",
 		},
 	})
 	if err != nil {
 		log.Fatalf("CreateMessage failed: %v", err)
 	}
-	fmt.Printf("Created message ID: %d\n", created.Data.ID)
+	created := createRes.(*pachca.MessageOperationsCreateMessageCreated)
+	msgID := created.Data.ID
+	fmt.Printf("   Created message ID: %d\n", msgID)
 
-	// GET: Read the message back
-	fmt.Println("Reading message...")
-	msg, err := client.Messages.GetMessage(ctx, created.Data.ID)
+	// ── Step 2: GET — Read the message back ──────────────────────────
+	fmt.Println("2. Reading message...")
+	getRes, err := client.Messages.GetMessage(ctx, msgID)
 	if err != nil {
 		log.Fatalf("GetMessage failed: %v", err)
 	}
-	fmt.Printf("Got message: %s\n", msg.Data.Content)
+	msg := getRes.(*pachca.MessageOperationsGetMessageOK)
+	fmt.Printf("   Got message: %q\n", msg.Data.Content)
 
-	// POST: Add a reaction
-	fmt.Println("Adding reaction...")
-	_, err = client.Reactions.AddReaction(ctx, &pachca.ReactionOperationsAddReactionReq{
-		MessageID: created.Data.ID,
-		Code:      "👍",
-	})
+	// ── Step 3: POST — Add a reaction (nested resource) ──────────────
+	fmt.Println("3. Adding reaction...")
+	_, err = client.Reactions.AddReaction(ctx, &pachca.ReactionRequest{
+		Code: "👀",
+	}, msgID)
 	if err != nil {
 		log.Fatalf("AddReaction failed: %v", err)
 	}
-	fmt.Println("Added reaction 👍")
+	fmt.Println("   Added reaction 👀")
 
-	// PUT: Update the message
-	fmt.Println("Updating message...")
-	_, err = client.Messages.UpdateMessage(ctx, created.Data.ID, &pachca.MessageOperationsUpdateMessageReq{
-		Message: pachca.MessageOperationsUpdateMessageReqMessage{
-			Content: "Updated from ogen SDK!",
+	// ── Step 4: POST — Create a thread (idempotent) ──────────────────
+	fmt.Println("4. Creating thread...")
+	threadRes, err := client.Threads.CreateThread(ctx, msgID)
+	if err != nil {
+		log.Fatalf("CreateThread failed: %v", err)
+	}
+	thread := threadRes.(*pachca.ThreadOperationsCreateThreadCreated)
+	fmt.Printf("   Thread ID: %d\n", thread.Data.ID)
+
+	// ── Step 5: POST — Reply inside the thread ───────────────────────
+	fmt.Println("5. Replying in thread...")
+	replyRes, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
+		Message: pachca.MessageCreateRequestMessage{
+			EntityType: pachca.NewOptMessageEntityType(pachca.MessageEntityTypeThread),
+			EntityID:   int32(thread.Data.ID),
+			Content:    fmt.Sprintf("Echo: %s", msg.Data.Content),
 		},
 	})
 	if err != nil {
+		log.Fatalf("CreateMessage (thread reply) failed: %v", err)
+	}
+	reply := replyRes.(*pachca.MessageOperationsCreateMessageCreated)
+	replyID := reply.Data.ID
+	fmt.Printf("   Reply ID: %d\n", replyID)
+
+	// ── Step 6: POST — Pin the original message ──────────────────────
+	fmt.Println("6. Pinning message...")
+	_, err = client.Messages.PinMessage(ctx, msgID)
+	if err != nil {
+		log.Fatalf("PinMessage failed: %v", err)
+	}
+	fmt.Println("   Pinned")
+
+	// ── Step 7: PUT — Edit the reply ─────────────────────────────────
+	fmt.Println("7. Updating reply...")
+	_, err = client.Messages.UpdateMessage(ctx, &pachca.MessageUpdateRequest{
+		Message: pachca.MessageUpdateRequestMessage{
+			Content: pachca.NewOptString(
+				fmt.Sprintf("%s (processed at %s)", reply.Data.Content, time.Now().Format(time.RFC3339)),
+			),
+		},
+	}, replyID)
+	if err != nil {
 		log.Fatalf("UpdateMessage failed: %v", err)
 	}
-	fmt.Println("Updated message")
+	fmt.Println("   Updated")
 
-	// DELETE: Delete the message
-	fmt.Println("Deleting message...")
-	err = client.Messages.DeleteMessage(ctx, created.Data.ID)
+	// ── Step 8: DELETE — Unpin the original message ──────────────────
+	fmt.Println("8. Unpinning message...")
+	_, err = client.Messages.UnpinMessage(ctx, msgID)
 	if err != nil {
-		log.Fatalf("DeleteMessage failed: %v", err)
+		log.Fatalf("UnpinMessage failed: %v", err)
 	}
-	fmt.Println("Deleted message")
+	fmt.Println("   Unpinned")
 
-	fmt.Println("Done!")
+	fmt.Println("\nDone! All 8 steps completed.")
 }

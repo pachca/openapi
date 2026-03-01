@@ -2,6 +2,12 @@ import Foundation
 import HTTPTypes
 import OpenAPIRuntime
 
+extension ISO8601DateTranscoder {
+    static let iso8601WithFractionalSeconds = ISO8601DateTranscoder(
+        options: [.withInternetDateTime, .withFractionalSeconds]
+    )
+}
+
 public struct BearerTokenMiddleware: ClientMiddleware, Sendable {
     private let headerValue: String
 

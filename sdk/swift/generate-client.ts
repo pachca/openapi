@@ -183,6 +183,7 @@ function generatePachcaClient(): string {
   lines.push("    public init(_ token: String) throws {");
   lines.push("        self.client = Client(");
   lines.push("            serverURL: try Servers.Server1.url(),");
+  lines.push("            configuration: .init(dateTranscoder: .iso8601WithFractionalSeconds),");
   lines.push("            transport: URLSessionTransport(),");
   lines.push("            middlewares: [BearerTokenMiddleware(token: token)]");
   lines.push("        )");

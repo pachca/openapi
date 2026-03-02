@@ -32,19 +32,6 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 > Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.
 
-### Обновить Webhook URL бота
-
-1. PUT /bots/{id} с новым `outgoing_url` — `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
-
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"bot":{"webhook":{"outgoing_url":"https://example.com/webhook"}}}'
-```
-
-> Обновлять настройки может только тот, кому разрешено редактирование бота (поле «Кто может редактировать настройки бота» во вкладке «Основное»).
-
 ### Обработать входящий вебхук-событие
 
 1. Получи POST-запрос на свой Webhook URL
@@ -111,7 +98,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
 
 ## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
+- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
 - `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
 

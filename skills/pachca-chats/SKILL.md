@@ -20,7 +20,6 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 - отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
 - найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
-- полнотекстовый поиск чатов по названию с фильтрами → **pachca-search**
 
 ## Пошаговые сценарии
 
@@ -46,19 +45,6 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 3. Изменить роль участника: PUT /chats/{id}/members/{user_id} с `role` (`"admin"` | `"member"`; `"editor"` — только для каналов). Роль создателя чата изменить нельзя.
 4. Удалить участника: DELETE /chats/{id}/members/{user_id}
 5. Покинуть чат: DELETE /chats/{id}/leave
-
-### Переименовать или обновить чат
-
-1. PUT /chats/{id} с нужными параметрами: `name` (название) и/или `public` (открытый доступ)
-
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"chat":{"name":"Новое название канала","public":true}}'
-```
-
-> Доступные для обновления поля: `name`, `public`. Для изменения состава участников используй POST/DELETE /chats/{id}/members.
 
 ### Создать проектную беседу из шаблона
 
@@ -118,7 +104,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 ## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
+- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
 - `role`: допустимые значения — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
 - `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based

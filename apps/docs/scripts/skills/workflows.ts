@@ -625,13 +625,13 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
         'Доступные типы событий: входы, изменения прав, действия с чатами и т.д.',
       ],
       notes: 'Доступно только владельцу пространства.',
-      curl: `curl "https://api.pachca.com/api/shared/v1/audit_events?created_at[from]=$DATE_FROM&created_at[to]=$DATE_TO&limit=50" \\
+      curl: `curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=$DATE_FROM&end_time=$DATE_TO&limit=50" \\
   -H "Authorization: Bearer $TOKEN"`,
     },
     {
       title: 'Мониторинг подозрительных входов',
       steps: [
-        'GET /audit_events с фильтром `"event_key": "user_2fa_fail"` (или `"user_signed_in"`) за нужный период',
+        'GET /audit_events с фильтром `"event_key": "user_2fa_fail"` (или `"user_login"`) за нужный период',
         'Пагинируй с `cursor` до получения всех записей',
         'Если найдены аномалии (много неудачных 2FA с одного аккаунта) — отправь уведомление администратору через POST /messages',
       ],
@@ -641,7 +641,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     {
       title: 'Экспорт логов за период',
       steps: [
-        'GET /audit_events с параметрами `created_at[from]` и `created_at[to]` (ISO 8601)',
+        'GET /audit_events с параметрами `start_time` и `end_time` (ISO 8601)',
         'Пагинируй с `cursor` до получения всех записей (`limit` до 50)',
         'Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)',
       ],

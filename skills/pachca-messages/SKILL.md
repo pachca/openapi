@@ -6,6 +6,7 @@ description: >
   отправить сообщение, ответить в тред, прикрепить файл, добавить реакцию,
   получить историю чата, закрепить сообщение. НЕ используй для: создания каналов
   (→ pachca-chats), управления ботами (→ pachca-bots).
+allowed-tools: Bash(curl *)
 ---
 
 # pachca-messages
@@ -15,35 +16,12 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
 Если токен неизвестен — спроси у пользователя перед выполнением запросов.
 
-## Когда использовать
-
-- отправить сообщение
-- ответить в тред
-- прикрепить файл
-- загрузить файл
-- вложения сообщения
-- добавить реакцию
-- история сообщений
-- закрепить сообщение
-- редактировать сообщение
-- удалить сообщение
-- подписаться на тред
-- разослать уведомление
-- упомянуть пользователя
-- кнопки
-- прочтения
-- личное сообщение
-
 ## Когда НЕ использовать
 
-- получить профиль, мой профиль, установить статус → **pachca-profile**
-- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
 - создать канал, создать беседу, создать чат → **pachca-chats**
 - настроить бота, вебхук, webhook → **pachca-bots**
 - показать форму, интерактивная форма, модальное окно → **pachca-forms**
-- создать задачу, список задач, напоминание → **pachca-tasks**
-- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
-- аудит, журнал событий, безопасность → **pachca-security**
+- найти сообщение по тексту, полнотекстовый поиск → **pachca-search**
 
 ## Пошаговые сценарии
 
@@ -288,134 +266,34 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 
 > Соблюдай rate limit: ~4 req/sec для сообщений. Добавляй паузы при большом списке.
 
-## Обработка ошибок
-
-| Код | Причина | Что делать |
-|-----|---------|------------|
-| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
-| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
-| 404 | Не найдено | Неверный id. Проверь что сущность существует |
-| 401 | Не авторизован | Проверь токен в заголовке Authorization |
-
-## Доступные операции
-
-### Загрузка файла
-
-`POST /direct_url`
-
-### Новое сообщение
-
-`POST /messages`
-
-> скоуп: `messages:create`
-
-```json
-{
-  "message": {
-    "entity_id": 334,
-    "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)"
-  }
-}
-```
-
-### Список сообщений чата
-
-`GET /messages`
-
-> скоуп: `messages:read`
-
-### Информация о сообщении
-
-`GET /messages/{id}`
-
-> скоуп: `messages:read`
-
-### Редактирование сообщения
-
-`PUT /messages/{id}`
-
-> скоуп: `messages:update`
-
-```json
-{
-  "message": {}
-}
-```
-
-### Удаление сообщения
-
-`DELETE /messages/{id}`
-
-> скоуп: `messages:delete`
-
-### Закрепление сообщения
-
-`POST /messages/{id}/pin`
-
-> скоуп: `pins:write`
-
-### Открепление сообщения
-
-`DELETE /messages/{id}/pin`
-
-> скоуп: `pins:write`
-
-### Добавление реакции
-
-`POST /messages/{id}/reactions`
-
-> скоуп: `reactions:write`
-
-```json
-{
-  "code": "👍"
-}
-```
-
-### Удаление реакции
-
-`DELETE /messages/{id}/reactions`
-
-> скоуп: `reactions:write`
-
-### Список реакций
-
-`GET /messages/{id}/reactions`
-
-> скоуп: `reactions:read`
-
-### Список прочитавших сообщение
-
-`GET /messages/{id}/read_member_ids`
-
-> скоуп: `messages:read`
-
-### Новый тред
-
-`POST /messages/{id}/thread`
-
-> скоуп: `threads:create`
-
-### Информация о треде
-
-`GET /threads/{id}`
-
-> скоуп: `threads:read`
-
-### Получение подписи, ключа и других параметров
-
-`POST /uploads`
-
-> скоуп: `uploads:write`
-
 ## Ограничения и gotchas
 
+- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
 - `message.entity_type`: допустимые значения — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
 - `message.display_avatar_url`: максимум 255 символов
 - `message.display_name`: максимум 255 символов
 - `limit`: максимум — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
+
+## Эндпоинты
+
+| Метод | Путь | Скоуп |
+|-------|------|-------|
+| POST | /direct_url | — |
+| POST | /messages | messages:create |
+| GET | /messages | messages:read |
+| GET | /messages/{id} | messages:read |
+| PUT | /messages/{id} | messages:update |
+| DELETE | /messages/{id} | messages:delete |
+| POST | /messages/{id}/pin | pins:write |
+| DELETE | /messages/{id}/pin | pins:write |
+| POST | /messages/{id}/reactions | reactions:write |
+| DELETE | /messages/{id}/reactions | reactions:write |
+| GET | /messages/{id}/reactions | reactions:read |
+| GET | /messages/{id}/read_member_ids | messages:read |
+| POST | /messages/{id}/thread | threads:create |
+| GET | /threads/{id} | threads:read |
+| POST | /uploads | uploads:write |
 
 ## Подробнее
 

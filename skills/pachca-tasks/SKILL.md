@@ -3,6 +3,7 @@ name: pachca-tasks
 description: >
   Создание, получение, обновление и удаление задач (напоминаний). Используй когда
   нужно: создать задачу, получить список задач, обновить задачу, удалить задачу.
+allowed-tools: Bash(curl *)
 ---
 
 # pachca-tasks
@@ -11,27 +12,6 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
 Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
 Если токен неизвестен — спроси у пользователя перед выполнением запросов.
-
-## Когда использовать
-
-- создать задачу
-- список задач
-- напоминание
-- обновить задачу
-- отметить задачу выполненной
-- удалить задачу
-- кастомные поля задачи
-
-## Когда НЕ использовать
-
-- получить профиль, мой профиль, установить статус → **pachca-profile**
-- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
-- создать канал, создать беседу, создать чат → **pachca-chats**
-- отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
-- настроить бота, вебхук, webhook → **pachca-bots**
-- показать форму, интерактивная форма, модальное окно → **pachca-forms**
-- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
-- аудит, журнал событий, безопасность → **pachca-security**
 
 ## Пошаговые сценарии
 
@@ -62,6 +42,16 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=50" \
 
 > Фильтрация по `status` на стороне API не поддерживается — фильтруй самостоятельно после получения.
 
+### Получить задачу по ID
+
+1. GET /tasks/{id} — полная информация о задаче, включая `custom_properties`, `performer_ids`, `status`
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":12345,"kind":"reminder","content":"Позвонить клиенту","due_at":"2025-03-10T12:00:00.000Z","status":"undone","performer_ids":[186],...}}
+```
+
 ### Отметить задачу выполненной
 
 1. PUT /tasks/{id} с `"status": "done"`
@@ -73,73 +63,52 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
   -d '{"task":{"status":"done"}}'
 ```
 
+### Обновить задачу (перенести срок, сменить ответственных)
+
+1. PUT /tasks/{id} с нужными полями: `content`, `due_at`, `kind`, `priority`, `performer_ids`, `custom_properties`
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task":{"due_at":"2025-03-15T14:00:00.000+03:00","priority":2,"performer_ids":[186,187]}}'
+```
+
+> Можно обновлять любые поля по отдельности. `performer_ids` заменяет весь список ответственных. `priority`: 1 (обычный), 2 (важно), 3 (очень важно).
+
+### Удалить задачу
+
+1. DELETE /tasks/{id}
+
+```bash
+curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> Удаление необратимо. Если нужно просто закрыть — используй PUT с `"status": "done"`.
+
 ### Создать серию напоминаний
 
 1. Подготовь список дат (ежедневно, еженедельно и т.д.)
 2. Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`
 
-## Обработка ошибок
-
-| Код | Причина | Что делать |
-|-----|---------|------------|
-| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
-| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
-| 404 | Не найдено | Неверный id. Проверь что сущность существует |
-| 401 | Не авторизован | Проверь токен в заголовке Authorization |
-
-## Доступные операции
-
-### Новое напоминание
-
-`POST /tasks`
-
-> скоуп: `tasks:create`
-
-```json
-{
-  "task": {
-    "kind": "reminder"
-  }
-}
-```
-
-### Список напоминаний
-
-`GET /tasks`
-
-> скоуп: `tasks:read`
-
-### Информация о напоминании
-
-`GET /tasks/{id}`
-
-> скоуп: `tasks:read`
-
-### Редактирование напоминания
-
-`PUT /tasks/{id}`
-
-> скоуп: `tasks:update`
-
-```json
-{
-  "task": {}
-}
-```
-
-### Удаление напоминания
-
-`DELETE /tasks/{id}`
-
-> скоуп: `tasks:delete`
-
 ## Ограничения и gotchas
 
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `task.kind`: допустимые значения — `call` (Позвонить контакту), `meeting` (Встреча), `reminder` (Простое напоминание), `event` (Событие), `email` (Написать письмо)
 - `task.status`: допустимые значения — `done` (Выполнено), `undone` (Активно)
 - `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
+
+## Эндпоинты
+
+| Метод | Путь | Скоуп |
+|-------|------|-------|
+| POST | /tasks | tasks:create |
+| GET | /tasks | tasks:read |
+| GET | /tasks/{id} | tasks:read |
+| PUT | /tasks/{id} | tasks:update |
+| DELETE | /tasks/{id} | tasks:delete |
 
 ## Подробнее
 

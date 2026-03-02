@@ -6,6 +6,7 @@ description: >
   Используй когда нужно: создать канал, добавить участника, архивировать чат,
   найти активные/неактивные чаты, экспорт сообщений. НЕ используй для: отправки
   сообщений (→ pachca-messages).
+allowed-tools: Bash(curl *)
 ---
 
 # pachca-chats
@@ -15,30 +16,10 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
 Если токен неизвестен — спроси у пользователя перед выполнением запросов.
 
-## Когда использовать
-
-- создать канал
-- создать беседу
-- создать чат
-- добавить участника
-- удалить участника
-- архивировать чат
-- роли участников
-- экспорт сообщений
-- список чатов
-- активные чаты
-- неактивные чаты
-
 ## Когда НЕ использовать
 
-- получить профиль, мой профиль, установить статус → **pachca-profile**
-- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
 - отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
-- настроить бота, вебхук, webhook → **pachca-bots**
-- показать форму, интерактивная форма, модальное окно → **pachca-forms**
-- создать задачу, список задач, напоминание → **pachca-tasks**
-- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
-- аудит, журнал событий, безопасность → **pachca-security**
+- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
 
 ## Пошаговые сценарии
 
@@ -121,159 +102,32 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 
 > Проверяй `"channel": false` — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.
 
-## Обработка ошибок
-
-| Код | Причина | Что делать |
-|-----|---------|------------|
-| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
-| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
-| 404 | Не найдено | Неверный id. Проверь что сущность существует |
-| 401 | Не авторизован | Проверь токен в заголовке Authorization |
-
-## Доступные операции
-
-### Новый чат
-
-`POST /chats`
-
-> скоуп: `chats:create`
-
-```json
-{
-  "chat": {
-    "name": "🤿 aqua"
-  }
-}
-```
-
-### Список чатов
-
-`GET /chats`
-
-> скоуп: `chats:read`
-
-### Экспорт сообщений
-
-`POST /chats/exports`
-
-> скоуп: `chat_exports:write` · тариф: **Корпорация**
-
-```json
-{
-  "start_at": "2025-03-20",
-  "end_at": "2025-03-20",
-  "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2"
-}
-```
-
-### Скачать архив экспорта
-
-`GET /chats/exports/{id}`
-
-> скоуп: `chat_exports:read` · тариф: **Корпорация**
-
-### Информация о чате
-
-`GET /chats/{id}`
-
-> скоуп: `chats:read`
-
-### Обновление чата
-
-`PUT /chats/{id}`
-
-> скоуп: `chats:update`
-
-```json
-{
-  "chat": {}
-}
-```
-
-### Архивация чата
-
-`PUT /chats/{id}/archive`
-
-> скоуп: `chats:archive`
-
-### Добавление тегов
-
-`POST /chats/{id}/group_tags`
-
-> скоуп: `chat_members:write`
-
-```json
-{
-  "group_tag_ids": [
-    86,
-    18
-  ]
-}
-```
-
-### Исключение тега
-
-`DELETE /chats/{id}/group_tags/{tag_id}`
-
-> скоуп: `chat_members:write`
-
-### Выход из беседы или канала
-
-`DELETE /chats/{id}/leave`
-
-> скоуп: `chats:leave`
-
-### Список участников чата
-
-`GET /chats/{id}/members`
-
-> скоуп: `chat_members:read`
-
-### Добавление пользователей
-
-`POST /chats/{id}/members`
-
-> скоуп: `chat_members:write`
-
-```json
-{
-  "member_ids": [
-    186,
-    187
-  ]
-}
-```
-
-### Исключение пользователя
-
-`DELETE /chats/{id}/members/{user_id}`
-
-> скоуп: `chat_members:write`
-
-### Редактирование роли
-
-`PUT /chats/{id}/members/{user_id}`
-
-> скоуп: `chat_members:write`
-
-```json
-{
-  "role": "admin"
-}
-```
-
-### Разархивация чата
-
-`PUT /chats/{id}/unarchive`
-
-> скоуп: `chats:archive`
-
 ## Ограничения и gotchas
 
+- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
 - `role`: допустимые значения — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
 - `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
+
+## Эндпоинты
+
+| Метод | Путь | Скоуп |
+|-------|------|-------|
+| POST | /chats | chats:create |
+| GET | /chats | chats:read |
+| POST | /chats/exports | chat_exports:write · тариф: Корпорация |
+| GET | /chats/exports/{id} | chat_exports:read · тариф: Корпорация |
+| GET | /chats/{id} | chats:read |
+| PUT | /chats/{id} | chats:update |
+| PUT | /chats/{id}/archive | chats:archive |
+| POST | /chats/{id}/group_tags | chat_members:write |
+| DELETE | /chats/{id}/group_tags/{tag_id} | chat_members:write |
+| DELETE | /chats/{id}/leave | chats:leave |
+| GET | /chats/{id}/members | chat_members:read |
+| POST | /chats/{id}/members | chat_members:write |
+| DELETE | /chats/{id}/members/{user_id} | chat_members:write |
+| PUT | /chats/{id}/members/{user_id} | chat_members:write |
+| PUT | /chats/{id}/unarchive | chats:archive |
 
 ## Подробнее
 

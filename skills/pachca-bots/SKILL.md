@@ -6,6 +6,7 @@ description: >
   обработать нажатие кнопки, периодический дайджест, алерты, polling событий,
   развернуть ссылку. НЕ используй для: отправки сообщений от бота (→
   pachca-messages), интерактивных форм (→ pachca-forms).
+allowed-tools: Bash(curl *)
 ---
 
 # pachca-bots
@@ -15,32 +16,10 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
 Если токен неизвестен — спроси у пользователя перед выполнением запросов.
 
-## Когда использовать
-
-- настроить бота
-- вебхук
-- webhook
-- обработать событие
-- подпись вебхука
-- нажатие кнопки
-- callback
-- дайджест
-- алерт
-- polling
-- unfurl
-- развернуть ссылку
-- link preview
-
 ## Когда НЕ использовать
 
-- получить профиль, мой профиль, установить статус → **pachca-profile**
-- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
-- создать канал, создать беседу, создать чат → **pachca-chats**
 - отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
 - показать форму, интерактивная форма, модальное окно → **pachca-forms**
-- создать задачу, список задач, напоминание → **pachca-tasks**
-- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
-- аудит, журнал событий, безопасность → **pachca-security**
 
 ## Пошаговые сценарии
 
@@ -52,6 +31,19 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 4. Выбери типы событий: новые сообщения, реакции, кнопки, участники
 
 > Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.
+
+### Обновить Webhook URL бота
+
+1. PUT /bots/{id} с новым `outgoing_url` — `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"bot":{"webhook":{"outgoing_url":"https://example.com/webhook"}}}'
+```
+
+> Обновлять настройки может только тот, кому разрешено редактирование бота (поле «Кто может редактировать настройки бота» во вкладке «Основное»).
 
 ### Обработать входящий вебхук-событие
 
@@ -117,62 +109,20 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
 
 > Polling — альтернатива real-time вебхуку, если у бота нет публичного URL или нужна отложенная обработка. Подходит для batch-сценариев, скриптов, serverless-функций по расписанию.
 
-## Обработка ошибок
-
-| Код | Причина | Что делать |
-|-----|---------|------------|
-| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
-| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
-| 404 | Не найдено | Неверный id. Проверь что сущность существует |
-| 401 | Не авторизован | Проверь токен в заголовке Authorization |
-
-## Доступные операции
-
-### Редактирование бота
-
-`PUT /bots/{id}`
-
-> скоуп: `bots:write`
-
-```json
-{
-  "bot": {
-    "webhook": {
-      "outgoing_url": "https://www.website.com/tasks/new"
-    }
-  }
-}
-```
-
-### Unfurl (разворачивание ссылок)
-
-`POST /messages/{id}/link_previews`
-
-> скоуп: `link_previews:write`
-
-```json
-{
-  "link_previews": {}
-}
-```
-
-### История событий
-
-`GET /webhooks/events`
-
-> скоуп: `webhooks:events:read`
-
-### Удаление события
-
-`DELETE /webhooks/events/{id}`
-
-> скоуп: `webhooks:events:delete`
-
 ## Ограничения и gotchas
 
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
+
+## Эндпоинты
+
+| Метод | Путь | Скоуп |
+|-------|------|-------|
+| PUT | /bots/{id} | bots:write |
+| POST | /messages/{id}/link_previews | link_previews:write |
+| GET | /webhooks/events | webhooks:events:read |
+| DELETE | /webhooks/events/{id} | webhooks:events:delete |
 
 ## Подробнее
 

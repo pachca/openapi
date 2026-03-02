@@ -6,6 +6,7 @@ description: >
   Управление статусом сотрудника. Используй когда нужно: найти сотрудника, создать
   пользователя, онбординг/offboarding, управлять тегами, установить статус
   сотруднику. НЕ используй для: собственного профиля (→ pachca-profile).
+allowed-tools: Bash(curl *)
 ---
 
 # pachca-users
@@ -15,32 +16,10 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
 Если токен неизвестен — спроси у пользователя перед выполнением запросов.
 
-## Когда использовать
-
-- найти сотрудника
-- создать пользователя
-- список сотрудников
-- создать тег
-- управлять тегами
-- назначить тег
-- приостановить сотрудника
-- онбординг
-- offboarding
-- уволить сотрудника
-- участники тега
-- статус сотрудника
-- установить статус сотруднику
-
 ## Когда НЕ использовать
 
 - получить профиль, мой профиль, установить статус → **pachca-profile**
 - создать канал, создать беседу, создать чат → **pachca-chats**
-- отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
-- настроить бота, вебхук, webhook → **pachca-bots**
-- показать форму, интерактивная форма, модальное окно → **pachca-forms**
-- создать задачу, список задач, напоминание → **pachca-tasks**
-- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
-- аудит, журнал событий, безопасность → **pachca-security**
 
 ## Пошаговые сценарии
 
@@ -101,147 +80,32 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/13/status" \
 
 > Для установки режима «Нет на месте» передай `is_away: true`. `away_message` — сообщение, отображаемое в профиле и при личных сообщениях/упоминаниях (макс 1024 символа). Скоупы: `user_status:read` для чтения, `user_status:write` для записи/удаления.
 
-## Обработка ошибок
-
-| Код | Причина | Что делать |
-|-----|---------|------------|
-| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
-| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
-| 404 | Не найдено | Неверный id. Проверь что сущность существует |
-| 401 | Не авторизован | Проверь токен в заголовке Authorization |
-
-## Доступные операции
-
-### Новый тег
-
-`POST /group_tags`
-
-> скоуп: `group_tags:write`
-
-```json
-{
-  "group_tag": {
-    "name": "Новое название тега"
-  }
-}
-```
-
-### Список тегов сотрудников
-
-`GET /group_tags`
-
-> скоуп: `group_tags:read`
-
-### Информация о теге
-
-`GET /group_tags/{id}`
-
-> скоуп: `group_tags:read`
-
-### Редактирование тега
-
-`PUT /group_tags/{id}`
-
-> скоуп: `group_tags:write`
-
-```json
-{
-  "group_tag": {
-    "name": "Новое название тега"
-  }
-}
-```
-
-### Удаление тега
-
-`DELETE /group_tags/{id}`
-
-> скоуп: `group_tags:write`
-
-### Список сотрудников тега
-
-`GET /group_tags/{id}/users`
-
-> скоуп: `group_tags:read`
-
-### Создать сотрудника
-
-`POST /users`
-
-> скоуп: `users:create`
-
-```json
-{
-  "user": {
-    "email": "olegp@example.com"
-  }
-}
-```
-
-### Список сотрудников
-
-`GET /users`
-
-> скоуп: `users:read`
-
-### Информация о сотруднике
-
-`GET /users/{id}`
-
-> скоуп: `users:read`
-
-### Редактирование сотрудника
-
-`PUT /users/{id}`
-
-> скоуп: `users:update`
-
-```json
-{
-  "user": {}
-}
-```
-
-### Удаление сотрудника
-
-`DELETE /users/{id}`
-
-> скоуп: `users:delete`
-
-### Статус сотрудника
-
-`GET /users/{user_id}/status`
-
-> скоуп: `user_status:read`
-
-### Новый статус сотрудника
-
-`PUT /users/{user_id}/status`
-
-> скоуп: `user_status:write`
-
-```json
-{
-  "status": {
-    "emoji": "🎮",
-    "title": "Очень занят"
-  }
-}
-```
-
-### Удаление статуса сотрудника
-
-`DELETE /users/{user_id}/status`
-
-> скоуп: `user_status:write`
-
 ## Ограничения и gotchas
 
+- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
 - `user.role`: допустимые значения — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
 - `status.away_message`: максимум 1024 символов
 - `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
+
+## Эндпоинты
+
+| Метод | Путь | Скоуп |
+|-------|------|-------|
+| POST | /group_tags | group_tags:write |
+| GET | /group_tags | group_tags:read |
+| GET | /group_tags/{id} | group_tags:read |
+| PUT | /group_tags/{id} | group_tags:write |
+| DELETE | /group_tags/{id} | group_tags:write |
+| GET | /group_tags/{id}/users | group_tags:read |
+| POST | /users | users:create |
+| GET | /users | users:read |
+| GET | /users/{id} | users:read |
+| PUT | /users/{id} | users:update |
+| DELETE | /users/{id} | users:delete |
+| GET | /users/{user_id}/status | user_status:read |
+| PUT | /users/{user_id}/status | user_status:write |
+| DELETE | /users/{user_id}/status | user_status:write |
 
 ## Подробнее
 

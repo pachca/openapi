@@ -1,10 +1,10 @@
 ---
 name: pachca-profile
 description: >
-  Получение и обновление профиля текущего пользователя, управление статусом,
-  кастомные поля сотрудников. Используй когда нужно: получить свой профиль,
-  обновить статус, узнать дополнительные поля. НЕ используй для: управления
-  другими сотрудниками (→ pachca-users).
+  Получение профиля текущего пользователя, управление своим статусом, кастомные
+  поля сотрудников, проверка токена. Используй когда нужно: получить свой профиль,
+  установить/сбросить статус, узнать дополнительные поля, проверить скоупы токена.
+  НЕ используй для: управления другими сотрудниками (→ pachca-users).
 allowed-tools: Bash(curl *)
 ---
 
@@ -21,17 +21,42 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ## Пошаговые сценарии
 
+### Получить свой профиль
+
+1. GET /profile — возвращает полную информацию о текущем пользователе
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/profile" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","nickname":"ivanp","department":"Разработка","title":"Разработчик","role":"admin",...}}
+```
+
+> Возвращает `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
+
+### Проверить свой токен
+
+1. GET /oauth/token/info — возвращает информацию о текущем токене: скоупы, дату создания, срок жизни
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":123,"token":"abcd1234...ef56","name":"Мой токен","user_id":186,"scopes":["messages:create","chats:read"],"expires_in":7776000,...}}
+```
+
+> Полезно для диагностики: какие скоупы доступны токену, когда он истекает. Токен маскируется — видны первые 8 и последние 4 символа.
+
 ### Установить статус
 
 1. PUT /profile/status с `emoji` и `title`
 2. Чтобы включить режим «Нет на месте» — добавь `is_away: true`
 3. Чтобы задать сообщение о недоступности — добавь `away_message: "текст"` (макс 1024 символа, отображается в профиле и при личных сообщениях/упоминаниях)
+4. Чтобы статус автоматически сбросился — добавь `expires_at: "2024-04-08T10:00:00.000Z"` (ISO-8601, UTC+0)
 
 ```bash
 curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true,"away_message":"Я в отпуске. По срочным вопросам — @ivanov"}}'
+  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true,"away_message":"Я в отпуске. По срочным вопросам — @ivanov","expires_at":"2025-03-10T23:59:59.000Z"}}'
 ```
 
 ### Сбросить статус
@@ -52,7 +77,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 
 ## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `status.away_message`: максимум 1024 символов
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
 

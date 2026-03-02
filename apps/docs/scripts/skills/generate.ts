@@ -205,11 +205,15 @@ function generateSkillMd(ctx: SkillContext): string {
   if (nearestAlts.length > 0) {
     lines.push('## Когда НЕ использовать');
     lines.push('');
-    for (const altName of nearestAlts) {
-      const alt = allSkills.find((s) => s.name === altName);
-      if (alt) {
-        const altTriggers = alt.triggers.slice(0, 3).join(', ');
-        lines.push(`- ${altTriggers} → **${alt.name}**`);
+    for (const altEntry of nearestAlts) {
+      if (typeof altEntry === 'string') {
+        const alt = allSkills.find((s) => s.name === altEntry);
+        if (alt) {
+          const altTriggers = alt.triggers.slice(0, 3).join(', ');
+          lines.push(`- ${altTriggers} → **${alt.name}**`);
+        }
+      } else {
+        lines.push(`- ${altEntry.text} → **${altEntry.name}**`);
       }
     }
     lines.push('');
@@ -235,6 +239,16 @@ function generateSkillMd(ctx: SkillContext): string {
         lines.push('');
         lines.push(`> ${wf.notes}`);
       }
+      lines.push('');
+    }
+  }
+
+  // Extra sections (e.g. event_key table for pachca-security)
+  if (config.extraSections) {
+    for (const section of config.extraSections) {
+      lines.push(`## ${section.title}`);
+      lines.push('');
+      lines.push(section.content);
       lines.push('');
     }
   }
@@ -340,7 +354,11 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   const seen = new Set<string>();
 
   // Rate limit (replaces the old error table)
-  gotchas.push('Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.');
+  if (config.name === 'pachca-messages') {
+    gotchas.push('Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.');
+  } else {
+    gotchas.push('Rate limit: ~50 req/sec. При 429 — подожди и повтори.');
+  }
 
   // Skill-specific errors
   if (config.errors) {
@@ -391,6 +409,13 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   const hasGetEndpoints = endpoints.some((ep) => ep.method === 'GET');
   if (hasGetEndpoints) {
     gotchas.push('Пагинация: cursor-based (limit + cursor), НЕ page-based');
+  }
+
+  // Extra manually defined gotchas from config
+  if (config.extraGotchas) {
+    for (const g of config.extraGotchas) {
+      gotchas.push(g);
+    }
   }
 
   return gotchas;

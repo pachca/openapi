@@ -257,6 +257,18 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
       ],
     },
     {
+      title: 'Переименовать или обновить чат',
+      steps: [
+        'PUT /chats/{id} с нужными параметрами: `name` (название) и/или `public` (открытый доступ)',
+      ],
+      notes:
+        'Доступные для обновления поля: `name`, `public`. Для изменения состава участников используй POST/DELETE /chats/{id}/members.',
+      curl: `curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"chat":{"name":"Новое название канала","public":true}}'`,
+    },
+    {
       title: 'Создать проектную беседу из шаблона',
       steps: [
         'POST /chats с `name`, `"channel": false` и `group_tag_ids` (добавить всех участников тега сразу)',
@@ -320,6 +332,18 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
       ],
       notes:
         'Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.',
+    },
+    {
+      title: 'Обновить Webhook URL бота',
+      steps: [
+        'PUT /bots/{id} с новым `outgoing_url` — `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота',
+      ],
+      notes:
+        'Обновлять настройки может только тот, кому разрешено редактирование бота (поле «Кто может редактировать настройки бота» во вкладке «Основное»).',
+      curl: `curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"bot":{"webhook":{"outgoing_url":"https://example.com/webhook"}}}'`,
     },
     {
       title: 'Обработать входящий вебхук-событие',
@@ -447,6 +471,15 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
   ],
   'pachca-users': [
     {
+      title: 'Получить сотрудника по ID',
+      steps: ['GET /users/{id} — полная информация о сотруднике'],
+      notes:
+        'Часто нужно после получения `user_id` из вебхука или другого API-вызова. Возвращает все поля сотрудника, включая `custom_properties`, `user_status`, `list_tags`.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/users/186" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","nickname":"ivanp",...}}`,
+    },
+    {
       title: 'Массовое создание сотрудников с тегами',
       steps: [
         'Создай тег (если нужен): POST /group_tags с `{"group_tag": {"name": ...}}`',
@@ -536,12 +569,40 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
   -H "Authorization: Bearer $TOKEN"`,
     },
     {
+      title: 'Получить задачу по ID',
+      steps: [
+        'GET /tasks/{id} — полная информация о задаче, включая `custom_properties`, `performer_ids`, `status`',
+      ],
+      curl: `curl "https://api.pachca.com/api/shared/v1/tasks/12345" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":12345,"kind":"reminder","content":"Позвонить клиенту","due_at":"2025-03-10T12:00:00.000Z","status":"undone","performer_ids":[186],...}}`,
+    },
+    {
       title: 'Отметить задачу выполненной',
       steps: ['PUT /tasks/{id} с `"status": "done"`'],
       curl: `curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{"task":{"status":"done"}}'`,
+    },
+    {
+      title: 'Обновить задачу (перенести срок, сменить ответственных)',
+      steps: [
+        'PUT /tasks/{id} с нужными полями: `content`, `due_at`, `kind`, `priority`, `performer_ids`, `custom_properties`',
+      ],
+      notes:
+        'Можно обновлять любые поля по отдельности. `performer_ids` заменяет весь список ответственных. `priority`: 1 (обычный), 2 (важно), 3 (очень важно).',
+      curl: `curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \\
+  -H "Authorization: Bearer $TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"task":{"due_at":"2025-03-15T14:00:00.000+03:00","priority":2,"performer_ids":[186,187]}}'`,
+    },
+    {
+      title: 'Удалить задачу',
+      steps: ['DELETE /tasks/{id}'],
+      notes: 'Удаление необратимо. Если нужно просто закрыть — используй PUT с `"status": "done"`.',
+      curl: `curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/12345" \\
+  -H "Authorization: Bearer $TOKEN"`,
     },
     {
       title: 'Создать серию напоминаний',
@@ -553,16 +614,37 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
   ],
   'pachca-profile': [
     {
+      title: 'Получить свой профиль',
+      steps: ['GET /profile — возвращает полную информацию о текущем пользователе'],
+      notes:
+        'Возвращает `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/profile" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","nickname":"ivanp","department":"Разработка","title":"Разработчик","role":"admin",...}}`,
+    },
+    {
+      title: 'Проверить свой токен',
+      steps: [
+        'GET /oauth/token/info — возвращает информацию о текущем токене: скоупы, дату создания, срок жизни',
+      ],
+      notes:
+        'Полезно для диагностики: какие скоупы доступны токену, когда он истекает. Токен маскируется — видны первые 8 и последние 4 символа.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \\
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":123,"token":"abcd1234...ef56","name":"Мой токен","user_id":186,"scopes":["messages:create","chats:read"],"expires_in":7776000,...}}`,
+    },
+    {
       title: 'Установить статус',
       steps: [
         'PUT /profile/status с `emoji` и `title`',
         'Чтобы включить режим «Нет на месте» — добавь `is_away: true`',
         'Чтобы задать сообщение о недоступности — добавь `away_message: "текст"` (макс 1024 символа, отображается в профиле и при личных сообщениях/упоминаниях)',
+        'Чтобы статус автоматически сбросился — добавь `expires_at: "2024-04-08T10:00:00.000Z"` (ISO-8601, UTC+0)',
       ],
       curl: `curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
-  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true,"away_message":"Я в отпуске. По срочным вопросам — @ivanov"}}'`,
+  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true,"away_message":"Я в отпуске. По срочным вопросам — @ivanov","expires_at":"2025-03-10T23:59:59.000Z"}}'`,
     },
     {
       title: 'Сбросить статус',
@@ -621,27 +703,28 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     {
       title: 'Получить журнал аудита событий',
       steps: [
-        'GET /audit_events с фильтрами (`event_key`, период, пагинация)',
-        'Доступные типы событий: входы, изменения прав, действия с чатами и т.д.',
+        'GET /audit_events с обязательными `start_time` и `end_time` (ISO-8601, UTC+0)',
+        'Опциональные фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`',
       ],
-      notes: 'Доступно только владельцу пространства.',
-      curl: `curl "https://api.pachca.com/api/shared/v1/audit_events?created_at[from]=$DATE_FROM&created_at[to]=$DATE_TO&limit=50" \\
+      notes:
+        'Доступно только владельцу пространства. `start_time` (включительно) и `end_time` (исключительно) — обязательные параметры.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00:00:00Z&end_time=2025-03-02T00:00:00Z&limit=50" \\
   -H "Authorization: Bearer $TOKEN"`,
     },
     {
       title: 'Мониторинг подозрительных входов',
       steps: [
-        'GET /audit_events с фильтром `"event_key": "user_2fa_fail"` (или `"user_signed_in"`) за нужный период',
+        'GET /audit_events с `event_key=user_2fa_fail` (или `user_login`) за нужный период',
         'Пагинируй с `cursor` до получения всех записей',
         'Если найдены аномалии (много неудачных 2FA с одного аккаунта) — отправь уведомление администратору через POST /messages',
       ],
-      notes:
-        'Фильтрация по `event_key` — строковое совпадение. Доступные ключи — в документации Аудит событий.',
+      curl: `curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00:00:00Z&end_time=2025-03-02T00:00:00Z&event_key=user_2fa_fail&limit=50" \\
+  -H "Authorization: Bearer $TOKEN"`,
     },
     {
       title: 'Экспорт логов за период',
       steps: [
-        'GET /audit_events с параметрами `created_at[from]` и `created_at[to]` (ISO 8601)',
+        'GET /audit_events с `start_time` и `end_time` (ISO-8601, UTC+0)',
         'Пагинируй с `cursor` до получения всех записей (`limit` до 50)',
         'Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)',
       ],

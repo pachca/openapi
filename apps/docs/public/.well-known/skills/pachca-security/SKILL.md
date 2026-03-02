@@ -1,9 +1,10 @@
 ---
 name: pachca-security
 description: >
-  Журнал аудита событий и DLP-система. Используй когда нужно: получить журнал
-  аудита, просмотреть события безопасности, настроить DLP. НЕ используй для:
-  обычных API-запросов (→ другие скиллы). Требует тариф «Корпорация».
+  Журнал аудита событий безопасности. Используй когда нужно: получить журнал
+  аудита, просмотреть события безопасности, мониторинг входов, экспорт логов. НЕ
+  используй для: обычных API-запросов (→ другие скиллы). Требует тариф
+  «Корпорация».
 allowed-tools: Bash(curl *)
 ---
 
@@ -18,35 +19,55 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Получить журнал аудита событий
 
-1. GET /audit_events с фильтрами (`event_key`, период, пагинация)
-2. Доступные типы событий: входы, изменения прав, действия с чатами и т.д.
+1. GET /audit_events с обязательными `start_time` и `end_time` (ISO-8601, UTC+0)
+2. Опциональные фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?created_at[from]=$DATE_FROM&created_at[to]=$DATE_TO&limit=50" \
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00:00:00Z&end_time=2025-03-02T00:00:00Z&limit=50" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-> Доступно только владельцу пространства.
+> Доступно только владельцу пространства. `start_time` (включительно) и `end_time` (исключительно) — обязательные параметры.
 
 ### Мониторинг подозрительных входов
 
-1. GET /audit_events с фильтром `"event_key": "user_2fa_fail"` (или `"user_signed_in"`) за нужный период
+1. GET /audit_events с `event_key=user_2fa_fail` (или `user_login`) за нужный период
 2. Пагинируй с `cursor` до получения всех записей
 3. Если найдены аномалии (много неудачных 2FA с одного аккаунта) — отправь уведомление администратору через POST /messages
 
-> Фильтрация по `event_key` — строковое совпадение. Доступные ключи — в документации Аудит событий.
+```bash
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00:00:00Z&end_time=2025-03-02T00:00:00Z&event_key=user_2fa_fail&limit=50" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 ### Экспорт логов за период
 
-1. GET /audit_events с параметрами `created_at[from]` и `created_at[to]` (ISO 8601)
+1. GET /audit_events с `start_time` и `end_time` (ISO-8601, UTC+0)
 2. Пагинируй с `cursor` до получения всех записей (`limit` до 50)
 3. Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)
 
+## Доступные event_key
+
+| Категория | Ключи |
+|-----------|-------|
+| Авторизация | `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success` |
+| Сотрудники | `user_created`, `user_deleted`, `user_role_changed`, `user_updated` |
+| Теги | `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag` |
+| Чаты | `chat_created`, `chat_renamed`, `chat_permission_changed` |
+| Участники чатов | `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat` |
+| Сообщения | `message_created`, `message_updated`, `message_deleted` |
+| Реакции и треды | `reaction_created`, `reaction_deleted`, `thread_created` |
+| Токены | `access_token_created`, `access_token_updated`, `access_token_destroy` |
+| Шифрование | `kms_encrypt`, `kms_decrypt` |
+| Безопасность | `audit_events_accessed`, `dlp_violation_detected` |
+| Поиск (API) | `search_users_api`, `search_chats_api`, `search_messages_api` |
+
 ## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `limit`: максимум 50
 - Пагинация: cursor-based (limit + cursor), НЕ page-based
+- `start_time` и `end_time` — обязательные параметры (ISO-8601, UTC+0)
 
 ## Эндпоинты
 

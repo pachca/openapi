@@ -70,7 +70,7 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
 
 ## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - 410: trigger_id истёк или не найден. trigger_id действует 3 секунды. Получи новый через нажатие кнопки (вебхук)
 - `type`: допустимые значения — `modal` (Модальное окно)
 - `private_metadata`: максимум 3000 символов

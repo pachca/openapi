@@ -42,6 +42,16 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=50" \
 
 > Фильтрация по `status` на стороне API не поддерживается — фильтруй самостоятельно после получения.
 
+### Получить задачу по ID
+
+1. GET /tasks/{id} — полная информация о задаче, включая `custom_properties`, `performer_ids`, `status`
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":12345,"kind":"reminder","content":"Позвонить клиенту","due_at":"2025-03-10T12:00:00.000Z","status":"undone","performer_ids":[186],...}}
+```
+
 ### Отметить задачу выполненной
 
 1. PUT /tasks/{id} с `"status": "done"`
@@ -53,6 +63,30 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
   -d '{"task":{"status":"done"}}'
 ```
 
+### Обновить задачу (перенести срок, сменить ответственных)
+
+1. PUT /tasks/{id} с нужными полями: `content`, `due_at`, `kind`, `priority`, `performer_ids`, `custom_properties`
+
+```bash
+curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"task":{"due_at":"2025-03-15T14:00:00.000+03:00","priority":2,"performer_ids":[186,187]}}'
+```
+
+> Можно обновлять любые поля по отдельности. `performer_ids` заменяет весь список ответственных. `priority`: 1 (обычный), 2 (важно), 3 (очень важно).
+
+### Удалить задачу
+
+1. DELETE /tasks/{id}
+
+```bash
+curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/12345" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> Удаление необратимо. Если нужно просто закрыть — используй PUT с `"status": "done"`.
+
 ### Создать серию напоминаний
 
 1. Подготовь список дат (ежедневно, еженедельно и т.д.)
@@ -60,11 +94,11 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 
 ## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `task.kind`: допустимые значения — `call` (Позвонить контакту), `meeting` (Встреча), `reminder` (Простое напоминание), `event` (Событие), `email` (Написать письмо)
 - `task.status`: допустимые значения — `done` (Выполнено), `undone` (Активно)
 - `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

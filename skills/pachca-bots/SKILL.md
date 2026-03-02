@@ -113,7 +113,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
 
 - Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

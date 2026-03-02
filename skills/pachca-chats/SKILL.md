@@ -121,7 +121,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BE
 - Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `role`: допустимые значения — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
 - `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

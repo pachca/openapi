@@ -18,10 +18,23 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ## Когда НЕ использовать
 
-- получить профиль, мой профиль, установить статус → **pachca-profile**
+- получить профиль, мой профиль, установить свой статус → **pachca-profile**
 - создать канал, создать беседу, создать чат → **pachca-chats**
+- полнотекстовый поиск по сотрудникам с фильтрами и ранжированием → **pachca-search**
 
 ## Пошаговые сценарии
+
+### Получить сотрудника по ID
+
+1. GET /users/{id} — полная информация о сотруднике
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/users/186" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","nickname":"ivanp",...}}
+```
+
+> Часто нужно после получения `user_id` из вебхука или другого API-вызова. Возвращает все поля сотрудника, включая `custom_properties`, `user_status`, `list_tags`.
 
 ### Массовое создание сотрудников с тегами
 
@@ -82,11 +95,11 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/13/status" \
 
 ## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `user.role`: допустимые значения — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
 - `status.away_message`: максимум 1024 символов
 - `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

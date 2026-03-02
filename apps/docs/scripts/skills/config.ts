@@ -10,10 +10,13 @@ export interface SkillConfig {
   description: string;
   triggers: string[];
   negativeTriggers: string[];
-  nearestAlternatives?: string[];
+  nearestAlternatives?: (string | { name: string; text: string })[];
   guides?: string[];
   errors?: SkillError[];
   botOnly?: boolean;
+  extraSections?: { title: string; content: string }[];
+  extraGotchas?: string[];
+  extraEndpointContent?: string;
 }
 
 export const SKILL_TAG_MAP: SkillConfig[] = [
@@ -21,7 +24,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-profile',
     tags: ['Profile'],
     description:
-      'Получение и обновление профиля текущего пользователя, управление статусом, кастомные поля сотрудников. Используй когда нужно: получить свой профиль, обновить статус, узнать дополнительные поля. НЕ используй для: управления другими сотрудниками (→ pachca-users).',
+      'Получение профиля текущего пользователя, управление своим статусом, кастомные поля сотрудников, проверка токена. Используй когда нужно: получить свой профиль, установить/сбросить статус, узнать дополнительные поля, проверить скоупы токена. НЕ используй для: управления другими сотрудниками (→ pachca-users).',
     triggers: [
       'получить профиль',
       'мой профиль',
@@ -30,6 +33,8 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'сбросить статус',
       'кастомные поля',
       'дополнительные поля',
+      'проверить токен',
+      'скоупы токена',
     ],
     negativeTriggers: ['управление сотрудниками', 'создать пользователя', 'список сотрудников'],
     nearestAlternatives: ['pachca-users'],
@@ -55,7 +60,17 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'установить статус сотруднику',
     ],
     negativeTriggers: ['мой профиль', 'мой статус'],
-    nearestAlternatives: ['pachca-profile', 'pachca-chats'],
+    nearestAlternatives: [
+      {
+        name: 'pachca-profile',
+        text: 'получить профиль, мой профиль, установить свой статус',
+      },
+      'pachca-chats',
+      {
+        name: 'pachca-search',
+        text: 'полнотекстовый поиск по сотрудникам с фильтрами и ранжированием',
+      },
+    ],
   },
   {
     name: 'pachca-chats',
@@ -76,7 +91,14 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'неактивные чаты',
     ],
     negativeTriggers: ['отправить сообщение', 'ответить в тред', 'загрузить файл'],
-    nearestAlternatives: ['pachca-messages', 'pachca-users'],
+    nearestAlternatives: [
+      'pachca-messages',
+      'pachca-users',
+      {
+        name: 'pachca-search',
+        text: 'полнотекстовый поиск чатов по названию с фильтрами',
+      },
+    ],
     guides: ['export'],
   },
   {
@@ -109,7 +131,12 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'вебхук',
       'форма',
     ],
-    nearestAlternatives: ['pachca-chats', 'pachca-bots', 'pachca-forms'],
+    nearestAlternatives: [
+      'pachca-chats',
+      'pachca-bots',
+      'pachca-forms',
+      { name: 'pachca-search', text: 'найти сообщение по тексту, полнотекстовый поиск' },
+    ],
   },
   {
     name: 'pachca-bots',
@@ -163,6 +190,94 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
         action: 'trigger_id действует 3 секунды. Получи новый через нажатие кнопки (вебхук)',
       },
     ],
+    extraEndpointContent: `## Типы блоков формы
+
+### input — Текстовое поле
+
+- \`name\` (string, **обязательный**): Имя поля (ключ в \`data\` при submit)
+- \`label\` (string, **обязательный**): Подпись поля
+- \`placeholder\` (string, опциональный): Текст-подсказка
+- \`multiline\` (boolean, опциональный): Многострочный ввод
+- \`initial_value\` (string, опциональный): Начальное значение
+- \`min_length\` (integer, опциональный): Минимальная длина
+- \`max_length\` (integer, опциональный): Максимальная длина
+- \`required\` (boolean, опциональный): Обязательное поле
+- \`hint\` (string, опциональный): Подсказка под полем
+
+### select — Выпадающий список
+
+- \`name\` (string, **обязательный**): Имя поля
+- \`label\` (string, **обязательный**): Подпись
+- \`options\` (array, **обязательный**): Массив вариантов
+  - \`text\` (string, **обязательный**): Текст варианта
+  - \`value\` (string, **обязательный**): Значение
+  - \`description\` (string, опциональный): Описание варианта
+  - \`selected\` (boolean, опциональный): Выбран по умолчанию
+- \`required\` (boolean, опциональный): Обязательное поле
+- \`hint\` (string, опциональный): Подсказка
+
+### radio — Радиокнопки
+
+- \`name\` (string, **обязательный**): Имя поля
+- \`label\` (string, **обязательный**): Подпись
+- \`options\` (array, **обязательный**): Массив вариантов (аналогично \`select\`)
+- \`required\` (boolean, опциональный): Обязательное поле
+- \`hint\` (string, опциональный): Подсказка
+
+### checkbox — Чекбоксы
+
+- \`name\` (string, **обязательный**): Имя поля
+- \`label\` (string, **обязательный**): Подпись
+- \`options\` (array, **обязательный**): Массив вариантов
+  - \`text\` (string, **обязательный**): Текст варианта
+  - \`value\` (string, **обязательный**): Значение
+  - \`description\` (string, опциональный): Описание
+  - \`checked\` (boolean, опциональный): Выбран по умолчанию
+- \`required\` (boolean, опциональный): Обязательное поле
+- \`hint\` (string, опциональный): Подсказка
+
+### date — Выбор даты
+
+- \`name\` (string, **обязательный**): Имя поля
+- \`label\` (string, **обязательный**): Подпись
+- \`initial_date\` (string, опциональный): Начальная дата (YYYY-MM-DD)
+- \`required\` (boolean, опциональный): Обязательное поле
+- \`hint\` (string, опциональный): Подсказка
+
+### time — Выбор времени
+
+- \`name\` (string, **обязательный**): Имя поля
+- \`label\` (string, **обязательный**): Подпись
+- \`initial_time\` (string, опциональный): Начальное время (HH:MM)
+- \`required\` (boolean, опциональный): Обязательное поле
+- \`hint\` (string, опциональный): Подсказка
+
+### file_input — Загрузка файлов
+
+- \`name\` (string, **обязательный**): Имя поля
+- \`label\` (string, **обязательный**): Подпись
+- \`filetypes\` (array[string], опциональный): Допустимые расширения (["pdf", "jpg", "png"])
+- \`max_files\` (integer, опциональный): Максимальное количество файлов
+- \`required\` (boolean, опциональный): Обязательное поле
+- \`hint\` (string, опциональный): Подсказка
+
+> Ссылки на загруженные файлы в \`data.field_name[].url\` при submit-вебхуке истекают через 1 час — скачивай немедленно.
+
+### header — Заголовок секции
+
+- \`text\` (string, **обязательный**): Текст заголовка
+
+### plain_text — Простой текст
+
+- \`text\` (string, **обязательный**): Текст
+
+### markdown — Текст с разметкой
+
+- \`text\` (string, **обязательный**): Текст с markdown-разметкой (поддерживаются ссылки, жирный, курсив)
+
+### divider — Разделитель
+
+Визуальная горизонтальная линия. Параметров нет.`,
   },
   {
     name: 'pachca-tasks',
@@ -199,7 +314,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-security',
     tags: ['Security'],
     description:
-      'Журнал аудита событий и DLP-система. Используй когда нужно: получить журнал аудита, просмотреть события безопасности, настроить DLP. НЕ используй для: обычных API-запросов (→ другие скиллы). Требует тариф «Корпорация».',
+      'Журнал аудита событий безопасности. Используй когда нужно: получить журнал аудита, просмотреть события безопасности, мониторинг входов, экспорт логов. НЕ используй для: обычных API-запросов (→ другие скиллы). Требует тариф «Корпорация».',
     triggers: [
       'аудит',
       'журнал событий',
@@ -208,9 +323,30 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'логи',
       'подозрительные входы',
       'история входов',
+      'мониторинг входов',
+      'экспорт логов',
     ],
     negativeTriggers: ['отправить сообщение', 'управлять пользователями'],
     guides: ['dlp', 'audit-events'],
+    extraSections: [
+      {
+        title: 'Доступные event_key',
+        content: `| Категория | Ключи |
+|-----------|-------|
+| Авторизация | \`user_login\`, \`user_logout\`, \`user_2fa_fail\`, \`user_2fa_success\` |
+| Сотрудники | \`user_created\`, \`user_deleted\`, \`user_role_changed\`, \`user_updated\` |
+| Теги | \`tag_created\`, \`tag_deleted\`, \`user_added_to_tag\`, \`user_removed_from_tag\` |
+| Чаты | \`chat_created\`, \`chat_renamed\`, \`chat_permission_changed\` |
+| Участники чатов | \`user_chat_join\`, \`user_chat_leave\`, \`tag_added_to_chat\`, \`tag_removed_from_chat\` |
+| Сообщения | \`message_created\`, \`message_updated\`, \`message_deleted\` |
+| Реакции и треды | \`reaction_created\`, \`reaction_deleted\`, \`thread_created\` |
+| Токены | \`access_token_created\`, \`access_token_updated\`, \`access_token_destroy\` |
+| Шифрование | \`kms_encrypt\`, \`kms_decrypt\` |
+| Безопасность | \`audit_events_accessed\`, \`dlp_violation_detected\` |
+| Поиск (API) | \`search_users_api\`, \`search_chats_api\`, \`search_messages_api\` |`,
+      },
+    ],
+    extraGotchas: ['`start_time` и `end_time` — обязательные параметры (ISO-8601, UTC+0)'],
   },
 ];
 

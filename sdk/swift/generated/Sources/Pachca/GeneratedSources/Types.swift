@@ -4170,7 +4170,7 @@ public enum Components {
             /// Массив строк, каждая из которых представлена массивом кнопок
             ///
             /// - Remark: Generated from `#/components/schemas/Message/buttons`.
-            public var buttons: [[Components.Schemas.Button]]
+            public var buttons: [[Components.Schemas.Button]]?
             /// Тред сообщения
             ///
             /// - Remark: Generated from `#/components/schemas/Message/thread`.
@@ -4271,7 +4271,7 @@ public enum Components {
                 created_at: Foundation.Date,
                 url: Swift.String,
                 files: [Components.Schemas.File],
-                buttons: [[Components.Schemas.Button]],
+                buttons: [[Components.Schemas.Button]]? = nil,
                 thread: Components.Schemas.Message.threadPayload? = nil,
                 forwarding: Components.Schemas.Message.forwardingPayload? = nil,
                 parent_message_id: Swift.Int32? = nil,

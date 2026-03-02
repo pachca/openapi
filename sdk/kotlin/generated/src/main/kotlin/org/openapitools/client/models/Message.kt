@@ -91,7 +91,7 @@ data class Message (
 
     /* Массив строк, каждая из которых представлена массивом кнопок */
     @Json(name = "buttons")
-    val buttons: kotlin.collections.List<kotlin.collections.List<Button>>,
+    val buttons: kotlin.collections.List<kotlin.collections.List<Button>>?,
 
     /* Тред сообщения */
     @Json(name = "thread")

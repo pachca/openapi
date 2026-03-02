@@ -5588,6 +5588,7 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Button'
+          nullable: true
           description: Массив строк, каждая из которых представлена массивом кнопок
         thread:
           type: object

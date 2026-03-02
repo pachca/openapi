@@ -46,7 +46,7 @@ class Message:
                 DDThh:mm:ss.sssZ Example: 2021-08-28T15:57:23.000Z.
             url (str): Прямая ссылка на сообщение Example: https://app.pachca.com/chats/334?message=194275.
             files (list[File]): Прикрепленные файлы
-            buttons (list[list[Button]]): Массив строк, каждая из которых представлена массивом кнопок
+            buttons (list[list[Button]] | None): Массив строк, каждая из которых представлена массивом кнопок
             thread (Thread): Тред
             forwarding (Forwarding): Информация о пересланном сообщении
             parent_message_id (int | None): Идентификатор сообщения, к которому написан ответ
@@ -68,7 +68,7 @@ class Message:
     created_at: datetime.datetime
     url: str
     files: list[File]
-    buttons: list[list[Button]]
+    buttons: list[list[Button]] | None
     thread: Thread
     forwarding: Forwarding
     parent_message_id: int | None
@@ -84,8 +84,8 @@ class Message:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.forwarding import Forwarding
-        from ..models.thread import Thread
         from ..models.file import File
+        from ..models.thread import Thread
         from ..models.button import Button
         id = self.id
 
@@ -112,17 +112,21 @@ class Message:
 
 
 
-        buttons = []
-        for buttons_item_data in self.buttons:
-            buttons_item = []
-            for buttons_item_item_data in buttons_item_data:
-                buttons_item_item = buttons_item_item_data.to_dict()
-                buttons_item.append(buttons_item_item)
+        buttons: list[list[dict[str, Any]]] | None
+        if isinstance(self.buttons, list):
+            buttons = []
+            for buttons_type_0_item_data in self.buttons:
+                buttons_type_0_item = []
+                for buttons_type_0_item_item_data in buttons_type_0_item_data:
+                    buttons_type_0_item_item = buttons_type_0_item_item_data.to_dict()
+                    buttons_type_0_item.append(buttons_type_0_item_item)
 
 
-            buttons.append(buttons_item)
+                buttons.append(buttons_type_0_item)
 
 
+        else:
+            buttons = self.buttons
 
         thread = self.thread.to_dict()
 
@@ -218,19 +222,32 @@ class Message:
             files.append(files_item)
 
 
-        buttons = []
-        _buttons = d.pop("buttons")
-        for buttons_item_data in (_buttons):
-            buttons_item = []
-            _buttons_item = buttons_item_data
-            for buttons_item_item_data in (_buttons_item):
-                buttons_item_item = Button.from_dict(buttons_item_item_data)
+        def _parse_buttons(data: object) -> list[list[Button]] | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                buttons_type_0 = []
+                _buttons_type_0 = data
+                for buttons_type_0_item_data in (_buttons_type_0):
+                    buttons_type_0_item = []
+                    _buttons_type_0_item = buttons_type_0_item_data
+                    for buttons_type_0_item_item_data in (_buttons_type_0_item):
+                        buttons_type_0_item_item = Button.from_dict(buttons_type_0_item_item_data)
 
 
 
-                buttons_item.append(buttons_item_item)
+                        buttons_type_0_item.append(buttons_type_0_item_item)
 
-            buttons.append(buttons_item)
+                    buttons_type_0.append(buttons_type_0_item)
+
+                return buttons_type_0
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(list[list[Button]] | None, data)
+
+        buttons = _parse_buttons(d.pop("buttons"))
 
 
         thread = Thread.from_dict(d.pop("thread"))

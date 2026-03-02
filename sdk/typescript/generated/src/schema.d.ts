@@ -2116,7 +2116,7 @@ export interface components {
             /** @description Прикрепленные файлы */
             files: components["schemas"]["File"][];
             /** @description Массив строк, каждая из которых представлена массивом кнопок */
-            buttons: components["schemas"]["Button"][][];
+            buttons: components["schemas"]["Button"][][] | null;
             /** @description Тред сообщения */
             thread: components["schemas"]["Thread"] | null;
             /** @description Информация о пересланном сообщении */

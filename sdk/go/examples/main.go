@@ -41,7 +41,7 @@ func main() {
 
 	// ── Step 1: POST — Create a message ──────────────────────────────
 	fmt.Println("1. Creating message...")
-	createRes, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
+	created, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
 			EntityType: pachca.NewOptMessageEntityType(pachca.MessageEntityTypeDiscussion),
 			EntityID:   int32(chatID),
@@ -57,11 +57,10 @@ func main() {
 
 	// ── Step 2: GET — Read the message back ──────────────────────────
 	fmt.Println("2. Reading message...")
-	getRes, err := client.Messages.GetMessage(ctx, msgID)
+	msg, err := client.Messages.GetMessage(ctx, msgID)
 	if err != nil {
 		log.Fatalf("GetMessage failed: %v", err)
 	}
-	msg := getRes.(*pachca.MessageOperationsGetMessageOK)
 	fmt.Printf("   Got message: %q\n", msg.Data.Content)
 
 	// ── Step 3: POST — Add a reaction (nested resource) ──────────────
@@ -76,16 +75,15 @@ func main() {
 
 	// ── Step 4: POST — Create a thread (idempotent) ──────────────────
 	fmt.Println("4. Creating thread...")
-	threadRes, err := client.Threads.CreateThread(ctx, msgID)
+	thread, err := client.Threads.CreateThread(ctx, msgID)
 	if err != nil {
 		log.Fatalf("CreateThread failed: %v", err)
 	}
-	thread := threadRes.(*pachca.ThreadOperationsCreateThreadCreated)
 	fmt.Printf("   Thread ID: %d\n", thread.Data.ID)
 
 	// ── Step 5: POST — Reply inside the thread ───────────────────────
 	fmt.Println("5. Replying in thread...")
-	replyRes, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
+	reply, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
 			EntityType: pachca.NewOptMessageEntityType(pachca.MessageEntityTypeThread),
 			EntityID:   int32(thread.Data.ID),
@@ -95,7 +93,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("CreateMessage (thread reply) failed: %v", err)
 	}
-	reply := replyRes.(*pachca.MessageOperationsCreateMessageCreated)
 	replyID := reply.Data.ID
 	fmt.Printf("   Reply ID: %d\n", replyID)
 
@@ -123,7 +120,7 @@ func main() {
 
 	// ── Step 8: DELETE — Unpin the original message ──────────────────
 	fmt.Println("8. Unpinning message...")
-	_, err = client.Messages.UnpinMessage(ctx, msgID)
+	err = client.Messages.UnpinMessage(ctx, msgID)
 	if err != nil {
 		log.Fatalf("UnpinMessage failed: %v", err)
 	}

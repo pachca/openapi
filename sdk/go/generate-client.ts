@@ -2,11 +2,13 @@
  * generate-client.ts
  *
  * Parses ogen-generated Go code and produces pachca_client.go —
- * a convenience wrapper with grouped services, flattened params, and manual methods.
+ * a convenience wrapper with grouped services, flattened params,
+ * type aliases, and unwrapped response types.
  *
  * Reads:
- *   generated/oas_client_gen.go      — Client methods (method names, arg types, return types)
- *   generated/oas_parameters_gen.go  — Params structs (field names and types for flattening)
+ *   generated/oas_client_gen.go      — Client methods
+ *   generated/oas_parameters_gen.go  — Params structs (for flattening)
+ *   generated/oas_schemas_gen.go     — Interface implementors and error type definitions
  *
  * Writes:
  *   generated/pachca_client.go       — Convenience wrapper
@@ -27,7 +29,7 @@ interface ParsedMethod {
   shortName: string; // e.g. "CreateMessage"
   requestArg: string | null; // e.g. "request *MessageCreateRequest"
   paramsType: string | null; // e.g. "MessageOperationsGetMessageParams"
-  returnType: string | null; // e.g. "*SomeType" or "[]SomeType" — null if returns only error
+  returnType: string | null; // e.g. "MessageOperationsCreateMessageRes" — null if returns only error
 }
 
 const methods: ParsedMethod[] = [];
@@ -42,6 +44,9 @@ while ((match = methodRe.exec(clientSrc)) !== null) {
   const fullName = match[1];
   const argsStr = (match[2] || "").trim();
   const retStr = (match[3] || "").trim();
+
+  // Skip ogen's private send* methods (they're internal implementation details)
+  if (fullName.startsWith("send")) continue;
 
   // Extract group from {Group}Operations{Method} pattern
   const groupMatch = fullName.match(/^(\w+?)Operations(\w+)$/);
@@ -72,7 +77,8 @@ while ((match = methodRe.exec(clientSrc)) !== null) {
     if (parts[0] && parts[0] !== "error") {
       // Strip named return variable (e.g. "res SomeType" → "SomeType")
       const retTokens = parts[0].split(/\s+/);
-      returnType = retTokens.length > 1 ? retTokens.slice(1).join(" ") : retTokens[0];
+      returnType =
+        retTokens.length > 1 ? retTokens.slice(1).join(" ") : retTokens[0];
     }
   }
 
@@ -150,7 +156,97 @@ if (existsSync(paramsPath)) {
 console.log(`Parsed ${paramsMap.size} Params structs from oas_parameters_gen.go`);
 
 // ─────────────────────────────────────────────────
-// 3. Group methods by operations prefix
+// 3. Parse interface implementors from oas_schemas_gen.go
+// ─────────────────────────────────────────────────
+
+const schemasSrc = readFileSync("generated/oas_schemas_gen.go", "utf-8");
+
+// Map: interface method name → implementor type names
+// e.g. "messageOperationsCreateMessageRes" → ["MessageOperationsCreateMessageCreated", ...]
+const resImplementors = new Map<string, string[]>();
+const implRe = /func \(\*(\w+)\) (\w+Res)\(\)/g;
+let implMatch: RegExpExecArray | null;
+while ((implMatch = implRe.exec(schemasSrc)) !== null) {
+  const typeName = implMatch[1];
+  const interfaceMethod = implMatch[2];
+  if (!resImplementors.has(interfaceMethod))
+    resImplementors.set(interfaceMethod, []);
+  resImplementors.get(interfaceMethod)!.push(typeName);
+}
+
+// Map: error type name → underlying type ("ApiError" | "OAuthError")
+// e.g. "MessageOperationsCreateMessageBadRequest" → "ApiError"
+const errorTypeMap = new Map<string, string>();
+const errorTypeRe = /^type (\w+) (ApiError|OAuthError)$/gm;
+let errorMatch: RegExpExecArray | null;
+while ((errorMatch = errorTypeRe.exec(schemasSrc)) !== null) {
+  errorTypeMap.set(errorMatch[1], errorMatch[2]);
+}
+
+console.log(
+  `Parsed ${resImplementors.size} Res interfaces, ${errorTypeMap.size} error type definitions from oas_schemas_gen.go`
+);
+
+// ─────────────────────────────────────────────────
+// 4. Classify interface implementors
+// ─────────────────────────────────────────────────
+
+interface ErrorCase {
+  typeName: string; // e.g. "MessageOperationsCreateMessageBadRequest"
+  errorType: string; // "ApiError" or "OAuthError"
+  isRaw: boolean; // true if typeName IS "ApiError"/"OAuthError" directly
+}
+
+interface ResInfo {
+  successType: string | null; // concrete success type or null
+  isVoid: boolean; // true if success is NoContent (empty struct)
+  noContentType: string | null; // e.g. "MessageOperationsDeleteMessageNoContent"
+  errorCases: ErrorCase[];
+}
+
+const RAW_SUCCESS_TYPES = new Set(["Reaction", "UploadParams"]);
+const RAW_ERROR_TYPES = new Set(["ApiError", "OAuthError"]);
+
+function lowerFirst(s: string): string {
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+function classifyRes(returnType: string): ResInfo {
+  const interfaceMethod = lowerFirst(returnType);
+  const impls = resImplementors.get(interfaceMethod) || [];
+
+  let successType: string | null = null;
+  let isVoid = false;
+  let noContentType: string | null = null;
+  const errorCases: ErrorCase[] = [];
+
+  for (const impl of impls) {
+    if (RAW_ERROR_TYPES.has(impl)) {
+      errorCases.push({ typeName: impl, errorType: impl, isRaw: true });
+    } else if (RAW_SUCCESS_TYPES.has(impl)) {
+      successType = impl;
+    } else if (impl.endsWith("OK") || impl.endsWith("Created")) {
+      successType = impl;
+    } else if (impl.endsWith("NoContent")) {
+      isVoid = true;
+      noContentType = impl;
+    } else {
+      const underlying = errorTypeMap.get(impl);
+      if (underlying) {
+        errorCases.push({
+          typeName: impl,
+          errorType: underlying,
+          isRaw: false,
+        });
+      }
+    }
+  }
+
+  return { successType, isVoid, noContentType, errorCases };
+}
+
+// ─────────────────────────────────────────────────
+// 5. Group methods and build alias maps
 // ─────────────────────────────────────────────────
 
 // group name → service name mapping
@@ -195,17 +291,74 @@ if (!groups.has("Upload")) groups.set("Upload", []);
 
 console.log(`Found ${groups.size} service groups`);
 
-// ─────────────────────────────────────────────────
-// 4. Helpers for code generation
-// ─────────────────────────────────────────────────
+// Build response type aliases: verbose ogen name → short alias
+// e.g. "MessageOperationsCreateMessageCreated" → "CreateMessageResponse"
+const responseAliases = new Map<string, string>();
+// Build params type aliases: verbose ogen name → short alias
+// e.g. "UserOperationsListUsersParams" → "ListUsersParams"
+const paramsAliases = new Map<string, string>();
 
-function lowerFirst(s: string): string {
-  return s.charAt(0).toLowerCase() + s.slice(1);
+for (const m of methods) {
+  // Response aliases
+  if (m.returnType) {
+    const info = classifyRes(m.returnType);
+    if (info.successType && !RAW_SUCCESS_TYPES.has(info.successType)) {
+      const prefix = `${m.group}Operations`;
+      if (info.successType.startsWith(prefix)) {
+        const stripped = info.successType.slice(prefix.length);
+        let alias: string;
+        if (stripped.endsWith("OK")) {
+          alias = stripped.slice(0, -2) + "Response";
+        } else if (stripped.endsWith("Created")) {
+          alias = stripped.slice(0, -7) + "Response";
+        } else {
+          alias = stripped + "Response";
+        }
+        responseAliases.set(info.successType, alias);
+      }
+    }
+  }
+
+  // Params aliases
+  if (m.paramsType) {
+    const prefix = `${m.group}Operations`;
+    if (m.paramsType.startsWith(prefix)) {
+      const alias = m.paramsType.slice(prefix.length);
+      paramsAliases.set(m.paramsType, alias);
+    }
+  }
 }
+
+console.log(
+  `Generated ${responseAliases.size} response aliases, ${paramsAliases.size} params aliases`
+);
+
+// ─────────────────────────────────────────────────
+// 6. Helpers for code generation
+// ─────────────────────────────────────────────────
 
 function shouldFlatten(paramsType: string): boolean {
   const fields = paramsMap.get(paramsType);
   return !!fields && fields.length <= 2;
+}
+
+function getReturnSignature(m: ParsedMethod): string {
+  if (!m.returnType) return "error";
+
+  const info = classifyRes(m.returnType);
+
+  // Void method (NoContent success) — return just error
+  if (info.isVoid && !info.successType) return "error";
+
+  // Data method — return concrete success type
+  if (info.successType) {
+    const alias = responseAliases.get(info.successType);
+    const typeName = alias || info.successType;
+    return `(*${typeName}, error)`;
+  }
+
+  // Fallback: return original interface type
+  return `(${m.returnType}, error)`;
 }
 
 function buildSignature(m: ParsedMethod, svcName: string): string {
@@ -222,20 +375,19 @@ function buildSignature(m: ParsedMethod, svcName: string): string {
         args.push(`${lowerFirst(f.name)} ${f.type}`);
       }
     } else {
-      args.push(`params ${m.paramsType}`);
+      const alias = paramsAliases.get(m.paramsType);
+      args.push(`params ${alias || m.paramsType}`);
     }
   }
 
-  const ret = m.returnType ? `(${m.returnType}, error)` : "error";
-
+  const ret = getReturnSignature(m);
   return `func (s *${svcName}Service) ${m.shortName}(${args.join(", ")}) ${ret}`;
 }
 
-function buildCall(m: ParsedMethod): string {
+function buildCallExpr(m: ParsedMethod): string {
   const callArgs: string[] = ["ctx"];
 
   if (m.requestArg) {
-    // Extract variable name from "request *Type"
     const varName = m.requestArg.split(" ")[0];
     callArgs.push(varName);
   }
@@ -255,8 +407,76 @@ function buildCall(m: ParsedMethod): string {
   return `s.client.${m.fullName}(${callArgs.join(", ")})`;
 }
 
+function buildMethodBody(m: ParsedMethod): string[] {
+  const call = buildCallExpr(m);
+
+  // No interface return — simple delegation
+  if (!m.returnType) {
+    return [`\treturn ${call}`];
+  }
+
+  const info = classifyRes(m.returnType);
+
+  // No implementors found — fall back to simple delegation
+  if (
+    !info.successType &&
+    !info.isVoid &&
+    info.errorCases.length === 0
+  ) {
+    return [`\treturn ${call}`];
+  }
+
+  const hasData = !!info.successType;
+  const body: string[] = [];
+
+  body.push(`\tres, err := ${call}`);
+  body.push(`\tif err != nil {`);
+  body.push(hasData ? `\t\treturn nil, err` : `\t\treturn err`);
+  body.push(`\t}`);
+  body.push(`\tswitch v := res.(type) {`);
+
+  // Success case
+  if (info.successType) {
+    body.push(`\tcase *${info.successType}:`);
+    body.push(`\t\treturn v, nil`);
+  }
+
+  // Void success case
+  if (info.noContentType) {
+    body.push(`\tcase *${info.noContentType}:`);
+    body.push(hasData ? `\t\treturn nil, nil` : `\t\treturn nil`);
+  }
+
+  // Error cases
+  for (const ec of info.errorCases) {
+    body.push(`\tcase *${ec.typeName}:`);
+    if (ec.errorType === "ApiError") {
+      // ApiError has Error() method added in pachca_client.go
+      const expr = ec.isRaw ? "v" : `(*ApiError)(v)`;
+      body.push(hasData ? `\t\treturn nil, ${expr}` : `\t\treturn ${expr}`);
+    } else {
+      // OAuthError needs wrapping (Error field conflicts with Error() method)
+      const expr = ec.isRaw
+        ? `&OAuthErrorResponse{v}`
+        : `&OAuthErrorResponse{(*OAuthError)(v)}`;
+      body.push(hasData ? `\t\treturn nil, ${expr}` : `\t\treturn ${expr}`);
+    }
+  }
+
+  // Default case
+  body.push(`\tdefault:`);
+  body.push(
+    hasData
+      ? `\t\treturn nil, fmt.Errorf("unexpected response type: %T", res)`
+      : `\t\treturn fmt.Errorf("unexpected response type: %T", res)`
+  );
+  body.push(`\t}`);
+
+  return body;
+}
+
 // ─────────────────────────────────────────────────
-// 5. Generate pachca_client.go
+// 7. Generate pachca_client.go
 // ─────────────────────────────────────────────────
 
 const lines: string[] = [];
@@ -274,6 +494,49 @@ w('\t"mime/multipart"');
 w('\t"net/http"');
 w('\t"strings"');
 w(")");
+w("");
+
+// Response type aliases
+if (responseAliases.size > 0) {
+  w("// Response type aliases for cleaner API usage.");
+  w("type (");
+  for (const [original, alias] of responseAliases) {
+    w(`\t${alias} = ${original}`);
+  }
+  w(")");
+  w("");
+}
+
+// Params type aliases
+if (paramsAliases.size > 0) {
+  w("// Params type aliases for cleaner API usage.");
+  w("type (");
+  for (const [original, alias] of paramsAliases) {
+    w(`\t${alias} = ${original}`);
+  }
+  w(")");
+  w("");
+}
+
+// Error helpers — make ApiError and OAuthError usable as Go errors
+w("// Error implements the error interface for ApiError.");
+w("func (e *ApiError) Error() string {");
+w("\tif len(e.Errors) > 0 {");
+w('\t\treturn "api error: " + e.Errors[0].Message');
+w("\t}");
+w('\treturn "api error"');
+w("}");
+w("");
+w("// OAuthErrorResponse wraps OAuthError as a Go error value.");
+w("// OAuthError has an Error field, so it cannot directly implement the error interface.");
+w("type OAuthErrorResponse struct {");
+w("\t*OAuthError");
+w("}");
+w("");
+w("// Error implements the error interface for OAuthErrorResponse.");
+w("func (e *OAuthErrorResponse) Error() string {");
+w('\treturn "oauth error: " + e.GetError() + ": " + e.ErrorDescription');
+w("}");
 w("");
 
 // Bearer token source
@@ -318,7 +581,6 @@ w("\t\ttoken:     token,");
 w("\t}");
 for (const [group] of groups) {
   const svc = getServiceName(group);
-  // Exports service needs serverURL and token for manual Download method
   if (group === "Export") {
     w(
       `\tp.${svc} = &${svc}Service{client: client, serverURL: serverURL, token: token}`
@@ -351,13 +613,15 @@ for (const [group, groupMethods] of groups) {
   for (const m of groupMethods) {
     w("");
     w(`${buildSignature(m, svc)} {`);
-    w(`\treturn ${buildCall(m)}`);
+    for (const line of buildMethodBody(m)) {
+      w(line);
+    }
     w("}");
   }
 }
 
 // ─────────────────────────────────────────────────
-// 6. Manual methods: UploadFile and DownloadExport
+// 8. Manual methods: UploadFile and DownloadExport
 // ─────────────────────────────────────────────────
 
 w("");
@@ -480,7 +744,7 @@ console.log(
 );
 
 // ─────────────────────────────────────────────────
-// 7. Generate go.mod if not present
+// 9. Generate go.mod if not present
 // ─────────────────────────────────────────────────
 
 if (!existsSync("generated/go.mod")) {

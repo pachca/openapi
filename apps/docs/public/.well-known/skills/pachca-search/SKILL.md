@@ -64,7 +64,7 @@ curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10"
 
 - Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `limit`: максимум — 100 (GET /search/chats), 200 (GET /search/messages), 200 (GET /search/users)
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

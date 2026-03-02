@@ -79,7 +79,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 
 - Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `status.away_message`: максимум 1024 символов
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

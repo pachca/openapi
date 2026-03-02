@@ -408,7 +408,7 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   // Pagination — only if there are GET endpoints (skip for e.g. pachca-forms with only POST)
   const hasGetEndpoints = endpoints.some((ep) => ep.method === 'GET');
   if (hasGetEndpoints) {
-    gotchas.push('Пагинация: cursor-based (limit + cursor), НЕ page-based');
+    gotchas.push('Пагинация: cursor-based (limit + cursor)');
   }
 
   // Extra manually defined gotchas from config

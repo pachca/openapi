@@ -273,7 +273,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 - `message.display_avatar_url`: максимум 255 символов
 - `message.display_name`: максимум 255 символов
 - `limit`: максимум — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

@@ -99,7 +99,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/13/status" \
 - `user.role`: допустимые значения — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
 - `status.away_message`: максимум 1024 символов
 - `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

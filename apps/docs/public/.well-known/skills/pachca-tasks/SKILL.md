@@ -98,7 +98,7 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/12345" \
 - `task.kind`: допустимые значения — `call` (Позвонить контакту), `meeting` (Встреча), `reminder` (Простое напоминание), `event` (Событие), `email` (Написать письмо)
 - `task.status`: допустимые значения — `done` (Выполнено), `undone` (Активно)
 - `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+- Пагинация: cursor-based (limit + cursor)
 
 ## Эндпоинты
 

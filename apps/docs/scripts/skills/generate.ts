@@ -501,6 +501,12 @@ function generateEndpointsMd(ctx: SkillContext): string {
     lines.push('');
   }
 
+  // Extra endpoint content (e.g. form block types for pachca-forms)
+  if (config.extraEndpointContent) {
+    lines.push(config.extraEndpointContent);
+    lines.push('');
+  }
+
   return lines.join('\n');
 }
 

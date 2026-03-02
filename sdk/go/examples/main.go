@@ -51,7 +51,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("CreateMessage failed: %v", err)
 	}
-	created := createRes.(*pachca.MessageOperationsCreateMessageCreated)
 	msgID := created.Data.ID
 	fmt.Printf("   Created message ID: %d\n", msgID)
 

@@ -5,7 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import { SidebarItem } from './sidebar-item';
 import type { NavigationSection } from '@/lib/openapi/types';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface SidebarNavProps {
   navigation: NavigationSection[];
@@ -79,6 +79,43 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
     }
   }, [pathname, navigation]);
 
+  // При ручном раскрытии секции — подскролливаем, чтобы она была видна целиком
+  const handleSectionsChange = useCallback(
+    (value: string[]) => {
+      const newlyOpened = value.find((v) => !openSections.includes(v));
+      setOpenSections(value);
+
+      if (!newlyOpened) return;
+      if (window.innerWidth < 1024) return;
+
+      const container = document.getElementById('sidebar-scroll-container');
+      if (!container) return;
+
+      // Ждём окончания анимации аккордеона (200мс)
+      setTimeout(() => {
+        const sections = container.querySelectorAll('.navigation-section');
+        const section = Array.from(sections).find(
+          (el) =>
+            el.querySelector('[data-state=open]') !== null && el.textContent?.includes(newlyOpened)
+        );
+        if (!section) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const sectionRect = section.getBoundingClientRect();
+        const sectionBottom = sectionRect.bottom - containerRect.top + container.scrollTop;
+        const visibleBottom = container.scrollTop + container.clientHeight;
+
+        if (sectionBottom > visibleBottom) {
+          container.scrollTo({
+            top: sectionBottom - container.clientHeight,
+            behavior: 'smooth',
+          });
+        }
+      }, 220);
+    },
+    [openSections]
+  );
+
   const firstSection = navigation[0];
   const otherSections = navigation.slice(1);
 
@@ -99,7 +136,7 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
       <Accordion.Root
         type="multiple"
         value={openSections}
-        onValueChange={setOpenSections}
+        onValueChange={handleSectionsChange}
         className="space-y-1"
       >
         {otherSections.map((section, idx) => {

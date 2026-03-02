@@ -23,11 +23,10 @@ npx skills add pachca/openapi
 
 | Агент | Путь |
 |-------|------|
-| Claude Code | `.claude/skills/` |
-| Cursor | `.cursor/skills/` |
-| Codex CLI | `AGENTS.md` в корне репо |
+| Claude Code | `CLAUDE.md` → `AGENTS.md` |
+| Codex CLI | `AGENTS.md` |
 | OpenCode | `skills/` |
-| Windsurf, Continue, 35+ других | Автоопределение |
+| Cursor, Windsurf, Continue, 40+ других | Автоопределение |
 | Ручная установка | `cp -r skills/pachca-* <path>` |
 
 ### Доступные скиллы
@@ -41,6 +40,7 @@ npx skills add pachca/openapi
 | `pachca-bots` | Боты, вебхуки, unfurling |
 | `pachca-forms` | Интерактивные формы |
 | `pachca-tasks` | Напоминания (задачи) |
+| `pachca-search` | Полнотекстовый поиск |
 | `pachca-security` | Аудит событий, DLP |
 
 ### Как скиллы помогают агенту

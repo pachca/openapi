@@ -1,10 +1,12 @@
 ---
 name: pachca-profile
 description: >
-  Получение и обновление профиля текущего пользователя, управление статусом,
-  кастомные поля сотрудников. Используй когда нужно: получить свой профиль,
-  обновить статус, узнать дополнительные поля. НЕ используй для: управления
-  другими сотрудниками (→ pachca-users).
+  Получение профиля текущего пользователя, управление своим статусом, кастомные
+  поля сотрудников, проверка токена. Используй когда нужно: получить свой
+  профиль, установить/сбросить статус, узнать дополнительные поля, проверить
+  скоупы токена. НЕ используй для: управления другими сотрудниками (→
+  pachca-users).
+allowed-tools: Bash(curl *)
 ---
 
 # pachca-profile
@@ -14,40 +16,48 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
 Если токен неизвестен — спроси у пользователя перед выполнением запросов.
 
-## Когда использовать
-
-- получить профиль
-- мой профиль
-- установить статус
-- обновить статус
-- сбросить статус
-- кастомные поля
-- дополнительные поля
-
 ## Когда НЕ использовать
 
 - найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
-- создать канал, создать беседу, создать чат → **pachca-chats**
-- отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
-- настроить бота, вебхук, webhook → **pachca-bots**
-- показать форму, интерактивная форма, модальное окно → **pachca-forms**
-- создать задачу, список задач, напоминание → **pachca-tasks**
-- поиск сообщений, найти сообщение, полнотекстовый поиск → **pachca-search**
-- аудит, журнал событий, безопасность → **pachca-security**
 
 ## Пошаговые сценарии
+
+### Получить свой профиль
+
+1. GET /profile — возвращает полную информацию о текущем пользователе
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/profile" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","nickname":"ivanp","department":"Разработка","title":"Разработчик","role":"admin",...}}
+```
+
+> Возвращает `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
+
+### Проверить свой токен
+
+1. GET /oauth/token/info — возвращает информацию о текущем токене: скоупы, дату создания, срок жизни
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
+  -H "Authorization: Bearer $TOKEN"
+# Ответ: {"data":{"id":123,"token":"abcd1234...ef56","name":"Мой токен","user_id":186,"scopes":["messages:create","chats:read"],"expires_in":7776000,...}}
+```
+
+> Полезно для диагностики: какие скоупы доступны токену, когда он истекает. Токен маскируется — видны первые 8 и последние 4 символа.
 
 ### Установить статус
 
 1. PUT /profile/status с `emoji` и `title`
 2. Чтобы включить режим «Нет на месте» — добавь `is_away: true`
 3. Чтобы задать сообщение о недоступности — добавь `away_message: "текст"` (макс 1024 символа, отображается в профиле и при личных сообщениях/упоминаниях)
+4. Чтобы статус автоматически сбросился — добавь `expires_at: "2024-04-08T10:00:00.000Z"` (ISO-8601, UTC+0)
 
 ```bash
 curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true,"away_message":"Я в отпуске. По срочным вопросам — @ivanov"}}'
+  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true,"away_message":"Я в отпуске. По срочным вопросам — @ivanov","expires_at":"2025-03-10T23:59:59.000Z"}}'
 ```
 
 ### Сбросить статус
@@ -66,65 +76,21 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 
 > Параметр `entity_type=User` фильтрует поля по типу сущности. Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве `custom_properties` объекта `user`.
 
-## Обработка ошибок
-
-| Код | Причина | Что делать |
-|-----|---------|------------|
-| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |
-| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |
-| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |
-| 404 | Не найдено | Неверный id. Проверь что сущность существует |
-| 401 | Не авторизован | Проверь токен в заголовке Authorization |
-
-## Доступные операции
-
-### Список дополнительных полей
-
-`GET /custom_properties`
-
-> скоуп: `custom_properties:read`
-
-### Информация о токене
-
-`GET /oauth/token/info`
-
-### Информация о профиле
-
-`GET /profile`
-
-> скоуп: `profile:read`
-
-### Текущий статус
-
-`GET /profile/status`
-
-> скоуп: `profile_status:read`
-
-### Новый статус
-
-`PUT /profile/status`
-
-> скоуп: `profile_status:write`
-
-```json
-{
-  "status": {
-    "emoji": "🎮",
-    "title": "Очень занят"
-  }
-}
-```
-
-### Удаление статуса
-
-`DELETE /profile/status`
-
-> скоуп: `profile_status:write`
-
 ## Ограничения и gotchas
 
+- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
 - `status.away_message`: максимум 1024 символов
-- Пагинация: cursor-based (limit + cursor), НЕ page-based
+
+## Эндпоинты
+
+| Метод | Путь | Скоуп |
+|-------|------|-------|
+| GET | /custom_properties | custom_properties:read |
+| GET | /oauth/token/info | — |
+| GET | /profile | profile:read |
+| GET | /profile/status | profile_status:read |
+| PUT | /profile/status | profile_status:write |
+| DELETE | /profile/status | profile_status:write |
 
 ## Подробнее
 

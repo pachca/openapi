@@ -11,8 +11,6 @@ const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
 const OUTPUT_DIRS = [
   path.join(REPO_ROOT, 'skills'),
-  path.join(REPO_ROOT, '.claude/skills'),
-  path.join(REPO_ROOT, '.cursor/rules'),
   path.join(process.cwd(), 'public/.well-known/skills'),
 ];
 
@@ -25,6 +23,13 @@ function cleanOutputDirs() {
   const agentsMd = path.join(REPO_ROOT, 'AGENTS.md');
   if (fs.existsSync(agentsMd)) {
     fs.unlinkSync(agentsMd);
+  }
+  // Clean up legacy directories no longer generated
+  for (const legacy of ['.claude/skills', '.cursor/rules']) {
+    const dir = path.join(REPO_ROOT, legacy);
+    if (fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true });
+    }
   }
 }
 
@@ -57,7 +62,6 @@ export function generateAllSkills(api: ParsedAPI) {
 
     const basePaths = [
       `skills/${config.name}`,
-      `.claude/skills/${config.name}`,
       `apps/docs/public/.well-known/skills/${config.name}`,
     ];
 
@@ -100,20 +104,11 @@ export function generateAllSkills(api: ParsedAPI) {
     };
     const skillMd = generateSkillMd(ctx);
     const endpointsMd = generateEndpointsMd(ctx);
-    for (const base of [
-      `skills/${name}`,
-      `.claude/skills/${name}`,
-      `apps/docs/public/.well-known/skills/${name}`,
-    ]) {
+    for (const base of [`skills/${name}`, `apps/docs/public/.well-known/skills/${name}`]) {
       results.push({ path: `${base}/SKILL.md`, content: skillMd });
       results.push({ path: `${base}/references/endpoints.md`, content: endpointsMd });
     }
     console.warn(`⚠ Created fallback skill "${name}" with ${endpoints.length} endpoints`);
-  }
-
-  const overviewMd = generateOverviewSkillMd(baseUrl);
-  for (const base of ['skills/default', 'apps/docs/public/.well-known/skills/default']) {
-    results.push({ path: `${base}/SKILL.md`, content: overviewMd });
   }
 
   results.push({
@@ -121,10 +116,6 @@ export function generateAllSkills(api: ParsedAPI) {
     content: generateIndexJson(),
   });
   results.push({ path: 'AGENTS.md', content: generateAgentsMd(baseUrl) });
-  results.push({
-    path: '.cursor/rules/pachca-api.mdc',
-    content: generateCursorMdc(baseUrl),
-  });
 
   return results;
 }
@@ -177,10 +168,10 @@ function groupEndpointsBySkill(endpoints: Endpoint[]) {
 function generateSkillMd(ctx: SkillContext): string {
   const { config, endpoints, baseUrl, allSkills } = ctx;
   const workflows = WORKFLOWS[config.name] || [];
-  const siblings = allSkills.filter((s) => s.name !== config.name);
 
   const lines: string[] = [];
 
+  // Frontmatter
   lines.push('---');
   lines.push(`name: ${config.name}`);
   lines.push(`description: >`);
@@ -188,9 +179,11 @@ function generateSkillMd(ctx: SkillContext): string {
   for (const dl of descLines) {
     lines.push(`  ${dl.trim()}`);
   }
+  lines.push('allowed-tools: Bash(curl *)');
   lines.push('---');
   lines.push('');
 
+  // Header + auth
   lines.push(`# ${config.name}`);
   lines.push('');
   lines.push(`Base URL: \`${baseUrl}\``);
@@ -207,21 +200,22 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push('Если токен неизвестен — спроси у пользователя перед выполнением запросов.');
   lines.push('');
 
-  lines.push('## Когда использовать');
-  lines.push('');
-  for (const trigger of config.triggers) {
-    lines.push(`- ${trigger}`);
+  // "Когда НЕ использовать" — only nearest alternatives
+  const nearestAlts = config.nearestAlternatives || [];
+  if (nearestAlts.length > 0) {
+    lines.push('## Когда НЕ использовать');
+    lines.push('');
+    for (const altName of nearestAlts) {
+      const alt = allSkills.find((s) => s.name === altName);
+      if (alt) {
+        const altTriggers = alt.triggers.slice(0, 3).join(', ');
+        lines.push(`- ${altTriggers} → **${alt.name}**`);
+      }
+    }
+    lines.push('');
   }
-  lines.push('');
 
-  lines.push('## Когда НЕ использовать');
-  lines.push('');
-  for (const sibling of siblings) {
-    const sibTriggers = sibling.triggers.slice(0, 3).join(', ');
-    lines.push(`- ${sibTriggers} → **${sibling.name}**`);
-  }
-  lines.push('');
-
+  // Workflows
   if (workflows.length > 0) {
     lines.push('## Пошаговые сценарии');
     lines.push('');
@@ -245,61 +239,8 @@ function generateSkillMd(ctx: SkillContext): string {
     }
   }
 
-  lines.push('## Обработка ошибок');
-  lines.push('');
-  lines.push('| Код | Причина | Что делать |');
-  lines.push('|-----|---------|------------|');
-  lines.push(
-    '| 422 | Неверные параметры | Проверь обязательные поля, типы данных, допустимые значения enum |'
-  );
-  lines.push('| 429 | Rate limit | Подожди и повтори. Лимит: ~50 req/sec, сообщения ~4 req/sec |');
-  lines.push(
-    '| 403 | Нет доступа | Недостаточно скоупов (`insufficient_scope`), бот не в чате, или endpoint только для админов/владельцев |'
-  );
-  lines.push('| 404 | Не найдено | Неверный id. Проверь что сущность существует |');
-  lines.push('| 401 | Не авторизован | Проверь токен в заголовке Authorization |');
-  if (config.errors) {
-    for (const err of config.errors) {
-      lines.push(`| ${err.code} | ${err.reason} | ${err.action} |`);
-    }
-  }
-  lines.push('');
-
-  lines.push('## Доступные операции');
-  lines.push('');
-  for (const ep of endpoints) {
-    const title = generateTitle(ep);
-    lines.push(`### ${title}`);
-    lines.push('');
-    lines.push(`\`${ep.method} ${ep.path}\``);
-    lines.push('');
-    if (ep.requirements?.scope || ep.requirements?.plan) {
-      const planNames: Record<string, string> = { corporation: 'Корпорация' };
-      const parts: string[] = [];
-      if (ep.requirements.scope) parts.push(`скоуп: \`${ep.requirements.scope}\``);
-      if (ep.requirements.plan)
-        parts.push(`тариф: **${planNames[ep.requirements.plan] ?? ep.requirements.plan}**`);
-      lines.push(`> ${parts.join(' · ')}`);
-      lines.push('');
-    }
-    if (ep.description) {
-      const firstLine = ep.description.split('\n')[0].trim();
-      if (firstLine !== title) {
-        lines.push(firstLine);
-        lines.push('');
-      }
-    }
-
-    const requiredBody = generateRequiredBodyExample(ep);
-    if (requiredBody) {
-      lines.push('```json');
-      lines.push(JSON.stringify(requiredBody, null, 2));
-      lines.push('```');
-      lines.push('');
-    }
-  }
-
-  const gotchas = extractGotchas(endpoints);
+  // Gotchas (including rate limit and errors — replaces old "Обработка ошибок" section)
+  const gotchas = extractGotchas(endpoints, config);
   if (gotchas.length > 0) {
     lines.push('## Ограничения и gotchas');
     lines.push('');
@@ -309,20 +250,32 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('');
   }
 
+  // Endpoints table (replaces old multi-line "Доступные операции" section)
+  if (endpoints.length > 0) {
+    lines.push('## Эндпоинты');
+    lines.push('');
+    lines.push('| Метод | Путь | Скоуп |');
+    lines.push('|-------|------|-------|');
+    for (const ep of endpoints) {
+      const parts: string[] = [];
+      if (ep.requirements?.scope) parts.push(ep.requirements.scope);
+      if (ep.requirements?.plan) {
+        const planNames: Record<string, string> = { corporation: 'Корпорация' };
+        parts.push(`тариф: ${planNames[ep.requirements.plan] ?? ep.requirements.plan}`);
+      }
+      const scope = parts.length > 0 ? parts.join(' · ') : '—';
+      lines.push(`| ${ep.method} | ${ep.path} | ${scope} |`);
+    }
+    lines.push('');
+  }
+
+  // Reference link
   lines.push('## Подробнее');
   lines.push('');
   lines.push('см. [references/endpoints.md](references/endpoints.md)');
   lines.push('');
 
   return lines.join('\n');
-}
-
-function generateRequiredBodyExample(ep: Endpoint): unknown | null {
-  if (!ep.requestBody) return null;
-  const jsonContent = ep.requestBody.content['application/json'];
-  if (!jsonContent?.schema) return null;
-
-  return buildRequiredOnly(jsonContent.schema);
 }
 
 /** Resolve allOf/oneOf/anyOf to a flat schema (first match wins). */
@@ -341,42 +294,6 @@ function resolveComposed(schema: Schema): Schema {
   if (schema.oneOf?.length) return schema.oneOf[0];
   if (schema.anyOf?.length) return schema.anyOf[0];
   return schema;
-}
-
-function buildFieldValue(fieldSchema: Schema): unknown {
-  const resolved = resolveComposed(fieldSchema);
-
-  if (resolved.example !== undefined) return resolved.example;
-
-  if (resolved.enum?.length) return resolved.enum[0];
-
-  if (resolved.type === 'object') {
-    if (resolved.properties) {
-      const nested = buildRequiredOnly(resolved);
-      return nested || {};
-    }
-    return {};
-  }
-  if (resolved.type === 'array') return [];
-  if (resolved.type === 'integer' || resolved.type === 'number') return 0;
-  if (resolved.type === 'boolean') return false;
-  return '';
-}
-
-function buildRequiredOnly(schema: Schema): Record<string, unknown> | null {
-  const resolved = resolveComposed(schema);
-  if (!resolved.properties) return null;
-  const required = resolved.required || [];
-  if (required.length === 0) return null;
-
-  const result: Record<string, unknown> = {};
-  for (const fieldName of required) {
-    const fieldSchema = resolved.properties[fieldName];
-    if (!fieldSchema) continue;
-    result[fieldName] = buildFieldValue(fieldSchema);
-  }
-
-  return Object.keys(result).length > 0 ? result : null;
 }
 
 function collectSchemaGotchas(
@@ -418,9 +335,19 @@ function collectSchemaGotchas(
   }
 }
 
-function extractGotchas(endpoints: Endpoint[]): string[] {
+function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   const gotchas: string[] = [];
   const seen = new Set<string>();
+
+  // Rate limit (replaces the old error table)
+  gotchas.push('Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.');
+
+  // Skill-specific errors
+  if (config.errors) {
+    for (const err of config.errors) {
+      gotchas.push(`${err.code}: ${err.reason}. ${err.action}`);
+    }
+  }
 
   for (const ep of endpoints) {
     if (ep.requestBody) {
@@ -460,7 +387,11 @@ function extractGotchas(endpoints: Endpoint[]): string[] {
     }
   }
 
-  gotchas.push('Пагинация: cursor-based (limit + cursor), НЕ page-based');
+  // Pagination — only if there are GET endpoints (skip for e.g. pachca-forms with only POST)
+  const hasGetEndpoints = endpoints.some((ep) => ep.method === 'GET');
+  if (hasGetEndpoints) {
+    gotchas.push('Пагинация: cursor-based (limit + cursor), НЕ page-based');
+  }
 
   return gotchas;
 }
@@ -571,54 +502,6 @@ function renderSchemaProps(lines: string[], schema: Schema, depth: number) {
       renderSchemaProps(lines, prop.items, depth + 1);
     }
   }
-}
-
-function generateOverviewSkillMd(baseUrl: string): string {
-  const lines: string[] = [];
-
-  lines.push('---');
-  lines.push('name: pachca-api');
-  lines.push('description: >');
-  lines.push('  REST API мессенджера Пачка. Управление сообщениями, чатами,');
-  lines.push('  пользователями, ботами, задачами и безопасностью.');
-  lines.push('  Используй этот скилл как точку входа для выбора нужного скилла.');
-  lines.push('---');
-  lines.push('');
-  lines.push('# Пачка API');
-  lines.push('');
-  lines.push(`Base URL: \`${baseUrl}\``);
-  lines.push('Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`');
-  lines.push(
-    'Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).'
-  );
-  lines.push('Если токен неизвестен — спроси у пользователя перед выполнением запросов.');
-  lines.push('');
-  lines.push('## Доступные скиллы');
-  lines.push('');
-  lines.push('| Скилл | Когда использовать |');
-  lines.push('|-------|--------------------|');
-  for (const config of SKILL_TAG_MAP) {
-    const shortTriggers = config.triggers.slice(0, 3).join(', ');
-    lines.push(`| [${config.name}](../${config.name}/SKILL.md) | ${shortTriggers} |`);
-  }
-  lines.push('');
-  lines.push('## Быстрый старт');
-  lines.push('');
-  lines.push(
-    '1. Получи токен: Автоматизации → Интеграции → API (бот) или Автоматизации → API (пользователь)'
-  );
-  lines.push('2. Определи задачу → выбери скилл из таблицы выше');
-  lines.push('3. Открой SKILL.md нужного скилла → следуй пошаговому сценарию');
-  lines.push('');
-  lines.push('## Общие правила');
-  lines.push('');
-  lines.push('- Пагинация: cursor-based (`limit` + `cursor`), НЕ page-based');
-  lines.push('- Rate limit: ~50 req/sec, сообщения ~4 req/sec');
-  lines.push('- Формат: JSON (`Content-Type: application/json`)');
-  lines.push('- Ошибки: 422 (параметры), 429 (rate limit), 403 (нет доступа), 404 (не найдено)');
-  lines.push('');
-
-  return lines.join('\n');
 }
 
 function generateWebhookEventsMd(): string {
@@ -760,56 +643,6 @@ function generateAgentsMd(baseUrl: string): string {
   lines.push(
     'Подробнее: [документация API](https://dev.pachca.com), [OpenAPI спецификация](https://dev.pachca.com/openapi.yaml)'
   );
-  lines.push('');
-
-  return lines.join('\n');
-}
-
-function generateCursorMdc(baseUrl: string): string {
-  const lines: string[] = [];
-
-  lines.push('---');
-  lines.push('description: Pachca API — корпоративный мессенджер');
-  lines.push('globs: "**/*"');
-  lines.push('---');
-  lines.push('');
-  lines.push('# Pachca API');
-  lines.push('');
-  lines.push(`Base URL: \`${baseUrl}\``);
-  lines.push('Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`');
-  lines.push('');
-  lines.push('## Скиллы');
-  lines.push('');
-
-  for (const config of SKILL_TAG_MAP) {
-    lines.push(`### ${config.name}`);
-    lines.push('');
-    lines.push(config.description.split('.').slice(0, 2).join('.') + '.');
-    lines.push('');
-
-    const workflows = WORKFLOWS[config.name];
-    if (workflows && workflows.length > 0) {
-      for (const wf of workflows.slice(0, 3)) {
-        lines.push(`**${wf.title}:**`);
-        for (let i = 0; i < wf.steps.length; i++) {
-          lines.push(`${i + 1}. ${wf.steps[i]}`);
-        }
-        if (wf.notes) {
-          lines.push(`> ${wf.notes}`);
-        }
-        lines.push('');
-      }
-    }
-  }
-
-  lines.push('## Ошибки');
-  lines.push('');
-  lines.push('| Код | Что делать |');
-  lines.push('|-----|-----------|');
-  lines.push('| 422 | Проверь обязательные поля и допустимые значения |');
-  lines.push('| 429 | Rate limit — подожди и повтори |');
-  lines.push('| 403 | Нет доступа — проверь права токена |');
-  lines.push('| 404 | Сущность не найдена — проверь id |');
   lines.push('');
 
   return lines.join('\n');

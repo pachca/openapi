@@ -10,6 +10,7 @@ export interface SkillConfig {
   description: string;
   triggers: string[];
   negativeTriggers: string[];
+  nearestAlternatives?: string[];
   guides?: string[];
   errors?: SkillError[];
   botOnly?: boolean;
@@ -31,6 +32,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'дополнительные поля',
     ],
     negativeTriggers: ['управление сотрудниками', 'создать пользователя', 'список сотрудников'],
+    nearestAlternatives: ['pachca-users'],
   },
   {
     name: 'pachca-users',
@@ -53,6 +55,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'установить статус сотруднику',
     ],
     negativeTriggers: ['мой профиль', 'мой статус'],
+    nearestAlternatives: ['pachca-profile', 'pachca-chats'],
   },
   {
     name: 'pachca-chats',
@@ -73,6 +76,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'неактивные чаты',
     ],
     negativeTriggers: ['отправить сообщение', 'ответить в тред', 'загрузить файл'],
+    nearestAlternatives: ['pachca-messages', 'pachca-users'],
     guides: ['export'],
   },
   {
@@ -105,6 +109,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'вебхук',
       'форма',
     ],
+    nearestAlternatives: ['pachca-chats', 'pachca-bots', 'pachca-forms'],
   },
   {
     name: 'pachca-bots',
@@ -127,6 +132,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'link preview',
     ],
     negativeTriggers: ['отправить сообщение', 'показать форму', 'интерактивная форма'],
+    nearestAlternatives: ['pachca-messages', 'pachca-forms'],
     guides: ['webhook'],
   },
   {
@@ -147,6 +153,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'заявка через форму',
     ],
     negativeTriggers: ['кнопки в сообщении', 'настроить бота', 'вебхук'],
+    nearestAlternatives: ['pachca-messages', 'pachca-bots'],
     guides: ['forms'],
     botOnly: true,
     errors: [
@@ -186,6 +193,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'найти по тексту',
     ],
     negativeTriggers: ['список сотрудников', 'список чатов', 'отправить сообщение'],
+    nearestAlternatives: ['pachca-users', 'pachca-chats'],
   },
   {
     name: 'pachca-security',

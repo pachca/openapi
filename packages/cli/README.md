@@ -1,6 +1,6 @@
 # @pachca/cli
 
-Официальный CLI для [Pachca API](https://dev.pachca.com).
+Официальный CLI для [Пачки](https://pachca.com).
 
 ## Установка
 

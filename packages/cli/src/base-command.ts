@@ -108,6 +108,9 @@ export abstract class BaseCommand extends Command {
     };
   }
 
+  /**
+   * Safely parse JSON string from a flag value.
+   */
   protected parseJSON(value: string, flagName: string): unknown {
     try {
       return JSON.parse(value);

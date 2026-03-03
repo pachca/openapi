@@ -30,6 +30,7 @@ export default class MembersAdd extends BaseCommand {
     }),
     'silent': Flags.boolean({
       description: "Не создавать в чате системное сообщение о добавлении участника",
+      allowNo: true,
     }),
   };
 

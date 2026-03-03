@@ -37,6 +37,7 @@ export default class UsersUpdateStatus extends BaseCommand {
     }),
     'is-away': Flags.boolean({
       description: "Режим «Нет на месте»",
+      allowNo: true,
     }),
     'away-message': Flags.string({
       description: "Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. (макс. 1024 символов)",
@@ -86,6 +87,11 @@ export default class UsersUpdateStatus extends BaseCommand {
     // Clean undefined fields
     const inner = body['status'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+
+    if (Object.keys(inner).length === 0) {
+      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\n');
+      return;
+    }
 
     const { data } = await this.apiRequest({
       method: 'PUT',

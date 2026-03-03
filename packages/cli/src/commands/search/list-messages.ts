@@ -41,6 +41,7 @@ export default class SearchListMessages extends BaseCommand {
     }),
     'active': Flags.boolean({
       description: "Фильтр по активности чата",
+      allowNo: true,
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

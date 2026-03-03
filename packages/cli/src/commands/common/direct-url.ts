@@ -91,13 +91,13 @@ export default class CommonDirectUrl extends BaseCommand {
         const blob = new Blob([fs.readFileSync(flags.file)]);
         formData.append('file', blob, path.basename(flags.file));
       }
-      if (flags['contentDisposition']) formData.append('contentDisposition', String(flags['contentDisposition']));
+      if (flags['contentDisposition']) formData.append('Content-Disposition', String(flags['contentDisposition']));
       if (flags['acl']) formData.append('acl', String(flags['acl']));
       if (flags['policy']) formData.append('policy', String(flags['policy']));
-      if (flags['xAmzCredential']) formData.append('xAmzCredential', String(flags['xAmzCredential']));
-      if (flags['xAmzAlgorithm']) formData.append('xAmzAlgorithm', String(flags['xAmzAlgorithm']));
-      if (flags['xAmzDate']) formData.append('xAmzDate', String(flags['xAmzDate']));
-      if (flags['xAmzSignature']) formData.append('xAmzSignature', String(flags['xAmzSignature']));
+      if (flags['xAmzCredential']) formData.append('x-amz-credential', String(flags['xAmzCredential']));
+      if (flags['xAmzAlgorithm']) formData.append('x-amz-algorithm', String(flags['xAmzAlgorithm']));
+      if (flags['xAmzDate']) formData.append('x-amz-date', String(flags['xAmzDate']));
+      if (flags['xAmzSignature']) formData.append('x-amz-signature', String(flags['xAmzSignature']));
       if (flags['key']) formData.append('key', String(flags['key']));
     }
 

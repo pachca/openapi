@@ -516,13 +516,22 @@ describe('client', () => {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
+    function mockStream(content: Buffer) {
+      return new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(content));
+          controller.close();
+        },
+      });
+    }
+
     it('should download file to specified path', async () => {
       const content = Buffer.from('file content here');
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
         headers: new Headers(),
-        arrayBuffer: () => Promise.resolve(content.buffer.slice(content.byteOffset, content.byteOffset + content.byteLength)),
+        body: mockStream(content),
       });
 
       const filePath = path.join(tmpDir, 'output.zip');
@@ -539,7 +548,7 @@ describe('client', () => {
         ok: true,
         status: 200,
         headers: new Headers(),
-        arrayBuffer: () => Promise.resolve(content.buffer.slice(content.byteOffset, content.byteOffset + content.byteLength)),
+        body: mockStream(content),
       });
 
       const result = await downloadFile('https://example.com/archive-123.zip', tmpDir + '/');
@@ -554,7 +563,7 @@ describe('client', () => {
         ok: true,
         status: 200,
         headers: new Headers({ 'content-disposition': 'attachment; filename="export.csv"' }),
-        arrayBuffer: () => Promise.resolve(content.buffer.slice(content.byteOffset, content.byteOffset + content.byteLength)),
+        body: mockStream(content),
       });
 
       await downloadFile('https://example.com/download', tmpDir + '/');

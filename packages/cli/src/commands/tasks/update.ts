@@ -1,7 +1,6 @@
 // Auto-generated from openapi.yaml — DO NOT EDIT
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
-import { Readable } from 'node:stream';
 
 export default class TasksUpdate extends BaseCommand {
   static override description = "Редактирование напоминания";
@@ -46,6 +45,7 @@ export default class TasksUpdate extends BaseCommand {
     }),
     'all-day': Flags.boolean({
       description: "Напоминание на весь день (без указания времени)",
+      allowNo: true,
     }),
     'done-at': Flags.string({
       description: "Дата и время выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ",
@@ -84,6 +84,11 @@ export default class TasksUpdate extends BaseCommand {
     // Clean undefined fields
     const inner = body['task'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+
+    if (Object.keys(inner).length === 0) {
+      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\n');
+      return;
+    }
 
     const { data } = await this.apiRequest({
       method: 'PUT',

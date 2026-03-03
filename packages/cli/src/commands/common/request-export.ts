@@ -35,6 +35,7 @@ export default class CommonRequestExport extends BaseCommand {
     }),
     'skip-chats-file': Flags.boolean({
       description: "Пропуск формирования файла со списком чатов (chats.json)",
+      allowNo: true,
     }),
   };
 

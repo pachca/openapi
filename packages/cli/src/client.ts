@@ -1,5 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { spinner } from '@clack/prompts';
 import ansis from 'ansis';
 import { isInteractive } from './utils.js';
@@ -167,7 +169,8 @@ export async function request(
       // Handle rate limiting (429)
       if (response.status === 429 && !noRetry && attempt < MAX_RETRIES) {
         const retryAfter = response.headers.get('retry-after');
-        const waitMs = retryAfter ? Number.parseInt(retryAfter, 10) * 1000 : 1000;
+        const parsed = retryAfter ? Number.parseInt(retryAfter, 10) : NaN;
+        const waitMs = Number.isNaN(parsed) ? 1000 : parsed * 1000;
         if (clientFlags?.verbose) {
           process.stderr.write(`${ansis.dim(`⏳ Rate limited, retrying in ${waitMs}ms...`)}\n`);
         }
@@ -223,7 +226,9 @@ export async function request(
       }
 
       lastError = error as Error;
-      if (attempt < MAX_RETRIES && !noRetry) {
+      // Only retry network errors for idempotent methods (not POST/DELETE)
+      const safeMethod = ['GET', 'HEAD', 'OPTIONS', 'PUT'].includes(opts.method);
+      if (attempt < MAX_RETRIES && !noRetry && safeMethod) {
         continue;
       }
     }
@@ -294,36 +299,48 @@ export class ApiError extends Error {
 }
 
 export async function downloadFile(url: string, savePath: string): Promise<{ size: number }> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Download failed: HTTP ${response.status}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 min timeout
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Download failed: HTTP ${response.status}`);
+    }
+
+    // If savePath is a directory, derive filename
+    let finalPath = savePath;
+    if (savePath.endsWith('/') || (fs.existsSync(savePath) && fs.statSync(savePath).isDirectory())) {
+      const disposition = response.headers.get('content-disposition');
+      let filename = '';
+      if (disposition) {
+        const match = disposition.match(/filename="?([^";\n]+)"?/);
+        if (match) filename = match[1];
+      }
+      if (!filename) {
+        const urlPath = new URL(url).pathname;
+        filename = path.basename(urlPath.split('?')[0]);
+      }
+      if (!filename) filename = 'download';
+
+      if (!fs.existsSync(savePath)) {
+        throw new Error(`Directory does not exist: ${savePath}`);
+      }
+      finalPath = path.join(savePath, filename);
+    }
+
+    if (!response.body) {
+      throw new Error('Response body is empty');
+    }
+
+    const nodeStream = Readable.fromWeb(response.body as import('node:stream/web').ReadableStream);
+    await pipeline(nodeStream, fs.createWriteStream(finalPath));
+
+    const stat = fs.statSync(finalPath);
+    return { size: stat.size };
+  } finally {
+    clearTimeout(timer);
   }
-
-  const buffer = Buffer.from(await response.arrayBuffer());
-
-  // If savePath is a directory, derive filename
-  let finalPath = savePath;
-  if (savePath.endsWith('/') || (fs.existsSync(savePath) && fs.statSync(savePath).isDirectory())) {
-    const disposition = response.headers.get('content-disposition');
-    let filename = '';
-    if (disposition) {
-      const match = disposition.match(/filename="?([^";\n]+)"?/);
-      if (match) filename = match[1];
-    }
-    if (!filename) {
-      const urlPath = new URL(url).pathname;
-      filename = path.basename(urlPath.split('?')[0]);
-    }
-    if (!filename) filename = 'download';
-
-    if (!fs.existsSync(savePath)) {
-      throw new Error(`Directory does not exist: ${savePath}`);
-    }
-    finalPath = path.join(savePath, filename);
-  }
-
-  fs.writeFileSync(finalPath, buffer);
-  return { size: buffer.length };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

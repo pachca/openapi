@@ -23,11 +23,43 @@ export default class UsersCreate extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    'user': Flags.string({
-      description: "user",
+    'first-name': Flags.string({
+      description: "Имя",
+    }),
+    'last-name': Flags.string({
+      description: "Фамилия",
+    }),
+    'email': Flags.string({
+      description: "Электронная почта",
+    }),
+    'phone-number': Flags.string({
+      description: "Телефон",
+    }),
+    'nickname': Flags.string({
+      description: "Имя пользователя",
+    }),
+    'department': Flags.string({
+      description: "Департамент",
+    }),
+    'title': Flags.string({
+      description: "Должность",
+    }),
+    'role': Flags.string({
+      description: "Уровень доступа",
+    }),
+    'suspended': Flags.boolean({
+      description: "Деактивация пользователя",
+      allowNo: true,
+    }),
+    'list-tags': Flags.string({
+      description: "Массив тегов, привязываемых к сотруднику",
+    }),
+    'custom-properties': Flags.string({
+      description: "Задаваемые дополнительные поля",
     }),
     'skip-email-notify': Flags.boolean({
       description: "Пропуск этапа отправки приглашения сотруднику. Сотруднику не будет отправлено письмо на электронную почту с приглашением создать аккаунт. Полезно при предварительном создании аккаунтов перед входом через SSO.",
+      allowNo: true,
     }),
   };
 
@@ -36,7 +68,7 @@ export default class UsersCreate extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'user', label: "user", type: 'string' },
+      { flag: 'email', label: "Электронная почта", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -59,11 +91,25 @@ export default class UsersCreate extends BaseCommand {
     this.checkScope("users:create");
 
     const body: Record<string, unknown> = {
-      user: flags['user'] ? this.parseJSON(flags['user'], 'user') : undefined,
+      user: {
+      first_name: flags['first-name'],
+      last_name: flags['last-name'],
+      email: flags['email'],
+      phone_number: flags['phone-number'],
+      nickname: flags['nickname'],
+      department: flags['department'],
+      title: flags['title'],
+      role: flags['role'],
+      suspended: flags['suspended'],
+      list_tags: flags['list-tags'] ? this.parseJSON(flags['list-tags'], 'list-tags') : undefined,
+      custom_properties: flags['custom-properties'] ? this.parseJSON(flags['custom-properties'], 'custom-properties') : undefined,
+      },
       skip_email_notify: flags['skip-email-notify'],
     };
     // Clean undefined fields
-    for (const [k, v] of Object.entries(body)) { if (v === undefined) delete body[k]; }
+    const inner = body['user'] as Record<string, unknown>;
+    for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+    for (const [k, v] of Object.entries(body)) { if (k !== 'user' && v === undefined) delete body[k]; }
 
     const { data } = await this.apiRequest({
       method: 'POST',

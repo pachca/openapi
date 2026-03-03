@@ -335,7 +335,17 @@ interface BodyField {
   maxLength?: number;
   maximum?: number;
   minimum?: number;
+  isSibling?: boolean;
 }
+
+/** Wire names for multipart/form-data fields that differ from schema property names */
+const MULTIPART_WIRE_NAMES: Record<string, string> = {
+  contentDisposition: 'Content-Disposition',
+  xAmzCredential: 'x-amz-credential',
+  xAmzAlgorithm: 'x-amz-algorithm',
+  xAmzDate: 'x-amz-date',
+  xAmzSignature: 'x-amz-signature',
+};
 
 function extractBodyFields(requestBody?: RequestBody): BodyField[] {
   if (!requestBody) return [];
@@ -353,14 +363,20 @@ function extractBodyFields(requestBody?: RequestBody): BodyField[] {
   const properties = resolved.properties || {};
   const requiredFields = new Set(resolved.required || []);
 
-  // Check if top-level is a wrapper (single property that's an object)
+  // Check if top-level has exactly one object property that can be unwrapped
   const topKeys = Object.keys(properties);
-  if (topKeys.length === 1) {
-    const wrapper = properties[topKeys[0]];
+  const objectKeys = topKeys.filter((k) => {
+    const inner = resolveAllOf(properties[k]);
+    return inner.properties && Object.keys(inner.properties).length > 0;
+  });
+
+  if (objectKeys.length === 1) {
+    const wrapperKey = objectKeys[0];
+    const wrapper = properties[wrapperKey];
     const innerResolved = resolveAllOf(wrapper);
     if (innerResolved.properties) {
       const innerRequired = new Set(innerResolved.required || []);
-      return Object.entries(innerResolved.properties)
+      const fields: BodyField[] = Object.entries(innerResolved.properties)
         .filter(([, v]) => !v.readOnly)
         .map(([name, propSchema]) => ({
           name,
@@ -373,6 +389,26 @@ function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           maximum: propSchema.maximum,
           minimum: propSchema.minimum,
         }));
+
+      // Add sibling scalar fields (non-object top-level properties)
+      for (const key of topKeys) {
+        if (key === wrapperKey) continue;
+        const propSchema = resolveAllOf(properties[key]);
+        fields.push({
+          name: key,
+          type: getSchemaType(propSchema),
+          format: propSchema.format,
+          required: requiredFields.has(key),
+          description: propSchema.description,
+          enum: propSchema.enum,
+          maxLength: propSchema.maxLength,
+          maximum: propSchema.maximum,
+          minimum: propSchema.minimum,
+          isSibling: true,
+        });
+      }
+
+      return fields;
     }
   }
 
@@ -525,10 +561,6 @@ function generateCommandCode(p: CommandGenParams): string {
     imports.push(`import { downloadFile } from '../../client.js';`);
     imports.push(`import { formatSize } from '../../utils.js';`);
   }
-  if (p.stdinField) {
-    imports.push(`import { Readable } from 'node:stream';`);
-  }
-
   // Build args
   const argsCode = p.pathParams.map((param) => {
     const argName = param.name.replace(/[{}]/g, '');
@@ -559,6 +591,7 @@ function generateCommandCode(p: CommandGenParams): string {
     const flagType = getOclifFlagType(param.schema);
     const extras: string[] = [];
     if (param.schema.enum) extras.push(`      options: ${JSON.stringify(param.schema.enum)},`);
+    if (flagType === 'boolean') extras.push(`      allowNo: true,`);
     const extrasStr = extras.length > 0 ? '\n' + extras.join('\n') : '';
     queryFlagLines.push(`    '${flagName}': Flags.${flagType}({
       description: ${JSON.stringify(param.description || param.name)},${extrasStr}
@@ -594,6 +627,7 @@ function generateCommandCode(p: CommandGenParams): string {
     const maxLenComment = field.maxLength ? ` (макс. ${field.maxLength} символов)` : '';
     const bodyExtras: string[] = [];
     if (field.enum) bodyExtras.push(`      options: ${JSON.stringify(field.enum)},`);
+    if (flagType === 'boolean') bodyExtras.push(`      allowNo: true,`);
     const bodyExtrasStr = bodyExtras.length > 0 ? '\n' + bodyExtras.join('\n') : '';
     bodyFlagLines.push(`    '${flagName}': Flags.${flagType}({
       description: ${JSON.stringify((field.description || field.name) + maxLenComment)},${bodyExtrasStr}
@@ -737,22 +771,26 @@ function generateCommandCode(p: CommandGenParams): string {
   }
 
   // Build request body object
-  const bodyEntries: string[] = [];
+  const wrapperEntries: string[] = [];
+  const siblingEntries: string[] = [];
   const jsonContent = p.endpoint.requestBody?.content['application/json'];
   const wrapperKey = jsonContent ? getWrapperKey(jsonContent.schema) : null;
 
   for (const field of p.bodyFields) {
     if (field.format === 'binary') continue;
     const flagName = field.name.replace(/_/g, '-');
+    let entry: string;
     // Parse JSON array/object flags
     if (field.type === 'array' || field.type === 'object') {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'] ? this.parseJSON(flags['${flagName}'], '${flagName}') : undefined,`);
-    } else if (field.type === 'integer' || field.type === 'number') {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'],`);
-    } else if (field.type === 'boolean') {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'],`);
+      entry = `      ${field.name}: flags['${flagName}'] ? this.parseJSON(flags['${flagName}'], '${flagName}') : undefined,`;
     } else {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'],`);
+      entry = `      ${field.name}: flags['${flagName}'],`;
+    }
+
+    if (wrapperKey && field.isSibling) {
+      siblingEntries.push(entry);
+    } else {
+      wrapperEntries.push(entry);
     }
   }
 
@@ -827,7 +865,8 @@ function generateCommandCode(p: CommandGenParams): string {
     for (const field of p.bodyFields) {
       if (field.format === 'binary') continue;
       const flagName = field.name.replace(/_/g, '-');
-      runBodyLines.push(`      if (flags['${flagName}']) formData.append('${field.name}', String(flags['${flagName}']));`);
+      const wireName = MULTIPART_WIRE_NAMES[field.name] || field.name;
+      runBodyLines.push(`      if (flags['${flagName}']) formData.append('${wireName}', String(flags['${flagName}']));`);
     }
     runBodyLines.push(`    }`);
     runBodyLines.push('');
@@ -841,10 +880,17 @@ function generateCommandCode(p: CommandGenParams): string {
     }
     runBodyLines.push(`      formData,`);
     runBodyLines.push(`    });`);
-  } else if (bodyEntries.length > 0) {
-    const bodyObj = wrapperKey
-      ? `{ ${wrapperKey}: {\n${bodyEntries.join('\n')}\n    } }`
-      : `{\n${bodyEntries.join('\n')}\n    }`;
+  } else if (wrapperEntries.length > 0 || siblingEntries.length > 0) {
+    let bodyObj: string;
+    if (wrapperKey) {
+      if (siblingEntries.length > 0) {
+        bodyObj = `{\n      ${wrapperKey}: {\n${wrapperEntries.join('\n')}\n      },\n${siblingEntries.join('\n')}\n    }`;
+      } else {
+        bodyObj = `{ ${wrapperKey}: {\n${wrapperEntries.join('\n')}\n    } }`;
+      }
+    } else {
+      bodyObj = `{\n${wrapperEntries.join('\n')}\n    }`;
+    }
 
     // Clean undefined fields
     runBodyLines.push(`    const body: Record<string, unknown> = ${bodyObj};`);
@@ -852,9 +898,26 @@ function generateCommandCode(p: CommandGenParams): string {
     if (wrapperKey) {
       runBodyLines.push(`    const inner = body['${wrapperKey}'] as Record<string, unknown>;`);
       runBodyLines.push(`    for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }`);
+      if (siblingEntries.length > 0) {
+        runBodyLines.push(`    for (const [k, v] of Object.entries(body)) { if (k !== '${wrapperKey}' && v === undefined) delete body[k]; }`);
+      }
     } else {
       runBodyLines.push(`    for (const [k, v] of Object.entries(body)) { if (v === undefined) delete body[k]; }`);
     }
+
+    // Empty body warning for update commands
+    if (p.endpoint.method === 'PUT' || p.endpoint.method === 'PATCH') {
+      runBodyLines.push('');
+      if (wrapperKey) {
+        runBodyLines.push(`    if (Object.keys(inner).length === 0) {`);
+      } else {
+        runBodyLines.push(`    if (Object.keys(body).length === 0) {`);
+      }
+      runBodyLines.push(`      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\\n');`);
+      runBodyLines.push(`      return;`);
+      runBodyLines.push(`    }`);
+    }
+
     runBodyLines.push('');
     runBodyLines.push(`    const { data } = await this.apiRequest({`);
     runBodyLines.push(`      method: '${p.endpoint.method}',`);
@@ -950,10 +1013,11 @@ function getWrapperKey(schema: Schema): string | null {
   const resolved = resolveAllOf(schema);
   if (!resolved.properties) return null;
   const keys = Object.keys(resolved.properties);
-  if (keys.length === 1) {
-    const inner = resolveAllOf(resolved.properties[keys[0]]);
-    if (inner.properties) return keys[0];
-  }
+  const objectKeys = keys.filter((k) => {
+    const inner = resolveAllOf(resolved.properties![k]);
+    return inner.properties && Object.keys(inner.properties).length > 0;
+  });
+  if (objectKeys.length === 1) return objectKeys[0];
   return null;
 }
 

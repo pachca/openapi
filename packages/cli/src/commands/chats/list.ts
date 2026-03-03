@@ -39,6 +39,7 @@ export default class ChatsList extends BaseCommand {
     }),
     'personal': Flags.boolean({
       description: "Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты.",
+      allowNo: true,
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

@@ -76,8 +76,8 @@ export default class UsersUpdate extends BaseCommand {
       title: flags['title'],
       role: flags['role'],
       suspended: flags['suspended'],
-      list_tags: flags['list-tags'] ? JSON.parse(flags['list-tags']) : undefined,
-      custom_properties: flags['custom-properties'] ? JSON.parse(flags['custom-properties']) : undefined,
+      list_tags: flags['list-tags'] ? this.parseJSON(flags['list-tags'], 'list-tags') : undefined,
+      custom_properties: flags['custom-properties'] ? this.parseJSON(flags['custom-properties'], 'custom-properties') : undefined,
     } };
     // Clean undefined fields
     const inner = body['user'] as Record<string, unknown>;

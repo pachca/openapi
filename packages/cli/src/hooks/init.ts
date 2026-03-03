@@ -39,8 +39,9 @@ const hook: Hook<'init'> = async function (opts) {
   // Skip auth for exempt commands
   if (SKIP_AUTH.has(commandId)) return;
 
-  // Skip auth when --help flag is passed (oclif may route help through init)
+  // Skip auth when --help or --dry-run flag is passed
   if (process.argv.includes('--help') || process.argv.includes('-h')) return;
+  if (process.argv.includes('--dry-run')) return;
 
   // Check if the command itself says requiresAuth: false
   try {
@@ -55,9 +56,15 @@ const hook: Hook<'init'> = async function (opts) {
     return;
   }
 
+  // Parse --token and --profile from argv for early auth check
+  const tokenIdx = process.argv.indexOf('--token');
+  const argvToken = tokenIdx !== -1 ? process.argv[tokenIdx + 1] : undefined;
+  const profileIdx = process.argv.indexOf('--profile');
+  const argvProfile = profileIdx !== -1 ? process.argv[profileIdx + 1] : undefined;
+
   // Verify auth exists
   try {
-    const { profileName, profile } = resolveToken({ token: undefined, profile: undefined });
+    const { profileName, profile } = resolveToken({ token: argvToken, profile: argvProfile });
 
     // Refresh bot scopes if stale (>24h)
     if (profileName && profile?.type === 'bot' && profile.scopes_refreshed_at) {

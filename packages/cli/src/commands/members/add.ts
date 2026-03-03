@@ -61,7 +61,7 @@ export default class MembersAdd extends BaseCommand {
     this.checkScope("chat_members:write");
 
     const body: Record<string, unknown> = {
-      member_ids: flags['member-ids'] ? JSON.parse(flags['member-ids']) : undefined,
+      member_ids: flags['member-ids'] ? this.parseJSON(flags['member-ids'], 'member-ids') : undefined,
       silent: flags['silent'],
     };
     // Clean undefined fields

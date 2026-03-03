@@ -103,7 +103,9 @@ export async function request(
   clientFlags?: ClientFlags,
 ): Promise<{ data: unknown; status: number; headers: Headers }> {
   const url = buildUrl(opts.path, opts.query);
-  const timeoutSeconds = opts.timeout ?? clientFlags?.timeout ?? Number(process.env.PACHCA_TIMEOUT) ?? DEFAULT_TIMEOUT;
+  const rawEnvTimeout = process.env.PACHCA_TIMEOUT ? Number(process.env.PACHCA_TIMEOUT) : undefined;
+  const envTimeout = rawEnvTimeout && !Number.isNaN(rawEnvTimeout) ? rawEnvTimeout : undefined;
+  const timeoutSeconds = opts.timeout ?? clientFlags?.timeout ?? envTimeout ?? DEFAULT_TIMEOUT;
   const noRetry = opts.noRetry ?? clientFlags?.['no-retry'] ?? false;
 
   const fetchHeaders: Record<string, string> = {

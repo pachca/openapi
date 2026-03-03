@@ -59,7 +59,7 @@ export default class UsersCreate extends BaseCommand {
     this.checkScope("users:create");
 
     const body: Record<string, unknown> = {
-      user: flags['user'] ? JSON.parse(flags['user']) : undefined,
+      user: flags['user'] ? this.parseJSON(flags['user'], 'user') : undefined,
       skip_email_notify: flags['skip-email-notify'],
     };
     // Clean undefined fields

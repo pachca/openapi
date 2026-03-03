@@ -108,6 +108,14 @@ export abstract class BaseCommand extends Command {
     };
   }
 
+  protected parseJSON(value: string, flagName: string): unknown {
+    try {
+      return JSON.parse(value);
+    } catch {
+      this.error(`Invalid JSON in --${flagName}: ${value}`);
+    }
+  }
+
   /**
    * Get client flags for the HTTP client.
    */

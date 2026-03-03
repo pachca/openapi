@@ -69,8 +69,8 @@ export default class ChatsCreate extends BaseCommand {
 
     const body: Record<string, unknown> = { chat: {
       name: flags['name'],
-      member_ids: flags['member-ids'] ? JSON.parse(flags['member-ids']) : undefined,
-      group_tag_ids: flags['group-tag-ids'] ? JSON.parse(flags['group-tag-ids']) : undefined,
+      member_ids: flags['member-ids'] ? this.parseJSON(flags['member-ids'], 'member-ids') : undefined,
+      group_tag_ids: flags['group-tag-ids'] ? this.parseJSON(flags['group-tag-ids'], 'group-tag-ids') : undefined,
       channel: flags['channel'],
       public: flags['public'],
     } };

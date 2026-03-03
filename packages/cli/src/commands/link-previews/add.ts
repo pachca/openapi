@@ -56,7 +56,7 @@ export default class LinkPreviewsAdd extends BaseCommand {
     this.checkScope("link_previews:write");
 
     const body: Record<string, unknown> = {
-      link_previews: flags['link-previews'] ? JSON.parse(flags['link-previews']) : undefined,
+      link_previews: flags['link-previews'] ? this.parseJSON(flags['link-previews'], 'link-previews') : undefined,
     };
     // Clean undefined fields
     for (const [k, v] of Object.entries(body)) { if (v === undefined) delete body[k]; }

@@ -38,7 +38,7 @@ jobs:
         run: npx turbo run generate
 
       - name: Build TypeScript SDK
-        run: npx run build
+        run: npm run build
         working-directory: sdk/typescript
 
       - name: Copy Swift Package.swift to root

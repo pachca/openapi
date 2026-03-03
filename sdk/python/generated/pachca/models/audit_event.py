@@ -76,20 +76,20 @@ class AuditEvent:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.audit_details_role_changed import AuditDetailsRoleChanged
+        from ..models.audit_details_tag_chat import AuditDetailsTagChat
+        from ..models.audit_details_dlp import AuditDetailsDlp
+        from ..models.audit_details_user_updated import AuditDetailsUserUpdated
+        from ..models.audit_details_initiator import AuditDetailsInitiator
+        from ..models.audit_details_token_scopes import AuditDetailsTokenScopes
+        from ..models.audit_details_tag_name import AuditDetailsTagName
         from ..models.audit_details_kms import AuditDetailsKms
         from ..models.audit_details_chat_id import AuditDetailsChatId
-        from ..models.audit_details_empty import AuditDetailsEmpty
-        from ..models.audit_details_token_scopes import AuditDetailsTokenScopes
-        from ..models.audit_details_initiator import AuditDetailsInitiator
-        from ..models.audit_details_chat_renamed import AuditDetailsChatRenamed
-        from ..models.audit_details_tag_name import AuditDetailsTagName
-        from ..models.audit_details_dlp import AuditDetailsDlp
-        from ..models.audit_details_tag_chat import AuditDetailsTagChat
-        from ..models.audit_details_chat_permission import AuditDetailsChatPermission
         from ..models.audit_details_search import AuditDetailsSearch
         from ..models.audit_details_inviter import AuditDetailsInviter
-        from ..models.audit_details_user_updated import AuditDetailsUserUpdated
+        from ..models.audit_details_chat_renamed import AuditDetailsChatRenamed
+        from ..models.audit_details_chat_permission import AuditDetailsChatPermission
+        from ..models.audit_details_empty import AuditDetailsEmpty
+        from ..models.audit_details_role_changed import AuditDetailsRoleChanged
         id = self.id
 
         created_at = self.created_at.isoformat()

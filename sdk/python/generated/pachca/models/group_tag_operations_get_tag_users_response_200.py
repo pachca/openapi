@@ -41,8 +41,8 @@ class GroupTagOperationsGetTagUsersResponse200:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.user import User
         from ..models.pagination_meta import PaginationMeta
+        from ..models.user import User
         data = []
         for data_item_data in self.data:
             data_item = data_item_data.to_dict()

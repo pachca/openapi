@@ -91,10 +91,10 @@ export default class TasksCreate extends BaseCommand {
       content: flags['content'],
       due_at: flags['due-at'],
       priority: flags['priority'],
-      performer_ids: flags['performer-ids'] ? JSON.parse(flags['performer-ids']) : undefined,
+      performer_ids: flags['performer-ids'] ? this.parseJSON(flags['performer-ids'], 'performer-ids') : undefined,
       chat_id: flags['chat-id'],
       all_day: flags['all-day'],
-      custom_properties: flags['custom-properties'] ? JSON.parse(flags['custom-properties']) : undefined,
+      custom_properties: flags['custom-properties'] ? this.parseJSON(flags['custom-properties'], 'custom-properties') : undefined,
     } };
     // Clean undefined fields
     const inner = body['task'] as Record<string, unknown>;

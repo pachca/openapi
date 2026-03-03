@@ -86,7 +86,7 @@ export default class ViewsOpen extends BaseCommand {
       trigger_id: flags['trigger-id'],
       private_metadata: flags['private-metadata'],
       callback_id: flags['callback-id'],
-      view: flags['view'] ? JSON.parse(flags['view']) : undefined,
+      view: flags['view'] ? this.parseJSON(flags['view'], 'view') : undefined,
     };
     // Clean undefined fields
     for (const [k, v] of Object.entries(body)) { if (v === undefined) delete body[k]; }

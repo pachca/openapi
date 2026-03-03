@@ -746,7 +746,7 @@ function generateCommandCode(p: CommandGenParams): string {
     const flagName = field.name.replace(/_/g, '-');
     // Parse JSON array/object flags
     if (field.type === 'array' || field.type === 'object') {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'] ? JSON.parse(flags['${flagName}']) : undefined,`);
+      bodyEntries.push(`      ${field.name}: flags['${flagName}'] ? this.parseJSON(flags['${flagName}'], '${flagName}') : undefined,`);
     } else if (field.type === 'integer' || field.type === 'number') {
       bodyEntries.push(`      ${field.name}: flags['${flagName}'],`);
     } else if (field.type === 'boolean') {

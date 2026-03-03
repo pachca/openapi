@@ -71,7 +71,7 @@ export default class CommonRequestExport extends BaseCommand {
       start_at: flags['start-at'],
       end_at: flags['end-at'],
       webhook_url: flags['webhook-url'],
-      chat_ids: flags['chat-ids'] ? JSON.parse(flags['chat-ids']) : undefined,
+      chat_ids: flags['chat-ids'] ? this.parseJSON(flags['chat-ids'], 'chat-ids') : undefined,
       skip_chats_file: flags['skip-chats-file'],
     };
     // Clean undefined fields

@@ -57,7 +57,7 @@ export default class BotsUpdate extends BaseCommand {
     this.checkScope("bots:write");
 
     const body: Record<string, unknown> = { bot: {
-      webhook: flags['webhook'] ? JSON.parse(flags['webhook']) : undefined,
+      webhook: flags['webhook'] ? this.parseJSON(flags['webhook'], 'webhook') : undefined,
     } };
     // Clean undefined fields
     const inner = body['bot'] as Record<string, unknown>;

@@ -75,11 +75,11 @@ export default class TasksUpdate extends BaseCommand {
       content: flags['content'],
       due_at: flags['due-at'],
       priority: flags['priority'],
-      performer_ids: flags['performer-ids'] ? JSON.parse(flags['performer-ids']) : undefined,
+      performer_ids: flags['performer-ids'] ? this.parseJSON(flags['performer-ids'], 'performer-ids') : undefined,
       status: flags['status'],
       all_day: flags['all-day'],
       done_at: flags['done-at'],
-      custom_properties: flags['custom-properties'] ? JSON.parse(flags['custom-properties']) : undefined,
+      custom_properties: flags['custom-properties'] ? this.parseJSON(flags['custom-properties'], 'custom-properties') : undefined,
     } };
     // Clean undefined fields
     const inner = body['task'] as Record<string, unknown>;

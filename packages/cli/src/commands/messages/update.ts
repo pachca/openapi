@@ -60,8 +60,8 @@ export default class MessagesUpdate extends BaseCommand {
 
     const body: Record<string, unknown> = { message: {
       content: flags['content'],
-      files: flags['files'] ? JSON.parse(flags['files']) : undefined,
-      buttons: flags['buttons'] ? JSON.parse(flags['buttons']) : undefined,
+      files: flags['files'] ? this.parseJSON(flags['files'], 'files') : undefined,
+      buttons: flags['buttons'] ? this.parseJSON(flags['buttons'], 'buttons') : undefined,
       display_avatar_url: flags['display-avatar-url'],
       display_name: flags['display-name'],
     } };

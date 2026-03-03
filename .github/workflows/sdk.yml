@@ -14,6 +14,7 @@ jobs:
       contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
+      cli_changed: ${{ steps.cli_check.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -36,6 +37,16 @@ jobs:
         run: bun install
       - name: Generate SDKs
         run: npx turbo run generate
+
+      - name: Check for CLI changes
+        if: github.event_name == 'push'
+        id: cli_check
+        run: |
+          if git diff --name-only -- packages/cli/ | grep -q .; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build TypeScript SDK
         run: npm run build
@@ -107,7 +118,7 @@ jobs:
           fi
 
   publish-cli:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.generate.outputs.cli_changed == 'true'
     needs: generate
     runs-on: ubuntu-latest
     concurrency:

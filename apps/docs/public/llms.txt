@@ -7,6 +7,7 @@
 ## Руководства
 - [Обзор](https://dev.pachca.com/.md): Создавайте уникальные решения на одной платформе
 - [AI агенты](https://dev.pachca.com/guides/ai-agents.md): Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
+- [CLI](https://dev.pachca.com/guides/cli.md): Управление Пачкой из терминала — все API-методы одной командой
 - [Исходящий Webhook](https://dev.pachca.com/guides/webhook.md): Получение уведомлений о событиях в реальном времени
 - [Авторизация](https://dev.pachca.com/guides/authorization.md): Типы токенов, скоупы и настройка доступа к API
 - [Запросы и ответы](https://dev.pachca.com/guides/requests-responses.md): Формат запросов и ответов, тестирование API
@@ -20,14 +21,14 @@
 ## Common
 - [Экспорт сообщений](https://dev.pachca.com/common/request-export.md): POST /chats/exports
 - [Скачать архив экспорта](https://dev.pachca.com/common/get-exports.md): GET /chats/exports/{id}
-- [Список дополнительных полей](https://dev.pachca.com/common/list.md): GET /custom_properties
+- [Список дополнительных полей](https://dev.pachca.com/common/custom-properties.md): GET /custom_properties
 - [Загрузка файла](https://dev.pachca.com/common/direct-url.md): POST /direct_url
-- [Получение подписи, ключа и других параметров](https://dev.pachca.com/common/create.md): POST /uploads
+- [Получение подписи, ключа и других параметров](https://dev.pachca.com/common/uploads.md): POST /uploads
 
 ## Profile
 - [Информация о токене](https://dev.pachca.com/profile/get-info.md): GET /oauth/token/info
-- [Информация о профиле](https://dev.pachca.com/profile/profile.md): GET /profile
-- [Текущий статус](https://dev.pachca.com/profile/list-status.md): GET /profile/status
+- [Информация о профиле](https://dev.pachca.com/profile/get.md): GET /profile
+- [Текущий статус](https://dev.pachca.com/profile/get-status.md): GET /profile/status
 - [Новый статус](https://dev.pachca.com/profile/update-status.md): PUT /profile/status
 - [Удаление статуса](https://dev.pachca.com/profile/delete-status.md): DELETE /profile/status
 
@@ -37,7 +38,7 @@
 - [Информация о сотруднике](https://dev.pachca.com/users/get.md): GET /users/{id}
 - [Редактирование сотрудника](https://dev.pachca.com/users/update.md): PUT /users/{id}
 - [Удаление сотрудника](https://dev.pachca.com/users/delete.md): DELETE /users/{id}
-- [Статус сотрудника](https://dev.pachca.com/users/list-status.md): GET /users/{user_id}/status
+- [Статус сотрудника](https://dev.pachca.com/users/get-status.md): GET /users/{user_id}/status
 - [Новый статус сотрудника](https://dev.pachca.com/users/update-status.md): PUT /users/{user_id}/status
 - [Удаление статуса сотрудника](https://dev.pachca.com/users/remove-status.md): DELETE /users/{user_id}/status
 
@@ -54,20 +55,20 @@
 - [Список чатов](https://dev.pachca.com/chats/list.md): GET /chats
 - [Информация о чате](https://dev.pachca.com/chats/get.md): GET /chats/{id}
 - [Обновление чата](https://dev.pachca.com/chats/update.md): PUT /chats/{id}
-- [Архивация чата](https://dev.pachca.com/chats/update-archive.md): PUT /chats/{id}/archive
-- [Разархивация чата](https://dev.pachca.com/chats/update-unarchive.md): PUT /chats/{id}/unarchive
+- [Архивация чата](https://dev.pachca.com/chats/archive.md): PUT /chats/{id}/archive
+- [Разархивация чата](https://dev.pachca.com/chats/unarchive.md): PUT /chats/{id}/unarchive
 
 ## Members
 - [Добавление тегов](https://dev.pachca.com/members/add-group-tags.md): POST /chats/{id}/group_tags
 - [Исключение тега](https://dev.pachca.com/members/remove-group-tag.md): DELETE /chats/{id}/group_tags/{tag_id}
-- [Выход из беседы или канала](https://dev.pachca.com/members/remove-leave.md): DELETE /chats/{id}/leave
-- [Список участников чата](https://dev.pachca.com/members/list-members.md): GET /chats/{id}/members
-- [Добавление пользователей](https://dev.pachca.com/members/add-members.md): POST /chats/{id}/members
-- [Исключение пользователя](https://dev.pachca.com/members/remove-member.md): DELETE /chats/{id}/members/{user_id}
-- [Редактирование роли](https://dev.pachca.com/members/update-members.md): PUT /chats/{id}/members/{user_id}
+- [Выход из беседы или канала](https://dev.pachca.com/members/leave.md): DELETE /chats/{id}/leave
+- [Список участников чата](https://dev.pachca.com/members/list.md): GET /chats/{id}/members
+- [Добавление пользователей](https://dev.pachca.com/members/add.md): POST /chats/{id}/members
+- [Исключение пользователя](https://dev.pachca.com/members/remove.md): DELETE /chats/{id}/members/{user_id}
+- [Редактирование роли](https://dev.pachca.com/members/update.md): PUT /chats/{id}/members/{user_id}
 
 ## Thread
-- [Новый тред](https://dev.pachca.com/thread/add-thread.md): POST /messages/{id}/thread
+- [Новый тред](https://dev.pachca.com/thread/add.md): POST /messages/{id}/thread
 - [Информация о треде](https://dev.pachca.com/thread/get.md): GET /threads/{id}
 
 ## Messages
@@ -80,15 +81,15 @@
 - [Открепление сообщения](https://dev.pachca.com/messages/unpin.md): DELETE /messages/{id}/pin
 
 ## Read member
-- [Список прочитавших сообщение](https://dev.pachca.com/read-member/list-read-member-ids.md): GET /messages/{id}/read_member_ids
+- [Список прочитавших сообщение](https://dev.pachca.com/read-member/list-readers.md): GET /messages/{id}/read_member_ids
 
 ## Reactions
-- [Добавление реакции](https://dev.pachca.com/reactions/add-reactions.md): POST /messages/{id}/reactions
-- [Удаление реакции](https://dev.pachca.com/reactions/remove-reactions.md): DELETE /messages/{id}/reactions
-- [Список реакций](https://dev.pachca.com/reactions/list-reactions.md): GET /messages/{id}/reactions
+- [Добавление реакции](https://dev.pachca.com/reactions/add.md): POST /messages/{id}/reactions
+- [Удаление реакции](https://dev.pachca.com/reactions/remove.md): DELETE /messages/{id}/reactions
+- [Список реакций](https://dev.pachca.com/reactions/list.md): GET /messages/{id}/reactions
 
 ## Link Previews
-- [Unfurl (разворачивание ссылок)](https://dev.pachca.com/link-previews/add-link-previews.md): POST /messages/{id}/link_previews
+- [Unfurl (разворачивание ссылок)](https://dev.pachca.com/link-previews/add.md): POST /messages/{id}/link_previews
 
 ## Search
 - [Поиск чатов](https://dev.pachca.com/search/list-chats.md): GET /search/chats
@@ -103,7 +104,7 @@
 - [Удаление напоминания](https://dev.pachca.com/tasks/delete.md): DELETE /tasks/{id}
 
 ## Views
-- [Открытие представления](https://dev.pachca.com/views/create-open.md): POST /views/open
+- [Открытие представления](https://dev.pachca.com/views/open.md): POST /views/open
 
 ## Bots
 - [Редактирование бота](https://dev.pachca.com/bots/update.md): PUT /bots/{id}

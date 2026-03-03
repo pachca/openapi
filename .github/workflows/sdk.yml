@@ -106,6 +106,63 @@ jobs:
             npm publish --access public
           fi
 
+  publish-cli:
+    if: github.event_name == 'push'
+    needs: generate
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-cli
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+      - run: bun install --frozen-lockfile
+      - name: Set CLI version (CalVer YYYY.M.patch)
+        id: version
+        run: |
+          VERSION=$(node -e "
+            const d = new Date();
+            const base = d.getFullYear() + '.' + (d.getMonth()+1);
+            const published = require('child_process')
+              .execSync('npm view @pachca/cli versions --json 2>/dev/null || echo []')
+              .toString().trim();
+            const versions = JSON.parse(published);
+            const patch = versions.filter(v => v.startsWith(base + '.')).length;
+            console.log(base + '.' + patch);
+          ")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          cd packages/cli && npm version $VERSION --no-git-tag-version
+      - name: Generate changelog
+        run: npx tsx scripts/diff-endpoints.ts
+        working-directory: packages/cli
+      - run: npm run build
+        working-directory: packages/cli
+      - working-directory: packages/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          OUTPUT=$(npm publish --access public --provenance 2>&1) || {
+            CODE=$?
+            if echo "$OUTPUT" | grep -q "E409\|already exists"; then
+              CURRENT=$(node -e "console.log(require('./package.json').version)")
+              PATCH=$(echo $CURRENT | cut -d. -f3)
+              BASE=$(echo $CURRENT | cut -d. -f1-2)
+              npm version ${BASE}.$((PATCH + 1)) --no-git-tag-version
+              npm publish --access public --provenance
+            else
+              exit $CODE
+            fi
+          }
+
   publish-pypi:
     if: github.event_name == 'push'
     needs: generate

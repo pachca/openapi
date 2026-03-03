@@ -40,8 +40,8 @@ class SearchOperationsSearchMessagesResponse200:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.message import Message
         from ..models.search_pagination_meta import SearchPaginationMeta
+        from ..models.message import Message
         data = []
         for data_item_data in self.data:
             data_item = data_item_data.to_dict()

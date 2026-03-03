@@ -40,7 +40,7 @@ pachca auth login --token $ACCESS_TOKEN`}
 
 # ID    Имя              Email               Роль
 # 1234  Иван Иванов      ivan@company.ru     admin
-# 5678  Мария Петрова    maria@company.ru    regular`}
+# 5678  Мария Петрова    maria@company.ru    user`}
 </CodeBlock>
 
     Добавьте `-o json` для JSON-вывода.
@@ -275,6 +275,48 @@ pachca guide "активные чаты"
 | `--no-header` | | Скрыть заголовок таблицы |
 | `--no-truncate` | | Не обрезать длинные значения |
 | `--no-retry` | | Отключить авто-retry при 429/503 |
+
+### Имена флагов
+
+Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) всех современных CLI (AWS, gcloud, GitHub CLI, Stripe CLI, kubectl и др.):
+
+<CodeBlock language="text" title="API → CLI">
+{`API-документация          CLI-флаг
+─────────────────         ────────────────
+first_name            →   --first-name
+phone_number          →   --phone-number
+entity_id             →   --entity-id
+skip_email_notify     →   --skip-email-notify
+list_tags             →   --list-tags
+custom_properties     →   --custom-properties
+parent_message_id     →   --parent-message-id`}
+</CodeBlock>
+
+При отправке запроса CLI автоматически конвертирует имена обратно в snake_case для API. Проверить можно через `--dry-run`:
+
+<CodeBlock language="bash" title="Проверка">
+{`pachca users update 123 --first-name "Иван" --phone-number "+7900" --dry-run
+
+# {"user": {"first_name": "Иван", "phone_number": "+7900"}}`}
+</CodeBlock>
+
+### Boolean-флаги
+
+Для boolean-параметров API используйте флаг для установки `true` и `--no-` префикс для `false`:
+
+<CodeBlock language="bash" title="Boolean-флаги">
+{`# Деактивировать сотрудника (suspended: true)
+pachca users update 123 --suspended
+
+# Активировать обратно (suspended: false)
+pachca users update 123 --no-suspended
+
+# Создать публичный канал (channel: true, public: true)
+pachca chats create --name "Новости" --channel --public
+
+# Сделать канал приватным (public: false)
+pachca chats update 123 --no-public`}
+</CodeBlock>
 
 ### Предпросмотр запроса
 

@@ -285,6 +285,11 @@ PACHCA_TOKEN=xxx pachca messages create --entity-id 123 --content "Деплой 
 
 # DELETE без подтверждения (в TTY)
 pachca users delete 1234 --force
+
+# Boolean-флаги: --flag (true), --no-flag (false)
+pachca users update 123 --suspended
+pachca users update 123 --no-suspended
+pachca chats update 123 --no-public
 ```
 
 ## Прямые API-запросы

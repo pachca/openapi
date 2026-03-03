@@ -34,10 +34,10 @@ export default class SearchListMessages extends BaseCommand {
       description: "Фильтр по дате создания (до)",
     }),
     'chat-ids': Flags.string({
-      description: "Фильтр по ID чатов",
+      description: "Фильтр по ID чатов" + " (через запятую)",
     }),
     'user-ids': Flags.string({
-      description: "Фильтр по ID авторов сообщений",
+      description: "Фильтр по ID авторов сообщений" + " (через запятую)",
     }),
     'active': Flags.boolean({
       description: "Фильтр по активности чата",

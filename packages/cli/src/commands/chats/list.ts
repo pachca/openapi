@@ -25,7 +25,7 @@ export default class ChatsList extends BaseCommand {
     'sort-id': Flags.string({
       description: "Идентификатор чата",
     }),
-    'sort-last_message_at': Flags.string({
+    'sort-last-message-at': Flags.string({
       description: "Дата и время создания последнего сообщения",
     }),
     'availability': Flags.string({
@@ -69,7 +69,7 @@ export default class ChatsList extends BaseCommand {
       while (pages < 500) {
         const query: Record<string, string | number | boolean | undefined> = {
         'sort[id]': flags['sort-id'],
-        'sort[last_message_at]': flags['sort-last_message_at'],
+        'sort[last_message_at]': flags['sort-last-message-at'],
         availability: flags['availability'],
         'last_message_at_after': flags['last-message-at-after'],
         'last_message_at_before': flags['last-message-at-before'],
@@ -113,7 +113,7 @@ export default class ChatsList extends BaseCommand {
       path: '/chats',
       query: {
       'sort[id]': flags['sort-id'],
-      'sort[last_message_at]': flags['sort-last_message_at'],
+      'sort[last_message_at]': flags['sort-last-message-at'],
       availability: flags['availability'],
       'last_message_at_after': flags['last-message-at-after'],
       'last_message_at_before': flags['last-message-at-before'],

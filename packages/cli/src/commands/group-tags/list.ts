@@ -22,7 +22,7 @@ export default class GroupTagsList extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     'names': Flags.string({
-      description: "Массив названий тегов, по которым вы хотите отфильтровать список",
+      description: "Массив названий тегов, по которым вы хотите отфильтровать список" + " (через запятую)",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

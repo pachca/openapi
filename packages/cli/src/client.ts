@@ -228,8 +228,8 @@ export async function request(
       lastError = error as Error;
       // Only retry network errors for idempotent methods (not POST/DELETE)
       const safeMethod = ['GET', 'HEAD', 'OPTIONS', 'PUT'].includes(opts.method);
-      if (attempt < MAX_RETRIES && !noRetry && safeMethod) {
-        continue;
+      if (!safeMethod || noRetry || attempt >= MAX_RETRIES) {
+        break;
       }
     }
   }

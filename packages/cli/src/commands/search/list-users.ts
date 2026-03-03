@@ -38,7 +38,7 @@ export default class SearchListUsers extends BaseCommand {
       description: "Фильтр по дате создания (до)",
     }),
     'company-roles': Flags.string({
-      description: "Фильтр по ролям сотрудников",
+      description: "Фильтр по ролям сотрудников" + " (через запятую)",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

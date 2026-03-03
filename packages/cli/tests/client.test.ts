@@ -505,6 +505,189 @@ describe('client', () => {
     });
   });
 
+  it('should not produce NaN timeout when PACHCA_TIMEOUT is unset', async () => {
+    delete process.env.PACHCA_TIMEOUT;
+    let capturedSignal: AbortSignal | undefined;
+
+    globalThis.fetch = vi.fn().mockImplementation((_url, opts) => {
+      capturedSignal = opts?.signal;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: {} }),
+      });
+    });
+
+    await request({ method: 'GET', path: '/test', token: 'test' }, { quiet: true });
+    expect(capturedSignal).toBeDefined();
+    // Signal must NOT be immediately aborted (NaN timeout would cause instant abort)
+    expect(capturedSignal!.aborted).toBe(false);
+  });
+
+  it('should not produce NaN timeout when PACHCA_TIMEOUT is empty string', async () => {
+    process.env.PACHCA_TIMEOUT = '';
+    let capturedSignal: AbortSignal | undefined;
+
+    globalThis.fetch = vi.fn().mockImplementation((_url, opts) => {
+      capturedSignal = opts?.signal;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: {} }),
+      });
+    });
+
+    await request({ method: 'GET', path: '/test', token: 'test' }, { quiet: true });
+    expect(capturedSignal!.aborted).toBe(false);
+  });
+
+  it('should handle retry-after with non-numeric value', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: false,
+          status: 429,
+          headers: new Headers({ 'retry-after': 'invalid' }),
+          json: () => Promise.resolve({}),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: 'ok' }),
+      });
+    });
+
+    const result = await request(
+      { method: 'GET', path: '/test', token: 'test' },
+      { quiet: true },
+    );
+    expect(result.data).toEqual({ data: 'ok' });
+    expect(callCount).toBe(2);
+  });
+
+  it('should not retry POST on network error', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      return Promise.reject(new TypeError('fetch failed'));
+    });
+
+    await expect(
+      request({ method: 'POST', path: '/messages', token: 'test' }, { quiet: true }),
+    ).rejects.toThrow();
+    expect(callCount).toBe(1);
+  });
+
+  it('should not retry DELETE on network error', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      return Promise.reject(new TypeError('fetch failed'));
+    });
+
+    await expect(
+      request({ method: 'DELETE', path: '/messages/1', token: 'test' }, { quiet: true }),
+    ).rejects.toThrow();
+    expect(callCount).toBe(1);
+  });
+
+  it('should retry GET on network error', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount <= 2) {
+        return Promise.reject(new TypeError('fetch failed'));
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: 'ok' }),
+      });
+    });
+
+    const result = await request(
+      { method: 'GET', path: '/test', token: 'test' },
+      { quiet: true },
+    );
+    expect(result.data).toEqual({ data: 'ok' });
+    expect(callCount).toBe(3);
+  });
+
+  it('should retry PUT on network error', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount <= 2) {
+        return Promise.reject(new TypeError('fetch failed'));
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: 'ok' }),
+      });
+    });
+
+    const result = await request(
+      { method: 'PUT', path: '/users/1', token: 'test' },
+      { quiet: true },
+    );
+    expect(result.data).toEqual({ data: 'ok' });
+    expect(callCount).toBe(3);
+  });
+
+  it('should not retry PATCH on network error', async () => {
+    let callCount = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      return Promise.reject(new TypeError('fetch failed'));
+    });
+
+    await expect(
+      request({ method: 'PATCH', path: '/test', token: 'test' }, { quiet: true }),
+    ).rejects.toThrow();
+    expect(callCount).toBe(1);
+  });
+
+  it('should handle non-JSON error response (HTML)', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 502,
+      statusText: 'Bad Gateway',
+      headers: new Headers({ 'content-type': 'text/html' }),
+      text: () => Promise.resolve('<html>Bad Gateway</html>'),
+    });
+
+    try {
+      await request({ method: 'GET', path: '/test', token: 'test', noRetry: true }, { quiet: true });
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApiError);
+      expect((error as ApiError).details.code).toBe(502);
+    }
+  });
+
+  it('should return null data when content-length is 0', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-length': '0' }),
+    });
+
+    const result = await request(
+      { method: 'POST', path: '/test', token: 'test' },
+      { quiet: true },
+    );
+    expect(result.data).toBeNull();
+  });
+
   describe('downloadFile', () => {
     let tmpDir: string;
 
@@ -577,6 +760,33 @@ describe('client', () => {
       });
 
       await expect(downloadFile('https://example.com/missing.zip', path.join(tmpDir, 'out.zip'))).rejects.toThrow('Download failed');
+    });
+
+    it('should throw when response body is null', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers(),
+        body: null,
+      });
+
+      await expect(
+        downloadFile('https://example.com/file.zip', path.join(tmpDir, 'out.zip')),
+      ).rejects.toThrow();
+    });
+
+    it('should throw when target directory does not exist', async () => {
+      const content = Buffer.from('data');
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers(),
+        body: mockStream(content),
+      });
+
+      await expect(
+        downloadFile('https://example.com/file.zip', '/nonexistent-dir-xyz/'),
+      ).rejects.toThrow();
     });
   });
 });

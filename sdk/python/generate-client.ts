@@ -1,19 +1,20 @@
 /**
  * Python facade generator.
  *
- * Reads the OpenAPI spec and emits `generated/pachca/pachca_client.py` —
- * an ergonomic wrapper over the low-level code produced by openapi-python-client.
+ * Reads the generated Python SDK (produced by openapi-python-client) and emits
+ * `generated/pachca/pachca_client.py` — an ergonomic wrapper over the low-level code.
  *
  * Usage: npx tsx generate-client.ts
  */
 
 import * as fs from "fs";
 import * as path from "path";
-import * as yaml from "yaml";
 
 // ── Paths ──────────────────────────────────────────────────────────────────────
 
-const SPEC_PATH = path.resolve(__dirname, "../../packages/spec/openapi.yaml");
+const GENERATED_PATH = path.resolve(__dirname, "generated/pachca");
+const API_PATH = path.join(GENERATED_PATH, "api");
+const MODELS_PATH = path.join(GENERATED_PATH, "models");
 const OUTPUT_PATH = path.resolve(
   __dirname,
   "generated/pachca/pachca_client.py",
@@ -22,16 +23,10 @@ const INIT_PATH = path.resolve(__dirname, "generated/pachca/__init__.py");
 
 // ── Naming helpers ─────────────────────────────────────────────────────────────
 
-function camelToSnake(s: string): string {
-  return s
-    .replace(/([A-Z])/g, "_$1")
-    .toLowerCase()
-    .replace(/^_/, "");
-}
-
 function pascalToSnake(s: string): string {
   return s
     .replace(/([A-Z])/g, "_$1")
+    .replace(/([a-zA-Z])(\d)/g, "$1_$2")
     .toLowerCase()
     .replace(/^_/, "");
 }
@@ -56,38 +51,29 @@ function tagToApiDir(tag: string): string {
   return tag.toLowerCase().replace(/\s+/g, "_");
 }
 
-/** operationId → method name.  "MessageOperations_createMessage" → "create_message" */
-function operationIdToMethod(operationId: string): string {
-  const idx = operationId.indexOf("_");
-  const method = idx >= 0 ? operationId.slice(idx + 1) : operationId;
-  return camelToSnake(method);
-}
-
-/** operationId → generated module name.  "MessageOperations_createMessage" → "message_operations_create_message" */
-function operationIdToModule(operationId: string): string {
-  // The generated module uses the full operationId converted: replace _ boundary correctly
-  // Pattern: "MessageOperations_createMessage"
-  // Split on the TypeSpec boundary underscore, snake each part, rejoin
-  const parts = operationId.split("_"); // ["MessageOperations", "createMessage"]
-  return parts.map((p) => pascalToSnake(p)).join("_");
-}
-
 /** Schema name → model module name.  "MessageCreateRequest" → "message_create_request" */
 function schemaToModule(name: string): string {
   return pascalToSnake(name);
 }
 
-/** Resolve a $ref string to schema object */
-function resolveRef(spec: any, ref: string): any {
-  const parts = ref.replace("#/", "").split("/");
-  let obj = spec;
-  for (const p of parts) obj = obj[p];
-  return obj;
+/** Directory name → tag.  "group_tags" → "Group tags", "bots" → "Bots" */
+function dirNameToTag(dirName: string): string {
+  return dirName
+    .replace(/_/g, " ")
+    .replace(/^\w/, (c) => c.toUpperCase());
 }
 
-/** Get schema name from $ref string */
-function refName(ref: string): string {
-  return ref.split("/").pop()!;
+/** Module name → facade method name.  "bot_operations_delete_webhook_event" → "delete_webhook_event" */
+function moduleNameToMethodName(moduleName: string): string {
+  const match = moduleName.match(/_operations_(.+)$/);
+  return match ? match[1] : moduleName;
+}
+
+function snakeToPascal(s: string): string {
+  return s
+    .split("_")
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join("");
 }
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -126,6 +112,7 @@ interface ResponseInfo {
   kind: ResponseKind;
   modelName?: string; // e.g. "Message"
   responseClass?: string; // e.g. "MessageOperationsCreateMessageResponse201"
+  primitiveItemType?: string; // e.g. "int" for data: [integer]
 }
 
 interface OperationInfo {
@@ -141,308 +128,321 @@ interface OperationInfo {
   response: ResponseInfo;
 }
 
-// ── Spec analysis ──────────────────────────────────────────────────────────────
+// ── Python SDK analysis ────────────────────────────────────────────────────────
 
-function resolveSchemaType(spec: any, schema: any): string {
-  if (!schema) return "Any";
-  if (schema.$ref) return refName(schema.$ref);
-  if (schema.type === "integer") return "int";
-  if (schema.type === "number") return "float";
-  if (schema.type === "boolean") return "bool";
-  if (schema.type === "string") {
-    if (schema.format === "date-time") return "str";
-    return "str";
+const enumCache = new Map<string, boolean>();
+
+/** Check if a model type is an enum by reading its model file for `(str, Enum)`. */
+function isEnumModel(typeName: string): boolean {
+  if (["int", "str", "float", "bool", "list", "dict", "Any"].includes(typeName)) {
+    return false;
   }
-  if (schema.type === "array") return `list`;
-  return "Any";
+  if (enumCache.has(typeName)) return enumCache.get(typeName)!;
+  const modelFile = path.join(MODELS_PATH, schemaToModule(typeName) + ".py");
+  if (!fs.existsSync(modelFile)) {
+    enumCache.set(typeName, false);
+    return false;
+  }
+  const content = fs.readFileSync(modelFile, "utf8");
+  const isEnum = /class \w+\(str, Enum\)/.test(content);
+  enumCache.set(typeName, isEnum);
+  return isEnum;
 }
 
-function analyzeParam(spec: any, param: any): ParamInfo {
-  const schema = param.schema?.$ref
-    ? resolveRef(spec, param.schema.$ref)
-    : param.schema || {};
-  const schemaRef = param.schema?.$ref;
-
-  let pyType = resolveSchemaType(spec, param.schema);
-  // If it's an enum ref, use the ref name as type (but not for array aliases)
-  if (schemaRef && schema.enum) {
-    pyType = refName(schemaRef);
-  }
-  // If the $ref resolves to an array type, don't treat it as a named type
-  if (schemaRef && schema.type === "array") {
-    pyType = "list";
-  }
-
-  let defaultVal: string | undefined;
-  if (param.schema?.default !== undefined) {
-    const d = param.schema.default;
-    if (typeof d === "string") {
-      // Check if it's an enum
-      if (schemaRef && schema.enum) {
-        defaultVal = `${refName(schemaRef)}.${String(d).toUpperCase()}`;
-      } else {
-        defaultVal = `"${d}"`;
-      }
-    } else if (typeof d === "number") {
-      defaultVal = String(d);
-    } else if (typeof d === "boolean") {
-      defaultVal = d ? "True" : "False";
-    }
-  }
-
-  // Don't set schemaRef for array type aliases (they don't have generated models)
-  const isEnumRef = schemaRef && schema.enum && schema.type !== "array";
-
-  return {
-    name: param.name,
-    pyName: param.name.replace(/[[\]{}]/g, "").replace(/\./g, "_"),
-    location: param.in,
-    required: param.required === true,
-    type: pyType,
-    default: defaultVal,
-    schemaRef: isEnumRef ? refName(schemaRef) : undefined,
-  };
+/** Count real attrs fields in a model (excluding additional_properties). */
+function countModelFields(modelName: string): number {
+  const modelFile = path.join(MODELS_PATH, schemaToModule(modelName) + ".py");
+  if (!fs.existsSync(modelFile)) return 0;
+  const content = fs.readFileSync(modelFile, "utf8");
+  // Match attr lines at 4-space indent inside the class body, before first method
+  const classBody = content.match(/@_attrs_define\nclass \w+[^]*?"""\n\n([^]*?)(?:\n\n\n|\n    def )/);
+  if (!classBody) return 0;
+  const lines = classBody[1]
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("additional_properties:") && /^\w+:\s/.test(l));
+  return lines.length;
 }
 
-function snakeToPascal(s: string): string {
-  return s.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join("");
+interface ParsedSync {
+  pathParams: ParamInfo[];
+  queryParams: ParamInfo[];
+  bodyType?: string;
+  successResponseType?: string; // undefined = void
 }
 
-function resolveFieldType(spec: any, propSchema: any): string {
-  if (!propSchema) return "Any";
-  if (propSchema.$ref) return refName(propSchema.$ref);
-  if (propSchema.allOf?.[0]?.$ref) return refName(propSchema.allOf[0].$ref);
-  if (propSchema.type === "integer") return "int";
-  if (propSchema.type === "number") return "float";
-  if (propSchema.type === "boolean") return "bool";
-  if (propSchema.type === "string") return "str";
-  if (propSchema.type === "array") return "list";
-  return "Any";
-}
+/** Parse sync() function from an operation module file. Returns null if no sync() found. */
+function parseSyncSignature(filePath: string): ParsedSync | null {
+  const content = fs.readFileSync(filePath, "utf8");
 
-function analyzeRequestBody(
-  spec: any,
-  requestBody: any,
-): RequestBodyInfo | undefined {
-  if (!requestBody) return undefined;
-  const content = requestBody.content?.["application/json"];
-  if (!content?.schema?.$ref) return undefined;
+  // Match `def sync(\n...\n) -> ReturnType:`
+  const syncMatch = content.match(/^def sync\(\n([\s\S]*?)\n\) -> (.*?):/m);
+  if (!syncMatch) return null;
 
-  const outerName = refName(content.schema.$ref);
-  const outerSchema = resolveRef(spec, content.schema.$ref);
-  const props = outerSchema.properties || {};
-  const propNames = Object.keys(props).filter(
-    (k) => k !== "additional_properties" && k !== "additionalProperties",
-  );
+  const paramsBlock = syncMatch[1];
+  const returnTypeStr = syncMatch[2].trim();
 
-  // Check if wrapper: exactly 1 property that is either a $ref or an inline object
-  if (propNames.length === 1) {
-    const prop = props[propNames[0]];
+  // Split on `*,` to separate positional (path) from keyword params
+  const starIdx = paramsBlock.indexOf("*,");
+  const positionalBlock = starIdx >= 0 ? paramsBlock.slice(0, starIdx) : "";
+  const keywordBlock = starIdx >= 0 ? paramsBlock.slice(starIdx + 2) : paramsBlock;
 
-    // Case 1: property is a $ref
-    if (prop?.$ref) {
-      const innerName = refName(prop.$ref);
-      const innerSchema = resolveRef(spec, prop.$ref);
-      const innerProps = Object.keys(innerSchema.properties || {}).filter(
-        (k) => k !== "additional_properties" && k !== "additionalProperties",
-      );
-      return {
-        outerSchema: outerName,
-        isWrapper: true,
-        wrapperProp: propNames[0],
-        innerSchema: innerName,
-        fieldCount: innerProps.length,
-      };
-    }
+  const pathParams: ParamInfo[] = [];
+  const queryParams: ParamInfo[] = [];
+  let bodyType: string | undefined;
 
-    // Case 2: property is an inline object (type: object with properties)
-    if (prop?.type === "object" && prop?.properties) {
-      // Inner model name: {OuterSchema}{PropertyPascalCase}
-      const innerName = outerName + snakeToPascal(propNames[0]);
-      const innerProps = Object.keys(prop.properties).filter(
-        (k) => k !== "additional_properties" && k !== "additionalProperties",
-      );
-      return {
-        outerSchema: outerName,
-        isWrapper: true,
-        wrapperProp: propNames[0],
-        innerSchema: innerName,
-        fieldCount: innerProps.length,
-      };
-    }
-
-    // Case 3: property is an object with additionalProperties (map-like, e.g., LinkPreviewsRequest)
-    if (prop?.type === "object" && prop?.additionalProperties) {
-      // Not a wrapper in the usual sense — pass through
-      return {
-        outerSchema: outerName,
-        isWrapper: false,
-        fieldCount: 1,
-      };
-    }
+  // Parse positional params (path params)
+  for (const line of positionalBlock.split("\n")) {
+    const m = line.trim().match(/^(\w+):\s*(.+?)\s*,?\s*$/);
+    if (!m || m[1] === "client") continue;
+    pathParams.push({
+      name: m[1],
+      pyName: m[1],
+      location: "path",
+      required: true,
+      type: m[2].trim(),
+    });
   }
 
-  // Flat body — collect fields for potential flattening
-  const required = new Set(outerSchema.required || []);
-  const flatFields: FlatField[] = propNames.map((name) => {
-    const propSchema = props[name];
-    const fieldType = resolveFieldType(spec, propSchema);
-    const isRequired = required.has(name);
-    const schemaRef = propSchema?.$ref
-      ? refName(propSchema.$ref)
-      : propSchema?.allOf?.[0]?.$ref
-        ? refName(propSchema.allOf[0].$ref)
-        : undefined;
+  // Parse keyword params (query params + body)
+  for (const line of keywordBlock.split("\n")) {
+    const m = line.trim().match(/^(\w+):\s*(.+?)(?:\s*=\s*(.+?))?\s*,?\s*$/);
+    if (!m) continue;
 
-    return {
+    const [, name, rawType, rawDefault] = m;
+    if (name === "client") continue;
+
+    if (name === "body") {
+      bodyType = rawType.trim();
+      continue;
+    }
+
+    const isOptional = rawType.includes("| Unset");
+    const cleanType = rawType.replace(/\s*\|\s*Unset/, "").trim();
+    const isEnum = isEnumModel(cleanType);
+
+    queryParams.push({
       name,
       pyName: name,
-      type: fieldType,
-      required: isRequired,
-      schemaRef,
-    };
-  });
+      location: "query",
+      required: !isOptional,
+      type: cleanType,
+      default: rawDefault?.trim(),
+      schemaRef: isEnum ? cleanType : undefined,
+    });
+  }
 
+  // Parse return type: filter out error types to find success response
+  const returnTypes = returnTypeStr.split("|").map((t) => t.trim());
+  const errorTypes = new Set(["ApiError", "OAuthError", "None", "Any"]);
+  const successTypes = returnTypes.filter((t) => !errorTypes.has(t));
+  const successResponseType = successTypes.length === 1 ? successTypes[0] : undefined;
+
+  return { pathParams, queryParams, bodyType, successResponseType };
+}
+
+/** Analyze a response model to determine kind (list/single/void/direct). */
+function analyzeResponseModel(responseClassName: string): ResponseInfo {
+  const modelFile = path.join(MODELS_PATH, schemaToModule(responseClassName) + ".py");
+  if (!fs.existsSync(modelFile)) {
+    return { kind: "direct", modelName: responseClassName };
+  }
+
+  const content = fs.readFileSync(modelFile, "utf8");
+
+  // Look for `data:` attribute in the class body
+  const dataMatch = content.match(/^\s{4}data:\s*(.+)$/m);
+  if (!dataMatch) {
+    return { kind: "direct", modelName: responseClassName };
+  }
+
+  const dataType = dataMatch[1].trim();
+
+  // list[SomeModel] or list[int]
+  const listMatch = dataType.match(/^list\[(\w+(?:\.\w+)?)\]$/);
+  if (listMatch) {
+    const itemType = listMatch[1];
+    const isPrimitive = ["int", "str", "float", "bool"].includes(itemType);
+    if (isPrimitive) {
+      return {
+        kind: "list",
+        responseClass: responseClassName,
+        primitiveItemType: itemType,
+      };
+    }
+    return {
+      kind: "list",
+      modelName: itemType,
+      responseClass: responseClassName,
+    };
+  }
+
+  // Single data: "data: SomeModel"
+  const singleMatch = dataType.match(/^(\w+)$/);
+  if (singleMatch) {
+    return {
+      kind: "single",
+      modelName: singleMatch[1],
+      responseClass: responseClassName,
+    };
+  }
+
+  return { kind: "direct", modelName: responseClassName };
+}
+
+/** Analyze a request body model to determine wrapper/flat pattern. */
+function analyzeRequestModel(bodyTypeName: string): RequestBodyInfo {
+  const modelFile = path.join(MODELS_PATH, schemaToModule(bodyTypeName) + ".py");
+  if (!fs.existsSync(modelFile)) {
+    return { outerSchema: bodyTypeName, isWrapper: false, fieldCount: 0 };
+  }
+
+  const content = fs.readFileSync(modelFile, "utf8");
+
+  // Extract attrs fields from class body (between docstring and first method)
+  const classBody = content.match(/@_attrs_define\nclass \w+[^]*?"""\n\n([^]*?)(?:\n\n\n|\n    def )/);
+  if (!classBody) {
+    return { outerSchema: bodyTypeName, isWrapper: false, fieldCount: 0 };
+  }
+
+  const attrLines = classBody[1]
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("additional_properties:") && /^\w+:\s/.test(l));
+
+  interface ModelField {
+    name: string;
+    type: string;
+    isUnset: boolean;
+    defaultVal?: string;
+  }
+
+  const fields: ModelField[] = [];
+  for (const line of attrLines) {
+    const m = line.match(/^(\w+):\s*(.+?)(?:\s*=\s*(.+))?\s*$/);
+    if (!m) continue;
+    fields.push({
+      name: m[1],
+      type: m[2].trim(),
+      isUnset: m[2].includes("Unset"),
+      defaultVal: m[3]?.trim(),
+    });
+  }
+
+  const fieldCount = fields.length;
+
+  // Wrapper detection: exactly 1 field that is a non-primitive, non-enum model with real fields
+  if (fields.length === 1) {
+    const field = fields[0];
+    const cleanType = field.type.replace(/\s*\|\s*Unset/, "").trim();
+    const isPrimitive = ["int", "str", "float", "bool", "list", "dict", "Any"].includes(cleanType)
+      || cleanType.startsWith("list[");
+    if (!isPrimitive && !isEnumModel(cleanType)) {
+      const innerFieldCount = countModelFields(cleanType);
+      if (innerFieldCount > 0) {
+        return {
+          outerSchema: bodyTypeName,
+          isWrapper: true,
+          wrapperProp: field.name,
+          innerSchema: cleanType,
+          fieldCount: innerFieldCount,
+        };
+      }
+    }
+  }
+
+  // Flat body — collect fields for potential flattening (≤2 fields)
+  if (fieldCount <= 2) {
+    const flatFields: FlatField[] = fields.map((f) => {
+      const cleanType = f.type.replace(/\s*\|\s*Unset/, "").trim();
+      const isEnum = isEnumModel(cleanType);
+      return {
+        name: f.name,
+        pyName: f.name,
+        type: cleanType,
+        required: !f.isUnset,
+        schemaRef: isEnum ? cleanType : undefined,
+      };
+    });
+    return {
+      outerSchema: bodyTypeName,
+      isWrapper: false,
+      fieldCount,
+      flatFields,
+    };
+  }
+
+  return { outerSchema: bodyTypeName, isWrapper: false, fieldCount };
+}
+
+/** Extract HTTP method and URL path from _get_kwargs in an operation module. */
+function extractHttpMethodAndPath(content: string): { httpMethod: string; urlPath: string } {
+  const methodMatch = content.match(/"method":\s*"(\w+)"/);
+  const urlMatch = content.match(/"url":\s*"([^"]+)"/);
   return {
-    outerSchema: outerName,
-    isWrapper: false,
-    fieldCount: propNames.length,
-    flatFields: propNames.length <= 2 ? flatFields : undefined,
+    httpMethod: methodMatch ? methodMatch[1] : "get",
+    urlPath: urlMatch ? urlMatch[1] : "",
   };
 }
 
-function analyzeResponse(
-  spec: any,
-  responses: any,
-  operationId: string,
-): ResponseInfo {
-  // Check for 200 or 201 success response
-  const successCode = responses["200"]
-    ? "200"
-    : responses["201"]
-      ? "201"
-      : null;
-
-  if (!successCode) {
-    // 204 or no success body
-    return { kind: "void" };
-  }
-
-  const successResp = responses[successCode];
-  const content = successResp?.content?.["application/json"];
-
-  if (!content?.schema) {
-    return { kind: "void" };
-  }
-
-  const schema = content.schema;
-  // Check if schema has $ref
-  if (schema.$ref) {
-    const resolved = resolveRef(spec, schema.$ref);
-    const schemaName = refName(schema.$ref);
-
-    // Check if it has data property (wrapper pattern)
-    if (resolved.properties?.data) {
-      const dataProp = resolved.properties.data;
-
-      if (dataProp.type === "array" && dataProp.items?.$ref) {
-        // Pattern B: list with pagination
-        return {
-          kind: "list",
-          modelName: refName(dataProp.items.$ref),
-          responseClass: schemaName,
-        };
-      } else if (dataProp.$ref) {
-        // Pattern A: single data wrapper (direct $ref)
-        return {
-          kind: "single",
-          modelName: refName(dataProp.$ref),
-          responseClass: schemaName,
-        };
-      } else if (dataProp.allOf?.[0]?.$ref) {
-        // Pattern A variant: single data wrapper with allOf (e.g., nullable types)
-        return {
-          kind: "single",
-          modelName: refName(dataProp.allOf[0].$ref),
-          responseClass: schemaName,
-        };
-      }
-    }
-
-    // Direct model response (no .data wrapper)
-    return { kind: "direct", modelName: schemaName };
-  }
-
-  // Inline schema — check for data property
-  if (schema.properties?.data) {
-    const dataProp = schema.properties.data;
-    // Build response class name from operationId for inline schemas
-    const inlineResponseClass = pascalToSnake(operationId.replace(/_/g, "")) + "_response_" + successCode;
-
-    if (dataProp.type === "array" && dataProp.items?.$ref) {
-      return { kind: "list", modelName: refName(dataProp.items.$ref) };
-    }
-    if (dataProp.$ref) {
-      return { kind: "single", modelName: refName(dataProp.$ref) };
-    }
-    if (dataProp.allOf?.[0]?.$ref) {
-      return { kind: "single", modelName: refName(dataProp.allOf[0].$ref) };
-    }
-  }
-
-  return { kind: "void" };
-}
-
-function collectOperations(spec: any): OperationInfo[] {
+/** Walk generated Python SDK and build OperationInfo for each operation. */
+function collectOperationsFromPython(): OperationInfo[] {
   const ops: OperationInfo[] = [];
-  const paths = spec.paths || {};
 
-  for (const [pathStr, pathItem] of Object.entries<any>(paths)) {
-    for (const httpMethod of [
-      "get",
-      "post",
-      "put",
-      "patch",
-      "delete",
-    ] as const) {
-      const operation = pathItem[httpMethod];
-      if (!operation) continue;
+  const apiDirs = fs.readdirSync(API_PATH).filter((d) => {
+    const full = path.join(API_PATH, d);
+    return (
+      fs.statSync(full).isDirectory() &&
+      d !== "__pycache__" &&
+      !d.startsWith(".")
+    );
+  });
 
-      const operationId = operation.operationId;
-      if (!operationId) continue;
+  for (const dirName of apiDirs) {
+    const tag = dirNameToTag(dirName);
+    const dirPath = path.join(API_PATH, dirName);
 
-      const tag = operation.tags?.[0] || "Common";
-      const parameters = [
-        ...(pathItem.parameters || []),
-        ...(operation.parameters || []),
-      ];
+    const modules = fs.readdirSync(dirPath).filter(
+      (f) => f.endsWith(".py") && f !== "__init__.py",
+    );
 
-      const pathParams: ParamInfo[] = [];
-      const queryParams: ParamInfo[] = [];
+    for (const moduleFile of modules) {
+      const moduleName = moduleFile.replace(/\.py$/, "");
+      const filePath = path.join(dirPath, moduleFile);
+      const content = fs.readFileSync(filePath, "utf8");
 
-      for (const param of parameters) {
-        const p = param.$ref ? resolveRef(spec, param.$ref) : param;
-        const info = analyzeParam(spec, p);
-        if (info.location === "path") pathParams.push(info);
-        else queryParams.push(info);
+      // Parse sync() signature
+      const parsed = parseSyncSignature(filePath);
+      if (!parsed) continue; // Skip modules without sync() (e.g., multipart upload)
+
+      // Analyze response
+      let response: ResponseInfo;
+      if (!parsed.successResponseType) {
+        response = { kind: "void" };
+      } else {
+        response = analyzeResponseModel(parsed.successResponseType);
       }
 
-      const requestBody = analyzeRequestBody(spec, operation.requestBody);
-      const response = analyzeResponse(
-        spec,
-        operation.responses || {},
-        operationId,
-      );
+      // Analyze request body
+      let requestBody: RequestBodyInfo | undefined;
+      if (parsed.bodyType) {
+        requestBody = analyzeRequestModel(parsed.bodyType);
+      }
+
+      // Extract HTTP method and path
+      const { httpMethod, urlPath } = extractHttpMethodAndPath(content);
+
+      const methodName = moduleNameToMethodName(moduleName);
 
       ops.push({
-        operationId,
+        operationId: moduleName,
         httpMethod,
-        path: pathStr,
+        path: urlPath,
         tag,
-        methodName: operationIdToMethod(operationId),
-        moduleName: operationIdToModule(operationId),
-        pathParams,
-        queryParams,
+        methodName,
+        moduleName,
+        pathParams: parsed.pathParams,
+        queryParams: parsed.queryParams,
         requestBody,
         response,
       });
@@ -589,8 +589,6 @@ def _raise_for_error(result: Any) -> None:
         raise PachcaAPIError(errors=errors)
     if isinstance(result, OAuthError):
         raise PachcaAuthError(message=result.error_description or result.error or "Auth error")
-    if result is None:
-        raise PachcaAPIError(message="Unexpected empty response")
 
 
 def _get_cursor(result: Any) -> str | None:
@@ -658,6 +656,8 @@ function generateMethodSignature(op: OperationInfo): string {
     returnType = "None";
   } else if (op.response.kind === "list" && op.response.modelName) {
     returnType = `PaginatedResponse[${op.response.modelName}]`;
+  } else if (op.response.kind === "list" && op.response.primitiveItemType) {
+    returnType = `PaginatedResponse[${op.response.primitiveItemType}]`;
   } else if (
     (op.response.kind === "single" || op.response.kind === "direct") &&
     op.response.modelName
@@ -802,11 +802,9 @@ function generatePachcaClass(tags: string[]): string {
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 function main() {
-  console.log("Reading spec:", SPEC_PATH);
-  const specText = fs.readFileSync(SPEC_PATH, "utf8");
-  const spec = yaml.parse(specText);
+  console.log("Scanning generated SDK:", API_PATH);
 
-  const operations = collectOperations(spec);
+  const operations = collectOperationsFromPython();
   console.log(`Found ${operations.length} operations`);
 
   // Group by tag

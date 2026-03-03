@@ -36,31 +36,40 @@ The mapper analyzes the API path structure and HTTP method to determine the appr
 
 #### 2. Sub-Resources (Nested Collections)
 
-| API Path                       | Method | Generated Action | Example URL                    |
-| ------------------------------ | ------ | ---------------- | ------------------------------ |
-| `/chats/{id}/members`          | GET    | `list-members`   | `/chat-members/list-members`   |
-| `/chats/{id}/members`          | POST   | `add-members`    | `/chat-members/add-members`    |
-| `/chats/{id}/members/{userId}` | GET    | `get-members`    | `/chat-members/get-members`    |
-| `/chats/{id}/members/{userId}` | PUT    | `update-members` | `/chat-members/update-members` |
-| `/chats/{id}/members/{userId}` | DELETE | `remove-member`  | `/chat-members/remove-member`  |
+Redundant sub-resource suffix is stripped when it matches the section name.
+
+| API Path                       | Method | Generated Action | Example URL            |
+| ------------------------------ | ------ | ---------------- | ---------------------- |
+| `/chats/{id}/members`          | GET    | `list`           | `/members/list`        |
+| `/chats/{id}/members`          | POST   | `add`            | `/members/add`         |
+| `/chats/{id}/members/{userId}` | GET    | `get-members`    | `/members/get-members` |
+| `/chats/{id}/members/{userId}` | PUT    | `update`         | `/members/update`      |
+| `/chats/{id}/members/{userId}` | DELETE | `remove`         | `/members/remove`      |
 
 #### 3. Special Actions
 
-| API Path                | Method | Generated Action   | Example URL               |
-| ----------------------- | ------ | ------------------ | ------------------------- |
-| `/chats/{id}/archive`   | PUT    | `update-archive`   | `/chats/update-archive`   |
-| `/chats/{id}/unarchive` | PUT    | `update-unarchive` | `/chats/update-unarchive` |
-| `/messages/{id}/pin`    | POST   | `pin`              | `/messages/pin`           |
-| `/messages/{id}/pin`    | DELETE | `unpin`            | `/messages/unpin`         |
+Action-only sub-paths return the verb directly, regardless of HTTP method.
+
+| API Path                | Method | Generated Action | Example URL        |
+| ----------------------- | ------ | ---------------- | ------------------ |
+| `/chats/{id}/archive`   | PUT    | `archive`        | `/chats/archive`   |
+| `/chats/{id}/unarchive` | PUT    | `unarchive`      | `/chats/unarchive` |
+| `/chats/{id}/leave`     | DELETE | `leave`          | `/members/leave`   |
+| `/views/open`           | POST   | `open`           | `/views/open`      |
+| `/messages/{id}/pin`    | POST   | `pin`            | `/messages/pin`    |
+| `/messages/{id}/pin`    | DELETE | `unpin`          | `/messages/unpin`  |
 
 #### 4. Action-Only Endpoints (Non-RESTful)
 
 Single-segment paths that don't follow standard CRUD patterns:
 
-| API Path      | Method | Generated Action | Example URL          |
-| ------------- | ------ | ---------------- | -------------------- |
-| `/direct_url` | POST   | `direct-url`     | `/common/direct-url` |
-| `/uploads`    | POST   | `uploads`        | `/common/uploads`    |
+| API Path             | Method | Generated Action    | Example URL                 |
+| -------------------- | ------ | ------------------- | --------------------------- |
+| `/direct_url`        | POST   | `direct-url`        | `/common/direct-url`        |
+| `/uploads`           | POST   | `uploads`           | `/common/uploads`           |
+| `/custom_properties` | GET    | `custom-properties` | `/common/custom-properties` |
+
+> **Common section rule:** for single-segment paths in the `Common` tag that would otherwise generate a bare CRUD verb (`list`, `create`, etc.), the mapper replaces the verb with the resource name from the path. This avoids ambiguous commands like `pachca common list` or `pachca common create`.
 
 #### 5. Collection Actions (No Parameter Before Sub-Resource)
 
@@ -89,21 +98,26 @@ Single-segment paths that don't follow standard CRUD patterns:
 ### 4. **Self-Documenting**
 
 - URL structure reflects the API structure
-- Action names are descriptive (e.g., `add-members`, `remove-tag`)
+- Action names are descriptive (e.g., `add`, `remove`, `archive`)
 
 ## Manual Overrides
 
-If you need to customize a specific endpoint's URL, use the override maps at the top of `lib/openapi/mapper.ts`:
+If the auto-generated URL is ugly or confusing, add an entry to `OPERATION_OVERRIDES` at the top of `lib/openapi/mapper.ts`.
+
+Key format: `"METHOD /path"` (HTTP method in uppercase, path as in OpenAPI spec).
+Value format: `"/section/action"` (the desired CLI URL).
 
 ```typescript
-const OPERATION_URL_OVERRIDES: Record<string, string> = {
-  ChatOperations_updateChat: '/chats/custom-action',
-};
-
-const OPERATION_TITLE_OVERRIDES: Record<string, string> = {
-  ChatOperations_updateChat: 'Custom Title',
+const OPERATION_OVERRIDES: Record<string, string> = {
+  'GET /messages/{id}/read_member_ids': '/read-member/list-readers',
 };
 ```
+
+Current overrides:
+
+| Key                                  | Value                       | Reason                                             |
+| ------------------------------------ | --------------------------- | -------------------------------------------------- |
+| `GET /messages/{id}/read_member_ids` | `/read-member/list-readers` | Auto-generated `list-read-member-ids` is redundant |
 
 ## Tag to Section Mapping
 
@@ -146,11 +160,12 @@ The build process will:
 GET    /chats                        → /chats/list
 GET    /chats/{id}                   → /chats/get
 PUT    /chats/{id}                   → /chats/update
-PUT    /chats/{id}/archive           → /chats/update-archive
-PUT    /chats/{id}/unarchive         → /chats/update-unarchive
-GET    /chats/{id}/members           → /chat-members/list-members
-POST   /chats/{id}/members           → /chat-members/add-members
-DELETE /chats/{id}/members/{userId}  → /chat-members/remove-member
+PUT    /chats/{id}/archive           → /chats/archive
+PUT    /chats/{id}/unarchive         → /chats/unarchive
+GET    /chats/{id}/members           → /members/list
+POST   /chats/{id}/members           → /members/add
+DELETE /chats/{id}/members/{userId}  → /members/remove
 POST   /messages/{id}/pin            → /messages/pin
 DELETE /messages/{id}/pin            → /messages/unpin
+GET    /profile                      → /profile/get
 ```

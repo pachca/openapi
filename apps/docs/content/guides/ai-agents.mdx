@@ -118,6 +118,9 @@ description: Как Пачка работает с AI-агентами и как
   <Card title="Context7" icon="Zap" href="https://context7.com/pachca/openapi">
     Документация Пачки в Context7 — MCP-сервер с актуальной документацией для AI-агентов.
   </Card>
+  <Card title="CLI" icon="ArrowDownToLine" href="/guides/cli">
+    Все API-методы доступны как команды в терминале. Агент может вызывать их через shell.
+  </Card>
 </CardGroup>
 
 <Info>
@@ -153,6 +156,21 @@ description: Как Пачка работает с AI-агентами и как
 <CodeBlock language="text" title="llms-full.txt">
   {`https://dev.pachca.com/llms-full.txt`}
 </CodeBlock>
+
+### Через CLI
+
+AI-агенты с доступом к терминалу (Claude Code, Codex, собственные агенты) могут вызывать команды [CLI](/guides/cli) напрямую — без написания HTTP-запросов. Каждый API-метод доступен как команда с типизированными флагами.
+
+<CodeBlock language="bash" title="CLI">
+{`# Установка
+npm install -g @pachca/cli
+
+# Агент может вызывать любые команды
+pachca messages create --entity-id 123 --content "Готово"
+pachca users list -o json`}
+</CodeBlock>
+
+<Info>CLI автоматически определяет неинтерактивную среду (stdin/stdout — не TTY) и адаптируется: выводит JSON вместо таблиц, отключает промпты и спиннер, а при пропущенных обязательных флагах — возвращает ошибку вместо запроса ввода. Агенту не нужна дополнительная настройка — достаточно передать все обязательные флаги.</Info>
 
 ### Через OpenAPI-спецификацию
 

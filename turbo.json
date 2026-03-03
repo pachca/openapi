@@ -16,9 +16,21 @@
       "outputs": ["public/llms.txt", "public/llms-full.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md", "public/.well-known/**", "public/pachca.postman_collection.json"],
       "cache": true
     },
+    "generate-cli": {
+      "dependsOn": ["@pachca/spec#generate"],
+      "inputs": [
+        "../../packages/spec/openapi.yaml",
+        "scripts/generate-cli.ts",
+        "../../apps/docs/lib/openapi/mapper.ts",
+        "../../apps/docs/scripts/skills/workflows.ts",
+        "../../apps/docs/scripts/skills/config.ts"
+      ],
+      "outputs": ["src/commands/**/*.ts", "src/data/*.json", "README.md"],
+      "cache": true
+    },
     "build": {
-      "dependsOn": ["generate", "generate-llms"],
-      "outputs": [".next/**", "!.next/cache/**", ".build/**"],
+      "dependsOn": ["generate", "generate-llms", "generate-cli"],
+      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json"],
       "cache": true
     },
     "dev": {
@@ -39,11 +51,16 @@
       "cache": true
     },
     "check": {
-      "dependsOn": ["lint", "typecheck", "knip", "format:check"],
+      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test"],
       "cache": false
     },
     "check-urls": {
       "dependsOn": ["@pachca/spec#generate"],
+      "cache": true
+    },
+    "test": {
+      "dependsOn": ["generate-cli"],
+      "inputs": ["src/**", "tests/**"],
       "cache": true
     },
     "start": {

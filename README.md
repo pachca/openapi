@@ -2,10 +2,11 @@
 
 [![CI](https://github.com/pachca/openapi/actions/workflows/check.yml/badge.svg)](https://github.com/pachca/openapi/actions/workflows/check.yml)
 [![npm](https://img.shields.io/npm/v/@pachca/sdk)](https://www.npmjs.com/package/@pachca/sdk)
+[![npm](https://img.shields.io/npm/v/@pachca/cli)](https://www.npmjs.com/package/@pachca/cli)
 [![PyPI](https://img.shields.io/pypi/v/pachca)](https://pypi.org/project/pachca/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Репозиторий содержит OpenAPI-спецификацию, SDK для 5 языков и AI-скиллы для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Используйте для автоматизации: отправки сообщений, управления каналами и сотрудниками, настройки ботов, работы с задачами и аудитом событий.
+Репозиторий содержит OpenAPI-спецификацию, SDK для 5 языков, CLI и AI-скиллы для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Используйте для автоматизации: отправки сообщений, управления каналами и сотрудниками, настройки ботов, работы с задачами и аудитом событий.
 
 **Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/guides/authorization · **Changelog**: https://dev.pachca.com/guides/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
@@ -89,6 +90,22 @@ const { data, error } = await client.GET('/users');
 
 SDK генерируются из `openapi.yaml` и публикуются автоматически при пуше в `main`: генерация → коммит `chore: regenerate SDK v{VERSION}` → теги → npm, PyPI, JitPack. Swift и Go — через Git-теги.
 
+## CLI
+
+Все методы API доступны как команды в терминале с типизированными флагами, валидацией и интерактивными подсказками.
+
+```bash
+npm install -g @pachca/cli
+
+pachca auth login
+pachca messages create --entity-id 123 --content "Привет!"
+pachca users list -o json
+```
+
+Несколько профилей авторизации, четыре формата вывода (table, JSON, YAML, CSV), курсорная пагинация с автозагрузкой, неинтерактивный режим для CI и AI-агентов.
+
+**Документация**: https://dev.pachca.com/guides/cli
+
 ## Тестирование
 
 | Инструмент | Как использовать |
@@ -146,7 +163,8 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── apps/
 │   └── docs/              # Next.js 16 сайт документации (@pachca/docs)
 ├── packages/
-│   └── spec/              # TypeSpec спецификация (@pachca/spec)
+│   ├── spec/              # TypeSpec спецификация (@pachca/spec)
+│   └── cli/               # CLI для работы с API (@pachca/cli)
 ├── sdk/                   # SDK для 5 языков
 │   ├── typescript/        # openapi-typescript → npm
 │   ├── python/            # openapi-python-client → PyPI

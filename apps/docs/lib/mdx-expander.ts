@@ -449,6 +449,22 @@ export async function expandMdxComponents(content: string): Promise<string> {
     result = result.replace(/<AgentSkillsWorkflows\s*\/>/g, md);
   }
 
+  // <CliCommands /> -> markdown table of CLI commands
+  if (result.includes('<CliCommands')) {
+    const sections = await generateNavigation();
+    const allCommands = sections.filter((s) => s.items[0]?.method != null).flatMap((s) => s.items);
+
+    let md = '| Команда | Описание |\n';
+    md += '|---------|----------|\n';
+    for (const item of allCommands) {
+      const command = `pachca ${item.href.slice(1).replace(/\//g, ' ')}`;
+      md += `| \`${command}\` | ${item.title} |\n`;
+    }
+    md += '\n';
+
+    result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
   // Clean up multiple newlines
   result = result.replace(/\n{4,}/g, '\n\n\n');
 

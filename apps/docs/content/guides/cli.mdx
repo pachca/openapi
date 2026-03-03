@@ -1,0 +1,420 @@
+---
+title: CLI
+description: Управление Пачкой из терминала — все API-методы одной командой
+---
+
+# CLI
+
+Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
+
+<CodeBlock language="bash" title="Установка">
+{`# Глобальная установка
+npm install -g @pachca/cli
+
+# Проверка
+pachca --version
+
+# Или без установки
+npx @pachca/cli users list`}
+</CodeBlock>
+
+## Быстрый старт
+
+<Steps>
+  <Step title="Вход в аккаунт">
+    Сохраните API-токен. Получить его можно в интерфейсе Пачки в разделе **«Автоматизации» → «API»** — подробнее в руководстве [Авторизация](/guides/authorization).
+
+    <CodeBlock language="bash" title="Вход в аккаунт">
+{`# Интерактивный вход
+pachca auth login
+
+# Для CI и скриптов — передайте токен через флаг
+pachca auth login --token $ACCESS_TOKEN`}
+</CodeBlock>
+  </Step>
+  <Step title="Первая команда">
+    Получите список сотрудников:
+
+    <CodeBlock language="bash" title="Список сотрудников">
+{`pachca users list
+
+# ID    Имя              Email               Роль
+# 1234  Иван Иванов      ivan@company.ru     admin
+# 5678  Мария Петрова    maria@company.ru    regular`}
+</CodeBlock>
+
+    Добавьте `-o json` для JSON-вывода.
+  </Step>
+  <Step title="Отправка сообщения">
+    Отправьте сообщение в канал или беседу:
+
+    <CodeBlock language="bash" title="Новое сообщение">
+{`pachca messages create --entity-id 123 --content "Привет!"`}
+</CodeBlock>
+
+    Если не указать обязательные флаги — CLI запросит их интерактивно.
+  </Step>
+</Steps>
+
+## Авторизация
+
+### Профили
+
+CLI поддерживает несколько профилей — удобно, если вы работаете с персональным токеном и токенами ботов одновременно:
+
+<CodeBlock language="bash" title="Управление профилями">
+{`# Добавить профили
+pachca auth login --profile personal
+pachca auth login --profile bot-notify
+
+# Список профилей
+pachca auth list
+
+# Переключить активный профиль
+pachca auth switch bot-notify
+
+# Статус текущего профиля
+pachca auth status
+
+# Удалить профиль
+pachca auth logout bot-notify`}
+</CodeBlock>
+
+Токены хранятся в `~/.config/pachca/config.toml` с правами `chmod 600`.
+
+### Приоритет токена
+
+При выполнении команды CLI определяет токен в следующем порядке:
+
+1. Флаг `--token` — разовое использование, без сохранения
+2. Переменная `PACHCA_TOKEN` — удобно для CI
+3. Флаг `--profile` или переменная `PACHCA_PROFILE` — конкретный профиль
+4. Активный профиль — выбранный через `pachca auth switch`
+
+<CodeBlock language="bash" title="Примеры">
+{`# Токен через флаг (разово, без сохранения)
+pachca users list --token $TOKEN
+
+# Токен через переменную окружения (CI)
+PACHCA_TOKEN=$TOKEN pachca users list
+
+# Конкретный профиль для одной команды
+pachca messages create --profile bot-notify --entity-id 123 --content "Уведомление"`}
+</CodeBlock>
+
+### Обновление скоупов
+
+Скоупы персональных токенов кешируются навсегда — для обновления нужен повторный `auth login`. Скоупы токенов ботов обновляются автоматически раз в сутки. Принудительное обновление:
+
+<CodeBlock language="bash" title="Обновить скоупы">
+{`pachca auth refresh bot-notify`}
+</CodeBlock>
+
+## Команды
+
+Паттерн всех команд: `pachca [секция] [действие] [--флаги]`
+
+Имена команд совпадают с URL документации:
+
+<CodeBlock language="text" title="Соответствие URL и команд">
+{`dev.pachca.com/messages/create  →  pachca messages create
+dev.pachca.com/chats/list       →  pachca chats list
+dev.pachca.com/members/add      →  pachca members add`}
+</CodeBlock>
+
+### Все команды
+
+<CliCommands />
+
+### Справка
+
+<CodeBlock language="bash" title="Справка по команде">
+{`# Подробная справка по команде
+pachca messages create --help
+
+# Список всех команд
+pachca commands
+
+# Только команды, доступные текущему токену (фильтр по скоупам)
+pachca commands --available`}
+</CodeBlock>
+
+## Вывод
+
+### Форматы
+
+CLI поддерживает четыре формата вывода. В интерактивном терминале (TTY) по умолчанию используется таблица, в пайпах и CI — JSON.
+
+<CodeBlock language="bash" title="Форматы вывода">
+{`# Таблица (по умолчанию в терминале)
+pachca users list
+
+# JSON
+pachca users list -o json
+
+# YAML
+pachca users list -o yaml
+
+# CSV (для Excel / Google Sheets)
+pachca users list -o csv`}
+</CodeBlock>
+
+### Колонки и заголовки
+
+По умолчанию таблица показывает 4-5 основных полей. Выбрать конкретные колонки:
+
+<CodeBlock language="bash" title="Управление колонками">
+{`# Выбрать колонки
+pachca users list --columns id,email,role
+
+# Без заголовка (для скриптов)
+pachca users list --columns email --no-header
+
+# Не обрезать длинные значения
+pachca users list --no-truncate`}
+</CodeBlock>
+
+### Пайпы и перенаправление
+
+В пайпах CLI автоматически выводит JSON и отключает цвет и спиннер. Данные идут в stdout, ошибки и прогресс — в stderr.
+
+<CodeBlock language="bash" title="Пайпы">
+{`# Передать в jq
+pachca users list -o json | jq '.[].name'
+
+# Текст сообщения из файла
+pachca messages create --entity-id 123 < message.txt
+
+# Текст из pipe
+echo "Деплой завершён" | pachca messages create --entity-id 123
+
+# Скачать файл (для команд с редиректом)
+pachca common get-exports 123 --save ./export.zip`}
+</CodeBlock>
+
+## Пагинация
+
+Pachca использует cursor-based пагинацию. CLI предоставляет три способа навигации:
+
+<CodeBlock language="bash" title="Пагинация">
+{`# Первая страница (по умолчанию)
+pachca users list --limit 20
+
+# Следующая страница вручную
+pachca users list --cursor eyJpZCI6NTB9
+
+# Загрузить все страницы автоматически
+pachca users list --all`}
+</CodeBlock>
+
+При `--all` CLI показывает прогресс загрузки в stderr, а финальный результат выводит в stdout единым массивом.
+
+## Сценарии
+
+CLI включает готовые пошаговые сценарии для типичных задач — это те же сценарии, что используют [AI-агенты](/guides/ai-agents#agent-skills-skillmd). Не знаете какую команду использовать — поищите по задаче:
+
+<CodeBlock language="bash" title="Поиск сценариев">
+{`# Поиск по ключевым словам
+pachca guide "отправить файл"
+pachca guide "создать беседу и добавить участников"
+
+# Список всех сценариев
+pachca guide`}
+</CodeBlock>
+
+<CodeBlock language="bash" title="Примеры сценариев">
+{`pachca guide "создать напоминание"
+
+# Сценарий: Создать напоминание  (pachca-tasks)
+#
+# 1. POST /tasks с kind, content и due_at
+#    pachca api POST /tasks
+# 2. Чтобы привязать к чату — добавь chat_id
+# 3. Чтобы заполнить дополнительные поля — добавь custom_properties
+#    pachca api GET /custom_properties?entity_type=Task
+
+pachca guide "кастомные поля профиля"
+
+# Сценарий: Получить кастомные поля профиля  (pachca-profile)
+#
+# 1. GET /custom_properties?entity_type=User — список полей (id, name, data_type)
+#    pachca api GET /custom_properties?entity_type=User
+# 2. GET /profile — в ответе custom_properties содержит значения текущего пользователя
+#    pachca api GET /profile
+
+pachca guide "активные чаты"
+
+# Сценарий: Найти активные чаты за период  (pachca-chats)
+#
+# 1. GET /chats с last_message_at_after={дата} — чаты с активностью после указанной даты
+#    pachca api GET /chats
+# 2. Для диапазона добавь last_message_at_before={дата}
+# 3. Перебери страницы: cursor из meta.paginate.next_page, пока он не пустой`}
+</CodeBlock>
+
+## Скрипты и CI
+
+### Глобальные флаги
+
+| Флаг | Короткий | Описание |
+|------|----------|----------|
+| `--output <format>` | `-o` | Формат: `table`, `json`, `yaml`, `csv` |
+| `--columns <list>` | `-c` | Колонки для table-вывода (через запятую) |
+| `--profile <name>` | `-p` | Профиль для этой команды |
+| `--token <value>` | | Токен для этого вызова (без сохранения) |
+| `--quiet` | `-q` | Без вывода, только exit code |
+| `--no-input` | | Без интерактивных промптов |
+| `--dry-run` | | Показать запрос без отправки |
+| `--force` | | Пропустить подтверждение DELETE |
+| `--verbose` | `-v` | Показать HTTP-запросы и ответы |
+| `--timeout <sec>` | | Таймаут запроса в секундах (по умолчанию 30) |
+| `--no-color` | | Отключить цвета |
+| `--no-header` | | Скрыть заголовок таблицы |
+| `--no-truncate` | | Не обрезать длинные значения |
+| `--no-retry` | | Отключить авто-retry при 429/503 |
+
+### Предпросмотр запроса
+
+Флаг `--dry-run` показывает HTTP-запрос без отправки — для отладки и проверки параметров:
+
+<CodeBlock language="bash" title="Предпросмотр">
+{`pachca messages create --entity-id 123 --content "Привет" --dry-run
+
+# POST https://api.pachca.com/api/shared/v1/messages
+# Authorization: Bearer ••••••••
+# Content-Type: application/json
+#
+# {"message": {"entity_id": 123, "content": "Привет"}}`}
+</CodeBlock>
+
+### Деструктивные операции
+
+DELETE-команды требуют подтверждения в терминале. Флаг `--force` пропускает его:
+
+<CodeBlock language="bash" title="Удаление">
+{`# С подтверждением (TTY)
+pachca users delete 1234
+
+# Без подтверждения
+pachca users delete 1234 --force`}
+</CodeBlock>
+
+### Exit codes
+
+| Код | Значение |
+|-----|----------|
+| `0` | Успех |
+| `1` | API или runtime ошибка |
+| `2` | Неверные флаги или аргументы |
+| `3` | Ошибка аутентификации (401 / 403) |
+| `4` | Ресурс не найден (404) |
+
+<CodeBlock language="bash" title="Использование exit codes">
+{`pachca users get 123 || case $? in
+    3) echo "Нет доступа" ;;
+    4) echo "Пользователь не найден" ;;
+  esac`}
+</CodeBlock>
+
+### Переменные окружения
+
+| Переменная | Описание |
+|-----------|---------|
+| `PACHCA_TOKEN` | Bearer-токен (высший приоритет, удобно для CI) |
+| `PACHCA_PROFILE` | Активный профиль для команды |
+| `PACHCA_TIMEOUT` | Таймаут запроса в секундах (по умолчанию 30) |
+| `PACHCA_PROMPT_DISABLED` | Отключить интерактивные промпты (для агентов) |
+| `CI` | Автоматический неинтерактивный режим |
+| `NO_COLOR` | Отключить цвет |
+| `FORCE_COLOR` | Принудительно включить цвет |
+| `PACHCA_SKIP_NEW_VERSION_CHECK` | Отключить проверку обновлений |
+
+### Неинтерактивный режим
+
+CLI автоматически переходит в неинтерактивный режим при любом из условий: stdin или stdout — не TTY, установлена `PACHCA_PROMPT_DISABLED` или `CI`, передан флаг `--no-input`. В этом режиме нет промптов, спиннера, а при пропущенных обязательных флагах — ошибка вместо запроса.
+
+<CodeBlock language="bash" title="CI пример">
+{`PACHCA_TOKEN=$TOKEN pachca messages create \\
+  --entity-id 123 --content "Деплой завершён" --no-input`}
+</CodeBlock>
+
+## Прямые API-запросы
+
+Команда `pachca api` — escape hatch для прямых HTTP-запросов без типизированных команд:
+
+<CodeBlock language="bash" title="Прямые запросы">
+{`# GET с query params
+pachca api GET /messages --query chat_id=123
+
+# POST с типизированными полями (-F конвертирует числа и boolean)
+pachca api POST /messages -F message[chat_id]=12345 -f message[content]="Привет"
+
+# PUT со строковым полем (-f гарантирует string)
+pachca api PUT /tasks/42 -f task[due_at]="2026-04-01T10:00:00Z"
+
+# Отправить готовый JSON-файл
+pachca api POST /messages --input payload.json
+
+# Из stdin
+cat payload.json | pachca api POST /messages --input -`}
+</CodeBlock>
+
+<Info>`pachca api` выводит сырой ответ API без извлечения данных из обёртки `data`</Info>
+
+## Настройки
+
+Установите постоянные значения по умолчанию:
+
+<CodeBlock language="bash" title="Настройки">
+{`# Всегда выводить JSON
+pachca config set defaults.output json
+
+# Увеличить таймаут
+pachca config set defaults.timeout 60
+
+# Показать все настройки
+pachca config list`}
+</CodeBlock>
+
+Настройки хранятся в `~/.config/pachca/config.toml`. Флаги команды всегда имеют приоритет над настройками.
+
+## Автодополнение
+
+CLI поддерживает автодополнение для bash, zsh и fish:
+
+<CodeBlock language="bash" title="Автодополнение">
+{`pachca autocomplete zsh
+pachca autocomplete bash
+pachca autocomplete fish`}
+</CodeBlock>
+
+Команда выводит инструкцию по установке для выбранного шелла.
+
+## Диагностика
+
+Команда `pachca doctor` проверяет окружение — Node.js, сеть, конфиг, токен и версию CLI:
+
+<CodeBlock language="bash" title="Диагностика">
+{`pachca doctor
+
+# ✔ Node.js        v20.11.0 (требуется >=20)
+# ✔ Сеть           api.pachca.com доступен (142ms)
+# ✔ Конфиг         ~/.config/pachca/config.toml (права: 600)
+# ✔ Профиль        personal (user: Иван Иванов)
+# ✔ Токен          действителен (11 скоупов)
+# ✔ CLI            v2026.3.0 (актуальная версия)`}
+</CodeBlock>
+
+## Обновление
+
+CLI автоматически проверяет наличие новой версии раз в сутки и показывает уведомление в терминале. Для обновления:
+
+<CodeBlock language="bash" title="Обновление">
+{`# Обновить до последней версии
+npm install -g @pachca/cli
+
+# Посмотреть что нового
+pachca changelog`}
+</CodeBlock>
+
+Отключить автоматическую проверку можно переменной `PACHCA_SKIP_NEW_VERSION_CHECK`.

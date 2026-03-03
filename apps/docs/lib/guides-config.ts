@@ -50,6 +50,7 @@ export function getGuidePages(): GuideConfig[] {
 const GUIDES_ORDER = [
   '/',
   '/guides/ai-agents',
+  '/guides/cli',
   '/guides/webhook',
   '/guides/authorization',
   '/guides/requests-responses',

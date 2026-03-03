@@ -1,6 +1,6 @@
 # Pachca Python SDK
 
-Python клиент для Pachca API.
+Python клиент для [Pachca API](https://dev.pachca.com).
 
 ## Установка
 
@@ -11,12 +11,68 @@ pip install pachca
 ## Использование
 
 ```python
-from pachca import Client
+from pachca.pachca_client import Pachca
+from pachca.models.message_create_request_message import MessageCreateRequestMessage
 
-client = Client(base_url="https://api.pachca.com/api/v1")
-client.set_token("YOUR_TOKEN")
+client = Pachca("YOUR_TOKEN")
 
-users = client.users.list()
+# Создание сообщения
+msg = client.messages.create_message(
+    MessageCreateRequestMessage(entity_id=334, content="Hello!")
+)
+
+# Получение сообщения
+fetched = client.messages.get_message(msg.id)
+
+# Реакция (≤2 полей — передаются как kwargs)
+client.reactions.add_reaction(msg.id, code="👀")
+
+# Закрепление
+client.messages.pin_message(msg.id)
+
+# Список сообщений чата (с пагинацией)
+messages = client.messages.list_chat_messages(chat_id=198)
+print(messages.next_cursor)  # курсор следующей страницы
+
+# Контекстный менеджер
+with Pachca("YOUR_TOKEN") as client:
+    users = client.users.list_users()
 ```
+
+## Ресурсы
+
+| Свойство | Методы |
+|----------|--------|
+| `client.messages` | `create_message`, `get_message`, `update_message`, `delete_message`, `pin_message`, `unpin_message`, `list_chat_messages` |
+| `client.users` | `list_users`, `create_user`, `get_user`, `update_user`, `delete_user`, `get_user_status`, `update_user_status`, `delete_user_status` |
+| `client.chats` | `list_chats`, `create_chat`, `get_chat`, `update_chat`, `archive_chat`, `unarchive_chat` |
+| `client.tasks` | `list_tasks`, `create_task`, `get_task`, `update_task`, `delete_task` |
+| `client.group_tags` | `list_tags`, `create_tag`, `get_tag`, `update_tag`, `delete_tag`, `get_tag_users` |
+| `client.members` | `list_members`, `add_members`, `remove_member`, `update_member_role`, `add_tags`, `remove_tag`, `leave_chat` |
+| `client.reactions` | `list_reactions`, `add_reaction`, `remove_reaction` |
+| `client.thread` | `create_thread`, `get_thread` |
+| `client.search` | `search_users`, `search_chats`, `search_messages` |
+| `client.security` | `get_audit_events` |
+| `client.profile` | `get_profile`, `get_status`, `update_status`, `delete_status`, `get_token_info` |
+| `client.bots` | `update_bot`, `get_webhook_events`, `delete_webhook_event` |
+| `client.views` | `open_view` |
+| `client.common` | `list_properties`, `get_upload_params`, `upload_file`, `request_export`, `download_export` |
+
+## Обработка ошибок
+
+```python
+from pachca.pachca_client import Pachca, PachcaAPIError, PachcaAuthError
+
+try:
+    client.messages.get_message(999999)
+except PachcaAuthError as e:
+    print(f"Ошибка авторизации: {e.message}")
+except PachcaAPIError as e:
+    print(f"Ошибка API: {e.errors}")
+```
+
+## Пример
+
+См. [examples/main.py](examples/main.py) — 8-шаговый echo bot.
 
 Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).

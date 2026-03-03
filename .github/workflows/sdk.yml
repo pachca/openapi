@@ -130,12 +130,15 @@ jobs:
         id: version
         run: |
           VERSION=$(node -e "
+            const { execSync } = require('child_process');
             const d = new Date();
             const base = d.getFullYear() + '.' + (d.getMonth()+1);
-            const published = require('child_process')
-              .execSync('npm view @pachca/cli versions --json 2>/dev/null || echo []')
-              .toString().trim();
-            const versions = JSON.parse(published);
+            let versions = [];
+            try {
+              const raw = execSync('npm view @pachca/cli versions --json', { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
+              const parsed = JSON.parse(raw);
+              versions = Array.isArray(parsed) ? parsed : [parsed];
+            } catch {}
             const patch = versions.filter(v => v.startsWith(base + '.')).length;
             console.log(base + '.' + patch);
           ")

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "true",
-    "generate": "bun strip-enum-descriptions.ts && openapi-generator-cli generate -i generated/openapi-kotlin.yaml -g kotlin -o generated --library=jvm-ktor"
+    "generate": "bun strip-enum-descriptions.ts && rm -rf generated/src && ./node_modules/.bin/openapi-generator-cli generate -i generated/openapi-kotlin.yaml -g kotlin -o generated --library=jvm-ktor --additional-properties=serializationLibrary=kotlinx_serialization,dateLibrary=kotlinx-datetime,packageName=com.pachca,groupId=com.pachca,artifactId=pachca-sdk --model-name-mappings File=FileAttachment --global-property apis,models,supportingFiles,modelTests=false,apiTests=false,modelDocs=false,apiDocs=false && bun fix-kotlinx-compat.ts && bun generate-client.ts"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.15.0",

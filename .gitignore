@@ -11,6 +11,13 @@ out/
 build/
 dist/
 
+# Gradle
+.gradle/
+.kotlin/
+
+# OpenAPI Generator
+.openapi-generator/
+
 # Turborepo
 .turbo/
 

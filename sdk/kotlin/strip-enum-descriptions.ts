@@ -7,8 +7,15 @@ function strip(obj: unknown): unknown {
   if (Array.isArray(obj)) return obj.map(strip);
   if (obj && typeof obj === "object") {
     const result: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(obj))
-      if (k !== "x-enum-descriptions") result[k] = strip(v);
+    for (const [k, v] of Object.entries(obj)) {
+      if (k === "x-enum-descriptions") continue;
+      // MessageOperations_createMessage → createMessage
+      if (k === "operationId" && typeof v === "string") {
+        result[k] = v.replace(/^\w+Operations_/, "");
+      } else {
+        result[k] = strip(v);
+      }
+    }
     return result;
   }
   return obj;

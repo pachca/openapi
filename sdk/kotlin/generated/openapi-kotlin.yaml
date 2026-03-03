@@ -22,7 +22,7 @@ tags:
 paths:
   /audit_events:
     get:
-      operationId: SecurityOperations_getAuditEvents
+      operationId: getAuditEvents
       description: |-
         Журнал аудита событий
 
@@ -162,7 +162,7 @@ paths:
         plan: corporation
   /bots/{id}:
     put:
-      operationId: BotOperations_updateBot
+      operationId: updateBot
       description: >-
         Редактирование бота
 
@@ -243,7 +243,7 @@ paths:
         scope: bots:write
   /chats:
     post:
-      operationId: ChatOperations_createChat
+      operationId: createChat
       description: >-
         Новый чат
 
@@ -306,7 +306,7 @@ paths:
       x-requirements:
         scope: chats:create
     get:
-      operationId: ChatOperations_listChats
+      operationId: listChats
       description: |-
         Список чатов
 
@@ -441,7 +441,7 @@ paths:
         scope: chats:read
   /chats/exports:
     post:
-      operationId: ExportOperations_requestExport
+      operationId: requestExport
       description: |-
         Экспорт сообщений
 
@@ -490,7 +490,7 @@ paths:
         plan: corporation
   /chats/exports/{id}:
     get:
-      operationId: ExportOperations_downloadExport
+      operationId: downloadExport
       description: >-
         Скачать архив экспорта
 
@@ -553,7 +553,7 @@ paths:
         plan: corporation
   /chats/{id}:
     get:
-      operationId: ChatOperations_getChat
+      operationId: getChat
       description: >-
         Информация о чате
 
@@ -609,7 +609,7 @@ paths:
       x-requirements:
         scope: chats:read
     put:
-      operationId: ChatOperations_updateChat
+      operationId: updateChat
       description: >-
         Обновление чата
 
@@ -684,7 +684,7 @@ paths:
         scope: chats:update
   /chats/{id}/archive:
     put:
-      operationId: ChatOperations_archiveChat
+      operationId: archiveChat
       description: >-
         Архивация чата
 
@@ -732,7 +732,7 @@ paths:
         scope: chats:archive
   /chats/{id}/group_tags:
     post:
-      operationId: ChatMemberOperations_addTags
+      operationId: addTags
       description: >-
         Добавление тегов
 
@@ -800,7 +800,7 @@ paths:
         scope: chat_members:write
   /chats/{id}/group_tags/{tag_id}:
     delete:
-      operationId: ChatMemberOperations_removeTag
+      operationId: removeTag
       description: >-
         Исключение тега
 
@@ -857,7 +857,7 @@ paths:
         scope: chat_members:write
   /chats/{id}/leave:
     delete:
-      operationId: ChatMemberOperations_leaveChat
+      operationId: leaveChat
       description: |-
         Выход из беседы или канала
 
@@ -912,7 +912,7 @@ paths:
         scope: chats:leave
   /chats/{id}/members:
     get:
-      operationId: ChatMemberOperations_listMembers
+      operationId: listMembers
       description: >-
         Список участников чата
 
@@ -1017,7 +1017,7 @@ paths:
       x-requirements:
         scope: chat_members:read
     post:
-      operationId: ChatMemberOperations_addMembers
+      operationId: addMembers
       description: >-
         Добавление пользователей
 
@@ -1080,7 +1080,7 @@ paths:
         scope: chat_members:write
   /chats/{id}/members/{user_id}:
     delete:
-      operationId: ChatMemberOperations_removeMember
+      operationId: removeMember
       description: >-
         Исключение пользователя
 
@@ -1138,7 +1138,7 @@ paths:
       x-requirements:
         scope: chat_members:write
     put:
-      operationId: ChatMemberOperations_updateMemberRole
+      operationId: updateMemberRole
       description: >-
         Редактирование роли
 
@@ -1218,7 +1218,7 @@ paths:
         scope: chat_members:write
   /chats/{id}/unarchive:
     put:
-      operationId: ChatOperations_unarchiveChat
+      operationId: unarchiveChat
       description: >-
         Разархивация чата
 
@@ -1266,7 +1266,7 @@ paths:
         scope: chats:archive
   /custom_properties:
     get:
-      operationId: CommonOperations_listProperties
+      operationId: listProperties
       description: >-
         Список дополнительных полей
 
@@ -1338,7 +1338,7 @@ paths:
         scope: custom_properties:read
   /direct_url:
     post:
-      operationId: DirectUploadOperations_uploadFile
+      operationId: uploadFile
       description: >-
         Загрузка файла
 
@@ -1386,7 +1386,7 @@ paths:
         auth: false
   /group_tags:
     post:
-      operationId: GroupTagOperations_createTag
+      operationId: createTag
       description: |-
         Новый тег
 
@@ -1441,7 +1441,7 @@ paths:
       x-requirements:
         scope: group_tags:write
     get:
-      operationId: GroupTagOperations_listTags
+      operationId: listTags
       description: >-
         Список тегов сотрудников
 
@@ -1530,7 +1530,7 @@ paths:
         scope: group_tags:read
   /group_tags/{id}:
     get:
-      operationId: GroupTagOperations_getTag
+      operationId: getTag
       description: >-
         Информация о теге
 
@@ -1587,7 +1587,7 @@ paths:
       x-requirements:
         scope: group_tags:read
     put:
-      operationId: GroupTagOperations_updateTag
+      operationId: updateTag
       description: >-
         Редактирование тега
 
@@ -1662,7 +1662,7 @@ paths:
       x-requirements:
         scope: group_tags:write
     delete:
-      operationId: GroupTagOperations_deleteTag
+      operationId: deleteTag
       description: >-
         Удаление тега
 
@@ -1710,7 +1710,7 @@ paths:
         scope: group_tags:write
   /group_tags/{id}/users:
     get:
-      operationId: GroupTagOperations_getTagUsers
+      operationId: getTagUsers
       description: |-
         Список сотрудников тега
 
@@ -1800,7 +1800,7 @@ paths:
         scope: group_tags:read
   /messages:
     post:
-      operationId: MessageOperations_createMessage
+      operationId: createMessage
       description: >-
         Новое сообщение
 
@@ -1870,7 +1870,7 @@ paths:
       x-requirements:
         scope: messages:create
     get:
-      operationId: ChatMessageOperations_listChatMessages
+      operationId: listChatMessages
       description: >-
         Список сообщений чата
 
@@ -1983,7 +1983,7 @@ paths:
         scope: messages:read
   /messages/{id}:
     get:
-      operationId: MessageOperations_getMessage
+      operationId: getMessage
       description: >-
         Информация о сообщении
 
@@ -2039,7 +2039,7 @@ paths:
       x-requirements:
         scope: messages:read
     put:
-      operationId: MessageOperations_updateMessage
+      operationId: updateMessage
       description: >-
         Редактирование сообщения
 
@@ -2114,7 +2114,7 @@ paths:
       x-requirements:
         scope: messages:update
     delete:
-      operationId: MessageOperations_deleteMessage
+      operationId: deleteMessage
       description: >-
         Удаление сообщения
 
@@ -2167,7 +2167,7 @@ paths:
         scope: messages:delete
   /messages/{id}/link_previews:
     post:
-      operationId: LinkPreviewOperations_createLinkPreviews
+      operationId: createLinkPreviews
       description: >-
         Unfurl (разворачивание ссылок)
 
@@ -2250,7 +2250,7 @@ paths:
         scope: link_previews:write
   /messages/{id}/pin:
     post:
-      operationId: MessageOperations_pinMessage
+      operationId: pinMessage
       description: >-
         Закрепление сообщения
 
@@ -2303,7 +2303,7 @@ paths:
       x-requirements:
         scope: pins:write
     delete:
-      operationId: MessageOperations_unpinMessage
+      operationId: unpinMessage
       description: >-
         Открепление сообщения
 
@@ -2351,7 +2351,7 @@ paths:
         scope: pins:write
   /messages/{id}/reactions:
     post:
-      operationId: ReactionOperations_addReaction
+      operationId: addReaction
       description: >-
         Добавление реакции
 
@@ -2434,7 +2434,7 @@ paths:
       x-requirements:
         scope: reactions:write
     delete:
-      operationId: ReactionOperations_removeReaction
+      operationId: removeReaction
       description: >-
         Удаление реакции
 
@@ -2515,7 +2515,7 @@ paths:
       x-requirements:
         scope: reactions:write
     get:
-      operationId: ReactionOperations_listReactions
+      operationId: listReactions
       description: |-
         Список реакций
 
@@ -2605,7 +2605,7 @@ paths:
         scope: reactions:read
   /messages/{id}/read_member_ids:
     get:
-      operationId: ReadMemberOperations_listReadMembers
+      operationId: listReadMembers
       description: >-
         Список прочитавших сообщение
 
@@ -2698,7 +2698,7 @@ paths:
         scope: messages:read
   /messages/{id}/thread:
     post:
-      operationId: ThreadOperations_createThread
+      operationId: createThread
       description: >-
         Новый тред
 
@@ -2756,7 +2756,7 @@ paths:
         scope: threads:create
   /oauth/token/info:
     get:
-      operationId: OAuthOperations_getTokenInfo
+      operationId: getTokenInfo
       description: >-
         Информация о токене
 
@@ -2788,7 +2788,7 @@ paths:
         - Profile
   /profile:
     get:
-      operationId: ProfileOperations_getProfile
+      operationId: getProfile
       description: |-
         Информация о профиле
 
@@ -2825,7 +2825,7 @@ paths:
         scope: profile:read
   /profile/status:
     get:
-      operationId: ProfileOperations_getStatus
+      operationId: getStatus
       description: |-
         Текущий статус
 
@@ -2864,7 +2864,7 @@ paths:
       x-requirements:
         scope: profile_status:read
     put:
-      operationId: ProfileOperations_updateStatus
+      operationId: updateStatus
       description: |-
         Новый статус
 
@@ -2918,7 +2918,7 @@ paths:
       x-requirements:
         scope: profile_status:write
     delete:
-      operationId: ProfileOperations_deleteStatus
+      operationId: deleteStatus
       description: |-
         Удаление статуса
 
@@ -2946,7 +2946,7 @@ paths:
         scope: profile_status:write
   /search/chats:
     get:
-      operationId: SearchOperations_searchChats
+      operationId: searchChats
       description: |-
         Поиск чатов
 
@@ -3086,7 +3086,7 @@ paths:
         scope: search:chats
   /search/messages:
     get:
-      operationId: SearchOperations_searchMessages
+      operationId: searchMessages
       description: |-
         Поиск сообщений
 
@@ -3240,7 +3240,7 @@ paths:
         scope: search:messages
   /search/users:
     get:
-      operationId: SearchOperations_searchUsers
+      operationId: searchUsers
       description: >-
         Поиск сотрудников
 
@@ -3379,7 +3379,7 @@ paths:
         scope: search:users
   /tasks:
     post:
-      operationId: TaskOperations_createTask
+      operationId: createTask
       description: >-
         Новое напоминание
 
@@ -3461,7 +3461,7 @@ paths:
       x-requirements:
         scope: tasks:create
     get:
-      operationId: TaskOperations_listTasks
+      operationId: listTasks
       description: |-
         Список напоминаний
 
@@ -3530,7 +3530,7 @@ paths:
         scope: tasks:read
   /tasks/{id}:
     get:
-      operationId: TaskOperations_getTask
+      operationId: getTask
       description: >-
         Информация о напоминании
 
@@ -3586,7 +3586,7 @@ paths:
       x-requirements:
         scope: tasks:read
     put:
-      operationId: TaskOperations_updateTask
+      operationId: updateTask
       description: >-
         Редактирование напоминания
 
@@ -3661,7 +3661,7 @@ paths:
       x-requirements:
         scope: tasks:update
     delete:
-      operationId: TaskOperations_deleteTask
+      operationId: deleteTask
       description: >-
         Удаление напоминания
 
@@ -3709,7 +3709,7 @@ paths:
         scope: tasks:delete
   /threads/{id}:
     get:
-      operationId: ThreadOperations_getThread
+      operationId: getThread
       description: >-
         Информация о треде
 
@@ -3766,7 +3766,7 @@ paths:
         scope: threads:read
   /uploads:
     post:
-      operationId: UploadOperations_getUploadParams
+      operationId: getUploadParams
       description: >-
         Получение подписи, ключа и других параметров
 
@@ -3803,7 +3803,7 @@ paths:
         scope: uploads:write
   /users:
     post:
-      operationId: UserOperations_createUser
+      operationId: createUser
       description: >-
         Создать сотрудника
 
@@ -3865,7 +3865,7 @@ paths:
       x-requirements:
         scope: users:create
     get:
-      operationId: UserOperations_listUsers
+      operationId: listUsers
       description: |-
         Список сотрудников
 
@@ -3952,7 +3952,7 @@ paths:
         scope: users:read
   /users/{id}:
     get:
-      operationId: UserOperations_getUser
+      operationId: getUser
       description: >-
         Информация о сотруднике
 
@@ -4008,7 +4008,7 @@ paths:
       x-requirements:
         scope: users:read
     put:
-      operationId: UserOperations_updateUser
+      operationId: updateUser
       description: >-
         Редактирование сотрудника
 
@@ -4085,7 +4085,7 @@ paths:
       x-requirements:
         scope: users:update
     delete:
-      operationId: UserOperations_deleteUser
+      operationId: deleteUser
       description: >-
         Удаление сотрудника
 
@@ -4133,7 +4133,7 @@ paths:
         scope: users:delete
   /users/{user_id}/status:
     get:
-      operationId: UserStatusOperations_getUserStatus
+      operationId: getUserStatus
       description: |-
         Статус сотрудника
 
@@ -4187,7 +4187,7 @@ paths:
       x-requirements:
         scope: user_status:read
     put:
-      operationId: UserStatusOperations_updateUserStatus
+      operationId: updateUserStatus
       description: |-
         Новый статус сотрудника
 
@@ -4256,7 +4256,7 @@ paths:
       x-requirements:
         scope: user_status:write
     delete:
-      operationId: UserStatusOperations_deleteUserStatus
+      operationId: deleteUserStatus
       description: |-
         Удаление статуса сотрудника
 
@@ -4299,7 +4299,7 @@ paths:
         scope: user_status:write
   /views/open:
     post:
-      operationId: FormOperations_openView
+      operationId: openView
       description: >-
         Открытие представления
 
@@ -4356,7 +4356,7 @@ paths:
         scope: views:write
   /webhooks/events:
     get:
-      operationId: BotOperations_getWebhookEvents
+      operationId: getWebhookEvents
       description: >-
         История событий
 
@@ -4445,7 +4445,7 @@ paths:
         scope: webhooks:events:read
   /webhooks/events/{id}:
     delete:
-      operationId: BotOperations_deleteWebhookEvent
+      operationId: deleteWebhookEvent
       description: >-
         Удаление события
 

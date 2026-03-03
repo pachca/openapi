@@ -1,6 +1,6 @@
 {
   "name": "@pachca/sdk",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist", "generated/src"],
+  "files": ["dist", "src/generated"],
   "repository": {
     "type": "git",
     "url": "https://github.com/pachca/openapi.git",
@@ -22,15 +22,14 @@
   },
   "scripts": {
     "setup": "true",
-    "generate": "mkdir -p generated/src && openapi-typescript ../../packages/spec/openapi.yaml -o generated/src/schema.d.ts",
+    "generate": "bun scripts/strip-operations.ts && openapi-ts && bun generate-client.ts",
     "build": "tsc"
   },
-  "dependencies": {
-    "openapi-fetch": "^0.13.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@pachca/spec": "workspace:*",
-    "openapi-typescript": "^7.0.0",
+    "@hey-api/openapi-ts": "^0.93.0",
+    "yaml": "^2.7.0",
     "typescript": "^5.0.0"
   }
 }

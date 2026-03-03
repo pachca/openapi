@@ -35,6 +35,10 @@ jobs:
       - run: bun install
       - run: npx turbo run generate
 
+      - name: Build TypeScript SDK
+        run: npx run build
+        working-directory: sdk/typescript
+
       - name: Copy Swift Package.swift to root
         if: github.event_name == 'push'
         run: cp sdk/swift/Package.swift Package.swift

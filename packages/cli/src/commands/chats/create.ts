@@ -16,6 +16,7 @@ export default class ChatsCreate extends BaseCommand {
   static apiMethod = "POST";
   static apiPath = "/chats";
   static defaultColumns = ["id","name","created_at","owner_id","channel"];
+  static requiredFlags = ["name"];
 
   static override args = {
 
@@ -60,10 +61,10 @@ export default class ChatsCreate extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --name <string>. pachca introspect chats create" },
+        );
       }
     }
 

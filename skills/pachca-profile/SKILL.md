@@ -47,10 +47,7 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
 
 ### Установить статус
 
-1. PUT /profile/status с `emoji` и `title`
-2. Чтобы включить режим «Нет на месте» — добавь `is_away: true`
-3. Чтобы задать сообщение о недоступности — добавь `away_message: "текст"` (макс 1024 символа, отображается в профиле и при личных сообщениях/упоминаниях)
-4. Чтобы статус автоматически сбросился — добавь `expires_at: "2024-04-08T10:00:00.000Z"` (ISO-8601, UTC+0)
+1. PUT /profile/status с `emoji` и `title`. Чтобы включить режим «Нет на месте» — добавь `is_away: true`. Чтобы задать сообщение о недоступности — добавь `away_message: "текст"` (макс 1024 символа). Чтобы статус автоматически сбросился — добавь `expires_at` (ISO-8601, UTC+0)
 
 ```bash
 curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \

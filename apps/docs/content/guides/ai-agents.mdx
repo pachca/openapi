@@ -89,37 +89,25 @@ description: Как Пачка работает с AI-агентами и как
 - **Контекст из треда** — читайте историю треда перед ответом, а не только последнее сообщение. Так агент учитывает весь контекст разговора
 - **Обработка ошибок** — если агент не может выполнить задачу, пусть он ответит в тред с пояснением, а не молчит. Прозрачность действий важнее идеального результата
 
-## Ресурсы для AI-агентов
+## Как подключить Пачку к агенту
 
-### Agent Skills (SKILL.md)
+### llms.txt
 
-Описание API в формате skill-файлов для подключения к AI-агентам. Каждый скилл покрывает одну предметную область и содержит: полное описание методов API входящих групп с параметрами и схемами, пошаговые сценарии с curl-примерами, обработку ошибок и gotchas (неочевидные ограничения API, которые легко упустить).
+Самый простой способ для разовых задач. Скопируйте ссылку в промпт агента — он получит сводку API со ссылками на документацию. Подходит, когда нужно быстро попросить агента сделать что-то конкретное в Пачке.
 
-<AgentSkillsWorkflows />
+<CodeBlock language="text" title="Пример промпта">
+{`Сделай X, потом Y в Пачке.
+Посмотри как надо: https://dev.pachca.com/llms.txt`}
+</CodeBlock>
 
-<Info>
-  Есть предложения по новым сценариям? [Напишите нам](https://github.com/pachca/openapi/issues/new?template=workflow-suggestion.yml) и мы добавим их в скиллы.
-</Info>
-
-Скиллы соответствуют спецификации [Agent Skills](https://agentskills.io) и [Agent Skills Discovery RFC](https://github.com/cloudflare/agent-skills-discovery-rfc), совместимы с 40+ AI-агентами через [Skills CLI](https://skills.sh).
-
-### Другие форматы
+Полная версия документации в одном файле — [llms-full.txt](/llms-full.txt). Подходит для загрузки в контекст агента целиком (ChatGPT, собственные агенты на базе LLM).
 
 <CardGroup columns={2}>
-  <Card title="llms.txt" icon="FileText" href="/llms.txt">
-    Краткая сводка документации со ссылками на страницы в markdown-формате. Соответствует стандарту llms.txt.
+  <Card title="llms.txt" href="/llms.txt">
+    Краткая сводка документации со ссылками на страницы
   </Card>
-  <Card title="llms-full.txt" icon="FileText" href="/llms-full.txt">
-    Полная документация в одном файле для загрузки в контекст агента. Содержит все руководства и описания методов.
-  </Card>
-  <Card title="OpenAPI-спецификация" icon="ArrowLeftRight" href="/openapi.yaml">
-    OpenAPI 3.0 спецификация для кодогенерации, парсинга и автоматического создания клиентов.
-  </Card>
-  <Card title="Context7" icon="Zap" href="https://context7.com/pachca/openapi">
-    Документация Пачки в Context7 — MCP-сервер с актуальной документацией для AI-агентов.
-  </Card>
-  <Card title="CLI" icon="ArrowDownToLine" href="/guides/cli">
-    Все API-методы доступны как команды в терминале. Агент может вызывать их через shell.
+  <Card title="llms-full.txt" href="/llms-full.txt">
+    Полная документация в одном файле для загрузки в контекст агента
   </Card>
 </CardGroup>
 
@@ -127,39 +115,9 @@ description: Как Пачка работает с AI-агентами и как
   Любая страница документации доступна в markdown-формате — добавьте `.md` к адресу страницы. Например: `/guides/webhook.md`
 </Info>
 
-## Как подключить Пачку к вашему агенту
+### CLI
 
-### Через Agent Skills (рекомендуется)
-
-Универсальный способ для 40+ AI-агентов (Claude Code, Cursor, Codex, Windsurf, Continue и др.).
-
-<CodeBlock language="bash" title="Agent Skills">
-  {`npx skills add pachca/openapi`}
-</CodeBlock>
-
-Команда автоматически определит установленные агенты и подключит скиллы Пачки. Агент получит пошаговые сценарии для всех типичных задач — от отправки сообщений до работы с формами.
-
-### Через Context7 MCP
-
-Для AI-агентов с поддержкой MCP (Claude Code, Cursor, Windsurf и др.). [Context7](https://context7.com) — MCP-сервер, который отдаёт актуальную документацию прямо в контекст агента. Документация Пачки доступна по адресу [context7.com/pachca/openapi](https://context7.com/pachca/openapi).
-
-<CodeBlock language="bash" title="Claude Code">
-  {`claude mcp add context7 https://mcp.context7.com/mcp`}
-</CodeBlock>
-
-Для других агентов добавьте MCP-сервер `https://mcp.context7.com/mcp` в настройках. Чтобы агент использовал документацию Пачки, добавьте в промпт `use context7` или настройте это через правила агента.
-
-### Через llms-full.txt
-
-Подходит для агентов, которые не поддерживают формат Agent Skills, но позволяют загружать текст в контекст (ChatGPT, собственные агенты на базе LLM).
-
-<CodeBlock language="text" title="llms-full.txt">
-  {`https://dev.pachca.com/llms-full.txt`}
-</CodeBlock>
-
-### Через CLI
-
-AI-агенты с доступом к терминалу (Claude Code, Codex, собственные агенты) могут вызывать команды [CLI](/guides/cli) напрямую — без написания HTTP-запросов. Каждый API-метод доступен как команда с типизированными флагами.
+Самый быстрый и производительный способ. Минимальное влияние на контекст агента — не нужно загружать документацию, агент узнаёт возможности через `--help`. Если есть доступ к shell, агент может генерировать скрипты для типовых задач.
 
 <CodeBlock language="bash" title="CLI">
 {`# Установка
@@ -172,10 +130,60 @@ pachca users list -o json`}
 
 <Info>CLI автоматически определяет неинтерактивную среду (stdin/stdout — не TTY) и адаптируется: выводит JSON вместо таблиц, отключает промпты и спиннер, а при пропущенных обязательных флагах — возвращает ошибку вместо запроса ввода. Агенту не нужна дополнительная настройка — достаточно передать все обязательные флаги.</Info>
 
-### Через OpenAPI-спецификацию
+<CardGroup columns={2}>
+  <Card title="@pachca/cli" href="https://www.npmjs.com/package/@pachca/cli">
+    Пакет на npm
+  </Card>
+  <Card title="Руководство CLI" href="/guides/cli">
+    Полная документация по CLI — команды, флаги, пайпы, сценарии
+  </Card>
+</CardGroup>
 
-Подходит для кодогенераторов (openapi-generator, Kiota, Orval) и агентов, которые умеют работать с OpenAPI напрямую (GPT Actions).
+### Context7 MCP
+
+Самый надёжный вариант для постоянной работы с API. [Context7](https://context7.com) — MCP-сервер, который отдаёт актуальную документацию прямо в контекст агента. Подходит для удалённых интеграций с OAuth, многошаговых сценариев и когда вы часто просите агента выполнять разные задачи в Пачке из промптов.
+
+<CodeBlock language="bash" title="Claude Code">
+  {`claude mcp add context7 https://mcp.context7.com/mcp`}
+</CodeBlock>
+
+Для других агентов добавьте MCP-сервер `https://mcp.context7.com/mcp` в настройках. Чтобы агент использовал документацию Пачки, добавьте в промпт `use context7` или настройте это через правила агента.
+
+<CardGroup columns={1}>
+  <Card title="Пачка на Context7" href="https://context7.com/pachca/openapi">
+    Документация Пачки в Context7 — MCP-сервер с актуальной документацией для AI-агентов
+  </Card>
+</CardGroup>
+
+### OpenAPI-спецификация
+
+Классический вариант для разработчиков. Наиболее полное описание API без дополнительных обвязок — типы, схемы, все эндпоинты. Подходит для кодогенерации (openapi-generator, Kiota, Orval), GPT Actions и когда вы строите собственную интеграцию с API.
 
 <CodeBlock language="text" title="OpenAPI">
   {`https://dev.pachca.com/openapi.yaml`}
 </CodeBlock>
+
+<CardGroup columns={1}>
+  <Card title="OpenAPI-спецификация" href="/openapi.yaml">
+    OpenAPI 3.0 — типы, схемы, все эндпоинты
+  </Card>
+</CardGroup>
+
+### Agent Skills
+
+Набор специфичных знаний об API, разбитый на предметные области (сообщения, чаты, задачи и др.). Каждый скилл содержит описания методов, [сценарии](/guides/workflows) с curl-примерами, обработку ошибок и gotchas. Скиллы — не обязательный и не единственный способ работы с API, а отправная точка, которую можно модифицировать под свои задачи.
+
+<CodeBlock language="bash" title="Agent Skills">
+  {`npx skills add pachca/openapi`}
+</CodeBlock>
+
+Команда автоматически определит установленные агенты и подключит скиллы. Совместимы с 40+ AI-агентами через [Skills CLI](https://skills.sh).
+
+<CardGroup columns={2}>
+  <Card title="Agent Skills" href="https://agentskills.io">
+    Спецификация формата скиллов
+  </Card>
+  <Card title="Agent Skills Discovery RFC" href="https://github.com/cloudflare/agent-skills-discovery-rfc">
+    Протокол обнаружения скиллов
+  </Card>
+</CardGroup>

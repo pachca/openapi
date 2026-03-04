@@ -17,7 +17,7 @@ export default class MessagesUnpin extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор сообщения",
+      description: "Идентификатор сообщения (pachca messages list)",
       required: true,
     }),
   };
@@ -36,8 +36,10 @@ export default class MessagesUnpin extends BaseCommand {
 
     if (!flags.force) {
       if (!this.isInteractive()) {
-        process.stderr.write('✗ Деструктивная операция требует флага --force в неинтерактивном режиме\n');
-        this.exit(2);
+        this.validationError(
+          [{ message: 'Деструктивная операция требует флага --force', flag: 'force' }],
+          { type: 'PACHCA_DESTRUCTIVE_OP_ERROR', hint: "pachca messages unpin <id> --force" },
+        );
       }
       const confirm = await clack.confirm({ message: 'Вы уверены?' });
       if (clack.isCancel(confirm) || !confirm) {

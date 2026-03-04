@@ -16,7 +16,7 @@ interface Check {
 }
 
 export default class Doctor extends BaseCommand {
-  static override description = 'Diagnose environment: Node.js, network, token, config';
+  static override description = 'Диагностика окружения: Node.js, сеть, токен, конфигурация';
 
   static override examples = [
     '<%= config.bin %> doctor',

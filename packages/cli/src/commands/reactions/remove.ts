@@ -14,6 +14,7 @@ export default class ReactionsRemove extends BaseCommand {
   static scope = "reactions:write";
   static apiMethod = "DELETE";
   static apiPath = "/messages/{id}/reactions";
+  static requiredFlags = ["code"];
 
   static override args = {
     id: Args.integer({
@@ -54,17 +55,19 @@ export default class ReactionsRemove extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --code <string>. pachca introspect reactions remove" },
+        );
       }
     }
 
     if (!flags.force) {
       if (!this.isInteractive()) {
-        process.stderr.write('✗ Деструктивная операция требует флага --force в неинтерактивном режиме\n');
-        this.exit(2);
+        this.validationError(
+          [{ message: 'Деструктивная операция требует флага --force', flag: 'force' }],
+          { type: 'PACHCA_DESTRUCTIVE_OP_ERROR', hint: "pachca reactions remove <id> --force" },
+        );
       }
       const confirm = await clack.confirm({ message: 'Вы уверены?' });
       if (clack.isCancel(confirm) || !confirm) {

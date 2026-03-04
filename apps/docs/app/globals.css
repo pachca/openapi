@@ -423,22 +423,22 @@ html.dark .code-block-container .shiki span {
 }
 
 .code-block-container .line {
-  display: block;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
   line-height: 1.5;
   margin: 0;
   padding: 0;
   min-height: 0;
-  width: fit-content;
   min-width: 100%;
 }
 
-/* Номера строк - фон для светлой темы */
+/* Номера строк */
 .code-block-container .line::before {
   counter-increment: line;
   content: counter(line);
-  display: inline-block;
+  flex-shrink: 0;
   text-align: right;
-  vertical-align: top;
   width: 2.8rem;
   padding-right: 0.8rem;
   user-select: none;
@@ -449,6 +449,7 @@ html.dark .code-block-container .shiki span {
   z-index: 10;
   background-color: var(--color-background-tertiary);
   color: var(--color-text-tertiary);
+  padding-top: 1px;
 }
 
 .code-block-container .line::after {
@@ -575,6 +576,11 @@ html.dark .code-block-container .shiki span {
 
 .animate-dropdown[data-state='closed'] {
   animation: dropdown-out 0.1s ease-in forwards;
+}
+
+[data-radix-popper-content-wrapper]:has(.animate-dropdown) {
+  background: var(--color-background);
+  border-radius: var(--radius-lg);
 }
 
 /* Стили для активного элемента сайдбара */

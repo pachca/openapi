@@ -17,6 +17,7 @@ export default class SecurityList extends BaseCommand {
   static apiMethod = "GET";
   static apiPath = "/audit_events";
   static defaultColumns = ["id","created_at","event_key","entity_id","entity_type"];
+  static requiredFlags = ["start-time","end-time"];
 
   static override args = {
 
@@ -77,10 +78,10 @@ export default class SecurityList extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --start-time <string>, --end-time <string>. pachca introspect security list" },
+        );
       }
     }
 

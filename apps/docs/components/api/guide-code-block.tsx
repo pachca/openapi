@@ -8,11 +8,13 @@ interface GuideCodeBlockProps {
   code: string;
   language: string;
   title?: string;
+  className?: string;
 }
 
-export function GuideCodeBlock({ code, language, title }: GuideCodeBlockProps) {
+export function GuideCodeBlock({ code, language, title, className }: GuideCodeBlockProps) {
   return (
     <BoxedPanel
+      className={className}
       header={
         <>
           {title ? (

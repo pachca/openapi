@@ -16,10 +16,11 @@ export default class UsersUpdateStatus extends BaseCommand {
   static apiMethod = "PUT";
   static apiPath = "/users/{user_id}/status";
   static defaultColumns = ["title","emoji","expires_at","is_away"];
+  static requiredFlags = ["emoji","title"];
 
   static override args = {
     user_id: Args.integer({
-      description: "Идентификатор пользователя",
+      description: "Идентификатор пользователя (pachca users list)",
       required: true,
     }),
   };
@@ -63,16 +64,19 @@ export default class UsersUpdateStatus extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --emoji <string>, --title <string>. pachca introspect users update-status" },
+        );
       }
     }
 
+    const validationErrors: { message: string; flag: string }[] = [];
     if (flags['away-message'] && String(flags['away-message']).length > 1024) {
-      process.stderr.write(`✗ --away-message: максимум 1024 символов (передано: ${String(flags['away-message']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--away-message: максимум 1024 символов (передано: ${String(flags['away-message']).length})`, flag: 'away-message' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     this.checkScope("user_status:write");
@@ -89,8 +93,10 @@ export default class UsersUpdateStatus extends BaseCommand {
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
 
     if (Object.keys(inner).length === 0) {
-      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\n');
-      return;
+      this.validationError(
+        [{ message: 'Не указаны поля для обновления' }],
+        { type: 'PACHCA_USAGE_ERROR' },
+      );
     }
 
     const { data } = await this.apiRequest({

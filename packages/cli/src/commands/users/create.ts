@@ -16,6 +16,7 @@ export default class UsersCreate extends BaseCommand {
   static apiMethod = "POST";
   static apiPath = "/users";
   static defaultColumns = ["id","title","first_name","last_name","email"];
+  static requiredFlags = ["email"];
 
   static override args = {
 
@@ -81,10 +82,10 @@ export default class UsersCreate extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --email <string>. pachca introspect users create" },
+        );
       }
     }
 

@@ -5,11 +5,11 @@
     "steps": [
       {
         "description": "GET /chats — перебери результаты, найди нужный по полю `name`",
-        "command": "pachca api GET /chats"
+        "command": "pachca chats list --all  # перебери результаты, найди по полю name"
       },
       {
         "description": "Отправь POST /messages с `\"entity_id\": chat.id`",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Текст сообщения\""
       }
     ]
   },
@@ -19,7 +19,7 @@
     "steps": [
       {
         "description": "Отправь POST /messages с `\"entity_id\": chat_id`",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Текст сообщения\""
       }
     ]
   },
@@ -29,11 +29,11 @@
     "steps": [
       {
         "description": "Определи `user_id` получателя (GET /users или из контекста)",
-        "command": "pachca api GET /users"
+        "command": "pachca users list  # определи user_id получателя"
       },
       {
         "description": "Отправь POST /messages с `\"entity_type\": \"user\"`, `\"entity_id\": user_id`",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=user --entity-id=<user_id> --content=\"Привет!\""
       }
     ]
   },
@@ -42,15 +42,12 @@
     "skill": "pachca-messages",
     "steps": [
       {
-        "description": "Получи или создай тред: POST /messages/{id}/thread (`id` — id родительского сообщения)",
-        "command": "pachca api POST /messages/{id}/thread"
-      },
-      {
-        "description": "Из ответа возьми id треда (`thread.id`)"
+        "description": "POST /messages/{id}/thread — получи или создай тред (`id` — id родительского сообщения), возьми `thread.id` из ответа",
+        "command": "pachca thread add <ID>  # возьми thread.id из ответа"
       },
       {
         "description": "Отправь POST /messages с `\"entity_type\": \"thread\"`, `\"entity_id\": thread.id`",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=thread --entity-id=<thread_id> --content=\"Ответ в тред\""
       }
     ]
   },
@@ -59,19 +56,16 @@
     "skill": "pachca-messages",
     "steps": [
       {
-        "description": "Вебхук содержит `entity_type` — он однозначно определяет контекст: `\"user\"` — личное сообщение боту, `\"thread\"` — сообщение в треде, `\"discussion\"` — сообщение в канале или беседе"
-      },
-      {
         "description": "DM (`entity_type: \"user\"`): ответь POST /messages с `\"entity_type\": \"user\"`, `\"entity_id\"`: `user_id` из вебхука",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=user --entity-id=<user_id> --content=\"Ответ\""
       },
       {
         "description": "Тред (`entity_type: \"thread\"`): вложенных тредов нет — ответь в тот же тред: POST /messages с `\"entity_type\": \"thread\"`, `\"entity_id\"`: `entity_id` из вебхука, `\"parent_message_id\"`: `id` сообщения пользователя из вебхука",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=thread --entity-id=<entity_id> --parent-message-id=<id> --content=\"Ответ\""
       },
       {
         "description": "Беседа/канал (`entity_type: \"discussion\"`): выбери стратегию — inline-ответ (POST /messages c `\"parent_message_id\"`: `id` сообщения) или тред (POST /messages/{id}/thread → ответ в тред)",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-id=<entity_id> --parent-message-id=<id> --content=\"Ответ\""
       }
     ]
   },
@@ -81,17 +75,11 @@
     "steps": [
       {
         "description": "Для каждого файла: POST /uploads → получи `key` (с `${filename}`), `direct_url`, `policy`, подпись",
-        "command": "pachca api POST /uploads"
-      },
-      {
-        "description": "Для каждого файла: подставь имя файла вместо `${filename}` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)"
-      },
-      {
-        "description": "Собери массив `files` из всех загруженных файлов (`key`, `name`, `file_type`, `size`)"
+        "command": "pachca common uploads  # получи key, direct_url, policy, подпись"
       },
       {
         "description": "Отправь POST /messages с массивом `files` — одно сообщение со всеми файлами",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Смотри файл\" --files='[{\"key\":\"...\",\"name\":\"report.pdf\",\"file_type\":\"file\",\"size\":12345}]'"
       }
     ]
   },
@@ -100,17 +88,8 @@
     "skill": "pachca-messages",
     "steps": [
       {
-        "description": "Сформируй массив `buttons` — массив строк, каждая строка — массив кнопок: `[[{кнопка1, кнопка2}, ...], ...]`"
-      },
-      {
-        "description": "Каждая кнопка: `{\"text\": \"Текст\"}` + либо `url` (ссылка), либо `data` (callback для вебхука)"
-      },
-      {
         "description": "Отправь POST /messages с полем `buttons`",
-        "command": "pachca api POST /messages"
-      },
-      {
-        "description": "Нажатия кнопок приходят в исходящий вебхук (событие \"Нажатие кнопок\")"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Выбери действие\" --buttons='[[{\"text\":\"Подробнее\",\"url\":\"https://example.com\"},{\"text\":\"Отлично!\",\"data\":\"awesome\"}]]'"
       }
     ]
   },
@@ -119,14 +98,8 @@
     "skill": "pachca-messages",
     "steps": [
       {
-        "description": "GET /messages?chat_id={id}",
-        "command": "pachca api GET /messages?chat_id={id}"
-      },
-      {
-        "description": "Пагинация: `limit` (1-50, по умолчанию 50) и `cursor` (из `meta.paginate.next_page`)"
-      },
-      {
-        "description": "Сортировка: `sort[id]=asc` или `sort[id]=desc` (по умолчанию `\"desc\"`)"
+        "description": "GET /messages?chat_id={id} — пагинация: `limit` (1-50, по умолчанию 50), `cursor` (из `meta.paginate.next_page`), сортировка: `sort[id]=asc` или `sort[id]=desc` (по умолчанию)",
+        "command": "pachca messages list --chat-id=<chat_id>"
       }
     ]
   },
@@ -136,10 +109,7 @@
     "steps": [
       {
         "description": "GET /messages/{id} — в поле `files[]` каждый объект содержит `url` (прямая ссылка), `name`, `file_type`, `size`",
-        "command": "pachca api GET /messages/{id}"
-      },
-      {
-        "description": "Скачай нужные файлы по `files[].url` — ссылка прямая, авторизация не требуется"
+        "command": "pachca messages get <ID>  # в files[] — url, name, file_type, size"
       }
     ]
   },
@@ -149,11 +119,11 @@
     "steps": [
       {
         "description": "Закрепить: POST /messages/{id}/pin",
-        "command": "pachca api POST /messages/{id}/pin"
+        "command": "pachca messages pin <ID>"
       },
       {
         "description": "Открепить: DELETE /messages/{id}/pin",
-        "command": "pachca api DELETE /messages/{id}/pin"
+        "command": "pachca messages unpin <ID>"
       }
     ]
   },
@@ -162,18 +132,12 @@
     "skill": "pachca-messages",
     "steps": [
       {
-        "description": "POST /messages/{id}/thread — если треда нет, он будет создан; если есть — вернётся существующий",
-        "command": "pachca api POST /messages/{id}/thread"
-      },
-      {
-        "description": "Из ответа возьми `chat_id` треда (`data.chat_id`)"
+        "description": "POST /messages/{id}/thread — если треда нет, он будет создан; если есть — вернётся существующий. Возьми `chat_id` треда из ответа (`data.chat_id`)",
+        "command": "pachca thread add <ID>  # возьми chat_id треда из ответа"
       },
       {
         "description": "Добавь бота (или пользователя) в участники чата треда: POST /chats/{id}/members с `member_ids`",
-        "command": "pachca api POST /chats/{id}/members"
-      },
-      {
-        "description": "Теперь бот будет получать вебхук-события о новых сообщениях в этом треде"
+        "command": "pachca members add <thread_chat_id> --member-ids='[<bot_user_id>]'"
       }
     ]
   },
@@ -182,25 +146,16 @@
     "skill": "pachca-messages",
     "steps": [
       {
-        "description": "Определи поисковый запрос — используй фамилию, она уникальнее. Имена не склоняются в API, приводи к именительному падежу: «упомяни Пашу» → ищи `Паша` или `Павел`, «тегни Голубева» → ищи `Голубев`"
-      },
-      {
         "description": "Ищи сначала среди участников целевого чата: GET /chats/{id}/members (для треда тоже работает, у него свои участники) — фильтруй по имени на клиенте",
-        "command": "pachca api GET /chats/{id}/members"
+        "command": "pachca members list <chat_id>  # фильтруй по имени на клиенте"
       },
       {
         "description": "Если пишешь в тред: также проверь участников родительского чата (GET /chats/{id}/members с `id=message_chat_id`)",
-        "command": "pachca api GET /chats/{id}/members"
+        "command": "pachca members list <parent_chat_id>"
       },
       {
         "description": "Не нашёл — ищи по всей компании: GET /users?query={запрос}",
-        "command": "pachca api GET /users?query={запрос}"
-      },
-      {
-        "description": "Один подходящий результат → используй `nickname`. Несколько → уточни у пользователя (имя + фамилия). Ничего → попробуй другую форму имени (уменьшительное ↔ полное)"
-      },
-      {
-        "description": "Вставь `@nickname` в текст сообщения"
+        "command": "pachca users list --query=<запрос>"
       }
     ]
   },
@@ -210,7 +165,7 @@
     "steps": [
       {
         "description": "PUT /messages/{id} с полем `content` (и/или `buttons`, `files`)",
-        "command": "pachca api PUT /messages/{id}"
+        "command": "pachca messages update <ID> --content=\"Обновлённый текст\""
       }
     ]
   },
@@ -220,15 +175,15 @@
     "steps": [
       {
         "description": "GET /messages/{id} — получи текущие вложения из поля `files[]`, сохрани нужные объекты (`key`, `name`, `file_type`, `size`)",
-        "command": "pachca api GET /messages/{id}"
+        "command": "pachca messages get <ID>  # сохрани нужные объекты из files[]"
       },
       {
         "description": "Если нужно добавить новый файл: POST /uploads → загрузи файл → добавь объект в список",
-        "command": "pachca api POST /uploads"
+        "command": "pachca common uploads  # загрузи новый файл"
       },
       {
         "description": "PUT /messages/{id} с массивом `files` — только те файлы, которые должны остаться (+ новые при необходимости)",
-        "command": "pachca api PUT /messages/{id}"
+        "command": "pachca messages update <ID> --files='[...]'"
       }
     ]
   },
@@ -238,7 +193,7 @@
     "steps": [
       {
         "description": "DELETE /messages/{id}",
-        "command": "pachca api DELETE /messages/{id}"
+        "command": "pachca messages delete <ID>"
       }
     ]
   },
@@ -248,11 +203,11 @@
     "steps": [
       {
         "description": "POST /messages/{id}/reactions с полем `code` (emoji)",
-        "command": "pachca api POST /messages/{id}/reactions"
+        "command": "pachca reactions add <ID> --code=\"👍\""
       },
       {
         "description": "Убрать реакцию: DELETE /messages/{id}/reactions с полем `code`",
-        "command": "pachca api DELETE /messages/{id}/reactions"
+        "command": "pachca reactions remove <ID> --code=\"👍\""
       }
     ]
   },
@@ -262,11 +217,11 @@
     "steps": [
       {
         "description": "GET /messages/{id}/read_member_ids — возвращает массив `user_id` прочитавших",
-        "command": "pachca api GET /messages/{id}/read_member_ids"
+        "command": "pachca read-member list-readers <ID>"
       },
       {
         "description": "При необходимости сопоставь с GET /users для получения имён",
-        "command": "pachca api GET /users"
+        "command": "pachca users list  # сопоставь user_id с именами"
       }
     ]
   },
@@ -276,11 +231,11 @@
     "steps": [
       {
         "description": "Определи список `user_id` получателей (GET /users или из контекста)",
-        "command": "pachca api GET /users"
+        "command": "pachca users list  # определи user_id получателей"
       },
       {
         "description": "Для каждого: POST /messages с `\"entity_type\": \"user\"`, `\"entity_id\": user_id`",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=user --entity-id=<user_id> --content=\"Уведомление\"  # для каждого получателя"
       }
     ]
   },
@@ -289,15 +244,12 @@
     "skill": "pachca-chats",
     "steps": [
       {
-        "description": "POST /chats — `\"channel\": true` для канала, `false` (по умолчанию) для беседы",
-        "command": "pachca api POST /chats"
+        "description": "POST /chats — `\"channel\": true` для канала, `false` (по умолчанию) для беседы. Участников можно передать сразу при создании: `member_ids` и/или `group_tag_ids` в теле запроса",
+        "command": "pachca chats create --name=\"Новый канал\" --channel --member-ids='[1,2,3]'"
       },
       {
-        "description": "Участников можно передать сразу при создании: `member_ids` и/или `group_tag_ids` в теле запроса"
-      },
-      {
-        "description": "Или добавить позже: POST /chats/{id}/members с `member_ids`, POST /chats/{id}/group_tags с `group_tag_ids`",
-        "command": "pachca api POST /chats/{id}/members"
+        "description": "Или добавить участников позже: POST /chats/{id}/members с `member_ids`, POST /chats/{id}/group_tags с `group_tag_ids`",
+        "command": "pachca members add <chat_id> --member-ids='[1,2,3]'"
       }
     ]
   },
@@ -307,23 +259,23 @@
     "steps": [
       {
         "description": "Архивировать: PUT /chats/{id}/archive",
-        "command": "pachca api PUT /chats/{id}/archive"
+        "command": "pachca chats archive <ID>"
       },
       {
         "description": "Разархивировать: PUT /chats/{id}/unarchive",
-        "command": "pachca api PUT /chats/{id}/unarchive"
+        "command": "pachca chats unarchive <ID>"
       },
       {
         "description": "Изменить роль участника: PUT /chats/{id}/members/{user_id} с `role` (`\"admin\"` | `\"member\"`; `\"editor\"` — только для каналов). Роль создателя чата изменить нельзя.",
-        "command": "pachca api PUT /chats/{id}/members/{user_id}"
+        "command": "pachca members update <chat_id> <user_id> --role=admin"
       },
       {
         "description": "Удалить участника: DELETE /chats/{id}/members/{user_id}",
-        "command": "pachca api DELETE /chats/{id}/members/{user_id}"
+        "command": "pachca members remove <chat_id> <user_id>"
       },
       {
         "description": "Покинуть чат: DELETE /chats/{id}/leave",
-        "command": "pachca api DELETE /chats/{id}/leave"
+        "command": "pachca members leave <chat_id>"
       }
     ]
   },
@@ -333,7 +285,7 @@
     "steps": [
       {
         "description": "PUT /chats/{id} с нужными параметрами: `name` (название) и/или `public` (открытый доступ)",
-        "command": "pachca api PUT /chats/{id}"
+        "command": "pachca chats update <ID> --name=\"Новое название\""
       }
     ]
   },
@@ -343,15 +295,11 @@
     "steps": [
       {
         "description": "POST /chats с `name`, `\"channel\": false` и `group_tag_ids` (добавить всех участников тега сразу)",
-        "command": "pachca api POST /chats"
-      },
-      {
-        "description": "Или POST /chats → затем POST /chats/{id}/members с `member_ids` + POST /chats/{id}/group_tags с `group_tag_ids`",
-        "command": "pachca api POST /chats"
+        "command": "pachca chats create --name=\"Проект Alpha\" --group-tag-ids='[42]' --member-ids='[186,187]'"
       },
       {
         "description": "Отправь приветственное сообщение: POST /messages с `\"entity_id\": chat.id`",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Добро пожаловать в проект!\""
       }
     ]
   },
@@ -361,14 +309,11 @@
     "steps": [
       {
         "description": "POST /chats/exports с `start_at`, `end_at` (формат YYYY-MM-DD) и обязательным `webhook_url` — запрос выполняется асинхронно",
-        "command": "pachca api POST /chats/exports"
-      },
-      {
-        "description": "Дождись вебхука на `webhook_url`: придёт JSON с `\"type\": \"export\"`, `\"event\": \"ready\"` и полем `export_id` — по `\"type\": \"export\"` можно отличить от других вебхуков"
+        "command": "pachca common request-export --start-at=<YYYY-MM-DD> --end-at=<YYYY-MM-DD> --webhook-url=<URL>"
       },
       {
         "description": "GET /chats/exports/{id} — сервер вернёт 302, большинство HTTP-клиентов скачают файл автоматически",
-        "command": "pachca api GET /chats/exports/{id}"
+        "command": "pachca common get-exports <export_id>"
       }
     ]
   },
@@ -377,14 +322,8 @@
     "skill": "pachca-chats",
     "steps": [
       {
-        "description": "GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты",
-        "command": "pachca api GET /chats"
-      },
-      {
-        "description": "Для диапазона добавь `last_message_at_before={дата}` — чаты с активностью между двумя датами"
-      },
-      {
-        "description": "Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой"
+        "description": "GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты. Для диапазона добавь `last_message_at_before={дата}`",
+        "command": "pachca chats list --last-message-at-after=<дата> --all"
       }
     ]
   },
@@ -394,32 +333,11 @@
     "steps": [
       {
         "description": "GET /chats с `last_message_at_before={порог}` — сразу только чаты без активности с нужной даты",
-        "command": "pachca api GET /chats"
-      },
-      {
-        "description": "Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой"
+        "command": "pachca chats list --last-message-at-before=<порог> --all"
       },
       {
         "description": "Для каждого чата: PUT /chats/{id}/archive",
-        "command": "pachca api PUT /chats/{id}/archive"
-      }
-    ]
-  },
-  {
-    "title": "Настроить бота с исходящим вебхуком",
-    "skill": "pachca-bots",
-    "steps": [
-      {
-        "description": "Создай бота в интерфейсе Пачки: Автоматизации → Интеграции → Webhook"
-      },
-      {
-        "description": "Получи `access_token` бота во вкладке «API» настроек бота"
-      },
-      {
-        "description": "Укажи Webhook URL для получения событий"
-      },
-      {
-        "description": "Выбери типы событий: новые сообщения, реакции, кнопки, участники"
+        "command": "pachca chats archive <ID>  # для каждого найденного чата"
       }
     ]
   },
@@ -429,7 +347,7 @@
     "steps": [
       {
         "description": "PUT /bots/{id} с новым `outgoing_url` — `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота",
-        "command": "pachca api PUT /bots/{id}"
+        "command": "pachca bots update <bot_id> --webhook='{\"outgoing_url\":\"https://example.com/webhook\"}'"
       }
     ]
   },
@@ -438,20 +356,8 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "Получи POST-запрос на свой Webhook URL"
-      },
-      {
-        "description": "Проверь подпись (Signing secret) для безопасности"
-      },
-      {
-        "description": "Проверь `webhook_timestamp` — должен быть в пределах 1 минуты"
-      },
-      {
-        "description": "Разбери JSON: тип события, данные"
-      },
-      {
         "description": "Для полной информации сделай запрос к API: GET /messages/{id} — особенно важно для получения вложений (`files[]`), которых нет в вебхуке",
-        "command": "pachca api GET /messages/{id}"
+        "command": "pachca messages get <message_id>  # получи вложения (files[])"
       }
     ]
   },
@@ -460,17 +366,8 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "Создай специального Unfurl-бота и укажи отслеживаемые домены в его настройках"
-      },
-      {
-        "description": "При появлении ссылки бот получает вебхук `\"event\": \"link_shared\"` с массивом `links` (`url` + `domain`) и `message_id`"
-      },
-      {
-        "description": "Извлеки данные из своей системы по URL из `links`"
-      },
-      {
         "description": "Отправь POST /messages/{id}/link_previews с превью-данными",
-        "command": "pachca api POST /messages/{id}/link_previews"
+        "command": "pachca link-previews add <message_id>"
       }
     ]
   },
@@ -479,18 +376,12 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "Получи вебхук с `\"event\": \"message_button_clicked\"` — в payload: `data` (из кнопки), `user_id`, `message_id`"
-      },
-      {
-        "description": "Выполни нужное действие (запись в БД, запрос к API и т.д.)"
-      },
-      {
         "description": "Ответь пользователю: POST /messages с `\"entity_type\": \"user\"`, `\"entity_id\": user_id` из вебхука",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=user --entity-id=<user_id> --content=\"Принято!\""
       },
       {
         "description": "Опционально: обнови исходное сообщение через PUT /messages/{id} — чтобы убрать кнопки передай `\"buttons\": []`, чтобы изменить текст — передай `\"content\"`",
-        "command": "pachca api PUT /messages/{id}"
+        "command": "pachca messages update <message_id> --buttons='[]' --content=\"Обработано\""
       }
     ]
   },
@@ -499,14 +390,8 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "По расписанию (cron/scheduler): собери данные из своей системы"
-      },
-      {
-        "description": "Сформируй текст сообщения с нужными метриками или сводкой"
-      },
-      {
         "description": "POST /messages с `\"entity_id\": chat_id` нужного канала",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Дайджест за сегодня: ...\""
       }
     ]
   },
@@ -515,17 +400,8 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "Внешняя система (CI, мониторинг, сервис) обнаруживает событие (ошибка, деплой, порог метрики)"
-      },
-      {
-        "description": "Делает POST запрос к твоему боту или напрямую вызывает Pachca API"
-      },
-      {
         "description": "POST /messages в канал алертов с описанием события и кнопками «Взять в работу» / «Игнорировать»",
-        "command": "pachca api POST /messages"
-      },
-      {
-        "description": "При нажатии кнопки — обработай callback и обнови статус алерта"
+        "command": "pachca messages create --entity-id=<alert_chat_id> --content=\"Алерт: ...\" --buttons='[[{\"text\":\"Взять в работу\",\"data\":\"take\"},{\"text\":\"Игнорировать\",\"data\":\"ignore\"}]]'"
       }
     ]
   },
@@ -534,18 +410,12 @@
     "skill": "pachca-bots",
     "steps": [
       {
-        "description": "В настройках бота включи «Сохранять историю событий» (вкладка «Исходящий webhook»). Webhook URL указывать не обязательно."
-      },
-      {
         "description": "По расписанию или по запросу: GET /webhooks/events — получи накопленные события с пагинацией (`limit`, `cursor`)",
-        "command": "pachca api GET /webhooks/events"
-      },
-      {
-        "description": "Обработай каждое событие (тот же формат payload, что и в real-time вебхуке)"
+        "command": "pachca bots list-events --all"
       },
       {
         "description": "После обработки: DELETE /webhooks/events/{id} — удали событие, чтобы не обработать повторно",
-        "command": "pachca api DELETE /webhooks/events/{id}"
+        "command": "pachca bots remove-event <event_id>"
       }
     ]
   },
@@ -554,42 +424,12 @@
     "skill": "pachca-forms",
     "steps": [
       {
-        "description": "Заранее подготовь объект формы: `view` с `title`, `blocks` (типы: `input`, `select`, `radio`, `checkbox`, `date`, `time`, `file_input`, `header`, `plain_text`, `markdown`, `divider`), опционально `callback_id` (идентификатор формы) и `private_metadata` (контекст, например id сообщения)"
-      },
-      {
         "description": "Отправь сообщение с кнопкой (POST /messages с `buttons`, в `data` кнопки передай идентификатор формы)",
-        "command": "pachca api POST /messages"
-      },
-      {
-        "description": "При нажатии кнопки — получи вебхук-событие с `trigger_id`"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Заполните форму\" --buttons='[[{\"text\":\"Открыть форму\",\"data\":\"open_form\"}]]'"
       },
       {
         "description": "Немедленно отправь POST /views/open с `trigger_id` и готовым объектом формы",
-        "command": "pachca api POST /views/open"
-      },
-      {
-        "description": "Пользователь заполняет форму → при отправке получи вебхук — обработай по сценарию «Обработать отправку формы»"
-      }
-    ]
-  },
-  {
-    "title": "Обработать отправку формы (view_submission)",
-    "skill": "pachca-forms",
-    "steps": [
-      {
-        "description": "Получи вебхук с `\"type\": \"view\"`, `\"event\": \"submit\"` — содержит `callback_id`, `user_id`, `private_metadata` и `data` (значения полей, ключи совпадают с полем `name` каждого блока)"
-      },
-      {
-        "description": "Извлеки значения из `data`: например, для блока с `\"name\": \"comment\"` значение в `data.comment`"
-      },
-      {
-        "description": "Если форма содержит `file_input` — скачай файлы по `data.field_name[].url` немедленно: ссылки истекают через 1 час"
-      },
-      {
-        "description": "Если данные валидны → ответь HTTP 200 (пустое тело) — форма закроется у пользователя"
-      },
-      {
-        "description": "Если есть ошибки → ответь HTTP 400 с `{\"errors\": {\"field_name\": \"текст ошибки\"}}` — пользователь увидит ошибки в форме и сможет исправить и отправить повторно"
+        "command": "pachca views open --type=modal --trigger-id=<trigger_id> --title=\"Заявка\" --blocks='[...]'"
       }
     ]
   },
@@ -599,23 +439,11 @@
     "steps": [
       {
         "description": "Отправь сообщение с кнопкой «Пройти опрос» в канал или ЛС: POST /messages с `\"data\": \"survey_start\"` в кнопке",
-        "command": "pachca api POST /messages"
-      },
-      {
-        "description": "При нажатии кнопки получи вебхук с `trigger_id` и `user_id` нажавшего"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Пройди опрос\" --buttons='[[{\"text\":\"Пройти опрос\",\"data\":\"survey_start\"}]]'"
       },
       {
         "description": "Немедленно отправь POST /views/open с формой (поля: `input`, `select`, `radio` и т.д.)",
-        "command": "pachca api POST /views/open"
-      },
-      {
-        "description": "При отправке формы получи вебхук с `\"event\": \"submit\"` — значения полей в `data`"
-      },
-      {
-        "description": "Обработай ответы: сохрани в базу или отправь итоговым сообщением в канал"
-      },
-      {
-        "description": "Ответь HTTP 200 — форма закроется"
+        "command": "pachca views open --type=modal --trigger-id=<trigger_id> --title=\"Опрос\" --blocks='[...]'"
       }
     ]
   },
@@ -624,21 +452,20 @@
     "skill": "pachca-forms",
     "steps": [
       {
-        "description": "Размести в канале сообщение с кнопкой «Создать заявку» (`\"data\": \"new_request\"`)"
+        "description": "Размести в канале сообщение с кнопкой «Создать заявку» (`\"data\": \"new_request\"`)",
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Создать заявку\" --buttons='[[{\"text\":\"Создать заявку\",\"data\":\"new_request\"}]]'"
       },
       {
-        "description": "При нажатии открой форму с полями: тема, описание, приоритет (`select`)"
+        "description": "При нажатии открой форму с полями: тема, описание, приоритет (`select`)",
+        "command": "pachca views open --type=modal --trigger-id=<trigger_id> --title=\"Заявка\" --blocks='[...]'"
       },
       {
         "description": "При submit-вебхуке: создай задачу (POST /tasks) или отправь уведомление ответственному (POST /messages с `\"entity_type\": \"user\"`)",
-        "command": "pachca api POST /tasks)"
+        "command": "pachca tasks create --kind=reminder --content=\"Заявка: ...\" --due-at=<дата>"
       },
       {
         "description": "Отправь подтверждение автору: POST /messages с `\"entity_type\": \"user\"`, `\"entity_id\": user_id` из вебхука",
-        "command": "pachca api POST /messages"
-      },
-      {
-        "description": "Ответь HTTP 200 — форма закроется"
+        "command": "pachca messages create --entity-type=user --entity-id=<user_id> --content=\"Заявка принята\""
       }
     ]
   },
@@ -648,7 +475,7 @@
     "steps": [
       {
         "description": "GET /users/{id} — полная информация о сотруднике",
-        "command": "pachca api GET /users/{id}"
+        "command": "pachca users get <ID>"
       }
     ]
   },
@@ -658,15 +485,15 @@
     "steps": [
       {
         "description": "Создай тег (если нужен): POST /group_tags с `{\"group_tag\": {\"name\": ...}}`",
-        "command": "pachca api POST /group_tags"
+        "command": "pachca group-tags create --name=\"Backend\""
       },
       {
         "description": "Для каждого сотрудника: POST /users — теги назначаются через поле `list_tags` в теле запроса",
-        "command": "pachca api POST /users"
+        "command": "pachca users create --first-name=\"Иван\" --last-name=\"Петров\" --email=\"ivan@example.com\" --list-tags='[{\"name\":\"Backend\"}]'"
       },
       {
         "description": "Или обнови существующего: PUT /users/{id} с `list_tags`",
-        "command": "pachca api PUT /users/{id}"
+        "command": "pachca users update <ID> --list-tags='[{\"name\":\"Backend\"}]'"
       }
     ]
   },
@@ -676,10 +503,7 @@
     "steps": [
       {
         "description": "GET /users?query=Иван — поиск по имени/email (частичное совпадение)",
-        "command": "pachca api GET /users?query=Иван"
-      },
-      {
-        "description": "Если нужен точный поиск по email — перебери страницы и отфильтруй на клиенте"
+        "command": "pachca users list --query=Иван"
       }
     ]
   },
@@ -689,15 +513,15 @@
     "steps": [
       {
         "description": "POST /users с `email`, именем, тегами (`list_tags`) — создать аккаунт",
-        "command": "pachca api POST /users"
+        "command": "pachca users create --email=\"new@example.com\" --first-name=\"Иван\" --last-name=\"Петров\""
       },
       {
         "description": "POST /chats/{id}/members с `member_ids` — добавить в нужные каналы (онбординг, общий, тематические)",
-        "command": "pachca api POST /chats/{id}/members"
+        "command": "pachca members add <chat_id> --member-ids='[<user_id>]'"
       },
       {
         "description": "POST /messages с `\"entity_type\": \"user\"`, `\"entity_id\": user.id` — отправить welcome-сообщение в личные сообщения",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=user --entity-id=<user_id> --content=\"Добро пожаловать!\""
       }
     ]
   },
@@ -707,11 +531,11 @@
     "steps": [
       {
         "description": "PUT /users/{id} с `\"suspended\": true` — заблокировать доступ",
-        "command": "pachca api PUT /users/{id}"
+        "command": "pachca users update <ID> --suspended"
       },
       {
         "description": "Опционально: DELETE /users/{id} — удалить аккаунт полностью",
-        "command": "pachca api DELETE /users/{id}"
+        "command": "pachca users delete <ID>"
       }
     ]
   },
@@ -720,15 +544,12 @@
     "skill": "pachca-users",
     "steps": [
       {
-        "description": "GET /group_tags?names[]=Backend — найти тег по названию",
-        "command": "pachca api GET /group_tags?names[]=Backend"
-      },
-      {
-        "description": "Из ответа взять `id` тега"
+        "description": "GET /group_tags?names[]=Backend — найти тег по названию, взять `id` тега из ответа",
+        "command": "pachca group-tags list  # найди тег по названию, возьми id"
       },
       {
         "description": "GET /group_tags/{id}/users с пагинацией (`limit` + `cursor`) — получить всех участников",
-        "command": "pachca api GET /group_tags/{id}/users"
+        "command": "pachca group-tags list-users <tag_id> --all"
       }
     ]
   },
@@ -738,15 +559,15 @@
     "steps": [
       {
         "description": "GET /users/{user_id}/status — получить текущий статус сотрудника",
-        "command": "pachca api GET /users/{user_id}/status"
+        "command": "pachca users get-status <user_id>"
       },
       {
         "description": "PUT /users/{user_id}/status с `emoji`, `title` и опционально `is_away: true`, `away_message: \"текст\"` — установить статус",
-        "command": "pachca api PUT /users/{user_id}/status"
+        "command": "pachca users update-status <user_id> --emoji=\"🏖️\" --title=\"В отпуске\" --is-away"
       },
       {
         "description": "DELETE /users/{user_id}/status — удалить статус сотрудника",
-        "command": "pachca api DELETE /users/{user_id}/status"
+        "command": "pachca users remove-status <user_id>"
       }
     ]
   },
@@ -755,15 +576,8 @@
     "skill": "pachca-tasks",
     "steps": [
       {
-        "description": "POST /tasks с `kind`, `content` и `due_at`",
-        "command": "pachca api POST /tasks"
-      },
-      {
-        "description": "Чтобы привязать к чату — добавь `chat_id`"
-      },
-      {
-        "description": "Чтобы заполнить дополнительные поля — добавь `custom_properties: [{\"id\": <field_id>, \"value\": \"...\"}]` (список полей: GET /custom_properties?entity_type=Task)",
-        "command": "pachca api GET /custom_properties?entity_type=Task)"
+        "description": "POST /tasks с `kind`, `content` и `due_at`. Чтобы привязать к чату — добавь `chat_id`. Чтобы заполнить дополнительные поля — добавь `custom_properties: [{\"id\": <field_id>, \"value\": \"...\"}]` (список полей: GET /custom_properties?entity_type=Task)",
+        "command": "pachca tasks create --kind=reminder --content=\"Позвонить клиенту\" --due-at=<дата> --chat-id=<chat_id>"
       }
     ]
   },
@@ -772,11 +586,8 @@
     "skill": "pachca-tasks",
     "steps": [
       {
-        "description": "GET /tasks с пагинацией (`limit`, `cursor`)",
-        "command": "pachca api GET /tasks"
-      },
-      {
-        "description": "Отфильтруй на клиенте по полю `status`: `\"undone\"` — не выполнена, `\"done\"` — выполнена"
+        "description": "GET /tasks с пагинацией (`limit`, `cursor`) — отфильтруй на клиенте по полю `status`: `\"undone\"` — не выполнена, `\"done\"` — выполнена",
+        "command": "pachca tasks list --all  # фильтруй по status на клиенте"
       }
     ]
   },
@@ -786,7 +597,7 @@
     "steps": [
       {
         "description": "GET /tasks/{id} — полная информация о задаче, включая `custom_properties`, `performer_ids`, `status`",
-        "command": "pachca api GET /tasks/{id}"
+        "command": "pachca tasks get <ID>"
       }
     ]
   },
@@ -796,7 +607,7 @@
     "steps": [
       {
         "description": "PUT /tasks/{id} с `\"status\": \"done\"`",
-        "command": "pachca api PUT /tasks/{id}"
+        "command": "pachca tasks update <ID> --status=done"
       }
     ]
   },
@@ -806,7 +617,7 @@
     "steps": [
       {
         "description": "PUT /tasks/{id} с нужными полями: `content`, `due_at`, `kind`, `priority`, `performer_ids`, `custom_properties`",
-        "command": "pachca api PUT /tasks/{id}"
+        "command": "pachca tasks update <ID> --due-at=<дата> --priority=2 --performer-ids='[186,187]'"
       }
     ]
   },
@@ -816,7 +627,7 @@
     "steps": [
       {
         "description": "DELETE /tasks/{id}",
-        "command": "pachca api DELETE /tasks/{id}"
+        "command": "pachca tasks delete <ID>"
       }
     ]
   },
@@ -825,11 +636,8 @@
     "skill": "pachca-tasks",
     "steps": [
       {
-        "description": "Подготовь список дат (ежедневно, еженедельно и т.д.)"
-      },
-      {
         "description": "Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`",
-        "command": "pachca api POST /tasks"
+        "command": "pachca tasks create --kind=reminder --content=\"Напоминание\" --due-at=<дата>  # для каждой даты"
       }
     ]
   },
@@ -839,7 +647,7 @@
     "steps": [
       {
         "description": "GET /profile — возвращает полную информацию о текущем пользователе",
-        "command": "pachca api GET /profile"
+        "command": "pachca profile get"
       }
     ]
   },
@@ -849,7 +657,7 @@
     "steps": [
       {
         "description": "GET /oauth/token/info — возвращает информацию о текущем токене: скоупы, дату создания, срок жизни",
-        "command": "pachca api GET /oauth/token/info"
+        "command": "pachca profile get-info"
       }
     ]
   },
@@ -858,17 +666,8 @@
     "skill": "pachca-profile",
     "steps": [
       {
-        "description": "PUT /profile/status с `emoji` и `title`",
-        "command": "pachca api PUT /profile/status"
-      },
-      {
-        "description": "Чтобы включить режим «Нет на месте» — добавь `is_away: true`"
-      },
-      {
-        "description": "Чтобы задать сообщение о недоступности — добавь `away_message: \"текст\"` (макс 1024 символа, отображается в профиле и при личных сообщениях/упоминаниях)"
-      },
-      {
-        "description": "Чтобы статус автоматически сбросился — добавь `expires_at: \"2024-04-08T10:00:00.000Z\"` (ISO-8601, UTC+0)"
+        "description": "PUT /profile/status с `emoji` и `title`. Чтобы включить режим «Нет на месте» — добавь `is_away: true`. Чтобы задать сообщение о недоступности — добавь `away_message: \"текст\"` (макс 1024 символа). Чтобы статус автоматически сбросился — добавь `expires_at` (ISO-8601, UTC+0)",
+        "command": "pachca profile update-status --emoji=\"🏖️\" --title=\"В отпуске\" --is-away --away-message=\"Я в отпуске до 10 марта\" --expires-at=\"2025-03-10T23:59:59.000Z\""
       }
     ]
   },
@@ -878,7 +677,7 @@
     "steps": [
       {
         "description": "DELETE /profile/status",
-        "command": "pachca api DELETE /profile/status"
+        "command": "pachca profile delete-status"
       }
     ]
   },
@@ -888,11 +687,11 @@
     "steps": [
       {
         "description": "GET /custom_properties?entity_type=User — список дополнительных полей для сотрудников (`id`, `name`, `data_type`)",
-        "command": "pachca api GET /custom_properties?entity_type=User"
+        "command": "pachca common custom-properties  # entity_type=User"
       },
       {
         "description": "GET /profile — в ответе поле `custom_properties` содержит значения для текущего пользователя",
-        "command": "pachca api GET /profile"
+        "command": "pachca profile get  # custom_properties содержит значения полей"
       }
     ]
   },
@@ -901,14 +700,8 @@
     "skill": "pachca-search",
     "steps": [
       {
-        "description": "GET /search/messages?query=текст — полнотекстовый поиск",
-        "command": "pachca api GET /search/messages?query=текст"
-      },
-      {
-        "description": "Пагинация: `limit` (до 200) и `cursor` (из `meta.paginate.next_page`)"
-      },
-      {
-        "description": "Общее количество результатов — в `meta.total`"
+        "description": "GET /search/messages?query=текст — полнотекстовый поиск. Пагинация: `limit` (до 200) и `cursor`. Общее количество результатов — в `meta.total`",
+        "command": "pachca search list-messages --query=\"текст\""
       }
     ]
   },
@@ -917,11 +710,8 @@
     "skill": "pachca-search",
     "steps": [
       {
-        "description": "GET /search/chats?query=название — полнотекстовый поиск по чатам",
-        "command": "pachca api GET /search/chats?query=название"
-      },
-      {
-        "description": "Пагинация: `limit` (до 100) и `cursor`"
+        "description": "GET /search/chats?query=название — полнотекстовый поиск по чатам. Пагинация: `limit` (до 100) и `cursor`",
+        "command": "pachca search list-chats --query=\"название\""
       }
     ]
   },
@@ -930,14 +720,8 @@
     "skill": "pachca-search",
     "steps": [
       {
-        "description": "GET /search/users?query=имя — полнотекстовый поиск по сотрудникам",
-        "command": "pachca api GET /search/users?query=имя"
-      },
-      {
-        "description": "Пагинация: `limit` (до 200) и `cursor`"
-      },
-      {
-        "description": "Сортировка: `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию) для релевантности"
+        "description": "GET /search/users?query=имя — полнотекстовый поиск по сотрудникам. Пагинация: `limit` (до 200) и `cursor`. Сортировка: `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию) для релевантности",
+        "command": "pachca search list-users --query=\"имя\""
       }
     ]
   },
@@ -946,11 +730,8 @@
     "skill": "pachca-security",
     "steps": [
       {
-        "description": "GET /audit_events с обязательными `start_time` и `end_time` (ISO-8601, UTC+0)",
-        "command": "pachca api GET /audit_events"
-      },
-      {
-        "description": "Опциональные фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`"
+        "description": "GET /audit_events с обязательными `start_time` и `end_time` (ISO-8601, UTC+0). Опциональные фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`",
+        "command": "pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601>"
       }
     ]
   },
@@ -959,15 +740,12 @@
     "skill": "pachca-security",
     "steps": [
       {
-        "description": "GET /audit_events с `event_key=user_2fa_fail` (или `user_login`) за нужный период",
-        "command": "pachca api GET /audit_events"
-      },
-      {
-        "description": "Пагинируй с `cursor` до получения всех записей"
+        "description": "GET /audit_events с `event_key=user_2fa_fail` (или `user_login`) за нужный период — пагинируй с `cursor` до получения всех записей",
+        "command": "pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_fail --all"
       },
       {
         "description": "Если найдены аномалии (много неудачных 2FA с одного аккаунта) — отправь уведомление администратору через POST /messages",
-        "command": "pachca api POST /messages"
+        "command": "pachca messages create --entity-type=user --entity-id=<admin_id> --content=\"Обнаружены подозрительные входы\""
       }
     ]
   },
@@ -976,14 +754,8 @@
     "skill": "pachca-security",
     "steps": [
       {
-        "description": "GET /audit_events с `start_time` и `end_time` (ISO-8601, UTC+0)",
-        "command": "pachca api GET /audit_events"
-      },
-      {
-        "description": "Пагинируй с `cursor` до получения всех записей (`limit` до 50)"
-      },
-      {
-        "description": "Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)"
+        "description": "GET /audit_events с `start_time` и `end_time` (ISO-8601, UTC+0) — пагинируй с `cursor` до получения всех записей (`limit` до 50)",
+        "command": "pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --all"
       }
     ]
   }

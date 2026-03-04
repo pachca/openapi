@@ -10,6 +10,7 @@ export default class CommonDirectUrl extends BaseCommand {
 
   static apiMethod = "POST";
   static apiPath = "/direct_url";
+  static requiredFlags = ["content-disposition","acl","policy","x-amz-credential","x-amz-algorithm","x-amz-date","x-amz-signature","key"];
 
   static override args = {
 
@@ -71,10 +72,10 @@ export default class CommonDirectUrl extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --content-disposition <string>, --acl <string>, --policy <string>, --x-amz-credential <string>, --x-amz-algorithm <string>, --x-amz-date <string>, --x-amz-signature <string>, --key <string>. pachca introspect common direct-url" },
+        );
       }
     }
 

@@ -18,7 +18,7 @@ export default class UsersGetStatus extends BaseCommand {
 
   static override args = {
     user_id: Args.integer({
-      description: "Идентификатор пользователя",
+      description: "Идентификатор пользователя (pachca users list)",
       required: true,
     }),
   };

@@ -3,7 +3,7 @@ import { getActiveProfile, getProfile } from '../../profiles.js';
 import { outputError } from '../../output.js';
 
 export default class AuthStatus extends BaseCommand {
-  static override description = 'Show status of current profile';
+  static override description = 'Статус текущего профиля';
 
   static override examples = [
     '<%= config.bin %> auth status',

@@ -3,7 +3,7 @@ import { BaseCommand } from '../../base-command.js';
 import { getConfigValue } from '../../profiles.js';
 
 export default class ConfigGet extends BaseCommand {
-  static override description = 'Get a configuration value';
+  static override description = 'Получение значения конфигурации';
 
   static override examples = [
     '<%= config.bin %> config get defaults.output',

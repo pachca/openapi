@@ -16,7 +16,7 @@ export default class MessagesPin extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор сообщения",
+      description: "Идентификатор сообщения (pachca messages list)",
       required: true,
     }),
   };

@@ -4,7 +4,7 @@ import { Args } from '@oclif/core';
 import { BaseCommand } from '../base-command.js';
 
 export default class Introspect extends BaseCommand {
-  static override description = 'Show machine-readable command metadata';
+  static override description = 'Метаданные команды в машиночитаемом формате';
 
   static override examples = [
     '<%= config.bin %> introspect messages create',
@@ -60,22 +60,36 @@ export default class Introspect extends BaseCommand {
     // Single command introspection
     const cmdMeta = commands[commandId];
     if (!cmdMeta) {
-      process.stderr.write(`Command not found: ${commandArgs.join(' ')}\n`);
-      this.exit(2);
+      this.validationError(
+        [{ message: `Command not found: ${commandArgs.join(' ')}` }],
+        { hint: 'pachca introspect', type: 'PACHCA_COMMAND_NOT_FOUND' },
+      );
     }
+
+    const baseFlagNames = new Set(['output', 'columns', 'no-header', 'no-truncate', 'profile', 'token', 'quiet', 'no-color', 'verbose', 'no-input', 'dry-run', 'timeout', 'no-retry', 'json']);
+    const requiredFlagNames = new Set((cmdMeta.requiredFlags as string[] | undefined) || []);
 
     const flagsMeta = cmdMeta.flags as Record<string, Record<string, unknown>> | undefined;
     const flagEntries = flagsMeta
       ? Object.entries(flagsMeta)
-        .filter(([name]) => !['output', 'columns', 'no-header', 'no-truncate', 'profile', 'token', 'quiet', 'no-color', 'verbose', 'no-input', 'dry-run', 'timeout', 'no-retry', 'json'].includes(name))
+        .filter(([name]) => !baseFlagNames.has(name))
         .map(([name, meta]) => ({
           name,
           type: meta.type || 'string',
-          required: meta.required || false,
+          required: requiredFlagNames.has(name),
           description: meta.description || '',
           ...(meta.options ? { options: meta.options } : {}),
           ...(meta.maxLength ? { maxLength: meta.maxLength } : {}),
         }))
+      : [];
+
+    const argsMeta = cmdMeta.args as Record<string, Record<string, unknown>> | undefined;
+    const argEntries = argsMeta
+      ? Object.entries(argsMeta).map(([name, meta]) => ({
+        name,
+        required: meta.required || false,
+        description: meta.description || '',
+      }))
       : [];
 
     const result = {
@@ -85,6 +99,7 @@ export default class Introspect extends BaseCommand {
       path: cmdMeta.apiPath || null,
       scope: cmdMeta.scope || null,
       plan: cmdMeta.plan || null,
+      ...(argEntries.length > 0 ? { args: argEntries } : {}),
       flags: flagEntries,
     };
 

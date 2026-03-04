@@ -26,9 +26,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Создать канал и пригласить участников
 
-1. POST /chats — `"channel": true` для канала, `false` (по умолчанию) для беседы
-2. Участников можно передать сразу при создании: `member_ids` и/или `group_tag_ids` в теле запроса
-3. Или добавить позже: POST /chats/{id}/members с `member_ids`, POST /chats/{id}/group_tags с `group_tag_ids`
+1. POST /chats — `"channel": true` для канала, `false` (по умолчанию) для беседы. Участников можно передать сразу при создании: `member_ids` и/или `group_tag_ids` в теле запроса
+2. Или добавить участников позже: POST /chats/{id}/members с `member_ids`, POST /chats/{id}/group_tags с `group_tag_ids`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/chats" \
@@ -63,8 +62,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \
 ### Создать проектную беседу из шаблона
 
 1. POST /chats с `name`, `"channel": false` и `group_tag_ids` (добавить всех участников тега сразу)
-2. Или POST /chats → затем POST /chats/{id}/members с `member_ids` + POST /chats/{id}/group_tags с `group_tag_ids`
-3. Отправь приветственное сообщение: POST /messages с `"entity_id": chat.id`
+2. Отправь приветственное сообщение: POST /messages с `"entity_id": chat.id`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/chats" \
@@ -92,9 +90,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
 
 ### Найти активные чаты за период
 
-1. GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты
-2. Для диапазона добавь `last_message_at_before={дата}` — чаты с активностью между двумя датами
-3. Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой
+1. GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты. Для диапазона добавь `last_message_at_before={дата}`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_after=$DATE_FROM&limit=50" \
@@ -106,8 +102,7 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_after=$DATE_FRO
 ### Найти и заархивировать неактивные чаты
 
 1. GET /chats с `last_message_at_before={порог}` — сразу только чаты без активности с нужной даты
-2. Перебери страницы: `cursor` из `meta.paginate.next_page`, пока он не пустой
-3. Для каждого чата: PUT /chats/{id}/archive
+2. Для каждого чата: PUT /chats/{id}/archive
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BEFORE&limit=50" \

@@ -7,15 +7,16 @@ export default class TasksCreate extends BaseCommand {
   static override description = "Новое напоминание";
 
   static override examples = [
+      "Форма заявки/запроса:\n  $ pachca tasks create",
       "Создать напоминание:\n  $ pachca tasks create",
-      "Получить список предстоящих задач:\n  $ pachca tasks list",
-      "Создать серию напоминаний:\n  $ pachca tasks create"
+      "Получить список предстоящих задач:\n  $ pachca tasks list"
   ];
 
   static scope = "tasks:create";
   static apiMethod = "POST";
   static apiPath = "/tasks";
   static defaultColumns = ["id","content","created_at","kind","due_at"];
+  static requiredFlags = ["kind"];
 
   static override args = {
 
@@ -39,7 +40,7 @@ export default class TasksCreate extends BaseCommand {
       description: "Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)",
     }),
     'chat-id': Flags.integer({
-      description: "Идентификатор чата, к которому привязывается напоминание",
+      description: "Идентификатор чата, к которому привязывается напоминание (pachca chats list)",
     }),
     'all-day': Flags.boolean({
       description: "Напоминание на весь день (без указания времени)",
@@ -77,10 +78,10 @@ export default class TasksCreate extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --kind <string>. pachca introspect tasks create" },
+        );
       }
     }
 

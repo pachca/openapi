@@ -14,6 +14,7 @@ export default class CommonRequestExport extends BaseCommand {
   static plan = "corporation";
   static apiMethod = "POST";
   static apiPath = "/chats/exports";
+  static requiredFlags = ["start-at","end-at","webhook-url"];
 
   static override args = {
 
@@ -59,10 +60,10 @@ export default class CommonRequestExport extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --start-at <string>, --end-at <string>, --webhook-url <string>. pachca introspect common request-export" },
+        );
       }
     }
 

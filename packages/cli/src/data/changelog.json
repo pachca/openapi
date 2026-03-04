@@ -1,5 +1,19 @@
 [
   {
+    "version": "2026.3.3",
+    "date": "4 марта 2026",
+    "changes": [
+      { "type": "+", "command": "all", "description": "Структурированные ошибки валидации: type, flag, hint в JSON-выводе" },
+      { "type": "+", "command": "all", "description": "Батчинг ошибок валидации — все ошибки выводятся разом, а не по одной" },
+      { "type": "+", "command": "all", "description": "Hint-подсказки в ошибках авторизации и профиля (pachca auth login, pachca auth list)" },
+      { "type": "+", "command": "all", "description": "Описания команд и топиков переведены на русский язык" },
+      { "type": "+", "command": "all", "description": "Подсказки связанных команд в описаниях ID-флагов (pachca chats list, pachca users list)" },
+      { "type": "~", "command": "introspect", "description": "Аргументы команды (args) в выводе, requiredFlags, улучшенная ошибка «команда не найдена»" },
+      { "type": "~", "command": "commands", "description": "Поле summary в выводе команд" },
+      { "type": "~", "command": "guide", "description": "Компактный вывод шагов ($ command), структурированные данные сценариев, фильтрация шагов без CLI-команд" }
+    ]
+  },
+  {
     "version": "2026.3.2",
     "date": "4 марта 2026",
     "changes": [

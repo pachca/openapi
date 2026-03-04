@@ -21,7 +21,7 @@ export default class MembersRemove extends BaseCommand {
       required: true,
     }),
     user_id: Args.integer({
-      description: "Идентификатор пользователя",
+      description: "Идентификатор пользователя (pachca users list)",
       required: true,
     }),
   };
@@ -40,8 +40,10 @@ export default class MembersRemove extends BaseCommand {
 
     if (!flags.force) {
       if (!this.isInteractive()) {
-        process.stderr.write('✗ Деструктивная операция требует флага --force в неинтерактивном режиме\n');
-        this.exit(2);
+        this.validationError(
+          [{ message: 'Деструктивная операция требует флага --force', flag: 'force' }],
+          { type: 'PACHCA_DESTRUCTIVE_OP_ERROR', hint: "pachca members remove <id> <user_id> --force" },
+        );
       }
       const confirm = await clack.confirm({ message: 'Вы уверены?' });
       if (clack.isCancel(confirm) || !confirm) {

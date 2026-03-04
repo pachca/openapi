@@ -51,6 +51,7 @@ const GUIDES_ORDER = [
   '/',
   '/guides/ai-agents',
   '/guides/cli',
+  '/guides/workflows',
   '/guides/webhook',
   '/guides/authorization',
   '/guides/requests-responses',

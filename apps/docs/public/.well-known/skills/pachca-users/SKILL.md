@@ -74,9 +74,8 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 
 ### Получить всех сотрудников тега/департамента
 
-1. GET /group_tags?names[]=Backend — найти тег по названию
-2. Из ответа взять `id` тега
-3. GET /group_tags/{id}/users с пагинацией (`limit` + `cursor`) — получить всех участников
+1. GET /group_tags?names[]=Backend — найти тег по названию, взять `id` тега из ответа
+2. GET /group_tags/{id}/users с пагинацией (`limit` + `cursor`) — получить всех участников
 
 ### Управление статусом сотрудника
 

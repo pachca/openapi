@@ -5,7 +5,7 @@ import { generateTitle } from '../../lib/openapi/mapper';
 import { generateCurl } from '../../lib/code-generators/curl';
 import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP } from './config';
 import type { SkillConfig } from './config';
-import { WORKFLOWS } from './workflows';
+import { WORKFLOWS } from '../../data/workflows';
 
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
@@ -227,7 +227,7 @@ function generateSkillMd(ctx: SkillContext): string {
       lines.push(`### ${wf.title}`);
       lines.push('');
       for (let i = 0; i < wf.steps.length; i++) {
-        lines.push(`${i + 1}. ${wf.steps[i]}`);
+        lines.push(`${i + 1}. ${wf.steps[i].description}`);
       }
       if (wf.curl) {
         lines.push('');

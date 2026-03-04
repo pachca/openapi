@@ -174,6 +174,19 @@ export function Card({ title, icon, href, download, children }: CardProps) {
       );
     }
 
+    const isExternal = href.startsWith('http');
+    const isFile = /\.\w+$/.test(href) && !href.startsWith('/guides/');
+    const openInNewTab = isExternal || isFile;
+
+    if (openInNewTab) {
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+          {content}
+          {cornerIcon}
+        </a>
+      );
+    }
+
     return (
       <Link href={href} className={className}>
         {content}

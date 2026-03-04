@@ -16,7 +16,7 @@ export default class ChatsArchive extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор чата",
+      description: "Идентификатор чата (pachca chats list)",
       required: true,
     }),
   };

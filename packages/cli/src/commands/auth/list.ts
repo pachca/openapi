@@ -2,7 +2,7 @@ import { BaseCommand } from '../../base-command.js';
 import { listProfiles, getActiveProfile } from '../../profiles.js';
 
 export default class AuthList extends BaseCommand {
-  static override description = 'List all saved profiles';
+  static override description = 'Список сохранённых профилей';
 
   static override examples = [
     '<%= config.bin %> auth list',

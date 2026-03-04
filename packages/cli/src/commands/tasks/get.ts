@@ -18,7 +18,7 @@ export default class TasksGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор напоминания",
+      description: "Идентификатор напоминания (pachca tasks list)",
       required: true,
     }),
   };

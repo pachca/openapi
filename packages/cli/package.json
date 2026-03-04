@@ -1,7 +1,7 @@
 {
   "name": "@pachca/cli",
   "version": "0.0.0",
-  "description": "Official CLI for Pachca API",
+  "description": "CLI для Pachca API",
   "type": "module",
   "bin": {
     "pachca": "./bin/run.js"
@@ -17,7 +17,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "bun scripts/generate-cli.ts && tsc && oclif manifest",
+    "build": "bun scripts/generate-cli.ts && tsc && oclif manifest && node scripts/patch-manifest.js",
     "dev": "node --import tsx bin/dev.js",
     "typecheck": "tsc --noEmit",
     "test": "tsc && vitest run",
@@ -38,7 +38,27 @@
     "plugins": [
       "@oclif/plugin-autocomplete"
     ],
-    "topicSeparator": " "
+    "topicSeparator": " ",
+    "topics": {
+      "auth": { "description": "Авторизация и управление профилями" },
+      "bots": { "description": "Управление ботами и вебхуками" },
+      "chats": { "description": "Каналы и беседы" },
+      "common": { "description": "Файлы, экспорт, дополнительные поля" },
+      "config": { "description": "Настройки CLI" },
+      "group-tags": { "description": "Теги (группы) сотрудников" },
+      "link-previews": { "description": "Разворачивание ссылок (unfurling)" },
+      "members": { "description": "Участники чатов" },
+      "messages": { "description": "Сообщения" },
+      "profile": { "description": "Профиль текущего пользователя" },
+      "reactions": { "description": "Реакции на сообщения" },
+      "read-member": { "description": "Прочитавшие сообщение" },
+      "search": { "description": "Полнотекстовый поиск" },
+      "security": { "description": "Журнал аудита безопасности" },
+      "tasks": { "description": "Напоминания" },
+      "thread": { "description": "Треды (обсуждения)" },
+      "users": { "description": "Сотрудники" },
+      "views": { "description": "Представления" }
+    }
   },
   "dependencies": {
     "@clack/prompts": "^0.10.0",

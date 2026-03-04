@@ -16,6 +16,7 @@ export default class MessagesCreate extends BaseCommand {
   static apiMethod = "POST";
   static apiPath = "/messages";
   static defaultColumns = ["id","content","created_at","entity_type","entity_id"];
+  static requiredFlags = ["entity-id","content"];
 
   static override args = {
 
@@ -27,7 +28,7 @@ export default class MessagesCreate extends BaseCommand {
       description: "Тип сущности",
     }),
     'entity-id': Flags.integer({
-      description: "Идентификатор сущности",
+      description: "Идентификатор сущности (pachca chats list | pachca users list)",
     }),
     'content': Flags.string({
       description: "Текст сообщения",
@@ -85,20 +86,22 @@ export default class MessagesCreate extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --entity-id <integer>, --content <string>. pachca introspect messages create" },
+        );
       }
     }
 
+    const validationErrors: { message: string; flag: string }[] = [];
     if (flags['display-avatar-url'] && String(flags['display-avatar-url']).length > 255) {
-      process.stderr.write(`✗ --display-avatar-url: максимум 255 символов (передано: ${String(flags['display-avatar-url']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--display-avatar-url: максимум 255 символов (передано: ${String(flags['display-avatar-url']).length})`, flag: 'display-avatar-url' });
     }
     if (flags['display-name'] && String(flags['display-name']).length > 255) {
-      process.stderr.write(`✗ --display-name: максимум 255 символов (передано: ${String(flags['display-name']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--display-name: максимум 255 символов (передано: ${String(flags['display-name']).length})`, flag: 'display-name' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     this.checkScope("messages:create");

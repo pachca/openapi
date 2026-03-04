@@ -6,7 +6,7 @@ import { ApiError, request } from '../../client.js';
 import { outputError } from '../../output.js';
 
 export default class AuthLogin extends BaseCommand {
-  static override description = 'Login and save a token';
+  static override description = 'Авторизация и сохранение токена';
 
   static override examples = [
     '<%= config.bin %> auth login',

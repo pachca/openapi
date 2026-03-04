@@ -39,8 +39,9 @@ const hook: Hook<'init'> = async function (opts) {
   // Skip auth for exempt commands
   if (SKIP_AUTH.has(commandId)) return;
 
-  // Skip auth when --help or --dry-run flag is passed
+  // Skip auth when --help, --version, or --dry-run flag is passed
   if (process.argv.includes('--help') || process.argv.includes('-h')) return;
+  if (process.argv.includes('--version')) return;
   if (process.argv.includes('--dry-run')) return;
 
   // Check if the command itself says requiresAuth: false
@@ -77,8 +78,8 @@ const hook: Hook<'init'> = async function (opts) {
             { method: 'GET', path: '/oauth/token/info', token: profile.token },
             { quiet: true },
           );
-          const tokenInfo = response.data as { scopes: string[] };
-          profile.scopes = tokenInfo.scopes || [];
+          const wrapper = response.data as { data: { scopes: string[] } };
+          profile.scopes = wrapper.data.scopes || [];
           profile.scopes_refreshed_at = new Date().toISOString();
           setProfile(profileName, profile);
         } catch {

@@ -29,6 +29,7 @@ import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
+import { NpmBadge } from '@/components/mdx/npm-badge';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 import { HeadingLink } from './heading-link';
@@ -163,6 +164,7 @@ const components = {
   ApiCodeExample,
   AgentSkillsWorkflows,
   CliCommands,
+  NpmBadge,
 };
 
 interface MarkdownContentProps {

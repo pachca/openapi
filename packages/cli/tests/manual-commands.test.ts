@@ -3,6 +3,9 @@ import { runCommand } from '@oclif/test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import {
+  mockFetch, mockFetchForEndpoint, mockEntity, fetchCalls,
+} from './mock-helpers.js';
 
 const CLI_ROOT = path.join(__dirname, '..');
 
@@ -14,23 +17,6 @@ function setEnv(key: string, value: string | undefined) {
   if (!(key in savedEnv)) savedEnv[key] = process.env[key];
   if (value === undefined) delete process.env[key];
   else process.env[key] = value;
-}
-
-function mockFetch(response: { status?: number; data?: unknown; headers?: Record<string, string> }) {
-  const status = response.status ?? 200;
-  const headers = new Headers({ 'content-type': 'application/json', ...response.headers });
-  globalThis.fetch = vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 400,
-    status,
-    statusText: status === 200 ? 'OK' : 'Error',
-    headers,
-    json: () => Promise.resolve(response.data ?? {}),
-    text: () => Promise.resolve(JSON.stringify(response.data ?? {})),
-  });
-}
-
-function fetchCalls() {
-  return (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls;
 }
 
 function setupProfile(name = 'test', opts: { scopes?: string[]; type?: string; user?: string; email?: string } = {}) {
@@ -96,36 +82,37 @@ describe('manual commands — functional tests', () => {
 
   describe('auth login', () => {
     it('--token valid → profile saved', async () => {
-      // Mock token info + profile
+      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { user_id: 1, scopes: ['users:read', 'messages:create'] });
+      const profileData = mockEntity('/profile', 'GET', { first_name: 'Ivan', last_name: 'Petrov', email: 'ivan@test.com', bot: false });
+
       let callNum = 0;
       globalThis.fetch = vi.fn().mockImplementation(() => {
         callNum++;
         if (callNum === 1) {
-          // GET /oauth/token/info
           return Promise.resolve({
             ok: true, status: 200,
             headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({ user_id: 1, scopes: ['users:read', 'messages:create'] }),
+            json: () => Promise.resolve({ data: tokenInfo }),
             text: () => Promise.resolve('{}'),
           });
         }
-        // GET /profile
         return Promise.resolve({
           ok: true, status: 200,
           headers: new Headers({ 'content-type': 'application/json' }),
-          json: () => Promise.resolve({ data: { first_name: 'Ivan', last_name: 'Petrov', email: 'ivan@test.com', bot: false } }),
+          json: () => Promise.resolve({ data: profileData }),
           text: () => Promise.resolve('{}'),
         });
       });
 
       const { error } = await runCommand(['auth', 'login', '--token', 'my-token'], { root: CLI_ROOT });
       expect(error).toBeUndefined();
-      // Profile should be saved
       const configPath = path.join(tmpDir, 'pachca', 'config.toml');
       expect(fs.existsSync(configPath)).toBe(true);
       const content = fs.readFileSync(configPath, 'utf-8');
       expect(content).toContain('my-token');
       expect(content).toContain('Ivan Petrov');
+      expect(content).toContain('users:read');
+      expect(content).toContain('messages:create');
     });
 
     it('--token invalid → 401 error', async () => {
@@ -135,6 +122,9 @@ describe('manual commands — functional tests', () => {
     });
 
     it('--profile custom → saves under custom name', async () => {
+      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { user_id: 1, scopes: ['users:read'] });
+      const profileData = mockEntity('/profile', 'GET', { first_name: 'Bot', last_name: '', email: null, bot: true });
+
       let callNum = 0;
       globalThis.fetch = vi.fn().mockImplementation(() => {
         callNum++;
@@ -142,14 +132,14 @@ describe('manual commands — functional tests', () => {
           return Promise.resolve({
             ok: true, status: 200,
             headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({ user_id: 1, scopes: ['users:read'] }),
+            json: () => Promise.resolve({ data: tokenInfo }),
             text: () => Promise.resolve('{}'),
           });
         }
         return Promise.resolve({
           ok: true, status: 200,
           headers: new Headers({ 'content-type': 'application/json' }),
-          json: () => Promise.resolve({ data: { first_name: 'Bot', last_name: '', email: null, bot: true } }),
+          json: () => Promise.resolve({ data: profileData }),
           text: () => Promise.resolve('{}'),
         });
       });
@@ -167,6 +157,9 @@ describe('manual commands — functional tests', () => {
     });
 
     it('bot token → type: bot', async () => {
+      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { user_id: 1, scopes: ['messages:create'] });
+      const profileData = mockEntity('/profile', 'GET', { first_name: 'Bot', last_name: '', email: null, bot: true });
+
       let callNum = 0;
       globalThis.fetch = vi.fn().mockImplementation(() => {
         callNum++;
@@ -174,14 +167,14 @@ describe('manual commands — functional tests', () => {
           return Promise.resolve({
             ok: true, status: 200,
             headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({ user_id: 1, scopes: ['messages:create'] }),
+            json: () => Promise.resolve({ data: tokenInfo }),
             text: () => Promise.resolve('{}'),
           });
         }
         return Promise.resolve({
           ok: true, status: 200,
           headers: new Headers({ 'content-type': 'application/json' }),
-          json: () => Promise.resolve({ data: { first_name: 'Bot', last_name: '', email: null, bot: true } }),
+          json: () => Promise.resolve({ data: profileData }),
           text: () => Promise.resolve('{}'),
         });
       });
@@ -212,7 +205,6 @@ describe('manual commands — functional tests', () => {
       setupProfile();
       await runCommand(['auth', 'logout', 'test'], { root: CLI_ROOT });
       const content = fs.readFileSync(path.join(tmpDir, 'pachca', 'config.toml'), 'utf-8');
-      // active_profile should be empty or cleared
       expect(content).not.toContain('active_profile = "test"');
     });
   });
@@ -228,7 +220,6 @@ describe('manual commands — functional tests', () => {
     });
 
     it('no profile → error', async () => {
-      // Don't set up profile
       const { stderr, error } = await runCommand(['auth', 'status'], { root: CLI_ROOT });
       expect(error).toBeTruthy();
       expect(stderr).toContain('No active profile');
@@ -248,7 +239,6 @@ describe('manual commands — functional tests', () => {
     });
 
     it('empty → empty array in JSON', async () => {
-      // No profiles
       const { stdout } = await runCommand(['auth', 'list', '--json'], { root: CLI_ROOT });
       expect(JSON.parse(stdout)).toEqual([]);
     });
@@ -257,7 +247,8 @@ describe('manual commands — functional tests', () => {
   describe('auth refresh', () => {
     it('refreshes scopes', async () => {
       setupProfile('test', { scopes: ['users:read'] });
-      mockFetch({ data: { scopes: ['users:read', 'users:create'] } });
+      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { scopes: ['users:read', 'users:create'] });
+      mockFetch({ data: { data: tokenInfo } });
       const { stdout } = await runCommand(['auth', 'refresh', '--json'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
       expect(parsed.scopes_before).toEqual(['users:read']);
@@ -345,7 +336,7 @@ describe('manual commands — functional tests', () => {
   describe('doctor', () => {
     it('JSON mode → array of checks', async () => {
       setupProfile();
-      // Mock network calls
+      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { scopes: ['users:read'] });
       globalThis.fetch = vi.fn().mockImplementation((url: string) => {
         if (typeof url === 'string' && url.includes('profile')) {
           return Promise.resolve({
@@ -359,7 +350,7 @@ describe('manual commands — functional tests', () => {
           return Promise.resolve({
             ok: true, status: 200,
             headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({ scopes: ['users:read'] }),
+            json: () => Promise.resolve({ data: tokenInfo }),
             text: () => Promise.resolve('{}'),
           });
         }
@@ -383,7 +374,6 @@ describe('manual commands — functional tests', () => {
       const parsed = JSON.parse(stdout);
       expect(parsed.checks).toBeDefined();
       expect(Array.isArray(parsed.checks)).toBe(true);
-      // Node.js check should be ok
       const nodeCheck = parsed.checks.find((c: { name: string }) => c.name === 'node');
       expect(nodeCheck?.status).toBe('ok');
     });
@@ -398,12 +388,10 @@ describe('manual commands — functional tests', () => {
     });
 
     it('no profile → skipped for token check', async () => {
-      // Don't set up profile
       mockFetch({ data: {} });
       const { stdout } = await runCommand(['doctor', '--json'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
       const tokenCheck = parsed.checks.find((c: { name: string }) => c.name === 'token');
-      // Token check should be skipped if no profile
       expect(tokenCheck?.status).toBe('skipped');
     });
   });
@@ -442,11 +430,14 @@ describe('manual commands — functional tests', () => {
       const { stdout } = await runCommand(['commands', '--available', '--json'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
       expect(Array.isArray(parsed)).toBe(true);
-      // Should have available flag
+      // Commands with users:read scope should be included
       const usersRead = parsed.find((c: { scope: string }) => c.scope === 'users:read');
-      if (usersRead) expect(usersRead.available).toBe(true);
+      expect(usersRead).toBeDefined();
+      // Commands with other scopes should be filtered out
       const messagesCreate = parsed.find((c: { scope: string }) => c.scope === 'messages:create');
-      if (messagesCreate) expect(messagesCreate.available).toBe(false);
+      expect(messagesCreate).toBeUndefined();
+      // No 'available' column — filtered entries don't need it
+      if (usersRead) expect(usersRead.available).toBeUndefined();
     });
   });
 
@@ -477,7 +468,6 @@ describe('manual commands — functional tests', () => {
       const parsed = JSON.parse(stdout);
       expect(Array.isArray(parsed)).toBe(true);
       expect(parsed.length).toBeGreaterThan(10);
-      // Each entry should have command and summary
       expect(parsed[0].command).toBeDefined();
     });
 
@@ -493,7 +483,7 @@ describe('manual commands — functional tests', () => {
   describe('api', () => {
     it('api GET /profile → fetch GET + JSON output', async () => {
       setupProfile();
-      mockFetch({ data: { data: { id: 1, name: 'Ivan' } } });
+      mockFetchForEndpoint('/profile', 'GET');
       const { stdout } = await runCommand(['api', 'GET', '/profile'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
       expect(parsed.data).toBeDefined();
@@ -502,7 +492,7 @@ describe('manual commands — functional tests', () => {
 
     it('api POST /messages -f message[content]=hello → nested body', async () => {
       setupProfile();
-      mockFetch({ data: { data: { id: 1 } } });
+      mockFetchForEndpoint('/messages', 'POST');
       await runCommand(['api', 'POST', '/messages', '-f', 'message[content]=hello'], { root: CLI_ROOT });
       const body = JSON.parse(fetchCalls()[0][1].body);
       expect(body.message.content).toBe('hello');
@@ -510,7 +500,7 @@ describe('manual commands — functional tests', () => {
 
     it('api POST -F message[chat_id]=123 → number (not string)', async () => {
       setupProfile();
-      mockFetch({ data: { data: { id: 1 } } });
+      mockFetchForEndpoint('/messages', 'POST');
       await runCommand(['api', 'POST', '/messages', '-F', 'message[chat_id]=123'], { root: CLI_ROOT });
       const body = JSON.parse(fetchCalls()[0][1].body);
       expect(body.message.chat_id).toBe(123);
@@ -518,7 +508,7 @@ describe('manual commands — functional tests', () => {
 
     it('api GET /users --query limit=5 → query ?limit=5', async () => {
       setupProfile();
-      mockFetch({ data: { data: [] } });
+      mockFetchForEndpoint('/users', 'GET');
       await runCommand(['api', 'GET', '/users', '--query', 'limit=5'], { root: CLI_ROOT });
       const url = fetchCalls()[0][0] as string;
       expect(url).toContain('limit=5');
@@ -528,7 +518,7 @@ describe('manual commands — functional tests', () => {
       setupProfile();
       const inputFile = path.join(tmpDir, 'payload.json');
       fs.writeFileSync(inputFile, JSON.stringify({ message: { content: 'from file' } }));
-      mockFetch({ data: { data: { id: 1 } } });
+      mockFetchForEndpoint('/messages', 'POST');
       await runCommand(['api', 'POST', '/messages', '--input', inputFile], { root: CLI_ROOT });
       const body = JSON.parse(fetchCalls()[0][1].body);
       expect(body.message.content).toBe('from file');

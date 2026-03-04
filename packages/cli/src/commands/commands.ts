@@ -66,8 +66,8 @@ export default class Commands extends BaseCommand {
           { method: 'GET', path: '/oauth/token/info', token },
           { quiet: true },
         );
-        const info = response.data as { scopes: string[] };
-        tokenScopes = info.scopes || [];
+        const wrapper = response.data as { data: { scopes: string[] } };
+        tokenScopes = wrapper.data.scopes || [];
       }
     } catch (error) {
       if (error instanceof TokenNotFoundError) {
@@ -75,12 +75,13 @@ export default class Commands extends BaseCommand {
       }
     }
 
-    const entries = commandList.map((cmd) => ({
-      command: cmd.command,
-      scope: cmd.scope,
-      plan: cmd.plan,
-      available: cmd.scope ? tokenScopes.includes(cmd.scope) : true,
-    }));
+    const entries = commandList
+      .filter((cmd) => !cmd.scope || tokenScopes.includes(cmd.scope))
+      .map((cmd) => ({
+        command: cmd.command,
+        scope: cmd.scope,
+        plan: cmd.plan,
+      }));
 
     this.output(entries);
   }

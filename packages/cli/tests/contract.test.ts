@@ -1,138 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import * as yaml from 'js-yaml';
+import {
+  type Schema, type Endpoint,
+  parseOpenAPI, resolveAllOf, getSchemaType,
+} from '../scripts/openapi-parser.js';
 
 const COMMANDS_DIR = path.join(__dirname, '..', 'src', 'commands');
-const SPEC_PATH = path.join(__dirname, '..', '..', 'spec', 'openapi.yaml');
 
-// ----- Minimal OpenAPI parser (same logic as generate-cli.ts) -----
-
-interface Schema {
-  type?: string | string[];
-  properties?: Record<string, Schema>;
-  items?: Schema;
-  required?: string[];
-  enum?: unknown[];
-  $ref?: string;
-  allOf?: Schema[];
-  oneOf?: Schema[];
-  anyOf?: Schema[];
-  readOnly?: boolean;
-  format?: string;
-}
-
-interface Parameter {
-  name: string;
-  in: 'query' | 'path';
-  schema: Schema;
-  'x-param-names'?: { name: string }[];
-}
-
-interface Endpoint {
-  method: string;
-  path: string;
-  parameters: Parameter[];
-  requestBody?: { content: Record<string, { schema: Schema }> };
-  requirements?: { scope?: string };
-}
-
-function parseSpec(): Endpoint[] {
-  const raw = fs.readFileSync(SPEC_PATH, 'utf-8');
-  const spec = yaml.load(raw) as Record<string, unknown>;
-  const paths = (spec.paths || {}) as Record<string, Record<string, unknown>>;
-  const endpoints: Endpoint[] = [];
-
-  function resolveRef(obj: unknown): unknown {
-    if (!obj || typeof obj !== 'object') return obj;
-    const rec = obj as Record<string, unknown>;
-    if (rec.$ref && typeof rec.$ref === 'string') {
-      const refPath = rec.$ref.replace('#/', '').split('/');
-      let current: unknown = spec;
-      for (const part of refPath) {
-        if (current && typeof current === 'object') current = (current as Record<string, unknown>)[part];
-      }
-      return resolveRef(current);
-    }
-    return obj;
-  }
-
-  function resolveSchema(s: unknown, depth = 0): Schema {
-    if (depth > 10) return s as Schema;
-    const resolved = resolveRef(s) as Record<string, unknown>;
-    if (!resolved || typeof resolved !== 'object') return {} as Schema;
-    const result: Schema = { ...resolved } as Schema;
-    if (result.properties) {
-      const props: Record<string, Schema> = {};
-      for (const [k, v] of Object.entries(result.properties)) props[k] = resolveSchema(v, depth + 1);
-      result.properties = props;
-    }
-    if (result.items) result.items = resolveSchema(result.items, depth + 1);
-    if (result.allOf) result.allOf = result.allOf.map((s) => resolveSchema(s, depth + 1));
-    if (result.oneOf) result.oneOf = result.oneOf.map((s) => resolveSchema(s, depth + 1));
-    if (result.anyOf) result.anyOf = result.anyOf.map((s) => resolveSchema(s, depth + 1));
-    return result;
-  }
-
-  for (const [pathStr, methods] of Object.entries(paths)) {
-    if (!methods || typeof methods !== 'object') continue;
-    for (const [method, opRaw] of Object.entries(methods as Record<string, unknown>)) {
-      if (!['get', 'post', 'put', 'delete', 'patch'].includes(method)) continue;
-      const op = opRaw as Record<string, unknown>;
-
-      const params: Parameter[] = [];
-      for (const p of (op.parameters || []) as Record<string, unknown>[]) {
-        const resolved = resolveRef(p) as Record<string, unknown>;
-        if (!resolved) continue;
-        params.push({
-          name: resolved.name as string,
-          in: resolved.in as 'query' | 'path',
-          schema: resolveSchema(resolved.schema),
-          'x-param-names': resolved['x-param-names'] as Parameter['x-param-names'],
-        });
-      }
-
-      let requestBody: Endpoint['requestBody'] | undefined;
-      if (op.requestBody) {
-        const rb = resolveRef(op.requestBody) as Record<string, unknown>;
-        const content: Record<string, { schema: Schema }> = {};
-        if (rb.content && typeof rb.content === 'object') {
-          for (const [ct, mediaRaw] of Object.entries(rb.content as Record<string, unknown>)) {
-            const media = resolveRef(mediaRaw) as Record<string, unknown>;
-            content[ct] = { schema: resolveSchema(media.schema) };
-          }
-        }
-        requestBody = { content };
-      }
-
-      let requirements: Endpoint['requirements'] | undefined;
-      if (op['x-requirements'] && typeof op['x-requirements'] === 'object') {
-        const req = op['x-requirements'] as Record<string, unknown>;
-        requirements = { scope: req.scope as string | undefined };
-      }
-
-      endpoints.push({ method: method.toUpperCase(), path: pathStr, parameters: params, requestBody, requirements });
-    }
-  }
-  return endpoints;
-}
-
-function resolveAllOf(schema: Schema): Schema {
-  if (!schema.allOf || schema.allOf.length === 0) return schema;
-  let merged: Schema = {};
-  for (const sub of schema.allOf) {
-    const resolved = resolveAllOf(sub);
-    merged = { ...merged, ...resolved, properties: { ...merged.properties, ...resolved.properties }, required: [...(merged.required || []), ...(resolved.required || [])] };
-  }
-  return merged;
-}
-
-function getSchemaType(schema: Schema): string {
-  if (schema.type) { return Array.isArray(schema.type) ? schema.type[0] : schema.type; }
-  if (schema.enum) return 'string';
-  if (schema.properties) return 'object';
-  return 'string';
-}
+// ----- Helpers -----
 
 function toKebabCase(name: string): string {
   return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/_/g, '-').toLowerCase();
@@ -201,7 +77,7 @@ const MULTIPART_WIRE_NAMES: Record<string, string> = {
 // ----- Tests -----
 
 describe('contract tests', () => {
-  const endpoints = parseSpec();
+  const endpoints = parseOpenAPI();
 
   it('should have at least 50 endpoints', () => {
     expect(endpoints.length).toBeGreaterThanOrEqual(50);

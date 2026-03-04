@@ -52,8 +52,8 @@ export default class AuthRefresh extends BaseCommand {
       { method: 'GET', path: '/oauth/token/info', token: profile!.token },
       { quiet: flags.quiet },
     );
-    const tokenInfo = response.data as { scopes: string[] };
-    const newScopes = tokenInfo.scopes || [];
+    const wrapper = response.data as { data: { scopes: string[] } };
+    const newScopes = wrapper.data.scopes || [];
     const oldScopes = profile!.scopes || [];
 
     // Update profile

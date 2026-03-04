@@ -111,8 +111,8 @@ export default class Doctor extends BaseCommand {
           headers: { Authorization: `Bearer ${profile.token}` },
         });
         if (response.ok) {
-          const info = (await response.json()) as { scopes?: string[] };
-          const scopeCount = info.scopes?.length ?? 0;
+          const body = (await response.json()) as { data: { scopes?: string[] } };
+          const scopeCount = body.data?.scopes?.length ?? 0;
           checks.push({ name: 'token', status: 'ok', scopes_count: scopeCount });
           this.printCheck('ok', `Токен          действителен (${scopeCount} скоупов)`, format);
         } else {

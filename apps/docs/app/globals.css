@@ -423,7 +423,7 @@ html.dark .code-block-container .shiki span {
 }
 
 .code-block-container .line {
-  display: flex;
+  display: block;
   line-height: 1.5;
   margin: 0;
   padding: 0;
@@ -436,16 +436,14 @@ html.dark .code-block-container .shiki span {
 .code-block-container .line::before {
   counter-increment: line;
   content: counter(line);
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  align-self: stretch;
+  display: inline-block;
+  text-align: right;
+  vertical-align: top;
   width: 2.8rem;
   padding-right: 0.8rem;
   user-select: none;
   font-size: 11px;
-  line-height: 1;
-  flex-shrink: 0;
+  line-height: 1.5;
   position: sticky;
   left: 0;
   z-index: 10;
@@ -455,9 +453,8 @@ html.dark .code-block-container .shiki span {
 
 .code-block-container .line::after {
   content: '';
-  display: inline;
+  display: inline-block;
   width: 10px;
-  height: auto;
 }
 
 .code-block-container .line > span {

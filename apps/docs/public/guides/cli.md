@@ -388,7 +388,7 @@ pachca guide "активные чаты"
 
 ### Имена флагов
 
-Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) всех современных CLI (AWS, gcloud, GitHub CLI, Stripe CLI, kubectl и др.):
+Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) для CLI-инструментов:
 
 **API → CLI**
 

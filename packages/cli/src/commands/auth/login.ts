@@ -68,7 +68,8 @@ export default class AuthLogin extends BaseCommand {
         { method: 'GET', path: '/oauth/token/info', token },
         { quiet: flags.quiet },
       );
-      tokenInfo = response.data as typeof tokenInfo;
+      const wrapper = response.data as { data: typeof tokenInfo };
+      tokenInfo = wrapper.data;
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.details.code === 401) {
@@ -105,7 +106,7 @@ export default class AuthLogin extends BaseCommand {
     }
 
     // Get user info
-    let userName = 'Unknown';
+    let userName = `User #${tokenInfo.user_id}`;
     let userEmail: string | null = null;
     let isBot = false;
 
@@ -117,11 +118,11 @@ export default class AuthLogin extends BaseCommand {
       const profileData = (profileResponse.data as { data: Record<string, unknown> }).data;
       const firstName = profileData.first_name || '';
       const lastName = profileData.last_name || '';
-      userName = `${firstName} ${lastName}`.trim() || 'Unknown';
+      userName = `${firstName} ${lastName}`.trim() || userName;
       userEmail = (profileData.email as string) || null;
       isBot = (profileData.bot as boolean) || false;
     } catch {
-      // Use token info as fallback
+      // profile:read scope not available — use user_id from token info
     }
 
     // Determine scopes

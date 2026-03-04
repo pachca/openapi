@@ -449,6 +449,17 @@ export async function expandMdxComponents(content: string): Promise<string> {
     result = result.replace(/<AgentSkillsWorkflows\s*\/>/g, md);
   }
 
+  // <NpmBadge package="..." version="..." date="..." /> -> markdown link
+  result = result.replace(/<NpmBadge\s+([\s\S]*?)\/>/g, (_, attrs) => {
+    const pkg = attrs.match(/package="([^"]+)"/)?.[1] ?? '';
+    const version = attrs.match(/version="([^"]+)"/)?.[1];
+    const date = attrs.match(/date="([^"]+)"/)?.[1];
+    let text = `[${pkg}](https://www.npmjs.com/package/${pkg})`;
+    if (version) text += ` ${version}`;
+    if (date) text += ` · ${date}`;
+    return text + '\n';
+  });
+
   // <CliCommands /> -> markdown table of CLI commands
   if (result.includes('<CliCommands')) {
     const sections = await generateNavigation();

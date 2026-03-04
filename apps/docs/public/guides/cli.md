@@ -1,6 +1,9 @@
 
 # CLI
 
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.2 · 4 марта 2026
+
+
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
 
 **Установка**
@@ -388,7 +391,7 @@ pachca guide "активные чаты"
 
 ### Имена флагов
 
-Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) всех современных CLI (AWS, gcloud, GitHub CLI, Stripe CLI, kubectl и др.):
+Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) для CLI-инструментов:
 
 **API → CLI**
 

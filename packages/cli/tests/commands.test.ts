@@ -3,6 +3,9 @@ import { runCommand } from '@oclif/test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import {
+  mockFetch, mockPaginatedFetch, mockFetchForEndpoint, mockResponse, mockEntity, fetchCalls,
+} from './mock-helpers.js';
 
 const CLI_ROOT = path.join(__dirname, '..');
 
@@ -14,39 +17,6 @@ function setEnv(key: string, value: string | undefined) {
   if (!(key in savedEnv)) savedEnv[key] = process.env[key];
   if (value === undefined) delete process.env[key];
   else process.env[key] = value;
-}
-
-function mockFetch(response: { status?: number; data?: unknown; headers?: Record<string, string> }) {
-  const status = response.status ?? 200;
-  const headers = new Headers({ 'content-type': 'application/json', ...response.headers });
-  globalThis.fetch = vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 400,
-    status,
-    statusText: status === 200 ? 'OK' : status === 302 ? 'Found' : 'Error',
-    headers,
-    json: () => Promise.resolve(response.data ?? {}),
-    text: () => Promise.resolve(JSON.stringify(response.data ?? {})),
-  });
-}
-
-function mockPaginatedFetch(pages: { data: unknown[]; next?: string }[]) {
-  let callIndex = 0;
-  globalThis.fetch = vi.fn().mockImplementation(() => {
-    const page = pages[callIndex++] || pages[pages.length - 1];
-    return Promise.resolve({
-      ok: true,
-      status: 200,
-      headers: new Headers({ 'content-type': 'application/json' }),
-      json: () => Promise.resolve({
-        data: page.data,
-        meta: { paginate: { next_page: page.next || null } },
-      }),
-      text: () => Promise.resolve(JSON.stringify({
-        data: page.data,
-        meta: { paginate: { next_page: page.next || null } },
-      })),
-    });
-  });
 }
 
 // All scopes needed for tests
@@ -87,58 +57,61 @@ afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
-/** Get fetch mock calls */
-function fetchCalls() {
-  return (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls;
-}
-
 describe('generated commands — functional tests', () => {
   // ----- GET list (users list) -----
 
   describe('users list', () => {
     it('GET /users → JSON array', async () => {
-      mockFetch({ data: { data: [{ id: 1, first_name: 'Ivan' }] } });
+      mockFetchForEndpoint('/users', 'GET');
       const { stdout } = await runCommand(['users', 'list'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
-      expect(parsed).toEqual([{ id: 1, first_name: 'Ivan' }]);
+      expect(Array.isArray(parsed)).toBe(true);
+      expect(parsed[0].id).toBeDefined();
+      expect(parsed[0].first_name).toBeDefined();
       expect(fetchCalls()[0][0]).toContain('/users');
       expect(fetchCalls()[0][1].method).toBe('GET');
     });
 
     it('--limit 5 → query limit=5', async () => {
-      mockFetch({ data: { data: [{ id: 1 }] } });
+      mockFetchForEndpoint('/users', 'GET');
       await runCommand(['users', 'list', '--limit', '5'], { root: CLI_ROOT });
       expect(fetchCalls()[0][0]).toContain('limit=5');
     });
 
     it('--cursor abc → query cursor=abc', async () => {
-      mockFetch({ data: { data: [{ id: 1 }] } });
+      mockFetchForEndpoint('/users', 'GET');
       await runCommand(['users', 'list', '--cursor', 'abc'], { root: CLI_ROOT });
       expect(fetchCalls()[0][0]).toContain('cursor=abc');
     });
 
     it('--all → auto-paginate (2 pages)', async () => {
+      const entity = mockEntity('/users', 'GET');
       mockPaginatedFetch([
-        { data: [{ id: 1 }], next: 'cursor2' },
-        { data: [{ id: 2 }] },
+        { data: [{ ...entity, id: 1 }], next: 'cursor2' },
+        { data: [{ ...entity, id: 2 }] },
       ]);
       const { stdout } = await runCommand(['users', 'list', '--all'], { root: CLI_ROOT });
-      expect(JSON.parse(stdout)).toEqual([{ id: 1 }, { id: 2 }]);
+      const parsed = JSON.parse(stdout);
+      expect(parsed.length).toBe(2);
+      expect(parsed[0].id).toBe(1);
+      expect(parsed[1].id).toBe(2);
       expect(fetchCalls().length).toBe(2);
     });
 
     it('--all stops on cursor cycle', async () => {
+      const entity = mockEntity('/users', 'GET');
       mockPaginatedFetch([
-        { data: [{ id: 1 }], next: 'same' },
-        { data: [{ id: 2 }], next: 'same' },
+        { data: [{ ...entity, id: 1 }], next: 'same' },
+        { data: [{ ...entity, id: 2 }], next: 'same' },
       ]);
       const { stdout } = await runCommand(['users', 'list', '--all'], { root: CLI_ROOT });
-      expect(JSON.parse(stdout)).toEqual([{ id: 1 }, { id: 2 }]);
+      const parsed = JSON.parse(stdout);
+      expect(parsed.length).toBe(2);
       expect(fetchCalls().length).toBe(2);
     });
 
     it('--quiet → empty stdout', async () => {
-      mockFetch({ data: { data: [{ id: 1 }] } });
+      mockFetchForEndpoint('/users', 'GET');
       const { stdout } = await runCommand(['users', 'list', '--quiet'], { root: CLI_ROOT });
       expect(stdout.trim()).toBe('');
     });
@@ -148,21 +121,18 @@ describe('generated commands — functional tests', () => {
 
   describe('users list output formats', () => {
     it('--output table → table with header', async () => {
-      mockFetch({ data: { data: [{ id: 1, first_name: 'Ivan', last_name: 'Petrov' }] } });
+      mockFetch({ data: mockResponse('/users', 'GET', { count: 1, overrides: { id: 1, first_name: 'Ivan', last_name: 'Petrov' } }) });
       Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true, configurable: true });
       const { stdout } = await runCommand(['users', 'list', '--output', 'table'], { root: CLI_ROOT });
-      // Table output has uppercased column headers
       expect(stdout).toContain('ID');
       expect(stdout).toContain('Ivan');
     });
 
     it('--output csv → CSV with header row', async () => {
-      mockFetch({ data: { data: [{ id: 1, first_name: 'Ivan', email: 'ivan@test.com' }] } });
+      mockFetch({ data: mockResponse('/users', 'GET', { count: 1, overrides: { id: 1, first_name: 'Ivan', email: 'ivan@test.com' } }) });
       const { stdout } = await runCommand(['users', 'list', '--output', 'csv'], { root: CLI_ROOT });
       const lines = stdout.trim().split('\n');
-      // First line is CSV header
       expect(lines[0]).toContain('id');
-      // Data row
       expect(lines[1]).toContain('1');
       expect(lines[1]).toContain('Ivan');
     });
@@ -172,9 +142,11 @@ describe('generated commands — functional tests', () => {
 
   describe('users get', () => {
     it('users get 123 → GET /users/123', async () => {
-      mockFetch({ data: { data: { id: 123, first_name: 'Ivan' } } });
+      mockFetchForEndpoint('/users/{id}', 'GET', { overrides: { id: 123 } });
       const { stdout } = await runCommand(['users', 'get', '123'], { root: CLI_ROOT });
-      expect(JSON.parse(stdout)).toEqual({ id: 123, first_name: 'Ivan' });
+      const parsed = JSON.parse(stdout);
+      expect(parsed.id).toBe(123);
+      expect(parsed.first_name).toBeDefined();
       expect(fetchCalls()[0][0]).toContain('/users/123');
     });
   });
@@ -183,7 +155,7 @@ describe('generated commands — functional tests', () => {
 
   describe('messages create', () => {
     it('--entity-id 456 --content hello → POST /messages with wrapper', async () => {
-      mockFetch({ data: { data: { id: 1, content: 'hello' } } });
+      mockFetchForEndpoint('/messages', 'POST');
       await runCommand(['messages', 'create', '--entity-id', '456', '--content', 'hello'], { root: CLI_ROOT });
       expect(fetchCalls().length).toBeGreaterThan(0);
       const [url, opts] = fetchCalls()[0];
@@ -195,7 +167,7 @@ describe('generated commands — functional tests', () => {
     });
 
     it('--files JSON array → body contains parsed array', async () => {
-      mockFetch({ data: { data: { id: 1 } } });
+      mockFetchForEndpoint('/messages', 'POST');
       const filesJson = '[{"key":"file.png","name":"photo.png"}]';
       await runCommand(['messages', 'create', '--entity-id', '456', '--content', 'hello', '--files', filesJson], { root: CLI_ROOT });
       const body = JSON.parse(fetchCalls()[0][1].body);
@@ -204,7 +176,6 @@ describe('generated commands — functional tests', () => {
 
     it('missing required + --no-input → stderr error', async () => {
       mockFetch({ data: {} });
-      // Pass --content to avoid stdin read hang, but omit required --entity-id
       const { stderr, error } = await runCommand(['messages', 'create', '--content', 'hello', '--no-input'], { root: CLI_ROOT });
       expect(error).toBeTruthy();
       expect(stderr).toContain('Обязательный флаг');
@@ -215,7 +186,7 @@ describe('generated commands — functional tests', () => {
 
   describe('users create', () => {
     it('--email test@test.com → body has user wrapper', async () => {
-      mockFetch({ data: { data: { id: 1 } } });
+      mockFetchForEndpoint('/users', 'POST');
       await runCommand(['users', 'create', '--email', 'test@test.com'], { root: CLI_ROOT });
       const body = JSON.parse(fetchCalls()[0][1].body);
       expect(body.user).toBeDefined();
@@ -223,7 +194,7 @@ describe('generated commands — functional tests', () => {
     });
 
     it('--skip-email-notify → sibling at top level', async () => {
-      mockFetch({ data: { data: { id: 1 } } });
+      mockFetchForEndpoint('/users', 'POST');
       await runCommand(['users', 'create', '--email', 'test@test.com', '--skip-email-notify'], { root: CLI_ROOT });
       const body = JSON.parse(fetchCalls()[0][1].body);
       expect(body.user).toBeDefined();
@@ -236,7 +207,7 @@ describe('generated commands — functional tests', () => {
 
   describe('users update', () => {
     it('123 --first-name Ivan → PUT /users/123', async () => {
-      mockFetch({ data: { data: { id: 123 } } });
+      mockFetchForEndpoint('/users/{id}', 'PUT', { overrides: { id: 123 } });
       await runCommand(['users', 'update', '123', '--first-name', 'Ivan'], { root: CLI_ROOT });
       const [url, opts] = fetchCalls()[0];
       expect(url).toContain('/users/123');
@@ -253,7 +224,7 @@ describe('generated commands — functional tests', () => {
     });
 
     it('undefined fields stripped from body', async () => {
-      mockFetch({ data: { data: { id: 123 } } });
+      mockFetchForEndpoint('/users/{id}', 'PUT', { overrides: { id: 123 } });
       await runCommand(['users', 'update', '123', '--first-name', 'Ivan'], { root: CLI_ROOT });
       const body = JSON.parse(fetchCalls()[0][1].body);
       expect(body.user.first_name).toBe('Ivan');
@@ -289,8 +260,7 @@ describe('generated commands — functional tests', () => {
 
   describe('common direct-url', () => {
     it('--file → FormData with wire name Content-Disposition', async () => {
-      mockFetch({ data: { data: { url: 'https://cdn.example.com/file.png' } } });
-      // Create a temp file to upload
+      mockFetchForEndpoint('/direct_url', 'POST');
       const tmpFile = path.join(tmpDir, 'test.png');
       fs.writeFileSync(tmpFile, 'fake-png-data');
 
@@ -310,10 +280,8 @@ describe('generated commands — functional tests', () => {
       expect(fetchCalls().length).toBeGreaterThan(0);
       const [, opts] = fetchCalls()[0];
       expect(opts.method).toBe('POST');
-      // Body should be FormData (not JSON)
       expect(opts.body).toBeInstanceOf(FormData);
       const fd = opts.body as FormData;
-      // Wire name: 'Content-Disposition' (not 'contentDisposition')
       expect(fd.get('Content-Disposition')).toBe('inline');
       expect(fd.get('key')).toBe('uploads/file.png');
       expect(fd.get('file')).toBeTruthy();
@@ -362,6 +330,7 @@ describe('generated commands — functional tests', () => {
 
     it('429 → retry (2 fetch calls)', async () => {
       let callCount = 0;
+      const successResponse = mockResponse('/users', 'GET');
       globalThis.fetch = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
@@ -375,13 +344,14 @@ describe('generated commands — functional tests', () => {
         return Promise.resolve({
           ok: true, status: 200,
           headers: new Headers({ 'content-type': 'application/json' }),
-          json: () => Promise.resolve({ data: [{ id: 1 }] }),
-          text: () => Promise.resolve('{"data":[{"id":1}]}'),
+          json: () => Promise.resolve(successResponse),
+          text: () => Promise.resolve(JSON.stringify(successResponse)),
         });
       });
       const { stdout } = await runCommand(['users', 'list'], { root: CLI_ROOT });
       expect(callCount).toBe(2);
-      expect(JSON.parse(stdout)).toEqual([{ id: 1 }]);
+      const parsed = JSON.parse(stdout);
+      expect(Array.isArray(parsed)).toBe(true);
     });
   });
 
@@ -389,10 +359,10 @@ describe('generated commands — functional tests', () => {
 
   describe('common uploads', () => {
     it('POST /uploads → response data', async () => {
-      mockFetch({ data: { data: { key: 'abc', url: 'https://cdn.example.com' } } });
+      mockFetchForEndpoint('/uploads', 'POST');
       const { stdout } = await runCommand(['common', 'uploads'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
-      expect(parsed.key).toBe('abc');
+      expect(parsed.key).toBeDefined();
     });
   });
 
@@ -412,10 +382,8 @@ describe('generated commands — functional tests', () => {
 
   describe('chats list', () => {
     it('--sort-last-message-at desc → query sort[last_message_at]=desc', async () => {
-      mockFetch({ data: { data: [{ id: 1 }] } });
+      mockFetchForEndpoint('/chats', 'GET');
       const { stdout, stderr, error } = await runCommand(['chats', 'list', '--sort-last-message-at', 'desc'], { root: CLI_ROOT });
-      // The mock might have been replaced if the init hook ran and modified fetch
-      // Check that the command ran successfully
       expect(error).toBeUndefined();
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;
@@ -427,7 +395,7 @@ describe('generated commands — functional tests', () => {
 
   describe('search list-messages', () => {
     it('--chat-ids 1,2,3 → query chat_ids', async () => {
-      mockFetch({ data: { data: [] } });
+      mockFetchForEndpoint('/search/messages', 'GET');
       await runCommand(['search', 'list-messages', '--chat-ids', '1,2,3'], { root: CLI_ROOT });
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;

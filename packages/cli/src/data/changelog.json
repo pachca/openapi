@@ -1,5 +1,17 @@
 [
   {
+    "version": "2026.3.2",
+    "date": "4 марта 2026",
+    "changes": [
+      { "type": "~", "command": "auth login", "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })" },
+      { "type": "~", "command": "auth refresh", "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })" },
+      { "type": "~", "command": "doctor", "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })" },
+      { "type": "~", "command": "commands", "description": "--available фильтрует недоступные команды вместо колонки available" },
+      { "type": "~", "command": "auth login", "description": "Fallback-имя «User #ID» вместо «Unknown» при недоступном профиле" },
+      { "type": "~", "command": "all", "description": "--version пропускает проверку авторизации" }
+    ]
+  },
+  {
     "version": "2026.3.1",
     "date": "4 марта 2026",
     "changes": [

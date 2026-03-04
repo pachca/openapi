@@ -6,3 +6,6 @@ __all__ = (
     "AuthenticatedClient",
     "Client",
 )
+
+# facade re-exports
+from .pachca_client import Pachca, PachcaAPIError, PachcaAuthError, PaginatedResponse

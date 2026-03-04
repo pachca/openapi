@@ -17,11 +17,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsx scripts/generate-cli.ts && tsc && oclif manifest",
+    "build": "bun scripts/generate-cli.ts && tsc && oclif manifest",
     "dev": "node --import tsx bin/dev.js",
     "typecheck": "tsc --noEmit",
     "test": "tsc && vitest run",
-    "generate-cli": "tsx scripts/generate-cli.ts"
+    "generate-cli": "bun scripts/generate-cli.ts"
   },
   "oclif": {
     "bin": "pachca",

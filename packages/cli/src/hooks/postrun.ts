@@ -46,7 +46,7 @@ const hook: Hook<'postrun'> = async function (opts) {
     if (fs.existsSync(versionFile)) {
       const stat = fs.statSync(versionFile);
       const ageMs = Date.now() - stat.mtimeMs;
-      shouldRefresh = ageMs > 24 * 60 * 60 * 1000;
+      shouldRefresh = ageMs > 60 * 60 * 1000;
     }
 
     if (shouldRefresh) {

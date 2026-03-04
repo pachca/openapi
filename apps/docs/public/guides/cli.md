@@ -46,7 +46,7 @@ pachca users list
 
 # ID    Имя              Email               Роль
 # 1234  Иван Иванов      ivan@company.ru     admin
-# 5678  Мария Петрова    maria@company.ru    regular
+# 5678  Мария Петрова    maria@company.ru    user
 ```
 
 
@@ -283,7 +283,7 @@ pachca users list --no-truncate
 
 ```bash
 # Передать в jq
-pachca users list -o json | jq '.[].name'
+pachca users list | jq '.[].name'
 
 # Текст сообщения из файла
 pachca messages create --entity-id 123 < message.txt
@@ -318,7 +318,7 @@ pachca users list --all
 
 ## Сценарии
 
-CLI включает готовые пошаговые сценарии для типичных задач — это те же сценарии, что используют [AI-агенты](/guides/ai-agents#agent-skills-skillmd). Не знаете какую команду использовать — поищите по задаче:
+CLI включает готовые пошаговые сценарии для типичных задач — это те же сценарии, что используют [AI-агенты](/guides/ai-agents#agent-skills-skillmd). Не знаете, какую команду использовать — поищите по задаче:
 
 **Поиск сценариев**
 
@@ -385,6 +385,57 @@ pachca guide "активные чаты"
 | `--no-header` | | Скрыть заголовок таблицы |
 | `--no-truncate` | | Не обрезать длинные значения |
 | `--no-retry` | | Отключить авто-retry при 429/503 |
+
+### Имена флагов
+
+Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) всех современных CLI (AWS, gcloud, GitHub CLI, Stripe CLI, kubectl и др.):
+
+**API → CLI**
+
+```text
+API-документация          CLI-флаг
+─────────────────         ────────────────
+first_name            →   --first-name
+phone_number          →   --phone-number
+entity_id             →   --entity-id
+skip_email_notify     →   --skip-email-notify
+list_tags             →   --list-tags
+custom_properties     →   --custom-properties
+parent_message_id     →   --parent-message-id
+```
+
+
+При отправке запроса CLI автоматически конвертирует имена обратно в snake_case для API. Проверить можно через `--dry-run`:
+
+**Проверка**
+
+```bash
+pachca users update 123 --first-name "Иван" --phone-number "+7900" --dry-run
+
+# {"user": {"first_name": "Иван", "phone_number": "+7900"}}
+```
+
+
+### Boolean-флаги
+
+Для boolean-параметров API используйте флаг для установки `true` и `--no-` префикс для `false`:
+
+**Boolean-флаги**
+
+```bash
+# Деактивировать сотрудника (suspended: true)
+pachca users update 123 --suspended
+
+# Активировать обратно (suspended: false)
+pachca users update 123 --no-suspended
+
+# Создать публичный канал (channel: true, public: true)
+pachca chats create --name "Новости" --channel --public
+
+# Сделать канал приватным (public: false)
+pachca chats update 123 --no-public
+```
+
 
 ### Предпросмотр запроса
 
@@ -474,7 +525,7 @@ PACHCA_TOKEN=$TOKEN pachca messages create \\
 pachca api GET /messages --query chat_id=123
 
 # POST с типизированными полями (-F конвертирует числа и boolean)
-pachca api POST /messages -F message[chat_id]=12345 -f message[content]="Привет"
+pachca api POST /messages -F message[entity_id]=12345 -f message[content]="Привет"
 
 # PUT со строковым полем (-f гарантирует string)
 pachca api PUT /tasks/42 -f task[due_at]="2026-04-01T10:00:00Z"
@@ -553,7 +604,7 @@ CLI автоматически проверяет наличие новой ве
 # Обновить до последней версии
 npm install -g @pachca/cli
 
-# Посмотреть что нового
+# Посмотреть, что нового
 pachca changelog
 ```
 

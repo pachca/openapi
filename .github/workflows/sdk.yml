@@ -17,6 +17,8 @@ jobs:
       cli_changed: ${{ steps.cli_check.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
@@ -42,11 +44,17 @@ jobs:
         if: github.event_name == 'push'
         id: cli_check
         run: |
-          if git diff --name-only -- packages/cli/ | grep -q .; then
-            echo "changed=true" >> $GITHUB_OUTPUT
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            CHANGED=$(git diff --name-only "$PREV_TAG" HEAD -- packages/cli/ | grep -q . && echo true || echo false)
           else
-            echo "changed=false" >> $GITHUB_OUTPUT
+            CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/cli/ | grep -q . && echo true || echo false)
           fi
+          # Also check uncommitted changes from generate
+          if git diff --name-only -- packages/cli/ | grep -q .; then
+            CHANGED=true
+          fi
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
 
       - name: Build TypeScript SDK
         run: npm run build

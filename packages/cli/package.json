@@ -20,8 +20,8 @@
     "build": "tsx scripts/generate-cli.ts && tsc && oclif manifest",
     "dev": "node --import tsx bin/dev.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "generate": "tsx scripts/generate-cli.ts"
+    "test": "tsc && vitest run",
+    "generate-cli": "tsx scripts/generate-cli.ts"
   },
   "oclif": {
     "bin": "pachca",

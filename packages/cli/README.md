@@ -246,6 +246,22 @@ pachca users list --cursor eyJpZCI6NTB9
 pachca users list --all
 ```
 
+## Имена флагов
+
+Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это стандартная конвенция всех современных CLI:
+
+```
+API-документация          CLI-флаг
+first_name            →   --first-name
+phone_number          →   --phone-number
+entity_id             →   --entity-id
+skip_email_notify     →   --skip-email-notify
+list_tags             →   --list-tags
+custom_properties     →   --custom-properties
+```
+
+При отправке запроса CLI автоматически конвертирует имена обратно в snake_case для API.
+
 ## Вывод и скрипты
 
 ```

@@ -1,4 +1,4 @@
-import { WORKFLOWS } from '@/scripts/skills/workflows';
+import { WORKFLOWS } from '@/data/workflows';
 import { SKILL_TAG_MAP } from '@/scripts/skills/config';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { generateTitle, generateUrlFromOperation } from '@/lib/openapi/mapper';
@@ -11,6 +11,20 @@ export interface StepSegment {
   label?: string;
   method?: string;
   href?: string;
+}
+
+export interface WorkflowCardData {
+  id: string;
+  title: string;
+  skillName: string;
+  categories: string[];
+  steps: StepSegment[][];
+  notes?: StepSegment[];
+  curl?: string;
+  featured: boolean;
+  prerequisites?: string[];
+  related?: string[];
+  stepCount: number;
 }
 
 function findEndpoint(
@@ -51,33 +65,31 @@ function parseStep(text: string, endpoints: Endpoint[]): StepSegment[] {
   return segments;
 }
 
-export interface SkillWorkflowData {
-  name: string;
-  tags: string[];
-  workflows: {
-    title: string;
-    steps: StepSegment[][];
-    notes?: StepSegment[];
-  }[];
-}
-
 export async function AgentSkillsWorkflows() {
   const { endpoints } = await parseOpenAPI();
 
-  const skills: SkillWorkflowData[] = [];
+  const allWorkflows: WorkflowCardData[] = [];
 
   for (const skill of SKILL_TAG_MAP) {
     const rawWorkflows = WORKFLOWS[skill.name] ?? [];
     if (!rawWorkflows.length) continue;
 
-    const workflows = rawWorkflows.map((wf) => ({
-      title: wf.title,
-      steps: wf.steps.map((step) => parseStep(step, endpoints)),
-      notes: wf.notes ? parseStep(wf.notes, endpoints) : undefined,
-    }));
-
-    skills.push({ name: skill.name, tags: skill.tags, workflows });
+    rawWorkflows.forEach((wf, index) => {
+      allWorkflows.push({
+        id: `${skill.name}-${index}`,
+        title: wf.title,
+        skillName: skill.name,
+        categories: skill.tags,
+        steps: wf.steps.map((step) => parseStep(step.description, endpoints)),
+        notes: wf.notes ? parseStep(wf.notes, endpoints) : undefined,
+        curl: wf.curl,
+        featured: wf.featured ?? false,
+        prerequisites: wf.prerequisites,
+        related: wf.related,
+        stepCount: wf.steps.length,
+      });
+    });
   }
 
-  return <AgentSkillsWorkflowsClient skills={skills} />;
+  return <AgentSkillsWorkflowsClient workflows={allWorkflows} />;
 }

@@ -61,9 +61,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Ответить в тред (комментарий к сообщению)
 
-1. Получи или создай тред: POST /messages/{id}/thread (`id` — id родительского сообщения)
-2. Из ответа возьми id треда (`thread.id`)
-3. Отправь POST /messages с `"entity_type": "thread"`, `"entity_id": thread.id`
+1. POST /messages/{id}/thread — получи или создай тред (`id` — id родительского сообщения), возьми `thread.id` из ответа
+2. Отправь POST /messages с `"entity_type": "thread"`, `"entity_id": thread.id`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/messages/154332686/thread" \
@@ -132,9 +131,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Получить историю сообщений чата
 
-1. GET /messages?chat_id={id}
-2. Пагинация: `limit` (1-50, по умолчанию 50) и `cursor` (из `meta.paginate.next_page`)
-3. Сортировка: `sort[id]=asc` или `sort[id]=desc` (по умолчанию `"desc"`)
+1. GET /messages?chat_id={id} — пагинация: `limit` (1-50, по умолчанию 50), `cursor` (из `meta.paginate.next_page`), сортировка: `sort[id]=asc` или `sort[id]=desc` (по умолчанию)
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/messages?chat_id=12345&limit=50&sort[id]=asc" \
@@ -165,10 +162,9 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686" \
 
 ### Подписаться на тред сообщения
 
-1. POST /messages/{id}/thread — если треда нет, он будет создан; если есть — вернётся существующий
-2. Из ответа возьми `chat_id` треда (`data.chat_id`)
-3. Добавь бота (или пользователя) в участники чата треда: POST /chats/{id}/members с `member_ids`
-4. Теперь бот будет получать вебхук-события о новых сообщениях в этом треде
+1. POST /messages/{id}/thread — если треда нет, он будет создан; если есть — вернётся существующий. Возьми `chat_id` треда из ответа (`data.chat_id`)
+2. Добавь бота (или пользователя) в участники чата треда: POST /chats/{id}/members с `member_ids`
+3. Теперь бот будет получать вебхук-события о новых сообщениях в этом треде
 
 > POST /messages/{id}/thread идемпотентен — безопасно вызывать повторно. После добавления в участники бот получает события треда через исходящий вебхук.
 

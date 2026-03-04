@@ -1,7 +1,7 @@
 import { BaseCommand } from '../base-command.js';
 
 export default class Version extends BaseCommand {
-  static override description = 'Show CLI version';
+  static override description = 'Версия CLI';
 
   static override examples = [
     '<%= config.bin %> version',

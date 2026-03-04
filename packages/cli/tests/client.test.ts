@@ -505,6 +505,116 @@ describe('client', () => {
     });
   });
 
+  describe('PACHCA_API_URL', () => {
+    it('should use default base URL when PACHCA_API_URL is not set', async () => {
+      delete process.env.PACHCA_API_URL;
+      let capturedUrl = '';
+      globalThis.fetch = vi.fn().mockImplementation((url) => {
+        capturedUrl = url;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ data: {} }),
+        });
+      });
+
+      await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+      expect(capturedUrl).toBe('https://api.pachca.com/api/shared/v1/profile');
+    });
+
+    it('should use PACHCA_API_URL when set', async () => {
+      process.env.PACHCA_API_URL = 'https://custom.example.com/api/v1';
+      let capturedUrl = '';
+      globalThis.fetch = vi.fn().mockImplementation((url) => {
+        capturedUrl = url;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ data: {} }),
+        });
+      });
+
+      await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+      expect(capturedUrl).toBe('https://custom.example.com/api/v1/profile');
+    });
+
+    it('should strip trailing slash from PACHCA_API_URL', async () => {
+      process.env.PACHCA_API_URL = 'https://custom.example.com/api/v1/';
+      let capturedUrl = '';
+      globalThis.fetch = vi.fn().mockImplementation((url) => {
+        capturedUrl = url;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ data: {} }),
+        });
+      });
+
+      await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+      expect(capturedUrl).toBe('https://custom.example.com/api/v1/profile');
+    });
+
+    it('should fall back to default on invalid PACHCA_API_URL', async () => {
+      process.env.PACHCA_API_URL = 'not-a-url';
+      let capturedUrl = '';
+      globalThis.fetch = vi.fn().mockImplementation((url) => {
+        capturedUrl = url;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ data: {} }),
+        });
+      });
+
+      await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+      expect(capturedUrl).toBe('https://api.pachca.com/api/shared/v1/profile');
+    });
+
+    it('should allow http for localhost', async () => {
+      process.env.PACHCA_API_URL = 'http://localhost:3000/api/v1';
+      let capturedUrl = '';
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      globalThis.fetch = vi.fn().mockImplementation((url) => {
+        capturedUrl = url;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ data: {} }),
+        });
+      });
+
+      await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+      expect(capturedUrl).toBe('http://localhost:3000/api/v1/profile');
+      // Should NOT warn about non-HTTPS for localhost
+      const warnings = stderrSpy.mock.calls.map((c) => String(c[0]));
+      expect(warnings.some((w) => w.includes('non-HTTPS'))).toBe(false);
+      stderrSpy.mockRestore();
+    });
+
+    it('should warn on non-HTTPS for non-localhost', async () => {
+      process.env.PACHCA_API_URL = 'http://example.com/api/v1';
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      globalThis.fetch = vi.fn().mockImplementation(() => {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ data: {} }),
+        });
+      });
+
+      await request({ method: 'GET', path: '/profile', token: 'test' }, { quiet: true });
+      const warnings = stderrSpy.mock.calls.map((c) => String(c[0]));
+      expect(warnings.some((w) => w.includes('non-HTTPS'))).toBe(true);
+      stderrSpy.mockRestore();
+    });
+  });
+
   it('should not produce NaN timeout when PACHCA_TIMEOUT is unset', async () => {
     delete process.env.PACHCA_TIMEOUT;
     let capturedSignal: AbortSignal | undefined;

@@ -5,7 +5,7 @@ import { listProfiles, deleteProfile } from '../../profiles.js';
 import { outputError } from '../../output.js';
 
 export default class AuthLogout extends BaseCommand {
-  static override description = 'Remove a saved profile';
+  static override description = 'Удаление сохранённого профиля';
 
   static override examples = [
     '<%= config.bin %> auth logout bot-notify',

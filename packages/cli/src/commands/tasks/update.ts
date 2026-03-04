@@ -18,7 +18,7 @@ export default class TasksUpdate extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор напоминания",
+      description: "Идентификатор напоминания (pachca tasks list)",
       required: true,
     }),
   };
@@ -86,8 +86,10 @@ export default class TasksUpdate extends BaseCommand {
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
 
     if (Object.keys(inner).length === 0) {
-      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\n');
-      return;
+      this.validationError(
+        [{ message: 'Не указаны поля для обновления' }],
+        { type: 'PACHCA_USAGE_ERROR' },
+      );
     }
 
     const { data } = await this.apiRequest({

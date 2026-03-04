@@ -16,7 +16,7 @@ export default class MembersRemoveGroupTag extends BaseCommand {
       required: true,
     }),
     tag_id: Args.integer({
-      description: "Идентификатор тега",
+      description: "Идентификатор тега (pachca tags list)",
       required: true,
     }),
   };
@@ -35,8 +35,10 @@ export default class MembersRemoveGroupTag extends BaseCommand {
 
     if (!flags.force) {
       if (!this.isInteractive()) {
-        process.stderr.write('✗ Деструктивная операция требует флага --force в неинтерактивном режиме\n');
-        this.exit(2);
+        this.validationError(
+          [{ message: 'Деструктивная операция требует флага --force', flag: 'force' }],
+          { type: 'PACHCA_DESTRUCTIVE_OP_ERROR', hint: "pachca members remove-group-tag <id> <tag_id> --force" },
+        );
       }
       const confirm = await clack.confirm({ message: 'Вы уверены?' });
       if (clack.isCancel(confirm) || !confirm) {

@@ -5,7 +5,7 @@ import { request } from '../../client.js';
 import { outputError } from '../../output.js';
 
 export default class AuthRefresh extends BaseCommand {
-  static override description = 'Refresh cached scopes for a profile';
+  static override description = 'Обновление кешированных разрешений профиля';
 
   static override examples = [
     '<%= config.bin %> auth refresh bot-support',

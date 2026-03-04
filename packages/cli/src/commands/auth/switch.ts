@@ -4,7 +4,7 @@ import { listProfiles, setActiveProfile } from '../../profiles.js';
 import { outputError } from '../../output.js';
 
 export default class AuthSwitch extends BaseCommand {
-  static override description = 'Switch active profile';
+  static override description = 'Переключение активного профиля';
 
   static override examples = [
     '<%= config.bin %> auth switch bot-support',

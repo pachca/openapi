@@ -4,7 +4,7 @@ import { resolveToken, TokenNotFoundError } from '../profiles.js';
 import { request } from '../client.js';
 
 export default class Commands extends BaseCommand {
-  static override description = 'List all commands';
+  static override description = 'Список всех команд';
 
   static override examples = [
     '<%= config.bin %> commands',
@@ -79,6 +79,7 @@ export default class Commands extends BaseCommand {
       .filter((cmd) => !cmd.scope || tokenScopes.includes(cmd.scope))
       .map((cmd) => ({
         command: cmd.command,
+        summary: cmd.summary,
         scope: cmd.scope,
         plan: cmd.plan,
       }));

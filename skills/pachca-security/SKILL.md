@@ -19,8 +19,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Получить журнал аудита событий
 
-1. GET /audit_events с обязательными `start_time` и `end_time` (ISO-8601, UTC+0)
-2. Опциональные фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
+1. GET /audit_events с обязательными `start_time` и `end_time` (ISO-8601, UTC+0). Опциональные фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00:00:00Z&end_time=2025-03-02T00:00:00Z&limit=50" \
@@ -31,9 +30,8 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00
 
 ### Мониторинг подозрительных входов
 
-1. GET /audit_events с `event_key=user_2fa_fail` (или `user_login`) за нужный период
-2. Пагинируй с `cursor` до получения всех записей
-3. Если найдены аномалии (много неудачных 2FA с одного аккаунта) — отправь уведомление администратору через POST /messages
+1. GET /audit_events с `event_key=user_2fa_fail` (или `user_login`) за нужный период — пагинируй с `cursor` до получения всех записей
+2. Если найдены аномалии (много неудачных 2FA с одного аккаунта) — отправь уведомление администратору через POST /messages
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00:00:00Z&end_time=2025-03-02T00:00:00Z&event_key=user_2fa_fail&limit=50" \
@@ -42,9 +40,8 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-03-01T00
 
 ### Экспорт логов за период
 
-1. GET /audit_events с `start_time` и `end_time` (ISO-8601, UTC+0)
-2. Пагинируй с `cursor` до получения всех записей (`limit` до 50)
-3. Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)
+1. GET /audit_events с `start_time` и `end_time` (ISO-8601, UTC+0) — пагинируй с `cursor` до получения всех записей (`limit` до 50)
+2. Собери все события в массив → сохрани в файл или отправь во внешнюю систему (SIEM, таблицы)
 
 ## Доступные event_key
 

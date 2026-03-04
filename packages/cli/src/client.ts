@@ -6,7 +6,23 @@ import { spinner } from '@clack/prompts';
 import ansis from 'ansis';
 import { isInteractive } from './utils.js';
 
-const BASE_URL = 'https://api.pachca.com/api/shared/v1';
+const DEFAULT_BASE_URL = 'https://api.pachca.com/api/shared/v1';
+
+function getBaseUrl(): string {
+  const envUrl = process.env.PACHCA_API_URL;
+  if (!envUrl) return DEFAULT_BASE_URL;
+
+  try {
+    const parsed = new URL(envUrl);
+    if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+      process.stderr.write('Warning: PACHCA_API_URL uses non-HTTPS protocol\n');
+    }
+    return envUrl.replace(/\/+$/, '');
+  } catch {
+    process.stderr.write(`Warning: invalid PACHCA_API_URL, using default\n`);
+    return DEFAULT_BASE_URL;
+  }
+}
 
 export type ErrorType =
   | 'PACHCA_AUTH_ERROR'
@@ -56,7 +72,7 @@ const MAX_RETRIES = 3;
 const DEFAULT_TIMEOUT = 30;
 
 function buildUrl(apiPath: string, query?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(apiPath.startsWith('/') ? `${BASE_URL}${apiPath}` : `${BASE_URL}/${apiPath}`);
+  const url = new URL(apiPath.startsWith('/') ? `${getBaseUrl()}${apiPath}` : `${getBaseUrl()}/${apiPath}`);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined) {
@@ -256,14 +272,34 @@ function createApiError(status: number, body: unknown, requestId?: string): ApiE
     });
   }
 
-  // ApiError format: {errors: [{message: string}]}
+  // ApiError format: {errors: [{key, value, message, code, payload}]}
   if (isRecord(body) && Array.isArray(body.errors) && body.errors.length > 0) {
-    const firstError = body.errors[0] as { message?: string };
+    const apiErrors = body.errors as { key?: string; message?: string; code?: string; value?: unknown }[];
+    const errorType: ErrorType = status === 422 ? 'PACHCA_VALIDATION_ERROR' : 'PACHCA_API_ERROR';
+
+    if (apiErrors.length === 1) {
+      const e = apiErrors[0];
+      return new ApiError({
+        error: e.key ? `${e.key}: ${e.message || `HTTP ${status}`}` : (e.message || `HTTP ${status}`),
+        code: status,
+        type: errorType,
+        request_id: requestId,
+        ...(e.key ? { field: e.key } : {}),
+        ...(e.code ? { validation_code: e.code } : {}),
+      });
+    }
+
     return new ApiError({
-      error: firstError.message || `HTTP ${status}`,
+      error: 'Validation failed',
       code: status,
-      type: 'PACHCA_API_ERROR',
+      type: errorType,
       request_id: requestId,
+      errors: apiErrors.map((e) => ({
+        ...(e.key ? { field: e.key } : {}),
+        message: e.message || '',
+        ...(e.code ? { code: e.code } : {}),
+        ...(e.value !== undefined && e.value !== null ? { value: e.value } : {}),
+      })),
     });
   }
 

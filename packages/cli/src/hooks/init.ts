@@ -92,7 +92,7 @@ const hook: Hook<'init'> = async function (opts) {
       const format = defaultOutputFormat();
       if (format === 'json' || !process.stderr.isTTY) {
         outputError(
-          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null },
+          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login --token <your-token>' },
           format as 'json',
         );
       } else {
@@ -108,7 +108,7 @@ const hook: Hook<'init'> = async function (opts) {
     if (error instanceof ProfileNotFoundError) {
       const format = defaultOutputFormat();
       outputError(
-        { error: `Profile "${error.profileName}" not found`, type: 'PACHCA_USAGE_ERROR', code: null },
+        { error: `Profile "${error.profileName}" not found`, type: 'PACHCA_USAGE_ERROR', code: null, hint: 'pachca auth list' },
         format as 'json',
       );
       process.exit(2);

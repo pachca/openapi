@@ -13,6 +13,7 @@ export default class LinkPreviewsAdd extends BaseCommand {
   static scope = "link_previews:write";
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/link_previews";
+  static requiredFlags = ["link-previews"];
 
   static override args = {
     id: Args.integer({
@@ -46,10 +47,10 @@ export default class LinkPreviewsAdd extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --link-previews <string>. pachca introspect link-previews add" },
+        );
       }
     }
 

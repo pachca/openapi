@@ -14,10 +14,11 @@ export default class BotsUpdate extends BaseCommand {
   static apiMethod = "PUT";
   static apiPath = "/bots/{id}";
   static defaultColumns = ["id"];
+  static requiredFlags = ["webhook"];
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор бота",
+      description: "Идентификатор бота (pachca bots list)",
       required: true,
     }),
   };
@@ -47,10 +48,10 @@ export default class BotsUpdate extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --webhook <string>. pachca introspect bots update" },
+        );
       }
     }
 
@@ -64,8 +65,10 @@ export default class BotsUpdate extends BaseCommand {
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
 
     if (Object.keys(inner).length === 0) {
-      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\n');
-      return;
+      this.validationError(
+        [{ message: 'Не указаны поля для обновления' }],
+        { type: 'PACHCA_USAGE_ERROR' },
+      );
     }
 
     const { data } = await this.apiRequest({

@@ -172,8 +172,14 @@ export function outputError(
   if (format === 'json' || !process.stderr.isTTY) {
     process.stderr.write(JSON.stringify(error) + '\n');
   } else {
-    const code = error.code ? ` ${error.code}` : '';
-    process.stderr.write(`✗ Ошибка${code}: ${error.error}\n`);
+    if (Array.isArray(error.errors) && error.errors.length > 0) {
+      for (const e of error.errors as { message: string }[]) {
+        process.stderr.write(`✗ ${e.message}\n`);
+      }
+    } else {
+      const code = error.code ? ` ${error.code}` : '';
+      process.stderr.write(`✗ Ошибка${code}: ${error.error}\n`);
+    }
     if (error.request_id) {
       process.stderr.write(`  Request ID: ${error.request_id}\n`);
     }

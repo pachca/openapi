@@ -22,10 +22,10 @@
         "../../packages/spec/openapi.yaml",
         "scripts/generate-cli.ts",
         "../../apps/docs/lib/openapi/mapper.ts",
-        "../../apps/docs/scripts/skills/workflows.ts",
+        "../../apps/docs/data/workflows.ts",
         "../../apps/docs/scripts/skills/config.ts"
       ],
-      "outputs": ["src/commands/**/*.ts", "src/data/*.json", "README.md"],
+      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "README.md"],
       "cache": true
     },
     "build": {

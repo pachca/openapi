@@ -7,7 +7,7 @@ import {
   getActiveProfile,
   invalidateScopes,
 } from './profiles.js';
-import { ApiError, getExitCode, formatDryRun, request, type RequestOptions, type ClientFlags } from './client.js';
+import { ApiError, getExitCode, formatDryRun, request, type RequestOptions, type ClientFlags, type ErrorType } from './client.js';
 import { outputData, outputError, outputSuccess, type OutputFormat, type OutputOptions } from './output.js';
 import { defaultOutputFormat, isInteractive } from './utils.js';
 
@@ -115,8 +115,43 @@ export abstract class BaseCommand extends Command {
     try {
       return JSON.parse(value);
     } catch {
-      this.error(`Invalid JSON in --${flagName}: ${value}`);
+      this.validationError([{ message: `Invalid JSON in --${flagName}`, flag: flagName }]);
     }
+  }
+
+  /**
+   * Report validation error(s) with structured output and exit.
+   */
+  protected validationError(
+    errors: { message: string; flag?: string }[],
+    opts?: { hint?: string; type?: ErrorType },
+  ): never {
+    const format = this.getOutputFormat();
+    const type = opts?.type ?? 'PACHCA_VALIDATION_ERROR';
+    const helpCmd = this.id ? `pachca introspect ${this.id.replace(/:/g, ' ')}` : undefined;
+    const hint = opts?.hint ?? helpCmd;
+
+    if (errors.length === 1) {
+      outputError({
+        error: errors[0].message,
+        code: null,
+        type,
+        ...(errors[0].flag ? { flag: `--${errors[0].flag}` } : {}),
+        ...(hint ? { hint } : {}),
+      }, format);
+    } else {
+      outputError({
+        error: 'Validation failed',
+        code: null,
+        type,
+        errors: errors.map((e) => ({
+          message: e.message,
+          ...(e.flag ? { flag: `--${e.flag}` } : {}),
+        })),
+        ...(hint ? { hint } : {}),
+      }, format);
+    }
+    this.exit(2);
   }
 
   /**
@@ -256,7 +291,7 @@ export abstract class BaseCommand extends Command {
       const format = this.getOutputFormat();
       if (format === 'json' || !process.stderr.isTTY) {
         outputError(
-          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null },
+          { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login --token <your-token>' },
           format,
         );
       } else {
@@ -272,7 +307,7 @@ export abstract class BaseCommand extends Command {
 
     if (err instanceof ProfileNotFoundError) {
       outputError(
-        { error: `Profile "${err.profileName}" not found`, type: 'PACHCA_USAGE_ERROR', code: null },
+        { error: `Profile "${err.profileName}" not found`, type: 'PACHCA_USAGE_ERROR', code: null, hint: 'pachca auth list' },
         this.getOutputFormat(),
       );
       this.exit(2);

@@ -15,6 +15,7 @@ export default class ReactionsAdd extends BaseCommand {
   static apiMethod = "POST";
   static apiPath = "/messages/{id}/reactions";
   static defaultColumns = ["name","created_at","user_id","code"];
+  static requiredFlags = ["code"];
 
   static override args = {
     id: Args.integer({
@@ -51,10 +52,10 @@ export default class ReactionsAdd extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --code <string>. pachca introspect reactions add" },
+        );
       }
     }
 

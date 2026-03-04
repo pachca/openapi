@@ -2,7 +2,7 @@ import { BaseCommand } from '../../base-command.js';
 import { readConfig } from '../../profiles.js';
 
 export default class ConfigList extends BaseCommand {
-  static override description = 'List all configuration values';
+  static override description = 'Список всех настроек';
 
   static override examples = [
     '<%= config.bin %> config list',

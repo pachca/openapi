@@ -4,7 +4,7 @@ import { BaseCommand } from '../base-command.js';
 import { outputError } from '../output.js';
 
 export default class Api extends BaseCommand {
-  static override description = 'Make a raw API request';
+  static override description = 'Произвольный запрос к API';
 
   static override examples = [
     '<%= config.bin %> api GET /messages --query chat_id=123',

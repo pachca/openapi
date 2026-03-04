@@ -7,7 +7,7 @@ interface ChangelogEntry {
 }
 
 export default class Changelog extends BaseCommand {
-  static override description = 'Show CLI changelog';
+  static override description = 'История изменений CLI';
 
   static override examples = [
     '<%= config.bin %> changelog',

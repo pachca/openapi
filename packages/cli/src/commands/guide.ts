@@ -13,7 +13,7 @@ interface Workflow {
 }
 
 export default class Guide extends BaseCommand {
-  static override description = 'Search use-case workflows';
+  static override description = 'Поиск сценариев использования';
 
   static override examples = [
     '<%= config.bin %> guide "отправить файл"',
@@ -100,9 +100,10 @@ export default class Guide extends BaseCommand {
       process.stdout.write(`  Сценарий: ${w.title}  (${w.skill})\n\n`);
       for (let i = 0; i < w.steps.length; i++) {
         const step = w.steps[i];
-        process.stdout.write(`  ${i + 1}. ${step.description}\n`);
         if (step.command) {
-          process.stdout.write(`     ${step.command}\n`);
+          process.stdout.write(`  ${i + 1}. $ ${step.command}\n`);
+        } else {
+          process.stdout.write(`  ${i + 1}. ${step.description}\n`);
         }
       }
       process.stdout.write('\n');

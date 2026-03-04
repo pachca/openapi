@@ -3,7 +3,7 @@ import { BaseCommand } from '../../base-command.js';
 import { setConfigValue } from '../../profiles.js';
 
 export default class ConfigSet extends BaseCommand {
-  static override description = 'Set a configuration value';
+  static override description = 'Установка значения конфигурации';
 
   static override examples = [
     '<%= config.bin %> config set defaults.output json',

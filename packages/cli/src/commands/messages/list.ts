@@ -16,6 +16,7 @@ export default class MessagesList extends BaseCommand {
   static apiMethod = "GET";
   static apiPath = "/messages";
   static defaultColumns = ["id","content","created_at","entity_type","entity_id"];
+  static requiredFlags = ["chat-id"];
 
   static override args = {
 
@@ -59,10 +60,10 @@ export default class MessagesList extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --chat-id <integer>. pachca introspect messages list" },
+        );
       }
     }
 

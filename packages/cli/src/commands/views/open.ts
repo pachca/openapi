@@ -14,6 +14,7 @@ export default class ViewsOpen extends BaseCommand {
   static scope = "views:write";
   static apiMethod = "POST";
   static apiPath = "/views/open";
+  static requiredFlags = ["title","blocks","type","trigger-id"];
 
   static override args = {
 
@@ -69,36 +70,34 @@ export default class ViewsOpen extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --title <string>, --blocks <string>, --type <string>, --trigger-id <string>. pachca introspect views open" },
+        );
       }
     }
 
+    const validationErrors: { message: string; flag: string }[] = [];
     if (flags['title'] && String(flags['title']).length > 24) {
-      process.stderr.write(`✗ --title: максимум 24 символов (передано: ${String(flags['title']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--title: максимум 24 символов (передано: ${String(flags['title']).length})`, flag: 'title' });
     }
     if (flags['close-text'] && String(flags['close-text']).length > 24) {
-      process.stderr.write(`✗ --close-text: максимум 24 символов (передано: ${String(flags['close-text']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--close-text: максимум 24 символов (передано: ${String(flags['close-text']).length})`, flag: 'close-text' });
     }
     if (flags['submit-text'] && String(flags['submit-text']).length > 24) {
-      process.stderr.write(`✗ --submit-text: максимум 24 символов (передано: ${String(flags['submit-text']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--submit-text: максимум 24 символов (передано: ${String(flags['submit-text']).length})`, flag: 'submit-text' });
     }
     if (flags['type'] && !["modal"].includes(flags['type'])) {
-      process.stderr.write(`✗ --type: допустимые значения — "modal"\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--type: допустимые значения — "modal"`, flag: 'type' });
     }
     if (flags['private-metadata'] && String(flags['private-metadata']).length > 3000) {
-      process.stderr.write(`✗ --private-metadata: максимум 3000 символов (передано: ${String(flags['private-metadata']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--private-metadata: максимум 3000 символов (передано: ${String(flags['private-metadata']).length})`, flag: 'private-metadata' });
     }
     if (flags['callback-id'] && String(flags['callback-id']).length > 255) {
-      process.stderr.write(`✗ --callback-id: максимум 255 символов (передано: ${String(flags['callback-id']).length})\n`);
-      this.exit(2);
+      validationErrors.push({ message: `--callback-id: максимум 255 символов (передано: ${String(flags['callback-id']).length})`, flag: 'callback-id' });
+    }
+    if (validationErrors.length > 0) {
+      this.validationError(validationErrors);
     }
 
     this.checkScope("views:write");

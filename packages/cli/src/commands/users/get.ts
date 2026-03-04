@@ -18,7 +18,7 @@ export default class UsersGet extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор пользователя",
+      description: "Идентификатор пользователя (pachca users list)",
       required: true,
     }),
   };

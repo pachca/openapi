@@ -18,7 +18,7 @@ export default class TasksDelete extends BaseCommand {
 
   static override args = {
     id: Args.integer({
-      description: "Идентификатор напоминания",
+      description: "Идентификатор напоминания (pachca tasks list)",
       required: true,
     }),
   };
@@ -37,8 +37,10 @@ export default class TasksDelete extends BaseCommand {
 
     if (!flags.force) {
       if (!this.isInteractive()) {
-        process.stderr.write('✗ Деструктивная операция требует флага --force в неинтерактивном режиме\n');
-        this.exit(2);
+        this.validationError(
+          [{ message: 'Деструктивная операция требует флага --force', flag: 'force' }],
+          { type: 'PACHCA_DESTRUCTIVE_OP_ERROR', hint: "pachca tasks delete <id> --force" },
+        );
       }
       const confirm = await clack.confirm({ message: 'Вы уверены?' });
       if (clack.isCancel(confirm) || !confirm) {

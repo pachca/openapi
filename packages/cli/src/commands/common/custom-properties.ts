@@ -7,7 +7,6 @@ export default class CommonCustomProperties extends BaseCommand {
   static override description = "Список дополнительных полей";
 
   static override examples = [
-      "Создать напоминание:\n  $ pachca common custom-properties",
       "Получить кастомные поля профиля:\n  $ pachca common custom-properties"
   ];
 
@@ -15,6 +14,7 @@ export default class CommonCustomProperties extends BaseCommand {
   static apiMethod = "GET";
   static apiPath = "/custom_properties";
   static defaultColumns = ["id","name","data_type"];
+  static requiredFlags = ["entity-type"];
 
   static override args = {
 
@@ -46,10 +46,10 @@ export default class CommonCustomProperties extends BaseCommand {
           else { (flags as Record<string, unknown>)[field.flag] = value; }
         }
       } else {
-        for (const field of missingRequired) {
-          process.stderr.write(`✗ Обязательный флаг --${field.flag} не передан\n`);
-        }
-        this.exit(2);
+        this.validationError(
+          missingRequired.map((f) => ({ message: `Обязательный флаг --${f.flag} не передан`, flag: f.flag })),
+          { hint: "Обязательные: --entity-type <string>. pachca introspect common custom-properties" },
+        );
       }
     }
 

@@ -27,6 +27,16 @@ const DATA_DIR = path.join(CLI_SRC, 'data');
 // URL generation — single source of truth from apps/docs/lib/openapi/mapper.ts
 import { generateUrlFromOperation } from '../../../apps/docs/lib/openapi/mapper.js';
 
+// Entity ID → related list command (for agent hints in descriptions)
+const ENTITY_HINTS: Record<string, string> = {
+  chats: 'pachca chats list',
+  users: 'pachca users list',
+  tags: 'pachca tags list',
+  tasks: 'pachca tasks list',
+  messages: 'pachca messages list',
+  bots: 'pachca bots list',
+};
+
 // ----- Code Generation -----
 
 interface GeneratedCommand {
@@ -330,8 +340,17 @@ function generateCommandCode(p: CommandGenParams): string {
   // Build args
   const argsCode = p.pathParams.map((param) => {
     const argName = param.name.replace(/[{}]/g, '');
+    let desc = param.description || 'ID';
+    // Add related list command hint for ID args
+    if (argName === 'id') {
+      const relatedCmd = ENTITY_HINTS[p.section];
+      if (relatedCmd) desc += ` (${relatedCmd})`;
+    } else if (argName.endsWith('_id')) {
+      const entityKey = argName.replace(/_id$/, '') + 's';
+      if (ENTITY_HINTS[entityKey]) desc += ` (${ENTITY_HINTS[entityKey]})`;
+    }
     return `    ${argName}: Args.${getOclifArgType(param.schema)}({
-      description: ${JSON.stringify(param.description || `ID`)},
+      description: ${JSON.stringify(desc)},
       required: true,
     }),`;
   });
@@ -392,12 +411,25 @@ function generateCommandCode(p: CommandGenParams): string {
     const flagName = toKebabCase(field.name);
     const flagType = getOclifFlagType({ type: field.type, enum: field.enum } as Schema);
     const maxLenComment = field.maxLength ? ` (макс. ${field.maxLength} символов)` : '';
+    // Add related command hint for entity ID fields
+    let entityHint = '';
+    if (field.name === 'entity_id') {
+      // Polymorphic: can reference chats or users
+      entityHint = ` (${ENTITY_HINTS['chats']} | ${ENTITY_HINTS['users']})`;
+    } else if (field.name.endsWith('_id') || field.name.endsWith('Id')) {
+      const entityKey = field.name.replace(/_id$|Id$/, '').replace(/_/g, '');
+      // Try to match plural form
+      const plural = entityKey + 's';
+      if (ENTITY_HINTS[plural]) {
+        entityHint = ` (${ENTITY_HINTS[plural]})`;
+      }
+    }
     const bodyExtras: string[] = [];
     if (field.enum) bodyExtras.push(`      options: ${JSON.stringify(field.enum)},`);
     if (flagType === 'boolean') bodyExtras.push(`      allowNo: true,`);
     const bodyExtrasStr = bodyExtras.length > 0 ? '\n' + bodyExtras.join('\n') : '';
     bodyFlagLines.push(`    '${flagName}': Flags.${flagType}({
-      description: ${JSON.stringify((field.description || field.name) + maxLenComment)},${bodyExtrasStr}
+      description: ${JSON.stringify((field.description || field.name) + maxLenComment + entityHint)},${bodyExtrasStr}
     }),`);
   }
 
@@ -456,34 +488,40 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`          else { (flags as Record<string, unknown>)[field.flag] = value; }`);
     runBodyLines.push(`        }`);
     runBodyLines.push(`      } else {`);
-    runBodyLines.push(`        for (const field of missingRequired) {`);
-    runBodyLines.push(`          process.stderr.write(\`✗ Обязательный флаг --\${field.flag} не передан\\n\`);`);
-    runBodyLines.push(`        }`);
-    runBodyLines.push(`        this.exit(2);`);
+    const requiredFlagsList = allRequiredFlags
+      .map((f) => `--${f.flagName} <${f.type}>`)
+      .join(', ');
+    const hintStr = `Обязательные: ${requiredFlagsList}. pachca introspect ${p.section} ${p.action}`;
+    runBodyLines.push(`        this.validationError(`);
+    runBodyLines.push(`          missingRequired.map((f) => ({ message: \`Обязательный флаг --\${f.flag} не передан\`, flag: f.flag })),`);
+    runBodyLines.push(`          { hint: ${JSON.stringify(hintStr)} },`);
+    runBodyLines.push(`        );`);
     runBodyLines.push(`      }`);
     runBodyLines.push(`    }`);
   }
 
-  // Validation
+  // Validation (batched)
   const validations: string[] = [];
   for (const field of p.bodyFields) {
     const flagName = toKebabCase(field.name);
     if (field.maxLength) {
       validations.push(`    if (flags['${flagName}'] && String(flags['${flagName}']).length > ${field.maxLength}) {
-      process.stderr.write(\`✗ --${flagName}: максимум ${field.maxLength} символов (передано: \${String(flags['${flagName}']).length})\\n\`);
-      this.exit(2);
+      validationErrors.push({ message: \`--${flagName}: максимум ${field.maxLength} символов (передано: \${String(flags['${flagName}']).length})\`, flag: '${flagName}' });
     }`);
     }
     if (field.enum) {
       validations.push(`    if (flags['${flagName}'] && !${JSON.stringify(field.enum)}.includes(flags['${flagName}'])) {
-      process.stderr.write(\`✗ --${flagName}: допустимые значения — ${field.enum.map((e) => `"${e}"`).join(', ')}\\n\`);
-      this.exit(2);
+      validationErrors.push({ message: \`--${flagName}: допустимые значения — ${field.enum.map((e) => `"${e}"`).join(', ')}\`, flag: '${flagName}' });
     }`);
     }
   }
   if (validations.length > 0) {
     runBodyLines.push('');
+    runBodyLines.push(`    const validationErrors: { message: string; flag: string }[] = [];`);
     runBodyLines.push(...validations);
+    runBodyLines.push(`    if (validationErrors.length > 0) {`);
+    runBodyLines.push(`      this.validationError(validationErrors);`);
+    runBodyLines.push(`    }`);
   }
 
   // DELETE confirmation
@@ -491,8 +529,12 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push('');
     runBodyLines.push(`    if (!flags.force) {`);
     runBodyLines.push(`      if (!this.isInteractive()) {`);
-    runBodyLines.push(`        process.stderr.write('✗ Деструктивная операция требует флага --force в неинтерактивном режиме\\n');`);
-    runBodyLines.push(`        this.exit(2);`);
+    const deleteArgs = p.pathParams.map((pp) => `<${pp.name}>`).join(' ');
+    const deleteHint = `pachca ${p.section} ${p.action} ${deleteArgs} --force`;
+    runBodyLines.push(`        this.validationError(`);
+    runBodyLines.push(`          [{ message: 'Деструктивная операция требует флага --force', flag: 'force' }],`);
+    runBodyLines.push(`          { type: 'PACHCA_DESTRUCTIVE_OP_ERROR', hint: ${JSON.stringify(deleteHint)} },`);
+    runBodyLines.push(`        );`);
     runBodyLines.push(`      }`);
     runBodyLines.push(`      const confirm = await clack.confirm({ message: 'Вы уверены?' });`);
     runBodyLines.push(`      if (clack.isCancel(confirm) || !confirm) {`);
@@ -680,8 +722,10 @@ function generateCommandCode(p: CommandGenParams): string {
       } else {
         runBodyLines.push(`    if (Object.keys(body).length === 0) {`);
       }
-      runBodyLines.push(`      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\\n');`);
-      runBodyLines.push(`      return;`);
+      runBodyLines.push(`      this.validationError(`);
+      runBodyLines.push(`        [{ message: 'Не указаны поля для обновления' }],`);
+      runBodyLines.push(`        { type: 'PACHCA_USAGE_ERROR' },`);
+      runBodyLines.push(`      );`);
       runBodyLines.push(`    }`);
     }
 
@@ -745,6 +789,9 @@ function generateCommandCode(p: CommandGenParams): string {
   staticMeta.push(`  static apiMethod = ${JSON.stringify(p.endpoint.method)};`);
   staticMeta.push(`  static apiPath = ${JSON.stringify(p.endpoint.path)};`);
   if (p.defaultColumns.length > 0) staticMeta.push(`  static defaultColumns = ${JSON.stringify(p.defaultColumns)};`);
+  if (allRequiredFlags.length > 0) {
+    staticMeta.push(`  static requiredFlags = ${JSON.stringify(allRequiredFlags.map((f) => f.flagName))};`);
+  }
 
   // Build examples from workflows
   const examplesBlock = p.examples && p.examples.length > 0
@@ -812,29 +859,27 @@ function toPascalCase(str: string): string {
 async function generateWorkflowsData(): Promise<void> {
   try {
     // Dynamic import of workflows from apps/docs
-    const workflowsPath = path.join(ROOT, 'apps', 'docs', 'scripts', 'skills', 'workflows.ts');
+    const workflowsPath = path.join(ROOT, 'apps', 'docs', 'data', 'workflows.ts');
     if (!fs.existsSync(workflowsPath)) return;
 
-    // We read the file and extract workflows manually (tsx handles TS imports)
     const { WORKFLOWS } = await import(workflowsPath);
 
     const entries: { title: string; skill: string; steps: { description: string; command?: string }[] }[] = [];
 
-    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: string[]; curl?: string }[]>)) {
+    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string }[]; curl?: string }[]>)) {
       for (const w of workflows) {
+        // Only include steps that have a command (skip text-only steps for CLI)
+        const cliSteps = w.steps
+          .filter((step) => step.command)
+          .map((step) => ({ description: step.description, command: step.command }));
+
+        // Skip workflows with no CLI commands
+        if (cliSteps.length === 0) continue;
+
         entries.push({
           title: w.title,
           skill,
-          steps: w.steps.map((step) => {
-            // Extract CLI command from step if it mentions an API endpoint
-            const match = step.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/\S+)/);
-            if (match) {
-              const method = match[1];
-              const apiPath = match[2];
-              return { description: step, command: `pachca api ${method} ${apiPath}` };
-            }
-            return { description: step };
-          }),
+          steps: cliSteps,
         });
       }
     }
@@ -943,7 +988,7 @@ function generateReadme(commands: GeneratedCommand[]): void {
 async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, string[]>> {
   const map = new Map<string, string[]>();
   try {
-    const workflowsPath = path.join(ROOT, 'apps', 'docs', 'scripts', 'skills', 'workflows.ts');
+    const workflowsPath = path.join(ROOT, 'apps', 'docs', 'data', 'workflows.ts');
     if (!fs.existsSync(workflowsPath)) return map;
 
     // Build mapping: "METHOD /path" → "pachca section action"
@@ -956,18 +1001,33 @@ async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, 
     }
 
     const { WORKFLOWS } = await import(workflowsPath);
-    for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: string[] }[]>)) {
+    for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string }[] }[]>)) {
       for (const w of workflows) {
         for (const step of w.steps) {
-          const match = step.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s?]+)/);
-          if (match) {
-            const apiPath = match[2];
-            const key = `${match[1]} ${apiPath}`;
-            const cliCmd = pathToCommand.get(key) || `pachca api ${match[1]} ${apiPath}`;
-            if (!map.has(apiPath)) map.set(apiPath, []);
-            const existing = map.get(apiPath)!;
-            const example = `${w.title}:\n  $ ${cliCmd}`;
-            if (!existing.includes(example)) existing.push(example);
+          // Use explicit command if available, otherwise extract from description
+          if (step.command) {
+            // Extract CLI command name (first 3 words: "pachca section action")
+            const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
+            // Find matching API path from pathToCommand
+            const match = step.description.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s?,—.()]+)/);
+            if (match) {
+              const apiPath = match[2];
+              if (!map.has(apiPath)) map.set(apiPath, []);
+              const existing = map.get(apiPath)!;
+              const example = `${w.title}:\n  $ ${cmdBase}`;
+              if (!existing.includes(example)) existing.push(example);
+            }
+          } else {
+            const match = step.description.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s?,—.()]+)/);
+            if (match) {
+              const apiPath = match[2];
+              const key = `${match[1]} ${apiPath}`;
+              const cliCmd = pathToCommand.get(key) || `pachca api ${match[1]} ${apiPath}`;
+              if (!map.has(apiPath)) map.set(apiPath, []);
+              const existing = map.get(apiPath)!;
+              const example = `${w.title}:\n  $ ${cliCmd}`;
+              if (!existing.includes(example)) existing.push(example);
+            }
           }
         }
       }

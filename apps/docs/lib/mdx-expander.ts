@@ -15,7 +15,7 @@ import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
 import { getOrderedGuidePages } from './guides-config';
 import { generateNavigation } from './navigation';
-import { WORKFLOWS } from '../scripts/skills/workflows';
+import { WORKFLOWS } from '../data/workflows';
 import { SKILL_TAG_MAP } from '../scripts/skills/config';
 
 // ============================================
@@ -440,7 +440,8 @@ export async function expandMdxComponents(content: string): Promise<string> {
       for (const wf of workflows) {
         md += `**${wf.title}**\n\n`;
         wf.steps.forEach((step, i) => {
-          md += `${i + 1}. ${step}\n`;
+          const text = typeof step === 'string' ? step : step.description;
+          md += `${i + 1}. ${text}\n`;
         });
         if (wf.notes) md += `\n> ${wf.notes}\n`;
         md += '\n';

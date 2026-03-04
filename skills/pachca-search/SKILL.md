@@ -24,9 +24,7 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Найти сообщение по тексту
 
-1. GET /search/messages?query=текст — полнотекстовый поиск
-2. Пагинация: `limit` (до 200) и `cursor` (из `meta.paginate.next_page`)
-3. Общее количество результатов — в `meta.total`
+1. GET /search/messages?query=текст — полнотекстовый поиск. Пагинация: `limit` (до 200) и `cursor`. Общее количество результатов — в `meta.total`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/search/messages?query=отчёт&limit=10" \
@@ -37,8 +35,7 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=отчёт&limi
 
 ### Найти чат по названию
 
-1. GET /search/chats?query=название — полнотекстовый поиск по чатам
-2. Пагинация: `limit` (до 100) и `cursor`
+1. GET /search/chats?query=название — полнотекстовый поиск по чатам. Пагинация: `limit` (до 100) и `cursor`
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработка&limit=10" \
@@ -49,9 +46,7 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
 
 ### Найти сотрудника по имени
 
-1. GET /search/users?query=имя — полнотекстовый поиск по сотрудникам
-2. Пагинация: `limit` (до 200) и `cursor`
-3. Сортировка: `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию) для релевантности
+1. GET /search/users?query=имя — полнотекстовый поиск по сотрудникам. Пагинация: `limit` (до 200) и `cursor`. Сортировка: `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию) для релевантности
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10" \

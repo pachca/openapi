@@ -33,8 +33,10 @@ export default class ProfileDeleteStatus extends BaseCommand {
 
     if (!flags.force) {
       if (!this.isInteractive()) {
-        process.stderr.write('✗ Деструктивная операция требует флага --force в неинтерактивном режиме\n');
-        this.exit(2);
+        this.validationError(
+          [{ message: 'Деструктивная операция требует флага --force', flag: 'force' }],
+          { type: 'PACHCA_DESTRUCTIVE_OP_ERROR', hint: "pachca profile delete-status  --force" },
+        );
       }
       const confirm = await clack.confirm({ message: 'Вы уверены?' });
       if (clack.isCancel(confirm) || !confirm) {

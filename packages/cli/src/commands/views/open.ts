@@ -21,6 +21,18 @@ export default class ViewsOpen extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
+    'title': Flags.string({
+      description: "Заголовок представления (макс. 24 символов)",
+    }),
+    'close-text': Flags.string({
+      description: "Текст кнопки закрытия представления (макс. 24 символов)",
+    }),
+    'submit-text': Flags.string({
+      description: "Текст кнопки отправки формы (макс. 24 символов)",
+    }),
+    'blocks': Flags.string({
+      description: "Массив блоков представления",
+    }),
     'type': Flags.string({
       description: "Способ открытия представления",
       options: ["modal"],
@@ -34,9 +46,6 @@ export default class ViewsOpen extends BaseCommand {
     'callback-id': Flags.string({
       description: "Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь. (макс. 255 символов)",
     }),
-    'view': Flags.string({
-      description: "Собранный объект представления",
-    }),
   };
 
   async run(): Promise<void> {
@@ -44,9 +53,10 @@ export default class ViewsOpen extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
+      { flag: 'title', label: "Заголовок представления", type: 'string' },
+      { flag: 'blocks', label: "Массив блоков представления", type: 'string' },
       { flag: 'type', label: "Способ открытия представления", type: 'string' },
       { flag: 'trigger-id', label: "Уникальный идентификатор события (полученный, например, в исходящем вебхуке о нажатии кнопки)", type: 'string' },
-      { flag: 'view', label: "Собранный объект представления", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
     if (missingRequired.length > 0) {
@@ -66,6 +76,18 @@ export default class ViewsOpen extends BaseCommand {
       }
     }
 
+    if (flags['title'] && String(flags['title']).length > 24) {
+      process.stderr.write(`✗ --title: максимум 24 символов (передано: ${String(flags['title']).length})\n`);
+      this.exit(2);
+    }
+    if (flags['close-text'] && String(flags['close-text']).length > 24) {
+      process.stderr.write(`✗ --close-text: максимум 24 символов (передано: ${String(flags['close-text']).length})\n`);
+      this.exit(2);
+    }
+    if (flags['submit-text'] && String(flags['submit-text']).length > 24) {
+      process.stderr.write(`✗ --submit-text: максимум 24 символов (передано: ${String(flags['submit-text']).length})\n`);
+      this.exit(2);
+    }
     if (flags['type'] && !["modal"].includes(flags['type'])) {
       process.stderr.write(`✗ --type: допустимые значения — "modal"\n`);
       this.exit(2);
@@ -82,14 +104,21 @@ export default class ViewsOpen extends BaseCommand {
     this.checkScope("views:write");
 
     const body: Record<string, unknown> = {
+      view: {
+      title: flags['title'],
+      close_text: flags['close-text'],
+      submit_text: flags['submit-text'],
+      blocks: flags['blocks'] ? this.parseJSON(flags['blocks'], 'blocks') : undefined,
+      },
       type: flags['type'],
       trigger_id: flags['trigger-id'],
       private_metadata: flags['private-metadata'],
       callback_id: flags['callback-id'],
-      view: flags['view'] ? this.parseJSON(flags['view'], 'view') : undefined,
     };
     // Clean undefined fields
-    for (const [k, v] of Object.entries(body)) { if (v === undefined) delete body[k]; }
+    const inner = body['view'] as Record<string, unknown>;
+    for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+    for (const [k, v] of Object.entries(body)) { if (k !== 'view' && v === undefined) delete body[k]; }
 
     const { data } = await this.apiRequest({
       method: 'POST',

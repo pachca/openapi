@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { Hook } from '@oclif/core';
 import semver from 'semver';
@@ -54,7 +55,7 @@ const hook: Hook<'postrun'> = async function (opts) {
       }
 
       // Spawn detached background process to fetch latest version
-      const scriptPath = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'get-version.js');
+      const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'get-version.js');
       if (fs.existsSync(scriptPath)) {
         const child = spawn(process.execPath, [scriptPath, versionFile], {
           detached: true,

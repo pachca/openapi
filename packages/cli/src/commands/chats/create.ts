@@ -34,9 +34,11 @@ export default class ChatsCreate extends BaseCommand {
     }),
     'channel': Flags.boolean({
       description: "Является каналом",
+      allowNo: true,
     }),
     'public': Flags.boolean({
       description: "Открытый доступ",
+      allowNo: true,
     }),
   };
 

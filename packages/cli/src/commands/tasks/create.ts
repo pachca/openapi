@@ -2,7 +2,6 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
-import { Readable } from 'node:stream';
 
 export default class TasksCreate extends BaseCommand {
   static override description = "Новое напоминание";
@@ -44,6 +43,7 @@ export default class TasksCreate extends BaseCommand {
     }),
     'all-day': Flags.boolean({
       description: "Напоминание на весь день (без указания времени)",
+      allowNo: true,
     }),
     'custom-properties': Flags.string({
       description: "Задаваемые дополнительные поля",

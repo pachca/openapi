@@ -10,7 +10,6 @@ export default class CommonDirectUrl extends BaseCommand {
 
   static apiMethod = "POST";
   static apiPath = "/direct_url";
-  static requiresAuth = false;
 
   static override args = {
 
@@ -18,7 +17,7 @@ export default class CommonDirectUrl extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    'contentDisposition': Flags.string({
+    'content-disposition': Flags.string({
       description: "Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
     'acl': Flags.string({
@@ -27,16 +26,16 @@ export default class CommonDirectUrl extends BaseCommand {
     'policy': Flags.string({
       description: "Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
-    'xAmzCredential': Flags.string({
+    'x-amz-credential': Flags.string({
       description: "Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
-    'xAmzAlgorithm': Flags.string({
+    'x-amz-algorithm': Flags.string({
       description: "Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
-    'xAmzDate': Flags.string({
+    'x-amz-date': Flags.string({
       description: "Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
-    'xAmzSignature': Flags.string({
+    'x-amz-signature': Flags.string({
       description: "Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
     'key': Flags.string({
@@ -52,13 +51,13 @@ export default class CommonDirectUrl extends BaseCommand {
     this.parsedFlags = flags;
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
-      { flag: 'contentDisposition', label: "Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
+      { flag: 'content-disposition', label: "Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
       { flag: 'acl', label: "Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
       { flag: 'policy', label: "Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
-      { flag: 'xAmzCredential', label: "Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
-      { flag: 'xAmzAlgorithm', label: "Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
-      { flag: 'xAmzDate', label: "Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
-      { flag: 'xAmzSignature', label: "Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
+      { flag: 'x-amz-credential', label: "Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
+      { flag: 'x-amz-algorithm', label: "Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
+      { flag: 'x-amz-date', label: "Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
+      { flag: 'x-amz-signature', label: "Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
       { flag: 'key', label: "Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)", type: 'string' },
     ].filter((f) => (flags as Record<string, unknown>)[f.flag] === undefined || (flags as Record<string, unknown>)[f.flag] === null);
 
@@ -91,13 +90,13 @@ export default class CommonDirectUrl extends BaseCommand {
         const blob = new Blob([fs.readFileSync(flags.file)]);
         formData.append('file', blob, path.basename(flags.file));
       }
-      if (flags['contentDisposition']) formData.append('contentDisposition', String(flags['contentDisposition']));
+      if (flags['content-disposition']) formData.append('Content-Disposition', String(flags['content-disposition']));
       if (flags['acl']) formData.append('acl', String(flags['acl']));
       if (flags['policy']) formData.append('policy', String(flags['policy']));
-      if (flags['xAmzCredential']) formData.append('xAmzCredential', String(flags['xAmzCredential']));
-      if (flags['xAmzAlgorithm']) formData.append('xAmzAlgorithm', String(flags['xAmzAlgorithm']));
-      if (flags['xAmzDate']) formData.append('xAmzDate', String(flags['xAmzDate']));
-      if (flags['xAmzSignature']) formData.append('xAmzSignature', String(flags['xAmzSignature']));
+      if (flags['x-amz-credential']) formData.append('x-amz-credential', String(flags['x-amz-credential']));
+      if (flags['x-amz-algorithm']) formData.append('x-amz-algorithm', String(flags['x-amz-algorithm']));
+      if (flags['x-amz-date']) formData.append('x-amz-date', String(flags['x-amz-date']));
+      if (flags['x-amz-signature']) formData.append('x-amz-signature', String(flags['x-amz-signature']));
       if (flags['key']) formData.append('key', String(flags['key']));
     }
 

@@ -1,7 +1,6 @@
 // Auto-generated from openapi.yaml — DO NOT EDIT
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
-import { Readable } from 'node:stream';
 
 export default class MessagesUpdate extends BaseCommand {
   static override description = "Редактирование сообщения";
@@ -68,6 +67,11 @@ export default class MessagesUpdate extends BaseCommand {
     // Clean undefined fields
     const inner = body['message'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+
+    if (Object.keys(inner).length === 0) {
+      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\n');
+      return;
+    }
 
     const { data } = await this.apiRequest({
       method: 'PUT',

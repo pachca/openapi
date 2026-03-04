@@ -141,7 +141,13 @@ export function getConfigValue(key: string): unknown {
   return current;
 }
 
+const ALLOWED_CONFIG_KEYS = new Set(['defaults.output', 'defaults.timeout']);
+
 export function setConfigValue(key: string, value: string): void {
+  if (!ALLOWED_CONFIG_KEYS.has(key)) {
+    throw new Error(`Unknown config key: ${key}. Allowed keys: ${[...ALLOWED_CONFIG_KEYS].join(', ')}`);
+  }
+
   const config = readConfig();
   const parts = key.split('.');
 

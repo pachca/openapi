@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "version": "2026.3.1",
+    "date": "4 марта 2026",
+    "changes": [
+      { "type": "+", "command": "all", "description": "Все флаги в kebab-case (--first-name, --entity-id, --phone-number)" },
+      { "type": "+", "command": "all", "description": "Boolean-флаги с --no- префиксом (--suspended / --no-suspended)" },
+      { "type": "+", "command": "all", "description": "Хинт «через запятую» для массивных параметров (--chat-ids, --user-ids)" },
+      { "type": "+", "command": "all", "description": "DELETE --json выводит {\"ok\":true} в stdout" },
+      { "type": "+", "command": "all", "description": "POST/DELETE не ретраятся при сетевых ошибках" },
+      { "type": "+", "command": "common direct-url", "description": "Флаги в kebab-case (--content-disposition, --x-amz-credential)" },
+      { "type": "+", "command": "common direct-url", "description": "FormData wire names (Content-Disposition, x-amz-credential)" },
+      { "type": "+", "command": "chats list", "description": "Флаг --sort-last-message-at (был --sort-last_message_at)" },
+      { "type": "+", "command": "guide", "description": "Поиск по сценариям использования API" },
+      { "type": "+", "command": "doctor", "description": "Диагностика окружения (Node.js, сеть, токен, версия)" },
+      { "type": "+", "command": "introspect", "description": "Метаинформация о командах и флагах для агентов" },
+      { "type": "+", "command": "api", "description": "Прямые HTTP-запросы с -f/-F, --input, --query" }
+    ]
+  }
+]

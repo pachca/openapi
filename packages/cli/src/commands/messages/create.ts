@@ -2,7 +2,6 @@
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../../base-command.js';
 import * as clack from '@clack/prompts';
-import { Readable } from 'node:stream';
 
 export default class MessagesCreate extends BaseCommand {
   static override description = "Новое сообщение";
@@ -50,9 +49,11 @@ export default class MessagesCreate extends BaseCommand {
     }),
     'skip-invite-mentions': Flags.boolean({
       description: "Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.",
+      allowNo: true,
     }),
     'link-preview': Flags.boolean({
       description: "Отображение предпросмотра первой найденной ссылки в тексте сообщения",
+      allowNo: true,
     }),
   };
 

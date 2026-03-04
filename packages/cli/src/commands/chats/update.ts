@@ -28,6 +28,7 @@ export default class ChatsUpdate extends BaseCommand {
     }),
     'public': Flags.boolean({
       description: "Открытый доступ",
+      allowNo: true,
     }),
   };
 
@@ -44,6 +45,11 @@ export default class ChatsUpdate extends BaseCommand {
     // Clean undefined fields
     const inner = body['chat'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+
+    if (Object.keys(inner).length === 0) {
+      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\n');
+      return;
+    }
 
     const { data } = await this.apiRequest({
       method: 'PUT',

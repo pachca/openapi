@@ -35,6 +35,7 @@ export default class SearchListChats extends BaseCommand {
     }),
     'active': Flags.boolean({
       description: "Фильтр по активности чата",
+      allowNo: true,
     }),
     'chat-subtype': Flags.string({
       description: "Фильтр по типу чата",
@@ -42,6 +43,7 @@ export default class SearchListChats extends BaseCommand {
     }),
     'personal': Flags.boolean({
       description: "Фильтр по личным чатам",
+      allowNo: true,
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

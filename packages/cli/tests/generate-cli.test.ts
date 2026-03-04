@@ -139,4 +139,91 @@ describe('generate-cli', () => {
       expect(content).toContain('static scope = ');
     });
   });
+
+  describe('toKebabCase via generated output', () => {
+    it('should convert camelCase flag names to kebab-case (direct-url)', () => {
+      const content = fs.readFileSync(
+        path.join(COMMANDS_DIR, 'common', 'direct-url.ts'),
+        'utf-8',
+      );
+      expect(content).toContain("'content-disposition'");
+      expect(content).toContain("'x-amz-credential'");
+      expect(content).toContain("'x-amz-algorithm'");
+      expect(content).toContain("'x-amz-date'");
+      expect(content).toContain("'x-amz-signature'");
+      // Must NOT contain camelCase flag names
+      expect(content).not.toMatch(/'contentDisposition':\s*Flags/);
+      expect(content).not.toMatch(/'xAmz\w+':\s*Flags/);
+    });
+
+    it('should convert composite param names with underscores (sort flags)', () => {
+      const content = fs.readFileSync(
+        path.join(COMMANDS_DIR, 'chats', 'list.ts'),
+        'utf-8',
+      );
+      // sort[last_message_at] → sort-last-message-at (not sort-last_message_at)
+      expect(content).toContain("'sort-last-message-at'");
+      // Flag declaration must be kebab-case (wire name in query object keeps underscores)
+      expect(content).not.toMatch(/'sort-last_message_at':\s*Flags/);
+    });
+  });
+
+  describe('wrapper unwrap with sibling fields', () => {
+    it('users/create should have individual flags, not a single user JSON flag', () => {
+      const content = fs.readFileSync(
+        path.join(COMMANDS_DIR, 'users', 'create.ts'),
+        'utf-8',
+      );
+      // Individual flags for user fields
+      expect(content).toContain("'first-name': Flags.string");
+      expect(content).toContain("'last-name': Flags.string");
+      expect(content).toContain("'email': Flags.string");
+      // Sibling field at top level of body (not inside user wrapper)
+      expect(content).toContain("skip_email_notify: flags['skip-email-notify']");
+      // Wrapper structure: user: { first_name, ... } at inner level
+      expect(content).toContain("user: {");
+      expect(content).toContain("first_name: flags['first-name']");
+    });
+
+    it('views/open should have sibling fields at top level', () => {
+      const content = fs.readFileSync(
+        path.join(COMMANDS_DIR, 'views', 'open.ts'),
+        'utf-8',
+      );
+      // Siblings: type, trigger_id, private_metadata, callback_id
+      expect(content).toMatch(/type: flags\['type'\],\s*\n\s*trigger_id:/);
+      // View wrapper inner fields
+      expect(content).toContain("view: {");
+    });
+  });
+
+  describe('multipart wire names', () => {
+    it('direct-url should use correct wire names in formData.append', () => {
+      const content = fs.readFileSync(
+        path.join(COMMANDS_DIR, 'common', 'direct-url.ts'),
+        'utf-8',
+      );
+      expect(content).toContain("formData.append('Content-Disposition'");
+      expect(content).toContain("formData.append('x-amz-credential'");
+      expect(content).toContain("formData.append('x-amz-algorithm'");
+      expect(content).toContain("formData.append('x-amz-date'");
+      expect(content).toContain("formData.append('x-amz-signature'");
+      // Flags use kebab-case
+      expect(content).toContain("flags['content-disposition']");
+      expect(content).toContain("flags['x-amz-credential']");
+    });
+  });
+
+  describe('array query params', () => {
+    it('search commands should hint comma-separated format', () => {
+      const content = fs.readFileSync(
+        path.join(COMMANDS_DIR, 'search', 'list-messages.ts'),
+        'utf-8',
+      );
+      // Hint is added as string concatenation: "description" + " (через запятую)"
+      expect(content).toContain('через запятую');
+      expect(content).toContain("'chat-ids'");
+      expect(content).toContain("'user-ids'");
+    });
+  });
 });

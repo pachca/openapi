@@ -190,5 +190,7 @@ export function outputSuccess(message: string, quiet?: boolean): void {
   if (quiet) return;
   if (process.stderr.isTTY) {
     process.stderr.write(`✔ ${message}\n`);
+  } else {
+    process.stderr.write(`${message}\n`);
   }
 }

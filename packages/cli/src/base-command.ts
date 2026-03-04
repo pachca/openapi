@@ -108,6 +108,9 @@ export abstract class BaseCommand extends Command {
     };
   }
 
+  /**
+   * Safely parse JSON string from a flag value.
+   */
   protected parseJSON(value: string, flagName: string): unknown {
     try {
       return JSON.parse(value);
@@ -223,6 +226,10 @@ export abstract class BaseCommand extends Command {
    * Output a success message to stderr.
    */
   protected success(message: string): void {
+    const format = this.getOutputFormat();
+    if (format === 'json') {
+      process.stdout.write(JSON.stringify({ ok: true }) + '\n');
+    }
     outputSuccess(message, this.parsedFlags.quiet);
   }
 

@@ -88,6 +88,13 @@ describe('output', () => {
       const calls = stdoutWrite.mock.calls.map((c: unknown[]) => c[0]);
       expect(calls[1]).toBe('1,\n');
     });
+
+    it('should escape CSV values with newlines', () => {
+      const data = [{ desc: 'Line 1\nLine 2' }];
+      outputData(data, { format: 'csv', quiet: false });
+      const calls = stdoutWrite.mock.calls.map((c: unknown[]) => c[0]);
+      expect(calls[1]).toBe('"Line 1\nLine 2"\n');
+    });
   });
 
   describe('table', () => {
@@ -230,6 +237,14 @@ describe('output', () => {
       const output = stderrWrite.mock.calls[0][0] as string;
       expect(() => JSON.parse(output)).not.toThrow();
     });
+
+    it('should not show "null" when error code is null in TTY', () => {
+      Object.defineProperty(process.stderr, 'isTTY', { value: true, writable: true, configurable: true });
+      outputError({ error: 'Network error', code: null, type: 'PACHCA_NETWORK_ERROR' }, 'table');
+      const combined = stderrWrite.mock.calls.map((c: unknown[]) => c[0]).join('');
+      expect(combined).not.toContain('null');
+      expect(combined).toContain('Network error');
+    });
   });
 
   describe('outputSuccess', () => {
@@ -246,10 +261,10 @@ describe('output', () => {
       expect(stderrWrite).not.toHaveBeenCalled();
     });
 
-    it('should suppress success message in non-TTY', () => {
+    it('should output plain success message in non-TTY', () => {
       Object.defineProperty(process.stderr, 'isTTY', { value: false, writable: true, configurable: true });
       outputSuccess('Done');
-      expect(stderrWrite).not.toHaveBeenCalled();
+      expect(stderrWrite).toHaveBeenCalledWith('Done\n');
     });
   });
 });

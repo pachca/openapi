@@ -15,7 +15,7 @@ import * as yaml from 'js-yaml';
 // We read the openapi.yaml directly instead of importing parser.ts to avoid
 // complex cross-package path resolution at build time.
 
-interface Schema {
+export interface Schema {
   type?: string | string[];
   format?: string;
   description?: string;
@@ -42,7 +42,7 @@ interface Schema {
   additionalProperties?: boolean | Schema;
 }
 
-interface Parameter {
+export interface Parameter {
   name: string;
   in: 'query' | 'path' | 'header' | 'cookie';
   description?: string;
@@ -51,19 +51,19 @@ interface Parameter {
   'x-param-names'?: { name: string; description?: string }[];
 }
 
-interface RequestBody {
+export interface RequestBody {
   description?: string;
   required?: boolean;
   content: Record<string, { schema: Schema }>;
 }
 
-interface Response {
+export interface Response {
   description: string;
   content?: Record<string, { schema: Schema }>;
   headers?: Record<string, { description?: string; schema?: Schema }>;
 }
 
-interface Endpoint {
+export interface Endpoint {
   id: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   path: string;
@@ -90,7 +90,7 @@ import { generateUrlFromOperation } from '../../../apps/docs/lib/openapi/mapper.
 
 // ----- OpenAPI Parsing -----
 
-function parseOpenAPI(): Endpoint[] {
+export function parseOpenAPI(): Endpoint[] {
   const raw = fs.readFileSync(SPEC_PATH, 'utf-8');
   const spec = yaml.load(raw) as Record<string, unknown>;
   const paths = (spec.paths || {}) as Record<string, Record<string, unknown>>;
@@ -325,7 +325,7 @@ function generateCommand(endpoint: Endpoint, examples?: string[]): GeneratedComm
   return { section, action, filename, code, summary };
 }
 
-interface BodyField {
+export interface BodyField {
   name: string;
   type: string;
   format?: string;
@@ -335,9 +335,27 @@ interface BodyField {
   maxLength?: number;
   maximum?: number;
   minimum?: number;
+  isSibling?: boolean;
 }
 
-function extractBodyFields(requestBody?: RequestBody): BodyField[] {
+/** Wire names for multipart/form-data fields that differ from schema property names */
+export const MULTIPART_WIRE_NAMES: Record<string, string> = {
+  contentDisposition: 'Content-Disposition',
+  xAmzCredential: 'x-amz-credential',
+  xAmzAlgorithm: 'x-amz-algorithm',
+  xAmzDate: 'x-amz-date',
+  xAmzSignature: 'x-amz-signature',
+};
+
+/** Convert camelCase/snake_case to kebab-case for flag names */
+export function toKebabCase(name: string): string {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/_/g, '-')
+    .toLowerCase();
+}
+
+export function extractBodyFields(requestBody?: RequestBody): BodyField[] {
   if (!requestBody) return [];
 
   const jsonContent = requestBody.content['application/json'];
@@ -353,14 +371,20 @@ function extractBodyFields(requestBody?: RequestBody): BodyField[] {
   const properties = resolved.properties || {};
   const requiredFields = new Set(resolved.required || []);
 
-  // Check if top-level is a wrapper (single property that's an object)
+  // Check if top-level has exactly one object property that can be unwrapped
   const topKeys = Object.keys(properties);
-  if (topKeys.length === 1) {
-    const wrapper = properties[topKeys[0]];
+  const objectKeys = topKeys.filter((k) => {
+    const inner = resolveAllOf(properties[k]);
+    return inner.properties && Object.keys(inner.properties).length > 0;
+  });
+
+  if (objectKeys.length === 1) {
+    const wrapperKey = objectKeys[0];
+    const wrapper = properties[wrapperKey];
     const innerResolved = resolveAllOf(wrapper);
     if (innerResolved.properties) {
       const innerRequired = new Set(innerResolved.required || []);
-      return Object.entries(innerResolved.properties)
+      const fields: BodyField[] = Object.entries(innerResolved.properties)
         .filter(([, v]) => !v.readOnly)
         .map(([name, propSchema]) => ({
           name,
@@ -373,6 +397,26 @@ function extractBodyFields(requestBody?: RequestBody): BodyField[] {
           maximum: propSchema.maximum,
           minimum: propSchema.minimum,
         }));
+
+      // Add sibling scalar fields (non-object top-level properties)
+      for (const key of topKeys) {
+        if (key === wrapperKey) continue;
+        const propSchema = resolveAllOf(properties[key]);
+        fields.push({
+          name: key,
+          type: getSchemaType(propSchema),
+          format: propSchema.format,
+          required: requiredFields.has(key),
+          description: propSchema.description,
+          enum: propSchema.enum,
+          maxLength: propSchema.maxLength,
+          maximum: propSchema.maximum,
+          minimum: propSchema.minimum,
+          isSibling: true,
+        });
+      }
+
+      return fields;
     }
   }
 
@@ -392,7 +436,7 @@ function extractBodyFields(requestBody?: RequestBody): BodyField[] {
     }));
 }
 
-function resolveAllOf(schema: Schema): Schema {
+export function resolveAllOf(schema: Schema): Schema {
   if (!schema.allOf || schema.allOf.length === 0) return schema;
   let merged: Schema = {};
   for (const sub of schema.allOf) {
@@ -407,7 +451,7 @@ function resolveAllOf(schema: Schema): Schema {
   return merged;
 }
 
-function getSchemaType(schema: Schema): string {
+export function getSchemaType(schema: Schema): string {
   if (schema.type) {
     if (Array.isArray(schema.type)) return schema.type[0];
     return schema.type;
@@ -489,7 +533,7 @@ function generateCommandCode(p: CommandGenParams): string {
     if (param['x-param-names']) continue;
     if (param.required) {
       requiredQueryFlags.push({
-        flagName: param.name.replace(/_/g, '-'),
+        flagName: toKebabCase(param.name),
         description: param.description || param.name,
         type: getOclifFlagType(param.schema),
       });
@@ -500,7 +544,7 @@ function generateCommandCode(p: CommandGenParams): string {
     if (p.hasBinaryField && field.format === 'binary') continue;
     if (field.required) {
       requiredBodyFlags.push({
-        flagName: field.name.replace(/_/g, '-'),
+        flagName: toKebabCase(field.name),
         description: field.description || field.name,
         type: getOclifFlagType({ type: field.type, enum: field.enum } as Schema),
       });
@@ -525,10 +569,6 @@ function generateCommandCode(p: CommandGenParams): string {
     imports.push(`import { downloadFile } from '../../client.js';`);
     imports.push(`import { formatSize } from '../../utils.js';`);
   }
-  if (p.stdinField) {
-    imports.push(`import { Readable } from 'node:stream';`);
-  }
-
   // Build args
   const argsCode = p.pathParams.map((param) => {
     const argName = param.name.replace(/[{}]/g, '');
@@ -547,7 +587,7 @@ function generateCommandCode(p: CommandGenParams): string {
     // Handle x-param-names (composite params like sort[{field}])
     if (param['x-param-names']) {
       for (const sub of param['x-param-names']) {
-        const flagName = sub.name.replace(/[\[\]]/g, '-').replace(/-+/g, '-').replace(/-$/, '');
+        const flagName = toKebabCase(sub.name.replace(/[\[\]]/g, '-').replace(/-+/g, '-').replace(/-$/, ''));
         queryFlagLines.push(`    '${flagName}': Flags.string({
       description: ${JSON.stringify(sub.description || sub.name)},
     }),`);
@@ -555,13 +595,15 @@ function generateCommandCode(p: CommandGenParams): string {
       continue;
     }
 
-    const flagName = param.name.replace(/_/g, '-');
+    const flagName = toKebabCase(param.name);
     const flagType = getOclifFlagType(param.schema);
     const extras: string[] = [];
     if (param.schema.enum) extras.push(`      options: ${JSON.stringify(param.schema.enum)},`);
+    if (flagType === 'boolean') extras.push(`      allowNo: true,`);
     const extrasStr = extras.length > 0 ? '\n' + extras.join('\n') : '';
+    const arrayHint = param.schema.type === 'array' ? ' (через запятую)' : '';
     queryFlagLines.push(`    '${flagName}': Flags.${flagType}({
-      description: ${JSON.stringify(param.description || param.name)},${extrasStr}
+      description: ${JSON.stringify(param.description || param.name)}${arrayHint ? ` + ${JSON.stringify(arrayHint)}` : ''},${extrasStr}
     }),`);
   }
 
@@ -589,11 +631,12 @@ function generateCommandCode(p: CommandGenParams): string {
       continue;
     }
 
-    const flagName = field.name.replace(/_/g, '-');
+    const flagName = toKebabCase(field.name);
     const flagType = getOclifFlagType({ type: field.type, enum: field.enum } as Schema);
     const maxLenComment = field.maxLength ? ` (макс. ${field.maxLength} символов)` : '';
     const bodyExtras: string[] = [];
     if (field.enum) bodyExtras.push(`      options: ${JSON.stringify(field.enum)},`);
+    if (flagType === 'boolean') bodyExtras.push(`      allowNo: true,`);
     const bodyExtrasStr = bodyExtras.length > 0 ? '\n' + bodyExtras.join('\n') : '';
     bodyFlagLines.push(`    '${flagName}': Flags.${flagType}({
       description: ${JSON.stringify((field.description || field.name) + maxLenComment)},${bodyExtrasStr}
@@ -624,7 +667,7 @@ function generateCommandCode(p: CommandGenParams): string {
 
   // Stdin support for text fields
   if (p.stdinField) {
-    const flagName = p.stdinField.name.replace(/_/g, '-');
+    const flagName = toKebabCase(p.stdinField.name);
     runBodyLines.push('');
     runBodyLines.push(`    // Read from stdin if --${flagName} not provided and stdin is not TTY`);
     runBodyLines.push(`    if (!flags['${flagName}'] && !process.stdin.isTTY) {`);
@@ -666,7 +709,7 @@ function generateCommandCode(p: CommandGenParams): string {
   // Validation
   const validations: string[] = [];
   for (const field of p.bodyFields) {
-    const flagName = field.name.replace(/_/g, '-');
+    const flagName = toKebabCase(field.name);
     if (field.maxLength) {
       validations.push(`    if (flags['${flagName}'] && String(flags['${flagName}']).length > ${field.maxLength}) {
       process.stderr.write(\`✗ --${flagName}: максимум ${field.maxLength} символов (передано: \${String(flags['${flagName}']).length})\\n\`);
@@ -719,12 +762,12 @@ function generateCommandCode(p: CommandGenParams): string {
     if (p.hasPagination && (param.name === 'cursor' || param.name === 'limit')) continue;
     if (param['x-param-names']) {
       for (const sub of param['x-param-names']) {
-        const flagName = sub.name.replace(/[\[\]]/g, '-').replace(/-+/g, '-').replace(/-$/, '');
+        const flagName = toKebabCase(sub.name.replace(/[\[\]]/g, '-').replace(/-+/g, '-').replace(/-$/, ''));
         queryEntries.push(`      '${sub.name}': flags['${flagName}'],`);
       }
       continue;
     }
-    const flagName = param.name.replace(/_/g, '-');
+    const flagName = toKebabCase(param.name);
     if (flagName !== param.name) {
       queryEntries.push(`      '${param.name}': flags['${flagName}'],`);
     } else {
@@ -737,22 +780,26 @@ function generateCommandCode(p: CommandGenParams): string {
   }
 
   // Build request body object
-  const bodyEntries: string[] = [];
+  const wrapperEntries: string[] = [];
+  const siblingEntries: string[] = [];
   const jsonContent = p.endpoint.requestBody?.content['application/json'];
   const wrapperKey = jsonContent ? getWrapperKey(jsonContent.schema) : null;
 
   for (const field of p.bodyFields) {
     if (field.format === 'binary') continue;
-    const flagName = field.name.replace(/_/g, '-');
+    const flagName = toKebabCase(field.name);
+    let entry: string;
     // Parse JSON array/object flags
     if (field.type === 'array' || field.type === 'object') {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'] ? this.parseJSON(flags['${flagName}'], '${flagName}') : undefined,`);
-    } else if (field.type === 'integer' || field.type === 'number') {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'],`);
-    } else if (field.type === 'boolean') {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'],`);
+      entry = `      ${field.name}: flags['${flagName}'] ? this.parseJSON(flags['${flagName}'], '${flagName}') : undefined,`;
     } else {
-      bodyEntries.push(`      ${field.name}: flags['${flagName}'],`);
+      entry = `      ${field.name}: flags['${flagName}'],`;
+    }
+
+    if (wrapperKey && field.isSibling) {
+      siblingEntries.push(entry);
+    } else {
+      wrapperEntries.push(entry);
     }
   }
 
@@ -826,8 +873,9 @@ function generateCommandCode(p: CommandGenParams): string {
     // Add other fields to FormData
     for (const field of p.bodyFields) {
       if (field.format === 'binary') continue;
-      const flagName = field.name.replace(/_/g, '-');
-      runBodyLines.push(`      if (flags['${flagName}']) formData.append('${field.name}', String(flags['${flagName}']));`);
+      const flagName = toKebabCase(field.name);
+      const wireName = MULTIPART_WIRE_NAMES[field.name] || field.name;
+      runBodyLines.push(`      if (flags['${flagName}']) formData.append('${wireName}', String(flags['${flagName}']));`);
     }
     runBodyLines.push(`    }`);
     runBodyLines.push('');
@@ -841,10 +889,17 @@ function generateCommandCode(p: CommandGenParams): string {
     }
     runBodyLines.push(`      formData,`);
     runBodyLines.push(`    });`);
-  } else if (bodyEntries.length > 0) {
-    const bodyObj = wrapperKey
-      ? `{ ${wrapperKey}: {\n${bodyEntries.join('\n')}\n    } }`
-      : `{\n${bodyEntries.join('\n')}\n    }`;
+  } else if (wrapperEntries.length > 0 || siblingEntries.length > 0) {
+    let bodyObj: string;
+    if (wrapperKey) {
+      if (siblingEntries.length > 0) {
+        bodyObj = `{\n      ${wrapperKey}: {\n${wrapperEntries.join('\n')}\n      },\n${siblingEntries.join('\n')}\n    }`;
+      } else {
+        bodyObj = `{ ${wrapperKey}: {\n${wrapperEntries.join('\n')}\n    } }`;
+      }
+    } else {
+      bodyObj = `{\n${wrapperEntries.join('\n')}\n    }`;
+    }
 
     // Clean undefined fields
     runBodyLines.push(`    const body: Record<string, unknown> = ${bodyObj};`);
@@ -852,9 +907,26 @@ function generateCommandCode(p: CommandGenParams): string {
     if (wrapperKey) {
       runBodyLines.push(`    const inner = body['${wrapperKey}'] as Record<string, unknown>;`);
       runBodyLines.push(`    for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }`);
+      if (siblingEntries.length > 0) {
+        runBodyLines.push(`    for (const [k, v] of Object.entries(body)) { if (k !== '${wrapperKey}' && v === undefined) delete body[k]; }`);
+      }
     } else {
       runBodyLines.push(`    for (const [k, v] of Object.entries(body)) { if (v === undefined) delete body[k]; }`);
     }
+
+    // Empty body warning for update commands
+    if (p.endpoint.method === 'PUT' || p.endpoint.method === 'PATCH') {
+      runBodyLines.push('');
+      if (wrapperKey) {
+        runBodyLines.push(`    if (Object.keys(inner).length === 0) {`);
+      } else {
+        runBodyLines.push(`    if (Object.keys(body).length === 0) {`);
+      }
+      runBodyLines.push(`      process.stderr.write('⚠ Не указаны поля для обновления. Используйте --help для списка флагов.\\n');`);
+      runBodyLines.push(`      return;`);
+      runBodyLines.push(`    }`);
+    }
+
     runBodyLines.push('');
     runBodyLines.push(`    const { data } = await this.apiRequest({`);
     runBodyLines.push(`      method: '${p.endpoint.method}',`);
@@ -914,7 +986,6 @@ function generateCommandCode(p: CommandGenParams): string {
   if (p.plan) staticMeta.push(`  static plan = ${JSON.stringify(p.plan)};`);
   staticMeta.push(`  static apiMethod = ${JSON.stringify(p.endpoint.method)};`);
   staticMeta.push(`  static apiPath = ${JSON.stringify(p.endpoint.path)};`);
-  if (!p.requiresAuth) staticMeta.push(`  static requiresAuth = false;`);
   if (p.defaultColumns.length > 0) staticMeta.push(`  static defaultColumns = ${JSON.stringify(p.defaultColumns)};`);
 
   // Build examples from workflows
@@ -946,14 +1017,15 @@ ${runBodyLines.join('\n')}
 `;
 }
 
-function getWrapperKey(schema: Schema): string | null {
+export function getWrapperKey(schema: Schema): string | null {
   const resolved = resolveAllOf(schema);
   if (!resolved.properties) return null;
   const keys = Object.keys(resolved.properties);
-  if (keys.length === 1) {
-    const inner = resolveAllOf(resolved.properties[keys[0]]);
-    if (inner.properties) return keys[0];
-  }
+  const objectKeys = keys.filter((k) => {
+    const inner = resolveAllOf(resolved.properties![k]);
+    return inner.properties && Object.keys(inner.properties).length > 0;
+  });
+  if (objectKeys.length === 1) return objectKeys[0];
   return null;
 }
 

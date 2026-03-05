@@ -45,7 +45,7 @@ class MessageWebhookPayload:
             chat_id (int): Идентификатор чата, в котором находится сообщение Example: 9012.
             webhook_timestamp (int): Дата и время отправки вебхука (UTC+0) в формате UNIX Example: 1747574400.
             parent_message_id (int | None | Unset): Идентификатор сообщения, к которому написан ответ Example: 3456.
-            thread (WebhookMessageThread | Unset): Объект треда в вебхуке сообщения
+            thread (None | Unset | WebhookMessageThread): Объект с параметрами треда
      """
 
     type_: MessageWebhookPayloadType
@@ -60,7 +60,7 @@ class MessageWebhookPayload:
     chat_id: int
     webhook_timestamp: int
     parent_message_id: int | None | Unset = UNSET
-    thread: WebhookMessageThread | Unset = UNSET
+    thread: None | Unset | WebhookMessageThread = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -97,9 +97,13 @@ class MessageWebhookPayload:
         else:
             parent_message_id = self.parent_message_id
 
-        thread: dict[str, Any] | Unset = UNSET
-        if not isinstance(self.thread, Unset):
+        thread: dict[str, Any] | None | Unset
+        if isinstance(self.thread, Unset):
+            thread = UNSET
+        elif isinstance(self.thread, WebhookMessageThread):
             thread = self.thread.to_dict()
+        else:
+            thread = self.thread
 
 
         field_dict: dict[str, Any] = {}
@@ -174,14 +178,24 @@ class MessageWebhookPayload:
         parent_message_id = _parse_parent_message_id(d.pop("parent_message_id", UNSET))
 
 
-        _thread = d.pop("thread", UNSET)
-        thread: WebhookMessageThread | Unset
-        if isinstance(_thread,  Unset):
-            thread = UNSET
-        else:
-            thread = WebhookMessageThread.from_dict(_thread)
+        def _parse_thread(data: object) -> None | Unset | WebhookMessageThread:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                thread_type_1 = WebhookMessageThread.from_dict(data)
 
 
+
+                return thread_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(None | Unset | WebhookMessageThread, data)
+
+        thread = _parse_thread(d.pop("thread", UNSET))
 
 
         message_webhook_payload = cls(

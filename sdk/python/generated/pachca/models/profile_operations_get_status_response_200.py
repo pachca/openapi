@@ -26,10 +26,10 @@ class ProfileOperationsGetStatusResponse200:
     """ Обертка ответа с данными
 
         Attributes:
-            data (UserStatus): Статус пользователя
+            data (None | UserStatus):
      """
 
-    data: UserStatus
+    data: None | UserStatus
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
 
@@ -38,7 +38,11 @@ class ProfileOperationsGetStatusResponse200:
 
     def to_dict(self) -> dict[str, Any]:
         from ..models.user_status import UserStatus
-        data = self.data.to_dict()
+        data: dict[str, Any] | None
+        if isinstance(self.data, UserStatus):
+            data = self.data.to_dict()
+        else:
+            data = self.data
 
 
         field_dict: dict[str, Any] = {}
@@ -55,9 +59,22 @@ class ProfileOperationsGetStatusResponse200:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.user_status import UserStatus
         d = dict(src_dict)
-        data = UserStatus.from_dict(d.pop("data"))
+        def _parse_data(data: object) -> None | UserStatus:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                data_type_1 = UserStatus.from_dict(data)
 
 
+
+                return data_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(None | UserStatus, data)
+
+        data = _parse_data(d.pop("data"))
 
 
         profile_operations_get_status_response_200 = cls(

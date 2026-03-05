@@ -47,8 +47,8 @@ class Message:
             url (str): Прямая ссылка на сообщение Example: https://app.pachca.com/chats/334?message=194275.
             files (list[File]): Прикрепленные файлы
             buttons (list[list[Button]] | None): Массив строк, каждая из которых представлена массивом кнопок
-            thread (Thread): Тред
-            forwarding (Forwarding): Информация о пересланном сообщении
+            thread (None | Thread): Тред сообщения
+            forwarding (Forwarding | None): Информация о пересланном сообщении
             parent_message_id (int | None): Идентификатор сообщения, к которому написан ответ
             display_avatar_url (None | str): Ссылка на аватарку отправителя сообщения
             display_name (None | str): Полное имя отправителя сообщения
@@ -69,8 +69,8 @@ class Message:
     url: str
     files: list[File]
     buttons: list[list[Button]] | None
-    thread: Thread
-    forwarding: Forwarding
+    thread: None | Thread
+    forwarding: Forwarding | None
     parent_message_id: int | None
     display_avatar_url: None | str
     display_name: None | str
@@ -83,10 +83,10 @@ class Message:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.forwarding import Forwarding
-        from ..models.thread import Thread
         from ..models.file import File
+        from ..models.thread import Thread
         from ..models.button import Button
+        from ..models.forwarding import Forwarding
         id = self.id
 
         entity_type = self.entity_type.value
@@ -128,9 +128,17 @@ class Message:
         else:
             buttons = self.buttons
 
-        thread = self.thread.to_dict()
+        thread: dict[str, Any] | None
+        if isinstance(self.thread, Thread):
+            thread = self.thread.to_dict()
+        else:
+            thread = self.thread
 
-        forwarding = self.forwarding.to_dict()
+        forwarding: dict[str, Any] | None
+        if isinstance(self.forwarding, Forwarding):
+            forwarding = self.forwarding.to_dict()
+        else:
+            forwarding = self.forwarding
 
         parent_message_id: int | None
         parent_message_id = self.parent_message_id
@@ -250,14 +258,40 @@ class Message:
         buttons = _parse_buttons(d.pop("buttons"))
 
 
-        thread = Thread.from_dict(d.pop("thread"))
+        def _parse_thread(data: object) -> None | Thread:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                thread_type_1 = Thread.from_dict(data)
 
 
 
+                return thread_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(None | Thread, data)
 
-        forwarding = Forwarding.from_dict(d.pop("forwarding"))
+        thread = _parse_thread(d.pop("thread"))
 
 
+        def _parse_forwarding(data: object) -> Forwarding | None:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                forwarding_type_1 = Forwarding.from_dict(data)
+
+
+
+                return forwarding_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(Forwarding | None, data)
+
+        forwarding = _parse_forwarding(d.pop("forwarding"))
 
 
         def _parse_parent_message_id(data: object) -> int | None:

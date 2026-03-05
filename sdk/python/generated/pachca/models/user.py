@@ -44,7 +44,7 @@ class User:
             invite_status (InviteStatus): Статус приглашения пользователя
             list_tags (list[str]): Массив тегов, привязанных к сотруднику Example: ['Product', 'Design'].
             custom_properties (list[CustomProperty]): Дополнительные поля сотрудника
-            user_status (UserStatus): Статус пользователя
+            user_status (None | UserStatus): Статус
             bot (bool): Является ботом
             sso (bool): Использует ли пользователь SSO
             created_at (datetime.datetime): Дата создания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ Example:
@@ -69,7 +69,7 @@ class User:
     invite_status: InviteStatus
     list_tags: list[str]
     custom_properties: list[CustomProperty]
-    user_status: UserStatus
+    user_status: None | UserStatus
     bot: bool
     sso: bool
     created_at: datetime.datetime
@@ -118,7 +118,11 @@ class User:
 
 
 
-        user_status = self.user_status.to_dict()
+        user_status: dict[str, Any] | None
+        if isinstance(self.user_status, UserStatus):
+            user_status = self.user_status.to_dict()
+        else:
+            user_status = self.user_status
 
         bot = self.bot
 
@@ -209,9 +213,22 @@ class User:
             custom_properties.append(custom_properties_item)
 
 
-        user_status = UserStatus.from_dict(d.pop("user_status"))
+        def _parse_user_status(data: object) -> None | UserStatus:
+            if data is None:
+                return data
+            try:
+                if not isinstance(data, dict):
+                    raise TypeError()
+                user_status_type_1 = UserStatus.from_dict(data)
 
 
+
+                return user_status_type_1
+            except (TypeError, ValueError, AttributeError, KeyError):
+                pass
+            return cast(None | UserStatus, data)
+
+        user_status = _parse_user_status(d.pop("user_status"))
 
 
         bot = d.pop("bot")

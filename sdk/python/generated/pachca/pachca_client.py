@@ -301,6 +301,30 @@ class CommonService:
         _raise_for_error(result)
         return result
 
+    def upload_file(self, upload_params: UploadParams, file: bytes, filename: str) -> str:
+        """Upload a file using params from get_upload_params().
+
+        Handles multipart form construction and ${filename} substitution.
+        Returns the file key for use in message attachments."""
+        key = upload_params.key.replace("${filename}", filename)
+        resp = httpx.post(
+            upload_params.direct_url,
+            data={
+                "Content-Disposition": upload_params.content_disposition,
+                "acl": upload_params.acl,
+                "policy": upload_params.policy,
+                "x-amz-credential": upload_params.x_amz_credential,
+                "x-amz-algorithm": upload_params.x_amz_algorithm,
+                "x-amz-date": upload_params.x_amz_date,
+                "x-amz-signature": upload_params.x_amz_signature,
+                "key": key,
+            },
+            files={"file": (filename, file)},
+        )
+        if resp.status_code not in (201, 204):
+            raise PachcaAPIError(message=f"Upload failed with status {resp.status_code}")
+        return key
+
 
 class GroupTagsService:
     def __init__(self, client: AuthenticatedClient):
@@ -434,10 +458,10 @@ class ProfileService:
         _raise_for_error(result)
         return result.data
 
-    def get_status(self) -> UserStatus:
+    def get_status(self) -> ProfileOperationsGetStatusResponse200:
         result = profile_operations_get_status.sync(client=self._client)
         _raise_for_error(result)
-        return result.data
+        return result
 
     def update_status(self, status: StatusUpdateRequestStatus) -> UserStatus:
         result = profile_operations_update_status.sync(client=self._client, body=StatusUpdateRequest(status=status))
@@ -580,10 +604,10 @@ class UsersService:
         result = user_status_operations_delete_user_status.sync(user_id, client=self._client)
         _raise_for_error(result)
 
-    def get_user_status(self, user_id: int) -> UserStatus:
+    def get_user_status(self, user_id: int) -> UserStatusOperationsGetUserStatusResponse200:
         result = user_status_operations_get_user_status.sync(user_id, client=self._client)
         _raise_for_error(result)
-        return result.data
+        return result
 
     def update_user_status(self, user_id: int, status: StatusUpdateRequestStatus) -> UserStatus:
         result = user_status_operations_update_user_status.sync(user_id, client=self._client, body=StatusUpdateRequest(status=status))

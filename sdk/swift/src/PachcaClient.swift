@@ -15,30 +15,24 @@ public final class PachcaClient: @unchecked Sendable {
         )
     }
 
-    public var bot: BotGroup { BotGroup(client: client) }
-    public var chat: ChatGroup { ChatGroup(client: client) }
-    public var chatMember: ChatMemberGroup { ChatMemberGroup(client: client) }
-    public var chatMessage: ChatMessageGroup { ChatMessageGroup(client: client) }
+    public var bots: BotsGroup { BotsGroup(client: client) }
+    public var chats: ChatsGroup { ChatsGroup(client: client) }
     public var common: CommonGroup { CommonGroup(client: client) }
-    public var directUpload: DirectUploadGroup { DirectUploadGroup(client: client) }
-    public var export: ExportGroup { ExportGroup(client: client) }
-    public var form: FormGroup { FormGroup(client: client) }
-    public var groupTag: GroupTagGroup { GroupTagGroup(client: client) }
-    public var linkPreview: LinkPreviewGroup { LinkPreviewGroup(client: client) }
-    public var message: MessageGroup { MessageGroup(client: client) }
-    public var oAuth: OAuthGroup { OAuthGroup(client: client) }
+    public var groupTags: GroupTagsGroup { GroupTagsGroup(client: client) }
+    public var linkPreviews: LinkPreviewsGroup { LinkPreviewsGroup(client: client) }
+    public var members: MembersGroup { MembersGroup(client: client) }
+    public var messages: MessagesGroup { MessagesGroup(client: client) }
     public var profile: ProfileGroup { ProfileGroup(client: client) }
-    public var reaction: ReactionGroup { ReactionGroup(client: client) }
-    public var readMember: ReadMemberGroup { ReadMemberGroup(client: client) }
+    public var reactions: ReactionsGroup { ReactionsGroup(client: client) }
+    public var readMembers: ReadMembersGroup { ReadMembersGroup(client: client) }
     public var search: SearchGroup { SearchGroup(client: client) }
     public var security: SecurityGroup { SecurityGroup(client: client) }
-    public var task: TaskGroup { TaskGroup(client: client) }
-    public var thread: ThreadGroup { ThreadGroup(client: client) }
-    public var upload: UploadGroup { UploadGroup(client: client) }
-    public var user: UserGroup { UserGroup(client: client) }
-    public var userStatus: UserStatusGroup { UserStatusGroup(client: client) }
+    public var tasks: TasksGroup { TasksGroup(client: client) }
+    public var threads: ThreadsGroup { ThreadsGroup(client: client) }
+    public var users: UsersGroup { UsersGroup(client: client) }
+    public var views: ViewsGroup { ViewsGroup(client: client) }
 
-    /// Upload a file using params from `upload.getUploadParams()`.
+    /// Upload a file using params from `common.getUploadParams()`.
     /// Handles multipart form construction and `${filename}` substitution.
     /// Returns the file key for use in message attachments.
     public func uploadFile(

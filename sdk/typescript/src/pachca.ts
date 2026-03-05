@@ -313,15 +313,6 @@ export class Pachca {
       ),
   };
 
-  // ── threads ───────────────────────────────────────────
-
-  readonly threads = {
-    createThread: (options: Omit<Options<CreateThreadData>, "client">) =>
-      createThread({ ...options, client: this.client } as Options<CreateThreadData>),
-    getThread: (options: Omit<Options<GetThreadData>, "client">) =>
-      getThread({ ...options, client: this.client } as Options<GetThreadData>),
-  };
-
   // ── profile ───────────────────────────────────────────
 
   readonly profile = {
@@ -380,12 +371,16 @@ export class Pachca {
       createLinkPreviews({ ...options, client: this.client } as Options<CreateLinkPreviewsData>),
     listReadMembers: (options: Omit<Options<ListReadMembersData>, "client">) =>
       listReadMembers({ ...options, client: this.client } as Options<ListReadMembersData>),
+    createThread: (options: Omit<Options<CreateThreadData>, "client">) =>
+      createThread({ ...options, client: this.client } as Options<CreateThreadData>),
     searchChats: (options?: Omit<Options<SearchChatsData>, "client">) =>
       searchChats({ ...options, client: this.client } as Options<SearchChatsData>),
     searchMessages: (options?: Omit<Options<SearchMessagesData>, "client">) =>
       searchMessages({ ...options, client: this.client } as Options<SearchMessagesData>),
     searchUsers: (options?: Omit<Options<SearchUsersData>, "client">) =>
       searchUsers({ ...options, client: this.client } as Options<SearchUsersData>),
+    getThread: (options: Omit<Options<GetThreadData>, "client">) =>
+      getThread({ ...options, client: this.client } as Options<GetThreadData>),
     getUploadParams: (options?: Omit<Options<GetUploadParamsData>, "client">) =>
       getUploadParams({ ...options, client: this.client } as Options<GetUploadParamsData>),
     openView: (options: Omit<Options<OpenViewData>, "client">) =>

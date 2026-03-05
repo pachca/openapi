@@ -27,11 +27,11 @@ class PachcaClient(
     val messages by lazy { MessagesApi(baseUrl, httpClientEngine, httpClientConfig) }
     val profile by lazy { ProfileApi(baseUrl, httpClientEngine, httpClientConfig) }
     val reactions by lazy { ReactionsApi(baseUrl, httpClientEngine, httpClientConfig) }
-    val readMember by lazy { ReadMemberApi(baseUrl, httpClientEngine, httpClientConfig) }
+    val readMembers by lazy { ReadMembersApi(baseUrl, httpClientEngine, httpClientConfig) }
     val search by lazy { SearchApi(baseUrl, httpClientEngine, httpClientConfig) }
     val security by lazy { SecurityApi(baseUrl, httpClientEngine, httpClientConfig) }
     val tasks by lazy { TasksApi(baseUrl, httpClientEngine, httpClientConfig) }
-    val thread by lazy { ThreadApi(baseUrl, httpClientEngine, httpClientConfig) }
+    val threads by lazy { ThreadsApi(baseUrl, httpClientEngine, httpClientConfig) }
     val users by lazy { UsersApi(baseUrl, httpClientEngine, httpClientConfig) }
     val views by lazy { ViewsApi(baseUrl, httpClientEngine, httpClientConfig) }
 

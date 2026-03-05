@@ -9,9 +9,9 @@ tags:
   - name: Group tags
   - name: Chats
   - name: Members
-  - name: Thread
+  - name: Threads
   - name: Messages
-  - name: Read member
+  - name: Read members
   - name: Reactions
   - name: Link Previews
   - name: Search
@@ -2503,7 +2503,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Read member
+        - Read members
       x-requirements:
         scope: messages:read
   /messages/{id}/thread:
@@ -2557,7 +2557,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Thread
+        - Threads
       x-requirements:
         scope: threads:create
   /oauth/token/info:
@@ -3533,7 +3533,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
       tags:
-        - Thread
+        - Threads
       x-requirements:
         scope: threads:read
   /uploads:

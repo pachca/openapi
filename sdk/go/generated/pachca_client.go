@@ -1512,7 +1512,7 @@ func (s *CommonService) UploadToS3(ctx context.Context, uploadParams *UploadPara
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("upload failed with status %d", resp.StatusCode)
 	}
 	return nil

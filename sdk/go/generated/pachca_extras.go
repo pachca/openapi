@@ -429,7 +429,7 @@ func (s *ViewsService) OpenView(ctx context.Context, request OpenViewRequest) er
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent {
 		return parseAPIError(resp)
 	}
 	return nil

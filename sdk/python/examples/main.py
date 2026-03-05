@@ -39,7 +39,7 @@ client.reactions.add_reaction(msg.id, code="👀")
 print("3. Added reaction 👀")
 
 # 4. Create thread
-thread = client.thread.create_thread(msg.id)
+thread = client.threads.create_thread(msg.id)
 print(f"4. Created thread #{thread.id}")
 
 # 5. Reply in thread

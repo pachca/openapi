@@ -16,6 +16,39 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from "fs";
+import { parse } from "yaml";
+
+// ─────────────────────────────────────────────────
+// 0. Parse OpenAPI spec for group → tag mapping
+// ─────────────────────────────────────────────────
+
+const SPEC_PATH = "../../packages/spec/openapi.yaml";
+const spec = parse(readFileSync(SPEC_PATH, "utf-8"));
+
+const HTTP_METHODS = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
+
+/** Map group prefix (e.g. "Message") → tag (e.g. "Messages") */
+const groupToTag = new Map<string, string>();
+
+for (const [, pathItem] of Object.entries(spec.paths ?? {})) {
+  for (const method of HTTP_METHODS) {
+    const op = (pathItem as Record<string, any>)[method];
+    if (!op?.operationId) continue;
+
+    const fullId: string = op.operationId;
+    const groupMatch = fullId.match(/^(\w+?)Operations_/);
+    if (!groupMatch) continue;
+
+    const group = groupMatch[1];
+    const tag: string = op.tags?.[0] ?? "Common";
+
+    if (!groupToTag.has(group)) {
+      groupToTag.set(group, tag);
+    }
+  }
+}
+
+console.log(`Parsed ${groupToTag.size} group→tag mappings from OpenAPI spec`);
 
 // ─────────────────────────────────────────────────
 // 1. Parse Client methods from oas_client_gen.go
@@ -246,48 +279,46 @@ function classifyRes(returnType: string): ResInfo {
 }
 
 // ─────────────────────────────────────────────────
-// 5. Group methods and build alias maps
+// 5. Group methods by tag and build alias maps
 // ─────────────────────────────────────────────────
 
-// group name → service name mapping
-const SERVICE_NAMES: Record<string, string> = {
-  Message: "Messages",
-  Chat: "Chats",
-  ChatMember: "ChatMembers",
-  ChatMessage: "ChatMessages",
-  User: "Users",
-  UserStatus: "UserStatuses",
-  Task: "Tasks",
-  GroupTag: "Tags",
-  Search: "Search",
-  Security: "Security",
-  Profile: "Profile",
-  Bot: "Bots",
-  Reaction: "Reactions",
-  Thread: "Threads",
-  Export: "Exports",
-  Upload: "Uploads",
-  Form: "Forms",
-  Common: "Common",
-  DirectUpload: "DirectUploads",
-  LinkPreview: "LinkPreviews",
-  ReadMember: "ReadMembers",
-  OAuth: "OAuth",
+const tag2service: Record<string, string> = {
+  "Common": "Common",
+  "Profile": "Profile",
+  "Users": "Users",
+  "Group tags": "GroupTags",
+  "Chats": "Chats",
+  "Members": "Members",
+  "Threads": "Threads",
+  "Messages": "Messages",
+  "Read members": "ReadMembers",
+  "Reactions": "Reactions",
+  "Link Previews": "LinkPreviews",
+  "Search": "Search",
+  "Tasks": "Tasks",
+  "Views": "Views",
+  "Bots": "Bots",
+  "Security": "Security",
 };
 
-function getServiceName(group: string): string {
-  return SERVICE_NAMES[group] || group + "s";
+function getServiceName(tag: string): string {
+  const service = tag2service[tag];
+  if (!service) throw new Error(`No service name mapping for tag "${tag}"`);
+  return service;
 }
 
 const groups = new Map<string, ParsedMethod[]>();
 for (const m of methods) {
-  if (!groups.has(m.group)) groups.set(m.group, []);
-  groups.get(m.group)!.push(m);
+  const tag = groupToTag.get(m.group);
+  if (!tag) throw new Error(`No OpenAPI tag found for group "${m.group}"`);
+  if (!groups.has(tag)) groups.set(tag, []);
+  groups.get(tag)!.push(m);
 }
 
-// Ensure Exports and Uploads groups exist (for manual methods)
-if (!groups.has("Export")) groups.set("Export", []);
-if (!groups.has("Upload")) groups.set("Upload", []);
+// Ensure groups exist for services with only manual methods
+if (!groups.has("Common")) groups.set("Common", []);
+if (!groups.has("Security")) groups.set("Security", []);
+if (!groups.has("Views")) groups.set("Views", []);
 
 console.log(`Found ${groups.size} service groups`);
 
@@ -557,8 +588,8 @@ w("// PachcaClient provides a convenient grouped interface to the Pachca API.");
 w("type PachcaClient struct {");
 w("\tserverURL string");
 w("\ttoken     string");
-for (const [group] of groups) {
-  const svc = getServiceName(group);
+for (const [tag] of groups) {
+  const svc = getServiceName(tag);
   w(`\t${svc} *${svc}Service`);
 }
 w("}");
@@ -579,9 +610,12 @@ w("\tp := &PachcaClient{");
 w("\t\tserverURL: serverURL,");
 w("\t\ttoken:     token,");
 w("\t}");
-for (const [group] of groups) {
-  const svc = getServiceName(group);
-  if (group === "Export") {
+// Services that need direct HTTP access (for manual methods not handled by ogen)
+const SERVICES_WITH_HTTP = new Set(["Common", "Security", "Views"]);
+
+for (const [tag] of groups) {
+  const svc = getServiceName(tag);
+  if (SERVICES_WITH_HTTP.has(tag)) {
     w(
       `\tp.${svc} = &${svc}Service{client: client, serverURL: serverURL, token: token}`
     );
@@ -593,12 +627,12 @@ w("\treturn p, nil");
 w("}");
 
 // Service structs and methods
-for (const [group, groupMethods] of groups) {
-  const svc = getServiceName(group);
+for (const [tag, tagMethods] of groups) {
+  const svc = getServiceName(tag);
 
   w("");
-  w(`// ${svc}Service provides ${group} API operations.`);
-  if (group === "Export") {
+  w(`// ${svc}Service provides ${tag} API operations.`);
+  if (SERVICES_WITH_HTTP.has(tag)) {
     w(`type ${svc}Service struct {`);
     w("\tclient    *Client");
     w("\tserverURL string");
@@ -610,7 +644,7 @@ for (const [group, groupMethods] of groups) {
     w("}");
   }
 
-  for (const m of groupMethods) {
+  for (const m of tagMethods) {
     w("");
     w(`${buildSignature(m, svc)} {`);
     for (const line of buildMethodBody(m)) {
@@ -625,13 +659,13 @@ for (const [group, groupMethods] of groups) {
 // ─────────────────────────────────────────────────
 
 w("");
-w("// UploadFile uploads a file to S3 using params from GetUploadParams.");
+w("// UploadToS3 uploads a file to S3 using params from GetUploadParams.");
 w("// This handles step 2 of the 3-step upload flow:");
-w("//   1. Call Uploads.GetUploadParams() to get signing params and direct_url");
-w("//   2. Call Uploads.UploadFile() with those params (this method)");
+w("//   1. Call Common.GetUploadParams() to get signing params and direct_url");
+w("//   2. Call Common.UploadToS3() with those params (this method)");
 w("//   3. Use the key to attach the file to a message or other entity");
 w(
-  "func (s *UploadsService) UploadFile(ctx context.Context, uploadParams *UploadParams, file io.Reader, filename string) error {"
+  "func (s *CommonService) UploadToS3(ctx context.Context, uploadParams *UploadParams, file io.Reader, filename string) error {"
 );
 w("\tvar body bytes.Buffer");
 w("\twriter := multipart.NewWriter(&body)");
@@ -694,7 +728,7 @@ w(
   "// Returns the redirect Location URL without following the redirect."
 );
 w(
-  "func (s *ExportsService) Download(ctx context.Context, id int32) (string, error) {"
+  "func (s *CommonService) Download(ctx context.Context, id int32) (string, error) {"
 );
 w("\thttpClient := &http.Client{");
 w(

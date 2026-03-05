@@ -54,7 +54,7 @@ from .api.profile import profile_operations_update_status
 from .api.reactions import reaction_operations_add_reaction
 from .api.reactions import reaction_operations_list_reactions
 from .api.reactions import reaction_operations_remove_reaction
-from .api.read_member import read_member_operations_list_read_members
+from .api.read_members import read_member_operations_list_read_members
 from .api.search import search_operations_search_chats
 from .api.search import search_operations_search_messages
 from .api.search import search_operations_search_users
@@ -64,8 +64,8 @@ from .api.tasks import task_operations_delete_task
 from .api.tasks import task_operations_get_task
 from .api.tasks import task_operations_list_tasks
 from .api.tasks import task_operations_update_task
-from .api.thread import thread_operations_create_thread
-from .api.thread import thread_operations_get_thread
+from .api.threads import thread_operations_create_thread
+from .api.threads import thread_operations_get_thread
 from .api.users import user_operations_create_user
 from .api.users import user_operations_delete_user
 from .api.users import user_operations_get_user
@@ -488,7 +488,7 @@ class ReactionsService:
         _raise_for_error(result)
 
 
-class ReadMemberService:
+class ReadMembersService:
     def __init__(self, client: AuthenticatedClient):
         self._client = client
 
@@ -557,7 +557,7 @@ class TasksService:
         return result.data
 
 
-class ThreadService:
+class ThreadsService:
     def __init__(self, client: AuthenticatedClient):
         self._client = client
 
@@ -646,11 +646,11 @@ class Pachca:
         self.messages = MessagesService(self._client)
         self.profile = ProfileService(self._client)
         self.reactions = ReactionsService(self._client)
-        self.read_member = ReadMemberService(self._client)
+        self.read_members = ReadMembersService(self._client)
         self.search = SearchService(self._client)
         self.security = SecurityService(self._client)
         self.tasks = TasksService(self._client)
-        self.thread = ThreadService(self._client)
+        self.threads = ThreadsService(self._client)
         self.users = UsersService(self._client)
         self.views = ViewsService(self._client)
 

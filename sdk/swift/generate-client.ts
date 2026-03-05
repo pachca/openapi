@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { parse } from "yaml";
 
 const CLIENT_PATH = "generated/Sources/Pachca/GeneratedSources/Client.swift";
+const SPEC_PATH = "../../packages/spec/openapi.yaml";
 const OUT_DIR = "src";
 
 // ── Types ──────────────────────────────────────────────────────
@@ -16,10 +18,70 @@ interface OperationMeta {
 }
 
 interface GroupMeta {
-  prefix: string;
+  tag: string;
   propertyName: string;
   typeName: string;
   operations: OperationMeta[];
+}
+
+// ── Parse OpenAPI spec for operationId → tag mapping ─────────
+
+const spec = parse(readFileSync(SPEC_PATH, "utf-8"));
+
+const HTTP_METHODS = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
+
+/** Map operationId prefix (e.g. "MessageOperations") → tag (e.g. "Messages") */
+const prefixToTag = new Map<string, string>();
+
+for (const [, pathItem] of Object.entries(spec.paths ?? {})) {
+  for (const method of HTTP_METHODS) {
+    const op = (pathItem as Record<string, any>)[method];
+    if (!op?.operationId) continue;
+
+    const fullId: string = op.operationId;
+    const underscoreIdx = fullId.indexOf("_");
+    if (underscoreIdx === -1) continue;
+
+    const prefix = fullId.slice(0, underscoreIdx);
+    const tag: string = op.tags?.[0] ?? "Common";
+
+    if (!prefixToTag.has(prefix)) {
+      prefixToTag.set(prefix, tag);
+    }
+  }
+}
+
+console.log(`Parsed ${prefixToTag.size} prefix→tag mappings from OpenAPI spec`);
+
+// ── Tag → service name mapping ───────────────────────────────
+
+const tag2service: Record<string, string> = {
+  "Common": "common",
+  "Profile": "profile",
+  "Users": "users",
+  "Group tags": "groupTags",
+  "Chats": "chats",
+  "Members": "members",
+  "Threads": "threads",
+  "Messages": "messages",
+  "Read members": "readMembers",
+  "Reactions": "reactions",
+  "Link Previews": "linkPreviews",
+  "Search": "search",
+  "Tasks": "tasks",
+  "Views": "views",
+  "Bots": "bots",
+  "Security": "security",
+};
+
+function tagToPropertyName(tag: string): string {
+  const name = tag2service[tag];
+  if (!name) throw new Error(`No service name mapping for tag "${tag}"`);
+  return name;
+}
+
+function tagToTypeName(propertyName: string): string {
+  return propertyName.charAt(0).toUpperCase() + propertyName.slice(1) + "Group";
 }
 
 // ── Parse generated Client.swift ──────────────────────────────
@@ -105,33 +167,25 @@ if (operations.length === 0) {
   throw new Error("No operations found in Client.swift");
 }
 
-// ── Group by prefix ────────────────────────────────────────────
-
-function stripOperationsSuffix(prefix: string): string {
-  return prefix.endsWith("Operations") ? prefix.slice(0, -"Operations".length) : prefix;
-}
-
-function toCamelCase(name: string): string {
-  return name.charAt(0).toLowerCase() + name.slice(1);
-}
-
-function toPascalCase(name: string): string {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
+// ── Group by tag (from OpenAPI spec) ─────────────────────────
 
 const groupMap = new Map<string, GroupMeta>();
 
 for (const op of operations) {
-  if (!groupMap.has(op.prefix)) {
-    const stripped = stripOperationsSuffix(op.prefix);
-    groupMap.set(op.prefix, {
-      prefix: op.prefix,
-      propertyName: toCamelCase(stripped),
-      typeName: `${toPascalCase(stripped)}Group`,
+  const tag = prefixToTag.get(op.prefix);
+  if (!tag) {
+    throw new Error(`No OpenAPI tag found for prefix "${op.prefix}" (operationId: ${op.operationId})`);
+  }
+
+  if (!groupMap.has(tag)) {
+    groupMap.set(tag, {
+      tag,
+      propertyName: tagToPropertyName(tag),
+      typeName: tagToTypeName(tagToPropertyName(tag)),
       operations: [],
     });
   }
-  groupMap.get(op.prefix)!.operations.push(op);
+  groupMap.get(tag)!.operations.push(op);
 }
 
 const groups = [...groupMap.values()].sort((a, b) => a.propertyName.localeCompare(b.propertyName));

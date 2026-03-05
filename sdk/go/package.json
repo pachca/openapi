@@ -7,6 +7,7 @@
     "generate": "mkdir -p generated && cd generated && $(go env GOPATH)/bin/ogen --target . --package pachca --clean --config ../ogen.yml ../../../packages/spec/openapi.yaml && cd .. && bun generate-client.ts && cd generated && go mod tidy && go build ./..."
   },
   "devDependencies": {
-    "@pachca/spec": "workspace:*"
+    "@pachca/spec": "workspace:*",
+    "yaml": "^2.7.0"
   }
 }

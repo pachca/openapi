@@ -137,25 +137,21 @@ type PachcaClient struct {
 	serverURL string
 	token     string
 	Bots *BotsService
-	ChatMembers *ChatMembersService
-	ChatMessages *ChatMessagesService
+	Members *MembersService
+	Messages *MessagesService
 	Chats *ChatsService
 	Common *CommonService
-	DirectUploads *DirectUploadsService
-	Tags *TagsService
+	GroupTags *GroupTagsService
 	LinkPreviews *LinkPreviewsService
-	Messages *MessagesService
-	OAuth *OAuthService
 	Profile *ProfileService
 	Reactions *ReactionsService
 	ReadMembers *ReadMembersService
 	Search *SearchService
 	Tasks *TasksService
 	Threads *ThreadsService
-	Uploads *UploadsService
 	Users *UsersService
-	UserStatuses *UserStatusesService
-	Exports *ExportsService
+	Security *SecurityService
+	Views *ViewsService
 }
 
 // NewPachcaClient creates a new Pachca API client.
@@ -169,29 +165,25 @@ func NewPachcaClient(serverURL, token string) (*PachcaClient, error) {
 		token:     token,
 	}
 	p.Bots = &BotsService{client: client}
-	p.ChatMembers = &ChatMembersService{client: client}
-	p.ChatMessages = &ChatMessagesService{client: client}
-	p.Chats = &ChatsService{client: client}
-	p.Common = &CommonService{client: client}
-	p.DirectUploads = &DirectUploadsService{client: client}
-	p.Tags = &TagsService{client: client}
-	p.LinkPreviews = &LinkPreviewsService{client: client}
+	p.Members = &MembersService{client: client}
 	p.Messages = &MessagesService{client: client}
-	p.OAuth = &OAuthService{client: client}
+	p.Chats = &ChatsService{client: client}
+	p.Common = &CommonService{client: client, serverURL: serverURL, token: token}
+	p.GroupTags = &GroupTagsService{client: client}
+	p.LinkPreviews = &LinkPreviewsService{client: client}
 	p.Profile = &ProfileService{client: client}
 	p.Reactions = &ReactionsService{client: client}
 	p.ReadMembers = &ReadMembersService{client: client}
 	p.Search = &SearchService{client: client}
 	p.Tasks = &TasksService{client: client}
 	p.Threads = &ThreadsService{client: client}
-	p.Uploads = &UploadsService{client: client}
 	p.Users = &UsersService{client: client}
-	p.UserStatuses = &UserStatusesService{client: client}
-	p.Exports = &ExportsService{client: client, serverURL: serverURL, token: token}
+	p.Security = &SecurityService{client: client, serverURL: serverURL, token: token}
+	p.Views = &ViewsService{client: client, serverURL: serverURL, token: token}
 	return p, nil
 }
 
-// BotsService provides Bot API operations.
+// BotsService provides Bots API operations.
 type BotsService struct {
 	client *Client
 }
@@ -238,12 +230,12 @@ func (s *BotsService) UpdateBot(ctx context.Context, request *BotUpdateRequest, 
 	}
 }
 
-// ChatMembersService provides ChatMember API operations.
-type ChatMembersService struct {
+// MembersService provides Members API operations.
+type MembersService struct {
 	client *Client
 }
 
-func (s *ChatMembersService) AddMembers(ctx context.Context, request *AddMembersRequest, iD int32) error {
+func (s *MembersService) AddMembers(ctx context.Context, request *AddMembersRequest, iD int32) error {
 	res, err := s.client.ChatMemberOperationsAddMembers(ctx, request, ChatMemberOperationsAddMembersParams{ID: iD})
 	if err != nil {
 		return err
@@ -266,7 +258,7 @@ func (s *ChatMembersService) AddMembers(ctx context.Context, request *AddMembers
 	}
 }
 
-func (s *ChatMembersService) AddTags(ctx context.Context, request *AddTagsRequest, iD int32) error {
+func (s *MembersService) AddTags(ctx context.Context, request *AddTagsRequest, iD int32) error {
 	res, err := s.client.ChatMemberOperationsAddTags(ctx, request, ChatMemberOperationsAddTagsParams{ID: iD})
 	if err != nil {
 		return err
@@ -289,7 +281,7 @@ func (s *ChatMembersService) AddTags(ctx context.Context, request *AddTagsReques
 	}
 }
 
-func (s *ChatMembersService) LeaveChat(ctx context.Context, iD int32) error {
+func (s *MembersService) LeaveChat(ctx context.Context, iD int32) error {
 	res, err := s.client.ChatMemberOperationsLeaveChat(ctx, ChatMemberOperationsLeaveChatParams{ID: iD})
 	if err != nil {
 		return err
@@ -312,7 +304,7 @@ func (s *ChatMembersService) LeaveChat(ctx context.Context, iD int32) error {
 	}
 }
 
-func (s *ChatMembersService) ListMembers(ctx context.Context, params ListMembersParams) (*ListMembersResponse, error) {
+func (s *MembersService) ListMembers(ctx context.Context, params ListMembersParams) (*ListMembersResponse, error) {
 	res, err := s.client.ChatMemberOperationsListMembers(ctx, params)
 	if err != nil {
 		return nil, err
@@ -335,7 +327,7 @@ func (s *ChatMembersService) ListMembers(ctx context.Context, params ListMembers
 	}
 }
 
-func (s *ChatMembersService) RemoveMember(ctx context.Context, iD int32, userID int32) error {
+func (s *MembersService) RemoveMember(ctx context.Context, iD int32, userID int32) error {
 	res, err := s.client.ChatMemberOperationsRemoveMember(ctx, ChatMemberOperationsRemoveMemberParams{ID: iD, UserID: userID})
 	if err != nil {
 		return err
@@ -354,7 +346,7 @@ func (s *ChatMembersService) RemoveMember(ctx context.Context, iD int32, userID 
 	}
 }
 
-func (s *ChatMembersService) RemoveTag(ctx context.Context, iD int32, tagID int32) error {
+func (s *MembersService) RemoveTag(ctx context.Context, iD int32, tagID int32) error {
 	res, err := s.client.ChatMemberOperationsRemoveTag(ctx, ChatMemberOperationsRemoveTagParams{ID: iD, TagID: tagID})
 	if err != nil {
 		return err
@@ -373,7 +365,7 @@ func (s *ChatMembersService) RemoveTag(ctx context.Context, iD int32, tagID int3
 	}
 }
 
-func (s *ChatMembersService) UpdateMemberRole(ctx context.Context, request *UpdateMemberRoleRequest, iD int32, userID int32) error {
+func (s *MembersService) UpdateMemberRole(ctx context.Context, request *UpdateMemberRoleRequest, iD int32, userID int32) error {
 	res, err := s.client.ChatMemberOperationsUpdateMemberRole(ctx, request, ChatMemberOperationsUpdateMemberRoleParams{ID: iD, UserID: userID})
 	if err != nil {
 		return err
@@ -396,12 +388,12 @@ func (s *ChatMembersService) UpdateMemberRole(ctx context.Context, request *Upda
 	}
 }
 
-// ChatMessagesService provides ChatMessage API operations.
-type ChatMessagesService struct {
+// MessagesService provides Messages API operations.
+type MessagesService struct {
 	client *Client
 }
 
-func (s *ChatMessagesService) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
+func (s *MessagesService) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
 	res, err := s.client.ChatMessageOperationsListChatMessages(ctx, params)
 	if err != nil {
 		return nil, err
@@ -424,7 +416,129 @@ func (s *ChatMessagesService) ListChatMessages(ctx context.Context, params ListC
 	}
 }
 
-// ChatsService provides Chat API operations.
+func (s *MessagesService) CreateMessage(ctx context.Context, request *MessageCreateRequest) (*CreateMessageResponse, error) {
+	res, err := s.client.MessageOperationsCreateMessage(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	switch v := res.(type) {
+	case *MessageOperationsCreateMessageCreated:
+		return v, nil
+	case *MessageOperationsCreateMessageBadRequest:
+		return nil, (*ApiError)(v)
+	case *MessageOperationsCreateMessageForbidden:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsCreateMessageUnauthorized:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsCreateMessageUnprocessableEntity:
+		return nil, (*ApiError)(v)
+	default:
+		return nil, fmt.Errorf("unexpected response type: %T", res)
+	}
+}
+
+func (s *MessagesService) DeleteMessage(ctx context.Context, iD int32) error {
+	res, err := s.client.MessageOperationsDeleteMessage(ctx, MessageOperationsDeleteMessageParams{ID: iD})
+	if err != nil {
+		return err
+	}
+	switch v := res.(type) {
+	case *MessageOperationsDeleteMessageNoContent:
+		return nil
+	case *ApiError:
+		return v
+	case *MessageOperationsDeleteMessageForbidden:
+		return &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsDeleteMessageUnauthorized:
+		return &OAuthErrorResponse{(*OAuthError)(v)}
+	default:
+		return fmt.Errorf("unexpected response type: %T", res)
+	}
+}
+
+func (s *MessagesService) GetMessage(ctx context.Context, iD int32) (*GetMessageResponse, error) {
+	res, err := s.client.MessageOperationsGetMessage(ctx, MessageOperationsGetMessageParams{ID: iD})
+	if err != nil {
+		return nil, err
+	}
+	switch v := res.(type) {
+	case *MessageOperationsGetMessageOK:
+		return v, nil
+	case *ApiError:
+		return nil, v
+	case *MessageOperationsGetMessageForbidden:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsGetMessageUnauthorized:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	default:
+		return nil, fmt.Errorf("unexpected response type: %T", res)
+	}
+}
+
+func (s *MessagesService) PinMessage(ctx context.Context, iD int32) (*PinMessageResponse, error) {
+	res, err := s.client.MessageOperationsPinMessage(ctx, MessageOperationsPinMessageParams{ID: iD})
+	if err != nil {
+		return nil, err
+	}
+	switch v := res.(type) {
+	case *MessageOperationsPinMessageCreated:
+		return v, nil
+	case *MessageOperationsPinMessageConflict:
+		return nil, (*ApiError)(v)
+	case *MessageOperationsPinMessageForbidden:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsPinMessageNotFound:
+		return nil, (*ApiError)(v)
+	case *MessageOperationsPinMessageUnauthorized:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	default:
+		return nil, fmt.Errorf("unexpected response type: %T", res)
+	}
+}
+
+func (s *MessagesService) UnpinMessage(ctx context.Context, iD int32) error {
+	res, err := s.client.MessageOperationsUnpinMessage(ctx, MessageOperationsUnpinMessageParams{ID: iD})
+	if err != nil {
+		return err
+	}
+	switch v := res.(type) {
+	case *MessageOperationsUnpinMessageNoContent:
+		return nil
+	case *ApiError:
+		return v
+	case *MessageOperationsUnpinMessageForbidden:
+		return &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsUnpinMessageUnauthorized:
+		return &OAuthErrorResponse{(*OAuthError)(v)}
+	default:
+		return fmt.Errorf("unexpected response type: %T", res)
+	}
+}
+
+func (s *MessagesService) UpdateMessage(ctx context.Context, request *MessageUpdateRequest, iD int32) (*UpdateMessageResponse, error) {
+	res, err := s.client.MessageOperationsUpdateMessage(ctx, request, MessageOperationsUpdateMessageParams{ID: iD})
+	if err != nil {
+		return nil, err
+	}
+	switch v := res.(type) {
+	case *MessageOperationsUpdateMessageOK:
+		return v, nil
+	case *MessageOperationsUpdateMessageBadRequest:
+		return nil, (*ApiError)(v)
+	case *MessageOperationsUpdateMessageForbidden:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsUpdateMessageNotFound:
+		return nil, (*ApiError)(v)
+	case *MessageOperationsUpdateMessageUnauthorized:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	case *MessageOperationsUpdateMessageUnprocessableEntity:
+		return nil, (*ApiError)(v)
+	default:
+		return nil, fmt.Errorf("unexpected response type: %T", res)
+	}
+}
+
+// ChatsService provides Chats API operations.
 type ChatsService struct {
 	client *Client
 }
@@ -553,7 +667,9 @@ func (s *ChatsService) UpdateChat(ctx context.Context, request *ChatUpdateReques
 
 // CommonService provides Common API operations.
 type CommonService struct {
-	client *Client
+	client    *Client
+	serverURL string
+	token     string
 }
 
 func (s *CommonService) ListProperties(ctx context.Context, entityType SearchEntityType) (*ListPropertiesResponse, error) {
@@ -577,21 +693,33 @@ func (s *CommonService) ListProperties(ctx context.Context, entityType SearchEnt
 	}
 }
 
-// DirectUploadsService provides DirectUpload API operations.
-type DirectUploadsService struct {
-	client *Client
-}
-
-func (s *DirectUploadsService) UploadFile(ctx context.Context, request *FileUploadRequestMultipart) error {
+func (s *CommonService) UploadFile(ctx context.Context, request *FileUploadRequestMultipart) error {
 	return s.client.DirectUploadOperationsUploadFile(ctx, request)
 }
 
-// TagsService provides GroupTag API operations.
-type TagsService struct {
+func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+	res, err := s.client.UploadOperationsGetUploadParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+	switch v := res.(type) {
+	case *UploadParams:
+		return v, nil
+	case *UploadOperationsGetUploadParamsForbidden:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	case *UploadOperationsGetUploadParamsUnauthorized:
+		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
+	default:
+		return nil, fmt.Errorf("unexpected response type: %T", res)
+	}
+}
+
+// GroupTagsService provides Group tags API operations.
+type GroupTagsService struct {
 	client *Client
 }
 
-func (s *TagsService) CreateTag(ctx context.Context, request *GroupTagRequest) (*CreateTagResponse, error) {
+func (s *GroupTagsService) CreateTag(ctx context.Context, request *GroupTagRequest) (*CreateTagResponse, error) {
 	res, err := s.client.GroupTagOperationsCreateTag(ctx, request)
 	if err != nil {
 		return nil, err
@@ -612,7 +740,7 @@ func (s *TagsService) CreateTag(ctx context.Context, request *GroupTagRequest) (
 	}
 }
 
-func (s *TagsService) DeleteTag(ctx context.Context, iD int32) error {
+func (s *GroupTagsService) DeleteTag(ctx context.Context, iD int32) error {
 	res, err := s.client.GroupTagOperationsDeleteTag(ctx, GroupTagOperationsDeleteTagParams{ID: iD})
 	if err != nil {
 		return err
@@ -631,7 +759,7 @@ func (s *TagsService) DeleteTag(ctx context.Context, iD int32) error {
 	}
 }
 
-func (s *TagsService) GetTag(ctx context.Context, iD int32) (*GetTagResponse, error) {
+func (s *GroupTagsService) GetTag(ctx context.Context, iD int32) (*GetTagResponse, error) {
 	res, err := s.client.GroupTagOperationsGetTag(ctx, GroupTagOperationsGetTagParams{ID: iD})
 	if err != nil {
 		return nil, err
@@ -650,7 +778,7 @@ func (s *TagsService) GetTag(ctx context.Context, iD int32) (*GetTagResponse, er
 	}
 }
 
-func (s *TagsService) GetTagUsers(ctx context.Context, params GetTagUsersParams) (*GetTagUsersResponse, error) {
+func (s *GroupTagsService) GetTagUsers(ctx context.Context, params GetTagUsersParams) (*GetTagUsersResponse, error) {
 	res, err := s.client.GroupTagOperationsGetTagUsers(ctx, params)
 	if err != nil {
 		return nil, err
@@ -673,7 +801,7 @@ func (s *TagsService) GetTagUsers(ctx context.Context, params GetTagUsersParams)
 	}
 }
 
-func (s *TagsService) ListTags(ctx context.Context, params ListTagsParams) (*ListTagsResponse, error) {
+func (s *GroupTagsService) ListTags(ctx context.Context, params ListTagsParams) (*ListTagsResponse, error) {
 	res, err := s.client.GroupTagOperationsListTags(ctx, params)
 	if err != nil {
 		return nil, err
@@ -694,7 +822,7 @@ func (s *TagsService) ListTags(ctx context.Context, params ListTagsParams) (*Lis
 	}
 }
 
-func (s *TagsService) UpdateTag(ctx context.Context, request *GroupTagRequest, iD int32) (*UpdateTagResponse, error) {
+func (s *GroupTagsService) UpdateTag(ctx context.Context, request *GroupTagRequest, iD int32) (*UpdateTagResponse, error) {
 	res, err := s.client.GroupTagOperationsUpdateTag(ctx, request, GroupTagOperationsUpdateTagParams{ID: iD})
 	if err != nil {
 		return nil, err
@@ -717,7 +845,7 @@ func (s *TagsService) UpdateTag(ctx context.Context, request *GroupTagRequest, i
 	}
 }
 
-// LinkPreviewsService provides LinkPreview API operations.
+// LinkPreviewsService provides Link Previews API operations.
 type LinkPreviewsService struct {
 	client *Client
 }
@@ -745,139 +873,12 @@ func (s *LinkPreviewsService) CreateLinkPreviews(ctx context.Context, request *L
 	}
 }
 
-// MessagesService provides Message API operations.
-type MessagesService struct {
+// ProfileService provides Profile API operations.
+type ProfileService struct {
 	client *Client
 }
 
-func (s *MessagesService) CreateMessage(ctx context.Context, request *MessageCreateRequest) (*CreateMessageResponse, error) {
-	res, err := s.client.MessageOperationsCreateMessage(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-	switch v := res.(type) {
-	case *MessageOperationsCreateMessageCreated:
-		return v, nil
-	case *MessageOperationsCreateMessageBadRequest:
-		return nil, (*ApiError)(v)
-	case *MessageOperationsCreateMessageForbidden:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsCreateMessageUnauthorized:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsCreateMessageUnprocessableEntity:
-		return nil, (*ApiError)(v)
-	default:
-		return nil, fmt.Errorf("unexpected response type: %T", res)
-	}
-}
-
-func (s *MessagesService) DeleteMessage(ctx context.Context, iD int32) error {
-	res, err := s.client.MessageOperationsDeleteMessage(ctx, MessageOperationsDeleteMessageParams{ID: iD})
-	if err != nil {
-		return err
-	}
-	switch v := res.(type) {
-	case *MessageOperationsDeleteMessageNoContent:
-		return nil
-	case *ApiError:
-		return v
-	case *MessageOperationsDeleteMessageForbidden:
-		return &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsDeleteMessageUnauthorized:
-		return &OAuthErrorResponse{(*OAuthError)(v)}
-	default:
-		return fmt.Errorf("unexpected response type: %T", res)
-	}
-}
-
-func (s *MessagesService) GetMessage(ctx context.Context, iD int32) (*GetMessageResponse, error) {
-	res, err := s.client.MessageOperationsGetMessage(ctx, MessageOperationsGetMessageParams{ID: iD})
-	if err != nil {
-		return nil, err
-	}
-	switch v := res.(type) {
-	case *MessageOperationsGetMessageOK:
-		return v, nil
-	case *ApiError:
-		return nil, v
-	case *MessageOperationsGetMessageForbidden:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsGetMessageUnauthorized:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	default:
-		return nil, fmt.Errorf("unexpected response type: %T", res)
-	}
-}
-
-func (s *MessagesService) PinMessage(ctx context.Context, iD int32) (*PinMessageResponse, error) {
-	res, err := s.client.MessageOperationsPinMessage(ctx, MessageOperationsPinMessageParams{ID: iD})
-	if err != nil {
-		return nil, err
-	}
-	switch v := res.(type) {
-	case *MessageOperationsPinMessageCreated:
-		return v, nil
-	case *MessageOperationsPinMessageConflict:
-		return nil, (*ApiError)(v)
-	case *MessageOperationsPinMessageForbidden:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsPinMessageNotFound:
-		return nil, (*ApiError)(v)
-	case *MessageOperationsPinMessageUnauthorized:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	default:
-		return nil, fmt.Errorf("unexpected response type: %T", res)
-	}
-}
-
-func (s *MessagesService) UnpinMessage(ctx context.Context, iD int32) error {
-	res, err := s.client.MessageOperationsUnpinMessage(ctx, MessageOperationsUnpinMessageParams{ID: iD})
-	if err != nil {
-		return err
-	}
-	switch v := res.(type) {
-	case *MessageOperationsUnpinMessageNoContent:
-		return nil
-	case *ApiError:
-		return v
-	case *MessageOperationsUnpinMessageForbidden:
-		return &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsUnpinMessageUnauthorized:
-		return &OAuthErrorResponse{(*OAuthError)(v)}
-	default:
-		return fmt.Errorf("unexpected response type: %T", res)
-	}
-}
-
-func (s *MessagesService) UpdateMessage(ctx context.Context, request *MessageUpdateRequest, iD int32) (*UpdateMessageResponse, error) {
-	res, err := s.client.MessageOperationsUpdateMessage(ctx, request, MessageOperationsUpdateMessageParams{ID: iD})
-	if err != nil {
-		return nil, err
-	}
-	switch v := res.(type) {
-	case *MessageOperationsUpdateMessageOK:
-		return v, nil
-	case *MessageOperationsUpdateMessageBadRequest:
-		return nil, (*ApiError)(v)
-	case *MessageOperationsUpdateMessageForbidden:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsUpdateMessageNotFound:
-		return nil, (*ApiError)(v)
-	case *MessageOperationsUpdateMessageUnauthorized:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	case *MessageOperationsUpdateMessageUnprocessableEntity:
-		return nil, (*ApiError)(v)
-	default:
-		return nil, fmt.Errorf("unexpected response type: %T", res)
-	}
-}
-
-// OAuthService provides OAuth API operations.
-type OAuthService struct {
-	client *Client
-}
-
-func (s *OAuthService) GetTokenInfo(ctx context.Context) (*GetTokenInfoResponse, error) {
+func (s *ProfileService) GetTokenInfo(ctx context.Context) (*GetTokenInfoResponse, error) {
 	res, err := s.client.OAuthOperationsGetTokenInfo(ctx)
 	if err != nil {
 		return nil, err
@@ -890,11 +891,6 @@ func (s *OAuthService) GetTokenInfo(ctx context.Context) (*GetTokenInfoResponse,
 	default:
 		return nil, fmt.Errorf("unexpected response type: %T", res)
 	}
-}
-
-// ProfileService provides Profile API operations.
-type ProfileService struct {
-	client *Client
 }
 
 func (s *ProfileService) DeleteStatus(ctx context.Context) error {
@@ -969,7 +965,7 @@ func (s *ProfileService) UpdateStatus(ctx context.Context, request *StatusUpdate
 	}
 }
 
-// ReactionsService provides Reaction API operations.
+// ReactionsService provides Reactions API operations.
 type ReactionsService struct {
 	client *Client
 }
@@ -1043,7 +1039,7 @@ func (s *ReactionsService) RemoveReaction(ctx context.Context, params RemoveReac
 	}
 }
 
-// ReadMembersService provides ReadMember API operations.
+// ReadMembersService provides Read members API operations.
 type ReadMembersService struct {
 	client *Client
 }
@@ -1139,7 +1135,7 @@ func (s *SearchService) SearchUsers(ctx context.Context, params SearchUsersParam
 	}
 }
 
-// TasksService provides Task API operations.
+// TasksService provides Tasks API operations.
 type TasksService struct {
 	client *Client
 }
@@ -1247,7 +1243,7 @@ func (s *TasksService) UpdateTask(ctx context.Context, request *TaskUpdateReques
 	}
 }
 
-// ThreadsService provides Thread API operations.
+// ThreadsService provides Threads API operations.
 type ThreadsService struct {
 	client *Client
 }
@@ -1290,29 +1286,7 @@ func (s *ThreadsService) GetThread(ctx context.Context, iD int32) (*GetThreadRes
 	}
 }
 
-// UploadsService provides Upload API operations.
-type UploadsService struct {
-	client *Client
-}
-
-func (s *UploadsService) GetUploadParams(ctx context.Context) (*UploadParams, error) {
-	res, err := s.client.UploadOperationsGetUploadParams(ctx)
-	if err != nil {
-		return nil, err
-	}
-	switch v := res.(type) {
-	case *UploadParams:
-		return v, nil
-	case *UploadOperationsGetUploadParamsForbidden:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	case *UploadOperationsGetUploadParamsUnauthorized:
-		return nil, &OAuthErrorResponse{(*OAuthError)(v)}
-	default:
-		return nil, fmt.Errorf("unexpected response type: %T", res)
-	}
-}
-
-// UsersService provides User API operations.
+// UsersService provides Users API operations.
 type UsersService struct {
 	client *Client
 }
@@ -1420,12 +1394,7 @@ func (s *UsersService) UpdateUser(ctx context.Context, request *UserUpdateReques
 	}
 }
 
-// UserStatusesService provides UserStatus API operations.
-type UserStatusesService struct {
-	client *Client
-}
-
-func (s *UserStatusesService) DeleteUserStatus(ctx context.Context, userID int32) error {
+func (s *UsersService) DeleteUserStatus(ctx context.Context, userID int32) error {
 	res, err := s.client.UserStatusOperationsDeleteUserStatus(ctx, UserStatusOperationsDeleteUserStatusParams{UserID: userID})
 	if err != nil {
 		return err
@@ -1444,7 +1413,7 @@ func (s *UserStatusesService) DeleteUserStatus(ctx context.Context, userID int32
 	}
 }
 
-func (s *UserStatusesService) GetUserStatus(ctx context.Context, userID int32) (*GetUserStatusResponse, error) {
+func (s *UsersService) GetUserStatus(ctx context.Context, userID int32) (*GetUserStatusResponse, error) {
 	res, err := s.client.UserStatusOperationsGetUserStatus(ctx, UserStatusOperationsGetUserStatusParams{UserID: userID})
 	if err != nil {
 		return nil, err
@@ -1463,7 +1432,7 @@ func (s *UserStatusesService) GetUserStatus(ctx context.Context, userID int32) (
 	}
 }
 
-func (s *UserStatusesService) UpdateUserStatus(ctx context.Context, request *StatusUpdateRequest, userID int32) (*UpdateUserStatusResponse, error) {
+func (s *UsersService) UpdateUserStatus(ctx context.Context, request *StatusUpdateRequest, userID int32) (*UpdateUserStatusResponse, error) {
 	res, err := s.client.UserStatusOperationsUpdateUserStatus(ctx, request, UserStatusOperationsUpdateUserStatusParams{UserID: userID})
 	if err != nil {
 		return nil, err
@@ -1486,19 +1455,26 @@ func (s *UserStatusesService) UpdateUserStatus(ctx context.Context, request *Sta
 	}
 }
 
-// ExportsService provides Export API operations.
-type ExportsService struct {
+// SecurityService provides Security API operations.
+type SecurityService struct {
 	client    *Client
 	serverURL string
 	token     string
 }
 
-// UploadFile uploads a file to S3 using params from GetUploadParams.
+// ViewsService provides Views API operations.
+type ViewsService struct {
+	client    *Client
+	serverURL string
+	token     string
+}
+
+// UploadToS3 uploads a file to S3 using params from GetUploadParams.
 // This handles step 2 of the 3-step upload flow:
-//   1. Call Uploads.GetUploadParams() to get signing params and direct_url
-//   2. Call Uploads.UploadFile() with those params (this method)
+//   1. Call Common.GetUploadParams() to get signing params and direct_url
+//   2. Call Common.UploadToS3() with those params (this method)
 //   3. Use the key to attach the file to a message or other entity
-func (s *UploadsService) UploadFile(ctx context.Context, uploadParams *UploadParams, file io.Reader, filename string) error {
+func (s *CommonService) UploadToS3(ctx context.Context, uploadParams *UploadParams, file io.Reader, filename string) error {
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 
@@ -1544,7 +1520,7 @@ func (s *UploadsService) UploadFile(ctx context.Context, uploadParams *UploadPar
 
 // Download retrieves the download URL for a completed export.
 // Returns the redirect Location URL without following the redirect.
-func (s *ExportsService) Download(ctx context.Context, id int32) (string, error) {
+func (s *CommonService) Download(ctx context.Context, id int32) (string, error) {
 	httpClient := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse

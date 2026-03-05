@@ -583,6 +583,11 @@ w("\treturn BearerAuth{Token: s.token}, nil");
 w("}");
 w("");
 
+// DefaultBaseURL constant
+w('// DefaultBaseURL is the default Pachca API base URL.');
+w('const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"');
+w("");
+
 // PachcaClient struct
 w("// PachcaClient provides a convenient grouped interface to the Pachca API.");
 w("type PachcaClient struct {");
@@ -596,7 +601,7 @@ w("}");
 w("");
 
 // Constructor
-w("// NewPachcaClient creates a new Pachca API client.");
+w("// NewPachcaClient creates a new Pachca API client with a custom base URL.");
 w(
   "func NewPachcaClient(serverURL, token string) (*PachcaClient, error) {"
 );
@@ -625,6 +630,8 @@ for (const [tag] of groups) {
 }
 w("\treturn p, nil");
 w("}");
+w("");
+
 
 // Service structs and methods
 for (const [tag, tagMethods] of groups) {

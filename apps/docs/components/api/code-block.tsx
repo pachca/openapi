@@ -18,6 +18,7 @@ function getHighlighter() {
         langs: [
           'json',
           'javascript',
+          'typescript',
           'python',
           'bash',
           'shell',
@@ -26,6 +27,8 @@ function getHighlighter() {
           'php',
           'java',
           'go',
+          'kotlin',
+          'swift',
           'csharp',
         ],
       })

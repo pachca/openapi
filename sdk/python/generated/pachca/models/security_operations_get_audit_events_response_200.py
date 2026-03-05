@@ -41,8 +41,8 @@ class SecurityOperationsGetAuditEventsResponse200:
 
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.audit_event import AuditEvent
         from ..models.pagination_meta import PaginationMeta
+        from ..models.audit_event import AuditEvent
         data = []
         for data_item_data in self.data:
             data_item = data_item_data.to_dict()

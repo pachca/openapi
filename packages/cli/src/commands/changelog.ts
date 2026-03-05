@@ -1,3 +1,4 @@
+import semver from 'semver';
 import { BaseCommand } from '../base-command.js';
 
 interface ChangelogEntry {
@@ -25,7 +26,7 @@ export default class Changelog extends BaseCommand {
     let entries: ChangelogEntry[] = [];
     try {
       const data = await import('../data/changelog.json', { with: { type: 'json' } });
-      entries = (data.default || data) as ChangelogEntry[];
+      entries = ((data.default || data) as ChangelogEntry[]).filter((e) => e.version !== '0.0.0');
     } catch {
       entries = [];
     }
@@ -41,6 +42,16 @@ export default class Changelog extends BaseCommand {
       process.stdout.write('Нет записей в changelog.\n');
       return;
     }
+
+    // Sort by version descending (newest first)
+    entries.sort((a, b) => {
+      const av = semver.valid(a.version);
+      const bv = semver.valid(b.version);
+      if (av && bv) return semver.rcompare(av, bv);
+      if (av) return -1;
+      if (bv) return 1;
+      return 0;
+    });
 
     for (const entry of entries) {
       process.stdout.write(`${entry.version}  (${entry.date})\n`);

@@ -9,11 +9,18 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "PachcaExamples",
+            name: "EchoBot",
             dependencies: [
                 .product(name: "PachcaSDK", package: "swift"),
             ],
-            path: "Sources"
-        )
+            path: "Sources/EchoBot"
+        ),
+        .executableTarget(
+            name: "Upload",
+            dependencies: [
+                .product(name: "PachcaSDK", package: "swift"),
+            ],
+            path: "Sources/Upload"
+        ),
     ]
 )

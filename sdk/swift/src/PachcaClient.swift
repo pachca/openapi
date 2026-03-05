@@ -37,4 +37,47 @@ public final class PachcaClient: @unchecked Sendable {
     public var upload: UploadGroup { UploadGroup(client: client) }
     public var user: UserGroup { UserGroup(client: client) }
     public var userStatus: UserStatusGroup { UserStatusGroup(client: client) }
+
+    /// Upload a file using params from `upload.getUploadParams()`.
+    /// Handles multipart form construction and `${filename}` substitution.
+    /// Returns the file key for use in message attachments.
+    public func uploadFile(
+        _ uploadParams: Components.Schemas.UploadParams,
+        file: Data,
+        filename: String
+    ) async throws -> String {
+        let key = uploadParams.key.replacingOccurrences(of: "${filename}", with: filename)
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var body = Data()
+        let fields: [(String, String)] = [
+            ("Content-Disposition", uploadParams.Content_hyphen_Disposition),
+            ("acl", uploadParams.acl),
+            ("policy", uploadParams.policy),
+            ("x-amz-credential", uploadParams.x_hyphen_amz_hyphen_credential),
+            ("x-amz-algorithm", uploadParams.x_hyphen_amz_hyphen_algorithm),
+            ("x-amz-date", uploadParams.x_hyphen_amz_hyphen_date),
+            ("x-amz-signature", uploadParams.x_hyphen_amz_hyphen_signature),
+            ("key", key),
+        ]
+        for (name, value) in fields {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        body.append(file)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var request = URLRequest(url: URL(string: uploadParams.direct_url)!)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (httpResponse.statusCode == 201 || httpResponse.statusCode == 204) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NSError(domain: "PachcaUpload", code: code, userInfo: [NSLocalizedDescriptionKey: "Upload failed with status \(code)"])
+        }
+        return key
+    }
 }

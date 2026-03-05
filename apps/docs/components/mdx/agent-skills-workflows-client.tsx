@@ -35,6 +35,24 @@ const CATEGORY_COLORS: Record<string, string> = {
   Security: 'bg-accent-red/10 text-accent-red',
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  Messages: 'Сообщения',
+  Thread: 'Треды',
+  Reactions: 'Реакции на сообщения',
+  'Read member': 'Прочтение сообщения',
+  Chats: 'Чаты',
+  Members: 'Участники чатов',
+  Users: 'Сотрудники',
+  'Group tags': 'Теги',
+  Profile: 'Профиль и статус',
+  Bots: 'Боты и Webhook',
+  'Link Previews': 'Ссылки',
+  Views: 'Формы',
+  Tasks: 'Напоминания',
+  Search: 'Поиск',
+  Security: 'Безопасность',
+};
+
 /* ── Helpers ── */
 
 function InlineText({ text }: { text: string }) {
@@ -117,7 +135,7 @@ function CategoryBadge({ category }: { category: string }) {
     <span
       className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${CATEGORY_COLORS[category] || 'bg-background-secondary text-text-secondary'}`}
     >
-      {category}
+      {CATEGORY_LABELS[category] ?? category}
     </span>
   );
 }
@@ -267,7 +285,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
             <DropdownMenu.Trigger asChild>
               <button className="flex items-center gap-1.5 px-3 py-1.5 h-[34px] rounded-lg border border-background-border bg-background text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
                 <Filter className="w-3.5 h-3.5 shrink-0" />
-                {activeCategory || 'Все'}
+                {activeCategory ? (CATEGORY_LABELS[activeCategory] ?? activeCategory) : 'Все'}
                 <ChevronDown
                   className="w-3.5 h-3.5 shrink-0 text-text-secondary group-hover:text-text-primary transition-colors"
                   strokeWidth={2.5}
@@ -303,7 +321,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                         : 'text-text-primary hover:bg-background-tertiary'
                     }`}
                   >
-                    <span>{cat}</span>
+                    <span>{CATEGORY_LABELS[cat] ?? cat}</span>
                     <span
                       className={`text-[12px] ml-3 ${activeCategory === cat ? 'text-white/70' : 'text-text-tertiary'}`}
                     >

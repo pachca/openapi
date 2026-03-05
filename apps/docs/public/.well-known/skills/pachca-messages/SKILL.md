@@ -27,6 +27,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Найти чат по имени и отправить сообщение
 
+**Требуется:** скоуп `chats:read` · скоуп `messages:create`
+
 1. GET /chats — перебери результаты, найди нужный по полю `name`
 2. Отправь POST /messages с `"entity_id": chat.id`
 
@@ -41,11 +43,15 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Отправить сообщение в канал или беседу (если chat_id известен)
 
+**Требуется:** скоуп `messages:create`
+
 1. Отправь POST /messages с `"entity_id": chat_id`
 
 > `"entity_type": "discussion"` используется по умолчанию, можно не указывать
 
 ### Отправить личное сообщение пользователю
+
+**Требуется:** скоуп `users:read` · скоуп `messages:create`
 
 1. Определи `user_id` получателя (GET /users или из контекста)
 2. Отправь POST /messages с `"entity_type": "user"`, `"entity_id": user_id`
@@ -60,6 +66,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 > Создавать чат не требуется — он создаётся автоматически
 
 ### Ответить в тред (комментарий к сообщению)
+
+**Требуется:** скоуп `threads:create` · скоуп `messages:create`
 
 1. POST /messages/{id}/thread — получи или создай тред (`id` — id родительского сообщения), возьми `thread.id` из ответа
 2. Отправь POST /messages с `"entity_type": "thread"`, `"entity_id": thread.id`
@@ -79,6 +87,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Ответить пользователю, который написал боту
 
+**Требуется:** скоуп `messages:create` · скоуп `threads:create`
+
 1. Вебхук содержит `entity_type` — он однозначно определяет контекст: `"user"` — личное сообщение боту, `"thread"` — сообщение в треде, `"discussion"` — сообщение в канале или беседе
 2. DM (`entity_type: "user"`): ответь POST /messages с `"entity_type": "user"`, `"entity_id"`: `user_id` из вебхука
 3. Тред (`entity_type: "thread"`): вложенных тредов нет — ответь в тот же тред: POST /messages с `"entity_type": "thread"`, `"entity_id"`: `entity_id` из вебхука, `"parent_message_id"`: `id` сообщения пользователя из вебхука
@@ -87,6 +97,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 > `parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду. Если бота вызвали в треде и других сообщений в треде нет — основной контекст в родительском сообщении треда. В вебхуке уже есть `thread.message_id` — получи родительское сообщение: GET /messages/{id}.
 
 ### Отправить сообщение с файлами
+
+**Требуется:** скоуп `uploads:write` · скоуп `messages:create`
 
 1. Для каждого файла: POST /uploads → получи `key` (с `${filename}`), `direct_url`, `policy`, подпись
 2. Для каждого файла: подставь имя файла вместо `${filename}` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
@@ -115,6 +127,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Отправить сообщение с кнопками
 
+**Требуется:** скоуп `messages:create`
+
 1. Сформируй массив `buttons` — массив строк, каждая строка — массив кнопок: `[[{кнопка1, кнопка2}, ...], ...]`
 2. Каждая кнопка: `{"text": "Текст"}` + либо `url` (ссылка), либо `data` (callback для вебхука)
 3. Отправь POST /messages с полем `buttons`
@@ -131,6 +145,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Получить историю сообщений чата
 
+**Требуется:** скоуп `messages:read`
+
 1. GET /messages?chat_id={id} — пагинация: `limit` (1-50, по умолчанию 50), `cursor` (из `meta.paginate.next_page`), сортировка: `sort[id]=asc` или `sort[id]=desc` (по умолчанию)
 
 ```bash
@@ -141,6 +157,8 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=12345&limit=50&sort[
 > Для сообщений треда используй `chat_id` треда (`thread.chat_id`). Пагинация cursor-based, не page-based.
 
 ### Получить вложения из сообщения
+
+**Требуется:** скоуп `messages:read`
 
 1. GET /messages/{id} — в поле `files[]` каждый объект содержит `url` (прямая ссылка), `name`, `file_type`, `size`
 2. Скачай нужные файлы по `files[].url` — ссылка прямая, авторизация не требуется
@@ -155,12 +173,16 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686" \
 
 ### Закрепить/открепить сообщение
 
+**Требуется:** скоуп `pins:write`
+
 1. Закрепить: POST /messages/{id}/pin
 2. Открепить: DELETE /messages/{id}/pin
 
 > В чате может быть несколько закреплённых сообщений.
 
 ### Подписаться на тред сообщения
+
+**Требуется:** скоуп `threads:create` · скоуп `chat_members:write`
 
 1. POST /messages/{id}/thread — если треда нет, он будет создан; если есть — вернётся существующий. Возьми `chat_id` треда из ответа (`data.chat_id`)
 2. Добавь бота (или пользователя) в участники чата треда: POST /chats/{id}/members с `member_ids`
@@ -169,6 +191,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686" \
 > POST /messages/{id}/thread идемпотентен — безопасно вызывать повторно. После добавления в участники бот получает события треда через исходящий вебхук.
 
 ### Упомянуть пользователя по имени
+
+**Требуется:** скоуп `chat_members:read` · скоуп `users:read`
 
 1. Определи поисковый запрос — используй фамилию, она уникальнее. Имена не склоняются в API, приводи к именительному падежу: «упомяни Пашу» → ищи `Паша` или `Павел`, «тегни Голубева» → ищи `Голубев`
 2. Ищи сначала среди участников целевого чата: GET /chats/{id}/members (для треда тоже работает, у него свои участники) — фильтруй по имени на клиенте
@@ -192,6 +216,8 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 ### Отредактировать сообщение
 
+**Требуется:** скоуп `messages:update`
+
 1. PUT /messages/{id} с полем `content` (и/или `buttons`, `files`)
 
 ```bash
@@ -204,6 +230,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \
 > Редактировать можно только свои сообщения (или от имени бота).
 
 ### Изменить вложения сообщения
+
+**Требуется:** скоуп `messages:read` · скоуп `uploads:write` · скоуп `messages:update`
 
 1. GET /messages/{id} — получи текущие вложения из поля `files[]`, сохрани нужные объекты (`key`, `name`, `file_type`, `size`)
 2. Если нужно добавить новый файл: POST /uploads → загрузи файл → добавь объект в список
@@ -224,6 +252,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \
 
 ### Удалить сообщение
 
+**Требуется:** скоуп `messages:delete`
+
 1. DELETE /messages/{id}
 
 ```bash
@@ -232,6 +262,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/154332686" \
 ```
 
 ### Добавить реакцию на сообщение
+
+**Требуется:** скоуп `reactions:write`
 
 1. POST /messages/{id}/reactions с полем `code` (emoji)
 2. Убрать реакцию: DELETE /messages/{id}/reactions с полем `code`
@@ -247,6 +279,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/reactions" \
 
 ### Проверить, кто прочитал сообщение
 
+**Требуется:** скоуп `messages:read` · скоуп `users:read`
+
 1. GET /messages/{id}/read_member_ids — возвращает массив `user_id` прочитавших
 2. При необходимости сопоставь с GET /users для получения имён
 
@@ -256,6 +290,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
 ```
 
 ### Разослать уведомление нескольким пользователям
+
+**Требуется:** скоуп `users:read` · скоуп `messages:create`
 
 1. Определи список `user_id` получателей (GET /users или из контекста)
 2. Для каждого: POST /messages с `"entity_type": "user"`, `"entity_id": user_id`

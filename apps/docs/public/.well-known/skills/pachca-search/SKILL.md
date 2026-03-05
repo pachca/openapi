@@ -24,6 +24,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Найти сообщение по тексту
 
+**Требуется:** скоуп `search:messages`
+
 1. GET /search/messages?query=текст — полнотекстовый поиск. Пагинация: `limit` (до 200) и `cursor`. Общее количество результатов — в `meta.total`
 
 ```bash
@@ -35,6 +37,8 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=отчёт&limi
 
 ### Найти чат по названию
 
+**Требуется:** скоуп `search:chats`
+
 1. GET /search/chats?query=название — полнотекстовый поиск по чатам. Пагинация: `limit` (до 100) и `cursor`
 
 ```bash
@@ -45,6 +49,8 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
 > Фильтры: `active` (true — активные, false — архивированные), `chat_subtype` (`discussion` или `thread`), `personal` (true — только личные), `created_from`/`created_to` (период). Результаты сортируются по релевантности.
 
 ### Найти сотрудника по имени
+
+**Требуется:** скоуп `search:users`
 
 1. GET /search/users?query=имя — полнотекстовый поиск по сотрудникам. Пагинация: `limit` (до 200) и `cursor`. Сортировка: `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию) для релевантности
 

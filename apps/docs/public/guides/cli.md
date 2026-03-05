@@ -1,7 +1,7 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.3 · 4 марта 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.4 · 5 марта 2026
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
@@ -340,22 +340,31 @@ pachca guide
 ```bash
 pachca guide "создать напоминание"
 
-#  Сценарий: Создать напоминание  (pachca-tasks)
+# Сценарий: Создать напоминание  (pachca-tasks)
 #
-#  1. $ pachca tasks create --kind=reminder --content="Позвонить клиенту" --due-at=<дата> --chat-id=<chat_id>
+# 1. POST /tasks с kind, content и due_at
+#    pachca api POST /tasks
+# 2. Чтобы привязать к чату — добавь chat_id
+# 3. Чтобы заполнить дополнительные поля — добавь custom_properties
+#    pachca api GET /custom_properties?entity_type=Task
 
 pachca guide "кастомные поля профиля"
 
-#  Сценарий: Получить кастомные поля профиля  (pachca-profile)
+# Сценарий: Получить кастомные поля профиля  (pachca-profile)
 #
-#  1. $ pachca common custom-properties  # entity_type=User
-#  2. $ pachca profile get  # custom_properties содержит значения полей
+# 1. GET /custom_properties?entity_type=User — список полей (id, name, data_type)
+#    pachca api GET /custom_properties?entity_type=User
+# 2. GET /profile — в ответе custom_properties содержит значения текущего пользователя
+#    pachca api GET /profile
 
 pachca guide "активные чаты"
 
-#  Сценарий: Найти активные чаты за период  (pachca-chats)
+# Сценарий: Найти активные чаты за период  (pachca-chats)
 #
-#  1. $ pachca chats list --last-message-at-after=<дата> --all
+# 1. GET /chats с last_message_at_after={дата} — чаты с активностью после указанной даты
+#    pachca api GET /chats
+# 2. Для диапазона добавь last_message_at_before={дата}
+# 3. Перебери страницы: cursor из meta.paginate.next_page, пока он не пустой
 ```
 
 

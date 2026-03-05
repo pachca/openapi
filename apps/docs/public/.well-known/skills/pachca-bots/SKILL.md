@@ -34,6 +34,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Обновить Webhook URL бота
 
+**Требуется:** скоуп `bots:write`
+
 1. PUT /bots/{id} с новым `outgoing_url` — `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
 
 ```bash
@@ -47,6 +49,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 
 ### Обработать входящий вебхук-событие
 
+**Требуется:** скоуп `messages:read`
+
 1. Получи POST-запрос на свой Webhook URL
 2. Проверь подпись (Signing secret) для безопасности
 3. Проверь `webhook_timestamp` — должен быть в пределах 1 минуты
@@ -56,6 +60,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 > Вебхук содержит минимум данных — файлы (`files`) в нём отсутствуют. Если сообщение может содержать вложения, всегда запрашивай GET /messages/{id}.
 
 ### Разворачивание ссылок (unfurling)
+
+**Требуется:** скоуп `link_previews:write`
 
 1. Создай специального Unfurl-бота и укажи отслеживаемые домены в его настройках
 2. При появлении ссылки бот получает вебхук `"event": "link_shared"` с массивом `links` (`url` + `domain`) и `message_id`
@@ -73,6 +79,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/56431/link_previews" \
 
 ### Обработать нажатие кнопки (callback)
 
+**Требуется:** скоуп `messages:create` · скоуп `messages:update`
+
 1. Получи вебхук с `"event": "message_button_clicked"` — в payload: `data` (из кнопки), `user_id`, `message_id`
 2. Выполни нужное действие (запись в БД, запрос к API и т.д.)
 3. Ответь пользователю: POST /messages с `"entity_type": "user"`, `"entity_id": user_id` из вебхука
@@ -82,6 +90,8 @@ curl "https://api.pachca.com/api/shared/v1/messages/56431/link_previews" \
 
 ### Периодический дайджест/отчёт
 
+**Требуется:** скоуп `messages:create`
+
 1. По расписанию (cron/scheduler): собери данные из своей системы
 2. Сформируй текст сообщения с нужными метриками или сводкой
 3. POST /messages с `"entity_id": chat_id` нужного канала
@@ -90,12 +100,16 @@ curl "https://api.pachca.com/api/shared/v1/messages/56431/link_previews" \
 
 ### Мониторинг и алерты
 
+**Требуется:** скоуп `messages:create`
+
 1. Внешняя система (CI, мониторинг, сервис) обнаруживает событие (ошибка, деплой, порог метрики)
 2. Делает POST запрос к твоему боту или напрямую вызывает Pachca API
 3. POST /messages в канал алертов с описанием события и кнопками «Взять в работу» / «Игнорировать»
 4. При нажатии кнопки — обработай callback и обнови статус алерта
 
 ### Обработка событий через историю (polling)
+
+**Требуется:** скоуп `webhooks:events:read` · скоуп `webhooks:events:delete`
 
 1. В настройках бота включи «Сохранять историю событий» (вкладка «Исходящий webhook»). Webhook URL указывать не обязательно.
 2. По расписанию или по запросу: GET /webhooks/events — получи накопленные события с пагинацией (`limit`, `cursor`)

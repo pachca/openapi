@@ -17,6 +17,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Создать напоминание
 
+**Требуется:** скоуп `tasks:create` · скоуп `custom_properties:read`
+
 1. POST /tasks с `kind`, `content` и `due_at`. Чтобы привязать к чату — добавь `chat_id`. Чтобы заполнить дополнительные поля — добавь `custom_properties: [{"id": <field_id>, "value": "..."}]` (список полей: GET /custom_properties?entity_type=Task)
 
 ```bash
@@ -30,6 +32,8 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
 
 ### Получить список предстоящих задач
 
+**Требуется:** скоуп `tasks:read`
+
 1. GET /tasks с пагинацией (`limit`, `cursor`) — отфильтруй на клиенте по полю `status`: `"undone"` — не выполнена, `"done"` — выполнена
 
 ```bash
@@ -41,6 +45,8 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=50" \
 
 ### Получить задачу по ID
 
+**Требуется:** скоуп `tasks:read`
+
 1. GET /tasks/{id} — полная информация о задаче, включая `custom_properties`, `performer_ids`, `status`
 
 ```bash
@@ -50,6 +56,8 @@ curl "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ```
 
 ### Отметить задачу выполненной
+
+**Требуется:** скоуп `tasks:update`
 
 1. PUT /tasks/{id} с `"status": "done"`
 
@@ -61,6 +69,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 ```
 
 ### Обновить задачу (перенести срок, сменить ответственных)
+
+**Требуется:** скоуп `tasks:update`
 
 1. PUT /tasks/{id} с нужными полями: `content`, `due_at`, `kind`, `priority`, `performer_ids`, `custom_properties`
 
@@ -75,6 +85,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
 
 ### Удалить задачу
 
+**Требуется:** скоуп `tasks:delete`
+
 1. DELETE /tasks/{id}
 
 ```bash
@@ -85,6 +97,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/12345" \
 > Удаление необратимо. Если нужно просто закрыть — используй PUT с `"status": "done"`.
 
 ### Создать серию напоминаний
+
+**Требуется:** скоуп `tasks:create`
 
 1. Подготовь список дат (ежедневно, еженедельно и т.д.)
 2. Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`

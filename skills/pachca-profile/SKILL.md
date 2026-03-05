@@ -23,6 +23,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Получить свой профиль
 
+**Требуется:** скоуп `profile:read`
+
 1. GET /profile — возвращает полную информацию о текущем пользователе
 
 ```bash
@@ -47,6 +49,8 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
 
 ### Установить статус
 
+**Требуется:** скоуп `profile_status:write`
+
 1. PUT /profile/status с `emoji` и `title`. Чтобы включить режим «Нет на месте» — добавь `is_away: true`. Чтобы задать сообщение о недоступности — добавь `away_message: "текст"` (макс 1024 символа). Чтобы статус автоматически сбросился — добавь `expires_at` (ISO-8601, UTC+0)
 
 ```bash
@@ -58,6 +62,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
 
 ### Сбросить статус
 
+**Требуется:** скоуп `profile_status:write`
+
 1. DELETE /profile/status
 
 ```bash
@@ -66,6 +72,8 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 ```
 
 ### Получить кастомные поля профиля
+
+**Требуется:** скоуп `custom_properties:read` · скоуп `profile:read`
 
 1. GET /custom_properties?entity_type=User — список дополнительных полей для сотрудников (`id`, `name`, `data_type`)
 2. GET /profile — в ответе поле `custom_properties` содержит значения для текущего пользователя

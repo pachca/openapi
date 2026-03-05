@@ -1,161 +1,45 @@
 [
   {
-    "version": "2026.3.4",
-    "date": "5 марта 2026",
-    "changes": [
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Переменная окружения PACHCA_API_URL для использования кастомного base URL"
-      },
-      {
-        "type": "~",
-        "command": "all",
-        "description": "Исправлено выравнивание в уведомлении о доступном обновлении"
-      }
-    ]
-  },
-  {
     "version": "2026.3.3",
     "date": "4 марта 2026",
     "changes": [
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Структурированные ошибки валидации: type, flag, hint в JSON-выводе"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Батчинг ошибок валидации — все ошибки выводятся разом, а не по одной"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Hint-подсказки в ошибках авторизации и профиля (pachca auth login, pachca auth list)"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Описания команд и топиков переведены на русский язык"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Подсказки связанных команд в описаниях ID-флагов (pachca chats list, pachca users list)"
-      },
-      {
-        "type": "~",
-        "command": "introspect",
-        "description": "Аргументы команды (args) в выводе, requiredFlags, улучшенная ошибка «команда не найдена»"
-      },
-      {
-        "type": "~",
-        "command": "commands",
-        "description": "Поле summary в выводе команд"
-      },
-      {
-        "type": "~",
-        "command": "guide",
-        "description": "Компактный вывод шагов ($ command), структурированные данные сценариев, фильтрация шагов без CLI-команд"
-      }
+      { "type": "+", "command": "all", "description": "Структурированные ошибки валидации: type, flag, hint в JSON-выводе" },
+      { "type": "+", "command": "all", "description": "Батчинг ошибок валидации — все ошибки выводятся разом, а не по одной" },
+      { "type": "+", "command": "all", "description": "Hint-подсказки в ошибках авторизации и профиля (pachca auth login, pachca auth list)" },
+      { "type": "+", "command": "all", "description": "Описания команд и топиков переведены на русский язык" },
+      { "type": "+", "command": "all", "description": "Подсказки связанных команд в описаниях ID-флагов (pachca chats list, pachca users list)" },
+      { "type": "~", "command": "introspect", "description": "Аргументы команды (args) в выводе, requiredFlags, улучшенная ошибка «команда не найдена»" },
+      { "type": "~", "command": "commands", "description": "Поле summary в выводе команд" },
+      { "type": "~", "command": "guide", "description": "Компактный вывод шагов ($ command), структурированные данные сценариев, фильтрация шагов без CLI-команд" }
     ]
   },
   {
     "version": "2026.3.2",
     "date": "4 марта 2026",
     "changes": [
-      {
-        "type": "~",
-        "command": "auth login",
-        "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })"
-      },
-      {
-        "type": "~",
-        "command": "auth refresh",
-        "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })"
-      },
-      {
-        "type": "~",
-        "command": "doctor",
-        "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })"
-      },
-      {
-        "type": "~",
-        "command": "commands",
-        "description": "--available фильтрует недоступные команды вместо колонки available"
-      },
-      {
-        "type": "~",
-        "command": "auth login",
-        "description": "Fallback-имя «User #ID» вместо «Unknown» при недоступном профиле"
-      },
-      {
-        "type": "~",
-        "command": "all",
-        "description": "--version пропускает проверку авторизации"
-      }
+      { "type": "~", "command": "auth login", "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })" },
+      { "type": "~", "command": "auth refresh", "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })" },
+      { "type": "~", "command": "doctor", "description": "Исправлена обработка ответа /oauth/token/info (обёртка { data })" },
+      { "type": "~", "command": "commands", "description": "--available фильтрует недоступные команды вместо колонки available" },
+      { "type": "~", "command": "auth login", "description": "Fallback-имя «User #ID» вместо «Unknown» при недоступном профиле" },
+      { "type": "~", "command": "all", "description": "--version пропускает проверку авторизации" }
     ]
   },
   {
     "version": "2026.3.1",
     "date": "4 марта 2026",
     "changes": [
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Все флаги в kebab-case (--first-name, --entity-id, --phone-number)"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Boolean-флаги с --no- префиксом (--suspended / --no-suspended)"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "Хинт «через запятую» для массивных параметров (--chat-ids, --user-ids)"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "DELETE --json выводит {\"ok\":true} в stdout"
-      },
-      {
-        "type": "+",
-        "command": "all",
-        "description": "POST/DELETE не ретраятся при сетевых ошибках"
-      },
-      {
-        "type": "+",
-        "command": "common direct-url",
-        "description": "Флаги в kebab-case, корректные wire names в FormData"
-      },
-      {
-        "type": "+",
-        "command": "chats list",
-        "description": "Флаг --sort-last-message-at (был --sort-last_message_at)"
-      },
-      {
-        "type": "+",
-        "command": "guide",
-        "description": "Поиск по сценариям использования API"
-      },
-      {
-        "type": "+",
-        "command": "doctor",
-        "description": "Диагностика окружения (Node.js, сеть, токен, версия)"
-      },
-      {
-        "type": "+",
-        "command": "introspect",
-        "description": "Метаинформация о командах и флагах для агентов"
-      },
-      {
-        "type": "+",
-        "command": "api",
-        "description": "Прямые HTTP-запросы с -f/-F, --input, --query"
-      }
+      { "type": "+", "command": "all", "description": "Все флаги в kebab-case (--first-name, --entity-id, --phone-number)" },
+      { "type": "+", "command": "all", "description": "Boolean-флаги с --no- префиксом (--suspended / --no-suspended)" },
+      { "type": "+", "command": "all", "description": "Хинт «через запятую» для массивных параметров (--chat-ids, --user-ids)" },
+      { "type": "+", "command": "all", "description": "DELETE --json выводит {\"ok\":true} в stdout" },
+      { "type": "+", "command": "all", "description": "POST/DELETE не ретраятся при сетевых ошибках" },
+      { "type": "+", "command": "common direct-url", "description": "Флаги в kebab-case, корректные wire names в FormData" },
+      { "type": "+", "command": "chats list", "description": "Флаг --sort-last-message-at (был --sort-last_message_at)" },
+      { "type": "+", "command": "guide", "description": "Поиск по сценариям использования API" },
+      { "type": "+", "command": "doctor", "description": "Диагностика окружения (Node.js, сеть, токен, версия)" },
+      { "type": "+", "command": "introspect", "description": "Метаинформация о командах и флагах для агентов" },
+      { "type": "+", "command": "api", "description": "Прямые HTTP-запросы с -f/-F, --input, --query" }
     ]
   }
 ]

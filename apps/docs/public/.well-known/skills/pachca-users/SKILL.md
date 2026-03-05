@@ -26,6 +26,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Получить сотрудника по ID
 
+**Требуется:** скоуп `users:read`
+
 1. GET /users/{id} — полная информация о сотруднике
 
 ```bash
@@ -38,6 +40,8 @@ curl "https://api.pachca.com/api/shared/v1/users/186" \
 
 ### Массовое создание сотрудников с тегами
 
+**Требуется:** скоуп `group_tags:write` · скоуп `users:create` · скоуп `users:update`
+
 1. Создай тег (если нужен): POST /group_tags с `{"group_tag": {"name": ...}}`
 2. Для каждого сотрудника: POST /users — теги назначаются через поле `list_tags` в теле запроса
 3. Или обнови существующего: PUT /users/{id} с `list_tags`
@@ -45,6 +49,8 @@ curl "https://api.pachca.com/api/shared/v1/users/186" \
 > Создание сотрудников доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег" — теги назначаются через `list_tags` при создании (POST /users) или обновлении (PUT /users/{id}).
 
 ### Найти сотрудника по имени или email
+
+**Требуется:** скоуп `users:read`
 
 1. GET /users?query=Иван — поиск по имени/email (частичное совпадение)
 2. Если нужен точный поиск по email — перебери страницы и отфильтруй на клиенте
@@ -59,6 +65,8 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 
 ### Онбординг нового сотрудника
 
+**Требуется:** скоуп `users:create` · скоуп `chat_members:write` · скоуп `messages:create`
+
 1. POST /users с `email`, именем, тегами (`list_tags`) — создать аккаунт
 2. POST /chats/{id}/members с `member_ids` — добавить в нужные каналы (онбординг, общий, тематические)
 3. POST /messages с `"entity_type": "user"`, `"entity_id": user.id` — отправить welcome-сообщение в личные сообщения
@@ -67,6 +75,8 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 
 ### Offboarding сотрудника
 
+**Требуется:** скоуп `users:update` · скоуп `users:delete`
+
 1. PUT /users/{id} с `"suspended": true` — заблокировать доступ
 2. Опционально: DELETE /users/{id} — удалить аккаунт полностью
 
@@ -74,10 +84,14 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
 
 ### Получить всех сотрудников тега/департамента
 
+**Требуется:** скоуп `group_tags:read`
+
 1. GET /group_tags?names[]=Backend — найти тег по названию, взять `id` тега из ответа
 2. GET /group_tags/{id}/users с пагинацией (`limit` + `cursor`) — получить всех участников
 
 ### Управление статусом сотрудника
+
+**Требуется:** скоуп `user_status:read` · скоуп `user_status:write`
 
 1. GET /users/{user_id}/status — получить текущий статус сотрудника
 2. PUT /users/{user_id}/status с `emoji`, `title` и опционально `is_away: true`, `away_message: "текст"` — установить статус

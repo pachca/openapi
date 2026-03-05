@@ -26,6 +26,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Создать канал и пригласить участников
 
+**Требуется:** скоуп `chats:create` · скоуп `chat_members:write`
+
 1. POST /chats — `"channel": true` для канала, `false` (по умолчанию) для беседы. Участников можно передать сразу при создании: `member_ids` и/или `group_tag_ids` в теле запроса
 2. Или добавить участников позже: POST /chats/{id}/members с `member_ids`, POST /chats/{id}/group_tags с `group_tag_ids`
 
@@ -40,6 +42,8 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 ### Архивация и управление чатом
 
+**Требуется:** скоуп `chats:archive` · скоуп `chat_members:write` · скоуп `chats:leave`
+
 1. Архивировать: PUT /chats/{id}/archive
 2. Разархивировать: PUT /chats/{id}/unarchive
 3. Изменить роль участника: PUT /chats/{id}/members/{user_id} с `role` (`"admin"` | `"member"`; `"editor"` — только для каналов). Роль создателя чата изменить нельзя.
@@ -47,6 +51,8 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 5. Покинуть чат: DELETE /chats/{id}/leave
 
 ### Переименовать или обновить чат
+
+**Требуется:** скоуп `chats:update`
 
 1. PUT /chats/{id} с нужными параметрами: `name` (название) и/или `public` (открытый доступ)
 
@@ -61,6 +67,8 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \
 
 ### Создать проектную беседу из шаблона
 
+**Требуется:** скоуп `chats:create` · скоуп `messages:create`
+
 1. POST /chats с `name`, `"channel": false` и `group_tag_ids` (добавить всех участников тега сразу)
 2. Отправь приветственное сообщение: POST /messages с `"entity_id": chat.id`
 
@@ -74,6 +82,8 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 > `group_tag_ids` при создании добавляет всех участников тега сразу — удобнее, чем добавлять поштучно.
 
 ### Экспорт истории чата
+
+**Требуется:** тариф **Корпорация** · скоуп `chat_exports:write` · скоуп `chat_exports:read`
 
 1. POST /chats/exports с `start_at`, `end_at` (формат YYYY-MM-DD) и обязательным `webhook_url` — запрос выполняется асинхронно
 2. Дождись вебхука на `webhook_url`: придёт JSON с `"type": "export"`, `"event": "ready"` и полем `export_id` — по `"type": "export"` можно отличить от других вебхуков
@@ -90,6 +100,8 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
 
 ### Найти активные чаты за период
 
+**Требуется:** скоуп `chats:read`
+
 1. GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты. Для диапазона добавь `last_message_at_before={дата}`
 
 ```bash
@@ -100,6 +112,8 @@ curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_after=$DATE_FRO
 > Дата в формате ISO-8601 UTC+0: `YYYY-MM-DDThh:mm:ss.sssZ`. Для «последних N дней» вычисли `now - N days` в UTC.
 
 ### Найти и заархивировать неактивные чаты
+
+**Требуется:** скоуп `chats:read` · скоуп `chats:archive`
 
 1. GET /chats с `last_message_at_before={порог}` — сразу только чаты без активности с нужной даты
 2. Для каждого чата: PUT /chats/{id}/archive

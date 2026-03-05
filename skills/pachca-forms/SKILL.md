@@ -24,6 +24,8 @@ Base URL: `https://api.pachca.com/api/shared/v1`
 
 ### Показать интерактивную форму пользователю
 
+**Требуется:** скоуп `messages:create` · скоуп `views:write`
+
 1. Заранее подготовь объект формы: `view` с `title`, `blocks` (типы: `input`, `select`, `radio`, `checkbox`, `date`, `time`, `file_input`, `header`, `plain_text`, `markdown`, `divider`), опционально `callback_id` (идентификатор формы) и `private_metadata` (контекст, например id сообщения)
 2. Отправь сообщение с кнопкой (POST /messages с `buttons`, в `data` кнопки передай идентификатор формы)
 3. При нажатии кнопки — получи вебхук-событие с `trigger_id`
@@ -51,6 +53,8 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
 
 ### Опрос сотрудников через форму
 
+**Требуется:** скоуп `messages:create` · скоуп `views:write`
+
 1. Отправь сообщение с кнопкой «Пройти опрос» в канал или ЛС: POST /messages с `"data": "survey_start"` в кнопке
 2. При нажатии кнопки получи вебхук с `trigger_id` и `user_id` нажавшего
 3. Немедленно отправь POST /views/open с формой (поля: `input`, `select`, `radio` и т.д.)
@@ -61,6 +65,8 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
 > Каждый пользователь должен нажать кнопку сам — у каждого свой `trigger_id`. Нельзя открыть форму принудительно.
 
 ### Форма заявки/запроса
+
+**Требуется:** скоуп `tasks:create` · скоуп `messages:create`
 
 1. Размести в канале сообщение с кнопкой «Создать заявку» (`"data": "new_request"`)
 2. При нажатии открой форму с полями: тема, описание, приоритет (`select`)

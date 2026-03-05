@@ -103,19 +103,18 @@ const tag2service: Record<string, string> = {
   Chats: "chats",
   Users: "users",
   Tasks: "tasks",
-  "Group tags": "tags",
+  "Group tags": "groupTags",
   Members: "members",
   Reactions: "reactions",
-  Thread: "threads",
+  Threads: "threads",
   Profile: "profile",
   Bots: "bots",
   Security: "security",
-  // Merged into "common"
   Common: "common",
-  Views: "common",
-  Search: "common",
-  "Link Previews": "common",
-  "Read member": "common",
+  Views: "views",
+  Search: "search",
+  "Link Previews": "linkPreviews",
+  "Read members": "readMembers",
 };
 
 // ─────────────────────────────────────────────────
@@ -188,7 +187,7 @@ const SERVICE_ORDER = [
   "chats",
   "users",
   "tasks",
-  "tags",
+  "groupTags",
   "members",
   "reactions",
   "threads",
@@ -196,6 +195,10 @@ const SERVICE_ORDER = [
   "bots",
   "security",
   "common",
+  "views",
+  "search",
+  "linkPreviews",
+  "readMembers",
 ];
 
 let hasPagination = false;

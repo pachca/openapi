@@ -141,7 +141,7 @@ type PachcaClient struct {
 	Messages *MessagesService
 	Chats *ChatsService
 	Common *CommonService
-	Tags *TagsService
+	GroupTags *GroupTagsService
 	LinkPreviews *LinkPreviewsService
 	Profile *ProfileService
 	Reactions *ReactionsService
@@ -150,6 +150,8 @@ type PachcaClient struct {
 	Tasks *TasksService
 	Threads *ThreadsService
 	Users *UsersService
+	Security *SecurityService
+	Views *ViewsService
 }
 
 // NewPachcaClient creates a new Pachca API client.
@@ -167,7 +169,7 @@ func NewPachcaClient(serverURL, token string) (*PachcaClient, error) {
 	p.Messages = &MessagesService{client: client}
 	p.Chats = &ChatsService{client: client}
 	p.Common = &CommonService{client: client, serverURL: serverURL, token: token}
-	p.Tags = &TagsService{client: client}
+	p.GroupTags = &GroupTagsService{client: client}
 	p.LinkPreviews = &LinkPreviewsService{client: client}
 	p.Profile = &ProfileService{client: client}
 	p.Reactions = &ReactionsService{client: client}
@@ -176,6 +178,8 @@ func NewPachcaClient(serverURL, token string) (*PachcaClient, error) {
 	p.Tasks = &TasksService{client: client}
 	p.Threads = &ThreadsService{client: client}
 	p.Users = &UsersService{client: client}
+	p.Security = &SecurityService{client: client, serverURL: serverURL, token: token}
+	p.Views = &ViewsService{client: client, serverURL: serverURL, token: token}
 	return p, nil
 }
 
@@ -710,12 +714,12 @@ func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, err
 	}
 }
 
-// TagsService provides Group tags API operations.
-type TagsService struct {
+// GroupTagsService provides Group tags API operations.
+type GroupTagsService struct {
 	client *Client
 }
 
-func (s *TagsService) CreateTag(ctx context.Context, request *GroupTagRequest) (*CreateTagResponse, error) {
+func (s *GroupTagsService) CreateTag(ctx context.Context, request *GroupTagRequest) (*CreateTagResponse, error) {
 	res, err := s.client.GroupTagOperationsCreateTag(ctx, request)
 	if err != nil {
 		return nil, err
@@ -736,7 +740,7 @@ func (s *TagsService) CreateTag(ctx context.Context, request *GroupTagRequest) (
 	}
 }
 
-func (s *TagsService) DeleteTag(ctx context.Context, iD int32) error {
+func (s *GroupTagsService) DeleteTag(ctx context.Context, iD int32) error {
 	res, err := s.client.GroupTagOperationsDeleteTag(ctx, GroupTagOperationsDeleteTagParams{ID: iD})
 	if err != nil {
 		return err
@@ -755,7 +759,7 @@ func (s *TagsService) DeleteTag(ctx context.Context, iD int32) error {
 	}
 }
 
-func (s *TagsService) GetTag(ctx context.Context, iD int32) (*GetTagResponse, error) {
+func (s *GroupTagsService) GetTag(ctx context.Context, iD int32) (*GetTagResponse, error) {
 	res, err := s.client.GroupTagOperationsGetTag(ctx, GroupTagOperationsGetTagParams{ID: iD})
 	if err != nil {
 		return nil, err
@@ -774,7 +778,7 @@ func (s *TagsService) GetTag(ctx context.Context, iD int32) (*GetTagResponse, er
 	}
 }
 
-func (s *TagsService) GetTagUsers(ctx context.Context, params GetTagUsersParams) (*GetTagUsersResponse, error) {
+func (s *GroupTagsService) GetTagUsers(ctx context.Context, params GetTagUsersParams) (*GetTagUsersResponse, error) {
 	res, err := s.client.GroupTagOperationsGetTagUsers(ctx, params)
 	if err != nil {
 		return nil, err
@@ -797,7 +801,7 @@ func (s *TagsService) GetTagUsers(ctx context.Context, params GetTagUsersParams)
 	}
 }
 
-func (s *TagsService) ListTags(ctx context.Context, params ListTagsParams) (*ListTagsResponse, error) {
+func (s *GroupTagsService) ListTags(ctx context.Context, params ListTagsParams) (*ListTagsResponse, error) {
 	res, err := s.client.GroupTagOperationsListTags(ctx, params)
 	if err != nil {
 		return nil, err
@@ -818,7 +822,7 @@ func (s *TagsService) ListTags(ctx context.Context, params ListTagsParams) (*Lis
 	}
 }
 
-func (s *TagsService) UpdateTag(ctx context.Context, request *GroupTagRequest, iD int32) (*UpdateTagResponse, error) {
+func (s *GroupTagsService) UpdateTag(ctx context.Context, request *GroupTagRequest, iD int32) (*UpdateTagResponse, error) {
 	res, err := s.client.GroupTagOperationsUpdateTag(ctx, request, GroupTagOperationsUpdateTagParams{ID: iD})
 	if err != nil {
 		return nil, err
@@ -1449,6 +1453,20 @@ func (s *UsersService) UpdateUserStatus(ctx context.Context, request *StatusUpda
 	default:
 		return nil, fmt.Errorf("unexpected response type: %T", res)
 	}
+}
+
+// SecurityService provides Security API operations.
+type SecurityService struct {
+	client    *Client
+	serverURL string
+	token     string
+}
+
+// ViewsService provides Views API operations.
+type ViewsService struct {
+	client    *Client
+	serverURL string
+	token     string
 }
 
 // UploadToS3 uploads a file to S3 using params from GetUploadParams.

@@ -246,9 +246,9 @@ export class Pachca {
       ),
   };
 
-  // ── tags ──────────────────────────────────────────────
+  // ── groupTags ─────────────────────────────────────────
 
-  readonly tags = {
+  readonly groupTags = {
     listTags: (options?: Omit<Options<ListTagsData>, "client">) =>
       listTags({ ...options, client: this.client } as Options<ListTagsData>),
     createTag: (options: Omit<Options<CreateTagData>, "client">) =>
@@ -313,6 +313,15 @@ export class Pachca {
       ),
   };
 
+  // ── threads ───────────────────────────────────────────
+
+  readonly threads = {
+    createThread: (options: Omit<Options<CreateThreadData>, "client">) =>
+      createThread({ ...options, client: this.client } as Options<CreateThreadData>),
+    getThread: (options: Omit<Options<GetThreadData>, "client">) =>
+      getThread({ ...options, client: this.client } as Options<GetThreadData>),
+  };
+
   // ── profile ───────────────────────────────────────────
 
   readonly profile = {
@@ -367,29 +376,26 @@ export class Pachca {
       listProperties({ ...options, client: this.client } as Options<ListPropertiesData>),
     uploadFile: (options: Omit<Options<UploadFileData>, "client">) =>
       uploadFile({ ...options, client: this.client } as Options<UploadFileData>),
-    createLinkPreviews: (options: Omit<Options<CreateLinkPreviewsData>, "client">) =>
-      createLinkPreviews({ ...options, client: this.client } as Options<CreateLinkPreviewsData>),
-    listReadMembers: (options: Omit<Options<ListReadMembersData>, "client">) =>
-      listReadMembers({ ...options, client: this.client } as Options<ListReadMembersData>),
-    createThread: (options: Omit<Options<CreateThreadData>, "client">) =>
-      createThread({ ...options, client: this.client } as Options<CreateThreadData>),
+    getUploadParams: (options?: Omit<Options<GetUploadParamsData>, "client">) =>
+      getUploadParams({ ...options, client: this.client } as Options<GetUploadParamsData>),
+  };
+
+  // ── views ─────────────────────────────────────────────
+
+  readonly views = {
+    openView: (options: Omit<Options<OpenViewData>, "client">) =>
+      openView({ ...options, client: this.client } as Options<OpenViewData>),
+  };
+
+  // ── search ────────────────────────────────────────────
+
+  readonly search = {
     searchChats: (options?: Omit<Options<SearchChatsData>, "client">) =>
       searchChats({ ...options, client: this.client } as Options<SearchChatsData>),
     searchMessages: (options?: Omit<Options<SearchMessagesData>, "client">) =>
       searchMessages({ ...options, client: this.client } as Options<SearchMessagesData>),
     searchUsers: (options?: Omit<Options<SearchUsersData>, "client">) =>
       searchUsers({ ...options, client: this.client } as Options<SearchUsersData>),
-    getThread: (options: Omit<Options<GetThreadData>, "client">) =>
-      getThread({ ...options, client: this.client } as Options<GetThreadData>),
-    getUploadParams: (options?: Omit<Options<GetUploadParamsData>, "client">) =>
-      getUploadParams({ ...options, client: this.client } as Options<GetUploadParamsData>),
-    openView: (options: Omit<Options<OpenViewData>, "client">) =>
-      openView({ ...options, client: this.client } as Options<OpenViewData>),
-    listAllReadMembers: (options: Omit<Options<ListReadMembersData>, "client">) =>
-      paginate(
-        (opts: any) => listReadMembers({ ...opts, client: this.client }),
-        (options ?? {}) as any,
-      ),
     searchAllChats: (options?: Omit<Options<SearchChatsData>, "client">) =>
       paginate(
         (opts: any) => searchChats({ ...opts, client: this.client }),
@@ -403,6 +409,25 @@ export class Pachca {
     searchAllUsers: (options?: Omit<Options<SearchUsersData>, "client">) =>
       paginate(
         (opts: any) => searchUsers({ ...opts, client: this.client }),
+        (options ?? {}) as any,
+      ),
+  };
+
+  // ── linkPreviews ──────────────────────────────────────
+
+  readonly linkPreviews = {
+    createLinkPreviews: (options: Omit<Options<CreateLinkPreviewsData>, "client">) =>
+      createLinkPreviews({ ...options, client: this.client } as Options<CreateLinkPreviewsData>),
+  };
+
+  // ── readMembers ───────────────────────────────────────
+
+  readonly readMembers = {
+    listReadMembers: (options: Omit<Options<ListReadMembersData>, "client">) =>
+      listReadMembers({ ...options, client: this.client } as Options<ListReadMembersData>),
+    listAllReadMembers: (options: Omit<Options<ListReadMembersData>, "client">) =>
+      paginate(
+        (opts: any) => listReadMembers({ ...opts, client: this.client }),
         (options ?? {}) as any,
       ),
   };

@@ -286,7 +286,7 @@ const tag2service: Record<string, string> = {
   "Common": "Common",
   "Profile": "Profile",
   "Users": "Users",
-  "Group tags": "Tags",
+  "Group tags": "GroupTags",
   "Chats": "Chats",
   "Members": "Members",
   "Threads": "Threads",
@@ -315,8 +315,10 @@ for (const m of methods) {
   groups.get(tag)!.push(m);
 }
 
-// Ensure Common group exists (for manual methods: UploadFile, Download)
+// Ensure groups exist for services with only manual methods
 if (!groups.has("Common")) groups.set("Common", []);
+if (!groups.has("Security")) groups.set("Security", []);
+if (!groups.has("Views")) groups.set("Views", []);
 
 console.log(`Found ${groups.size} service groups`);
 
@@ -608,9 +610,12 @@ w("\tp := &PachcaClient{");
 w("\t\tserverURL: serverURL,");
 w("\t\ttoken:     token,");
 w("\t}");
+// Services that need direct HTTP access (for manual methods not handled by ogen)
+const SERVICES_WITH_HTTP = new Set(["Common", "Security", "Views"]);
+
 for (const [tag] of groups) {
   const svc = getServiceName(tag);
-  if (tag === "Common") {
+  if (SERVICES_WITH_HTTP.has(tag)) {
     w(
       `\tp.${svc} = &${svc}Service{client: client, serverURL: serverURL, token: token}`
     );
@@ -627,7 +632,7 @@ for (const [tag, tagMethods] of groups) {
 
   w("");
   w(`// ${svc}Service provides ${tag} API operations.`);
-  if (tag === "Common") {
+  if (SERVICES_WITH_HTTP.has(tag)) {
     w(`type ${svc}Service struct {`);
     w("\tclient    *Client");
     w("\tserverURL string");

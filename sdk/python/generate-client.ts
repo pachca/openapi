@@ -11,6 +11,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { execSync } from "child_process";
+import { parse } from "yaml";
 
 // ── Paths ──────────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,21 @@ const OUTPUT_PATH = path.resolve(
 );
 const INIT_PATH = path.resolve(__dirname, "generated/pachca/__init__.py");
 
+// ── Parse OpenAPI spec for tags ──────────────────────────────────────────────
+
+const spec = parse(fs.readFileSync(SPEC_PATH, "utf-8"));
+
+const specTags: string[] = (spec.tags ?? []).map((t: any) => t.name);
+
+/** Map api directory name → tag (from OpenAPI spec).  "group_tags" → "Group tags" */
+const dirToTag = new Map<string, string>();
+for (const tag of specTags) {
+  const dirName = tag.toLowerCase().replace(/\s+/g, "_");
+  dirToTag.set(dirName, tag);
+}
+
+console.log(`Parsed ${specTags.length} tags from OpenAPI spec`);
+
 // ── Naming helpers ─────────────────────────────────────────────────────────────
 
 function pascalToSnake(s: string): string {
@@ -34,11 +50,34 @@ function pascalToSnake(s: string): string {
     .replace(/^_/, "");
 }
 
+// ── Tag → service name mapping ───────────────────────────────
+
+const tag2service: Record<string, string> = {
+  "Common": "common",
+  "Profile": "profile",
+  "Users": "users",
+  "Group tags": "group_tags",
+  "Chats": "chats",
+  "Members": "members",
+  "Threads": "threads",
+  "Messages": "messages",
+  "Read members": "read_members",
+  "Reactions": "reactions",
+  "Link Previews": "link_previews",
+  "Search": "search",
+  "Tasks": "tasks",
+  "Views": "views",
+  "Bots": "bots",
+  "Security": "security",
+};
+
 /** Tag → Python service class name.  "Group tags" → "GroupTagsService" */
 function tagToServiceName(tag: string): string {
+  const prop = tag2service[tag];
+  if (!prop) throw new Error(`No service name mapping for tag "${tag}"`);
   return (
-    tag
-      .split(/\s+/)
+    prop
+      .split("_")
       .map((w) => w[0].toUpperCase() + w.slice(1))
       .join("") + "Service"
   );
@@ -46,7 +85,9 @@ function tagToServiceName(tag: string): string {
 
 /** Tag → client property name.  "Group tags" → "group_tags" */
 function tagToPropertyName(tag: string): string {
-  return tag.toLowerCase().replace(/\s+/g, "_");
+  const prop = tag2service[tag];
+  if (!prop) throw new Error(`No service name mapping for tag "${tag}"`);
+  return prop;
 }
 
 /** Tag → api subdirectory.  "Group tags" → "group_tags" */
@@ -59,11 +100,11 @@ function schemaToModule(name: string): string {
   return pascalToSnake(name);
 }
 
-/** Directory name → tag.  "group_tags" → "Group tags", "bots" → "Bots" */
+/** Directory name → tag (from OpenAPI spec).  "group_tags" → "Group tags" */
 function dirNameToTag(dirName: string): string {
-  return dirName
-    .replace(/_/g, " ")
-    .replace(/^\w/, (c) => c.toUpperCase());
+  const tag = dirToTag.get(dirName);
+  if (!tag) throw new Error(`No OpenAPI tag found for directory "${dirName}"`);
+  return tag;
 }
 
 /** Module name → facade method name.  "bot_operations_delete_webhook_event" → "delete_webhook_event" */

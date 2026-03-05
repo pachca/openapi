@@ -98,7 +98,7 @@ console.log(
 // 3. Map tags → service names
 // ─────────────────────────────────────────────────
 
-const TAG_TO_SERVICE: Record<string, string> = {
+const tag2service: Record<string, string> = {
   Messages: "messages",
   Chats: "chats",
   Users: "users",
@@ -136,7 +136,7 @@ for (const fn of fns) {
     continue;
   }
 
-  const serviceName = TAG_TO_SERVICE[info.tag] ?? "common";
+  const serviceName = tag2service[info.tag] ?? "common";
 
   if (!services.has(serviceName)) {
     services.set(serviceName, []);

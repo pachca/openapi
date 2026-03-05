@@ -8,6 +8,7 @@
     "build": "swift build"
   },
   "devDependencies": {
-    "@pachca/spec": "workspace:*"
+    "@pachca/spec": "workspace:*",
+    "yaml": "^2.7.0"
   }
 }

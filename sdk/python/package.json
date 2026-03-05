@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "yaml": "^2.7.0"
   }
 }

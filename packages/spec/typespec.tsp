@@ -4150,7 +4150,7 @@ interface ChatMemberOperations {
 // Thread Operations
 // ============================================================================
 
-@tag("Thread")
+@tag("Threads")
 interface ThreadOperations {
   @extension("x-requirements", #{
     scope: "threads:create",
@@ -4471,7 +4471,7 @@ interface ChatMessageOperations {
 // Read Member Operations
 // ============================================================================
 
-@tag("Read member")
+@tag("Read members")
 interface ReadMemberOperations {
   @extension("x-requirements", #{
     scope: "messages:read",

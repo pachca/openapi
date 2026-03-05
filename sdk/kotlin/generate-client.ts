@@ -1,21 +1,67 @@
-import { readdirSync, writeFileSync, mkdirSync } from "fs";
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
+import { parse } from "yaml";
 
 const apisDir = "generated/src/main/kotlin/com/pachca/apis";
 const outDir = "generated/src/main/kotlin/com/pachca";
 
-const apiFiles = readdirSync(apisDir)
-  .filter((f) => f.endsWith("Api.kt"))
-  .sort();
+// ── Parse OpenAPI spec for tags ──────────────────────────────
 
-const entries = apiFiles.map((f) => {
-  const className = f.replace(".kt", "");
-  // MessagesApi → messages, GroupTagsApi → groupTags
-  const propName =
-    className.replace(/Api$/, "").charAt(0).toLowerCase() +
-    className.replace(/Api$/, "").slice(1);
-  return { className, propName };
-});
+const SPEC_PATH = "../../packages/spec/openapi.yaml";
+const spec = parse(readFileSync(SPEC_PATH, "utf-8"));
+
+const specTags: string[] = (spec.tags ?? []).map((t: any) => t.name);
+
+console.log(`Parsed ${specTags.length} tags from OpenAPI spec`);
+
+// ── Tag → service name mapping ───────────────────────────────
+
+const tag2service: Record<string, string> = {
+  "Common": "common",
+  "Profile": "profile",
+  "Users": "users",
+  "Group tags": "groupTags",
+  "Chats": "chats",
+  "Members": "members",
+  "Threads": "threads",
+  "Messages": "messages",
+  "Read members": "readMembers",
+  "Reactions": "reactions",
+  "Link Previews": "linkPreviews",
+  "Search": "search",
+  "Tasks": "tasks",
+  "Views": "views",
+  "Bots": "bots",
+  "Security": "security",
+};
+
+/** Tag → Api class name.  "Group tags" → "GroupTagsApi" */
+function tagToApiClassName(tag: string): string {
+  return tag.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("") + "Api";
+}
+
+// ── Build entries from spec tags ─────────────────────────────
+
+const entries: { className: string; propName: string }[] = [];
+
+for (const tag of specTags) {
+  const propName = tag2service[tag];
+  if (!propName) throw new Error(`No service name mapping for tag "${tag}"`);
+
+  const className = tagToApiClassName(tag);
+  const apiFile = join(apisDir, className + ".kt");
+
+  if (!existsSync(apiFile)) {
+    console.warn(`Skipping tag "${tag}": ${className}.kt not found`);
+    continue;
+  }
+
+  entries.push({ className, propName });
+}
+
+entries.sort((a, b) => a.propName.localeCompare(b.propName));
+
+// ── Generate PachcaClient.kt ─────────────────────────────────
 
 const lines = entries
   .map(

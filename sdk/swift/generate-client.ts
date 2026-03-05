@@ -194,6 +194,51 @@ function generatePachcaClient(): string {
     lines.push(`    public var ${group.propertyName}: ${group.typeName} { ${group.typeName}(client: client) }`);
   }
 
+  // uploadFile convenience method
+  lines.push("");
+  lines.push("    /// Upload a file using params from `upload.getUploadParams()`.");
+  lines.push("    /// Handles multipart form construction and `${filename}` substitution.");
+  lines.push("    /// Returns the file key for use in message attachments.");
+  lines.push("    public func uploadFile(");
+  lines.push("        _ uploadParams: Components.Schemas.UploadParams,");
+  lines.push("        file: Data,");
+  lines.push("        filename: String");
+  lines.push("    ) async throws -> String {");
+  lines.push('        let key = uploadParams.key.replacingOccurrences(of: "${filename}", with: filename)');
+  lines.push('        let boundary = "Boundary-\\(UUID().uuidString)"');
+  lines.push("        var body = Data()");
+  lines.push("        let fields: [(String, String)] = [");
+  lines.push('            ("Content-Disposition", uploadParams.Content_hyphen_Disposition),');
+  lines.push('            ("acl", uploadParams.acl),');
+  lines.push('            ("policy", uploadParams.policy),');
+  lines.push('            ("x-amz-credential", uploadParams.x_hyphen_amz_hyphen_credential),');
+  lines.push('            ("x-amz-algorithm", uploadParams.x_hyphen_amz_hyphen_algorithm),');
+  lines.push('            ("x-amz-date", uploadParams.x_hyphen_amz_hyphen_date),');
+  lines.push('            ("x-amz-signature", uploadParams.x_hyphen_amz_hyphen_signature),');
+  lines.push('            ("key", key),');
+  lines.push("        ]");
+  lines.push("        for (name, value) in fields {");
+  lines.push('            body.append("--\\(boundary)\\r\\n".data(using: .utf8)!)');
+  lines.push('            body.append("Content-Disposition: form-data; name=\\"\\(name)\\"\\r\\n\\r\\n".data(using: .utf8)!)');
+  lines.push('            body.append("\\(value)\\r\\n".data(using: .utf8)!)');
+  lines.push("        }");
+  lines.push('        body.append("--\\(boundary)\\r\\n".data(using: .utf8)!)');
+  lines.push('        body.append("Content-Disposition: form-data; name=\\"file\\"; filename=\\"\\(filename)\\"\\r\\n".data(using: .utf8)!)');
+  lines.push('        body.append("Content-Type: application/octet-stream\\r\\n\\r\\n".data(using: .utf8)!)');
+  lines.push("        body.append(file)");
+  lines.push('        body.append("\\r\\n--\\(boundary)--\\r\\n".data(using: .utf8)!)');
+  lines.push('        var request = URLRequest(url: URL(string: uploadParams.direct_url)!)');
+  lines.push('        request.httpMethod = "POST"');
+  lines.push('        request.setValue("multipart/form-data; boundary=\\(boundary)", forHTTPHeaderField: "Content-Type")');
+  lines.push("        request.httpBody = body");
+  lines.push("        let (_, response) = try await URLSession.shared.data(for: request)");
+  lines.push("        guard let httpResponse = response as? HTTPURLResponse, (httpResponse.statusCode == 201 || httpResponse.statusCode == 204) else {");
+  lines.push('            let code = (response as? HTTPURLResponse)?.statusCode ?? -1');
+  lines.push('            throw NSError(domain: "PachcaUpload", code: code, userInfo: [NSLocalizedDescriptionKey: "Upload failed with status \\(code)"])');
+  lines.push("        }");
+  lines.push("        return key");
+  lines.push("    }");
+
   lines.push("}");
   lines.push("");
 

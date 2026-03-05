@@ -133,6 +133,7 @@ import type {
   UpdateUserData,
   UpdateUserStatusData,
   UploadFileData,
+  UploadParams,
 } from "./generated/types.gen.js";
 import { paginate } from "./paginate.js";
 
@@ -410,4 +411,37 @@ export class Pachca {
         (options ?? {}) as any,
       ),
   };
+
+  // ── uploads ──────────────────────────────────────────
+
+  /**
+   * Upload a file using params from common.getUploadParams().
+   * Handles multipart form construction and ${filename} substitution.
+   * Returns the file key for use in message attachments.
+   */
+  async uploadFile(
+    uploadParams: UploadParams,
+    file: Blob,
+    filename: string,
+  ): Promise<string> {
+    const key = uploadParams.key.replace("${filename}", filename);
+    const form = new FormData();
+    form.append("Content-Disposition", uploadParams["Content-Disposition"]);
+    form.append("acl", uploadParams.acl);
+    form.append("policy", uploadParams.policy);
+    form.append("x-amz-credential", uploadParams["x-amz-credential"]);
+    form.append("x-amz-algorithm", uploadParams["x-amz-algorithm"]);
+    form.append("x-amz-date", uploadParams["x-amz-date"]);
+    form.append("x-amz-signature", uploadParams["x-amz-signature"]);
+    form.append("key", key);
+    form.append("file", file, filename);
+    const resp = await fetch(uploadParams.direct_url, {
+      method: "POST",
+      body: form,
+    });
+    if (resp.status !== 201 && resp.status !== 204) {
+      throw new Error(`Upload failed with status ${resp.status}`);
+    }
+    return key;
+  }
 }

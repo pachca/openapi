@@ -223,7 +223,8 @@ lines.push(
   `import {\n  ${sortedFnImports.join(",\n  ")},\n} from "./generated/sdk.gen.js";`
 );
 
-// Type imports
+// Type imports (add UploadParams for uploadFile convenience method)
+typeImports.add("UploadParams");
 const sortedTypeImports = [...typeImports].sort();
 lines.push(
   `import type {\n  ${sortedTypeImports.join(",\n  ")},\n} from "./generated/types.gen.js";`
@@ -296,6 +297,41 @@ for (const serviceName of SERVICE_ORDER) {
 
   lines.push("  };");
 }
+
+// ── uploadFile convenience method ──────────────────────────────
+lines.push("");
+lines.push("  // ── uploads ──────────────────────────────────────────");
+lines.push("");
+lines.push("  /**");
+lines.push("   * Upload a file using params from common.getUploadParams().");
+lines.push("   * Handles multipart form construction and ${filename} substitution.");
+lines.push("   * Returns the file key for use in message attachments.");
+lines.push("   */");
+lines.push("  async uploadFile(");
+lines.push("    uploadParams: UploadParams,");
+lines.push("    file: Blob,");
+lines.push("    filename: string,");
+lines.push("  ): Promise<string> {");
+lines.push('    const key = uploadParams.key.replace("${filename}", filename);');
+lines.push("    const form = new FormData();");
+lines.push('    form.append("Content-Disposition", uploadParams["Content-Disposition"]);');
+lines.push('    form.append("acl", uploadParams.acl);');
+lines.push('    form.append("policy", uploadParams.policy);');
+lines.push('    form.append("x-amz-credential", uploadParams["x-amz-credential"]);');
+lines.push('    form.append("x-amz-algorithm", uploadParams["x-amz-algorithm"]);');
+lines.push('    form.append("x-amz-date", uploadParams["x-amz-date"]);');
+lines.push('    form.append("x-amz-signature", uploadParams["x-amz-signature"]);');
+lines.push('    form.append("key", key);');
+lines.push('    form.append("file", file, filename);');
+lines.push("    const resp = await fetch(uploadParams.direct_url, {");
+lines.push('      method: "POST",');
+lines.push("      body: form,");
+lines.push("    });");
+lines.push("    if (resp.status !== 201 && resp.status !== 204) {");
+lines.push("      throw new Error(`Upload failed with status ${resp.status}`);");
+lines.push("    }");
+lines.push("    return key;");
+lines.push("  }");
 
 lines.push("}");
 lines.push("");

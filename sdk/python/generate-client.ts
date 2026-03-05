@@ -8,10 +8,13 @@
  */
 
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
+import { execSync } from "child_process";
 
 // ── Paths ──────────────────────────────────────────────────────────────────────
 
+const SPEC_PATH = path.resolve(__dirname, "../../packages/spec/openapi.yaml");
 const GENERATED_PATH = path.resolve(__dirname, "generated/pachca");
 const API_PATH = path.join(GENERATED_PATH, "api");
 const MODELS_PATH = path.join(GENERATED_PATH, "models");
@@ -753,6 +756,34 @@ function generateServiceClass(
     lines.push(generateMethodBody(op));
   }
 
+  // Add upload_file convenience method to CommonService
+  if (tag === "Common") {
+    lines.push("");
+    lines.push("    def upload_file(self, upload_params: UploadParams, file: bytes, filename: str) -> str:");
+    lines.push('        """Upload a file using params from get_upload_params().');
+    lines.push("");
+    lines.push("        Handles multipart form construction and ${filename} substitution.");
+    lines.push('        Returns the file key for use in message attachments."""');
+    lines.push('        key = upload_params.key.replace("${filename}", filename)');
+    lines.push("        resp = httpx.post(");
+    lines.push("            upload_params.direct_url,");
+    lines.push("            data={");
+    lines.push('                "Content-Disposition": upload_params.content_disposition,');
+    lines.push('                "acl": upload_params.acl,');
+    lines.push('                "policy": upload_params.policy,');
+    lines.push('                "x-amz-credential": upload_params.x_amz_credential,');
+    lines.push('                "x-amz-algorithm": upload_params.x_amz_algorithm,');
+    lines.push('                "x-amz-date": upload_params.x_amz_date,');
+    lines.push('                "x-amz-signature": upload_params.x_amz_signature,');
+    lines.push('                "key": key,');
+    lines.push("            },");
+    lines.push('            files={"file": (filename, file)},');
+    lines.push("        )");
+    lines.push("        if resp.status_code not in (201, 204):");
+    lines.push('            raise PachcaAPIError(message=f"Upload failed with status {resp.status_code}")');
+    lines.push("        return key");
+  }
+
   return lines.join("\n");
 }
 
@@ -799,9 +830,74 @@ function generatePachcaClass(tags: string[]): string {
   return lines.join("\n");
 }
 
+// ── Spec pre-processing ────────────────────────────────────────────────────────
+
+/**
+ * Remove redundant `type: object` from `allOf` + `nullable: true` patterns.
+ *
+ * The @typespec/openapi3 emitter produces this for `Model | null` unions:
+ *
+ *   thread:
+ *     type: object          <-- causes openapi-python-client to ignore nullable
+ *     allOf:
+ *       - $ref: '...'
+ *     nullable: true
+ *
+ * openapi-python-client (up to at least v0.28.2) takes the wrong code path when
+ * `type: object` is present alongside `allOf`, so we strip it before generation.
+ */
+function fixNullableObjects(specContent: string): string {
+  const lines = specContent.split("\n");
+  const result: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^(\s+)type: object$/);
+    if (match) {
+      const indent = match[1];
+      const nextLine = lines[i + 1];
+      if (nextLine?.trimEnd() === `${indent}allOf:`) {
+        let hasNullable = false;
+        for (let j = i + 2; j < lines.length && j < i + 10; j++) {
+          if (lines[j].trimEnd() === `${indent}nullable: true`) {
+            hasNullable = true;
+            break;
+          }
+          const lineIndent = lines[j].match(/^(\s*)/)?.[1] ?? "";
+          if (lineIndent.length < indent.length && lines[j].trim()) break;
+        }
+        if (hasNullable) continue;
+      }
+    }
+    result.push(lines[i]);
+  }
+
+  return result.join("\n");
+}
+
+function generatePythonSdk() {
+  // Pre-process spec
+  const rawSpec = fs.readFileSync(SPEC_PATH, "utf-8");
+  const fixedSpec = fixNullableObjects(rawSpec);
+  const tmpSpec = path.join(os.tmpdir(), "pachca-openapi-fixed.yaml");
+  fs.writeFileSync(tmpSpec, fixedSpec);
+
+  try {
+    const configPath = path.resolve(__dirname, "openapi-python-client.yaml");
+    const outputPath = path.resolve(__dirname, "generated");
+    execSync(
+      `openapi-python-client generate --path ${tmpSpec} --output-path ${outputPath} --overwrite --config ${configPath}`,
+      { stdio: "inherit" },
+    );
+  } finally {
+    fs.unlinkSync(tmpSpec);
+  }
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 function main() {
+  generatePythonSdk();
+
   console.log("Scanning generated SDK:", API_PATH);
 
   const operations = collectOperationsFromPython();

@@ -32,7 +32,7 @@ public final class PachcaClient: @unchecked Sendable {
     public var users: UsersGroup { UsersGroup(client: client) }
     public var views: ViewsGroup { ViewsGroup(client: client) }
 
-    /// Upload a file using params from `common.getUploadParams()`.
+    /// Upload a file using params from `upload.getUploadParams()`.
     /// Handles multipart form construction and `${filename}` substitution.
     /// Returns the file key for use in message attachments.
     public func uploadFile(

@@ -161,7 +161,9 @@ function main(): void {
     console.log('  No endpoint changes detected.');
   }
 
-  writeChangelog(changelog);
+  // Remove legacy 0.0.0 bootstrap entry if present
+  const cleaned = changelog.filter((e) => e.version !== '0.0.0');
+  writeChangelog(cleaned);
 }
 
 main();

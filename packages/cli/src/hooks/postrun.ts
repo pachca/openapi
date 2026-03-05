@@ -27,7 +27,7 @@ const hook: Hook<'postrun'> = async function (opts) {
           const box = [
             '',
             ansis.yellow(`╭${'─'.repeat(37)}╮`),
-            ansis.yellow(`│  Доступна новая версия: ${latest.padEnd(12)} │`),
+            ansis.yellow(`│  Доступна новая версия: ${latest.padEnd(12)}│`),
             ansis.yellow(`│  npm install -g @pachca/cli${' '.repeat(9)}│`),
             ansis.yellow(`╰${'─'.repeat(37)}╯`),
             '',

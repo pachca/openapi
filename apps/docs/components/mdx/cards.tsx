@@ -38,6 +38,8 @@ import {
   AtSign,
   ArrowDownToLine,
   KeyRound,
+  Terminal,
+  Route,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -79,12 +81,16 @@ const iconMap: Record<string, LucideIcon> = {
   AtSign,
   ArrowDownToLine,
   KeyRound,
+  Terminal,
+  Route,
 };
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
   '/guides/authorization': 'KeyRound',
   '/guides/ai-agents': 'Sparkles',
+  '/guides/cli': 'Terminal',
+  '/guides/workflows': 'Route',
   '/guides/requests-responses': 'ArrowLeftRight',
   '/guides/webhook': 'Webhook',
   '/guides/errors': 'AlertTriangle',

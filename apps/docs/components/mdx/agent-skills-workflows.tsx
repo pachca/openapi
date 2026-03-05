@@ -1,4 +1,5 @@
 import { WORKFLOWS } from '@/data/workflows';
+import type { Workflow } from '@/data/workflows';
 import { SKILL_TAG_MAP } from '@/scripts/skills/config';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { generateTitle, generateUrlFromOperation } from '@/lib/openapi/mapper';
@@ -22,9 +23,24 @@ export interface WorkflowCardData {
   notes?: StepSegment[];
   curl?: string;
   featured: boolean;
-  prerequisites?: string[];
+  requirements: { scopes: string[]; plans: string[] };
   related?: string[];
   stepCount: number;
+}
+
+const STEP_RE = /(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s,—.()]+(?:\{[^}]+\}[^\s,—.()]*)*)/g;
+
+function deriveRequirements(wf: Workflow, endpoints: Endpoint[]) {
+  const scopes = new Set<string>();
+  const plans = new Set<string>();
+  for (const step of wf.steps) {
+    for (const m of step.description.matchAll(STEP_RE)) {
+      const ep = findEndpoint(m[1], m[2], endpoints);
+      if (ep?.requirements?.scope) scopes.add(ep.requirements.scope);
+      if (ep?.requirements?.plan) plans.add(ep.requirements.plan);
+    }
+  }
+  return { scopes: [...scopes], plans: [...plans] };
 }
 
 function findEndpoint(
@@ -37,11 +53,10 @@ function findEndpoint(
 }
 
 function parseStep(text: string, endpoints: Endpoint[]): StepSegment[] {
-  const RE = /(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s,—.()]+(?:\{[^}]+\}[^\s,—.()]*)*)/g;
   const segments: StepSegment[] = [];
   let last = 0;
 
-  for (const m of text.matchAll(RE)) {
+  for (const m of text.matchAll(STEP_RE)) {
     if (m.index! > last) {
       segments.push({ type: 'text', value: text.slice(last, m.index!) });
     }
@@ -84,7 +99,7 @@ export async function AgentSkillsWorkflows() {
         notes: wf.notes ? parseStep(wf.notes, endpoints) : undefined,
         curl: wf.curl,
         featured: wf.featured ?? false,
-        prerequisites: wf.prerequisites,
+        requirements: deriveRequirements(wf, endpoints),
         related: wf.related,
         stepCount: wf.steps.length,
       });

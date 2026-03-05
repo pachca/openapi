@@ -3,13 +3,12 @@ interface WorkflowStep {
   command?: string;
 }
 
-interface Workflow {
+export interface Workflow {
   title: string;
   steps: WorkflowStep[];
   notes?: string;
   curl?: string;
   featured?: boolean;
-  prerequisites?: string[];
   related?: string[];
 }
 
@@ -105,7 +104,6 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     },
     {
       title: 'Ответить пользователю, который написал боту',
-      prerequisites: ['Бот с исходящим вебхуком'],
       related: [
         'Настроить бота с исходящим вебхуком',
         'Обработать входящий вебхук-событие',
@@ -182,7 +180,6 @@ curl "https://api.pachca.com/api/shared/v1/messages" \\
     },
     {
       title: 'Отправить сообщение с кнопками',
-      prerequisites: ['Бот с исходящим вебхуком (для получения callback-событий)'],
       related: [
         'Обработать нажатие кнопки (callback)',
         'Показать интерактивную форму пользователю',
@@ -504,11 +501,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Экспорт истории чата',
-      prerequisites: [
-        'Тариф «Корпорация»',
-        'Роль «Владелец пространства»',
-        'Публичный `webhook_url` для получения уведомления о готовности',
-      ],
       steps: [
         {
           description:
@@ -571,10 +563,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
   'pachca-bots': [
     {
       title: 'Настроить бота с исходящим вебхуком',
-      prerequisites: [
-        'Права администратора или владельца пространства',
-        'Публичный URL для приёма вебхуков',
-      ],
       related: [
         'Обработать входящий вебхук-событие',
         'Обновить Webhook URL бота',
@@ -608,7 +596,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Обработать входящий вебхук-событие',
-      prerequisites: ['Бот с исходящим вебхуком'],
       related: [
         'Настроить бота с исходящим вебхуком',
         'Ответить пользователю, который написал боту',
@@ -630,7 +617,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Разворачивание ссылок (unfurling)',
-      prerequisites: ['Unfurl-бот с указанными доменами'],
       steps: [
         {
           description:
@@ -655,7 +641,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Обработать нажатие кнопки (callback)',
-      prerequisites: ['Бот с исходящим вебхуком'],
       related: ['Отправить сообщение с кнопками', 'Показать интерактивную форму пользователю'],
       steps: [
         {
@@ -713,7 +698,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Обработка событий через историю (polling)',
-      prerequisites: ['Бот с включённой «Историей событий»'],
       related: ['Обработать входящий вебхук-событие', 'Настроить бота с исходящим вебхуком'],
       steps: [
         {
@@ -745,7 +729,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     {
       title: 'Показать интерактивную форму пользователю',
       featured: true,
-      prerequisites: ['Бот с исходящим вебхуком', 'Обработчик callback-событий на стороне сервера'],
       related: [
         'Обработать отправку формы (view_submission)',
         'Отправить сообщение с кнопками',
@@ -783,7 +766,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Обработать отправку формы (view_submission)',
-      prerequisites: ['Бот с исходящим вебхуком'],
       related: ['Показать интерактивную форму пользователю', 'Форма заявки/запроса'],
       steps: [
         {
@@ -812,7 +794,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Опрос сотрудников через форму',
-      prerequisites: ['Бот с исходящим вебхуком'],
       related: [
         'Показать интерактивную форму пользователю',
         'Обработать отправку формы (view_submission)',
@@ -843,7 +824,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Форма заявки/запроса',
-      prerequisites: ['Бот с исходящим вебхуком'],
       related: [
         'Показать интерактивную форму пользователю',
         'Обработать отправку формы (view_submission)',
@@ -893,7 +873,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Массовое создание сотрудников с тегами',
-      prerequisites: ['Роль администратора или владельца (не бот)'],
       related: ['Онбординг нового сотрудника', 'Получить всех сотрудников тега/департамента'],
       steps: [
         {
@@ -934,7 +913,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Онбординг нового сотрудника',
-      prerequisites: ['Токен администратора/владельца (для создания пользователя)'],
       related: [
         'Массовое создание сотрудников с тегами',
         'Offboarding сотрудника',
@@ -962,7 +940,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Offboarding сотрудника',
-      prerequisites: ['Роль администратора или владельца'],
       related: ['Онбординг нового сотрудника'],
       steps: [
         {
@@ -1231,7 +1208,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
   'pachca-security': [
     {
       title: 'Получить журнал аудита событий',
-      prerequisites: ['Роль «Владелец пространства»'],
       related: ['Мониторинг подозрительных входов', 'Экспорт логов за период'],
       steps: [
         {
@@ -1247,7 +1223,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Мониторинг подозрительных входов',
-      prerequisites: ['Роль «Владелец пространства»'],
       related: ['Получить журнал аудита событий', 'Мониторинг и алерты'],
       steps: [
         {
@@ -1268,7 +1243,6 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \\
     },
     {
       title: 'Экспорт логов за период',
-      prerequisites: ['Роль «Владелец пространства»'],
       related: ['Получить журнал аудита событий'],
       steps: [
         {

@@ -115,7 +115,7 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 function CategoryBadge({ category }: { category: string }) {
   return (
     <span
-      className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${CATEGORY_COLORS[category] || 'bg-background-secondary text-text-secondary'}`}
+      className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${CATEGORY_COLORS[category] || 'bg-background-secondary text-text-secondary'}`}
     >
       {category}
     </span>
@@ -198,6 +198,12 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
 
   const featuredWorkflows = useMemo(() => workflows.filter((wf) => wf.featured), [workflows]);
 
+  const titleToId = useMemo(() => {
+    const map = new Map<string, string>();
+    workflows.forEach((wf) => map.set(wf.title, wf.id));
+    return map;
+  }, [workflows]);
+
   const handleNavigate = useCallback((id: string) => {
     setSearch('');
     setActiveCategory(null);
@@ -215,8 +221,8 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
       )}
 
       {/* Toolbar: title + search + filter */}
-      <div className="flex items-center justify-between gap-3 mb-1">
-        <span className="text-[15px] font-semibold text-text-primary shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+        <span className="text-[15px] font-semibold text-text-primary">
           {search.trim() || activeCategory ? (
             filteredWorkflows.length === 0 ? (
               'Сценарии не найдены'
@@ -234,16 +240,16 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
           )}
         </span>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:w-auto w-full">
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none" />
+          <div className="relative group/search flex-1 sm:flex-none">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary group-focus-within/search:text-text-primary pointer-events-none transition-colors" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск..."
-              className="w-48 pl-9 pr-4 py-1.5 rounded-lg border border-background-border bg-background-secondary text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none focus:bg-background transition-colors"
+              className="w-full sm:w-48 pl-9 pr-4 py-1.5 rounded-lg border border-background-border text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none focus:bg-background transition-colors"
             />
             {search && (
               <button
@@ -259,11 +265,11 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
           {/* Filter dropdown */}
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-background-border bg-background text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group">
-                <Filter className="w-3.5 h-3.5" />
+              <button className="flex items-center gap-1.5 px-3 py-1.5 h-[34px] rounded-lg border border-background-border bg-background text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
+                <Filter className="w-3.5 h-3.5 shrink-0" />
                 {activeCategory || 'Все'}
                 <ChevronDown
-                  className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors"
+                  className="w-3.5 h-3.5 shrink-0 text-text-secondary group-hover:text-text-primary transition-colors"
                   strokeWidth={2.5}
                 />
               </button>
@@ -353,6 +359,30 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
             </Accordion.Header>
             <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden pb-3">
               <div className="pb-2 pt-2 ml-4 border-l border-background-border/60 pl-4">
+                {/* Requirements */}
+                {(wf.requirements.plans.length > 0 || wf.requirements.scopes.length > 0) && (
+                  <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                    {wf.requirements.scopes.map((scope) => (
+                      <Link
+                        key={scope}
+                        href="/guides/authorization#skoupy"
+                        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
+                      >
+                        {scope}
+                      </Link>
+                    ))}
+                    {wf.requirements.plans.map((plan) => (
+                      <Link
+                        key={plan}
+                        href="/guides/authorization"
+                        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-callout-warning-bg)] ![color:var(--color-callout-warning-text)] ![text-decoration:none] hover:opacity-80 transition-opacity"
+                      >
+                        {plan === 'corporation' ? 'Корпорация' : plan}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
                 {/* Steps */}
                 {wf.steps.length === 1 ? (
                   <ul className="!mb-0 list-disc list-outside text-[14px] text-text-primary">
@@ -381,6 +411,35 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                 {wf.curl && (
                   <div className="mt-5">
                     <CurlBlock code={wf.curl} />
+                  </div>
+                )}
+
+                {/* Related */}
+                {wf.related && wf.related.length > 0 && (
+                  <div className="mt-4">
+                    <div className="flex flex-wrap gap-1.5">
+                      {wf.related.map((title) => {
+                        const relId = titleToId.get(title);
+                        return relId ? (
+                          <button
+                            key={title}
+                            type="button"
+                            onClick={() => handleNavigate(relId)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-medium bg-background border border-background-border text-text-primary hover:bg-background-secondary transition-colors cursor-pointer min-w-0 max-w-full"
+                          >
+                            <span className="truncate min-w-0">{title}</span>
+                            <span className="text-text-secondary shrink-0">→</span>
+                          </button>
+                        ) : (
+                          <span
+                            key={title}
+                            className="px-2.5 py-1 rounded-full text-[12px] font-medium bg-background-secondary border border-background-border text-text-tertiary"
+                          >
+                            {title}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>

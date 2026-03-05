@@ -423,8 +423,7 @@ html.dark .code-block-container .shiki span {
 }
 
 .code-block-container .line {
-  display: flex;
-  align-items: center;
+  display: block;
   font-size: 13px;
   line-height: 1.5;
   margin: 0;
@@ -437,7 +436,8 @@ html.dark .code-block-container .shiki span {
 .code-block-container .line::before {
   counter-increment: line;
   content: counter(line);
-  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: top;
   text-align: right;
   width: 2.8rem;
   padding-right: 0.8rem;

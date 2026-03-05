@@ -5,14 +5,16 @@
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-// 1. Patch plugin manifests
-const PATCHES = {
-  'node_modules/@oclif/plugin-autocomplete/oclif.manifest.json': {
+// 1. Patch plugin manifests & source descriptions
+const AUTOCOMPLETE_DIR = 'node_modules/@oclif/plugin-autocomplete';
+
+const MANIFEST_PATCHES = {
+  [`${AUTOCOMPLETE_DIR}/oclif.manifest.json`]: {
     autocomplete: { description: 'Настройка автодополнения команд' },
   },
 };
 
-for (const [file, commands] of Object.entries(PATCHES)) {
+for (const [file, commands] of Object.entries(MANIFEST_PATCHES)) {
   if (!existsSync(file)) continue;
   const manifest = JSON.parse(readFileSync(file, 'utf8'));
   for (const [cmd, patch] of Object.entries(commands)) {
@@ -23,15 +25,35 @@ for (const [file, commands] of Object.entries(PATCHES)) {
   writeFileSync(file, JSON.stringify(manifest));
 }
 
+// Patch static description in compiled JS (oclif reads it from class at runtime)
+const SOURCE_PATCHES = [
+  {
+    file: `${AUTOCOMPLETE_DIR}/lib/commands/autocomplete/index.js`,
+    from: "static description = 'Display autocomplete installation instructions.';",
+    to: "static description = 'Настройка автодополнения команд';",
+  },
+];
+
+for (const { file, from, to } of SOURCE_PATCHES) {
+  if (!existsSync(file)) continue;
+  const content = readFileSync(file, 'utf8');
+  if (content.includes(from)) {
+    writeFileSync(file, content.replace(from, to));
+  }
+}
+
 // 2. Generate CHANGELOG.md from changelog.json
 const changelogPath = 'src/data/changelog.json';
 if (existsSync(changelogPath)) {
+  const TYPE_LABELS = { '+': 'Добавлено', '~': 'Изменено', '-': 'Удалено' };
   const changelog = JSON.parse(readFileSync(changelogPath, 'utf8'));
+  const entries = changelog.filter((e) => e.version !== '0.0.0');
   const lines = ['# Changelog', ''];
-  for (const e of changelog) {
+  for (const e of entries) {
     lines.push(`## ${e.version}  (${e.date})`, '');
     for (const c of e.changes) {
-      lines.push(`  ${c.type} ${c.command.padEnd(35)} — ${c.description}`);
+      const label = TYPE_LABELS[c.type] || c.type;
+      lines.push(`- **${label}** (${c.command}): ${c.description}`);
     }
     lines.push('');
   }

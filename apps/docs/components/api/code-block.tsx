@@ -8,6 +8,32 @@ interface CodeBlockProps {
   language: string;
 }
 
+let highlighterPromise: ReturnType<typeof import('shiki').createHighlighter> | null = null;
+
+function getHighlighter() {
+  if (!highlighterPromise) {
+    highlighterPromise = import('shiki').then(({ createHighlighter }) =>
+      createHighlighter({
+        themes: ['one-dark-pro', 'one-light'],
+        langs: [
+          'json',
+          'javascript',
+          'python',
+          'bash',
+          'shell',
+          'http',
+          'ruby',
+          'php',
+          'java',
+          'go',
+          'csharp',
+        ],
+      })
+    );
+  }
+  return highlighterPromise;
+}
+
 export function CodeBlock({ code, language }: CodeBlockProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
 
@@ -16,25 +42,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 
     async function highlight() {
       try {
-        // Dynamic import to avoid SSR issues with ESM-only module
-        const { createHighlighter } = await import('shiki');
-
-        const highlighter = await createHighlighter({
-          themes: ['one-dark-pro', 'one-light'],
-          langs: [
-            'json',
-            'javascript',
-            'python',
-            'bash',
-            'shell',
-            'http',
-            'ruby',
-            'php',
-            'java',
-            'go',
-            'csharp',
-          ],
-        });
+        const highlighter = await getHighlighter();
 
         // Map languages
         let lang = language || 'json';

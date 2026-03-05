@@ -6,6 +6,7 @@ import { generateCurl } from '../../lib/code-generators/curl';
 import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP } from './config';
 import type { SkillConfig } from './config';
 import { WORKFLOWS } from '../../data/workflows';
+import type { Workflow } from '../../data/workflows';
 
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
@@ -36,8 +37,25 @@ function cleanOutputDirs() {
 interface SkillContext {
   config: SkillConfig;
   endpoints: Endpoint[];
+  allEndpoints: Endpoint[];
   baseUrl: string;
   allSkills: SkillConfig[];
+}
+
+const STEP_RE = /(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s,—.()]+(?:\{[^}]+\}[^\s,—.()]*)*)/g;
+
+function deriveWorkflowRequirements(wf: Workflow, allEndpoints: Endpoint[]) {
+  const scopes = new Set<string>();
+  const plans = new Set<string>();
+  for (const step of wf.steps) {
+    for (const m of step.description.matchAll(STEP_RE)) {
+      const path = m[2].split('?')[0];
+      const ep = allEndpoints.find((e) => e.method.toUpperCase() === m[1] && e.path === path);
+      if (ep?.requirements?.scope) scopes.add(ep.requirements.scope);
+      if (ep?.requirements?.plan) plans.add(ep.requirements.plan);
+    }
+  }
+  return { scopes: [...scopes], plans: [...plans] };
 }
 
 export function generateAllSkills(api: ParsedAPI) {
@@ -55,7 +73,13 @@ export function generateAllSkills(api: ParsedAPI) {
     }
 
     const endpoints = skillEndpoints.get(config.name) || [];
-    const ctx: SkillContext = { config, endpoints, baseUrl, allSkills: SKILL_TAG_MAP };
+    const ctx: SkillContext = {
+      config,
+      endpoints,
+      allEndpoints: api.endpoints,
+      baseUrl,
+      allSkills: SKILL_TAG_MAP,
+    };
 
     const skillMd = generateSkillMd(ctx);
     const endpointsMd = generateEndpointsMd(ctx);
@@ -99,6 +123,7 @@ export function generateAllSkills(api: ParsedAPI) {
     const ctx: SkillContext = {
       config: fallbackConfig,
       endpoints,
+      allEndpoints: api.endpoints,
       baseUrl,
       allSkills: SKILL_TAG_MAP,
     };
@@ -166,7 +191,7 @@ function groupEndpointsBySkill(endpoints: Endpoint[]) {
 }
 
 function generateSkillMd(ctx: SkillContext): string {
-  const { config, endpoints, baseUrl, allSkills } = ctx;
+  const { config, endpoints, allEndpoints, baseUrl, allSkills } = ctx;
   const workflows = WORKFLOWS[config.name] || [];
 
   const lines: string[] = [];
@@ -226,6 +251,15 @@ function generateSkillMd(ctx: SkillContext): string {
     for (const wf of workflows) {
       lines.push(`### ${wf.title}`);
       lines.push('');
+      const req = deriveWorkflowRequirements(wf, allEndpoints);
+      const reqParts: string[] = [
+        ...req.plans.map((p) => `тариф **${p === 'corporation' ? 'Корпорация' : p}**`),
+        ...req.scopes.map((s) => `скоуп \`${s}\``),
+      ];
+      if (reqParts.length > 0) {
+        lines.push(`**Требуется:** ${reqParts.join(' · ')}`);
+        lines.push('');
+      }
       for (let i = 0; i < wf.steps.length; i++) {
         lines.push(`${i + 1}. ${wf.steps[i].description}`);
       }

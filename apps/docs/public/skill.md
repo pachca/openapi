@@ -224,7 +224,7 @@ Detailed documentation on specific topics is available at:
 
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [CLI](https://dev.pachca.com/guides/cli) — Управление Пачкой из терминала — все API-методы одной командой
-- [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач — от отправки сообщений до работы с формами
+- [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API
 - [Исходящий Webhook](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
 - [Авторизация](https://dev.pachca.com/guides/authorization) — Типы токенов, скоупы и настройка доступа к API
 - [Запросы и ответы](https://dev.pachca.com/guides/requests-responses) — Формат запросов и ответов, тестирование API

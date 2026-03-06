@@ -347,25 +347,23 @@ export async function expandMdxComponents(content: string): Promise<string> {
   );
 
   // <CodeTabs tabs={[...]} /> -> sequential code blocks
-  result = result.replace(
-    /<CodeTabs\s+tabs=\{(\[[\s\S]*?\])\}\s*\/>/g,
-    (_, tabsStr) => {
-      try {
-        // Parse the tabs array from JSX-like syntax
-        const tabs: { label: string; language: string; code: string }[] = [];
-        const tabRegex = /\{\s*label:\s*"([^"]*)",\s*language:\s*"([^"]*)",\s*code:\s*`([\s\S]*?)`\s*\}/g;
-        let tabMatch;
-        while ((tabMatch = tabRegex.exec(tabsStr)) !== null) {
-          tabs.push({ label: tabMatch[1], language: tabMatch[2], code: tabMatch[3] });
-        }
-        return tabs
-          .map((tab) => `**${tab.label}**\n\n\`\`\`${tab.language}\n${tab.code}\n\`\`\`\n`)
-          .join('\n');
-      } catch {
-        return '';
+  result = result.replace(/<CodeTabs\s+tabs=\{(\[[\s\S]*?\])\}\s*\/>/g, (_, tabsStr) => {
+    try {
+      // Parse the tabs array from JSX-like syntax
+      const tabs: { label: string; language: string; code: string }[] = [];
+      const tabRegex =
+        /\{\s*label:\s*"([^"]*)",\s*language:\s*"([^"]*)",\s*code:\s*`([\s\S]*?)`\s*\}/g;
+      let tabMatch;
+      while ((tabMatch = tabRegex.exec(tabsStr)) !== null) {
+        tabs.push({ label: tabMatch[1], language: tabMatch[2], code: tabMatch[3] });
       }
+      return tabs
+        .map((tab) => `**${tab.label}**\n\n\`\`\`${tab.language}\n${tab.code}\n\`\`\`\n`)
+        .join('\n');
+    } catch {
+      return '';
     }
-  );
+  });
 
   // <Mermaid title="..." chart={`...`} /> -> ```mermaid ... ```
   result = result.replace(

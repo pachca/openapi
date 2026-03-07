@@ -1,4 +1,5 @@
 import {
+  AddMembersRequest,
   OAuthError,
   ApiError,
   ChatCreateRequest,

@@ -53,7 +53,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/pachca.postman_collection.json',
+        source: '/:path(pachca\\.postman_collection\\.json|scenarios\\.json)',
         headers: [
           { key: 'Content-Type', value: 'application/json' },
           { key: 'Access-Control-Allow-Origin', value: '*' },

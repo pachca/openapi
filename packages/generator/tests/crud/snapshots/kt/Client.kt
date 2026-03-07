@@ -68,8 +68,8 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun deleteChat(id: Int) {
-        val response = client.delete("$baseUrl/chats/$id")
+    suspend fun archiveChat(id: Int) {
+        val response = client.put("$baseUrl/chats/$id/archive")
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()
@@ -77,8 +77,8 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun archiveChat(id: Int) {
-        val response = client.put("$baseUrl/chats/$id/archive")
+    suspend fun deleteChat(id: Int) {
+        val response = client.delete("$baseUrl/chats/$id")
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()

@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import java.io.Closeable
 
-/** D1: addMembers — 1 field unwrapped into function params */
 class MembersService internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
@@ -32,17 +31,6 @@ class ChatsService internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) {
-    /** D2: archiveChat — void action, no body */
-    suspend fun archiveChat(id: Int) {
-        val response = client.put("$baseUrl/chats/$id/archive")
-        when (response.status.value) {
-            204 -> return
-            401 -> throw response.body<OAuthError>()
-            else -> throw response.body<ApiError>()
-        }
-    }
-
-    /** D3: createChat — 2+ fields, pass as object */
     suspend fun createChat(request: ChatCreateRequest): Chat {
         val response = client.post("$baseUrl/chats") {
             contentType(ContentType.Application.Json)
@@ -50,6 +38,15 @@ class ChatsService internal constructor(
         }
         return when (response.status.value) {
             201 -> response.body<ChatDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    suspend fun archiveChat(id: Int) {
+        val response = client.put("$baseUrl/chats/$id/archive")
+        when (response.status.value) {
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }

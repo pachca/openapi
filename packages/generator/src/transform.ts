@@ -114,16 +114,62 @@ function resolveFieldType(schema: Schema): IRFieldType {
 
 // ----- Model extraction -----
 
+/** Naive singularize: strip trailing 's' */
+function singularize(name: string): string {
+  if (name.endsWith('s') && name.length > 1) {
+    return name.slice(0, -1);
+  }
+  return name;
+}
+
+/** Build inline name for array items, avoiding suffix duplication */
+function arrayItemName(rootName: string, propName: string): string {
+  const rawProp = propName.replace(/\[\]$/, '');
+  const singular = singularize(rawProp);
+  const pascalSingular = snakeToPascal(singular);
+  // Avoid suffix duplication: e.g. ApiError + Error → ApiErrorItem
+  if (rootName.endsWith(pascalSingular)) {
+    return rootName + 'Item';
+  }
+  return rootName + pascalSingular;
+}
+
 function extractFields(
   schema: Schema,
   parentName: string,
   inlineObjects: IRModel[],
+  rootName?: string,
 ): IRField[] {
+  const root = rootName ?? parentName;
   const required = new Set(schema.required || []);
   const fields: IRField[] = [];
 
   for (const [propName, propSchema] of Object.entries(schema.properties || {})) {
-    // Inline object in array items → extract
+    // Direct inline object → extract
+    if (
+      getSchemaType(propSchema) === 'object' &&
+      propSchema.properties &&
+      !propSchema.$ref
+    ) {
+      const extractedName = parentName + snakeToPascal(propName);
+      const extracted = extractInlineModel(
+        propSchema,
+        extractedName,
+        inlineObjects,
+        root,
+      );
+      inlineObjects.push(extracted);
+      fields.push({
+        name: propName,
+        type: { kind: 'model', ref: extractedName },
+        required: required.has(propName),
+        nullable: !!propSchema.nullable,
+        description: propSchema.description,
+      });
+      continue;
+    }
+
+    // Inline object in array items → extract (array[object])
     if (
       getSchemaType(propSchema) === 'array' &&
       propSchema.items &&
@@ -131,45 +177,52 @@ function extractFields(
       getSchemaType(propSchema.items) === 'object' &&
       propSchema.items.properties
     ) {
-      const extractedName = parentName + snakeToPascal(propName.replace(/\[\]$/, ''));
-      // Handle array of arrays (buttons[][])
-      if (
-        propSchema.items.items &&
-        !propSchema.items.items.$ref &&
-        getSchemaType(propSchema.items.items) === 'object' &&
-        propSchema.items.items.properties
-      ) {
-        const innerExtracted = extractInlineModel(
-          propSchema.items.items,
-          extractedName,
-          inlineObjects,
-        );
-        inlineObjects.push(innerExtracted);
-        fields.push({
-          name: propName,
-          type: {
-            kind: 'array',
-            items: { kind: 'array', items: { kind: 'model', ref: extractedName } },
-          },
-          required: required.has(propName),
-          nullable: !!propSchema.nullable,
-          description: propSchema.description,
-        });
-      } else {
-        const extracted = extractInlineModel(
-          propSchema.items,
-          extractedName,
-          inlineObjects,
-        );
-        inlineObjects.push(extracted);
-        fields.push({
-          name: propName,
-          type: { kind: 'array', items: { kind: 'model', ref: extractedName } },
-          required: required.has(propName),
-          nullable: !!propSchema.nullable,
-          description: propSchema.description,
-        });
-      }
+      const extractedName = arrayItemName(root, propName);
+      const extracted = extractInlineModel(
+        propSchema.items,
+        extractedName,
+        inlineObjects,
+        root,
+      );
+      inlineObjects.push(extracted);
+      fields.push({
+        name: propName,
+        type: { kind: 'array', items: { kind: 'model', ref: extractedName } },
+        required: required.has(propName),
+        nullable: !!propSchema.nullable,
+        description: propSchema.description,
+      });
+      continue;
+    }
+
+    // Array of arrays with inline object items → extract (array[array[object]])
+    if (
+      getSchemaType(propSchema) === 'array' &&
+      propSchema.items &&
+      getSchemaType(propSchema.items) === 'array' &&
+      propSchema.items.items &&
+      !propSchema.items.items.$ref &&
+      getSchemaType(propSchema.items.items) === 'object' &&
+      propSchema.items.items.properties
+    ) {
+      const extractedName = arrayItemName(root, propName);
+      const innerExtracted = extractInlineModel(
+        propSchema.items.items,
+        extractedName,
+        inlineObjects,
+        root,
+      );
+      inlineObjects.push(innerExtracted);
+      fields.push({
+        name: propName,
+        type: {
+          kind: 'array',
+          items: { kind: 'array', items: { kind: 'model', ref: extractedName } },
+        },
+        required: required.has(propName),
+        nullable: !!propSchema.nullable,
+        description: propSchema.description,
+      });
       continue;
     }
 
@@ -190,8 +243,9 @@ function extractInlineModel(
   schema: Schema,
   name: string,
   inlineObjects: IRModel[],
+  rootName: string,
 ): IRModel {
-  const fields = extractFields(schema, name, inlineObjects);
+  const fields = extractFields(schema, name, inlineObjects, rootName);
   return {
     name,
     description: schema.description,
@@ -272,6 +326,7 @@ function determineUnwrapMode(schema: Schema): UnwrapMode {
 function transformRequestBody(
   endpoint: Endpoint,
   schemas: Record<string, Schema>,
+  models: IRModel[],
 ): IRRequestBody | undefined {
   if (!endpoint.requestBody) return undefined;
 
@@ -285,7 +340,25 @@ function transformRequestBody(
   if (!mediaType) return undefined;
 
   const bodySchema = mediaType.schema;
-  const schemaRef = bodySchema.$ref ? refName(bodySchema.$ref) : '';
+  let schemaRef = bodySchema.$ref ? refName(bodySchema.$ref) : '';
+  if (
+    !schemaRef &&
+    getSchemaType(bodySchema) === 'object' &&
+    bodySchema.properties
+  ) {
+    const pascalMethod =
+      operationIdToMethod(endpoint.id).charAt(0).toUpperCase() +
+      operationIdToMethod(endpoint.id).slice(1);
+    const baseName = `${pascalMethod}Request`;
+    let modelName = baseName;
+    let n = 2;
+    while (models.some((m) => m.name === modelName)) {
+      modelName = `${baseName}${n}`;
+      n += 1;
+    }
+    models.push(transformModel(modelName, bodySchema));
+    schemaRef = modelName;
+  }
 
   // Determine unwrap mode from the resolved schema
   const resolvedSchema = schemaRef && schemas[schemaRef] ? schemas[schemaRef] : bodySchema;
@@ -293,16 +366,22 @@ function transformRequestBody(
 
   let unwrapField: IRField | undefined;
   if (unwrapMode === 'single') {
-    const props = Object.entries(resolvedSchema.properties || {});
-    if (props.length === 1) {
-      const [propName, propSchema] = props[0];
-      unwrapField = {
-        name: propName,
-        type: resolveFieldType(propSchema),
-        required: true,
-        nullable: false,
-        description: propSchema.description,
-      };
+    // Use field type from already-transformed model (has correct inline object refs)
+    const model = models.find((m) => m.name === schemaRef);
+    if (model && model.fields.length === 1) {
+      unwrapField = model.fields[0];
+    } else {
+      const props = Object.entries(resolvedSchema.properties || {});
+      if (props.length === 1) {
+        const [propName, propSchema] = props[0];
+        unwrapField = {
+          name: propName,
+          type: resolveFieldType(propSchema),
+          required: true,
+          nullable: false,
+          description: propSchema.description,
+        };
+      }
     }
   }
 
@@ -426,6 +505,7 @@ function transformErrorResponses(endpoint: Endpoint): IRErrorResponse[] {
 function transformOperation(
   endpoint: Endpoint,
   schemas: Record<string, Schema>,
+  models: IRModel[],
 ): IROperation {
   const methodName = operationIdToMethod(endpoint.id);
   const tag = endpoint.tags[0] || 'Common';
@@ -438,7 +518,7 @@ function transformOperation(
     .filter((p) => p.in === 'query')
     .map(transformParam);
 
-  const requestBody = transformRequestBody(endpoint, schemas);
+  const requestBody = transformRequestBody(endpoint, schemas, models);
   const successResponse = transformSuccessResponse(endpoint);
   const errorResponses = transformErrorResponses(endpoint);
 
@@ -523,7 +603,7 @@ export function transform(spec: ParsedAPI): IR {
   const responses: IRResponseType[] = [];
 
   for (const endpoint of spec.endpoints) {
-    const op = transformOperation(endpoint, spec.schemas);
+    const op = transformOperation(endpoint, spec.schemas, models);
     const tag = op.tag;
 
     if (!serviceMap.has(tag)) serviceMap.set(tag, []);
@@ -536,9 +616,21 @@ export function transform(spec: ParsedAPI): IR {
     if (responseType) responses.push(responseType);
   }
 
+  // Sort operations within each service by HTTP method priority
+  const methodOrder: Record<string, number> = {
+    GET: 0, POST: 1, PUT: 2, PATCH: 3, DELETE: 4,
+  };
+  // Preserve spec order for services (Map insertion order)
   const services: IRService[] = [...serviceMap.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([tag, operations]) => ({ tag, operations }));
+    .map(([tag, operations]) => ({
+      tag,
+      operations: [...operations].sort((a, b) => {
+        const aOrder = methodOrder[a.method] ?? 99;
+        const bOrder = methodOrder[b.method] ?? 99;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.path.localeCompare(b.path);
+      }),
+    }));
 
   const baseUrl = spec.servers[0]?.url;
 

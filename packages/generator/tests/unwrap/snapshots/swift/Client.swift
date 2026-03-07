@@ -1,9 +1,5 @@
 import Foundation
 
-private struct ChatDataWrapper: Codable {
-    let data: Chat
-}
-
 /// D1: addMembers — 1 field unwrapped into function params
 struct MembersService {
     let baseURL: String

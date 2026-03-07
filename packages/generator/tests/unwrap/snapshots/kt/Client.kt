@@ -8,11 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.Serializable
 import java.io.Closeable
-
-@Serializable
-private data class ChatDataWrapper(val data: Chat)
 
 /** D1: addMembers — 1 field unwrapped into function params */
 class MembersService internal constructor(

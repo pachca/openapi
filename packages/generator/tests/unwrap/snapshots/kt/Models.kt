@@ -40,3 +40,6 @@ data class ApiError(
 data class OAuthError(
         val error: String? = null,
 ) : Exception()
+
+@Serializable
+data class ChatDataWrapper(val data: Chat)

@@ -82,3 +82,6 @@ data class ListChatsResponse(
     val data: List<Chat>,
     val meta: PaginationMeta? = null,
 )
+
+@Serializable
+data class ChatDataWrapper(val data: Chat)

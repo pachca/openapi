@@ -1,9 +1,5 @@
 import Foundation
 
-private struct ChatDataWrapper: Codable {
-    let data: Chat
-}
-
 struct ChatsService {
     let baseURL: String
     let headers: [String: String]

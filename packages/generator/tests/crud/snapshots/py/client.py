@@ -39,7 +39,7 @@ class ChatsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return body
+                return from_dict(ListChatsResponse, body)
             case 401:
                 raise from_dict(OAuthError, body)
             case _:

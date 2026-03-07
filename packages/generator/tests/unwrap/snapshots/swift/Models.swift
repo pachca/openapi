@@ -54,3 +54,7 @@ struct ApiError: Codable, Error {
 struct OAuthError: Codable, Error {
     let error: String?
 }
+
+struct ChatDataWrapper: Codable {
+    let data: Chat
+}

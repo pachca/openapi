@@ -8,11 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.Serializable
 import java.io.Closeable
-
-@Serializable
-private data class ChatDataWrapper(val data: Chat)
 
 class ChatsService internal constructor(
     private val baseUrl: String,

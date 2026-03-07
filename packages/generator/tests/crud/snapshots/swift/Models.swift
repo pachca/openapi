@@ -86,3 +86,7 @@ struct ListChatsResponse: Codable {
     let data: [Chat]
     let meta: PaginationMeta?
 }
+
+struct ChatDataWrapper: Codable {
+    let data: Chat
+}

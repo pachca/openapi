@@ -23,7 +23,7 @@ class CommonService {
       body: form,
     });
     switch (response.status) {
-      case 204:
+      case 201:
         return;
       case 401:
         throw new OAuthError((await response.json()).error);

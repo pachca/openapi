@@ -47,6 +47,15 @@ let users = try await pachca.users.listUsers(.init())
 
 Полное описание параметров: [документация API](https://dev.pachca.com)
 
+## Примеры
+
+- [examples/Sources/EchoBot/main.swift](examples/Sources/EchoBot/main.swift) — echo-бот из 8 шагов, демонстрирующий CRUD, реакции, треды, пины.
+- [examples/Sources/Upload/main.swift](examples/Sources/Upload/main.swift) — загрузка файла и отправка как вложение.
+
+```bash
+PACHCA_TOKEN=<token> PACHCA_CHAT_ID=<id> swift run EchoBot
+```
+
 ## Разработка
 
 Генерация SDK:

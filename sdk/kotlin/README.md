@@ -55,6 +55,15 @@ val users = pachca.users.listUsers().body()
 
 Полное описание параметров: [документация API](https://dev.pachca.com)
 
+## Примеры
+
+- [examples/main.kt](examples/main.kt) — echo-бот из 8 шагов, демонстрирующий CRUD, реакции, треды, пины.
+- [examples/upload.kt](examples/upload.kt) — загрузка файла и отправка как вложение.
+
+```bash
+PACHCA_TOKEN=<token> PACHCA_CHAT_ID=<id> kotlin examples/main.kt
+```
+
 ## Разработка
 
 Генерация SDK:

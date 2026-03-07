@@ -1,0 +1,357 @@
+---
+title: SDK
+description: Типизированные клиенты для Pachca API — TypeScript, Python, Go, Kotlin и Swift
+---
+
+# SDK
+
+Официальные SDK для работы с Pachca API на пяти языках. Все клиенты автоматически сгенерированы из [OpenAPI-спецификации](/openapi.yaml) — типы, названия методов и параметров совпадают с [документацией API](/).
+
+## Быстрый старт
+
+<Steps>
+  <Step title="Получение токена">
+    Получите API-токен в интерфейсе Пачки: в разделе **«Автоматизации» → «API»** или в модуле **«Интеграции»** — подробнее в руководстве [Авторизация](/guides/authorization).
+  </Step>
+  <Step title="Установка">
+
+<CodeTabs tabs={[
+  { label: "TypeScript", language: "bash", code: "npm install @pachca/sdk@<latest>" },
+  { label: "Python", language: "bash", code: "pip install pachca==<latest>" },
+  { label: "Go", language: "bash", code: "go get github.com/pachca/openapi/sdk/go/generated@v<latest>" },
+  { label: "Kotlin", language: "kotlin", code: `// build.gradle.kts
+dependencies {
+    implementation("com.pachca:pachca-sdk:<latest>")
+}` },
+  { label: "Swift", language: "swift", code: `// Package.swift
+dependencies: [
+    .package(url: "https://github.com/pachca/openapi", from: "<latest>")
+]` },
+]} />
+
+  </Step>
+  <Step title="Инициализация клиента">
+
+<CodeTabs tabs={[
+  { label: "TypeScript", language: "typescript", code: `import { Pachca } from "@pachca/sdk";
+
+const pachca = new Pachca({ token: "YOUR_TOKEN" });` },
+  { label: "Python", language: "python", code: `from pachca.pachca_client import Pachca
+
+client = Pachca("YOUR_TOKEN")` },
+  { label: "Go", language: "go", code: `import pachca "github.com/pachca/openapi/sdk/go/generated"
+
+client, err := pachca.NewPachcaClient(pachca.DefaultBaseURL, "YOUR_TOKEN")` },
+  { label: "Kotlin", language: "kotlin", code: `import com.pachca.PachcaClient
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+
+val pachca = PachcaClient(
+    httpClientConfig = {
+        it.defaultRequest {
+            header("Authorization", "Bearer YOUR_TOKEN")
+        }
+    }
+)` },
+  { label: "Swift", language: "swift", code: `import PachcaSDK
+
+let pachca = try PachcaClient("YOUR_TOKEN")` },
+]} />
+
+  </Step>
+  <Step title="Отправка сообщения">
+
+<CodeTabs tabs={[
+  { label: "TypeScript", language: "typescript", code: `const { data } = await pachca.messages.createMessage({
+  body: {
+    message: { entity_id: 123, content: "Привет из TypeScript SDK!" },
+  },
+});
+console.log(data!.data.id);` },
+  { label: "Python", language: "python", code: `from pachca.models.message_create_request_message import MessageCreateRequestMessage
+
+msg = client.messages.create_message(
+    MessageCreateRequestMessage(entity_id=123, content="Привет из Python SDK!")
+)
+print(msg.id)` },
+  { label: "Go", language: "go", code: `res, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
+    Message: pachca.MessageCreateRequestMessage{
+        EntityID: 123,
+        Content:  "Привет из Go SDK!",
+    },
+})
+created := res.(*pachca.MessageOperationsCreateMessageCreated)
+fmt.Println(created.Data.ID)` },
+  { label: "Kotlin", language: "kotlin", code: `import com.pachca.models.*
+
+val message = pachca.messages.createMessage(MessageCreateRequest(
+    message = MessageCreateRequestMessage(
+        entityId = 123,
+        content = "Привет из Kotlin SDK!"
+    )
+)).body()` },
+  { label: "Swift", language: "swift", code: `let message = try await pachca.messages.createMessage(.init(
+    body: .json(.init(message: .init(
+        entity_id: 123,
+        content: "Привет из Swift SDK!"
+    )))
+))` },
+]} />
+
+  </Step>
+</Steps>
+
+## Загрузка файлов
+
+Загрузка файла — трёхшаговый процесс, одинаковый во всех SDK:
+
+<Steps>
+  <Step title="Получить параметры загрузки">
+    Запросите URL и поля для загрузки на S3.
+  </Step>
+  <Step title="Загрузить файл на S3">
+    Отправьте файл по полученному URL с полями формы.
+  </Step>
+  <Step title="Прикрепить к сообщению">
+    Передайте ключ загруженного файла при создании сообщения.
+  </Step>
+</Steps>
+
+<CodeTabs tabs={[
+  { label: "TypeScript", language: "typescript", code: `// 1. Параметры загрузки
+const { data: params } = await pachca.common.getUploadParams({
+  body: { file_name: "report.pdf", file_size: 1024 },
+});
+
+// 2. Загрузка на S3 (multipart/form-data по direct_url)
+
+// 3. Сообщение с файлом
+await pachca.messages.createMessage({
+  body: {
+    message: {
+      entity_id: chatId,
+      content: "Отчёт во вложении",
+      files: [params!.data.key],
+    },
+  },
+});` },
+  { label: "Python", language: "python", code: `# 1. Параметры загрузки
+params = client.common.get_upload_params()
+
+# 2. Загрузка на S3
+file_bytes = open("report.pdf", "rb").read()
+key = client.common.upload_file(params, file_bytes, "report.pdf")
+
+# 3. Сообщение с файлом
+client.messages.create_message(
+    MessageCreateRequestMessage(
+        entity_id=chat_id,
+        content="Отчёт во вложении",
+        files=[{"key": key, "name": "report.pdf", "file_type": "file", "size": len(file_bytes)}],
+    )
+)` },
+  { label: "Go", language: "go", code: `// 1. Параметры загрузки
+res, err := client.Uploads.GetUploadParams(ctx)
+params := res.(*pachca.UploadParams)
+
+// 2. Загрузка на S3
+file, _ := os.Open("report.pdf")
+err = client.Uploads.UploadFile(ctx, params, file, "report.pdf")
+
+// 3. Прикрепить ключ params.Key к сообщению` },
+  { label: "Kotlin", language: "kotlin", code: `// 1. Параметры загрузки
+val params = client.common.getUploadParams().body()
+
+// 2. Загрузка на S3
+val fileBytes = java.io.File("report.pdf").readBytes()
+val key = client.uploadFile(params, fileBytes, "report.pdf")
+
+// 3. Сообщение с файлом
+client.messages.createMessage(MessageCreateRequest(
+    message = MessageCreateRequestMessage(
+        entityId = chatId,
+        content = "Отчёт во вложении",
+        files = listOf(MessageCreateRequestMessageFilesInner(
+            key = key, name = "report.pdf",
+            fileType = FileType.file, propertySize = fileBytes.size,
+        )),
+    )
+))` },
+  { label: "Swift", language: "swift", code: `// 1. Параметры загрузки
+let params = try await pachca.upload.getUploadParams(.init())
+
+// 2. Загрузка на S3
+let fileData = try Data(contentsOf: URL(fileURLWithPath: "report.pdf"))
+let key = try await pachca.uploadFile(params, file: fileData, filename: "report.pdf")
+
+// 3. Сообщение с файлом
+try await pachca.messages.createMessage(.init(
+    body: .json(.init(message: .init(
+        entity_id: chatId,
+        content: "Отчёт во вложении",
+        files: [.init(key: key, name: "report.pdf",
+                      file_type: .init(value1: .file),
+                      size: Int32(fileData.count))]
+    )))
+))` },
+]} />
+
+## Обработка ошибок
+
+<CodeTabs tabs={[
+  { label: "TypeScript", language: "typescript", code: `const { data, error, response } = await pachca.messages.getMessage({
+  path: { id: 999999 },
+});
+
+if (error) {
+  // error типизирован: ApiError | OAuthError
+  console.error(response.status, error);
+} else {
+  console.log(data.data.id);
+}` },
+  { label: "Python", language: "python", code: `from pachca.pachca_client import PachcaAPIError, PachcaAuthError
+
+try:
+    client.messages.get_message(999999)
+except PachcaAuthError as e:
+    # 401/403 — e.message
+    print(f"Ошибка авторизации: {e.message}")
+except PachcaAPIError as e:
+    # 400/404/422 — e.errors: list[{key, message}]
+    print(f"Ошибка API: {e.errors}")` },
+  { label: "Go", language: "go", code: `res, err := client.Messages.GetMessage(ctx, 999999)
+if err != nil {
+    var apiErr *pachca.ApiError
+    var oauthErr *pachca.OAuthErrorResponse
+    if errors.As(err, &apiErr) {
+        // 400/404/422 — apiErr.Errors[].Key, .Message
+        fmt.Println(apiErr.Errors[0].Message)
+    } else if errors.As(err, &oauthErr) {
+        // 401/403 — oauthErr.ErrorDescription
+        fmt.Println(oauthErr.ErrorDescription)
+    }
+}` },
+  { label: "Kotlin", language: "kotlin", code: `import com.pachca.models.ApiError
+import com.pachca.models.OAuthError
+
+val response = pachca.messages.getMessage(id = 999999)
+if (!response.success) {
+    when (response.status) {
+        401, 403 -> {
+            val error = response.typedBody<OAuthError>(response.response, typeInfo<OAuthError>())
+            println("\${error.error}: \${error.errorDescription}")
+        }
+        else -> {
+            val error = response.typedBody<ApiError>(response.response, typeInfo<ApiError>())
+            error.errors?.forEach { println("\${it.key}: \${it.message}") }
+        }
+    }
+}` },
+  { label: "Swift", language: "swift", code: `// Фасад — бросает исключение при любой ошибке
+do {
+    let msg = try await pachca.messages.getMessage(.init(path: .init(id: 999999)))
+} catch {
+    print("Ошибка: \\(error)")
+}
+
+// Или через raw-клиент для типизированных ошибок:
+// switch response {
+// case .unauthorized(let e): e.body.json — OAuthError
+// case .notFound(let e):     e.body.json — ApiError
+// case .undocumented(statusCode: let code, _): ...
+// }` },
+]} />
+
+Все SDK возвращают стандартные HTTP-ошибки API — подробнее в [Ошибки](/guides/errors).
+
+<CardGroup columns={2}>
+  <Card title="@pachca/sdk" href="https://www.npmjs.com/package/@pachca/sdk">
+    TypeScript SDK на npm
+  </Card>
+  <Card title="pachca" href="https://pypi.org/project/pachca/">
+    Python SDK на PyPI
+  </Card>
+  <Card title="Go SDK" href="https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated">
+    Go SDK на pkg.go.dev
+  </Card>
+  <Card title="Kotlin SDK" href="https://jitpack.io/#pachca/openapi">
+    Kotlin SDK на JitPack
+  </Card>
+</CardGroup>
+
+## Примеры
+
+Каждый SDK включает рабочий пример — echo-бот из 8 шагов, демонстрирующий основные операции: создание, чтение, реакции, треды, пины, обновление и удаление.
+
+<CardGroup columns={2}>
+  <Card title="TypeScript" href="https://github.com/pachca/openapi/blob/main/sdk/typescript/examples/main.ts">
+    Echo-бот на TypeScript
+  </Card>
+  <Card title="Python" href="https://github.com/pachca/openapi/blob/main/sdk/python/examples/main.py">
+    Echo-бот на Python
+  </Card>
+  <Card title="Go" href="https://github.com/pachca/openapi/blob/main/sdk/go/examples/main.go">
+    Echo-бот на Go
+  </Card>
+  <Card title="Kotlin" href="https://github.com/pachca/openapi/blob/main/sdk/kotlin/examples/main.kt">
+    Echo-бот на Kotlin
+  </Card>
+  <Card title="Swift" href="https://github.com/pachca/openapi/blob/main/sdk/swift/examples/Sources/EchoBot/main.swift">
+    Echo-бот на Swift
+  </Card>
+</CardGroup>
+
+## Сервисы
+
+Методы API сгруппированы по сервисам. Названия сервисов одинаковы во всех SDK:
+
+| Сервис | Описание |
+|--------|---------|
+| `messages` | Сообщения, пины |
+| `chats` | Каналы и беседы |
+| `users` | Управление сотрудниками |
+| `tasks` | Задачи (напоминания) |
+| `tags` | Теги (группы) |
+| `members` | Участники чатов |
+| `reactions` | Реакции на сообщения |
+| `threads` | Треды |
+| `profile` | Профиль текущего пользователя |
+| `bots` | Управление ботами |
+| `security` | Журнал аудита |
+| `common` | Поиск, загрузки, формы и др. |
+
+<Info>Названия методов и параметров совпадают с URL документации. Например, метод `createMessage` соответствует эндпоинту [Новое сообщение](POST /messages).</Info>
+
+## Автопагинация
+
+TypeScript SDK поддерживает автоматическую пагинацию через async-итераторы — все страницы загружаются автоматически:
+
+<CodeBlock language="typescript" title="Автопагинация (TypeScript)">
+{`// Перебрать всех пользователей (все страницы)
+for await (const user of pachca.users.listAllUsers()) {
+  console.log(user.first_name);
+}
+
+// Или получить одну страницу
+const { data } = await pachca.users.listUsers({
+  query: { per: 50 },
+});`}
+</CodeBlock>
+
+В остальных SDK пагинацию нужно обрабатывать вручную через параметр `cursor` — подробнее в [Запросы и ответы](/guides/requests-responses).
+
+## Прямой импорт функций
+
+TypeScript SDK поддерживает tree-shaking — можно импортировать только нужные функции для минимального размера бандла:
+
+<CodeBlock language="typescript" title="Tree-shaking">
+{`import { createClient, listUsers, createMessage } from "@pachca/sdk";
+
+const client = createClient({
+  baseUrl: "https://api.pachca.com/api/shared/v1",
+  auth: () => "YOUR_TOKEN",
+});
+
+const { data } = await listUsers({ client });
+await createMessage({ client, body: { message: { entity_id: 123, content: "Привет!" } } });`}
+</CodeBlock>

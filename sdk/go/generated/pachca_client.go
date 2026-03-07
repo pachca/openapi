@@ -132,6 +132,9 @@ func (s *bearerTokenSource) BearerAuth(ctx context.Context, operationName string
 	return BearerAuth{Token: s.token}, nil
 }
 
+// DefaultBaseURL is the default Pachca API base URL.
+const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
+
 // PachcaClient provides a convenient grouped interface to the Pachca API.
 type PachcaClient struct {
 	serverURL string
@@ -154,7 +157,7 @@ type PachcaClient struct {
 	Views *ViewsService
 }
 
-// NewPachcaClient creates a new Pachca API client.
+// NewPachcaClient creates a new Pachca API client with a custom base URL.
 func NewPachcaClient(serverURL, token string) (*PachcaClient, error) {
 	client, err := NewClient(serverURL, &bearerTokenSource{token: token})
 	if err != nil {
@@ -182,6 +185,7 @@ func NewPachcaClient(serverURL, token string) (*PachcaClient, error) {
 	p.Views = &ViewsService{client: client, serverURL: serverURL, token: token}
 	return p, nil
 }
+
 
 // BotsService provides Bots API operations.
 type BotsService struct {

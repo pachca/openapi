@@ -139,6 +139,28 @@ pachca users list -o json`}
   </Card>
 </CardGroup>
 
+### SDK
+
+Типизированные клиенты для TypeScript, Python, Go, Kotlin и Swift. Все SDK сгенерированы из OpenAPI-спецификации — типы, методы и параметры совпадают с документацией. Подходит для собственных интеграций и ботов на любом языке.
+
+<CodeBlock language="typescript" title="TypeScript">
+{`import { Pachca } from "@pachca/sdk";
+
+const pachca = new Pachca({ token: "YOUR_TOKEN" });
+const { data } = await pachca.messages.createMessage({
+  body: { message: { entity_id: 123, content: "Привет!" } },
+});`}
+</CodeBlock>
+
+<CardGroup columns={2}>
+  <Card title="Руководство SDK" href="/guides/sdk">
+    Установка, примеры и документация для всех 5 языков
+  </Card>
+  <Card title="@pachca/sdk" href="https://www.npmjs.com/package/@pachca/sdk">
+    TypeScript SDK на npm
+  </Card>
+</CardGroup>
+
 ### Context7 MCP
 
 Самый надёжный вариант для постоянной работы с API. [Context7](https://context7.com) — MCP-сервер, который отдаёт актуальную документацию прямо в контекст агента. Подходит для удалённых интеграций с OAuth, многошаговых сценариев и когда вы часто просите агента выполнять разные задачи в Пачке из промптов.

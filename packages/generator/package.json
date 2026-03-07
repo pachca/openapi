@@ -1,0 +1,11 @@
+{
+  "name": "@pachca/generator",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "@pachca/generator": "./bin/generator.ts"
+  },
+  "dependencies": {
+    "@pachca/openapi-parser": "workspace:*"
+  }
+}

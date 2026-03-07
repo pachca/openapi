@@ -72,6 +72,16 @@
         "vitest": "^3.1.1",
       },
     },
+    "packages/generator": {
+      "name": "@pachca/generator",
+      "version": "0.1.0",
+      "bin": {
+        "@pachca/generator": "./bin/generator.ts",
+      },
+      "dependencies": {
+        "@pachca/openapi-parser": "workspace:*",
+      },
+    },
     "packages/openapi-parser": {
       "name": "@pachca/openapi-parser",
       "version": "1.0.0",
@@ -587,6 +597,8 @@
     "@pachca/cli": ["@pachca/cli@workspace:packages/cli"],
 
     "@pachca/docs": ["@pachca/docs@workspace:apps/docs"],
+
+    "@pachca/generator": ["@pachca/generator@workspace:packages/generator"],
 
     "@pachca/go": ["@pachca/go@workspace:sdk/go"],
 

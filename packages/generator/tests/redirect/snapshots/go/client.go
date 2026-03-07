@@ -3,9 +3,9 @@ package pachca
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
+	"errors"
 )
 
 type authTransport struct {
@@ -18,15 +18,13 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-// CommonService handles common operations.
 type CommonService struct {
 	baseURL string
 	client  *http.Client
 }
 
-// DownloadExport retrieves the redirect URL for an export download.
 func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/exports/%d", s.baseURL, id), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/exports/%v", s.baseURL, id), nil)
 	if err != nil {
 		return "", err
 	}
@@ -53,12 +51,10 @@ func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, e
 	}
 }
 
-// PachcaClient is the main client for the Pachca API.
 type PachcaClient struct {
 	Common *CommonService
 }
 
-// NewPachcaClient creates a new PachcaClient.
 func NewPachcaClient(baseURL, token string) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},

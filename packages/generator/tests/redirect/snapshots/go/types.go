@@ -5,13 +5,11 @@ import (
 	"strings"
 )
 
-// ApiErrorItem represents an error item.
 type ApiErrorItem struct {
-	Key   *string `json:"key,omitempty"`
+	Key *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 
-// ApiError represents an API error.
 type ApiError struct {
 	Errors []ApiErrorItem `json:"errors,omitempty"`
 }
@@ -32,7 +30,6 @@ func (e *ApiError) Error() string {
 	return strings.Join(parts, ", ")
 }
 
-// OAuthError represents an OAuth error.
 type OAuthError struct {
 	Err *string `json:"error,omitempty"`
 }

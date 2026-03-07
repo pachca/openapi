@@ -5,25 +5,21 @@ import (
 	"strings"
 )
 
-// LinkPreview represents a link preview.
 type LinkPreview struct {
-	Title       string  `json:"title"`
+	Title string `json:"title"`
 	Description *string `json:"description,omitempty"`
-	ImageURL    *string `json:"image_url,omitempty"`
+	ImageURL *string `json:"image_url,omitempty"`
 }
 
-// LinkPreviewsRequest represents a request to create link previews.
 type LinkPreviewsRequest struct {
 	LinkPreviews map[string]LinkPreview `json:"link_previews"`
 }
 
-// ApiErrorItem represents an error item.
 type ApiErrorItem struct {
-	Key   *string `json:"key,omitempty"`
+	Key *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 
-// ApiError represents an API error.
 type ApiError struct {
 	Errors []ApiErrorItem `json:"errors,omitempty"`
 }
@@ -44,7 +40,6 @@ func (e *ApiError) Error() string {
 	return strings.Join(parts, ", ")
 }
 
-// OAuthError represents an OAuth error.
 type OAuthError struct {
 	Err *string `json:"error,omitempty"`
 }

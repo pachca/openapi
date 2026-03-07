@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"io"
 	"mime/multipart"
-	"net/http"
 )
 
 type authTransport struct {
@@ -19,13 +19,11 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-// CommonService handles common operations.
 type CommonService struct {
 	baseURL string
 	client  *http.Client
 }
 
-// UploadFile uploads a file using multipart/form-data.
 func (s *CommonService) UploadFile(ctx context.Context, request FileUploadRequest) error {
 	pr, pw := io.Pipe()
 	writer := multipart.NewWriter(pw)
@@ -33,27 +31,27 @@ func (s *CommonService) UploadFile(ctx context.Context, request FileUploadReques
 		defer pw.Close()
 		defer writer.Close()
 		if request.ContentDisposition != nil {
-			writer.WriteField("content-disposition", *request.ContentDisposition)
+			writer.WriteField("content-disposition", fmt.Sprintf("%v", *request.ContentDisposition))
 		}
 		if request.ACL != nil {
-			writer.WriteField("acl", *request.ACL)
+			writer.WriteField("acl", fmt.Sprintf("%v", *request.ACL))
 		}
 		if request.Policy != nil {
-			writer.WriteField("policy", *request.Policy)
+			writer.WriteField("policy", fmt.Sprintf("%v", *request.Policy))
 		}
-		if request.XAmzCredential != nil {
-			writer.WriteField("x-amz-credential", *request.XAmzCredential)
+		if request.XAMZCredential != nil {
+			writer.WriteField("x-amz-credential", fmt.Sprintf("%v", *request.XAMZCredential))
 		}
-		if request.XAmzAlgorithm != nil {
-			writer.WriteField("x-amz-algorithm", *request.XAmzAlgorithm)
+		if request.XAMZAlgorithm != nil {
+			writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", *request.XAMZAlgorithm))
 		}
-		if request.XAmzDate != nil {
-			writer.WriteField("x-amz-date", *request.XAmzDate)
+		if request.XAMZDate != nil {
+			writer.WriteField("x-amz-date", fmt.Sprintf("%v", *request.XAMZDate))
 		}
-		if request.XAmzSignature != nil {
-			writer.WriteField("x-amz-signature", *request.XAmzSignature)
+		if request.XAMZSignature != nil {
+			writer.WriteField("x-amz-signature", fmt.Sprintf("%v", *request.XAMZSignature))
 		}
-		writer.WriteField("key", request.Key)
+		writer.WriteField("key", fmt.Sprintf("%v", request.Key))
 		part, err := writer.CreateFormFile("file", "upload")
 		if err != nil {
 			return
@@ -82,12 +80,10 @@ func (s *CommonService) UploadFile(ctx context.Context, request FileUploadReques
 	}
 }
 
-// PachcaClient is the main client for the Pachca API.
 type PachcaClient struct {
 	Common *CommonService
 }
 
-// NewPachcaClient creates a new PachcaClient.
 func NewPachcaClient(baseURL, token string) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},

@@ -1,21 +1,21 @@
 package pachca
 
-import "io"
+import (
+	"io"
+)
 
-// FileUploadRequest represents a file upload request.
 type FileUploadRequest struct {
-	ContentDisposition *string
-	ACL                *string
-	Policy             *string
-	XAmzCredential     *string
-	XAmzAlgorithm      *string
-	XAmzDate           *string
-	XAmzSignature      *string
-	Key                string
-	File               io.Reader
+	Key string `json:"key"`
+	File io.Reader `json:"file"`
+	ContentDisposition *string `json:"content-disposition,omitempty"`
+	ACL *string `json:"acl,omitempty"`
+	Policy *string `json:"policy,omitempty"`
+	XAMZCredential *string `json:"x-amz-credential,omitempty"`
+	XAMZAlgorithm *string `json:"x-amz-algorithm,omitempty"`
+	XAMZDate *string `json:"x-amz-date,omitempty"`
+	XAMZSignature *string `json:"x-amz-signature,omitempty"`
 }
 
-// OAuthError represents an OAuth error.
 type OAuthError struct {
 	Err *string `json:"error,omitempty"`
 }

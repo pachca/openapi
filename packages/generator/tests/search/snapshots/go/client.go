@@ -19,37 +19,35 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-// SearchService handles search operations.
 type SearchService struct {
 	baseURL string
 	client  *http.Client
 }
 
-// SearchMessages searches for messages.
 func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
 	u, _ := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
 	q := u.Query()
-	q.Set("query", params.Query)
-	for _, id := range params.ChatIDs {
-		q.Add("chat_ids[]", fmt.Sprintf("%d", id))
+	q.Set("query", fmt.Sprintf("%v", params.Query))
+	for _, v := range params.ChatIDs {
+		q.Add("chat_ids[]", fmt.Sprintf("%v", v))
 	}
-	for _, id := range params.UserIDs {
-		q.Add("user_ids[]", fmt.Sprintf("%d", id))
+	for _, v := range params.UserIDs {
+		q.Add("user_ids[]", fmt.Sprintf("%v", v))
 	}
-	if params.CreatedFrom != nil {
-		q.Set("created_from", params.CreatedFrom.Format(time.RFC3339))
+	if params != nil && params.CreatedFrom != nil {
+		q.Set("created_from", fmt.Sprintf("%v", *params.CreatedFrom))
 	}
-	if params.CreatedTo != nil {
-		q.Set("created_to", params.CreatedTo.Format(time.RFC3339))
+	if params != nil && params.CreatedTo != nil {
+		q.Set("created_to", fmt.Sprintf("%v", *params.CreatedTo))
 	}
-	if params.Sort != nil {
-		q.Set("sort", string(*params.Sort))
+	if params != nil && params.Sort != nil {
+		q.Set("sort", fmt.Sprintf("%v", *params.Sort))
 	}
-	if params.Limit != nil {
-		q.Set("limit", fmt.Sprintf("%d", *params.Limit))
+	if params != nil && params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
 	}
-	if params.Cursor != nil {
-		q.Set("cursor", *params.Cursor)
+	if params != nil && params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
 	}
 	u.RawQuery = q.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
@@ -77,12 +75,10 @@ func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessage
 	}
 }
 
-// PachcaClient is the main client for the Pachca API.
 type PachcaClient struct {
 	Search *SearchService
 }
 
-// NewPachcaClient creates a new PachcaClient.
 func NewPachcaClient(baseURL, token string) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},

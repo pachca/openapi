@@ -1,138 +1,180 @@
 ---
 name: pachca-users
 description: >
-  Управление сотрудниками и тегами (группами). Создание, обновление, удаление,
-  поиск сотрудников. Онбординг и offboarding. Создание и управление тегами.
-  Управление статусом сотрудника. Используй когда нужно: найти сотрудника, создать
-  пользователя, онбординг/offboarding, управлять тегами, установить статус
-  сотруднику. НЕ используй для: собственного профиля (→ pachca-profile).
-allowed-tools: Bash(curl *)
+  Employee and tag (group) management. Create, update, delete, search employees.
+  Onboarding and offboarding. Tag management and employee status. Use when: find
+  employee, create user, onboard/offboard, manage tags, set employee status.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-users
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Когда НЕ использовать
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
 
-- получить профиль, мой профиль, установить свой статус → **pachca-profile**
-- создать канал, создать беседу, создать чат → **pachca-chats**
-- полнотекстовый поиск по сотрудникам с фильтрами и ранжированием → **pachca-search**
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-## Пошаговые сценарии
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-### Получить сотрудника по ID
+Or set `PACHCA_TOKEN` for multiple commands:
 
-**Требуется:** скоуп `users:read`
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-1. GET /users/{id} — полная информация о сотруднике
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/users/186" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","nickname":"ivanp",...}}
-```
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-> Часто нужно после получения `user_id` из вебхука или другого API-вызова. Возвращает все поля сотрудника, включая `custom_properties`, `user_status`, `list_tags`.
+## Before you start
 
-### Массовое создание сотрудников с тегами
+1. If user has a saved profile — check status:
 
-**Требуется:** скоуп `group_tags:write` · скоуп `users:create` · скоуп `users:update`
+       npx @pachca/cli auth status
 
-1. Создай тег (если нужен): POST /group_tags с `{"group_tag": {"name": ...}}`
-2. Для каждого сотрудника: POST /users — теги назначаются через поле `list_tags` в теле запроса
-3. Или обнови существующего: PUT /users/{id} с `list_tags`
+   If OK — use commands without `--token`.
 
-> Создание сотрудников доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег" — теги назначаются через `list_tags` при создании (POST /users) или обновлении (PUT /users/{id}).
+2. If profile is not configured — ask for token and use `--token` flag:
 
-### Найти сотрудника по имени или email
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-**Требуется:** скоуп `users:read`
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-1. GET /users?query=Иван — поиск по имени/email (частичное совпадение)
-2. Если нужен точный поиск по email — перебери страницы и отфильтруй на клиенте
+## Step-by-step scenarios
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/users?query=Иван&limit=50" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":[{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com",...}]}
-```
+### Get employee by ID
 
-> GET /users поддерживает параметр `query` для поиска. Пагинация cursor-based: используй `limit` и `cursor` из `meta`.
+1. Get employee info:
+   ```bash
+   pachca users get <ID>
+   ```
 
-### Онбординг нового сотрудника
+> Returns all fields including `custom_properties`, `user_status`, `list_tags`.
 
-**Требуется:** скоуп `users:create` · скоуп `chat_members:write` · скоуп `messages:create`
 
-1. POST /users с `email`, именем, тегами (`list_tags`) — создать аккаунт
-2. POST /chats/{id}/members с `member_ids` — добавить в нужные каналы (онбординг, общий, тематические)
-3. POST /messages с `"entity_type": "user"`, `"entity_id": user.id` — отправить welcome-сообщение в личные сообщения
+### Bulk create employees with tags
 
-> Шаг 1 требует токена администратора/владельца. Шаги 2-3 можно делать ботом.
+1. Create tag (if needed):
+   ```bash
+   pachca group-tags create --name="Backend"
+   ```
 
-### Offboarding сотрудника
+2. For each employee: create account with tags:
+   ```bash
+   pachca users create --first-name="Иван" --last-name="Петров" --email="ivan@example.com" --list-tags='[{"name":"Backend"}]'
+   ```
+   > Tags are assigned via `list_tags` field in request body
 
-**Требуется:** скоуп `users:update` · скоуп `users:delete`
+3. Or update existing:
+   ```bash
+   pachca users update <ID> --list-tags='[{"name":"Backend"}]'
+   ```
 
-1. PUT /users/{id} с `"suspended": true` — заблокировать доступ
-2. Опционально: DELETE /users/{id} — удалить аккаунт полностью
+> Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint.
 
-> Приостановка (`suspended`) сохраняет данные, удаление — необратимо. Уточняй политику перед удалением.
 
-### Получить всех сотрудников тега/департамента
+### Find employee by name or email
 
-**Требуется:** скоуп `group_tags:read`
+1. Search by name/email (partial match):
+   ```bash
+   pachca users list --query=Иван
+   ```
 
-1. GET /group_tags?names[]=Backend — найти тег по названию, взять `id` тега из ответа
-2. GET /group_tags/{id}/users с пагинацией (`limit` + `cursor`) — получить всех участников
+> Cursor-based pagination: `limit` and `cursor` from `meta`. For exact email — iterate pages.
 
-### Управление статусом сотрудника
 
-**Требуется:** скоуп `user_status:read` · скоуп `user_status:write`
+### Onboard new employee
 
-1. GET /users/{user_id}/status — получить текущий статус сотрудника
-2. PUT /users/{user_id}/status с `emoji`, `title` и опционально `is_away: true`, `away_message: "текст"` — установить статус
-3. DELETE /users/{user_id}/status — удалить статус сотрудника
+1. Create account:
+   ```bash
+   pachca users create --email="new@example.com" --first-name="Иван" --last-name="Петров"
+   ```
 
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/users/13/status" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status":{"emoji":"🏖️","title":"В отпуске","is_away":true,"away_message":"Я в отпуске до 15 апреля"}}'
-```
+2. Add to required channels:
+   ```bash
+   pachca members add <chat_id> --member-ids='[<user_id>]'
+   ```
 
-> Для установки режима «Нет на месте» передай `is_away: true`. `away_message` — сообщение, отображаемое в профиле и при личных сообщениях/упоминаниях (макс 1024 символа). Скоупы: `user_status:read` для чтения, `user_status:write` для записи/удаления.
+3. Send welcome message:
+   ```bash
+   pachca messages create --entity-type=user --entity-id=<user_id> --content="Добро пожаловать!"
+   ```
 
-## Ограничения и gotchas
+> Step 1 requires admin/owner token. Steps 2-3 can be done by bot.
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
-- `user.role`: допустимые значения — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
-- `status.away_message`: максимум 1024 символов
-- `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor)
 
-## Эндпоинты
+### Offboard employee
 
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| POST | /group_tags | group_tags:write |
-| GET | /group_tags | group_tags:read |
-| GET | /group_tags/{id} | group_tags:read |
-| PUT | /group_tags/{id} | group_tags:write |
-| DELETE | /group_tags/{id} | group_tags:write |
-| GET | /group_tags/{id}/users | group_tags:read |
-| POST | /users | users:create |
-| GET | /users | users:read |
-| GET | /users/{id} | users:read |
-| PUT | /users/{id} | users:update |
-| DELETE | /users/{id} | users:delete |
-| GET | /users/{user_id}/status | user_status:read |
-| PUT | /users/{user_id}/status | user_status:write |
-| DELETE | /users/{user_id}/status | user_status:write |
+1. Suspend access:
+   ```bash
+   pachca users update <ID> --suspended
+   ```
 
-## Подробнее
+2. Optionally: delete account permanently:
+   ```bash
+   pachca users delete <ID> --force
+   ```
 
-см. [references/endpoints.md](references/endpoints.md)
+> Suspension (`suspended`) preserves data, deletion is irreversible.
+
+
+### Get all employees of a tag/department
+
+1. Find tag by name, take `id`:
+   ```bash
+   pachca group-tags list
+   ```
+
+2. Get all tag members:
+   ```bash
+   pachca group-tags list-users <tag_id> --all
+   ```
+
+
+### Manage employee status
+
+1. Get current status:
+   ```bash
+   pachca users get-status <user_id>
+   ```
+
+2. Set status:
+   ```bash
+   pachca users update-status <user_id> --emoji="🏖️" --title="В отпуске" --is-away
+   ```
+   > `is_away: true` — away mode. `away_message` — max 1024 chars
+
+3. Delete status:
+   ```bash
+   pachca users remove-status <user_id> --force
+   ```
+
+
+## Constraints and gotchas
+
+- Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `user.role`: allowed values — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
+- `status.away_message`: max 1024 characters
+- `limit`: max 50
+- Pagination: cursor-based (limit + cursor)
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /group_tags | Новый тег |
+| GET | /group_tags | Список тегов сотрудников |
+| GET | /group_tags/{id} | Информация о теге |
+| PUT | /group_tags/{id} | Редактирование тега |
+| DELETE | /group_tags/{id} | Удаление тега |
+| GET | /group_tags/{id}/users | Список сотрудников тега |
+| POST | /users | Создать сотрудника |
+| GET | /users | Список сотрудников |
+| GET | /users/{id} | Информация о сотруднике |
+| PUT | /users/{id} | Редактирование сотрудника |
+| DELETE | /users/{id} | Удаление сотрудника |
+| GET | /users/{user_id}/status | Статус сотрудника |
+| PUT | /users/{user_id}/status | Новый статус сотрудника |
+| DELETE | /users/{user_id}/status | Удаление статуса сотрудника |
+
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

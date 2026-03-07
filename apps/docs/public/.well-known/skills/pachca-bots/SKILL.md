@@ -1,143 +1,107 @@
 ---
 name: pachca-bots
 description: >
-  Управление ботами, входящие/исходящие вебхуки, разворачивание ссылок
-  (unfurling). Используй когда нужно: настроить бота, обработать вебхук,
-  обработать нажатие кнопки, периодический дайджест, алерты, polling событий,
-  развернуть ссылку. НЕ используй для: отправки сообщений от бота (→
-  pachca-messages), интерактивных форм (→ pachca-forms).
-allowed-tools: Bash(curl *)
+  Bot management, incoming/outgoing webhooks, link unfurling. Use when: set up
+  bot, handle webhook, handle button click, periodic digest, alerts, polling
+  events, unfurl link.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-bots
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Когда НЕ использовать
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
 
-- отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
-- показать форму, интерактивная форма, модальное окно → **pachca-forms**
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-## Пошаговые сценарии
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-### Настроить бота с исходящим вебхуком
+Or set `PACHCA_TOKEN` for multiple commands:
 
-1. Создай бота в интерфейсе Пачки: Автоматизации → Интеграции → Webhook
-2. Получи `access_token` бота во вкладке «API» настроек бота
-3. Укажи Webhook URL для получения событий
-4. Выбери типы событий: новые сообщения, реакции, кнопки, участники
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-> Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-### Обновить Webhook URL бота
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-**Требуется:** скоуп `bots:write`
+## Before you start
 
-1. PUT /bots/{id} с новым `outgoing_url` — `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
+1. If user has a saved profile — check status:
 
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"bot":{"webhook":{"outgoing_url":"https://example.com/webhook"}}}'
-```
+       npx @pachca/cli auth status
 
-> Обновлять настройки может только тот, кому разрешено редактирование бота (поле «Кто может редактировать настройки бота» во вкладке «Основное»).
+   If OK — use commands without `--token`.
 
-### Обработать входящий вебхук-событие
+2. If profile is not configured — ask for token and use `--token` flag:
 
-**Требуется:** скоуп `messages:read`
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-1. Получи POST-запрос на свой Webhook URL
-2. Проверь подпись (Signing secret) для безопасности
-3. Проверь `webhook_timestamp` — должен быть в пределах 1 минуты
-4. Разбери JSON: тип события, данные
-5. Для полной информации сделай запрос к API: GET /messages/{id} — особенно важно для получения вложений (`files[]`), которых нет в вебхуке
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-> Вебхук содержит минимум данных — файлы (`files`) в нём отсутствуют. Если сообщение может содержать вложения, всегда запрашивай GET /messages/{id}.
+## Step-by-step scenarios
 
-### Разворачивание ссылок (unfurling)
+### Set up bot with outgoing webhook
 
-**Требуется:** скоуп `link_previews:write`
+1. Create bot in Pachca UI: Automations → Integrations → Webhook
 
-1. Создай специального Unfurl-бота и укажи отслеживаемые домены в его настройках
-2. При появлении ссылки бот получает вебхук `"event": "link_shared"` с массивом `links` (`url` + `domain`) и `message_id`
-3. Извлеки данные из своей системы по URL из `links`
-4. Отправь POST /messages/{id}/link_previews с превью-данными
+2. Get bot `access_token` from "API" tab in bot settings
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages/56431/link_previews" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"link_previews":{"https://example.com/article":{"title":"Заголовок статьи","description":"Краткое описание","image_url":"https://example.com/img.png"}}}'
-```
+3. Set Webhook URL for receiving events
 
-> Эндпоинт привязан к конкретному сообщению. Необходим специальный Unfurl-бот с указанными доменами.
+> Bot is created via UI, not API. The only bot endpoint is PUT /bots/{id} (update webhook URL). API is used to send messages on behalf of bot.
 
-### Обработать нажатие кнопки (callback)
 
-**Требуется:** скоуп `messages:create` · скоуп `messages:update`
+### Update bot webhook URL
 
-1. Получи вебхук с `"event": "message_button_clicked"` — в payload: `data` (из кнопки), `user_id`, `message_id`
-2. Выполни нужное действие (запись в БД, запрос к API и т.д.)
-3. Ответь пользователю: POST /messages с `"entity_type": "user"`, `"entity_id": user_id` из вебхука
-4. Опционально: обнови исходное сообщение через PUT /messages/{id} — чтобы убрать кнопки передай `"buttons": []`, чтобы изменить текст — передай `"content"`
+1. Update bot webhook URL:
+   ```bash
+   pachca bots update <bot_id> --webhook='{"outgoing_url":"https://example.com/webhook"}'
+   ```
+   > Bot `id` (its `user_id`) can be found in "API" tab of bot settings
 
-> Кнопка с `data` отправляет событие на вебхук. Кнопка с `url` — открывает ссылку (вебхука не будет).
+> Only users with bot edit permissions can update settings.
 
-### Периодический дайджест/отчёт
 
-**Требуется:** скоуп `messages:create`
+### Periodic digest/report
 
-1. По расписанию (cron/scheduler): собери данные из своей системы
-2. Сформируй текст сообщения с нужными метриками или сводкой
-3. POST /messages с `"entity_id": chat_id` нужного канала
+1. On schedule (cron/scheduler): collect data from your system
 
-> Нет встроенного планировщика — используй cron, celery, sidekiq и т.п. на своей стороне.
+2. Compose message text with metrics or summary
 
-### Мониторинг и алерты
+3. Send message to channel:
+   ```bash
+   pachca messages create --entity-id=<chat_id> --content="Дайджест за сегодня: ..."
+   ```
 
-**Требуется:** скоуп `messages:create`
+> No built-in scheduler — use cron, celery, sidekiq, etc. on your side.
 
-1. Внешняя система (CI, мониторинг, сервис) обнаруживает событие (ошибка, деплой, порог метрики)
-2. Делает POST запрос к твоему боту или напрямую вызывает Pachca API
-3. POST /messages в канал алертов с описанием события и кнопками «Взять в работу» / «Игнорировать»
-4. При нажатии кнопки — обработай callback и обнови статус алерта
 
-### Обработка событий через историю (polling)
+## Constraints and gotchas
 
-**Требуется:** скоуп `webhooks:events:read` · скоуп `webhooks:events:delete`
+- Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `limit`: max 50
+- Pagination: cursor-based (limit + cursor)
 
-1. В настройках бота включи «Сохранять историю событий» (вкладка «Исходящий webhook»). Webhook URL указывать не обязательно.
-2. По расписанию или по запросу: GET /webhooks/events — получи накопленные события с пагинацией (`limit`, `cursor`)
-3. Обработай каждое событие (тот же формат payload, что и в real-time вебхуке)
-4. После обработки: DELETE /webhooks/events/{id} — удали событие, чтобы не обработать повторно
+## Endpoints
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=50" \
-  -H "Authorization: Bearer $TOKEN"
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| PUT | /bots/{id} | Редактирование бота |
+| POST | /messages/{id}/link_previews | Unfurl (разворачивание ссылок) |
+| GET | /webhooks/events | История событий |
+| DELETE | /webhooks/events/{id} | Удаление события |
 
-> Polling — альтернатива real-time вебхуку, если у бота нет публичного URL или нужна отложенная обработка. Подходит для batch-сценариев, скриптов, serverless-функций по расписанию.
+## Complex scenarios
 
-## Ограничения и gotchas
+For complex scenarios read files from references/:
+  references/handle-incoming-webhook-event.md — Handle incoming webhook event
+  references/link-unfurling.md — Link unfurling
+  references/handle-button-click-callback.md — Handle button click (callback)
+  references/monitoring-and-alerts.md — Monitoring and alerts
+  references/process-events-via-history-polling.md — Process events via history (polling)
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
-- `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor)
+  references/webhook-events.md — Webhook event types
 
-## Эндпоинты
-
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| PUT | /bots/{id} | bots:write |
-| POST | /messages/{id}/link_previews | link_previews:write |
-| GET | /webhooks/events | webhooks:events:read |
-| DELETE | /webhooks/events/{id} | webhooks:events:delete |
-
-## Подробнее
-
-см. [references/endpoints.md](references/endpoints.md)
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

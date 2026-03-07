@@ -17,6 +17,7 @@ export interface SkillConfig {
   extraSections?: { title: string; content: string }[];
   extraGotchas?: string[];
   extraEndpointContent?: string;
+  isRouter?: boolean;
 }
 
 export const SKILL_TAG_MAP: SkillConfig[] = [
@@ -24,7 +25,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-profile',
     tags: ['Profile'],
     description:
-      'Получение профиля текущего пользователя, управление своим статусом, кастомные поля сотрудников, проверка токена. Используй когда нужно: получить свой профиль, установить/сбросить статус, узнать дополнительные поля, проверить скоупы токена. НЕ используй для: управления другими сотрудниками (→ pachca-users).',
+      'User profile, status management, custom fields, token verification. Use when: get own profile, set/reset status, check custom fields, verify token scopes.',
     triggers: [
       'получить профиль',
       'мой профиль',
@@ -43,7 +44,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-users',
     tags: ['Users', 'Group tags'],
     description:
-      'Управление сотрудниками и тегами (группами). Создание, обновление, удаление, поиск сотрудников. Онбординг и offboarding. Создание и управление тегами. Управление статусом сотрудника. Используй когда нужно: найти сотрудника, создать пользователя, онбординг/offboarding, управлять тегами, установить статус сотруднику. НЕ используй для: собственного профиля (→ pachca-profile).',
+      'Employee and tag (group) management. Create, update, delete, search employees. Onboarding and offboarding. Tag management and employee status. Use when: find employee, create user, onboard/offboard, manage tags, set employee status.',
     triggers: [
       'найти сотрудника',
       'создать пользователя',
@@ -76,7 +77,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-chats',
     tags: ['Chats', 'Members'],
     description:
-      'Управление каналами и беседами, участниками чатов. Создание, обновление, архивация чатов. Добавление/удаление участников, роли, экспорт сообщений. Используй когда нужно: создать канал, добавить участника, архивировать чат, найти активные/неактивные чаты, экспорт сообщений. НЕ используй для: отправки сообщений (→ pachca-messages).',
+      'Channel and conversation management, chat members. Create, update, archive chats. Add/remove members, roles, message export. Use when: create channel, add member, archive chat, find active/inactive chats, export messages.',
     triggers: [
       'создать канал',
       'создать беседу',
@@ -105,7 +106,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-messages',
     tags: ['Messages', 'Thread', 'Reactions', 'Read member'],
     description:
-      'Отправка сообщений в каналы, беседы и личные чаты Пачки. Ответы в треды, загрузка файлов, кнопки, реакции, закрепление, прочтения. Используй когда нужно: отправить сообщение, ответить в тред, прикрепить файл, добавить реакцию, получить историю чата, закрепить сообщение. НЕ используй для: создания каналов (→ pachca-chats), управления ботами (→ pachca-bots).',
+      'Send messages to channels, conversations, and DMs. Reply to threads, upload files, buttons, reactions, pin, read receipts. Use when: send message, reply to thread, attach file, add reaction, get chat history, pin message.',
     triggers: [
       'отправить сообщение',
       'ответить в тред',
@@ -142,7 +143,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-bots',
     tags: ['Bots', 'Link Previews'],
     description:
-      'Управление ботами, входящие/исходящие вебхуки, разворачивание ссылок (unfurling). Используй когда нужно: настроить бота, обработать вебхук, обработать нажатие кнопки, периодический дайджест, алерты, polling событий, развернуть ссылку. НЕ используй для: отправки сообщений от бота (→ pachca-messages), интерактивных форм (→ pachca-forms).',
+      'Bot management, incoming/outgoing webhooks, link unfurling. Use when: set up bot, handle webhook, handle button click, periodic digest, alerts, polling events, unfurl link.',
     triggers: [
       'настроить бота',
       'вебхук',
@@ -166,7 +167,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-forms',
     tags: ['Views'],
     description:
-      'Интерактивные формы с полями ввода и кнопками для ботов. Используй когда нужно: показать форму, обработать submit формы, валидировать поля формы, создать модальное окно, опрос сотрудников. НЕ используй для: обычных кнопок в сообщениях (→ pachca-messages), настройки бота (→ pachca-bots).',
+      'Interactive forms with input fields and buttons for bots. Use when: show form, handle form submit, validate fields, create modal, employee survey.',
     triggers: [
       'показать форму',
       'интерактивная форма',
@@ -186,104 +187,104 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     errors: [
       {
         code: 410,
-        reason: 'trigger_id истёк или не найден',
-        action: 'trigger_id действует 3 секунды. Получи новый через нажатие кнопки (вебхук)',
+        reason: 'trigger_id expired or not found',
+        action: 'trigger_id is valid for 3 seconds. Get a new one via button click (webhook)',
       },
     ],
-    extraEndpointContent: `## Типы блоков формы
+    extraEndpointContent: `## Form block types
 
-### input — Текстовое поле
+### input — Text field
 
-- \`name\` (string, **обязательный**): Имя поля (ключ в \`data\` при submit)
-- \`label\` (string, **обязательный**): Подпись поля
-- \`placeholder\` (string, опциональный): Текст-подсказка
-- \`multiline\` (boolean, опциональный): Многострочный ввод
-- \`initial_value\` (string, опциональный): Начальное значение
-- \`min_length\` (integer, опциональный): Минимальная длина
-- \`max_length\` (integer, опциональный): Максимальная длина
-- \`required\` (boolean, опциональный): Обязательное поле
-- \`hint\` (string, опциональный): Подсказка под полем
+- \`name\` (string, **required**): Field name (key in \`data\` on submit)
+- \`label\` (string, **required**): Field label
+- \`placeholder\` (string, optional): Placeholder text
+- \`multiline\` (boolean, optional): Multiline input
+- \`initial_value\` (string, optional): Initial value
+- \`min_length\` (integer, optional): Minimum length
+- \`max_length\` (integer, optional): Maximum length
+- \`required\` (boolean, optional): Required field
+- \`hint\` (string, optional): Hint below the field
 
-### select — Выпадающий список
+### select — Dropdown list
 
-- \`name\` (string, **обязательный**): Имя поля
-- \`label\` (string, **обязательный**): Подпись
-- \`options\` (array, **обязательный**): Массив вариантов
-  - \`text\` (string, **обязательный**): Текст варианта
-  - \`value\` (string, **обязательный**): Значение
-  - \`description\` (string, опциональный): Описание варианта
-  - \`selected\` (boolean, опциональный): Выбран по умолчанию
-- \`required\` (boolean, опциональный): Обязательное поле
-- \`hint\` (string, опциональный): Подсказка
+- \`name\` (string, **required**): Field name
+- \`label\` (string, **required**): Label
+- \`options\` (array, **required**): Array of options
+  - \`text\` (string, **required**): Option text
+  - \`value\` (string, **required**): Value
+  - \`description\` (string, optional): Option description
+  - \`selected\` (boolean, optional): Selected by default
+- \`required\` (boolean, optional): Required field
+- \`hint\` (string, optional): Hint
 
-### radio — Радиокнопки
+### radio — Radio buttons
 
-- \`name\` (string, **обязательный**): Имя поля
-- \`label\` (string, **обязательный**): Подпись
-- \`options\` (array, **обязательный**): Массив вариантов (аналогично \`select\`)
-- \`required\` (boolean, опциональный): Обязательное поле
-- \`hint\` (string, опциональный): Подсказка
+- \`name\` (string, **required**): Field name
+- \`label\` (string, **required**): Label
+- \`options\` (array, **required**): Array of options (same as \`select\`)
+- \`required\` (boolean, optional): Required field
+- \`hint\` (string, optional): Hint
 
-### checkbox — Чекбоксы
+### checkbox — Checkboxes
 
-- \`name\` (string, **обязательный**): Имя поля
-- \`label\` (string, **обязательный**): Подпись
-- \`options\` (array, **обязательный**): Массив вариантов
-  - \`text\` (string, **обязательный**): Текст варианта
-  - \`value\` (string, **обязательный**): Значение
-  - \`description\` (string, опциональный): Описание
-  - \`checked\` (boolean, опциональный): Выбран по умолчанию
-- \`required\` (boolean, опциональный): Обязательное поле
-- \`hint\` (string, опциональный): Подсказка
+- \`name\` (string, **required**): Field name
+- \`label\` (string, **required**): Label
+- \`options\` (array, **required**): Array of options
+  - \`text\` (string, **required**): Option text
+  - \`value\` (string, **required**): Value
+  - \`description\` (string, optional): Description
+  - \`checked\` (boolean, optional): Checked by default
+- \`required\` (boolean, optional): Required field
+- \`hint\` (string, optional): Hint
 
-### date — Выбор даты
+### date — Date picker
 
-- \`name\` (string, **обязательный**): Имя поля
-- \`label\` (string, **обязательный**): Подпись
-- \`initial_date\` (string, опциональный): Начальная дата (YYYY-MM-DD)
-- \`required\` (boolean, опциональный): Обязательное поле
-- \`hint\` (string, опциональный): Подсказка
+- \`name\` (string, **required**): Field name
+- \`label\` (string, **required**): Label
+- \`initial_date\` (string, optional): Initial date (YYYY-MM-DD)
+- \`required\` (boolean, optional): Required field
+- \`hint\` (string, optional): Hint
 
-### time — Выбор времени
+### time — Time picker
 
-- \`name\` (string, **обязательный**): Имя поля
-- \`label\` (string, **обязательный**): Подпись
-- \`initial_time\` (string, опциональный): Начальное время (HH:MM)
-- \`required\` (boolean, опциональный): Обязательное поле
-- \`hint\` (string, опциональный): Подсказка
+- \`name\` (string, **required**): Field name
+- \`label\` (string, **required**): Label
+- \`initial_time\` (string, optional): Initial time (HH:MM)
+- \`required\` (boolean, optional): Required field
+- \`hint\` (string, optional): Hint
 
-### file_input — Загрузка файлов
+### file_input — File upload
 
-- \`name\` (string, **обязательный**): Имя поля
-- \`label\` (string, **обязательный**): Подпись
-- \`filetypes\` (array[string], опциональный): Допустимые расширения (["pdf", "jpg", "png"])
-- \`max_files\` (integer, опциональный): Максимальное количество файлов
-- \`required\` (boolean, опциональный): Обязательное поле
-- \`hint\` (string, опциональный): Подсказка
+- \`name\` (string, **required**): Field name
+- \`label\` (string, **required**): Label
+- \`filetypes\` (array[string], optional): Allowed extensions (["pdf", "jpg", "png"])
+- \`max_files\` (integer, optional): Maximum number of files
+- \`required\` (boolean, optional): Required field
+- \`hint\` (string, optional): Hint
 
-> Ссылки на загруженные файлы в \`data.field_name[].url\` при submit-вебхуке истекают через 1 час — скачивай немедленно.
+> Uploaded file URLs in \`data.field_name[].url\` from submit webhook expire after 1 hour — download immediately.
 
-### header — Заголовок секции
+### header — Section header
 
-- \`text\` (string, **обязательный**): Текст заголовка
+- \`text\` (string, **required**): Header text
 
-### plain_text — Простой текст
+### plain_text — Plain text
 
-- \`text\` (string, **обязательный**): Текст
+- \`text\` (string, **required**): Text
 
-### markdown — Текст с разметкой
+### markdown — Formatted text
 
-- \`text\` (string, **обязательный**): Текст с markdown-разметкой (поддерживаются ссылки, жирный, курсив)
+- \`text\` (string, **required**): Text with markdown (supports links, bold, italic)
 
-### divider — Разделитель
+### divider — Divider
 
-Визуальная горизонтальная линия. Параметров нет.`,
+Visual horizontal line. No parameters.`,
   },
   {
     name: 'pachca-tasks',
     tags: ['Tasks'],
     description:
-      'Создание, получение, обновление и удаление задач (напоминаний). Используй когда нужно: создать задачу, получить список задач, обновить задачу, удалить задачу.',
+      'Create, get, update, and delete tasks (reminders). Use when: create task, list tasks, update task, mark task done, delete task.',
     triggers: [
       'создать задачу',
       'список задач',
@@ -299,7 +300,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-search',
     tags: ['Search'],
     description:
-      'Полнотекстовый поиск по сотрудникам, чатам и сообщениям. Используй когда нужно: найти сообщение по тексту, найти чат по названию, найти сотрудника по имени. НЕ используй для: просмотра списка сотрудников (→ pachca-users), просмотра списка чатов (→ pachca-chats).',
+      'Full-text search across employees, chats, and messages. Use when: find message by text, find chat by name, find employee by name.',
     triggers: [
       'поиск сообщений',
       'найти сообщение',
@@ -314,7 +315,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     name: 'pachca-security',
     tags: ['Security'],
     description:
-      'Журнал аудита событий безопасности. Используй когда нужно: получить журнал аудита, просмотреть события безопасности, мониторинг входов, экспорт логов. НЕ используй для: обычных API-запросов (→ другие скиллы). Требует тариф «Корпорация».',
+      'Security audit event log. Use when: get audit log, review security events, monitor logins, export logs. Requires "Corporation" plan.',
     triggers: [
       'аудит',
       'журнал событий',
@@ -330,23 +331,47 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     guides: ['dlp', 'audit-events'],
     extraSections: [
       {
-        title: 'Доступные event_key',
-        content: `| Категория | Ключи |
-|-----------|-------|
-| Авторизация | \`user_login\`, \`user_logout\`, \`user_2fa_fail\`, \`user_2fa_success\` |
-| Сотрудники | \`user_created\`, \`user_deleted\`, \`user_role_changed\`, \`user_updated\` |
-| Теги | \`tag_created\`, \`tag_deleted\`, \`user_added_to_tag\`, \`user_removed_from_tag\` |
-| Чаты | \`chat_created\`, \`chat_renamed\`, \`chat_permission_changed\` |
-| Участники чатов | \`user_chat_join\`, \`user_chat_leave\`, \`tag_added_to_chat\`, \`tag_removed_from_chat\` |
-| Сообщения | \`message_created\`, \`message_updated\`, \`message_deleted\` |
-| Реакции и треды | \`reaction_created\`, \`reaction_deleted\`, \`thread_created\` |
-| Токены | \`access_token_created\`, \`access_token_updated\`, \`access_token_destroy\` |
-| Шифрование | \`kms_encrypt\`, \`kms_decrypt\` |
-| Безопасность | \`audit_events_accessed\`, \`dlp_violation_detected\` |
-| Поиск (API) | \`search_users_api\`, \`search_chats_api\`, \`search_messages_api\` |`,
+        title: 'Available event_key values',
+        content: `| Category | Keys |
+|----------|------|
+| Auth | \`user_login\`, \`user_logout\`, \`user_2fa_fail\`, \`user_2fa_success\` |
+| Employees | \`user_created\`, \`user_deleted\`, \`user_role_changed\`, \`user_updated\` |
+| Tags | \`tag_created\`, \`tag_deleted\`, \`user_added_to_tag\`, \`user_removed_from_tag\` |
+| Chats | \`chat_created\`, \`chat_renamed\`, \`chat_permission_changed\` |
+| Chat members | \`user_chat_join\`, \`user_chat_leave\`, \`tag_added_to_chat\`, \`tag_removed_from_chat\` |
+| Messages | \`message_created\`, \`message_updated\`, \`message_deleted\` |
+| Reactions and threads | \`reaction_created\`, \`reaction_deleted\`, \`thread_created\` |
+| Tokens | \`access_token_created\`, \`access_token_updated\`, \`access_token_destroy\` |
+| Encryption | \`kms_encrypt\`, \`kms_decrypt\` |
+| Security | \`audit_events_accessed\`, \`dlp_violation_detected\` |
+| Search (API) | \`search_users_api\`, \`search_chats_api\`, \`search_messages_api\` |`,
       },
     ],
-    extraGotchas: ['`start_time` и `end_time` — обязательные параметры (ISO-8601, UTC+0)'],
+    extraGotchas: ['`start_time` and `end_time` are required parameters (ISO-8601, UTC+0)'],
+  },
+];
+
+export const ROUTER_SKILL_CONFIG: SkillConfig = {
+  name: 'pachca',
+  tags: [],
+  description:
+    "Pachca — corporate messenger with REST API and CLI. Router skill: determines the right skill for the user's task. Use when user mentions Pachca, messenger, channels, messages, bots, tasks. Do NOT make API calls from this skill — route to the appropriate specialized skill.",
+  triggers: [],
+  negativeTriggers: [],
+  isRouter: true,
+};
+
+export const TOP_OPERATIONS: { comment: string; command: string }[] = [
+  {
+    comment: 'Send message',
+    command: 'pachca messages create --entity-id=<chat_id> --content="Hello"',
+  },
+  { comment: 'Search chats', command: 'pachca search list-chats --query="..."' },
+  { comment: 'Get profile', command: 'pachca profile get' },
+  { comment: 'Search messages', command: 'pachca search list-messages --query="..."' },
+  {
+    comment: 'Create chat',
+    command: 'pachca chats create --name="Project X" --member-ids=1,2,3',
   },
 ];
 

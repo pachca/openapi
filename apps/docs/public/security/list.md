@@ -37,6 +37,23 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca security list \
+  --start-time=2025-05-01T09:11:00Z \
+  --end-time=2025-05-02T09:11:00Z \
+  --event-key=user_login \
+  --actor-id=98765 \
+  --actor-type=User \
+  --entity-id=98765 \
+  --entity-type=User \
+  --limit=1 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

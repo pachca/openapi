@@ -56,6 +56,19 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca chats create \
+  --name="🤿 aqua" \
+  --member-ids=186,187 \
+  --group-tag-ids=86,18 \
+  --channel \
+  --no-public \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

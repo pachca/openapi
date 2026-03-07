@@ -22,6 +22,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca messages delete 194275 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

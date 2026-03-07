@@ -2,6 +2,9 @@
   "name": "@pachca/spec",
   "version": "1.0.0",
   "private": true,
+  "exports": {
+    "./workflows": "./workflows.ts"
+  },
   "scripts": {
     "setup": "true",
     "generate": "tsp compile typespec.tsp --config tspconfig.yaml"

@@ -2,11 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import type { Endpoint, Schema, ParsedAPI } from '../../lib/openapi/types';
 import { generateTitle } from '../../lib/openapi/mapper';
-import { generateCurl } from '../../lib/code-generators/curl';
-import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP } from './config';
+import { SKILL_TAG_MAP, COMMON_ENDPOINT_MAP, ROUTER_SKILL_CONFIG, TOP_OPERATIONS } from './config';
 import type { SkillConfig } from './config';
-import { WORKFLOWS } from '../../data/workflows';
-import type { Workflow } from '../../data/workflows';
+import { WORKFLOWS } from '@pachca/spec/workflows';
+import type { Workflow } from '@pachca/spec/workflows';
 
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
@@ -42,20 +41,13 @@ interface SkillContext {
   allSkills: SkillConfig[];
 }
 
-const STEP_RE = /(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s,—.()]+(?:\{[^}]+\}[^\s,—.()]*)*)/g;
-
-function deriveWorkflowRequirements(wf: Workflow, allEndpoints: Endpoint[]) {
-  const scopes = new Set<string>();
-  const plans = new Set<string>();
-  for (const step of wf.steps) {
-    for (const m of step.description.matchAll(STEP_RE)) {
-      const path = m[2].split('?')[0];
-      const ep = allEndpoints.find((e) => e.method.toUpperCase() === m[1] && e.path === path);
-      if (ep?.requirements?.scope) scopes.add(ep.requirements.scope);
-      if (ep?.requirements?.plan) plans.add(ep.requirements.plan);
-    }
-  }
-  return { scopes: [...scopes], plans: [...plans] };
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-zа-яё0-9\s-]/gi, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 60);
 }
 
 export function generateAllSkills(api: ParsedAPI) {
@@ -82,7 +74,6 @@ export function generateAllSkills(api: ParsedAPI) {
     };
 
     const skillMd = generateSkillMd(ctx);
-    const endpointsMd = generateEndpointsMd(ctx);
 
     const basePaths = [
       `skills/${config.name}`,
@@ -91,7 +82,17 @@ export function generateAllSkills(api: ParsedAPI) {
 
     for (const base of basePaths) {
       results.push({ path: `${base}/SKILL.md`, content: skillMd });
-      results.push({ path: `${base}/references/endpoints.md`, content: endpointsMd });
+    }
+
+    // Generate inline:false workflow reference files
+    const workflows = WORKFLOWS[config.name] || [];
+    const refWorkflows = workflows.filter((wf) => wf.inline === false);
+    for (const wf of refWorkflows) {
+      const slug = slugify(wf.titleEn || wf.title);
+      const refMd = renderCLIWorkflow(wf, 'en');
+      for (const base of basePaths) {
+        results.push({ path: `${base}/references/${slug}.md`, content: refMd });
+      }
     }
 
     if (config.name === 'pachca-bots') {
@@ -101,11 +102,32 @@ export function generateAllSkills(api: ParsedAPI) {
       }
     }
 
+    // Validation
+    const lineCount = skillMd.split('\n').length;
+    if (lineCount > 500) {
+      console.warn(`⚠ ${config.name}/SKILL.md: ${lineCount} lines (exceeds 500 line limit)`);
+    }
     const tokenEstimate = Math.round(skillMd.split(/\s+/).length * 1.3);
     if (tokenEstimate > 5000) {
       console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 5000 limit)`);
     } else if (tokenEstimate > 4000) {
       console.warn(`⚠ ${config.name}/SKILL.md: ~${tokenEstimate} tokens (exceeds 4000 target)`);
+    }
+
+    // Validate workflow steps
+    for (const wf of workflows) {
+      if (wf.inline !== false && wf.steps.length > 3) {
+        console.warn(
+          `⚠ ${config.name}: scenario "${wf.title}" has ${wf.steps.length} steps in SKILL.md (max 3, consider inline: false)`
+        );
+      }
+      for (const step of wf.steps) {
+        if (step.apiMethod && !step.command) {
+          console.warn(
+            `⚠ ${config.name}: step "${step.description.slice(0, 50)}" has API method but no command`
+          );
+        }
+      }
     }
   }
 
@@ -116,7 +138,7 @@ export function generateAllSkills(api: ParsedAPI) {
     const fallbackConfig: SkillConfig = {
       name,
       tags: [],
-      description: `Автоматически обнаруженный скилл: ${name}.`,
+      description: `Auto-discovered skill: ${name}.`,
       triggers: endpoints.map((ep) => ep.summary || `${ep.method} ${ep.path}`),
       negativeTriggers: [],
     };
@@ -128,12 +150,16 @@ export function generateAllSkills(api: ParsedAPI) {
       allSkills: SKILL_TAG_MAP,
     };
     const skillMd = generateSkillMd(ctx);
-    const endpointsMd = generateEndpointsMd(ctx);
     for (const base of [`skills/${name}`, `apps/docs/public/.well-known/skills/${name}`]) {
       results.push({ path: `${base}/SKILL.md`, content: skillMd });
-      results.push({ path: `${base}/references/endpoints.md`, content: endpointsMd });
     }
     console.warn(`⚠ Created fallback skill "${name}" with ${endpoints.length} endpoints`);
+  }
+
+  // Generate router skill
+  const routerMd = generateRouterSkillMd();
+  for (const base of ['skills/pachca', 'apps/docs/public/.well-known/skills/pachca']) {
+    results.push({ path: `${base}/SKILL.md`, content: routerMd });
   }
 
   results.push({
@@ -190,9 +216,38 @@ function groupEndpointsBySkill(endpoints: Endpoint[]) {
   return result;
 }
 
+function renderCLIWorkflow(workflow: Workflow, lang: 'ru' | 'en' = 'ru'): string {
+  const title = lang === 'en' ? workflow.titleEn || workflow.title : workflow.title;
+  let md = `### ${title}\n\n`;
+
+  for (let i = 0; i < workflow.steps.length; i++) {
+    const step = workflow.steps[i];
+    const desc = lang === 'en' ? step.descriptionEn || step.description : step.description;
+    const notes = lang === 'en' ? step.notesEn || step.notes : step.notes;
+    md += `${i + 1}. ${desc}`;
+    if (step.command) {
+      md += `:\n   \`\`\`bash\n   ${step.command}\n   \`\`\``;
+    }
+    md += '\n';
+    if (notes) {
+      md += `   > ${notes}\n`;
+    }
+    md += '\n';
+  }
+
+  const wfNotes = lang === 'en' ? workflow.notesEn || workflow.notes : workflow.notes;
+  if (wfNotes) {
+    md += `> ${wfNotes}\n\n`;
+  }
+
+  return md;
+}
+
 function generateSkillMd(ctx: SkillContext): string {
-  const { config, endpoints, allEndpoints, baseUrl, allSkills } = ctx;
-  const workflows = WORKFLOWS[config.name] || [];
+  const { config, endpoints } = ctx;
+  const allWorkflows = WORKFLOWS[config.name] || [];
+  const inlineWorkflows = allWorkflows.filter((wf) => wf.inline !== false);
+  const refWorkflows = allWorkflows.filter((wf) => wf.inline === false);
 
   const lines: string[] = [];
 
@@ -204,76 +259,62 @@ function generateSkillMd(ctx: SkillContext): string {
   for (const dl of descLines) {
     lines.push(`  ${dl.trim()}`);
   }
-  lines.push('allowed-tools: Bash(curl *)');
+  lines.push('allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)');
   lines.push('---');
   lines.push('');
 
-  // Header + auth
+  // Header
   lines.push(`# ${config.name}`);
   lines.push('');
-  lines.push(`Base URL: \`${baseUrl}\``);
-  lines.push('Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`');
+
+  // Quick start (zero-friction)
+  lines.push('## Quick start');
+  lines.push('');
+  lines.push(
+    'Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).'
+  );
   if (config.botOnly) {
-    lines.push(
-      'Токен: **только бот** (Автоматизации → Интеграции → API). Пользовательский токен не подойдёт — формы требуют исходящий вебхук.'
-    );
-  } else {
-    lines.push(
-      'Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).'
-    );
+    lines.push('**Bot only** — user token will not work.');
   }
-  lines.push('Если токен неизвестен — спроси у пользователя перед выполнением запросов.');
+  lines.push('');
+  lines.push('Run commands with `npx @pachca/cli` and `--token` flag:');
+  lines.push('');
+  lines.push('    npx @pachca/cli <command> --token $PACHCA_TOKEN');
+  lines.push('');
+  lines.push('Or set `PACHCA_TOKEN` for multiple commands:');
+  lines.push('');
+  lines.push('    export PACHCA_TOKEN=<token>');
+  lines.push('    npx @pachca/cli <command>');
+  lines.push('');
+  lines.push('Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`');
+  lines.push('');
+  lines.push(
+    '> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`'
+  );
   lines.push('');
 
-  // "Когда НЕ использовать" — only nearest alternatives
-  const nearestAlts = config.nearestAlternatives || [];
-  if (nearestAlts.length > 0) {
-    lines.push('## Когда НЕ использовать');
-    lines.push('');
-    for (const altEntry of nearestAlts) {
-      if (typeof altEntry === 'string') {
-        const alt = allSkills.find((s) => s.name === altEntry);
-        if (alt) {
-          const altTriggers = alt.triggers.slice(0, 3).join(', ');
-          lines.push(`- ${altTriggers} → **${alt.name}**`);
-        }
-      } else {
-        lines.push(`- ${altEntry.text} → **${altEntry.name}**`);
-      }
-    }
-    lines.push('');
-  }
+  // Preflight check
+  lines.push('## Before you start');
+  lines.push('');
+  lines.push('1. If user has a saved profile — check status:');
+  lines.push('');
+  lines.push('       npx @pachca/cli auth status');
+  lines.push('');
+  lines.push('   If OK — use commands without `--token`.');
+  lines.push('');
+  lines.push('2. If profile is not configured — ask for token and use `--token` flag:');
+  lines.push('');
+  lines.push('       npx @pachca/cli auth status --token $PACHCA_TOKEN');
+  lines.push('');
+  lines.push("3. If you don't know command parameters — run `pachca <command> --help`.");
+  lines.push('');
 
-  // Workflows
-  if (workflows.length > 0) {
-    lines.push('## Пошаговые сценарии');
+  // Inline workflows (max 3 steps)
+  if (inlineWorkflows.length > 0) {
+    lines.push('## Step-by-step scenarios');
     lines.push('');
-    for (const wf of workflows) {
-      lines.push(`### ${wf.title}`);
-      lines.push('');
-      const req = deriveWorkflowRequirements(wf, allEndpoints);
-      const reqParts: string[] = [
-        ...req.plans.map((p) => `тариф **${p === 'corporation' ? 'Корпорация' : p}**`),
-        ...req.scopes.map((s) => `скоуп \`${s}\``),
-      ];
-      if (reqParts.length > 0) {
-        lines.push(`**Требуется:** ${reqParts.join(' · ')}`);
-        lines.push('');
-      }
-      for (let i = 0; i < wf.steps.length; i++) {
-        lines.push(`${i + 1}. ${wf.steps[i].description}`);
-      }
-      if (wf.curl) {
-        lines.push('');
-        lines.push('```bash');
-        lines.push(wf.curl);
-        lines.push('```');
-      }
-      if (wf.notes) {
-        lines.push('');
-        lines.push(`> ${wf.notes}`);
-      }
-      lines.push('');
+    for (const wf of inlineWorkflows) {
+      lines.push(renderCLIWorkflow(wf, 'en'));
     }
   }
 
@@ -287,10 +328,10 @@ function generateSkillMd(ctx: SkillContext): string {
     }
   }
 
-  // Gotchas (including rate limit and errors — replaces old "Обработка ошибок" section)
+  // Gotchas (including rate limit and errors)
   const gotchas = extractGotchas(endpoints, config);
   if (gotchas.length > 0) {
-    lines.push('## Ограничения и gotchas');
+    lines.push('## Constraints and gotchas');
     lines.push('');
     for (const gotcha of gotchas) {
       lines.push(`- ${gotcha}`);
@@ -298,29 +339,42 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('');
   }
 
-  // Endpoints table (replaces old multi-line "Доступные операции" section)
+  // Endpoints table
   if (endpoints.length > 0) {
-    lines.push('## Эндпоинты');
+    lines.push('## Endpoints');
     lines.push('');
-    lines.push('| Метод | Путь | Скоуп |');
-    lines.push('|-------|------|-------|');
+    lines.push('| Method | Path | Description |');
+    lines.push('|--------|------|-------------|');
     for (const ep of endpoints) {
-      const parts: string[] = [];
-      if (ep.requirements?.scope) parts.push(ep.requirements.scope);
-      if (ep.requirements?.plan) {
-        const planNames: Record<string, string> = { corporation: 'Корпорация' };
-        parts.push(`тариф: ${planNames[ep.requirements.plan] ?? ep.requirements.plan}`);
-      }
-      const scope = parts.length > 0 ? parts.join(' · ') : '—';
-      lines.push(`| ${ep.method} | ${ep.path} | ${scope} |`);
+      const title = generateTitle(ep);
+      lines.push(`| ${ep.method} | ${ep.path} | ${title} |`);
     }
     lines.push('');
   }
 
-  // Reference link
-  lines.push('## Подробнее');
-  lines.push('');
-  lines.push('см. [references/endpoints.md](references/endpoints.md)');
+  // Reference links for complex workflows
+  if (refWorkflows.length > 0) {
+    lines.push('## Complex scenarios');
+    lines.push('');
+    lines.push('For complex scenarios read files from references/:');
+    for (const wf of refWorkflows) {
+      const slug = slugify(wf.titleEn || wf.title);
+      const title = wf.titleEn || wf.title;
+      lines.push(`  references/${slug}.md — ${title}`);
+    }
+    lines.push('');
+  }
+
+  // Special reference files
+  if (config.name === 'pachca-bots') {
+    lines.push('  references/webhook-events.md — Webhook event types');
+    lines.push('');
+  }
+
+  // Fallback instruction
+  lines.push(
+    "> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions."
+  );
   lines.push('');
 
   return lines.join('\n');
@@ -329,12 +383,10 @@ function generateSkillMd(ctx: SkillContext): string {
 /** Resolve allOf/oneOf/anyOf to a flat schema (first match wins). */
 function resolveComposed(schema: Schema): Schema {
   if (schema.allOf?.length) {
-    // Merge all allOf schemas into one
     let merged: Schema = {};
     for (const sub of schema.allOf) {
       merged = { ...merged, ...sub };
     }
-    // Preserve top-level description/example if present
     if (schema.description) merged.description = schema.description;
     if (schema.example !== undefined) merged.example = schema.example;
     return merged;
@@ -366,17 +418,16 @@ function collectSchemaGotchas(
             return desc ? `\`${key}\` (${desc})` : `\`${key}\``;
           })
           .join(', ');
-        gotchas.push(`\`${fullName}\`: допустимые значения — ${values}`);
+        gotchas.push(`\`${fullName}\`: allowed values — ${values}`);
       }
     }
     if (prop.maxLength) {
       const key = `maxLength:${fullName}`;
       if (!seen.has(key)) {
         seen.add(key);
-        gotchas.push(`\`${fullName}\`: максимум ${prop.maxLength} символов`);
+        gotchas.push(`\`${fullName}\`: max ${prop.maxLength} characters`);
       }
     }
-    // Recurse into nested objects
     if (prop.type === 'object' && prop.properties) {
       collectSchemaGotchas(prop.properties, seen, gotchas, fullName);
     }
@@ -387,14 +438,12 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   const gotchas: string[] = [];
   const seen = new Set<string>();
 
-  // Rate limit (replaces the old error table)
   if (config.name === 'pachca-messages') {
-    gotchas.push('Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.');
+    gotchas.push('Rate limit: ~50 req/sec, messages ~4 req/sec. On 429 — wait and retry.');
   } else {
-    gotchas.push('Rate limit: ~50 req/sec. При 429 — подожди и повтори.');
+    gotchas.push('Rate limit: ~50 req/sec. On 429 — wait and retry.');
   }
 
-  // Skill-specific errors
   if (config.errors) {
     for (const err of config.errors) {
       gotchas.push(`${err.code}: ${err.reason}. ${err.action}`);
@@ -413,7 +462,6 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
     }
   }
 
-  // Collect all maximum values per query parameter across endpoints
   const paramMaximums = new Map<string, { max: number; endpoint: string }[]>();
   for (const ep of endpoints) {
     const queryParams = ep.parameters.filter((p) => p.in === 'query');
@@ -432,20 +480,18 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   for (const [name, entries] of paramMaximums) {
     const uniqueValues = [...new Set(entries.map((e) => e.max))];
     if (uniqueValues.length === 1) {
-      gotchas.push(`\`${name}\`: максимум ${uniqueValues[0]}`);
+      gotchas.push(`\`${name}\`: max ${uniqueValues[0]}`);
     } else {
       const details = entries.map((e) => `${e.max} (${e.endpoint})`).join(', ');
-      gotchas.push(`\`${name}\`: максимум — ${details}`);
+      gotchas.push(`\`${name}\`: max — ${details}`);
     }
   }
 
-  // Pagination — only if there are GET endpoints (skip for e.g. pachca-forms with only POST)
   const hasGetEndpoints = endpoints.some((ep) => ep.method === 'GET');
   if (hasGetEndpoints) {
-    gotchas.push('Пагинация: cursor-based (limit + cursor)');
+    gotchas.push('Pagination: cursor-based (limit + cursor)');
   }
 
-  // Extra manually defined gotchas from config
   if (config.extraGotchas) {
     for (const g of config.extraGotchas) {
       gotchas.push(g);
@@ -455,133 +501,19 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   return gotchas;
 }
 
-function generateEndpointsMd(ctx: SkillContext): string {
-  const { config, endpoints, baseUrl } = ctx;
-  const lines: string[] = [];
-
-  lines.push(`# ${config.name} — Справочник эндпоинтов`);
-  lines.push('');
-
-  for (const ep of endpoints) {
-    const title = generateTitle(ep);
-    lines.push(`## ${title}`);
-    lines.push('');
-    lines.push(`**${ep.method}** \`${ep.path}\``);
-    lines.push('');
-    if (ep.requirements?.scope || ep.requirements?.plan) {
-      const planNames: Record<string, string> = { corporation: 'Корпорация' };
-      const parts: string[] = [];
-      if (ep.requirements.scope) parts.push(`Скоуп: \`${ep.requirements.scope}\``);
-      if (ep.requirements.plan)
-        parts.push(`Тариф: **${planNames[ep.requirements.plan] ?? ep.requirements.plan}**`);
-      lines.push(`> ${parts.join(' · ')}`);
-      lines.push('');
-    }
-
-    if (ep.description) {
-      lines.push(
-        ep.description
-          .split('\n')
-          .filter((l) => !l.startsWith('#'))
-          .join('\n')
-          .trim()
-      );
-      lines.push('');
-    }
-
-    if (ep.parameters.length > 0) {
-      lines.push('**Параметры:**');
-      lines.push('');
-      for (const p of ep.parameters) {
-        const req = p.required ? '**обязательный**' : 'опциональный';
-        const type = p.schema?.type || 'string';
-        lines.push(`- \`${p.name}\` (${p.in}, ${type}, ${req}): ${p.description || ''}`);
-        if (p.schema?.enum) {
-          lines.push(`  - Значения: ${p.schema.enum.map((v) => `\`${v}\``).join(', ')}`);
-        }
-      }
-      lines.push('');
-    }
-
-    if (ep.requestBody) {
-      const jsonContent = ep.requestBody.content['application/json'];
-      if (jsonContent?.schema?.properties) {
-        lines.push('**Тело запроса** (`application/json`):');
-        lines.push('');
-        renderSchemaProps(lines, jsonContent.schema, 0);
-        lines.push('');
-      }
-    }
-
-    lines.push('**Пример:**');
-    lines.push('');
-    lines.push('```bash');
-    lines.push(generateCurl(ep, baseUrl));
-    lines.push('```');
-    lines.push('');
-
-    const successResp = ep.responses['200'] || ep.responses['201'] || ep.responses['204'];
-    if (successResp?.content?.['application/json']?.schema) {
-      const respSchema = successResp.content['application/json'].schema;
-      if (respSchema.properties) {
-        lines.push('**Ответ:**');
-        lines.push('');
-        renderSchemaProps(lines, respSchema, 0);
-        lines.push('');
-      }
-    }
-
-    lines.push('---');
-    lines.push('');
-  }
-
-  // Extra endpoint content (e.g. form block types for pachca-forms)
-  if (config.extraEndpointContent) {
-    lines.push(config.extraEndpointContent);
-    lines.push('');
-  }
-
-  return lines.join('\n');
-}
-
-function renderSchemaProps(lines: string[], schema: Schema, depth: number) {
-  if (!schema.properties || depth > 3) return;
-  const indent = '  '.repeat(depth);
-  const required = schema.required || [];
-
-  for (const [name, prop] of Object.entries(schema.properties)) {
-    const req = required.includes(name) ? '**обязательный**' : 'опциональный';
-    let type = prop.type || 'object';
-    if (prop.enum) {
-      type += ` (${prop.enum.map((v) => `\`${v}\``).join(' | ')})`;
-    }
-    if (prop.type === 'array' && prop.items?.type) {
-      type = `array[${prop.items.type}]`;
-    }
-    lines.push(`${indent}- \`${name}\` (${type}, ${req}): ${prop.description || ''}`);
-
-    if (prop.type === 'object' && prop.properties) {
-      renderSchemaProps(lines, prop, depth + 1);
-    }
-    if (prop.type === 'array' && prop.items?.properties) {
-      renderSchemaProps(lines, prop.items, depth + 1);
-    }
-  }
-}
-
 function generateWebhookEventsMd(): string {
   const lines: string[] = [];
 
-  lines.push('# Типы событий Webhook');
+  lines.push('# Webhook event types');
   lines.push('');
-  lines.push('Исходящие вебхуки отправляют JSON на указанный URL при наступлении событий.');
-  lines.push('Подпись: `Pachca-Signature` (HMAC-SHA256 от тела запроса с Signing secret).');
+  lines.push('Outgoing webhooks send JSON to specified URL when events occur.');
+  lines.push('Signature: `Pachca-Signature` (HMAC-SHA256 of request body with Signing secret).');
   lines.push('');
 
-  lines.push('## Новые сообщения');
+  lines.push('## New messages');
   lines.push('');
-  lines.push('Отправляется при новом сообщении в чате, где участвует бот.');
-  lines.push('Можно фильтровать по командам (начало сообщения).');
+  lines.push('Sent when a new message appears in a chat where the bot is a member.');
+  lines.push('Can filter by commands (message prefix).');
   lines.push('');
   lines.push('```json');
   lines.push(
@@ -608,37 +540,37 @@ function generateWebhookEventsMd(): string {
   lines.push('```');
   lines.push('');
 
-  lines.push('## Добавление и удаление реакций');
+  lines.push('## Reaction add/remove');
   lines.push('');
-  lines.push('Отправляется при добавлении/удалении реакции в чате, где участвует бот.');
+  lines.push('Sent when a reaction is added/removed in a chat where the bot is a member.');
   lines.push(
-    'Поля: `event` (add/remove), `type` (reaction), `code` (emoji), `message_id`, `user_id`.'
+    'Fields: `event` (add/remove), `type` (reaction), `code` (emoji), `message_id`, `user_id`.'
   );
   lines.push('');
 
-  lines.push('## Нажатие кнопок');
+  lines.push('## Button clicks');
   lines.push('');
-  lines.push('Отправляется при нажатии Data-кнопки в сообщении бота.');
-  lines.push('Содержит `trigger_id` для открытия форм через `POST /views/open`.');
-  lines.push('');
-
-  lines.push('## Изменение состава участников чатов');
-  lines.push('');
-  lines.push('Отправляется при добавлении/удалении участников в чатах, где состоит бот.');
+  lines.push('Sent when a Data-button in bot message is clicked.');
+  lines.push('Contains `trigger_id` for opening forms via `POST /views/open`.');
   lines.push('');
 
-  lines.push('## Изменение состава участников пространства');
+  lines.push('## Chat member changes');
+  lines.push('');
+  lines.push('Sent when members are added/removed in chats where the bot is a member.');
+  lines.push('');
+
+  lines.push('## Space member changes');
   lines.push('');
   lines.push(
-    'Глобальное событие (не требует добавления бота в чат). События: invite, confirm, update, suspend, activate, delete.'
+    'Global event (does not require bot in chat). Events: invite, confirm, update, suspend, activate, delete.'
   );
   lines.push('');
 
-  lines.push('## Безопасность');
+  lines.push('## Security');
   lines.push('');
-  lines.push('1. Проверь подпись: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`');
-  lines.push('2. Проверь `webhook_timestamp` — должен быть в пределах 1 минуты');
-  lines.push('3. Проверь IP отправителя: `37.200.70.177`');
+  lines.push('1. Verify signature: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`');
+  lines.push('2. Check `webhook_timestamp` — must be within 1 minute');
+  lines.push('3. Verify sender IP: `37.200.70.177`');
   lines.push('');
   lines.push('```javascript');
   lines.push(
@@ -653,9 +585,66 @@ function generateWebhookEventsMd(): string {
   return lines.join('\n');
 }
 
+function generateRouterSkillMd(): string {
+  const lines: string[] = [];
+
+  lines.push('---');
+  lines.push(`name: ${ROUTER_SKILL_CONFIG.name}`);
+  lines.push('description: >');
+  const descLines = ROUTER_SKILL_CONFIG.description.match(/.{1,80}(\s|$)/g) || [
+    ROUTER_SKILL_CONFIG.description,
+  ];
+  for (const dl of descLines) {
+    lines.push(`  ${dl.trim()}`);
+  }
+  lines.push('allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)');
+  lines.push('---');
+  lines.push('');
+  lines.push('# pachca');
+  lines.push('');
+  lines.push('Pachca — corporate messenger with REST API and CLI.');
+  lines.push('');
+  lines.push('## Quick start (zero-install)');
+  lines.push('');
+  lines.push('```bash');
+  lines.push('npx @pachca/cli <command> --token <TOKEN>');
+  lines.push('```');
+  lines.push('');
+  lines.push('## For regular use');
+  lines.push('');
+  lines.push('```bash');
+  lines.push('npm install -g @pachca/cli && pachca auth login');
+  lines.push('```');
+  lines.push('');
+  lines.push('## Routing');
+  lines.push('');
+  lines.push("Match the user's task to the right skill below, then activate it.");
+  lines.push('');
+  lines.push('| User task | Skill |');
+  lines.push('|-----------|-------|');
+  for (const config of SKILL_TAG_MAP) {
+    const shortDesc = config.description.split('.')[0];
+    lines.push(`| ${shortDesc} | Use \`${config.name}\` |`);
+  }
+  lines.push('');
+  lines.push('## CLI commands');
+  lines.push('');
+  lines.push('Full list: `pachca commands`');
+  lines.push('Complex scenarios: see references/ in each skill');
+  lines.push('Help: `pachca <command> --help`');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 function generateIndexJson(): string {
   const skills = SKILL_TAG_MAP.map((config) => {
-    const files = ['SKILL.md', 'references/endpoints.md'];
+    const workflows = WORKFLOWS[config.name] || [];
+    const refWorkflows = workflows.filter((wf) => wf.inline === false);
+    const files = ['SKILL.md'];
+    for (const wf of refWorkflows) {
+      files.push(`references/${slugify(wf.titleEn || wf.title)}.md`);
+    }
     if (config.name === 'pachca-bots') {
       files.push('references/webhook-events.md');
     }
@@ -666,6 +655,12 @@ function generateIndexJson(): string {
     };
   });
 
+  // Add router and lite skills
+  skills.push({
+    name: ROUTER_SKILL_CONFIG.name,
+    description: ROUTER_SKILL_CONFIG.description.slice(0, 1024),
+    files: ['SKILL.md'],
+  });
   const index = {
     repository: 'pachca/openapi',
     install: 'npx skills add pachca/openapi',
@@ -676,22 +671,57 @@ function generateIndexJson(): string {
   return JSON.stringify(index, null, 2) + '\n';
 }
 
-function generateAgentsMd(baseUrl: string): string {
+function generateAgentsMd(_baseUrl: string): string {
   const lines: string[] = [];
 
   lines.push('# Pachca API — Agent Skills');
   lines.push('');
+  lines.push('Pachca — corporate messenger with REST API and CLI.');
+  lines.push('');
+  lines.push('## Quick start (zero-install)');
+  lines.push('');
+  lines.push('```bash');
+  lines.push('npx @pachca/cli <command> --token <TOKEN>');
+  lines.push('```');
+  lines.push('');
+  lines.push('For regular use:');
+  lines.push('');
+  lines.push('```bash');
+  lines.push('npm install -g @pachca/cli && pachca auth login');
+  lines.push('```');
+  lines.push('');
+  lines.push('## Auth');
+  lines.push('');
   lines.push(
-    'Этот репозиторий содержит скиллы для AI-агентов для работы с [API Пачки](https://dev.pachca.com).'
+    '`--token <TOKEN>` flag or `PACHCA_TOKEN` env var. Get token: Settings → Automations → API (admin) or bot settings (bot).'
   );
   lines.push('');
-  lines.push(`Base URL: \`${baseUrl}\``);
-  lines.push('Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`');
+  lines.push('## Routing');
   lines.push('');
-  lines.push('## Доступные скиллы');
+  lines.push("Match the user's task to the right skill:");
   lines.push('');
-  lines.push('| Скилл | Описание | Путь |');
-  lines.push('|-------|---------|------|');
+  lines.push('| User task | Skill |');
+  lines.push('|-----------|-------|');
+  for (const config of SKILL_TAG_MAP) {
+    const shortDesc = config.description.split('.')[0];
+    lines.push(`| ${shortDesc} | \`${config.name}\` |`);
+  }
+  lines.push('');
+  lines.push('## Top-5 operations');
+  lines.push('');
+  lines.push('```bash');
+  for (let i = 0; i < TOP_OPERATIONS.length; i++) {
+    const op = TOP_OPERATIONS[i];
+    if (i > 0) lines.push('');
+    lines.push(`# ${op.comment}`);
+    lines.push(op.command);
+  }
+  lines.push('```');
+  lines.push('');
+  lines.push('## Available skills');
+  lines.push('');
+  lines.push('| Skill | Description | Path |');
+  lines.push('|-------|-------------|------|');
   for (const config of SKILL_TAG_MAP) {
     const shortDesc = config.description.split('.')[0];
     lines.push(
@@ -699,14 +729,22 @@ function generateAgentsMd(baseUrl: string): string {
     );
   }
   lines.push('');
-  lines.push('## Установка');
+  lines.push('## Key constraints');
+  lines.push('');
+  lines.push(
+    '- Rate limit: ~4 req/sec per chat (messages), ~50 req/sec (other). Respect `Retry-After` on 429.'
+  );
+  lines.push('- Pagination: cursor-based (`limit` + `cursor`). Check `meta.paginate.next_page`.');
+  lines.push('- Admin operations (user/tag management, message deletion) require admin token.');
+  lines.push('');
+  lines.push('## Install');
   lines.push('');
   lines.push('```bash');
   lines.push('npx skills add pachca/openapi');
   lines.push('```');
   lines.push('');
   lines.push(
-    'Подробнее: [документация API](https://dev.pachca.com), [OpenAPI спецификация](https://dev.pachca.com/openapi.yaml)'
+    'More: [API docs](https://dev.pachca.com) · [Full reference](https://dev.pachca.com/llms-full.txt) · [OpenAPI spec](https://dev.pachca.com/openapi.yaml) · CLI help: `pachca --help`'
   );
   lines.push('');
 

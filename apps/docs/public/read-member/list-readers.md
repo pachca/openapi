@@ -26,6 +26,16 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca read-member list-readers 194275 \
+  --limit=300 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

@@ -86,6 +86,25 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca users update 12 \
+  --first-name=Олег \
+  --last-name=Петров \
+  --email=olegpetrov@example.com \
+  --phone-number=+79001234567 \
+  --nickname=olegpetrov \
+  --department="Отдел разработки" \
+  --title="Старший разработчик" \
+  --role=user \
+  --no-suspended \
+  --list-tags=Product \
+  --custom-properties='[{"id":1678,"value":"Санкт-Петербург"}]' \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

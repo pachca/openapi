@@ -13,6 +13,7 @@ import { generateJava } from '@/lib/code-generators/java';
 import { generateNodeJS } from '@/lib/code-generators/nodejs';
 import { generateGo } from '@/lib/code-generators/go';
 import { generateDotNet } from '@/lib/code-generators/dotnet';
+import { generateCLI } from '@/lib/code-generators/cli';
 import { generateResponseExample } from '@/lib/openapi/example-generator';
 import { CopyButton } from './copy-button';
 import { CodeBlock } from './code-block';
@@ -27,6 +28,7 @@ interface CodeExamplesProps {
 
 type Language =
   | 'curl'
+  | 'cli'
   | 'javascript'
   | 'python'
   | 'ruby'
@@ -36,11 +38,39 @@ type Language =
   | 'go'
   | 'dotnet';
 
+const STORAGE_KEY = 'pachca-docs-code-lang';
+
+function getSavedLanguage(): Language {
+  if (typeof window === 'undefined') return 'curl';
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved && saved in languageLabels) return saved as Language;
+  return 'curl';
+}
+
+const languageLabels: Record<Language, string> = {
+  curl: 'cURL',
+  cli: 'CLI',
+  javascript: 'JavaScript',
+  python: 'Python',
+  ruby: 'Ruby',
+  php: 'PHP',
+  java: 'Java',
+  nodejs: 'Node.js',
+  go: 'Go',
+  dotnet: '.NET',
+};
+
 export function CodeExamples({ endpoint, baseUrl, title, hideResponse }: CodeExamplesProps) {
-  const [activeTab, setActiveTab] = useState<Language>('curl');
+  const [activeTab, setActiveTab] = useState<Language>(getSavedLanguage);
+
+  const handleTabChange = (lang: Language) => {
+    setActiveTab(lang);
+    localStorage.setItem(STORAGE_KEY, lang);
+  };
 
   const examples = {
     curl: generateCurl(endpoint, baseUrl),
+    cli: generateCLI(endpoint),
     javascript: generateJavaScript(endpoint, baseUrl),
     python: generatePython(endpoint, baseUrl),
     ruby: generateRuby(endpoint, baseUrl),
@@ -51,17 +81,7 @@ export function CodeExamples({ endpoint, baseUrl, title, hideResponse }: CodeExa
     dotnet: generateDotNet(endpoint, baseUrl),
   };
 
-  const languages: Record<Language, string> = {
-    curl: 'cURL',
-    javascript: 'JavaScript',
-    python: 'Python',
-    ruby: 'Ruby',
-    php: 'PHP',
-    java: 'Java',
-    nodejs: 'Node.js',
-    go: 'Go',
-    dotnet: '.NET',
-  };
+  const languages = languageLabels;
 
   const successCodes = ['200', '201', '204'];
   const successCode = successCodes.find((code) => endpoint.responses[code]) || '200';
@@ -108,7 +128,7 @@ export function CodeExamples({ endpoint, baseUrl, title, hideResponse }: CodeExa
                     {(Object.keys(languages) as Language[]).map((lang) => (
                       <DropdownMenu.Item
                         key={lang}
-                        onClick={() => setActiveTab(lang)}
+                        onClick={() => handleTabChange(lang)}
                         className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                           activeTab === lang
                             ? 'bg-primary text-white'
@@ -155,6 +175,7 @@ export function CodeExamples({ endpoint, baseUrl, title, hideResponse }: CodeExa
 function getLanguageForHighlight(lang: Language): string {
   const languageMap: Record<Language, string> = {
     curl: 'bash',
+    cli: 'bash',
     javascript: 'javascript',
     python: 'python',
     ruby: 'ruby',

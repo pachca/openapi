@@ -12,6 +12,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca common uploads \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

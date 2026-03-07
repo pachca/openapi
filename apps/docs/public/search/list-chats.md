@@ -35,6 +35,23 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca search list-chats \
+  --query=Разработка \
+  --limit=10 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --order=desc \
+  --created-from=2025-01-01T00:00:00.000Z \
+  --created-to=2025-02-01T00:00:00.000Z \
+  --active \
+  --chat-subtype=discussion \
+  --no-personal \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

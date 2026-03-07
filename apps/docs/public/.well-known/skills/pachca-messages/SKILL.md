@@ -1,332 +1,292 @@
 ---
 name: pachca-messages
 description: >
-  Отправка сообщений в каналы, беседы и личные чаты Пачки. Ответы в треды,
-  загрузка файлов, кнопки, реакции, закрепление, прочтения. Используй когда нужно:
-  отправить сообщение, ответить в тред, прикрепить файл, добавить реакцию,
-  получить историю чата, закрепить сообщение. НЕ используй для: создания каналов
-  (→ pachca-chats), управления ботами (→ pachca-bots).
-allowed-tools: Bash(curl *)
+  Send messages to channels, conversations, and DMs. Reply to threads, upload
+  files, buttons, reactions, pin, read receipts. Use when: send message, reply to
+  thread, attach file, add reaction, get chat history, pin message.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-messages
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Когда НЕ использовать
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
 
-- создать канал, создать беседу, создать чат → **pachca-chats**
-- настроить бота, вебхук, webhook → **pachca-bots**
-- показать форму, интерактивная форма, модальное окно → **pachca-forms**
-- найти сообщение по тексту, полнотекстовый поиск → **pachca-search**
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-## Пошаговые сценарии
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-### Найти чат по имени и отправить сообщение
+Or set `PACHCA_TOKEN` for multiple commands:
 
-**Требуется:** скоуп `chats:read` · скоуп `messages:create`
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-1. GET /chats — перебери результаты, найди нужный по полю `name`
-2. Отправь POST /messages с `"entity_id": chat.id`
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"entity_id":12345,"content":"Текст сообщения"}}'
-```
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-> `entity_type` по умолчанию `"discussion"`, можно не указывать. GET /chats не поддерживает поиск по имени — перебирай страницы.
+## Before you start
 
-### Отправить сообщение в канал или беседу (если chat_id известен)
+1. If user has a saved profile — check status:
 
-**Требуется:** скоуп `messages:create`
+       npx @pachca/cli auth status
 
-1. Отправь POST /messages с `"entity_id": chat_id`
+   If OK — use commands without `--token`.
 
-> `"entity_type": "discussion"` используется по умолчанию, можно не указывать
+2. If profile is not configured — ask for token and use `--token` flag:
 
-### Отправить личное сообщение пользователю
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-**Требуется:** скоуп `users:read` · скоуп `messages:create`
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-1. Определи `user_id` получателя (GET /users или из контекста)
-2. Отправь POST /messages с `"entity_type": "user"`, `"entity_id": user_id`
+## Step-by-step scenarios
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"entity_type":"user","entity_id":186,"content":"Привет!"}}'
-```
+### Find chat by name and send message
 
-> Создавать чат не требуется — он создаётся автоматически
+1. Get chat list, find the one by `name` field:
+   ```bash
+   pachca chats list --all
+   ```
+   > GET /chats does not support search by name — iterate through pages
 
-### Ответить в тред (комментарий к сообщению)
+2. Send message to the found chat:
+   ```bash
+   pachca messages create --entity-id=<chat_id> --content="Текст сообщения"
+   ```
 
-**Требуется:** скоуп `threads:create` · скоуп `messages:create`
+> `entity_type` defaults to `"discussion"`, can be omitted.
 
-1. POST /messages/{id}/thread — получи или создай тред (`id` — id родительского сообщения), возьми `thread.id` из ответа
-2. Отправь POST /messages с `"entity_type": "thread"`, `"entity_id": thread.id`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages/154332686/thread" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":{"id":265142,"chat_id":2637266155,"message_id":154332686,...}}
+### Send message to channel or conversation (if chat_id is known)
 
-curl "https://api.pachca.com/api/shared/v1/messages" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"entity_type":"thread","entity_id":265142,"content":"Ответ в тред"}}'
-```
+1. Send message to chat:
+   ```bash
+   pachca messages create --entity-id=<chat_id> --content="Текст сообщения"
+   ```
 
-> Если тред уже существует, POST /messages/{id}/thread вернёт существующий. Альтернативно можно использовать `"entity_type": "discussion"` + `"entity_id": thread.chat_id`. `skip_invite_mentions: true` — не добавлять упомянутых пользователей в тред автоматически.
+> `"entity_type": "discussion"` is used by default, can be omitted
 
-### Ответить пользователю, который написал боту
 
-**Требуется:** скоуп `messages:create` · скоуп `threads:create`
+### Send direct message to user
 
-1. Вебхук содержит `entity_type` — он однозначно определяет контекст: `"user"` — личное сообщение боту, `"thread"` — сообщение в треде, `"discussion"` — сообщение в канале или беседе
-2. DM (`entity_type: "user"`): ответь POST /messages с `"entity_type": "user"`, `"entity_id"`: `user_id` из вебхука
-3. Тред (`entity_type: "thread"`): вложенных тредов нет — ответь в тот же тред: POST /messages с `"entity_type": "thread"`, `"entity_id"`: `entity_id` из вебхука, `"parent_message_id"`: `id` сообщения пользователя из вебхука
-4. Беседа/канал (`entity_type: "discussion"`): выбери стратегию — inline-ответ (POST /messages c `"parent_message_id"`: `id` сообщения) или тред (POST /messages/{id}/thread → ответ в тред)
+1. Determine recipient `user_id`:
+   ```bash
+   pachca users list
+   ```
+   > Or take user_id from context (webhook, previous request)
 
-> `parent_message_id` визуально привязывает ответ к конкретному сообщению (показывается как «в ответ на…»). В треде обязателен для цепочки диалога. В обычном чате — альтернатива треду. Если бота вызвали в треде и других сообщений в треде нет — основной контекст в родительском сообщении треда. В вебхуке уже есть `thread.message_id` — получи родительское сообщение: GET /messages/{id}.
+2. Send direct message:
+   ```bash
+   pachca messages create --entity-type=user --entity-id=<user_id> --content="Привет!"
+   ```
 
-### Отправить сообщение с файлами
+> No need to create a chat — it is created automatically
 
-**Требуется:** скоуп `uploads:write` · скоуп `messages:create`
 
-1. Для каждого файла: POST /uploads → получи `key` (с `${filename}`), `direct_url`, `policy`, подпись
-2. Для каждого файла: подставь имя файла вместо `${filename}` в `key`, затем загрузи файл POST на `direct_url` (`multipart/form-data`, без авторизации)
-3. Собери массив `files` из всех загруженных файлов (`key`, `name`, `file_type`, `size`)
-4. Отправь POST /messages с массивом `files` — одно сообщение со всеми файлами
+### Reply to thread
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/uploads" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"key":".../${filename}","direct_url":"https://...","policy":"...","x-amz-signature":"...",...}
+1. Get or create thread, take `thread.id` from response:
+   ```bash
+   pachca thread add <ID>
+   ```
+   > If thread already exists, the existing one is returned
 
-curl -X POST <direct_url> \
-  -F "Content-Disposition=attachment" -F "acl=private" \
-  -F "policy=<policy>" -F "x-amz-credential=<credential>" \
-  -F "x-amz-algorithm=<algorithm>" -F "x-amz-date=<date>" \
-  -F "x-amz-signature=<signature>" \
-  -F "key=<key_с_подставленным_именем>" -F "file=@report.pdf"
+2. Send message to thread:
+   ```bash
+   pachca messages create --entity-type=thread --entity-id=<thread_id> --content="Ответ в тред"
+   ```
 
-curl "https://api.pachca.com/api/shared/v1/messages" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"entity_id":12345,"content":"Смотри файл","files":[{"key":"uploads/.../report.pdf","name":"report.pdf","file_type":"file","size":12345}]}}'
-```
+> `skip_invite_mentions: true` — do not automatically add mentioned users to thread.
 
-> Файлы не передаются inline. Загрузка двухшаговая: сначала POST /uploads (параметры), затем POST на `direct_url` (сам файл на S3). Шаги 1-2 повторяются для каждого файла отдельно, а сообщение отправляется один раз со всеми файлами.
 
-### Отправить сообщение с кнопками
+### Send message with buttons
 
-**Требуется:** скоуп `messages:create`
+1. Build `buttons` array — array of rows, each row is an array of buttons
+   > Each button: `{"text": "Label"}` + either `url` (link) or `data` (callback)
 
-1. Сформируй массив `buttons` — массив строк, каждая строка — массив кнопок: `[[{кнопка1, кнопка2}, ...], ...]`
-2. Каждая кнопка: `{"text": "Текст"}` + либо `url` (ссылка), либо `data` (callback для вебхука)
-3. Отправь POST /messages с полем `buttons`
-4. Нажатия кнопок приходят в исходящий вебхук (событие "Нажатие кнопок")
+2. Send message with buttons:
+   ```bash
+   pachca messages create --entity-id=<chat_id> --content="Выбери действие" --buttons='[[{"text":"Подробнее","url":"https://example.com"},{"text":"Отлично!","data":"awesome"}]]'
+   ```
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"entity_id":12345,"content":"Выбери действие","buttons":[[{"text":"Подробнее","url":"https://example.com"},{"text":"Отлично!","data":"awesome"}]]}}'
-```
+> `buttons` — array of arrays (rows × buttons). Max 100 buttons, up to 8 per row. Button with `url` opens link, with `data` — sends event to webhook.
 
-> `buttons` — массив массивов (строки × кнопки). Максимум 100 кнопок, до 8 в строке. Кнопка с `url` открывает ссылку, с `data` — отправляет событие на вебхук.
 
-### Получить историю сообщений чата
+### Get chat message history
 
-**Требуется:** скоуп `messages:read`
+1. Get chat messages with pagination:
+   ```bash
+   pachca messages list --chat-id=<chat_id>
+   ```
+   > `limit` (1-50), `cursor`, `sort[id]=asc` or `desc` (default)
 
-1. GET /messages?chat_id={id} — пагинация: `limit` (1-50, по умолчанию 50), `cursor` (из `meta.paginate.next_page`), сортировка: `sort[id]=asc` или `sort[id]=desc` (по умолчанию)
+> For thread messages use thread `chat_id` (`thread.chat_id`). Pagination is cursor-based, not page-based.
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages?chat_id=12345&limit=50&sort[id]=asc" \
-  -H "Authorization: Bearer $TOKEN"
-```
 
-> Для сообщений треда используй `chat_id` треда (`thread.chat_id`). Пагинация cursor-based, не page-based.
+### Get attachments from message
 
-### Получить вложения из сообщения
+1. Get message — `files[]` contains objects with `url`, `name`, `file_type`, `size`:
+   ```bash
+   pachca messages get <ID>
+   ```
 
-**Требуется:** скоуп `messages:read`
+2. Download files via `files[].url`
+   > Direct link, no auth required
 
-1. GET /messages/{id} — в поле `files[]` каждый объект содержит `url` (прямая ссылка), `name`, `file_type`, `size`
-2. Скачай нужные файлы по `files[].url` — ссылка прямая, авторизация не требуется
+> Webhook for new message does NOT contain attachments — `files` field is absent. Always check attachments via GET /messages/{id}.
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages/154332686" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":{"id":154332686,"content":"Смотри файл","files":[{"url":"https://...","name":"report.pdf","file_type":"file","size":12345}],...}}
-```
 
-> Вебхук о новом сообщении НЕ содержит вложений — поле `files` отсутствует даже если файлы есть. При анализе любого сообщения (из вебхука, из истории чата) всегда проверяй вложения через GET /messages/{id} — если `files` непустой, в сообщении есть файлы, которые могут быть важны для контекста.
+### Pin/unpin message
 
-### Закрепить/открепить сообщение
+1. Pin message:
+   ```bash
+   pachca messages pin <ID>
+   ```
 
-**Требуется:** скоуп `pins:write`
+2. Unpin message:
+   ```bash
+   pachca messages unpin <ID> --force
+   ```
 
-1. Закрепить: POST /messages/{id}/pin
-2. Открепить: DELETE /messages/{id}/pin
+> A chat can have multiple pinned messages.
 
-> В чате может быть несколько закреплённых сообщений.
 
-### Подписаться на тред сообщения
+### Subscribe to message thread
 
-**Требуется:** скоуп `threads:create` · скоуп `chat_members:write`
+1. Get or create thread, take `chat_id` from response:
+   ```bash
+   pachca thread add <ID>
+   ```
 
-1. POST /messages/{id}/thread — если треда нет, он будет создан; если есть — вернётся существующий. Возьми `chat_id` треда из ответа (`data.chat_id`)
-2. Добавь бота (или пользователя) в участники чата треда: POST /chats/{id}/members с `member_ids`
-3. Теперь бот будет получать вебхук-события о новых сообщениях в этом треде
+2. Add bot to thread chat members:
+   ```bash
+   pachca members add <thread_chat_id> --member-ids='[<bot_user_id>]'
+   ```
 
-> POST /messages/{id}/thread идемпотентен — безопасно вызывать повторно. После добавления в участники бот получает события треда через исходящий вебхук.
+3. Now the bot will receive webhook events about new messages in this thread
 
-### Упомянуть пользователя по имени
+> POST /messages/{id}/thread is idempotent — safe to call repeatedly.
 
-**Требуется:** скоуп `chat_members:read` · скоуп `users:read`
 
-1. Определи поисковый запрос — используй фамилию, она уникальнее. Имена не склоняются в API, приводи к именительному падежу: «упомяни Пашу» → ищи `Паша` или `Павел`, «тегни Голубева» → ищи `Голубев`
-2. Ищи сначала среди участников целевого чата: GET /chats/{id}/members (для треда тоже работает, у него свои участники) — фильтруй по имени на клиенте
-3. Если пишешь в тред: также проверь участников родительского чата (GET /chats/{id}/members с `id=message_chat_id`)
-4. Не нашёл — ищи по всей компании: GET /users?query={запрос}
-5. Один подходящий результат → используй `nickname`. Несколько → уточни у пользователя (имя + фамилия). Ничего → попробуй другую форму имени (уменьшительное ↔ полное)
-6. Вставь `@nickname` в текст сообщения
+### Edit message
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats/12345/members" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: [{"id":42,"first_name":"Павел","last_name":"Голубев","nickname":"golubevpn",...}]
+1. Update message:
+   ```bash
+   pachca messages update <ID> --content="Обновлённый текст"
+   ```
 
-curl "https://api.pachca.com/api/shared/v1/messages" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"entity_id":12345,"content":"@golubevpn, митинг перенесён"}}'
-```
+> Can only edit own messages (or on behalf of bot).
 
-> Поиск среди участников чата точнее — пользователь явно связан с контекстом, меньше вероятность спутать однофамильцев. GET /users?query — последний fallback для поиска по всей компании.
 
-### Отредактировать сообщение
+### Update message attachments
 
-**Требуется:** скоуп `messages:update`
+1. Get current attachments from `files[]`:
+   ```bash
+   pachca messages get <ID>
+   ```
+   > Save needed objects (`key`, `name`, `file_type`, `size`)
 
-1. PUT /messages/{id} с полем `content` (и/или `buttons`, `files`)
+2. If adding new file — upload it:
+   ```bash
+   pachca common uploads
+   ```
 
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"content":"Обновлённый текст"}}'
-```
+3. Update message with new `files` array:
+   ```bash
+   pachca messages update <ID> --files='[...]'
+   ```
+   > `files` on edit is replace-all: the sent array completely replaces current attachments
 
-> Редактировать можно только свои сообщения (или от имени бота).
+> `files: []` removes all attachments. If `files` field is omitted — attachments are unchanged.
 
-### Изменить вложения сообщения
 
-**Требуется:** скоуп `messages:read` · скоуп `uploads:write` · скоуп `messages:update`
+### Delete message
 
-1. GET /messages/{id} — получи текущие вложения из поля `files[]`, сохрани нужные объекты (`key`, `name`, `file_type`, `size`)
-2. Если нужно добавить новый файл: POST /uploads → загрузи файл → добавь объект в список
-3. PUT /messages/{id} с массивом `files` — только те файлы, которые должны остаться (+ новые при необходимости)
+1. Delete message:
+   ```bash
+   pachca messages delete <ID> --force
+   ```
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages/154332686" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":{"files":[{"key":"uploads/.../a.pdf","name":"a.pdf","file_type":"file","size":1000},{"key":"uploads/.../b.pdf","name":"b.pdf","file_type":"file","size":2000}],...}}
 
-curl -X PUT "https://api.pachca.com/api/shared/v1/messages/154332686" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message":{"files":[{"key":"uploads/.../a.pdf","name":"a.pdf","file_type":"file","size":1000}]}}'
-```
+### Add reaction to message
 
-> `files` при редактировании работает по принципу replace-all: присылаемый массив полностью заменяет текущие вложения, отсутствующие файлы удаляются. `files: []` удаляет все вложения. Если поле `files` не передавать — вложения не меняются.
+1. Add reaction:
+   ```bash
+   pachca reactions add <ID> --code="👍"
+   ```
 
-### Удалить сообщение
+2. Remove reaction:
+   ```bash
+   pachca reactions remove <ID> --code="👍" --force
+   ```
 
-**Требуется:** скоуп `messages:delete`
+> `code` — emoji character, not its text name.
 
-1. DELETE /messages/{id}
 
-```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/154332686" \
-  -H "Authorization: Bearer $TOKEN"
-```
+### Check who read a message
 
-### Добавить реакцию на сообщение
+1. Get array of `user_id` who read the message:
+   ```bash
+   pachca read-member list-readers <ID>
+   ```
 
-**Требуется:** скоуп `reactions:write`
+2. If needed, match with employee names:
+   ```bash
+   pachca users list
+   ```
 
-1. POST /messages/{id}/reactions с полем `code` (emoji)
-2. Убрать реакцию: DELETE /messages/{id}/reactions с полем `code`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages/154332686/reactions" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"code":"👍"}'
-```
+### Send notification to multiple users
 
-> `code` — emoji-символ, не его текстовое название.
+1. Determine list of recipient `user_id`s:
+   ```bash
+   pachca users list
+   ```
 
-### Проверить, кто прочитал сообщение
+2. For each: send direct message:
+   ```bash
+   pachca messages create --entity-type=user --entity-id=<user_id> --content="Уведомление"
+   ```
+   > For each recipient
 
-**Требуется:** скоуп `messages:read` · скоуп `users:read`
+> Respect rate limit: ~4 req/sec for messages. Add delays for large lists.
 
-1. GET /messages/{id}/read_member_ids — возвращает массив `user_id` прочитавших
-2. При необходимости сопоставь с GET /users для получения имён
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/messages/154332686/read_member_ids" \
-  -H "Authorization: Bearer $TOKEN"
-```
+## Constraints and gotchas
 
-### Разослать уведомление нескольким пользователям
+- Rate limit: ~50 req/sec, messages ~4 req/sec. On 429 — wait and retry.
+- `message.entity_type`: allowed values — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
+- `message.display_avatar_url`: max 255 characters
+- `message.display_name`: max 255 characters
+- `limit`: max — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
+- Pagination: cursor-based (limit + cursor)
 
-**Требуется:** скоуп `users:read` · скоуп `messages:create`
+## Endpoints
 
-1. Определи список `user_id` получателей (GET /users или из контекста)
-2. Для каждого: POST /messages с `"entity_type": "user"`, `"entity_id": user_id`
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /direct_url | Загрузка файла |
+| POST | /messages | Новое сообщение |
+| GET | /messages | Список сообщений чата |
+| GET | /messages/{id} | Информация о сообщении |
+| PUT | /messages/{id} | Редактирование сообщения |
+| DELETE | /messages/{id} | Удаление сообщения |
+| POST | /messages/{id}/pin | Закрепление сообщения |
+| DELETE | /messages/{id}/pin | Открепление сообщения |
+| POST | /messages/{id}/reactions | Добавление реакции |
+| DELETE | /messages/{id}/reactions | Удаление реакции |
+| GET | /messages/{id}/reactions | Список реакций |
+| GET | /messages/{id}/read_member_ids | Список прочитавших сообщение |
+| POST | /messages/{id}/thread | Новый тред |
+| GET | /threads/{id} | Информация о треде |
+| POST | /uploads | Получение подписи, ключа и других параметров |
 
-> Соблюдай rate limit: ~4 req/sec для сообщений. Добавляй паузы при большом списке.
+## Complex scenarios
 
-## Ограничения и gotchas
+For complex scenarios read files from references/:
+  references/reply-to-user-who-messaged-the-bot.md — Reply to user who messaged the bot
+  references/send-message-with-files.md — Send message with files
+  references/mention-user-by-name.md — Mention user by name
 
-- Rate limit: ~50 req/sec, сообщения ~4 req/sec. При 429 — подожди и повтори.
-- `message.entity_type`: допустимые значения — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
-- `message.display_avatar_url`: максимум 255 символов
-- `message.display_name`: максимум 255 символов
-- `limit`: максимум — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
-- Пагинация: cursor-based (limit + cursor)
-
-## Эндпоинты
-
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| POST | /direct_url | — |
-| POST | /messages | messages:create |
-| GET | /messages | messages:read |
-| GET | /messages/{id} | messages:read |
-| PUT | /messages/{id} | messages:update |
-| DELETE | /messages/{id} | messages:delete |
-| POST | /messages/{id}/pin | pins:write |
-| DELETE | /messages/{id}/pin | pins:write |
-| POST | /messages/{id}/reactions | reactions:write |
-| DELETE | /messages/{id}/reactions | reactions:write |
-| GET | /messages/{id}/reactions | reactions:read |
-| GET | /messages/{id}/read_member_ids | messages:read |
-| POST | /messages/{id}/thread | threads:create |
-| GET | /threads/{id} | threads:read |
-| POST | /uploads | uploads:write |
-
-## Подробнее
-
-см. [references/endpoints.md](references/endpoints.md)
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

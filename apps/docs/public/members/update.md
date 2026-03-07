@@ -46,6 +46,15 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca members update 334 186 \
+  --role=admin \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

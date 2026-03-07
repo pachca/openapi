@@ -34,3 +34,4 @@ public/**/*.md
 public/**/*.txt
 public/.well-known/
 public/pachca.postman_collection.json
+public/scenarios.json

@@ -30,6 +30,17 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca members list 334 \
+  --role=all \
+  --limit=1 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

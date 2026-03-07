@@ -82,6 +82,26 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca users create \
+  --first-name=Олег \
+  --last-name=Петров \
+  --email=olegp@example.com \
+  --phone-number=+79001234567 \
+  --nickname=olegpetrov \
+  --department=Продукт \
+  --title=CIO \
+  --role=user \
+  --no-suspended \
+  --list-tags=Product,Design \
+  --custom-properties='[{"id":1678,"value":"Санкт-Петербург"}]' \
+  --skip-email-notify \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

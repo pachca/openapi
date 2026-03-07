@@ -12,15 +12,16 @@ export function CopyButton({ text }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    const normalizedText = text.replace(/ *\\\n\s*/g, ' ');
     try {
       // Try modern clipboard API first
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(normalizedText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback to older method if clipboard API fails
       const textArea = document.createElement('textarea');
-      textArea.value = text;
+      textArea.value = normalizedText;
       textArea.style.position = 'fixed';
       textArea.style.left = '-999999px';
       textArea.style.top = '-999999px';

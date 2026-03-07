@@ -140,8 +140,8 @@ function CategoryBadge({ category }: { category: string }) {
   );
 }
 
-function CurlBlock({ code }: { code: string }) {
-  return <GuideCodeBlock code={code} language="bash" title="Пример запроса" className="" />;
+function CommandBlock({ code }: { code: string }) {
+  return <GuideCodeBlock code={code} language="bash" className="" />;
 }
 
 function FeaturedSection({
@@ -207,7 +207,11 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
       const q = search.trim().toLowerCase();
       result = result.filter((wf) => {
         if (wf.title.toLowerCase().includes(q)) return true;
-        return wf.steps.some((step) => step.some((seg) => seg.value.toLowerCase().includes(q)));
+        return wf.steps.some(
+          (step) =>
+            step.segments.some((seg) => seg.value.toLowerCase().includes(q)) ||
+            (step.command && step.command.toLowerCase().includes(q))
+        );
       });
     }
 
@@ -405,14 +409,24 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                 {wf.steps.length === 1 ? (
                   <ul className="!mb-0 list-disc list-outside text-[14px] text-text-primary">
                     <li className="leading-relaxed">
-                      <StepContent segments={wf.steps[0]} />
+                      <StepContent segments={wf.steps[0].segments} />
+                      {wf.steps[0].command && (
+                        <div className="mt-1.5">
+                          <CommandBlock code={wf.steps[0].command} />
+                        </div>
+                      )}
                     </li>
                   </ul>
                 ) : (
-                  <ol className="!mb-0 list-decimal list-outside space-y-1.5 text-[14px] text-text-primary">
-                    {wf.steps.map((stepSegments, j) => (
+                  <ol className="!mb-0 list-decimal list-outside space-y-2 text-[14px] text-text-primary">
+                    {wf.steps.map((step, j) => (
                       <li key={j} className="leading-relaxed">
-                        <StepContent segments={stepSegments} />
+                        <StepContent segments={step.segments} />
+                        {step.command && (
+                          <div className="mt-1.5">
+                            <CommandBlock code={step.command} />
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ol>
@@ -423,13 +437,6 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                   <p className="mt-3 !mb-0 text-[13px] text-text-secondary leading-relaxed">
                     <StepContent segments={wf.notes} />
                   </p>
-                )}
-
-                {/* Curl */}
-                {wf.curl && (
-                  <div className="mt-5">
-                    <CurlBlock code={wf.curl} />
-                  </div>
                 )}
 
                 {/* Related */}

@@ -1,96 +1,68 @@
 ---
 name: pachca-forms
 description: >
-  Интерактивные формы с полями ввода и кнопками для ботов. Используй когда нужно:
-  показать форму, обработать submit формы, валидировать поля формы, создать
-  модальное окно, опрос сотрудников. НЕ используй для: обычных кнопок в сообщениях
-  (→ pachca-messages), настройки бота (→ pachca-bots).
-allowed-tools: Bash(curl *)
+  Interactive forms with input fields and buttons for bots. Use when: show form,
+  handle form submit, validate fields, create modal, employee survey.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-forms
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: **только бот** (Автоматизации → Интеграции → API). Пользовательский токен не подойдёт — формы требуют исходящий вебхук.
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Когда НЕ использовать
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+**Bot only** — user token will not work.
 
-- отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
-- настроить бота, вебхук, webhook → **pachca-bots**
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-## Пошаговые сценарии
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-### Показать интерактивную форму пользователю
+Or set `PACHCA_TOKEN` for multiple commands:
 
-**Требуется:** скоуп `messages:create` · скоуп `views:write`
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-1. Заранее подготовь объект формы: `view` с `title`, `blocks` (типы: `input`, `select`, `radio`, `checkbox`, `date`, `time`, `file_input`, `header`, `plain_text`, `markdown`, `divider`), опционально `callback_id` (идентификатор формы) и `private_metadata` (контекст, например id сообщения)
-2. Отправь сообщение с кнопкой (POST /messages с `buttons`, в `data` кнопки передай идентификатор формы)
-3. При нажатии кнопки — получи вебхук-событие с `trigger_id`
-4. Немедленно отправь POST /views/open с `trigger_id` и готовым объектом формы
-5. Пользователь заполняет форму → при отправке получи вебхук — обработай по сценарию «Обработать отправку формы»
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/views/open" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"type":"modal","trigger_id":"abc123","view":{"title":"Заявка на отпуск","callback_id":"vacation_form","private_metadata":"{\"msg_id\":154332686}","blocks":[{"type":"input","name":"date_start","label":"Дата начала"},{"type":"input","name":"date_end","label":"Дата окончания"},{"type":"select","name":"reason","label":"Причина","options":[{"text":"Отпуск","value":"vacation"},{"text":"Больничный","value":"sick"}]}]}}'
-```
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-> `trigger_id` живёт 3 секунды — за это время нужно успеть отправить POST /views/open. Формируй объект формы заранее, а не после получения события. Формы работают только от бота.
+## Before you start
 
-### Обработать отправку формы (view_submission)
+1. If user has a saved profile — check status:
 
-1. Получи вебхук с `"type": "view"`, `"event": "submit"` — содержит `callback_id`, `user_id`, `private_metadata` и `data` (значения полей, ключи совпадают с полем `name` каждого блока)
-2. Извлеки значения из `data`: например, для блока с `"name": "comment"` значение в `data.comment`
-3. Если форма содержит `file_input` — скачай файлы по `data.field_name[].url` немедленно: ссылки истекают через 1 час
-4. Если данные валидны → ответь HTTP 200 (пустое тело) — форма закроется у пользователя
-5. Если есть ошибки → ответь HTTP 400 с `{"errors": {"field_name": "текст ошибки"}}` — пользователь увидит ошибки в форме и сможет исправить и отправить повторно
+       npx @pachca/cli auth status
 
-> Ответ должен быть дан в течение 3 секунд — иначе пользователь увидит ошибку отправки, но все значения сохранятся и он повторит попытку. `callback_id` — идентифицирует какая форма отправлена (если ботов несколько). `private_metadata` — контекст, переданный при открытии (до 3000 символов).
+   If OK — use commands without `--token`.
 
-### Опрос сотрудников через форму
+2. If profile is not configured — ask for token and use `--token` flag:
 
-**Требуется:** скоуп `messages:create` · скоуп `views:write`
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-1. Отправь сообщение с кнопкой «Пройти опрос» в канал или ЛС: POST /messages с `"data": "survey_start"` в кнопке
-2. При нажатии кнопки получи вебхук с `trigger_id` и `user_id` нажавшего
-3. Немедленно отправь POST /views/open с формой (поля: `input`, `select`, `radio` и т.д.)
-4. При отправке формы получи вебхук с `"event": "submit"` — значения полей в `data`
-5. Обработай ответы: сохрани в базу или отправь итоговым сообщением в канал
-6. Ответь HTTP 200 — форма закроется
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-> Каждый пользователь должен нажать кнопку сам — у каждого свой `trigger_id`. Нельзя открыть форму принудительно.
+## Constraints and gotchas
 
-### Форма заявки/запроса
+- Rate limit: ~50 req/sec. On 429 — wait and retry.
+- 410: trigger_id expired or not found. trigger_id is valid for 3 seconds. Get a new one via button click (webhook)
+- `type`: allowed values — `modal` (Модальное окно)
+- `private_metadata`: max 3000 characters
+- `callback_id`: max 255 characters
+- `view.title`: max 24 characters
+- `view.close_text`: max 24 characters
+- `view.submit_text`: max 24 characters
 
-**Требуется:** скоуп `tasks:create` · скоуп `messages:create`
+## Endpoints
 
-1. Размести в канале сообщение с кнопкой «Создать заявку» (`"data": "new_request"`)
-2. При нажатии открой форму с полями: тема, описание, приоритет (`select`)
-3. При submit-вебхуке: создай задачу (POST /tasks) или отправь уведомление ответственному (POST /messages с `"entity_type": "user"`)
-4. Отправь подтверждение автору: POST /messages с `"entity_type": "user"`, `"entity_id": user_id` из вебхука
-5. Ответь HTTP 200 — форма закроется
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /views/open | Открытие представления |
 
-## Ограничения и gotchas
+## Complex scenarios
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
-- 410: trigger_id истёк или не найден. trigger_id действует 3 секунды. Получи новый через нажатие кнопки (вебхук)
-- `type`: допустимые значения — `modal` (Модальное окно)
-- `private_metadata`: максимум 3000 символов
-- `callback_id`: максимум 255 символов
-- `view.title`: максимум 24 символов
-- `view.close_text`: максимум 24 символов
-- `view.submit_text`: максимум 24 символов
+For complex scenarios read files from references/:
+  references/show-interactive-form-to-user.md — Show interactive form to user
+  references/handle-form-submission-viewsubmission.md — Handle form submission (view_submission)
+  references/employee-survey-via-form.md — Employee survey via form
+  references/requestapplication-form.md — Request/application form
 
-## Эндпоинты
-
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| POST | /views/open | views:write |
-
-## Подробнее
-
-см. [references/endpoints.md](references/endpoints.md)
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

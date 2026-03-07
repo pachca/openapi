@@ -6,6 +6,7 @@ import { generatePython } from './code-generators/python';
 import { generateRuby } from './code-generators/ruby';
 import { generatePHP } from './code-generators/php';
 import { generateNodeJS } from './code-generators/nodejs';
+import { generateCLI } from './code-generators/cli';
 import { generateTitle, getDescriptionWithoutTitle } from './openapi/mapper';
 import { getGuideContent } from './content-loader';
 import { expandMdxComponents } from './mdx-expander';
@@ -479,6 +480,12 @@ export function generateEndpointMarkdown(endpoint: Endpoint, baseUrl?: string): 
 
   // Add code examples in multiple languages
   content += '\n## Примеры запроса\n\n';
+
+  // CLI
+  content += '### CLI\n\n';
+  content += '```bash\n';
+  content += generateCLI(endpoint);
+  content += '\n```\n\n';
 
   // cURL
   content += '### cURL\n\n';

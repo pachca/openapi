@@ -42,6 +42,15 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca group-tags update 9111 \
+  --name="Новое название тега" \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

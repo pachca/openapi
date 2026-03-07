@@ -22,6 +22,15 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca common custom-properties \
+  --entity-type=User \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

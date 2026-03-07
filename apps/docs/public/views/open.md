@@ -375,6 +375,22 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca views open \
+  --title="Уведомление об отпуске" \
+  --close-text=Закрыть \
+  --submit-text="Отправить заявку" \
+  --blocks='[{"type":"header","text":"Основная информация"},{"type":"plain_text","text":"Заполните форму. После отправки формы в общий чат будет отправлено текстовое уведомление, а ваш отпуск будет сохранен в базе."},{"type":"markdown","text":"Информацию о доступных вам днях отпуска вы можете прочитать по [ссылке](https://www.website.com/timeoff)"},{"type":"divider"},{"type":"input","name":"info","label":"Описание отпуска","placeholder":"Куда собираетесь и что будете делать","multiline":true,"initial_value":"Начальный текст","min_length":10,"max_length":500,"required":true,"hint":"Возможно вам подскаджут, какие места лучше посетить"},{"type":"select","name":"team","label":"Выберите команду","options":[{"text":"Ничего","value":"nothing","description":"Каждый день бот будет присылать список новых задач в вашей команде","selected":true}],"required":false,"hint":"Выберите одну из команд"},{"type":"radio","name":"accessibility","label":"Доступность","options":[{"text":"Ничего","value":"nothing","description":"Каждый день бот будет присылать список новых задач в вашей команде","selected":true}],"required":true,"hint":"Если вы не планируете выходить на связь, то выберите вариант Ничего"},{"type":"checkbox","name":"newsletters","label":"Рассылки","options":[{"text":"Ничего","value":"nothing","description":"Каждый день бот будет присылать список новых задач в вашей команде","checked":true}],"required":false,"hint":"Выберите интересующие вас рассылки"},{"type":"date","name":"date_start","label":"Дата начала отпуска","initial_date":"2025-07-01","required":true,"hint":"Укажите дату начала отпуска"},{"type":"time","name":"newsletter_time","label":"Время рассылки","initial_time":"11:00","required":false,"hint":"Укажите, в какое время присылать выбранные рассылки"},{"type":"file_input","name":"request_doc","label":"Заявление","filetypes":["pdf","jpg","png"],"max_files":1,"required":true,"hint":"Загрузите заполненное заявление с электронной подписью (в формате pdf, jpg или png)"}]' \
+  --type=modal \
+  --trigger-id=791a056b-006c-49dd-834b-c633fde52fe8 \
+  --private-metadata={"timeoff_id":4378} \
+  --callback-id=timeoff_reguest_form \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

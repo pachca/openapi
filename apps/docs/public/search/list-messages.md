@@ -35,6 +35,23 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca search list-messages \
+  --query=футболки \
+  --limit=10 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --order=desc \
+  --created-from=2025-01-01T00:00:00.000Z \
+  --created-to=2025-02-01T00:00:00.000Z \
+  --chat-ids=198,334 \
+  --user-ids=12,185 \
+  --active \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

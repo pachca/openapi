@@ -10,7 +10,8 @@ import { getOrderedGuidePages, sortTagsByOrder } from '../lib/guides-config';
 import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
-import { SKILL_TAG_MAP } from './skills/config';
+import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
+import { WORKFLOWS } from '@pachca/spec/workflows';
 
 const SITE_URL = 'https://dev.pachca.com';
 
@@ -33,6 +34,18 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
   content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
+
+  content += '## CLI Quick Start\n\n';
+  content += '```bash\n';
+  content += '# Zero-install (npx)\n';
+  content += 'npx @pachca/cli <command> --token <TOKEN>\n';
+  content += '\n';
+  content += '# For regular use\n';
+  content += 'npm install -g @pachca/cli\n';
+  content += 'pachca auth login\n';
+  content += 'pachca messages create --entity-id=<chat_id> --content="Hello"\n';
+  content += 'pachca guide "отправить сообщение"  # CLI guide for humans\n';
+  content += '```\n\n';
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -60,6 +73,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
     const shortDesc = config.description.split('.')[0];
     content += `| ${config.name} | ${shortDesc} |\n`;
   }
+  content += `| ${ROUTER_SKILL_CONFIG.name} | ${ROUTER_SKILL_CONFIG.description.split('.')[0]} |\n`;
   content += '\n';
   content += 'Установка: `npx skills add pachca/openapi`\n\n';
   content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
@@ -127,6 +141,107 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   return content;
 }
 
+function generateWorkflowsSection(): string {
+  let content = '## Common Workflows\n\n';
+  content += '### CLI Quick Start\n\n';
+  content += '```bash\n';
+  content += 'npx @pachca/cli <command> --token <TOKEN>\n';
+  content += '```\n\n';
+
+  // English workflow summaries for skill.md (source workflows are in Russian)
+  const featured: { title: string; steps: { desc: string; cmd?: string; note?: string }[] }[] = [
+    {
+      title: 'Find chat by name and send message',
+      steps: [
+        {
+          desc: 'List all chats, find by `name` field',
+          cmd: 'pachca chats list --all',
+          note: 'GET /chats does not support name search — paginate through all',
+        },
+        {
+          desc: 'Send message to the chat',
+          cmd: 'pachca messages create --entity-id=<chat_id> --content="Hello"',
+        },
+      ],
+    },
+    {
+      title: 'Find active chats in a date range',
+      steps: [
+        {
+          desc: 'List chats with activity after a date',
+          cmd: 'pachca chats list --last-message-at-after=<date> --all',
+          note: 'Add `--last-message-at-before` for range. Date in ISO-8601 UTC',
+        },
+      ],
+    },
+    {
+      title: 'Set up a bot with outgoing webhook',
+      steps: [
+        { desc: 'Create bot in Pachca UI: Automations → Integrations → Webhook' },
+        { desc: 'Get `access_token` from bot API settings tab' },
+        { desc: 'Set Webhook URL to receive events' },
+      ],
+    },
+    {
+      title: 'Show interactive form to user',
+      steps: [
+        {
+          desc: 'Send message with button',
+          cmd: `pachca messages create --entity-id=<chat_id> --content="Fill the form" --buttons='[[{"text":"Open","data":"open_form"}]]'`,
+        },
+        { desc: 'On button click — receive webhook event with `trigger_id`' },
+        {
+          desc: 'Open form immediately',
+          cmd: `pachca views open --type=modal --trigger-id=<trigger_id> --title="Request" --blocks='[...]'`,
+          note: '`trigger_id` expires in 3 seconds — prepare form object in advance',
+        },
+        { desc: 'On form submit — receive webhook, process data' },
+      ],
+    },
+  ];
+
+  for (const wf of featured) {
+    content += `### ${wf.title}\n\n`;
+    for (let i = 0; i < wf.steps.length; i++) {
+      const step = wf.steps[i];
+      content += `${i + 1}. ${step.desc}`;
+      if (step.cmd) content += `: \`${step.cmd}\``;
+      content += '\n';
+      if (step.note) content += `   > ${step.note}\n`;
+    }
+    content += '\n';
+  }
+
+  return content;
+}
+
+function generateEnglishTitle(ep: Endpoint): string {
+  // Derive English title from operationId: "MessageOperations_createMessage" → "Create message"
+  const parts = ep.id.split('_');
+  const action = parts.length > 1 ? parts[1] : ep.id;
+  // camelCase → words: "createMessage" → "create message", "listChatMessages" → "list chat messages"
+  const words = action
+    .replace(/([A-Z])/g, ' $1')
+    .trim()
+    .toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+function generateModularSkillsSection(): string {
+  let section = '## Modular Skills\n\n';
+  section +=
+    'For AI agents that support modular skills, install specialized skills for better context efficiency:\n\n';
+  section += '```bash\nnpx skills add pachca/openapi\n```\n\n';
+  section += '| Skill | Description |\n';
+  section += '|-------|-------------|\n';
+  for (const config of SKILL_TAG_MAP) {
+    const shortDesc = config.description.split('.')[0];
+    section += `| ${config.name} | ${shortDesc} |\n`;
+  }
+  section += `\nSkills index: \`${SITE_URL}/.well-known/skills/index.json\`\n`;
+  return section;
+}
+
 function generateLegacySkillMd(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url;
   const grouped = groupByTag(api.endpoints);
@@ -134,16 +249,28 @@ function generateLegacySkillMd(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const guidePages = getOrderedGuidePages();
 
   const FRONTMATTER = `---
-name: pachca-api
+name: pachca
 description: Interact with the Pachca corporate messenger API — send messages, manage chats, users, tags, tasks, handle webhooks, upload files, and build bots. Use when integrating with Pachca or automating team communication workflows.
 metadata:
   author: pachca
   version: "1.0"
 ---`;
 
-  const STATIC_SECTIONS = `## Authentication
+  const STATIC_SECTIONS = `## CLI (recommended)
 
-All requests require a Bearer token in the \`Authorization\` header:
+\`\`\`bash
+# Zero-install
+npx @pachca/cli <command> --token <TOKEN>
+
+# For regular use
+npm install -g @pachca/cli && pachca auth login
+\`\`\`
+
+## Authentication
+
+All requests require a Bearer token. With CLI, use \`--token\` flag or \`PACHCA_TOKEN\` env var.
+
+For direct API calls, add the \`Authorization\` header:
 
 \`\`\`
 Authorization: Bearer <access_token>
@@ -156,59 +283,7 @@ Authorization: Bearer <access_token>
 
 Tokens are long-lived and do not expire. They can be reset by the admin/owner in Settings.`;
 
-  const WORKFLOWS = `## Common Workflows
-
-### Send a message to a chat
-
-\`\`\`
-POST /messages
-{
-  "message": {
-    "entity_type": "discussion",
-    "entity_id": 123,
-    "content": "Hello from the API!"
-  }
-}
-\`\`\`
-
-\`entity_type\` is \`"discussion"\` for chats/channels, \`"user"\` for direct messages, \`"thread"\` for thread replies. \`entity_id\` is the chat ID, user ID, or thread ID respectively.
-
-### Send a message with a file
-
-1. Get upload parameters: \`POST /uploads\` with \`file_name\` and \`file_size\`
-2. Upload to the returned S3 URL using the provided form fields
-3. Send a message referencing the uploaded file key in the \`files\` array
-
-### React to webhook events
-
-Configure a webhook URL in your bot settings (Settings → Automations → Bots). The bot receives POST requests for subscribed events:
-
-**Message events:** \`message.new\`, \`message.updated\`, \`message.deleted\`
-**Reaction events:** \`reaction.add\`, \`reaction.remove\`
-**Interactive events:** \`button.click\`, \`view.submission\`
-**Chat membership:** \`chat_member.add\`, \`chat_member.remove\`
-**Workspace membership:** \`company_member.invite\`, \`company_member.confirm\`, \`company_member.update\`, \`company_member.suspend\`, \`company_member.activate\`, \`company_member.delete\`
-
-Verify webhook authenticity using the \`Pachca-Signature\` header (HMAC-SHA256 with your bot's signing secret).
-
-### Open an interactive form
-
-When a user clicks a button in a message, your bot receives a \`button.click\` webhook with a \`trigger_id\`. Use it to open a modal:
-
-\`\`\`
-POST /views/open
-{
-  "trigger_id": "<from webhook>",
-  "view": {
-    "title": "Feedback Form",
-    "blocks": [
-      { "block_id": "input1", "type": "input", "label": "Your feedback" }
-    ]
-  }
-}
-\`\`\`
-
-Form submission results arrive via the \`view.submission\` webhook event.`;
+  const workflowsSection = generateWorkflowsSection();
 
   const CONSTRAINTS = `## Constraints
 
@@ -242,7 +317,7 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   for (const tag of sortedTags) {
     capabilities += `### ${tag}\n`;
     for (const ep of grouped.get(tag)!) {
-      capabilities += `- \`${ep.method} ${ep.path}\` — ${generateTitle(ep)}\n`;
+      capabilities += `- \`${ep.method} ${ep.path}\` — ${generateEnglishTitle(ep)}\n`;
     }
     capabilities += '\n';
   }
@@ -275,12 +350,63 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     STATIC_SECTIONS,
     '',
     capabilities,
-    WORKFLOWS,
+    workflowsSection,
     '',
     CONSTRAINTS,
     '',
     guides,
+    '',
+    generateModularSkillsSection(),
   ].join('\n');
+}
+
+function generateScenariosJson() {
+  const scenarios: {
+    id: string;
+    title: string;
+    skill: string;
+    steps: {
+      description: string;
+      command?: string;
+      apiMethod?: string;
+      apiPath?: string;
+      notes?: string;
+    }[];
+    notes?: string;
+    featured?: boolean;
+    related?: string[];
+  }[] = [];
+  const skillNames = new Set(SKILL_TAG_MAP.map((c) => c.name));
+
+  for (const [skillName, workflows] of Object.entries(WORKFLOWS)) {
+    if (!skillNames.has(skillName)) continue;
+    for (let i = 0; i < workflows.length; i++) {
+      const wf = workflows[i];
+      scenarios.push({
+        id: `${skillName}-${i}`,
+        title: wf.title,
+        skill: skillName,
+        steps: wf.steps.map((step) => {
+          const s: Record<string, string | undefined> = { description: step.description };
+          if (step.command) s.command = step.command;
+          if (step.apiMethod) s.apiMethod = step.apiMethod;
+          if (step.apiPath) s.apiPath = step.apiPath;
+          if (step.notes) s.notes = step.notes;
+          return s as (typeof scenarios)[0]['steps'][0];
+        }),
+        ...(wf.notes ? { notes: wf.notes } : {}),
+        ...(wf.featured ? { featured: true } : {}),
+        ...(wf.related?.length ? { related: wf.related } : {}),
+      });
+    }
+  }
+
+  return {
+    $schema: 'https://dev.pachca.com/scenarios.schema.json',
+    version: '1.0',
+    generated: new Date().toISOString(),
+    scenarios,
+  };
 }
 
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
@@ -480,6 +606,10 @@ async function main() {
   }
   console.log(`✓ ${skillFiles.length} skill files`);
 
+  const scenarios = generateScenariosJson();
+  writeFile('public/scenarios.json', JSON.stringify(scenarios, null, 2) + '\n');
+  console.log(`✓ public/scenarios.json (${scenarios.scenarios.length} scenarios)`);
+
   const postmanCollection = generatePostmanCollection(api);
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));
   console.log('✓ public/pachca.postman_collection.json');
@@ -497,7 +627,7 @@ async function main() {
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
   console.log(
-    `\nTotal: ${4 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+    `\nTotal: ${5 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
   );
 }
 

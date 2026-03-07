@@ -1,157 +1,143 @@
 ---
 name: pachca-chats
 description: >
-  Управление каналами и беседами, участниками чатов. Создание, обновление,
-  архивация чатов. Добавление/удаление участников, роли, экспорт сообщений.
-  Используй когда нужно: создать канал, добавить участника, архивировать чат,
-  найти активные/неактивные чаты, экспорт сообщений. НЕ используй для: отправки
-  сообщений (→ pachca-messages).
-allowed-tools: Bash(curl *)
+  Channel and conversation management, chat members. Create, update, archive
+  chats. Add/remove members, roles, message export. Use when: create channel, add
+  member, archive chat, find active/inactive chats, export messages.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-chats
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Когда НЕ использовать
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
 
-- отправить сообщение, ответить в тред, прикрепить файл → **pachca-messages**
-- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
-- полнотекстовый поиск чатов по названию с фильтрами → **pachca-search**
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-## Пошаговые сценарии
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-### Создать канал и пригласить участников
+Or set `PACHCA_TOKEN` for multiple commands:
 
-**Требуется:** скоуп `chats:create` · скоуп `chat_members:write`
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-1. POST /chats — `"channel": true` для канала, `false` (по умолчанию) для беседы. Участников можно передать сразу при создании: `member_ids` и/или `group_tag_ids` в теле запроса
-2. Или добавить участников позже: POST /chats/{id}/members с `member_ids`, POST /chats/{id}/group_tags с `group_tag_ids`
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"chat":{"name":"Новый канал","channel":true,"member_ids":[1,2,3]}}'
-```
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-> `channel` — boolean, не строка. `member_ids` и `group_tag_ids` — опциональны при создании.
+## Before you start
 
-### Архивация и управление чатом
+1. If user has a saved profile — check status:
 
-**Требуется:** скоуп `chats:archive` · скоуп `chat_members:write` · скоуп `chats:leave`
+       npx @pachca/cli auth status
 
-1. Архивировать: PUT /chats/{id}/archive
-2. Разархивировать: PUT /chats/{id}/unarchive
-3. Изменить роль участника: PUT /chats/{id}/members/{user_id} с `role` (`"admin"` | `"member"`; `"editor"` — только для каналов). Роль создателя чата изменить нельзя.
-4. Удалить участника: DELETE /chats/{id}/members/{user_id}
-5. Покинуть чат: DELETE /chats/{id}/leave
+   If OK — use commands without `--token`.
 
-### Переименовать или обновить чат
+2. If profile is not configured — ask for token and use `--token` flag:
 
-**Требуется:** скоуп `chats:update`
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-1. PUT /chats/{id} с нужными параметрами: `name` (название) и/или `public` (открытый доступ)
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/chats/12345" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"chat":{"name":"Новое название канала","public":true}}'
-```
+## Step-by-step scenarios
 
-> Доступные для обновления поля: `name`, `public`. Для изменения состава участников используй POST/DELETE /chats/{id}/members.
+### Create channel and invite members
 
-### Создать проектную беседу из шаблона
+1. Create channel with members:
+   ```bash
+   pachca chats create --name="Новый канал" --channel --member-ids='[1,2,3]'
+   ```
+   > `"channel": true` for channel, `false` (default) for conversation. Members can be passed immediately: `member_ids` and/or `group_tag_ids`
 
-**Требуется:** скоуп `chats:create` · скоуп `messages:create`
+2. Or add members later:
+   ```bash
+   pachca members add <chat_id> --member-ids='[1,2,3]'
+   ```
 
-1. POST /chats с `name`, `"channel": false` и `group_tag_ids` (добавить всех участников тега сразу)
-2. Отправь приветственное сообщение: POST /messages с `"entity_id": chat.id`
+> `channel` — boolean, not string. `member_ids` and `group_tag_ids` — optional on creation.
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"chat":{"name":"Проект Alpha","channel":false,"group_tag_ids":[42],"member_ids":[186,187]}}'
-```
 
-> `group_tag_ids` при создании добавляет всех участников тега сразу — удобнее, чем добавлять поштучно.
+### Rename or update chat
 
-### Экспорт истории чата
+1. Update chat:
+   ```bash
+   pachca chats update <ID> --name="Новое название"
+   ```
+   > Available fields: `name`, `public`
 
-**Требуется:** тариф **Корпорация** · скоуп `chat_exports:write` · скоуп `chat_exports:read`
+> To change members use POST/DELETE /chats/{id}/members.
 
-1. POST /chats/exports с `start_at`, `end_at` (формат YYYY-MM-DD) и обязательным `webhook_url` — запрос выполняется асинхронно
-2. Дождись вебхука на `webhook_url`: придёт JSON с `"type": "export"`, `"event": "ready"` и полем `export_id` — по `"type": "export"` можно отличить от других вебхуков
-3. GET /chats/exports/{id} — сервер вернёт 302, большинство HTTP-клиентов скачают файл автоматически
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats/exports" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"start_at":"$START_DATE","end_at":"$END_DATE","webhook_url":"$WEBHOOK_URL"}'
-```
+### Create project conversation from template
 
-> `webhook_url` обязателен — без него невозможно получить `export_id`. POST не возвращает id в ответе. Экспорт доступен только Владельцу пространства на тарифе «Корпорация». Максимальный период: 45 дней (366 дней при указании конкретных чатов).
+1. Create conversation with members from tag:
+   ```bash
+   pachca chats create --name="Проект Alpha" --group-tag-ids='[42]' --member-ids='[186,187]'
+   ```
 
-### Найти активные чаты за период
+2. Send welcome message:
+   ```bash
+   pachca messages create --entity-id=<chat_id> --content="Добро пожаловать в проект!"
+   ```
 
-**Требуется:** скоуп `chats:read`
+> `group_tag_ids` on creation adds all tag members at once.
 
-1. GET /chats с `last_message_at_after={дата}` — только чаты с активностью после указанной даты. Для диапазона добавь `last_message_at_before={дата}`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_after=$DATE_FROM&limit=50" \
-  -H "Authorization: Bearer $TOKEN"
-```
+### Find active chats for period
 
-> Дата в формате ISO-8601 UTC+0: `YYYY-MM-DDThh:mm:ss.sssZ`. Для «последних N дней» вычисли `now - N days` в UTC.
+1. Get chats with activity after specified date:
+   ```bash
+   pachca chats list --last-message-at-after=<дата> --all
+   ```
+   > For range add `--last-message-at-before`. Date in ISO-8601 UTC+0
 
-### Найти и заархивировать неактивные чаты
 
-**Требуется:** скоуп `chats:read` · скоуп `chats:archive`
+### Find and archive inactive chats
 
-1. GET /chats с `last_message_at_before={порог}` — сразу только чаты без активности с нужной даты
-2. Для каждого чата: PUT /chats/{id}/archive
+1. Get chats with no activity since specified date:
+   ```bash
+   pachca chats list --last-message-at-before=<порог> --all
+   ```
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/chats?last_message_at_before=$DATE_BEFORE&limit=50" \
-  -H "Authorization: Bearer $TOKEN"
-```
+2. For each chat: archive:
+   ```bash
+   pachca chats archive <ID>
+   ```
+   > Check `"channel": false` — archiving channels may be undesirable
 
-> Проверяй `"channel": false` — архивация каналов может быть нежелательной. Уточняй у владельца перед массовой архивацией.
 
-## Ограничения и gotchas
+## Constraints and gotchas
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
-- `role`: допустимые значения — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
-- `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor)
+- Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `role`: allowed values — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
+- `limit`: max 50
+- Pagination: cursor-based (limit + cursor)
 
-## Эндпоинты
+## Endpoints
 
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| POST | /chats | chats:create |
-| GET | /chats | chats:read |
-| POST | /chats/exports | chat_exports:write · тариф: Корпорация |
-| GET | /chats/exports/{id} | chat_exports:read · тариф: Корпорация |
-| GET | /chats/{id} | chats:read |
-| PUT | /chats/{id} | chats:update |
-| PUT | /chats/{id}/archive | chats:archive |
-| POST | /chats/{id}/group_tags | chat_members:write |
-| DELETE | /chats/{id}/group_tags/{tag_id} | chat_members:write |
-| DELETE | /chats/{id}/leave | chats:leave |
-| GET | /chats/{id}/members | chat_members:read |
-| POST | /chats/{id}/members | chat_members:write |
-| DELETE | /chats/{id}/members/{user_id} | chat_members:write |
-| PUT | /chats/{id}/members/{user_id} | chat_members:write |
-| PUT | /chats/{id}/unarchive | chats:archive |
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /chats | Новый чат |
+| GET | /chats | Список чатов |
+| POST | /chats/exports | Экспорт сообщений |
+| GET | /chats/exports/{id} | Скачать архив экспорта |
+| GET | /chats/{id} | Информация о чате |
+| PUT | /chats/{id} | Обновление чата |
+| PUT | /chats/{id}/archive | Архивация чата |
+| POST | /chats/{id}/group_tags | Добавление тегов |
+| DELETE | /chats/{id}/group_tags/{tag_id} | Исключение тега |
+| DELETE | /chats/{id}/leave | Выход из беседы или канала |
+| GET | /chats/{id}/members | Список участников чата |
+| POST | /chats/{id}/members | Добавление пользователей |
+| DELETE | /chats/{id}/members/{user_id} | Исключение пользователя |
+| PUT | /chats/{id}/members/{user_id} | Редактирование роли |
+| PUT | /chats/{id}/unarchive | Разархивация чата |
 
-## Подробнее
+## Complex scenarios
 
-см. [references/endpoints.md](references/endpoints.md)
+For complex scenarios read files from references/:
+  references/archive-and-manage-chat.md — Archive and manage chat
+  references/export-chat-history.md — Export chat history
+
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

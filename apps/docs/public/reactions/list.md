@@ -26,6 +26,16 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca reactions list 194275 \
+  --limit=1 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

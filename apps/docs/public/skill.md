@@ -1,5 +1,5 @@
 ---
-name: pachca-api
+name: pachca
 description: Interact with the Pachca corporate messenger API — send messages, manage chats, users, tags, tasks, handle webhooks, upload files, and build bots. Use when integrating with Pachca or automating team communication workflows.
 metadata:
   author: pachca
@@ -22,9 +22,21 @@ Pachca is a corporate messenger for teams. The REST API lets you automate commun
 
 For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt`.
 
+## CLI (recommended)
+
+```bash
+# Zero-install
+npx @pachca/cli <command> --token <TOKEN>
+
+# For regular use
+npm install -g @pachca/cli && pachca auth login
+```
+
 ## Authentication
 
-All requests require a Bearer token in the `Authorization` header:
+All requests require a Bearer token. With CLI, use `--token` flag or `PACHCA_TOKEN` env var.
+
+For direct API calls, add the `Authorization` header:
 
 ```
 Authorization: Bearer <access_token>
@@ -40,155 +52,136 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ## Capabilities
 
 ### Common
-- `POST /chats/exports` — Экспорт сообщений
-- `GET /chats/exports/{id}` — Скачать архив экспорта
-- `GET /custom_properties` — Список дополнительных полей
-- `POST /direct_url` — Загрузка файла
-- `POST /uploads` — Получение подписи, ключа и других параметров
+- `POST /chats/exports` — Request export
+- `GET /chats/exports/{id}` — Download export
+- `GET /custom_properties` — List properties
+- `POST /direct_url` — Upload file
+- `POST /uploads` — Get upload params
 
 ### Profile
-- `GET /oauth/token/info` — Информация о токене
-- `GET /profile` — Информация о профиле
-- `GET /profile/status` — Текущий статус
-- `PUT /profile/status` — Новый статус
-- `DELETE /profile/status` — Удаление статуса
+- `GET /oauth/token/info` — Get token info
+- `GET /profile` — Get profile
+- `GET /profile/status` — Get status
+- `PUT /profile/status` — Update status
+- `DELETE /profile/status` — Delete status
 
 ### Users
-- `POST /users` — Создать сотрудника
-- `GET /users` — Список сотрудников
-- `GET /users/{id}` — Информация о сотруднике
-- `PUT /users/{id}` — Редактирование сотрудника
-- `DELETE /users/{id}` — Удаление сотрудника
-- `GET /users/{user_id}/status` — Статус сотрудника
-- `PUT /users/{user_id}/status` — Новый статус сотрудника
-- `DELETE /users/{user_id}/status` — Удаление статуса сотрудника
+- `POST /users` — Create user
+- `GET /users` — List users
+- `GET /users/{id}` — Get user
+- `PUT /users/{id}` — Update user
+- `DELETE /users/{id}` — Delete user
+- `GET /users/{user_id}/status` — Get user status
+- `PUT /users/{user_id}/status` — Update user status
+- `DELETE /users/{user_id}/status` — Delete user status
 
 ### Group tags
-- `POST /group_tags` — Новый тег
-- `GET /group_tags` — Список тегов сотрудников
-- `GET /group_tags/{id}` — Информация о теге
-- `PUT /group_tags/{id}` — Редактирование тега
-- `DELETE /group_tags/{id}` — Удаление тега
-- `GET /group_tags/{id}/users` — Список сотрудников тега
+- `POST /group_tags` — Create tag
+- `GET /group_tags` — List tags
+- `GET /group_tags/{id}` — Get tag
+- `PUT /group_tags/{id}` — Update tag
+- `DELETE /group_tags/{id}` — Delete tag
+- `GET /group_tags/{id}/users` — Get tag users
 
 ### Chats
-- `POST /chats` — Новый чат
-- `GET /chats` — Список чатов
-- `GET /chats/{id}` — Информация о чате
-- `PUT /chats/{id}` — Обновление чата
-- `PUT /chats/{id}/archive` — Архивация чата
-- `PUT /chats/{id}/unarchive` — Разархивация чата
+- `POST /chats` — Create chat
+- `GET /chats` — List chats
+- `GET /chats/{id}` — Get chat
+- `PUT /chats/{id}` — Update chat
+- `PUT /chats/{id}/archive` — Archive chat
+- `PUT /chats/{id}/unarchive` — Unarchive chat
 
 ### Members
-- `POST /chats/{id}/group_tags` — Добавление тегов
-- `DELETE /chats/{id}/group_tags/{tag_id}` — Исключение тега
-- `DELETE /chats/{id}/leave` — Выход из беседы или канала
-- `GET /chats/{id}/members` — Список участников чата
-- `POST /chats/{id}/members` — Добавление пользователей
-- `DELETE /chats/{id}/members/{user_id}` — Исключение пользователя
-- `PUT /chats/{id}/members/{user_id}` — Редактирование роли
+- `POST /chats/{id}/group_tags` — Add tags
+- `DELETE /chats/{id}/group_tags/{tag_id}` — Remove tag
+- `DELETE /chats/{id}/leave` — Leave chat
+- `GET /chats/{id}/members` — List members
+- `POST /chats/{id}/members` — Add members
+- `DELETE /chats/{id}/members/{user_id}` — Remove member
+- `PUT /chats/{id}/members/{user_id}` — Update member role
 
 ### Thread
-- `POST /messages/{id}/thread` — Новый тред
-- `GET /threads/{id}` — Информация о треде
+- `POST /messages/{id}/thread` — Create thread
+- `GET /threads/{id}` — Get thread
 
 ### Messages
-- `POST /messages` — Новое сообщение
-- `GET /messages` — Список сообщений чата
-- `GET /messages/{id}` — Информация о сообщении
-- `PUT /messages/{id}` — Редактирование сообщения
-- `DELETE /messages/{id}` — Удаление сообщения
-- `POST /messages/{id}/pin` — Закрепление сообщения
-- `DELETE /messages/{id}/pin` — Открепление сообщения
+- `POST /messages` — Create message
+- `GET /messages` — List chat messages
+- `GET /messages/{id}` — Get message
+- `PUT /messages/{id}` — Update message
+- `DELETE /messages/{id}` — Delete message
+- `POST /messages/{id}/pin` — Pin message
+- `DELETE /messages/{id}/pin` — Unpin message
 
 ### Read member
-- `GET /messages/{id}/read_member_ids` — Список прочитавших сообщение
+- `GET /messages/{id}/read_member_ids` — List read members
 
 ### Reactions
-- `POST /messages/{id}/reactions` — Добавление реакции
-- `DELETE /messages/{id}/reactions` — Удаление реакции
-- `GET /messages/{id}/reactions` — Список реакций
+- `POST /messages/{id}/reactions` — Add reaction
+- `DELETE /messages/{id}/reactions` — Remove reaction
+- `GET /messages/{id}/reactions` — List reactions
 
 ### Link Previews
-- `POST /messages/{id}/link_previews` — Unfurl (разворачивание ссылок)
+- `POST /messages/{id}/link_previews` — Create link previews
 
 ### Search
-- `GET /search/chats` — Поиск чатов
-- `GET /search/messages` — Поиск сообщений
-- `GET /search/users` — Поиск сотрудников
+- `GET /search/chats` — Search chats
+- `GET /search/messages` — Search messages
+- `GET /search/users` — Search users
 
 ### Tasks
-- `POST /tasks` — Новое напоминание
-- `GET /tasks` — Список напоминаний
-- `GET /tasks/{id}` — Информация о напоминании
-- `PUT /tasks/{id}` — Редактирование напоминания
-- `DELETE /tasks/{id}` — Удаление напоминания
+- `POST /tasks` — Create task
+- `GET /tasks` — List tasks
+- `GET /tasks/{id}` — Get task
+- `PUT /tasks/{id}` — Update task
+- `DELETE /tasks/{id}` — Delete task
 
 ### Views
-- `POST /views/open` — Открытие представления
+- `POST /views/open` — Open view
 
 ### Bots
-- `PUT /bots/{id}` — Редактирование бота
-- `GET /webhooks/events` — История событий
-- `DELETE /webhooks/events/{id}` — Удаление события
+- `PUT /bots/{id}` — Update bot
+- `GET /webhooks/events` — Get webhook events
+- `DELETE /webhooks/events/{id}` — Delete webhook event
 
 ### Security
-- `GET /audit_events` — Журнал аудита событий
+- `GET /audit_events` — Get audit events
 
 
 ## Common Workflows
 
-### Send a message to a chat
+### CLI Quick Start
 
-```
-POST /messages
-{
-  "message": {
-    "entity_type": "discussion",
-    "entity_id": 123,
-    "content": "Hello from the API!"
-  }
-}
+```bash
+npx @pachca/cli <command> --token <TOKEN>
 ```
 
-`entity_type` is `"discussion"` for chats/channels, `"user"` for direct messages, `"thread"` for thread replies. `entity_id` is the chat ID, user ID, or thread ID respectively.
+### Find chat by name and send message
 
-### Send a message with a file
+1. List all chats, find by `name` field: `pachca chats list --all`
+   > GET /chats does not support name search — paginate through all
+2. Send message to the chat: `pachca messages create --entity-id=<chat_id> --content="Hello"`
 
-1. Get upload parameters: `POST /uploads` with `file_name` and `file_size`
-2. Upload to the returned S3 URL using the provided form fields
-3. Send a message referencing the uploaded file key in the `files` array
+### Find active chats in a date range
 
-### React to webhook events
+1. List chats with activity after a date: `pachca chats list --last-message-at-after=<date> --all`
+   > Add `--last-message-at-before` for range. Date in ISO-8601 UTC
 
-Configure a webhook URL in your bot settings (Settings → Automations → Bots). The bot receives POST requests for subscribed events:
+### Set up a bot with outgoing webhook
 
-**Message events:** `message.new`, `message.updated`, `message.deleted`
-**Reaction events:** `reaction.add`, `reaction.remove`
-**Interactive events:** `button.click`, `view.submission`
-**Chat membership:** `chat_member.add`, `chat_member.remove`
-**Workspace membership:** `company_member.invite`, `company_member.confirm`, `company_member.update`, `company_member.suspend`, `company_member.activate`, `company_member.delete`
+1. Create bot in Pachca UI: Automations → Integrations → Webhook
+2. Get `access_token` from bot API settings tab
+3. Set Webhook URL to receive events
 
-Verify webhook authenticity using the `Pachca-Signature` header (HMAC-SHA256 with your bot's signing secret).
+### Show interactive form to user
 
-### Open an interactive form
+1. Send message with button: `pachca messages create --entity-id=<chat_id> --content="Fill the form" --buttons='[[{"text":"Open","data":"open_form"}]]'`
+2. On button click — receive webhook event with `trigger_id`
+3. Open form immediately: `pachca views open --type=modal --trigger-id=<trigger_id> --title="Request" --blocks='[...]'`
+   > `trigger_id` expires in 3 seconds — prepare form object in advance
+4. On form submit — receive webhook, process data
 
-When a user clicks a button in a message, your bot receives a `button.click` webhook with a `trigger_id`. Use it to open a modal:
 
-```
-POST /views/open
-{
-  "trigger_id": "<from webhook>",
-  "view": {
-    "title": "Feedback Form",
-    "blocks": [
-      { "block_id": "input1", "type": "input", "label": "Your feedback" }
-    ]
-  }
-}
-```
-
-Form submission results arrive via the `view.submission` webhook event.
 
 ## Constraints
 
@@ -234,3 +227,26 @@ Detailed documentation on specific topics is available at:
 - [DLP-система](https://dev.pachca.com/guides/dlp) — Создание правил DLP: условия, контексты и действия
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов
 - [Последние обновления](https://dev.pachca.com/guides/updates) — История изменений и новые возможности API
+
+
+## Modular Skills
+
+For AI agents that support modular skills, install specialized skills for better context efficiency:
+
+```bash
+npx skills add pachca/openapi
+```
+
+| Skill | Description |
+|-------|-------------|
+| pachca-profile | User profile, status management, custom fields, token verification |
+| pachca-users | Employee and tag (group) management |
+| pachca-chats | Channel and conversation management, chat members |
+| pachca-messages | Send messages to channels, conversations, and DMs |
+| pachca-bots | Bot management, incoming/outgoing webhooks, link unfurling |
+| pachca-forms | Interactive forms with input fields and buttons for bots |
+| pachca-tasks | Create, get, update, and delete tasks (reminders) |
+| pachca-search | Full-text search across employees, chats, and messages |
+| pachca-security | Security audit event log |
+
+Skills index: `https://dev.pachca.com/.well-known/skills/index.json`

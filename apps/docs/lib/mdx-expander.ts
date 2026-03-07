@@ -15,7 +15,7 @@ import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
 import { getOrderedGuidePages } from './guides-config';
 import { generateNavigation } from './navigation';
-import { WORKFLOWS } from '../data/workflows';
+import { WORKFLOWS } from '@pachca/spec/workflows';
 import { SKILL_TAG_MAP } from '../scripts/skills/config';
 
 // ============================================

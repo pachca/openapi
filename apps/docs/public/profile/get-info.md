@@ -8,6 +8,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca profile get-info \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

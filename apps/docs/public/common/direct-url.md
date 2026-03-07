@@ -19,6 +19,22 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca common direct-url \
+  --content-disposition=your_api_token_here \
+  --acl=your_api_token_here \
+  --policy=your_api_token_here \
+  --x-amz-credential=your_api_token_here \
+  --x-amz-algorithm=your_api_token_here \
+  --x-amz-date=your_api_token_here \
+  --x-amz-signature=your_api_token_here \
+  --key=your_api_token_here \
+  --file=0101010101010101 \
+  --json
+```
+
 ### cURL
 
 ```bash

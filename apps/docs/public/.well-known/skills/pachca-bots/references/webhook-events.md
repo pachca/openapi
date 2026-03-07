@@ -1,12 +1,12 @@
-# Типы событий Webhook
+# Webhook event types
 
-Исходящие вебхуки отправляют JSON на указанный URL при наступлении событий.
-Подпись: `Pachca-Signature` (HMAC-SHA256 от тела запроса с Signing secret).
+Outgoing webhooks send JSON to specified URL when events occur.
+Signature: `Pachca-Signature` (HMAC-SHA256 of request body with Signing secret).
 
-## Новые сообщения
+## New messages
 
-Отправляется при новом сообщении в чате, где участвует бот.
-Можно фильтровать по командам (начало сообщения).
+Sent when a new message appears in a chat where the bot is a member.
+Can filter by commands (message prefix).
 
 ```json
 {
@@ -26,29 +26,29 @@
 }
 ```
 
-## Добавление и удаление реакций
+## Reaction add/remove
 
-Отправляется при добавлении/удалении реакции в чате, где участвует бот.
-Поля: `event` (add/remove), `type` (reaction), `code` (emoji), `message_id`, `user_id`.
+Sent when a reaction is added/removed in a chat where the bot is a member.
+Fields: `event` (add/remove), `type` (reaction), `code` (emoji), `message_id`, `user_id`.
 
-## Нажатие кнопок
+## Button clicks
 
-Отправляется при нажатии Data-кнопки в сообщении бота.
-Содержит `trigger_id` для открытия форм через `POST /views/open`.
+Sent when a Data-button in bot message is clicked.
+Contains `trigger_id` for opening forms via `POST /views/open`.
 
-## Изменение состава участников чатов
+## Chat member changes
 
-Отправляется при добавлении/удалении участников в чатах, где состоит бот.
+Sent when members are added/removed in chats where the bot is a member.
 
-## Изменение состава участников пространства
+## Space member changes
 
-Глобальное событие (не требует добавления бота в чат). События: invite, confirm, update, suspend, activate, delete.
+Global event (does not require bot in chat). Events: invite, confirm, update, suspend, activate, delete.
 
-## Безопасность
+## Security
 
-1. Проверь подпись: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`
-2. Проверь `webhook_timestamp` — должен быть в пределах 1 минуты
-3. Проверь IP отправителя: `37.200.70.177`
+1. Verify signature: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`
+2. Check `webhook_timestamp` — must be within 1 minute
+3. Verify sender IP: `37.200.70.177`
 
 ```javascript
 const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");

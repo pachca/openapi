@@ -45,6 +45,19 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca common request-export \
+  --start-at=2025-03-20 \
+  --end-at=2025-03-20 \
+  --webhook-url=https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2 \
+  --chat-ids=1381521 \
+  --no-skip-chats-file \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

@@ -6,13 +6,30 @@
 [![PyPI](https://img.shields.io/pypi/v/pachca)](https://pypi.org/project/pachca/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Репозиторий содержит OpenAPI-спецификацию, SDK для 5 языков, CLI и AI-скиллы для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Используйте для автоматизации: отправки сообщений, управления каналами и сотрудниками, настройки ботов, работы с задачами и аудитом событий.
+Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec + workflows.ts) генерирует артефакты для всех каналов: web docs, CLI, SDK, agent skills, LLM context.
 
 **Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/guides/authorization · **Changelog**: https://dev.pachca.com/guides/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
+## CLI
+
+```bash
+# Zero-install (npx)
+npx @pachca/cli messages create --entity-id=123 --content="Привет!" --token $PACHCA_TOKEN
+
+# For regular use
+npm install -g @pachca/cli
+pachca auth login
+pachca messages create --entity-id=123 --content="Привет!"
+pachca guide "отправить сообщение"  # CLI guide
+```
+
+Все методы API доступны как команды. Типизированные флаги, валидация, 4 формата вывода (table, JSON, YAML, CSV), курсорная пагинация, несколько профилей авторизации, неинтерактивный режим для CI и AI-агентов.
+
+**Документация**: https://dev.pachca.com/guides/cli
+
 ## Agent Skills
 
-AI-агенты могут использовать скиллы для работы с API Пачки — пошаговые инструкции с curl-примерами, требуемыми скоупами токена, ограничениями по тарифу и обработкой ошибок.
+AI-агенты используют CLI-first скиллы с пошаговыми сценариями, zero-friction авторизацией и автоматической проверкой прав.
 
 ### Установка (40+ агентов)
 
@@ -43,6 +60,7 @@ npx skills add pachca/openapi
 | `pachca-tasks` | Напоминания (задачи) |
 | `pachca-search` | Полнотекстовый поиск |
 | `pachca-security` | Аудит событий, DLP |
+| `pachca` | Router skill — маршрутизация к нужному скиллу |
 
 ### Как скиллы помогают агенту
 
@@ -53,14 +71,14 @@ npx skills add pachca/openapi
 Агент: POST /messages с file=@report.pdf  ← неверно, файлы не передаются inline
 ```
 
-**Со скиллом** — агент следует пошаговому сценарию:
+**Со скиллом** — агент выполняет CLI-команды по сценарию:
 
 ```
 > Отправь файл report.pdf в тред сообщения 123
-1. POST /uploads → key, direct_url, policy, подпись
-2. POST direct_url (multipart) → загрузка файла на S3
-3. POST /messages/123/thread → thread.id
-4. POST /messages с entity_type:"thread", entity_id:thread.id, files:[{key:...}]
+1. pachca uploads create --file-name=report.pdf --file-size=...
+2. curl <direct_url> -F ... (загрузка на S3)
+3. pachca threads create --message-id=123
+4. pachca messages create --entity-type=thread --entity-id=<thread_id> --files='[{"key":"..."}]'
 ```
 
 Скиллы генерируются автоматически из OpenAPI-спеки при `bun turbo build`. Устанавливайте только из официального репозитория — скиллы содержат исключительно инструкции (нет исполняемого кода).
@@ -90,22 +108,6 @@ const { data, error } = await client.GET('/users');
 
 SDK генерируются из `openapi.yaml` и публикуются автоматически при пуше в `main`: генерация → коммит `chore: regenerate SDK v{VERSION}` → теги → npm, PyPI, JitPack. Swift и Go — через Git-теги.
 
-## CLI
-
-Все методы API доступны как команды в терминале с типизированными флагами, валидацией и интерактивными подсказками.
-
-```bash
-npm install -g @pachca/cli
-
-pachca auth login
-pachca messages create --entity-id 123 --content "Привет!"
-pachca users list -o json
-```
-
-Несколько профилей авторизации, четыре формата вывода (table, JSON, YAML, CSV), курсорная пагинация с автозагрузкой, неинтерактивный режим для CI и AI-агентов.
-
-**Документация**: https://dev.pachca.com/guides/cli
-
 ## Тестирование
 
 | Инструмент | Как использовать |
@@ -121,6 +123,7 @@ pachca users list -o json
 | [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: все endpoint'ы со ссылками |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Полная документация: гайды + endpoint'ы с параметрами |
 | [`/skill.md`](https://dev.pachca.com/skill.md) | AI-agent skill: workflows, capabilities, ссылки |
+| [`/scenarios.json`](https://dev.pachca.com/scenarios.json) | Машиночитаемые сценарии для no-code платформ (n8n, Albato) |
 | `/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
 
 [Context7](https://context7.com/pachca/openapi) — AI-native document discovery.
@@ -163,7 +166,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── apps/
 │   └── docs/              # Next.js 16 сайт документации (@pachca/docs)
 ├── packages/
-│   ├── spec/              # TypeSpec спецификация (@pachca/spec)
+│   ├── spec/              # TypeSpec спецификация + workflows.ts (@pachca/spec)
 │   └── cli/               # CLI для работы с API (@pachca/cli)
 ├── sdk/                   # SDK для 5 языков
 │   ├── typescript/        # openapi-typescript → npm
@@ -171,6 +174,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 │   ├── go/                # oapi-codegen → Go modules
 │   ├── kotlin/            # openapi-generator → JitPack
 │   └── swift/             # swift-openapi-generator → SPM
+├── skills/                # Agent Skills (генерируются → apps/docs/public/.well-known/skills/)
 ├── .github/workflows/     # CI/CD (check, sdk, deploy, gitlab)
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)
 ├── jitpack.yml            # JitPack конфиг для Kotlin (JDK 17)
@@ -197,9 +201,18 @@ apps/docs                           sdk/* (5 языков)
     ▼                                npm, PyPI, JitPack, SPM, Go modules
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
-  + Agent Skills (skills/, .claude/, .cursor/, AGENTS.md, .well-known/)
+  + Agent Skills (skills/, AGENTS.md, .well-known/)
+  + scenarios.json (n8n, no-code)
+  + CLI examples (10-й код-генератор)
   + pachca.postman_collection.json
   + OG-изображения + sitemap + RSS
+
+workflows.ts (packages/spec — единый источник сценариев)
+    │
+    ├──→ Web (страница сценариев с поиском)
+    ├──→ CLI (pachca guide)
+    ├──→ Skills (CLI-сценарии в SKILL.md)
+    └──→ scenarios.json (no-code: n8n, Albato)
 ```
 
 ## Turborepo пайплайн
@@ -339,6 +352,6 @@ Badge «Новое» показывается < 7 дней. Попадает в 
 
 ### Безопасность (next.config.ts)
 
-HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
+HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`, `scenarios.json`.
 
 </details>

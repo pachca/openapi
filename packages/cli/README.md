@@ -158,12 +158,12 @@ pachca guide            # список всех сценариев
 |---------|---------|
 | `pachca read-member list-readers` | Список прочитавших сообщение |
 
-### thread
+### threads
 
 | Команда | Описание |
 |---------|---------|
-| `pachca thread add` | Новый тред |
-| `pachca thread get` | Информация о треде |
+| `pachca threads add` | Новый тред |
+| `pachca threads get` | Информация о треде |
 
 ### profile
 

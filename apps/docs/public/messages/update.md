@@ -81,6 +81,19 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca messages update 194275 \
+  --content="Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет." \
+  --files='[{"key":"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png","name":"logo.png","file_type":"image","size":12345,"width":800,"height":600}]' \
+  --buttons='[[{"text":"Подробнее","url":"https://example.com/details"}]]' \
+  --display-avatar-url=https://example.com/avatar.png \
+  --display-name="Бот Поддержки" \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

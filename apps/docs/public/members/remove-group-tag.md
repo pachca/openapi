@@ -22,6 +22,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca members remove-group-tag 334 86 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

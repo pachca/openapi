@@ -69,6 +69,15 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca link-previews add 194275 \
+  --link-previews='{"https://website.com/articles/123":{"title":"Статья: Отправка файлов","description":"Пример отправки файлов на удаленный сервер","image_url":"https://website.com/img/landing.png","image":{"key":"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}","name":"files-to-server.jpg","size":695604}}}' \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

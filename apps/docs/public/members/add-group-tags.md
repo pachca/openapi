@@ -42,6 +42,15 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca members add-group-tags 334 \
+  --group-tag-ids=86,18 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

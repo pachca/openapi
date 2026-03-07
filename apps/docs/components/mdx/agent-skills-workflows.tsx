@@ -1,5 +1,5 @@
-import { WORKFLOWS } from '@/data/workflows';
-import type { Workflow } from '@/data/workflows';
+import { WORKFLOWS } from '@pachca/spec/workflows';
+import type { Workflow } from '@pachca/spec/workflows';
 import { SKILL_TAG_MAP } from '@/scripts/skills/config';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { generateTitle, generateUrlFromOperation } from '@/lib/openapi/mapper';
@@ -19,9 +19,8 @@ export interface WorkflowCardData {
   title: string;
   skillName: string;
   categories: string[];
-  steps: StepSegment[][];
+  steps: { segments: StepSegment[]; command?: string }[];
   notes?: StepSegment[];
-  curl?: string;
   featured: boolean;
   requirements: { scopes: string[]; plans: string[] };
   related?: string[];
@@ -95,9 +94,11 @@ export async function AgentSkillsWorkflows() {
         title: wf.title,
         skillName: skill.name,
         categories: skill.tags,
-        steps: wf.steps.map((step) => parseStep(step.description, endpoints)),
+        steps: wf.steps.map((step) => ({
+          segments: parseStep(step.description, endpoints),
+          command: step.command,
+        })),
         notes: wf.notes ? parseStep(wf.notes, endpoints) : undefined,
-        curl: wf.curl,
         featured: wf.featured ?? false,
         requirements: deriveRequirements(wf, endpoints),
         related: wf.related,

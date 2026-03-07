@@ -43,6 +43,16 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca members add 334 \
+  --member-ids=186,187 \
+  --silent \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

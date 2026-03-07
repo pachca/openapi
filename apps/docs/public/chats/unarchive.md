@@ -20,6 +20,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca chats unarchive 334 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

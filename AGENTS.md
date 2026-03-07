@@ -1,28 +1,82 @@
 # Pachca API — Agent Skills
 
-Этот репозиторий содержит скиллы для AI-агентов для работы с [API Пачки](https://dev.pachca.com).
+Pachca — corporate messenger with REST API and CLI.
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
+## Quick start (zero-install)
 
-## Доступные скиллы
+```bash
+npx @pachca/cli <command> --token <TOKEN>
+```
 
-| Скилл | Описание | Путь |
-|-------|---------|------|
-| pachca-profile | Получение профиля текущего пользователя, управление своим статусом, кастомные поля сотрудников, проверка токена | [skills/pachca-profile/SKILL.md](skills/pachca-profile/SKILL.md) |
-| pachca-users | Управление сотрудниками и тегами (группами) | [skills/pachca-users/SKILL.md](skills/pachca-users/SKILL.md) |
-| pachca-chats | Управление каналами и беседами, участниками чатов | [skills/pachca-chats/SKILL.md](skills/pachca-chats/SKILL.md) |
-| pachca-messages | Отправка сообщений в каналы, беседы и личные чаты Пачки | [skills/pachca-messages/SKILL.md](skills/pachca-messages/SKILL.md) |
-| pachca-bots | Управление ботами, входящие/исходящие вебхуки, разворачивание ссылок (unfurling) | [skills/pachca-bots/SKILL.md](skills/pachca-bots/SKILL.md) |
-| pachca-forms | Интерактивные формы с полями ввода и кнопками для ботов | [skills/pachca-forms/SKILL.md](skills/pachca-forms/SKILL.md) |
-| pachca-tasks | Создание, получение, обновление и удаление задач (напоминаний) | [skills/pachca-tasks/SKILL.md](skills/pachca-tasks/SKILL.md) |
-| pachca-search | Полнотекстовый поиск по сотрудникам, чатам и сообщениям | [skills/pachca-search/SKILL.md](skills/pachca-search/SKILL.md) |
-| pachca-security | Журнал аудита событий безопасности | [skills/pachca-security/SKILL.md](skills/pachca-security/SKILL.md) |
+For regular use:
 
-## Установка
+```bash
+npm install -g @pachca/cli && pachca auth login
+```
+
+## Auth
+
+`--token <TOKEN>` flag or `PACHCA_TOKEN` env var. Get token: Settings → Automations → API (admin) or bot settings (bot).
+
+## Routing
+
+Match the user's task to the right skill:
+
+| User task | Skill |
+|-----------|-------|
+| User profile, status management, custom fields, token verification | `pachca-profile` |
+| Employee and tag (group) management | `pachca-users` |
+| Channel and conversation management, chat members | `pachca-chats` |
+| Send messages to channels, conversations, and DMs | `pachca-messages` |
+| Bot management, incoming/outgoing webhooks, link unfurling | `pachca-bots` |
+| Interactive forms with input fields and buttons for bots | `pachca-forms` |
+| Create, get, update, and delete tasks (reminders) | `pachca-tasks` |
+| Full-text search across employees, chats, and messages | `pachca-search` |
+| Security audit event log | `pachca-security` |
+
+## Top-5 operations
+
+```bash
+# Send message
+pachca messages create --entity-id=<chat_id> --content="Hello"
+
+# Search chats
+pachca search list-chats --query="..."
+
+# Get profile
+pachca profile get
+
+# Search messages
+pachca search list-messages --query="..."
+
+# Create chat
+pachca chats create --name="Project X" --member-ids=1,2,3
+```
+
+## Available skills
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| pachca-profile | User profile, status management, custom fields, token verification | [skills/pachca-profile/SKILL.md](skills/pachca-profile/SKILL.md) |
+| pachca-users | Employee and tag (group) management | [skills/pachca-users/SKILL.md](skills/pachca-users/SKILL.md) |
+| pachca-chats | Channel and conversation management, chat members | [skills/pachca-chats/SKILL.md](skills/pachca-chats/SKILL.md) |
+| pachca-messages | Send messages to channels, conversations, and DMs | [skills/pachca-messages/SKILL.md](skills/pachca-messages/SKILL.md) |
+| pachca-bots | Bot management, incoming/outgoing webhooks, link unfurling | [skills/pachca-bots/SKILL.md](skills/pachca-bots/SKILL.md) |
+| pachca-forms | Interactive forms with input fields and buttons for bots | [skills/pachca-forms/SKILL.md](skills/pachca-forms/SKILL.md) |
+| pachca-tasks | Create, get, update, and delete tasks (reminders) | [skills/pachca-tasks/SKILL.md](skills/pachca-tasks/SKILL.md) |
+| pachca-search | Full-text search across employees, chats, and messages | [skills/pachca-search/SKILL.md](skills/pachca-search/SKILL.md) |
+| pachca-security | Security audit event log | [skills/pachca-security/SKILL.md](skills/pachca-security/SKILL.md) |
+
+## Key constraints
+
+- Rate limit: ~4 req/sec per chat (messages), ~50 req/sec (other). Respect `Retry-After` on 429.
+- Pagination: cursor-based (`limit` + `cursor`). Check `meta.paginate.next_page`.
+- Admin operations (user/tag management, message deletion) require admin token.
+
+## Install
 
 ```bash
 npx skills add pachca/openapi
 ```
 
-Подробнее: [документация API](https://dev.pachca.com), [OpenAPI спецификация](https://dev.pachca.com/openapi.yaml)
+More: [API docs](https://dev.pachca.com) · [Full reference](https://dev.pachca.com/llms-full.txt) · [OpenAPI spec](https://dev.pachca.com/openapi.yaml) · CLI help: `pachca --help`

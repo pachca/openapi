@@ -31,6 +31,22 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca chats list \
+  --sort-id=desc \
+  --sort-last-message-at=desc \
+  --availability=is_member \
+  --last-message-at-after=2025-01-01T00:00:00.000Z \
+  --last-message-at-before=2025-02-01T00:00:00.000Z \
+  --no-personal \
+  --limit=1 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

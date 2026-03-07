@@ -20,6 +20,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca tasks get 22283 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

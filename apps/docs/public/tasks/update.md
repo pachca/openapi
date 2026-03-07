@@ -83,6 +83,23 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca tasks update 22283 \
+  --kind=reminder \
+  --content="Забрать со склада 21 заказ" \
+  --due-at=2020-06-05T12:00:00.000+03:00 \
+  --priority=2 \
+  --performer-ids=12 \
+  --status=done \
+  --no-all-day \
+  --done-at=2020-06-05T12:00:00.000Z \
+  --custom-properties='[{"id":78,"value":"Синий склад"}]' \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

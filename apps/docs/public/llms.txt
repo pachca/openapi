@@ -81,9 +81,9 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [Исключение пользователя](https://dev.pachca.com/members/remove.md): DELETE /chats/{id}/members/{user_id}
 - [Редактирование роли](https://dev.pachca.com/members/update.md): PUT /chats/{id}/members/{user_id}
 
-## Thread
-- [Новый тред](https://dev.pachca.com/thread/add.md): POST /messages/{id}/thread
-- [Информация о треде](https://dev.pachca.com/thread/get.md): GET /threads/{id}
+## Threads
+- [Новый тред](https://dev.pachca.com/threads/add.md): POST /messages/{id}/thread
+- [Информация о треде](https://dev.pachca.com/threads/get.md): GET /threads/{id}
 
 ## Messages
 - [Новое сообщение](https://dev.pachca.com/messages/create.md): POST /messages
@@ -94,7 +94,7 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [Закрепление сообщения](https://dev.pachca.com/messages/pin.md): POST /messages/{id}/pin
 - [Открепление сообщения](https://dev.pachca.com/messages/unpin.md): DELETE /messages/{id}/pin
 
-## Read member
+## Read members
 - [Список прочитавших сообщение](https://dev.pachca.com/read-member/list-readers.md): GET /messages/{id}/read_member_ids
 
 ## Reactions

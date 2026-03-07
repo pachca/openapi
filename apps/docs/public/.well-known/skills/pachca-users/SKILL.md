@@ -122,8 +122,9 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
 1. Find tag by name, take `id`:
    ```bash
-   pachca group-tags list
+   pachca group-tags list --names='["Backend"]'
    ```
+   > `names` filter — server-side filtering by tag name
 
 2. Get all tag members:
    ```bash

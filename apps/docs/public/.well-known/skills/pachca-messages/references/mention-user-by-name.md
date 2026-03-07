@@ -15,7 +15,7 @@
 
 4. Not found — search entire company:
    ```bash
-   pachca users list --query=<запрос>
+   pachca search list-users --query=<запрос>
    ```
 
 5. One result → use `nickname`. Multiple → ask user to clarify

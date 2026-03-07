@@ -1,7 +1,7 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.4 · 5 марта 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.5 · 7 марта 2026
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
@@ -176,8 +176,8 @@ dev.pachca.com/members/add      →  pachca members add
 | `pachca members remove-group-tag` | Исключение тега |
 | `pachca members leave` | Выход из беседы или канала |
 | `pachca members remove` | Исключение пользователя |
-| `pachca thread add` | Новый тред |
-| `pachca thread get` | Информация о треде |
+| `pachca threads add` | Новый тред |
+| `pachca threads get` | Информация о треде |
 | `pachca messages create` | Новое сообщение |
 | `pachca messages pin` | Закрепление сообщения |
 | `pachca messages list` | Список сообщений чата |

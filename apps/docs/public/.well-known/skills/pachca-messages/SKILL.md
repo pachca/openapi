@@ -44,11 +44,11 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
 ### Find chat by name and send message
 
-1. Get chat list, find the one by `name` field:
+1. Find chat by name via search:
    ```bash
-   pachca chats list --all
+   pachca search list-chats --query="название"
    ```
-   > GET /chats does not support search by name — iterate through pages
+   > If multiple results — pick the best match by `name`
 
 2. Send message to the found chat:
    ```bash
@@ -72,7 +72,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
 1. Determine recipient `user_id`:
    ```bash
-   pachca users list
+   pachca search list-users --query="имя"
    ```
    > Or take user_id from context (webhook, previous request)
 
@@ -241,8 +241,9 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
 1. Determine list of recipient `user_id`s:
    ```bash
-   pachca users list
+   pachca users list --all
    ```
+   > Or get user_ids from tag — see "Get all employees of a tag/department"
 
 2. For each: send direct message:
    ```bash
@@ -259,7 +260,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 - `message.entity_type`: allowed values — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
 - `message.display_avatar_url`: max 255 characters
 - `message.display_name`: max 255 characters
-- `limit`: max — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
+- `limit`: max 50
 - Pagination: cursor-based (limit + cursor)
 
 ## Endpoints
@@ -277,9 +278,6 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | POST | /messages/{id}/reactions | Добавление реакции |
 | DELETE | /messages/{id}/reactions | Удаление реакции |
 | GET | /messages/{id}/reactions | Список реакций |
-| GET | /messages/{id}/read_member_ids | Список прочитавших сообщение |
-| POST | /messages/{id}/thread | Новый тред |
-| GET | /threads/{id} | Информация о треде |
 | POST | /uploads | Получение подписи, ключа и других параметров |
 
 ## Complex scenarios

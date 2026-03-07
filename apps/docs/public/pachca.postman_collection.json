@@ -1018,7 +1018,7 @@
       ]
     },
     {
-      "name": "Thread",
+      "name": "Threads",
       "item": [
         {
           "name": "Новый тред",
@@ -1252,7 +1252,7 @@
       ]
     },
     {
-      "name": "Read member",
+      "name": "Read members",
       "item": [
         {
           "name": "Список прочитавших сообщение",

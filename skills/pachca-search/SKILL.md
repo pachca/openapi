@@ -69,7 +69,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
    ```
    > `sort=alphabetical` for alphabetical order, `sort=by_score` (default). Filters: `company_roles[]`, `created_from`/`created_to`
 
-> Alternative to GET /users?query= with more precise ranking.
+> Searches by name, email, title and other fields. Supports sorting by relevance.
 
 
 ## Constraints and gotchas

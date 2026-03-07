@@ -26,9 +26,9 @@
 - [Теги](/group-tags/create) — Группировка сотрудников по тегам
 - [Чаты](/chats/create) — Создание и управление чатами
 - [Участники чатов](/members/add-group-tags) — Добавление и удаление участников
-- [Треды](/thread/add) — Обсуждения внутри сообщений
+- [Threads](/threads/add)
 - [Сообщения](/messages/create) — Отправка, редактирование, удаление
-- [Прочтение сообщения](/read-member/list-readers) — Информация о прочтении
+- [Read members](/read-member/list-readers)
 - [Реакции на сообщения](/reactions/add) — Реакции на сообщения
 - [Ссылки](/link-previews/add) — Разворачивание ссылок (unfurl)
 - [Поиск](/search/list-chats)

@@ -100,7 +100,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `DELETE /chats/{id}/members/{user_id}` — Remove member
 - `PUT /chats/{id}/members/{user_id}` — Update member role
 
-### Thread
+### Threads
 - `POST /messages/{id}/thread` — Create thread
 - `GET /threads/{id}` — Get thread
 
@@ -113,7 +113,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `POST /messages/{id}/pin` — Pin message
 - `DELETE /messages/{id}/pin` — Unpin message
 
-### Read member
+### Read members
 - `GET /messages/{id}/read_member_ids` — List read members
 
 ### Reactions

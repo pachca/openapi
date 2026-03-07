@@ -28,9 +28,9 @@
 - [Group tags](#api-group-tags)
 - [Chats](#api-chats)
 - [Members](#api-members)
-- [Thread](#api-thread)
+- [Threads](#api-threads)
 - [Messages](#api-messages)
-- [Read member](#api-read-member)
+- [Read members](#api-read-members)
 - [Reactions](#api-reactions)
 - [Link Previews](#api-link-previews)
 - [Search](#api-search)
@@ -71,9 +71,9 @@
 - [Теги](/group-tags/create) — Группировка сотрудников по тегам
 - [Чаты](/chats/create) — Создание и управление чатами
 - [Участники чатов](/members/add-group-tags) — Добавление и удаление участников
-- [Треды](/thread/add) — Обсуждения внутри сообщений
+- [Threads](/threads/add)
 - [Сообщения](/messages/create) — Отправка, редактирование, удаление
-- [Прочтение сообщения](/read-member/list-readers) — Информация о прочтении
+- [Read members](/read-member/list-readers)
 - [Реакции на сообщения](/reactions/add) — Реакции на сообщения
 - [Ссылки](/link-previews/add) — Разворачивание ссылок (unfurl)
 - [Поиск](/search/list-chats)
@@ -334,7 +334,7 @@ npx skills add pachca/openapi
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.4 · 5 марта 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.5 · 7 марта 2026
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
@@ -509,8 +509,8 @@ dev.pachca.com/members/add      →  pachca members add
 | `pachca members remove-group-tag` | Исключение тега |
 | `pachca members leave` | Выход из беседы или канала |
 | `pachca members remove` | Исключение пользователя |
-| `pachca thread add` | Новый тред |
-| `pachca thread get` | Информация о треде |
+| `pachca threads add` | Новый тред |
+| `pachca threads get` | Информация о треде |
 | `pachca messages create` | Новое сообщение |
 | `pachca messages pin` | Закрепление сообщения |
 | `pachca messages list` | Список сообщений чата |
@@ -1027,7 +1027,7 @@ pachca changelog
 
 **Найти чат по имени и отправить сообщение**
 
-1. Получи список чатов, найди нужный по полю `name`
+1. Найди чат по названию через поиск
 2. Отправь сообщение в найденный чат
 
 > `entity_type` по умолчанию `"discussion"`, можно не указывать.
@@ -1313,7 +1313,7 @@ pachca changelog
 
 1. Полнотекстовый поиск по сотрудникам
 
-> Альтернатива GET /users?query= с более точным ранжированием.
+> Поиск по имени, email, должности и другим полям. Поддерживает сортировку по релевантности.
 
 ### pachca-security
 
@@ -17419,7 +17419,7 @@ echo $response;
 
 ---
 
-## API: Thread
+## API: Threads
 
 # Новый тред
 
@@ -17446,7 +17446,7 @@ echo $response;
 ### CLI
 
 ```bash
-pachca thread add 154332686 \
+pachca threads add 154332686 \
   --json \
   --token YOUR_ACCESS_TOKEN
 ```
@@ -17726,7 +17726,7 @@ echo $response;
 ### CLI
 
 ```bash
-pachca thread get 265142 \
+pachca threads get 265142 \
   --json \
   --token YOUR_ACCESS_TOKEN
 ```
@@ -21271,7 +21271,7 @@ echo $response;
 
 ---
 
-## API: Read member
+## API: Read members
 
 # Список прочитавших сообщение
 

@@ -1,126 +1,127 @@
 ---
 name: pachca-tasks
 description: >
-  Создание, получение, обновление и удаление задач (напоминаний). Используй когда
-  нужно: создать задачу, получить список задач, обновить задачу, удалить задачу.
-allowed-tools: Bash(curl *)
+  Create, get, update, and delete tasks (reminders). Use when: create task, list
+  tasks, update task, mark task done, delete task.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-tasks
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Пошаговые сценарии
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
 
-### Создать напоминание
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-**Требуется:** скоуп `tasks:create` · скоуп `custom_properties:read`
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-1. POST /tasks с `kind`, `content` и `due_at`. Чтобы привязать к чату — добавь `chat_id`. Чтобы заполнить дополнительные поля — добавь `custom_properties: [{"id": <field_id>, "value": "..."}]` (список полей: GET /custom_properties?entity_type=Task)
+Or set `PACHCA_TOKEN` for multiple commands:
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/tasks" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"task":{"kind":"reminder","content":"Позвонить клиенту","due_at":"$DUE_AT","chat_id":$CHAT_ID,"custom_properties":[{"id":78,"value":"Синий склад"}]}}'
-```
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-> Для привязки к чату нужно быть его участником. Если чат не найден — 404. Тип значения `custom_properties[].value` всегда строка (даже для числовых и date-полей). Дополнительные поля настраиваются администратором пространства.
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-### Получить список предстоящих задач
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-**Требуется:** скоуп `tasks:read`
+## Before you start
 
-1. GET /tasks с пагинацией (`limit`, `cursor`) — отфильтруй на клиенте по полю `status`: `"undone"` — не выполнена, `"done"` — выполнена
+1. If user has a saved profile — check status:
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/tasks?limit=50" \
-  -H "Authorization: Bearer $TOKEN"
-```
+       npx @pachca/cli auth status
 
-> Фильтрация по `status` на стороне API не поддерживается — фильтруй самостоятельно после получения.
+   If OK — use commands without `--token`.
 
-### Получить задачу по ID
+2. If profile is not configured — ask for token and use `--token` flag:
 
-**Требуется:** скоуп `tasks:read`
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-1. GET /tasks/{id} — полная информация о задаче, включая `custom_properties`, `performer_ids`, `status`
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/tasks/12345" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":{"id":12345,"kind":"reminder","content":"Позвонить клиенту","due_at":"2025-03-10T12:00:00.000Z","status":"undone","performer_ids":[186],...}}
-```
+## Step-by-step scenarios
 
-### Отметить задачу выполненной
+### Create reminder
 
-**Требуется:** скоуп `tasks:update`
+1. Create task:
+   ```bash
+   pachca tasks create --kind=reminder --content="Позвонить клиенту" --due-at=<дата> --chat-id=<chat_id>
+   ```
+   > `chat_id` to link to chat, `custom_properties` for additional fields
 
-1. PUT /tasks/{id} с `"status": "done"`
+> `custom_properties[].value` type is always string. Additional fields: GET /custom_properties?entity_type=Task.
 
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"task":{"status":"done"}}'
-```
 
-### Обновить задачу (перенести срок, сменить ответственных)
+### Get list of upcoming tasks
 
-**Требуется:** скоуп `tasks:update`
+1. Get all tasks, filter by `status` on client side:
+   ```bash
+   pachca tasks list --all
+   ```
+   > `status`: `"undone"` — not completed, `"done"` — completed. API-side filtering not supported
 
-1. PUT /tasks/{id} с нужными полями: `content`, `due_at`, `kind`, `priority`, `performer_ids`, `custom_properties`
 
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/12345" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"task":{"due_at":"2025-03-15T14:00:00.000+03:00","priority":2,"performer_ids":[186,187]}}'
-```
+### Get task by ID
 
-> Можно обновлять любые поля по отдельности. `performer_ids` заменяет весь список ответственных. `priority`: 1 (обычный), 2 (важно), 3 (очень важно).
+1. Get task info:
+   ```bash
+   pachca tasks get <ID>
+   ```
 
-### Удалить задачу
 
-**Требуется:** скоуп `tasks:delete`
+### Mark task as completed
 
-1. DELETE /tasks/{id}
+1. Update task status:
+   ```bash
+   pachca tasks update <ID> --status=done
+   ```
 
-```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/12345" \
-  -H "Authorization: Bearer $TOKEN"
-```
 
-> Удаление необратимо. Если нужно просто закрыть — используй PUT с `"status": "done"`.
+### Update task (reschedule, change assignees)
 
-### Создать серию напоминаний
+1. Update task fields:
+   ```bash
+   pachca tasks update <ID> --due-at=<дата> --priority=2 --performer-ids='[186,187]'
+   ```
+   > `performer_ids` replaces entire list. `priority`: 1 (normal), 2 (important), 3 (very important)
 
-**Требуется:** скоуп `tasks:create`
 
-1. Подготовь список дат (ежедневно, еженедельно и т.д.)
-2. Для каждой даты: POST /tasks с нужным `kind`, `content` и `due_at`
+### Delete task
 
-## Ограничения и gotchas
+1. Delete task:
+   ```bash
+   pachca tasks delete <ID> --force
+   ```
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
-- `task.kind`: допустимые значения — `call` (Позвонить контакту), `meeting` (Встреча), `reminder` (Простое напоминание), `event` (Событие), `email` (Написать письмо)
-- `task.status`: допустимые значения — `done` (Выполнено), `undone` (Активно)
-- `limit`: максимум 50
-- Пагинация: cursor-based (limit + cursor)
+> Deletion is irreversible. To just close — use PUT with `"status": "done"`.
 
-## Эндпоинты
 
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| POST | /tasks | tasks:create |
-| GET | /tasks | tasks:read |
-| GET | /tasks/{id} | tasks:read |
-| PUT | /tasks/{id} | tasks:update |
-| DELETE | /tasks/{id} | tasks:delete |
+### Create series of reminders
 
-## Подробнее
+1. Prepare list of dates (daily, weekly, etc.)
 
-см. [references/endpoints.md](references/endpoints.md)
+2. For each date: create task:
+   ```bash
+   pachca tasks create --kind=reminder --content="Напоминание" --due-at=<дата>
+   ```
+
+
+## Constraints and gotchas
+
+- Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `task.kind`: allowed values — `call` (Позвонить контакту), `meeting` (Встреча), `reminder` (Простое напоминание), `event` (Событие), `email` (Написать письмо)
+- `task.status`: allowed values — `done` (Выполнено), `undone` (Активно)
+- `limit`: max 50
+- Pagination: cursor-based (limit + cursor)
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /tasks | Новое напоминание |
+| GET | /tasks | Список напоминаний |
+| GET | /tasks/{id} | Информация о напоминании |
+| PUT | /tasks/{id} | Редактирование напоминания |
+| DELETE | /tasks/{id} | Удаление напоминания |
+
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

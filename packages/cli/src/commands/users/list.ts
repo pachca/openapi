@@ -6,9 +6,9 @@ export default class UsersList extends BaseCommand {
   static override description = "Список сотрудников";
 
   static override examples = [
-      "Отправить личное сообщение пользователю:\n  $ pachca users list",
-      "Упомянуть пользователя по имени:\n  $ pachca users list",
-      "Проверить, кто прочитал сообщение:\n  $ pachca users list"
+      "Проверить, кто прочитал сообщение:\n  $ pachca users list",
+      "Разослать уведомление нескольким пользователям:\n  $ pachca users list",
+      "Массовое создание сотрудников с тегами:\n  $ pachca users create"
   ];
 
   static scope = "users:read";

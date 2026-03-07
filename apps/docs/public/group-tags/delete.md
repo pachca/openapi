@@ -20,6 +20,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca group-tags delete 9111 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

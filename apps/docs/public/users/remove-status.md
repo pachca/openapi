@@ -18,6 +18,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca users remove-status 12 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

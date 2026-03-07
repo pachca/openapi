@@ -22,6 +22,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca members remove 334 186 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

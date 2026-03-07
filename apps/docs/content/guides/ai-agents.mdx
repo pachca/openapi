@@ -119,7 +119,7 @@ description: Как Пачка работает с AI-агентами и как
 
 Самый быстрый и производительный способ. Минимальное влияние на контекст агента — не нужно загружать документацию, агент узнаёт возможности через `--help`. Если есть доступ к shell, агент может генерировать скрипты для типовых задач.
 
-<CodeBlock language="bash" title="CLI">
+<CodeBlock language="bash">
 {`# Установка
 npm install -g @pachca/cli
 
@@ -143,7 +143,7 @@ pachca users list -o json`}
 
 Самый надёжный вариант для постоянной работы с API. [Context7](https://context7.com) — MCP-сервер, который отдаёт актуальную документацию прямо в контекст агента. Подходит для удалённых интеграций с OAuth, многошаговых сценариев и когда вы часто просите агента выполнять разные задачи в Пачке из промптов.
 
-<CodeBlock language="bash" title="Claude Code">
+<CodeBlock language="bash">
   {`claude mcp add context7 https://mcp.context7.com/mcp`}
 </CodeBlock>
 
@@ -159,7 +159,7 @@ pachca users list -o json`}
 
 Классический вариант для разработчиков. Наиболее полное описание API без дополнительных обвязок — типы, схемы, все эндпоинты. Подходит для кодогенерации (openapi-generator, Kiota, Orval), GPT Actions и когда вы строите собственную интеграцию с API.
 
-<CodeBlock language="text" title="OpenAPI">
+<CodeBlock language="text">
   {`https://dev.pachca.com/openapi.yaml`}
 </CodeBlock>
 
@@ -173,7 +173,7 @@ pachca users list -o json`}
 
 Набор специфичных знаний об API, разбитый на предметные области (сообщения, чаты, задачи и др.). Каждый скилл содержит описания методов, [сценарии](/guides/workflows) с curl-примерами, обработку ошибок и gotchas. Скиллы — не обязательный и не единственный способ работы с API, а отправная точка, которую можно модифицировать под свои задачи.
 
-<CodeBlock language="bash" title="Agent Skills">
+<CodeBlock language="bash">
   {`npx skills add pachca/openapi`}
 </CodeBlock>
 

@@ -4,6 +4,19 @@
 
 > Полная документация в одном файле: [llms-full.txt](https://dev.pachca.com/llms-full.txt)
 
+## CLI Quick Start
+
+```bash
+# Zero-install (npx)
+npx @pachca/cli <command> --token <TOKEN>
+
+# For regular use
+npm install -g @pachca/cli
+pachca auth login
+pachca messages create --entity-id=<chat_id> --content="Hello"
+pachca guide "отправить сообщение"  # CLI guide for humans
+```
+
 ## Руководства
 - [Обзор](https://dev.pachca.com/.md): Создавайте уникальные решения на одной платформе
 - [AI агенты](https://dev.pachca.com/guides/ai-agents.md): Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
@@ -121,15 +134,16 @@
 
 | Скилл | Описание |
 |-------|---------|
-| pachca-profile | Получение профиля текущего пользователя, управление своим статусом, кастомные поля сотрудников, проверка токена |
-| pachca-users | Управление сотрудниками и тегами (группами) |
-| pachca-chats | Управление каналами и беседами, участниками чатов |
-| pachca-messages | Отправка сообщений в каналы, беседы и личные чаты Пачки |
-| pachca-bots | Управление ботами, входящие/исходящие вебхуки, разворачивание ссылок (unfurling) |
-| pachca-forms | Интерактивные формы с полями ввода и кнопками для ботов |
-| pachca-tasks | Создание, получение, обновление и удаление задач (напоминаний) |
-| pachca-search | Полнотекстовый поиск по сотрудникам, чатам и сообщениям |
-| pachca-security | Журнал аудита событий безопасности |
+| pachca-profile | User profile, status management, custom fields, token verification |
+| pachca-users | Employee and tag (group) management |
+| pachca-chats | Channel and conversation management, chat members |
+| pachca-messages | Send messages to channels, conversations, and DMs |
+| pachca-bots | Bot management, incoming/outgoing webhooks, link unfurling |
+| pachca-forms | Interactive forms with input fields and buttons for bots |
+| pachca-tasks | Create, get, update, and delete tasks (reminders) |
+| pachca-search | Full-text search across employees, chats, and messages |
+| pachca-security | Security audit event log |
+| pachca | Pachca — corporate messenger with REST API and CLI |
 
 Установка: `npx skills add pachca/openapi`
 

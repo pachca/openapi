@@ -18,6 +18,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca members leave 334 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

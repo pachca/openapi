@@ -25,6 +25,16 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca bots list-events \
+  --limit=1 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

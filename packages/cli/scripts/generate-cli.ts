@@ -858,20 +858,20 @@ function toPascalCase(str: string): string {
 
 async function generateWorkflowsData(): Promise<void> {
   try {
-    // Dynamic import of workflows from apps/docs
-    const workflowsPath = path.join(ROOT, 'apps', 'docs', 'data', 'workflows.ts');
+    // Dynamic import of workflows from packages/spec
+    const workflowsPath = path.join(ROOT, 'packages', 'spec', 'workflows.ts');
     if (!fs.existsSync(workflowsPath)) return;
 
     const { WORKFLOWS } = await import(workflowsPath);
 
-    const entries: { title: string; skill: string; steps: { description: string; command?: string }[] }[] = [];
+    const entries: { title: string; skill: string; steps: { description: string; command?: string; notes?: string }[] }[] = [];
 
-    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string }[]; curl?: string }[]>)) {
+    for (const [skill, workflows] of Object.entries(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; notes?: string }[] }[]>)) {
       for (const w of workflows) {
         // Only include steps that have a command (skip text-only steps for CLI)
         const cliSteps = w.steps
           .filter((step) => step.command)
-          .map((step) => ({ description: step.description, command: step.command }));
+          .map((step) => ({ description: step.description, command: step.command, notes: step.notes }));
 
         // Skip workflows with no CLI commands
         if (cliSteps.length === 0) continue;
@@ -988,7 +988,7 @@ function generateReadme(commands: GeneratedCommand[]): void {
 async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, string[]>> {
   const map = new Map<string, string[]>();
   try {
-    const workflowsPath = path.join(ROOT, 'apps', 'docs', 'data', 'workflows.ts');
+    const workflowsPath = path.join(ROOT, 'packages', 'spec', 'workflows.ts');
     if (!fs.existsSync(workflowsPath)) return map;
 
     // Build mapping: "METHOD /path" → "pachca section action"
@@ -1001,31 +1001,26 @@ async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, 
     }
 
     const { WORKFLOWS } = await import(workflowsPath);
-    for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string }[] }[]>)) {
+    for (const workflows of Object.values(WORKFLOWS as Record<string, { title: string; steps: { description: string; command?: string; apiMethod?: string; apiPath?: string }[] }[]>)) {
       for (const w of workflows) {
         for (const step of w.steps) {
-          // Use explicit command if available, otherwise extract from description
-          if (step.command) {
-            // Extract CLI command name (first 3 words: "pachca section action")
+          if (step.command && step.apiPath) {
+            // Use explicit apiPath from step
             const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
-            // Find matching API path from pathToCommand
+            const apiPath = step.apiPath;
+            if (!map.has(apiPath)) map.set(apiPath, []);
+            const existing = map.get(apiPath)!;
+            const example = `${w.title}:\n  $ ${cmdBase}`;
+            if (!existing.includes(example)) existing.push(example);
+          } else if (step.command) {
+            // Fallback: try to match from description
             const match = step.description.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s?,—.()]+)/);
             if (match) {
               const apiPath = match[2];
               if (!map.has(apiPath)) map.set(apiPath, []);
               const existing = map.get(apiPath)!;
+              const cmdBase = step.command.split(/\s+/).slice(0, 3).join(' ');
               const example = `${w.title}:\n  $ ${cmdBase}`;
-              if (!existing.includes(example)) existing.push(example);
-            }
-          } else {
-            const match = step.description.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/[^\s?,—.()]+)/);
-            if (match) {
-              const apiPath = match[2];
-              const key = `${match[1]} ${apiPath}`;
-              const cliCmd = pathToCommand.get(key) || `pachca api ${match[1]} ${apiPath}`;
-              if (!map.has(apiPath)) map.set(apiPath, []);
-              const existing = map.get(apiPath)!;
-              const example = `${w.title}:\n  $ ${cliCmd}`;
               if (!existing.includes(example)) existing.push(example);
             }
           }

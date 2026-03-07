@@ -32,6 +32,15 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca group-tags create \
+  --name="Новое название тега" \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

@@ -4,6 +4,7 @@ import { BaseCommand } from '../base-command.js';
 interface WorkflowStep {
   description: string;
   command?: string;
+  notes?: string;
 }
 
 interface Workflow {
@@ -104,6 +105,9 @@ export default class Guide extends BaseCommand {
           process.stdout.write(`  ${i + 1}. $ ${step.command}\n`);
         } else {
           process.stdout.write(`  ${i + 1}. ${step.description}\n`);
+        }
+        if (step.notes) {
+          process.stdout.write(`     ${step.notes}\n`);
         }
       }
       process.stdout.write('\n');

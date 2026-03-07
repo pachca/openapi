@@ -27,6 +27,18 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca messages list \
+  --chat-id=198 \
+  --sort-id=desc \
+  --limit=1 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

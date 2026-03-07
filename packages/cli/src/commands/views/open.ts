@@ -8,7 +8,8 @@ export default class ViewsOpen extends BaseCommand {
 
   static override examples = [
       "Показать интерактивную форму пользователю:\n  $ pachca views open",
-      "Опрос сотрудников через форму:\n  $ pachca views open"
+      "Опрос сотрудников через форму:\n  $ pachca views open",
+      "Форма заявки/запроса:\n  $ pachca views open"
   ];
 
   static scope = "views:write";

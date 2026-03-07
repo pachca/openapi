@@ -45,6 +45,16 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca chats update 334 \
+  --name=Бассейн \
+  --public \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

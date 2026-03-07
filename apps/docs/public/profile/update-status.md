@@ -45,6 +45,19 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca profile update-status \
+  --emoji=🎮 \
+  --title="Очень занят" \
+  --expires-at=2024-04-08T10:00:00.000Z \
+  --is-away \
+  --away-message="Вернусь после 15:00" \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

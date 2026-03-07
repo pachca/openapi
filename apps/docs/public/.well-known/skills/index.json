@@ -5,75 +5,87 @@
   "skills": [
     {
       "name": "pachca-profile",
-      "description": "Получение профиля текущего пользователя, управление своим статусом, кастомные поля сотрудников, проверка токена. Используй когда нужно: получить свой профиль, установить/сбросить статус, узнать дополнительные поля, проверить скоупы токена. НЕ используй для: управления другими сотрудниками (→ pachca-users).",
+      "description": "User profile, status management, custom fields, token verification. Use when: get own profile, set/reset status, check custom fields, verify token scopes.",
       "files": [
-        "SKILL.md",
-        "references/endpoints.md"
+        "SKILL.md"
       ]
     },
     {
       "name": "pachca-users",
-      "description": "Управление сотрудниками и тегами (группами). Создание, обновление, удаление, поиск сотрудников. Онбординг и offboarding. Создание и управление тегами. Управление статусом сотрудника. Используй когда нужно: найти сотрудника, создать пользователя, онбординг/offboarding, управлять тегами, установить статус сотруднику. НЕ используй для: собственного профиля (→ pachca-profile).",
+      "description": "Employee and tag (group) management. Create, update, delete, search employees. Onboarding and offboarding. Tag management and employee status. Use when: find employee, create user, onboard/offboard, manage tags, set employee status.",
       "files": [
-        "SKILL.md",
-        "references/endpoints.md"
+        "SKILL.md"
       ]
     },
     {
       "name": "pachca-chats",
-      "description": "Управление каналами и беседами, участниками чатов. Создание, обновление, архивация чатов. Добавление/удаление участников, роли, экспорт сообщений. Используй когда нужно: создать канал, добавить участника, архивировать чат, найти активные/неактивные чаты, экспорт сообщений. НЕ используй для: отправки сообщений (→ pachca-messages).",
+      "description": "Channel and conversation management, chat members. Create, update, archive chats. Add/remove members, roles, message export. Use when: create channel, add member, archive chat, find active/inactive chats, export messages.",
       "files": [
         "SKILL.md",
-        "references/endpoints.md"
+        "references/archive-and-manage-chat.md",
+        "references/export-chat-history.md"
       ]
     },
     {
       "name": "pachca-messages",
-      "description": "Отправка сообщений в каналы, беседы и личные чаты Пачки. Ответы в треды, загрузка файлов, кнопки, реакции, закрепление, прочтения. Используй когда нужно: отправить сообщение, ответить в тред, прикрепить файл, добавить реакцию, получить историю чата, закрепить сообщение. НЕ используй для: создания каналов (→ pachca-chats), управления ботами (→ pachca-bots).",
+      "description": "Send messages to channels, conversations, and DMs. Reply to threads, upload files, buttons, reactions, pin, read receipts. Use when: send message, reply to thread, attach file, add reaction, get chat history, pin message.",
       "files": [
         "SKILL.md",
-        "references/endpoints.md"
+        "references/reply-to-user-who-messaged-the-bot.md",
+        "references/send-message-with-files.md",
+        "references/mention-user-by-name.md"
       ]
     },
     {
       "name": "pachca-bots",
-      "description": "Управление ботами, входящие/исходящие вебхуки, разворачивание ссылок (unfurling). Используй когда нужно: настроить бота, обработать вебхук, обработать нажатие кнопки, периодический дайджест, алерты, polling событий, развернуть ссылку. НЕ используй для: отправки сообщений от бота (→ pachca-messages), интерактивных форм (→ pachca-forms).",
+      "description": "Bot management, incoming/outgoing webhooks, link unfurling. Use when: set up bot, handle webhook, handle button click, periodic digest, alerts, polling events, unfurl link.",
       "files": [
         "SKILL.md",
-        "references/endpoints.md",
+        "references/handle-incoming-webhook-event.md",
+        "references/link-unfurling.md",
+        "references/handle-button-click-callback.md",
+        "references/monitoring-and-alerts.md",
+        "references/process-events-via-history-polling.md",
         "references/webhook-events.md"
       ]
     },
     {
       "name": "pachca-forms",
-      "description": "Интерактивные формы с полями ввода и кнопками для ботов. Используй когда нужно: показать форму, обработать submit формы, валидировать поля формы, создать модальное окно, опрос сотрудников. НЕ используй для: обычных кнопок в сообщениях (→ pachca-messages), настройки бота (→ pachca-bots).",
+      "description": "Interactive forms with input fields and buttons for bots. Use when: show form, handle form submit, validate fields, create modal, employee survey.",
       "files": [
         "SKILL.md",
-        "references/endpoints.md"
+        "references/show-interactive-form-to-user.md",
+        "references/handle-form-submission-viewsubmission.md",
+        "references/employee-survey-via-form.md",
+        "references/requestapplication-form.md"
       ]
     },
     {
       "name": "pachca-tasks",
-      "description": "Создание, получение, обновление и удаление задач (напоминаний). Используй когда нужно: создать задачу, получить список задач, обновить задачу, удалить задачу.",
+      "description": "Create, get, update, and delete tasks (reminders). Use when: create task, list tasks, update task, mark task done, delete task.",
       "files": [
-        "SKILL.md",
-        "references/endpoints.md"
+        "SKILL.md"
       ]
     },
     {
       "name": "pachca-search",
-      "description": "Полнотекстовый поиск по сотрудникам, чатам и сообщениям. Используй когда нужно: найти сообщение по тексту, найти чат по названию, найти сотрудника по имени. НЕ используй для: просмотра списка сотрудников (→ pachca-users), просмотра списка чатов (→ pachca-chats).",
+      "description": "Full-text search across employees, chats, and messages. Use when: find message by text, find chat by name, find employee by name.",
       "files": [
-        "SKILL.md",
-        "references/endpoints.md"
+        "SKILL.md"
       ]
     },
     {
       "name": "pachca-security",
-      "description": "Журнал аудита событий безопасности. Используй когда нужно: получить журнал аудита, просмотреть события безопасности, мониторинг входов, экспорт логов. НЕ используй для: обычных API-запросов (→ другие скиллы). Требует тариф «Корпорация».",
+      "description": "Security audit event log. Use when: get audit log, review security events, monitor logins, export logs. Requires \"Corporation\" plan.",
       "files": [
-        "SKILL.md",
-        "references/endpoints.md"
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "pachca",
+      "description": "Pachca — corporate messenger with REST API and CLI. Router skill: determines the right skill for the user's task. Use when user mentions Pachca, messenger, channels, messages, bots, tasks. Do NOT make API calls from this skill — route to the appropriate specialized skill.",
+      "files": [
+        "SKILL.md"
       ]
     }
   ]

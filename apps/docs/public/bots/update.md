@@ -47,6 +47,15 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca bots update 1738816 \
+  --webhook='{"outgoing_url":"https://www.website.com/tasks/new"}' \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

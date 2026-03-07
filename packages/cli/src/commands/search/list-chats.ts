@@ -6,6 +6,7 @@ export default class SearchListChats extends BaseCommand {
   static override description = "Поиск чатов";
 
   static override examples = [
+      "Найти чат по имени и отправить сообщение:\n  $ pachca search list-chats",
       "Найти чат по названию:\n  $ pachca search list-chats"
   ];
 

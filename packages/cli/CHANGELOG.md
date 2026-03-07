@@ -1,24 +1,40 @@
 # Changelog
 
+## 2026.3.4  (5 марта 2026)
+
+- **Добавлено** (all): Переменная окружения PACHCA_API_URL для использования кастомного base URL
+- **Изменено** (all): Исправлено выравнивание в уведомлении о доступном обновлении
+
+## 2026.3.3  (4 марта 2026)
+
+- **Добавлено** (all): Структурированные ошибки валидации: type, flag, hint в JSON-выводе
+- **Добавлено** (all): Батчинг ошибок валидации — все ошибки выводятся разом, а не по одной
+- **Добавлено** (all): Hint-подсказки в ошибках авторизации и профиля (pachca auth login, pachca auth list)
+- **Добавлено** (all): Описания команд и топиков переведены на русский язык
+- **Добавлено** (all): Подсказки связанных команд в описаниях ID-флагов (pachca chats list, pachca users list)
+- **Изменено** (introspect): Аргументы команды (args) в выводе, requiredFlags, улучшенная ошибка «команда не найдена»
+- **Изменено** (commands): Поле summary в выводе команд
+- **Изменено** (guide): Компактный вывод шагов ($ command), структурированные данные сценариев, фильтрация шагов без CLI-команд
+
 ## 2026.3.2  (4 марта 2026)
 
-  ~ auth login                          — Исправлена обработка ответа /oauth/token/info (обёртка { data })
-  ~ auth refresh                        — Исправлена обработка ответа /oauth/token/info (обёртка { data })
-  ~ doctor                              — Исправлена обработка ответа /oauth/token/info (обёртка { data })
-  ~ commands                            — --available фильтрует недоступные команды вместо колонки available
-  ~ auth login                          — Fallback-имя «User #ID» вместо «Unknown» при недоступном профиле
-  ~ all                                 — --version пропускает проверку авторизации
+- **Изменено** (auth login): Исправлена обработка ответа /oauth/token/info (обёртка { data })
+- **Изменено** (auth refresh): Исправлена обработка ответа /oauth/token/info (обёртка { data })
+- **Изменено** (doctor): Исправлена обработка ответа /oauth/token/info (обёртка { data })
+- **Изменено** (commands): --available фильтрует недоступные команды вместо колонки available
+- **Изменено** (auth login): Fallback-имя «User #ID» вместо «Unknown» при недоступном профиле
+- **Изменено** (all): --version пропускает проверку авторизации
 
 ## 2026.3.1  (4 марта 2026)
 
-  + all                                 — Все флаги в kebab-case (--first-name, --entity-id, --phone-number)
-  + all                                 — Boolean-флаги с --no- префиксом (--suspended / --no-suspended)
-  + all                                 — Хинт «через запятую» для массивных параметров (--chat-ids, --user-ids)
-  + all                                 — DELETE --json выводит {"ok":true} в stdout
-  + all                                 — POST/DELETE не ретраятся при сетевых ошибках
-  + common direct-url                   — Флаги в kebab-case, корректные wire names в FormData
-  + chats list                          — Флаг --sort-last-message-at (был --sort-last_message_at)
-  + guide                               — Поиск по сценариям использования API
-  + doctor                              — Диагностика окружения (Node.js, сеть, токен, версия)
-  + introspect                          — Метаинформация о командах и флагах для агентов
-  + api                                 — Прямые HTTP-запросы с -f/-F, --input, --query
+- **Добавлено** (all): Все флаги в kebab-case (--first-name, --entity-id, --phone-number)
+- **Добавлено** (all): Boolean-флаги с --no- префиксом (--suspended / --no-suspended)
+- **Добавлено** (all): Хинт «через запятую» для массивных параметров (--chat-ids, --user-ids)
+- **Добавлено** (all): DELETE --json выводит {"ok":true} в stdout
+- **Добавлено** (all): POST/DELETE не ретраятся при сетевых ошибках
+- **Добавлено** (common direct-url): Флаги в kebab-case, корректные wire names в FormData
+- **Добавлено** (chats list): Флаг --sort-last-message-at (был --sort-last_message_at)
+- **Добавлено** (guide): Поиск по сценариям использования API
+- **Добавлено** (doctor): Диагностика окружения (Node.js, сеть, токен, версия)
+- **Добавлено** (introspect): Метаинформация о командах и флагах для агентов
+- **Добавлено** (api): Прямые HTTP-запросы с -f/-F, --input, --query

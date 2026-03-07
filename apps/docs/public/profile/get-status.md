@@ -10,6 +10,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca profile get-status \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

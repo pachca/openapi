@@ -48,25 +48,35 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         let lang = language || 'json';
         if (lang === 'curl') lang = 'bash';
 
-        const html = highlighter.codeToHtml(code, {
+        // Replace <placeholder> with markers before Shiki (avoids operator coloring)
+        const placeholders: string[] = [];
+        const preprocessed = code.replace(
+          /<([\w\u0400-\u04FF][\w\u0400-\u04FF_-]*)>/g,
+          (_, name) => {
+            placeholders.push(name);
+            return `__PH${placeholders.length - 1}__`;
+          }
+        );
+
+        const html = highlighter.codeToHtml(preprocessed, {
           lang,
           themes: {
             light: 'one-light',
             dark: 'one-dark-pro',
           },
           defaultColor: false,
-          transformers: [
-            {
-              line(node, line) {
-                node.properties['data-line'] = line;
-              },
-            },
-          ],
         });
 
         if (isMounted) {
           // Clean up HTML to remove extra newlines between tags that cause spacing issues
-          const cleanedHtml = html.replace(/>\n+</g, '><');
+          let cleanedHtml = html.replace(/>\n+</g, '><');
+
+          // Restore placeholders with uniform styling
+          cleanedHtml = cleanedHtml.replace(
+            /__PH(\d+)__/g,
+            (_, i) => `<span class="code-placeholder">&lt;${placeholders[+i]}&gt;</span>`
+          );
+
           setHighlightedHtml(cleanedHtml);
         }
       } catch (error) {

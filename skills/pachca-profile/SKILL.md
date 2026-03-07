@@ -1,102 +1,114 @@
 ---
 name: pachca-profile
 description: >
-  Получение профиля текущего пользователя, управление своим статусом, кастомные
-  поля сотрудников, проверка токена. Используй когда нужно: получить свой профиль,
-  установить/сбросить статус, узнать дополнительные поля, проверить скоупы токена.
-  НЕ используй для: управления другими сотрудниками (→ pachca-users).
-allowed-tools: Bash(curl *)
+  User profile, status management, custom fields, token verification. Use when:
+  get own profile, set/reset status, check custom fields, verify token scopes.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-profile
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Когда НЕ использовать
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
 
-- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-## Пошаговые сценарии
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-### Получить свой профиль
+Or set `PACHCA_TOKEN` for multiple commands:
 
-**Требуется:** скоуп `profile:read`
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-1. GET /profile — возвращает полную информацию о текущем пользователе
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/profile" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":{"id":186,"first_name":"Иван","last_name":"Петров","email":"ivan@example.com","nickname":"ivanp","department":"Разработка","title":"Разработчик","role":"admin",...}}
-```
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-> Возвращает `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
+## Before you start
 
-### Проверить свой токен
+1. If user has a saved profile — check status:
 
-1. GET /oauth/token/info — возвращает информацию о текущем токене: скоупы, дату создания, срок жизни
+       npx @pachca/cli auth status
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
-  -H "Authorization: Bearer $TOKEN"
-# Ответ: {"data":{"id":123,"token":"abcd1234...ef56","name":"Мой токен","user_id":186,"scopes":["messages:create","chats:read"],"expires_in":7776000,...}}
-```
+   If OK — use commands without `--token`.
 
-> Полезно для диагностики: какие скоупы доступны токену, когда он истекает. Токен маскируется — видны первые 8 и последние 4 символа.
+2. If profile is not configured — ask for token and use `--token` flag:
 
-### Установить статус
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-**Требуется:** скоуп `profile_status:write`
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-1. PUT /profile/status с `emoji` и `title`. Чтобы включить режим «Нет на месте» — добавь `is_away: true`. Чтобы задать сообщение о недоступности — добавь `away_message: "текст"` (макс 1024 символа). Чтобы статус автоматически сбросился — добавь `expires_at` (ISO-8601, UTC+0)
+## Step-by-step scenarios
 
-```bash
-curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status":{"emoji":"🏖️","title":"В отпуске до 10 марта","is_away":true,"away_message":"Я в отпуске. По срочным вопросам — @ivanov","expires_at":"2025-03-10T23:59:59.000Z"}}'
-```
+### Get own profile
 
-### Сбросить статус
+1. Get current user info:
+   ```bash
+   pachca profile get
+   ```
 
-**Требуется:** скоуп `profile_status:write`
+> Returns `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
 
-1. DELETE /profile/status
 
-```bash
-curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
-  -H "Authorization: Bearer $TOKEN"
-```
+### Verify own token
 
-### Получить кастомные поля профиля
+1. Get token info: scopes, creation date, lifetime:
+   ```bash
+   pachca profile get-info
+   ```
 
-**Требуется:** скоуп `custom_properties:read` · скоуп `profile:read`
+> Useful for diagnostics: which scopes the token has, when it expires.
 
-1. GET /custom_properties?entity_type=User — список дополнительных полей для сотрудников (`id`, `name`, `data_type`)
-2. GET /profile — в ответе поле `custom_properties` содержит значения для текущего пользователя
 
-> Параметр `entity_type=User` фильтрует поля по типу сущности. Кастомные поля настраиваются администратором пространства. Значения хранятся в массиве `custom_properties` объекта `user`.
+### Set status
 
-## Ограничения и gotchas
+1. Set status:
+   ```bash
+   pachca profile update-status --emoji="🏖️" --title="В отпуске" --is-away --away-message="Я в отпуске до 10 марта" --expires-at="2025-03-10T23:59:59.000Z"
+   ```
+   > `is_away: true` — away mode. `expires_at` — auto-reset (ISO-8601, UTC+0). `away_message` — max 1024 chars
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
-- `status.away_message`: максимум 1024 символов
-- Пагинация: cursor-based (limit + cursor)
 
-## Эндпоинты
+### Reset status
 
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| GET | /custom_properties | custom_properties:read |
-| GET | /oauth/token/info | — |
-| GET | /profile | profile:read |
-| GET | /profile/status | profile_status:read |
-| PUT | /profile/status | profile_status:write |
-| DELETE | /profile/status | profile_status:write |
+1. Delete status:
+   ```bash
+   pachca profile delete-status --force
+   ```
 
-## Подробнее
 
-см. [references/endpoints.md](references/endpoints.md)
+### Get custom profile fields
+
+1. Get list of additional fields for employees:
+   ```bash
+   pachca common custom-properties --entity-type=User
+   ```
+   > Add `entity_type=User` to filter
+
+2. Get profile — `custom_properties` contains field values:
+   ```bash
+   pachca profile get
+   ```
+
+> Custom fields are configured by workspace admin.
+
+
+## Constraints and gotchas
+
+- Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `status.away_message`: max 1024 characters
+- Pagination: cursor-based (limit + cursor)
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /custom_properties | Список дополнительных полей |
+| GET | /oauth/token/info | Информация о токене |
+| GET | /profile | Информация о профиле |
+| GET | /profile/status | Текущий статус |
+| PUT | /profile/status | Новый статус |
+| DELETE | /profile/status | Удаление статуса |
+
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

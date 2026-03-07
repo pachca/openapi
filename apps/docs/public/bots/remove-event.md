@@ -22,6 +22,14 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca bots remove-event 01KAJZ2XDSS2S3DSW9EXJZ0TBV \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

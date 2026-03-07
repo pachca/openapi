@@ -416,7 +416,6 @@ html.dark .code-block-container .shiki span {
 }
 
 .code-block-container pre {
-  counter-reset: line;
   padding: 1.25rem 0 !important;
   margin: 0 !important;
   display: block;
@@ -427,29 +426,13 @@ html.dark .code-block-container .shiki span {
   font-size: 13px;
   line-height: 1.5;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 1rem;
   min-height: 0;
   min-width: 100%;
 }
 
-/* Номера строк */
-.code-block-container .line::before {
-  counter-increment: line;
-  content: counter(line);
-  display: inline-block;
-  vertical-align: top;
-  text-align: right;
-  width: 2.8rem;
-  padding-right: 0.8rem;
-  user-select: none;
-  font-size: 11px;
-  line-height: 1.5;
-  position: sticky;
-  left: 0;
-  z-index: 10;
-  background-color: var(--color-background-tertiary);
-  color: var(--color-text-tertiary);
-  padding-top: 1px;
+.headerless-code .code-block-container .line {
+  padding-right: 2.5rem;
 }
 
 .code-block-container .line::after {
@@ -465,6 +448,11 @@ html.dark .code-block-container .shiki span {
 
 .code-block-container .line span {
   font-size: 13px;
+}
+
+.code-block-container .code-placeholder {
+  color: var(--color-text-tertiary) !important;
+  font-style: italic;
 }
 
 @layer utilities {

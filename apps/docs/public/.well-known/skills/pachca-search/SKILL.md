@@ -1,80 +1,89 @@
 ---
 name: pachca-search
 description: >
-  Полнотекстовый поиск по сотрудникам, чатам и сообщениям. Используй когда нужно:
-  найти сообщение по тексту, найти чат по названию, найти сотрудника по имени. НЕ
-  используй для: просмотра списка сотрудников (→ pachca-users), просмотра списка
-  чатов (→ pachca-chats).
-allowed-tools: Bash(curl *)
+  Full-text search across employees, chats, and messages. Use when: find message
+  by text, find chat by name, find employee by name.
+allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
 # pachca-search
 
-Base URL: `https://api.pachca.com/api/shared/v1`
-Авторизация: `Authorization: Bearer <ACCESS_TOKEN>`
-Токен: бот (Автоматизации → Интеграции → API) или пользователь (Автоматизации → API).
-Если токен неизвестен — спроси у пользователя перед выполнением запросов.
+## Quick start
 
-## Когда НЕ использовать
+Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
 
-- найти сотрудника, создать пользователя, список сотрудников → **pachca-users**
-- создать канал, создать беседу, создать чат → **pachca-chats**
+Run commands with `npx @pachca/cli` and `--token` flag:
 
-## Пошаговые сценарии
+    npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-### Найти сообщение по тексту
+Or set `PACHCA_TOKEN` for multiple commands:
 
-**Требуется:** скоуп `search:messages`
+    export PACHCA_TOKEN=<token>
+    npx @pachca/cli <command>
 
-1. GET /search/messages?query=текст — полнотекстовый поиск. Пагинация: `limit` (до 200) и `cursor`. Общее количество результатов — в `meta.total`
+Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/search/messages?query=отчёт&limit=10" \
-  -H "Authorization: Bearer $TOKEN"
-```
+> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
-> Поиск возвращает сообщения из всех доступных чатов. Фильтры: `chat_ids[]` (конкретные чаты), `user_ids[]` (авторы), `active` (true — активные чаты, false — архивированные), `created_from`/`created_to` (период). Поле `root_chat_id` в ответе показывает корневой чат для сообщений из тредов.
+## Before you start
 
-### Найти чат по названию
+1. If user has a saved profile — check status:
 
-**Требуется:** скоуп `search:chats`
+       npx @pachca/cli auth status
 
-1. GET /search/chats?query=название — полнотекстовый поиск по чатам. Пагинация: `limit` (до 100) и `cursor`
+   If OK — use commands without `--token`.
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработка&limit=10" \
-  -H "Authorization: Bearer $TOKEN"
-```
+2. If profile is not configured — ask for token and use `--token` flag:
 
-> Фильтры: `active` (true — активные, false — архивированные), `chat_subtype` (`discussion` или `thread`), `personal` (true — только личные), `created_from`/`created_to` (период). Результаты сортируются по релевантности.
+       npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-### Найти сотрудника по имени
+3. If you don't know command parameters — run `pachca <command> --help`.
 
-**Требуется:** скоуп `search:users`
+## Step-by-step scenarios
 
-1. GET /search/users?query=имя — полнотекстовый поиск по сотрудникам. Пагинация: `limit` (до 200) и `cursor`. Сортировка: `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию) для релевантности
+### Find message by text
 
-```bash
-curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10" \
-  -H "Authorization: Bearer $TOKEN"
-```
+1. Full-text search across messages:
+   ```bash
+   pachca search list-messages --query="текст"
+   ```
+   > `limit` (up to 200), `cursor`. Filters: `chat_ids[]`, `user_ids[]`, `active`, `created_from`/`created_to`
 
-> Фильтры: `company_roles[]` (`user`, `admin`, `multi_guest`, `guest`), `created_from`/`created_to` (период). Альтернатива GET /users?query= с более точным ранжированием.
+> Searches all accessible chats. `root_chat_id` in response — root chat for threads.
 
-## Ограничения и gotchas
 
-- Rate limit: ~50 req/sec. При 429 — подожди и повтори.
-- `limit`: максимум — 100 (GET /search/chats), 200 (GET /search/messages), 200 (GET /search/users)
-- Пагинация: cursor-based (limit + cursor)
+### Find chat by name
 
-## Эндпоинты
+1. Full-text search across chats:
+   ```bash
+   pachca search list-chats --query="название"
+   ```
+   > `limit` (up to 100), `cursor`. Filters: `active`, `chat_subtype`, `personal`, `created_from`/`created_to`
 
-| Метод | Путь | Скоуп |
-|-------|------|-------|
-| GET | /search/chats | search:chats |
-| GET | /search/messages | search:messages |
-| GET | /search/users | search:users |
 
-## Подробнее
+### Find employee by name
 
-см. [references/endpoints.md](references/endpoints.md)
+1. Full-text search across employees:
+   ```bash
+   pachca search list-users --query="имя"
+   ```
+   > `sort=alphabetical` for alphabetical order, `sort=by_score` (default). Filters: `company_roles[]`, `created_from`/`created_to`
+
+> Alternative to GET /users?query= with more precise ranking.
+
+
+## Constraints and gotchas
+
+- Rate limit: ~50 req/sec. On 429 — wait and retry.
+- `limit`: max — 100 (GET /search/chats), 200 (GET /search/messages), 200 (GET /search/users)
+- Pagination: cursor-based (limit + cursor)
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /search/chats | Поиск чатов |
+| GET | /search/messages | Поиск сообщений |
+| GET | /search/users | Поиск сотрудников |
+
+> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.

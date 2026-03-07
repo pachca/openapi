@@ -23,6 +23,17 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca users list \
+  --query=Олег \
+  --limit=1 \
+  --cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9 \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

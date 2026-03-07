@@ -103,6 +103,24 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca messages create \
+  --entity-type=discussion \
+  --entity-id=334 \
+  --content="Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)" \
+  --files='[{"key":"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png","name":"logo.png","file_type":"image","size":12345,"width":800,"height":600}]' \
+  --buttons='[[{"text":"Подробнее","url":"https://example.com/details"},{"text":"Отлично!","data":"awesome"}]]' \
+  --parent-message-id=194270 \
+  --display-avatar-url=https://example.com/avatar.png \
+  --display-name="Бот Поддержки" \
+  --no-skip-invite-mentions \
+  --no-link-preview \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

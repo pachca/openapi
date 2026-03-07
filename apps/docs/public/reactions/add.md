@@ -48,6 +48,16 @@
 
 ## Примеры запроса
 
+### CLI
+
+```bash
+pachca reactions add 7231942 \
+  --code=👍 \
+  --name=:+1: \
+  --json \
+  --token YOUR_ACCESS_TOKEN
+```
+
 ### cURL
 
 ```bash

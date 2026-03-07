@@ -54,7 +54,9 @@ npx skills add pachca/openapi
 | `pachca-profile` | Профиль, статус, кастомные поля |
 | `pachca-users` | Сотрудники и теги (группы) |
 | `pachca-chats` | Каналы, беседы, участники, экспорт |
-| `pachca-messages` | Сообщения, треды, файлы, реакции, кнопки |
+| `pachca-messages` | Сообщения, файлы, реакции, кнопки |
+| `pachca-threads` | Треды (комментарии к сообщениям) |
+| `pachca-read-members` | Прочтение сообщений |
 | `pachca-bots` | Боты, вебхуки, unfurling |
 | `pachca-forms` | Интерактивные формы |
 | `pachca-tasks` | Напоминания (задачи) |

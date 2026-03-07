@@ -1,25 +1,25 @@
 import Foundation
 
 struct ViewBlockHeader: Codable {
-    let type: String // always "header"
+    let type: String
     let text: String
 }
 
 struct ViewBlockPlainText: Codable {
-    let type: String // always "plain_text"
+    let type: String
     let text: String
 }
 
 struct ViewBlockImage: Codable {
-    let type: String // always "image"
+    let type: String
     let url: String
     let alt: String?
 }
 
 enum ViewBlockUnion: Codable {
-    case header(ViewBlockHeader)
-    case plainText(ViewBlockPlainText)
-    case image(ViewBlockImage)
+    case viewBlockHeader(ViewBlockHeader)
+    case viewBlockPlainText(ViewBlockPlainText)
+    case viewBlockImage(ViewBlockImage)
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -29,29 +29,26 @@ enum ViewBlockUnion: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
         switch type {
-        case "header":
-            self = .header(try ViewBlockHeader(from: decoder))
-        case "plain_text":
-            self = .plainText(try ViewBlockPlainText(from: decoder))
-        case "image":
-            self = .image(try ViewBlockImage(from: decoder))
+        case "view_block_header":
+            self = .viewBlockHeader(try ViewBlockHeader(from: decoder))
+        case "view_block_plain_text":
+            self = .viewBlockPlainText(try ViewBlockPlainText(from: decoder))
+        case "view_block_image":
+            self = .viewBlockImage(try ViewBlockImage(from: decoder))
         default:
             throw DecodingError.dataCorrupted(
-                DecodingError.Context(
-                    codingPath: decoder.codingPath,
-                    debugDescription: "Unknown type: \(type)"
-                )
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unknown type: \(type)")
             )
         }
     }
 
     func encode(to encoder: Encoder) throws {
         switch self {
-        case .header(let value):
+        case .viewBlockHeader(let value):
             try value.encode(to: encoder)
-        case .plainText(let value):
+        case .viewBlockPlainText(let value):
             try value.encode(to: encoder)
-        case .image(let value):
+        case .viewBlockImage(let value):
             try value.encode(to: encoder)
         }
     }

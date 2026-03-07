@@ -11,43 +11,40 @@ struct CommonService {
         self.session = session
     }
 
-    func uploadFile(request body: FileUploadRequest) async throws {
-        let boundary = UUID().uuidString
+    func uploadFile(request body: FileUploadRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
         request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
         var data = Data()
         func appendField(_ name: String, _ value: String) {
             data.append("--\(boundary)\r\n".data(using: .utf8)!)
             data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
             data.append("\(value)\r\n".data(using: .utf8)!)
         }
-
-        if let v = body.contentDisposition { appendField("content-disposition", v) }
-        if let v = body.acl { appendField("acl", v) }
-        if let v = body.policy { appendField("policy", v) }
-        if let v = body.xAmzCredential { appendField("x-amz-credential", v) }
-        if let v = body.xAmzAlgorithm { appendField("x-amz-algorithm", v) }
-        if let v = body.xAmzDate { appendField("x-amz-date", v) }
-        if let v = body.xAmzSignature { appendField("x-amz-signature", v) }
-        appendField("key", body.key)
-
+        if let v = body.contentDisposition { appendField("content-disposition", String(describing: v)) }
+        if let v = body.acl { appendField("acl", String(describing: v)) }
+        if let v = body.policy { appendField("policy", String(describing: v)) }
+        if let v = body.xAmzCredential { appendField("x-amz-credential", String(describing: v)) }
+        if let v = body.xAmzAlgorithm { appendField("x-amz-algorithm", String(describing: v)) }
+        if let v = body.xAmzDate { appendField("x-amz-date", String(describing: v)) }
+        if let v = body.xAmzSignature { appendField("x-amz-signature", String(describing: v)) }
+        appendField("key", String(describing: body.key))
         data.append("--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
         data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
         data.append(body.file)
         data.append("\r\n".data(using: .utf8)!)
         data.append("--\(boundary)--\r\n".data(using: .utf8)!)
-
         request.httpBody = data
-        let (responseData, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: responseData)
+            throw try pachcaDecoder.decode(OAuthError.self, from: data)
         default:
             throw URLError(.badServerResponse)
         }

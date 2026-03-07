@@ -23,17 +23,17 @@ struct MessageSearchResult: Codable {
     }
 }
 
+struct SearchPaginationMetaPaginate: Codable {
+    let nextPage: String
+
+    enum CodingKeys: String, CodingKey {
+        case nextPage = "next_page"
+    }
+}
+
 struct SearchPaginationMeta: Codable {
     let total: Int
-    let paginate: Paginate
-
-    struct Paginate: Codable {
-        let nextPage: String
-
-        enum CodingKeys: String, CodingKey {
-            case nextPage = "next_page"
-        }
-    }
+    let paginate: SearchPaginationMetaPaginate
 }
 
 struct OAuthError: Codable, Error {

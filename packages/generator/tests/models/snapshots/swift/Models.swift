@@ -1,6 +1,5 @@
 import Foundation
 
-/// Роль пользователя
 enum UserRole: String, Codable, CaseIterable {
     /// Администратор
     case admin
@@ -24,7 +23,7 @@ struct User: Codable {
     let createdAt: Date
     let birthday: String?
     let tagIds: [Int]
-    let customProperties: [CustomProperty]?
+    let customProperties: [CustomProperty?]?
     let status: UserStatus?
 
     enum CodingKeys: String, CodingKey {
@@ -70,80 +69,80 @@ struct CustomProperty: Codable {
     }
 }
 
+struct UserCreateRequestUser: Codable {
+    let firstName: String
+    let lastName: String
+    let email: String
+    let role: UserRole?
+    let isActive: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case email
+        case role
+        case isActive = "is_active"
+    }
+}
+
 struct UserCreateRequest: Codable {
-    let user: UserData
+    let user: UserCreateRequestUser
+}
 
-    struct UserData: Codable {
-        let firstName: String
-        let lastName: String
-        let email: String
-        let role: UserRole?
-        let isActive: Bool?
+struct UserUpdateRequestUser: Codable {
+    let firstName: String?
+    let lastName: String?
+    let phoneNumber: String?
+    let role: UserRole?
 
-        enum CodingKeys: String, CodingKey {
-            case firstName = "first_name"
-            case lastName = "last_name"
-            case email
-            case role
-            case isActive = "is_active"
-        }
+    enum CodingKeys: String, CodingKey {
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case phoneNumber = "phone_number"
+        case role
     }
 }
 
 struct UserUpdateRequest: Codable {
-    let user: UserData
+    let user: UserUpdateRequestUser
+}
 
-    struct UserData: Codable {
-        let firstName: String?
-        let lastName: String?
-        let phoneNumber: String?
-        let role: UserRole?
+struct MessageCreateRequestFile: Codable {
+    let key: String
+    let name: String
+    let fileType: String
+    let size: Int
 
-        enum CodingKeys: String, CodingKey {
-            case firstName = "first_name"
-            case lastName = "last_name"
-            case phoneNumber = "phone_number"
-            case role
-        }
+    enum CodingKeys: String, CodingKey {
+        case key
+        case name
+        case fileType = "file_type"
+        case size
+    }
+}
+
+struct MessageCreateRequestButton: Codable {
+    let text: String
+    let url: String?
+    let data: String?
+}
+
+struct MessageCreateRequestMessage: Codable {
+    let entityId: Int
+    let content: String
+    let files: [MessageCreateRequestFile?]?
+    let buttons: [[MessageCreateRequestButton?]?]?
+
+    enum CodingKeys: String, CodingKey {
+        case entityId = "entity_id"
+        case content
+        case files
+        case buttons
     }
 }
 
 struct MessageCreateRequest: Codable {
-    let message: MessageData
-
-    struct MessageData: Codable {
-        let entityId: Int
-        let content: String
-        let files: [FileAttachment]?
-        let buttons: [[Button]]?
-
-        enum CodingKeys: String, CodingKey {
-            case entityId = "entity_id"
-            case content
-            case files
-            case buttons
-        }
-    }
-
-    struct FileAttachment: Codable {
-        let key: String
-        let name: String
-        let fileType: String
-        let size: Int
-
-        enum CodingKeys: String, CodingKey {
-            case key
-            case name
-            case fileType = "file_type"
-            case size
-        }
-    }
-
-    struct Button: Codable {
-        let text: String
-        let url: String?
-        let data: String?
-    }
+    let message: MessageCreateRequestMessage
 }
 
 struct ApiErrorItem: Codable {
@@ -152,34 +151,34 @@ struct ApiErrorItem: Codable {
 }
 
 struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem]?
+    let errors: [ApiErrorItem?]?
 }
 
 struct OAuthError: Codable, Error {
     let error: String?
 }
 
+struct PaginationMetaPaginate: Codable {
+    let nextPage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case nextPage = "next_page"
+    }
+}
+
 struct PaginationMeta: Codable {
-    let paginate: Paginate?
+    let paginate: PaginationMetaPaginate?
+}
 
-    struct Paginate: Codable {
-        let nextPage: String?
+struct SearchPaginationMetaPaginate: Codable {
+    let nextPage: String
 
-        enum CodingKeys: String, CodingKey {
-            case nextPage = "next_page"
-        }
+    enum CodingKeys: String, CodingKey {
+        case nextPage = "next_page"
     }
 }
 
 struct SearchPaginationMeta: Codable {
     let total: Int
-    let paginate: Paginate
-
-    struct Paginate: Codable {
-        let nextPage: String
-
-        enum CodingKeys: String, CodingKey {
-            case nextPage = "next_page"
-        }
-    }
+    let paginate: SearchPaginationMetaPaginate
 }

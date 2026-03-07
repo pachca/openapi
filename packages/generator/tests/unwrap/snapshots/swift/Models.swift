@@ -8,22 +8,22 @@ struct AddMembersRequest: Codable {
     }
 }
 
-struct ChatCreateRequest: Codable {
-    let chat: ChatData
+struct ChatCreateRequestChat: Codable {
+    let name: String
+    let channel: Bool?
+    let `public`: Bool?
+    let memberIds: [Int?]?
 
-    struct ChatData: Codable {
-        let name: String
-        let channel: Bool?
-        let `public`: Bool?
-        let memberIds: [Int]?
-
-        enum CodingKeys: String, CodingKey {
-            case name
-            case channel
-            case `public`
-            case memberIds = "member_ids"
-        }
+    enum CodingKeys: String, CodingKey {
+        case name
+        case channel
+        case `public` = "public"
+        case memberIds = "member_ids"
     }
+}
+
+struct ChatCreateRequest: Codable {
+    let chat: ChatCreateRequestChat
 }
 
 struct Chat: Codable {
@@ -48,7 +48,7 @@ struct ApiErrorItem: Codable {
 }
 
 struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem]?
+    let errors: [ApiErrorItem?]?
 }
 
 struct OAuthError: Codable, Error {

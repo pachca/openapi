@@ -9,7 +9,7 @@ enum ChatAvailability: String, Codable, CaseIterable {
     /// Чаты, где пользователь является участником
     case isMember = "is_member"
     /// Все открытые чаты компании
-    case `public`
+    case `public` = "public"
 }
 
 struct Chat: Codable {
@@ -18,7 +18,7 @@ struct Chat: Codable {
     let isChannel: Bool
     let isPublic: Bool
     let createdAt: Date
-    let memberIds: [Int]?
+    let memberIds: [Int?]?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -30,31 +30,36 @@ struct Chat: Codable {
     }
 }
 
+struct ChatCreateRequestChat: Codable {
+    let name: String
+    let channel: Bool?
+    let `public`: Bool?
+    let memberIds: [Int?]?
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case channel
+        case `public` = "public"
+        case memberIds = "member_ids"
+    }
+}
+
 struct ChatCreateRequest: Codable {
-    let chat: ChatData
+    let chat: ChatCreateRequestChat
+}
 
-    struct ChatData: Codable {
-        let name: String
-        let channel: Bool?
-        let `public`: Bool?
-        let memberIds: [Int]?
+struct ChatUpdateRequestChat: Codable {
+    let name: String?
+    let `public`: Bool?
 
-        enum CodingKeys: String, CodingKey {
-            case name
-            case channel
-            case `public`
-            case memberIds = "member_ids"
-        }
+    enum CodingKeys: String, CodingKey {
+        case name
+        case `public` = "public"
     }
 }
 
 struct ChatUpdateRequest: Codable {
-    let chat: ChatData
-
-    struct ChatData: Codable {
-        let name: String?
-        let `public`: Bool?
-    }
+    let chat: ChatUpdateRequestChat
 }
 
 struct ApiErrorItem: Codable {
@@ -63,28 +68,28 @@ struct ApiErrorItem: Codable {
 }
 
 struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem]?
+    let errors: [ApiErrorItem?]?
 }
 
 struct OAuthError: Codable, Error {
     let error: String?
 }
 
-struct PaginationMeta: Codable {
-    let paginate: Paginate?
+struct PaginationMetaPaginate: Codable {
+    let nextPage: String?
 
-    struct Paginate: Codable {
-        let nextPage: String?
-
-        enum CodingKeys: String, CodingKey {
-            case nextPage = "next_page"
-        }
+    enum CodingKeys: String, CodingKey {
+        case nextPage = "next_page"
     }
+}
+
+struct PaginationMeta: Codable {
+    let paginate: PaginationMetaPaginate?
 }
 
 struct ListChatsResponse: Codable {
     let data: [Chat]
-    let meta: PaginationMeta?
+    let meta: PaginationMeta? = nil
 }
 
 struct ChatDataWrapper: Codable {

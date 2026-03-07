@@ -11,7 +11,7 @@ struct LinkPreviewsService {
         self.session = session
     }
 
-    func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws {
+    func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }

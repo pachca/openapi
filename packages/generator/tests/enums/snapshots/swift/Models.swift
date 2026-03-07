@@ -5,7 +5,6 @@ enum SortOrder: String, Codable, CaseIterable {
     case desc
 }
 
-/// Роль пользователя
 enum UserRole: String, Codable, CaseIterable {
     /// Администратор
     case admin

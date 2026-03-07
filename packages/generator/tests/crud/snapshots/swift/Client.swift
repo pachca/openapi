@@ -11,20 +11,14 @@ struct ChatsService {
         self.session = session
     }
 
-    func listChats(
-        availability: ChatAvailability? = nil,
-        limit: Int? = nil,
-        cursor: String? = nil,
-        sortField: String? = nil,
-        sortOrder: SortOrder? = nil
-    ) async throws -> ListChatsResponse {
+    func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
         var components = URLComponents(string: "\(baseURL)/chats")!
         var queryItems: [URLQueryItem] = []
-        if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
-        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
-        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: cursor)) }
-        if let sortField { queryItems.append(URLQueryItem(name: "sort[field]", value: sortField)) }
-        if let sortOrder { queryItems.append(URLQueryItem(name: "sort[order]", value: sortOrder.rawValue)) }
+        if let availability { queryItems.append(URLQueryItem(name: "availability", value: String($0))) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String($0))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String($0))) }
+        if let sortField { queryItems.append(URLQueryItem(name: "sort[field]", value: String($0))) }
+        if let sortOrder { queryItems.append(URLQueryItem(name: "sort[order]", value: String($0))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -91,9 +85,9 @@ struct ChatsService {
         }
     }
 
-    func deleteChat(id: Int) async throws {
-        var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
-        request.httpMethod = "DELETE"
+    func archiveChat(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/archive")!)
+        request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
@@ -107,9 +101,9 @@ struct ChatsService {
         }
     }
 
-    func archiveChat(id: Int) async throws {
-        var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/archive")!)
-        request.httpMethod = "PUT"
+    func deleteChat(id: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
+        request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode

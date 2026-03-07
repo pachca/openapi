@@ -11,26 +11,18 @@ struct SearchService {
         self.session = session
     }
 
-    func searchMessages(
-        query: String,
-        chatIds: [Int]? = nil,
-        userIds: [Int]? = nil,
-        createdFrom: String? = nil,
-        createdTo: String? = nil,
-        sort: SearchSort? = nil,
-        limit: Int? = nil,
-        cursor: String? = nil
-    ) async throws -> SearchMessagesResponse {
+    func searchMessages(query: String, chatIds: [Int?]? = nil, userIds: [Int?]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
         var components = URLComponents(string: "\(baseURL)/search/messages")!
-        var queryItems: [URLQueryItem] = [URLQueryItem(name: "query", value: query)]
-        chatIds?.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) }
-        userIds?.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) }
-        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
-        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
-        if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
-        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
-        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: cursor)) }
-        components.queryItems = queryItems
+        var queryItems: [URLQueryItem] = []
+        queryItems.append(URLQueryItem(name: "query", value: String(query)))
+        if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
+        if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) } }
+        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String($0))) }
+        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String($0))) }
+        if let sort { queryItems.append(URLQueryItem(name: "sort", value: String($0))) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String($0))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String($0))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await session.data(for: request)

@@ -26,7 +26,7 @@ struct ApiErrorItem: Codable {
 }
 
 struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem]?
+    let errors: [ApiErrorItem?]?
 }
 
 struct OAuthError: Codable, Error {

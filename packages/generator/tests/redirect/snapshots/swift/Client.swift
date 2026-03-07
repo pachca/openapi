@@ -14,7 +14,6 @@ struct CommonService {
     func downloadExport(id: Int) async throws -> String {
         var request = URLRequest(url: URL(string: "\(baseURL)/exports/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-
         let delegate = RedirectPreventer()
         let (data, urlResponse) = try await session.data(for: request, delegate: delegate)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode

@@ -4332,6 +4332,7 @@ components:
             $ref: '#/components/schemas/ApiErrorItem'
           description: Массив ошибок
       description: Ошибка API (используется для 400, 403, 404, 409, 410, 422)
+      x-error: true
     ApiErrorItem:
       type: object
       required:
@@ -5913,6 +5914,7 @@ components:
           description: Описание ошибки
           example: Access token is missing
       description: Ошибка OAuth авторизации (используется для 401 и 403)
+      x-error: true
     OAuthScope:
       type: string
       enum:

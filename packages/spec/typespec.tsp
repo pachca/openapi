@@ -1364,6 +1364,7 @@ model AccessTokenInfo {
 // Error Models
 // ============================================================================
 
+@extension("x-error", true)
 @doc("Ошибка API (используется для 400, 403, 404, 409, 410, 422)")
 model ApiError {
   @doc("Массив ошибок")
@@ -1393,6 +1394,7 @@ model ApiErrorItem {
   payload: string | null;
 }
 
+@extension("x-error", true)
 @doc("Ошибка OAuth авторизации (используется для 401 и 403)")
 model OAuthError {
   @doc("Код ошибки")

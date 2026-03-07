@@ -72,6 +72,19 @@
         "vitest": "^3.1.1",
       },
     },
+    "packages/openapi-parser": {
+      "name": "@pachca/openapi-parser",
+      "version": "1.0.0",
+      "dependencies": {
+        "js-yaml": "^4.1.0",
+      },
+      "devDependencies": {
+        "@types/js-yaml": "^4.0.9",
+        "@types/node": "^22.14.0",
+        "typescript": "^5.7.3",
+        "vitest": "^3.1.1",
+      },
+    },
     "packages/spec": {
       "name": "@pachca/spec",
       "version": "1.0.0",
@@ -578,6 +591,8 @@
     "@pachca/go": ["@pachca/go@workspace:sdk/go"],
 
     "@pachca/kotlin": ["@pachca/kotlin@workspace:sdk/kotlin"],
+
+    "@pachca/openapi-parser": ["@pachca/openapi-parser@workspace:packages/openapi-parser"],
 
     "@pachca/python": ["@pachca/python@workspace:sdk/python"],
 

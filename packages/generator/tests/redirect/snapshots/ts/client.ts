@@ -1,4 +1,4 @@
-import { ApiError, OAuthError } from "./types";
+import { OAuthError, ApiError } from "./types";
 
 class CommonService {
   constructor(

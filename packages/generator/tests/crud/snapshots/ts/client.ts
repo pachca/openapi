@@ -1,11 +1,11 @@
 import {
+  ListChatsParams,
+  ListChatsResponse,
+  OAuthError,
   ApiError,
   Chat,
   ChatCreateRequest,
   ChatUpdateRequest,
-  ListChatsParams,
-  ListChatsResponse,
-  OAuthError,
 } from "./types";
 import { toCamelCase, toSnakeCase } from "./utils";
 
@@ -23,7 +23,9 @@ class ChatsService {
     if (params?.sortField !== undefined) query.set("sort[field]", params.sortField);
     if (params?.sortOrder !== undefined) query.set("sort[order]", params.sortOrder);
     const url = `${this.baseUrl}/chats${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, { headers: this.headers });
+    const response = await fetch(url, {
+      headers: this.headers,
+    });
     const body = await response.json();
     switch (response.status) {
       case 200:
@@ -84,9 +86,9 @@ class ChatsService {
     }
   }
 
-  async deleteChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}`, {
-      method: "DELETE",
+  async archiveChat(id: number): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/chats/${id}/archive`, {
+      method: "PUT",
       headers: this.headers,
     });
     switch (response.status) {
@@ -99,9 +101,9 @@ class ChatsService {
     }
   }
 
-  async archiveChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/archive`, {
-      method: "PUT",
+  async deleteChat(id: number): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/chats/${id}`, {
+      method: "DELETE",
       headers: this.headers,
     });
     switch (response.status) {

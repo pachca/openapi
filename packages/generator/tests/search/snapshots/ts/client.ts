@@ -1,8 +1,4 @@
-import {
-  OAuthError,
-  SearchMessagesParams,
-  SearchMessagesResponse,
-} from "./types";
+import { SearchMessagesParams, SearchMessagesResponse, OAuthError } from "./types";
 import { toCamelCase } from "./utils";
 
 class SearchService {
@@ -14,17 +10,17 @@ class SearchService {
   async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
     query.set("query", params.query);
-    if (params.chatIds !== undefined) {
+    if (params?.chatIds !== undefined) {
       params.chatIds.forEach((v) => query.append("chat_ids[]", String(v)));
     }
-    if (params.userIds !== undefined) {
+    if (params?.userIds !== undefined) {
       params.userIds.forEach((v) => query.append("user_ids[]", String(v)));
     }
-    if (params.createdFrom !== undefined) query.set("created_from", params.createdFrom);
-    if (params.createdTo !== undefined) query.set("created_to", params.createdTo);
-    if (params.sort !== undefined) query.set("sort", params.sort);
-    if (params.limit !== undefined) query.set("limit", String(params.limit));
-    if (params.cursor !== undefined) query.set("cursor", params.cursor);
+    if (params?.createdFrom !== undefined) query.set("created_from", params.createdFrom);
+    if (params?.createdTo !== undefined) query.set("created_to", params.createdTo);
+    if (params?.sort !== undefined) query.set("sort", params.sort);
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const response = await fetch(`${this.baseUrl}/search/messages?${query}`, {
       headers: this.headers,
     });

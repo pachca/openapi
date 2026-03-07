@@ -1,4 +1,4 @@
-import { ApiError, LinkPreviewsRequest, OAuthError } from "./types";
+import { LinkPreviewsRequest, OAuthError, ApiError } from "./types";
 import { toSnakeCase } from "./utils";
 
 class LinkPreviewsService {
@@ -14,7 +14,7 @@ class LinkPreviewsService {
       body: JSON.stringify(toSnakeCase(request)),
     });
     switch (response.status) {
-      case 204:
+      case 201:
         return;
       case 401:
         throw new OAuthError((await response.json()).error);

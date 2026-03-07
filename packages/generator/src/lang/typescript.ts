@@ -1,11 +1,700 @@
-import type { IR } from '../ir.js';
+import type {
+  IR,
+  IREnum,
+  IRModel,
+  IRUnion,
+  IRField,
+  IRFieldType,
+  IRService,
+  IROperation,
+  IRParam,
+  IRResponseType,
+} from '../ir.js';
 import type { GeneratedFile, LanguageGenerator } from './types.js';
+import {
+  snakeToCamel,
+  snakeToPascal,
+  kebabToCamel,
+  tagToProperty,
+  tagToServiceName,
+} from '../naming.js';
+
+function fieldSdkName(field: IRField): string {
+  if (field.name.includes('-')) return kebabToCamel(field.name);
+  return snakeToCamel(field.name);
+}
+
+function tsPrimitive(ft: IRFieldType): string {
+  if (ft.primitive === 'integer' || ft.primitive === 'number') return 'number';
+  if (ft.primitive === 'boolean') return 'boolean';
+  return 'string';
+}
+
+function isTypeNullable(field: IRField): boolean {
+  return field.nullable;
+}
+
+function collectModelRefs(ft: IRFieldType, refs: string[]): void {
+  if (ft.kind === 'model' && ft.ref) refs.push(ft.ref);
+  if (ft.kind === 'array' && ft.items) collectModelRefs(ft.items, refs);
+  if (ft.kind === 'record' && ft.valueType) collectModelRefs(ft.valueType, refs);
+  if (ft.kind === 'union' && ft.members) {
+    for (const m of ft.members) collectModelRefs(m, refs);
+  }
+}
+
+function tsType(
+  ft: IRFieldType,
+  opts: {
+    parent?: IRModel;
+    allModels: Map<string, IRModel>;
+    inlineAsObject: Set<string>;
+  },
+): string {
+  switch (ft.kind) {
+    case 'primitive':
+      return tsPrimitive(ft);
+    case 'binary':
+      return 'File | Blob';
+    case 'enum':
+    case 'model':
+    case 'union':
+      if (ft.ref && opts.parent && opts.inlineAsObject.has(ft.ref)) {
+        const inl = opts.parent.inlineObjects.find((m) => m.name === ft.ref);
+        if (inl) return inlineObjectType(inl, opts);
+      }
+      return ft.ref ?? 'unknown';
+    case 'array': {
+      const inner = tsType(ft.items!, opts);
+      return inner.includes(' | ') ? `(${inner})[]` : `${inner}[]`;
+    }
+    case 'record':
+      return `Record<string, ${tsType(ft.valueType!, opts)}>`;
+    case 'literal':
+      return JSON.stringify(ft.literalValue ?? '');
+  }
+}
+
+function defaultComment(field: IRField): string | null {
+  if (field.defaultValue === undefined) return null;
+  return `/** @default ${String(field.defaultValue)} */`;
+}
+
+function emitField(
+  lines: string[],
+  field: IRField,
+  opts: {
+    parent?: IRModel;
+    allModels: Map<string, IRModel>;
+    inlineAsObject: Set<string>;
+  },
+  indent = '  ',
+): void {
+  const doc = defaultComment(field);
+  if (doc) lines.push(`${indent}${doc}`);
+  const name = fieldSdkName(field);
+  const optional = !field.required ? '?' : '';
+  const type = tsType(field.type, opts);
+  const renderedType = type.includes('\n') ? type.replace(/\n/g, `\n${indent}`) : type;
+  const nullable = isTypeNullable(field) ? ' | null' : '';
+  lines.push(`${indent}${name}${optional}: ${renderedType}${nullable};`);
+}
+
+function inlineObjectType(
+  model: IRModel,
+  opts: {
+    allModels: Map<string, IRModel>;
+    inlineAsObject: Set<string>;
+  },
+): string {
+  const lines: string[] = [];
+  lines.push('{');
+  for (const f of model.fields) {
+    const doc = defaultComment(f);
+    if (doc) lines.push(`  ${doc}`);
+    const name = fieldSdkName(f);
+    const optional = !f.required ? '?' : '';
+    const type = tsType(f.type, { parent: model, ...opts });
+    const nullable = isTypeNullable(f) ? ' | null' : '';
+    lines.push(`  ${name}${optional}: ${type}${nullable};`);
+  }
+  lines.push('}');
+  return lines.join('\n');
+}
+
+function enumMemberName(value: string): string {
+  return value
+    .split(/[_\-\s]+/)
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join('');
+}
+
+function emitEnum(lines: string[], e: IREnum): void {
+  if (e.description && e.hasDescriptions && e.members.length > 1) {
+    lines.push(`/** ${e.description} */`);
+  }
+  lines.push(`export enum ${e.name} {`);
+  for (const m of e.members) {
+    if (m.description) lines.push(`  /** ${m.description} */`);
+    lines.push(`  ${enumMemberName(m.value)} = ${JSON.stringify(m.value)},`);
+  }
+  lines.push('}');
+}
+
+function emitErrorClass(lines: string[], m: IRModel): void {
+  if (m.name === 'ApiError') {
+    lines.push('export class ApiError extends Error {');
+    lines.push('  errors?: ApiErrorItem[];');
+    lines.push('  constructor(errors?: ApiErrorItem[]) {');
+    lines.push('    super(errors?.map((e) => `${e.key}: ${e.value}`).join(", "));');
+    lines.push('    this.errors = errors;');
+    lines.push('  }');
+    lines.push('}');
+    return;
+  }
+  if (m.name === 'OAuthError') {
+    lines.push('export class OAuthError extends Error {');
+    lines.push('  error?: string;');
+    lines.push('  constructor(error?: string) {');
+    lines.push('    super(error);');
+    lines.push('    this.error = error;');
+    lines.push('  }');
+    lines.push('}');
+    return;
+  }
+
+  lines.push(`export class ${m.name} extends Error {`);
+  for (const f of m.fields) {
+    lines.push(`  ${fieldSdkName(f)}${f.required ? '' : '?'}: ${tsType(f.type, { allModels: new Map(), inlineAsObject: new Set() })}${f.nullable ? ' | null' : ''};`);
+  }
+  lines.push(`  constructor(init: Partial<${m.name}> = {}) {`);
+  lines.push('    super();');
+  for (const f of m.fields) {
+    lines.push(`    this.${fieldSdkName(f)} = init.${fieldSdkName(f)};`);
+  }
+  lines.push('  }');
+  lines.push('}');
+}
+
+function emitModel(
+  lines: string[],
+  m: IRModel,
+  opts: {
+    allModels: Map<string, IRModel>;
+    inlineAsObject: Set<string>;
+  },
+): void {
+  if (m.isError) {
+    emitErrorClass(lines, m);
+    return;
+  }
+
+  lines.push(`export interface ${m.name} {`);
+  for (const f of m.fields) {
+    emitField(lines, f, { parent: m, ...opts });
+  }
+  lines.push('}');
+}
+
+function emitUnion(lines: string[], u: IRUnion): void {
+  lines.push(`export type ${u.name} = ${u.memberRefs.join(' | ')};`);
+}
+
+function emitParamsType(lines: string[], p: { name: string; params: IRParam[] }): void {
+  lines.push(`export interface ${p.name} {`);
+  for (const param of p.params) {
+    const type = tsType(param.type, {
+      allModels: new Map(),
+      inlineAsObject: new Set(),
+    });
+    const opt = param.required ? '' : '?';
+    lines.push(`  ${param.sdkName}${opt}: ${type};`);
+  }
+  lines.push('}');
+}
+
+function emitResponseType(lines: string[], rt: IRResponseType): void {
+  lines.push(`export interface ${rt.name} {`);
+  lines.push(`  data: ${rt.dataRef}[];`);
+  if (rt.metaRef) {
+    const opt = rt.metaIsRequired ? '' : '?';
+    lines.push(`  meta${opt}: ${rt.metaRef};`);
+  }
+  lines.push('}');
+}
+
+function buildInlineAsObjectSet(ir: IR): Set<string> {
+  const refCounts = new Map<string, number>();
+  for (const m of ir.models) {
+    for (const f of m.fields) {
+      const refs: string[] = [];
+      collectModelRefs(f.type, refs);
+      for (const ref of refs) {
+        refCounts.set(ref, (refCounts.get(ref) ?? 0) + 1);
+      }
+    }
+  }
+
+  const inlineAsObject = new Set<string>();
+  for (const m of ir.models) {
+    const inlineNames = new Set(m.inlineObjects.map((x) => x.name));
+    for (const f of m.fields) {
+      if (f.type.kind === 'model' && f.type.ref && inlineNames.has(f.type.ref)) {
+        if ((refCounts.get(f.type.ref) ?? 0) === 1) {
+          inlineAsObject.add(f.type.ref);
+        }
+      }
+    }
+  }
+  return inlineAsObject;
+}
+
+function generateTypes(ir: IR): string {
+  const lines: string[] = [];
+  const allModels = new Map(ir.models.map((m) => [m.name, m]));
+  const inlineAsObject = buildInlineAsObjectSet(ir);
+  const unionMembers = new Set<string>();
+  for (const u of ir.unions) for (const ref of u.memberRefs) unionMembers.add(ref);
+
+  for (const e of ir.enums) {
+    emitEnum(lines, e);
+    lines.push('');
+  }
+
+  for (const m of ir.models) {
+    for (const inl of m.inlineObjects) {
+      if (inlineAsObject.has(inl.name)) continue;
+      emitModel(lines, inl, { allModels, inlineAsObject });
+      lines.push('');
+    }
+    if (unionMembers.has(m.name)) {
+      emitModel(lines, m, { allModels, inlineAsObject });
+      lines.push('');
+      continue;
+    }
+    emitModel(lines, m, { allModels, inlineAsObject });
+    lines.push('');
+  }
+
+  for (const u of ir.unions) {
+    emitUnion(lines, u);
+    lines.push('');
+  }
+
+  for (const p of ir.params) {
+    emitParamsType(lines, p);
+    lines.push('');
+  }
+
+  for (const rt of ir.responses) {
+    emitResponseType(lines, rt);
+    lines.push('');
+  }
+
+  while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+  lines.push('');
+  return lines.join('\n');
+}
+
+function methodArgs(op: IROperation): string {
+  const args: string[] = [];
+  for (const p of op.pathParams) {
+    args.push(`${p.sdkName}: ${tsType(p.type, { allModels: new Map(), inlineAsObject: new Set() })}`);
+  }
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    const unwrapField = rb.unwrapField;
+    const shouldUnwrap =
+      rb.unwrapMode === 'single' &&
+      unwrapField &&
+      unwrapField.type.kind !== 'model' &&
+      unwrapField.type.kind !== 'record';
+    if (shouldUnwrap) {
+      args.push(
+        `${snakeToCamel(unwrapField.name)}: ${tsType(unwrapField.type, {
+          allModels: new Map(),
+          inlineAsObject: new Set(),
+        })}`,
+      );
+    } else if (rb.schemaRef) {
+      args.push(`request: ${rb.schemaRef}`);
+    }
+  }
+  if (op.queryParams.length > 0) {
+    const p = irParamTypeName(op);
+    const hasRequired = op.queryParams.some((q) => q.required);
+    args.push(hasRequired ? `params: ${p}` : `params?: ${p}`);
+  }
+  return args.join(', ');
+}
+
+function irParamTypeName(op: IROperation): string {
+  const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+  return `${pascal}Params`;
+}
+
+function responseTypeName(op: IROperation, ir: IR): string {
+  if (op.successResponse.isRedirect) return 'string';
+  if (!op.successResponse.hasBody) return 'void';
+  if (op.successResponse.isList) {
+    const rt = ir.responses.find(
+      (r) =>
+        r.dataRef === op.successResponse.dataRef &&
+        r.dataIsArray,
+    );
+    return rt?.name ?? 'unknown';
+  }
+  return op.successResponse.dataRef ?? 'unknown';
+}
+
+function escapeTemplatePath(path: string, op: IROperation): string {
+  let p = path;
+  for (const param of op.pathParams) {
+    const interpolation = `\${${param.sdkName}}`;
+    p = p.replace(`{${param.name}}`, interpolation);
+    if (param.name !== param.sdkName) {
+      p = p.replace(`{${param.sdkName}}`, interpolation);
+    }
+  }
+  return p;
+}
+
+function queryValueExpr(p: IRParam, valueExpr: string): string {
+  if (p.type.kind === 'primitive' && (p.type.primitive === 'integer' || p.type.primitive === 'number')) {
+    return `String(${valueExpr})`;
+  }
+  return valueExpr;
+}
+
+function generateClient(ir: IR): { content: string; needsUtils: boolean } {
+  const lines: string[] = [];
+  const importedTypes: string[] = [];
+  const importedSet = new Set<string>();
+  const addImport = (name: string): void => {
+    if (!importedSet.has(name)) {
+      importedSet.add(name);
+      importedTypes.push(name);
+    }
+  };
+  let needsToCamel = false;
+  let needsToSnake = false;
+  const hasServices = ir.services.length > 0;
+  const inlineAsObject = buildInlineAsObjectSet(ir);
+
+  if (hasServices) {
+    for (const svc of ir.services) {
+      for (const op of svc.operations) {
+        for (const p of op.pathParams) {
+          const refs: string[] = [];
+          collectModelRefs(p.type, refs);
+          for (const r of refs) addImport(r);
+        }
+        if (op.requestBody?.schemaRef) {
+          addImport(op.requestBody.schemaRef);
+          const rb = op.requestBody;
+          const shouldUnwrap =
+            rb.unwrapMode === 'single' &&
+            rb.unwrapField &&
+            rb.unwrapField.type.kind !== 'model' &&
+            rb.unwrapField.type.kind !== 'record';
+          if (!shouldUnwrap && rb.contentType === 'json') needsToSnake = true;
+        }
+        if (op.queryParams.length > 0) addImport(irParamTypeName(op));
+        if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
+          needsToCamel = true;
+          if (op.successResponse.isList) {
+            addImport(responseTypeName(op, ir));
+          } else if (op.successResponse.dataRef) {
+            addImport(op.successResponse.dataRef);
+          }
+        }
+        if (op.hasOAuthError || ir.models.some((m) => m.name === 'OAuthError')) {
+          addImport('OAuthError');
+        }
+        if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
+          addImport('ApiError');
+        }
+      }
+    }
+  } else {
+    for (const e of ir.enums) addImport(e.name);
+    for (const m of ir.models) {
+      for (const inl of m.inlineObjects) {
+        if (!inlineAsObject.has(inl.name)) addImport(inl.name);
+      }
+      addImport(m.name);
+    }
+    for (const u of ir.unions) addImport(u.name);
+    for (const p of ir.params) addImport(p.name);
+    for (const r of ir.responses) addImport(r.name);
+  }
+
+  const typesList = importedTypes;
+  if (typesList.length > 0) {
+    if (typesList.length <= 3) {
+      lines.push(`import { ${typesList.join(', ')} } from "./types";`);
+    } else {
+      lines.push('import {');
+      for (const t of typesList) lines.push(`  ${t},`);
+      lines.push('} from "./types";');
+    }
+  }
+
+  if (needsToCamel || needsToSnake) {
+    const utils = [needsToCamel ? 'toCamelCase' : null, needsToSnake ? 'toSnakeCase' : null]
+      .filter((x): x is string => !!x)
+      .join(', ');
+    lines.push(`import { ${utils} } from "./utils";`);
+  }
+
+  if (hasServices) lines.push('');
+
+  for (const svc of ir.services) {
+    emitService(lines, svc, ir);
+    lines.push('');
+  }
+
+  if (hasServices) {
+    lines.push('export class PachcaClient {');
+    const serviceEntries = ir.services
+      .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
+      .sort((a, b) => a.prop.localeCompare(b.prop));
+    for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
+    lines.push('');
+    lines.push('  constructor(baseUrl: string, token: string) {');
+    lines.push('    const headers = { Authorization: `Bearer ${token}` };');
+    for (const s of serviceEntries) {
+      lines.push(`    this.${s.prop} = new ${s.cls}(baseUrl, headers);`);
+    }
+    lines.push('  }');
+    lines.push('}');
+  }
+
+  while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+  lines.push('');
+  return { content: lines.join('\n'), needsUtils: needsToCamel || needsToSnake };
+}
+
+function emitService(lines: string[], svc: IRService, ir: IR): void {
+  const serviceName = tagToServiceName(svc.tag);
+  lines.push(`class ${serviceName} {`);
+  lines.push('  constructor(');
+  lines.push('    private baseUrl: string,');
+  lines.push('    private headers: Record<string, string>,');
+  lines.push('  ) {}');
+  lines.push('');
+  for (let i = 0; i < svc.operations.length; i++) {
+    emitOperation(lines, svc.operations[i], ir);
+    if (i < svc.operations.length - 1) lines.push('');
+  }
+  lines.push('}');
+}
+
+function emitOperation(lines: string[], op: IROperation, ir: IR): void {
+  const args = methodArgs(op);
+  const ret = responseTypeName(op, ir);
+  const path = escapeTemplatePath(op.path, op);
+  lines.push(`  async ${op.methodName}(${args}): Promise<${ret}> {`);
+
+  if (op.requestBody?.contentType === 'multipart') {
+    lines.push('    const form = new FormData();');
+    const reqModel = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
+    if (reqModel) {
+      const nonBinary = reqModel.fields.filter((f) => f.type.kind !== 'binary');
+      const binary = reqModel.fields.find((f) => f.type.kind === 'binary');
+      for (const f of nonBinary) {
+        const sdk = fieldSdkName(f);
+        const optional = !f.required || f.nullable;
+        if (optional) {
+          lines.push(
+            `    if (request.${sdk} !== undefined) form.set(${JSON.stringify(f.name)}, request.${sdk});`,
+          );
+        }
+      }
+      for (const f of nonBinary) {
+        const sdk = fieldSdkName(f);
+        const optional = !f.required || f.nullable;
+        if (!optional) {
+          lines.push(`    form.set(${JSON.stringify(f.name)}, request.${sdk});`);
+        }
+      }
+      if (binary) {
+        const sdk = fieldSdkName(binary);
+        lines.push(`    form.set(${JSON.stringify(binary.name)}, request.${sdk});`);
+      }
+    }
+    lines.push(`    const response = await fetch(\`${'${this.baseUrl}'}${path}\`, {`);
+    lines.push(`      method: ${JSON.stringify(op.method)},`);
+    lines.push('      headers: this.headers,');
+    lines.push('      body: form,');
+    lines.push('    });');
+    emitResponseSwitch(lines, op, ir, false);
+    lines.push('  }');
+    return;
+  }
+
+  const hasQuery = op.queryParams.length > 0;
+  if (hasQuery) {
+    lines.push('    const query = new URLSearchParams();');
+    for (const p of op.queryParams) {
+      if (p.isArray) {
+        const cond = p.required ? `params.${p.sdkName}` : `params?.${p.sdkName}`;
+        const arr = `params.${p.sdkName}`;
+        lines.push(`    if (${cond} !== undefined) {`);
+        lines.push(`      ${arr}.forEach((v) => query.append(${JSON.stringify(p.name)}, String(v)));`);
+        lines.push('    }');
+      } else {
+        const value = `params.${p.sdkName}`;
+        const setVal = queryValueExpr(p, value);
+        if (p.required) {
+          lines.push(`    query.set(${JSON.stringify(p.name)}, ${setVal});`);
+        } else {
+          lines.push(`    if (params?.${p.sdkName} !== undefined) query.set(${JSON.stringify(p.name)}, ${setVal});`);
+        }
+      }
+    }
+  }
+
+  const hasRequiredQuery = op.queryParams.some((p) => p.required);
+  const fetchTarget = hasQuery
+    ? hasRequiredQuery
+      ? `\`${'${this.baseUrl}'}${path}?${'${query}'}\``
+      : 'url'
+    : `\`${'${this.baseUrl}'}${path}\``;
+  if (hasQuery && !hasRequiredQuery) {
+    lines.push(`    const url = \`${'${this.baseUrl}'}${path}${'${query.toString() ? `?${query}` : ""}'}\`;`);
+  }
+
+  lines.push(`    const response = await fetch(${fetchTarget}, {`);
+  if (op.method !== 'GET') lines.push(`      method: ${JSON.stringify(op.method)},`);
+  lines.push(
+    `      headers: ${
+      op.requestBody?.contentType === 'json'
+        ? '{ ...this.headers, "Content-Type": "application/json" }'
+        : 'this.headers'
+    },`,
+  );
+
+  if (op.successResponse.isRedirect) {
+    lines.push('      redirect: "manual",');
+  }
+
+  if (op.requestBody?.contentType === 'json') {
+    const rb = op.requestBody;
+    const shouldUnwrap =
+      rb.unwrapMode === 'single' &&
+      rb.unwrapField &&
+      rb.unwrapField.type.kind !== 'model' &&
+      rb.unwrapField.type.kind !== 'record';
+    if (shouldUnwrap) {
+      const f = rb.unwrapField!;
+      const sdk = snakeToCamel(f.name);
+      lines.push(`      body: JSON.stringify({ ${f.name}: ${sdk} }),`);
+    } else {
+      lines.push('      body: JSON.stringify(toSnakeCase(request)),');
+    }
+  }
+  lines.push('    });');
+
+  const preloadBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
+  if (preloadBody) lines.push('    const body = await response.json();');
+  emitResponseSwitch(lines, op, ir, preloadBody);
+  lines.push('  }');
+}
+
+function emitResponseSwitch(
+  lines: string[],
+  op: IROperation,
+  ir: IR,
+  preloadBody: boolean,
+): void {
+  lines.push('    switch (response.status) {');
+  if (op.successResponse.isRedirect) {
+    lines.push(`      case ${op.successResponse.statusCode}: {`);
+    lines.push('        const location = response.headers.get("location");');
+    lines.push('        if (!location) {');
+    lines.push('          throw new Error("Missing Location header in redirect response");');
+    lines.push('        }');
+    lines.push('        return location;');
+    lines.push('      }');
+  } else if (!op.successResponse.hasBody) {
+    lines.push(`      case ${op.successResponse.statusCode}:`);
+    lines.push('        return;');
+  } else if (op.successResponse.isList) {
+    lines.push(`      case ${op.successResponse.statusCode}:`);
+    lines.push(`        return toCamelCase(body) as ${responseTypeName(op, ir)};`);
+  } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
+    lines.push(`      case ${op.successResponse.statusCode}:`);
+    lines.push(`        return toCamelCase(body.data) as ${op.successResponse.dataRef};`);
+  } else {
+    lines.push(`      case ${op.successResponse.statusCode}:`);
+    lines.push(`        return toCamelCase(body) as ${responseTypeName(op, ir)};`);
+  }
+
+  if (op.hasOAuthError) {
+    lines.push('      case 401:');
+    lines.push(
+      `        throw new OAuthError(${preloadBody ? 'body.error' : '(await response.json()).error'});`,
+    );
+  }
+
+  const hasApiError = op.hasApiError || ir.models.some((m) => m.name === 'ApiError');
+  lines.push('      default:');
+  if (hasApiError) {
+    lines.push(
+      `        throw new ApiError(${preloadBody ? 'body.errors' : '(await response.json()).errors'});`,
+    );
+  } else {
+    lines.push(
+      `        throw new Error(\`HTTP \${response.status}${preloadBody ? ': ${JSON.stringify(body)}' : ''}\`);`,
+    );
+  }
+  lines.push('    }');
+}
+
+function generateUtils(): string {
+  return [
+    'function snakeToCamel(str: string): string {',
+    '  return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());',
+    '}',
+    '',
+    'function camelToSnake(str: string): string {',
+    '  return str.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);',
+    '}',
+    '',
+    'export function toCamelCase(obj: unknown): unknown {',
+    '  if (Array.isArray(obj)) return obj.map(toCamelCase);',
+    '  if (obj !== null && typeof obj === "object") {',
+    '    return Object.fromEntries(',
+    '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), toCamelCase(v)]),',
+    '    );',
+    '  }',
+    '  return obj;',
+    '}',
+    '',
+    'export function toSnakeCase(obj: unknown): unknown {',
+    '  if (Array.isArray(obj)) return obj.map(toSnakeCase);',
+    '  if (obj !== null && typeof obj === "object") {',
+    '    return Object.fromEntries(',
+    '      Object.entries(obj).map(([k, v]) => [camelToSnake(k), toSnakeCase(v)]),',
+    '    );',
+    '  }',
+    '  return obj;',
+    '}',
+    '',
+  ].join('\n');
+}
 
 export class TypeScriptGenerator implements LanguageGenerator {
   readonly dirName = 'ts';
 
-  generate(_ir: IR): GeneratedFile[] {
-    // TODO: implement TypeScript emitter
-    return [];
+  generate(ir: IR): GeneratedFile[] {
+    const files: GeneratedFile[] = [];
+    files.push({ path: 'types.ts', content: generateTypes(ir) });
+    const client = generateClient(ir);
+    files.push({ path: 'client.ts', content: client.content });
+    if (client.needsUtils) files.push({ path: 'utils.ts', content: generateUtils() });
+    return files;
   }
 }

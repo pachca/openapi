@@ -15,12 +15,12 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string | null;
+  phoneNumber?: string | null;
   role: UserRole;
   isActive: boolean;
-  botId: number | null;
+  botId?: number | null;
   createdAt: string;
-  birthday: string | null;
+  birthday?: string | null;
   tagIds: number[];
   customProperties?: CustomProperty[];
   status?: UserStatus;

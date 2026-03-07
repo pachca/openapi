@@ -1,9 +1,10 @@
-import { ApiError, Chat, ChatCreateRequest, OAuthError } from "./types";
+import {
+  OAuthError,
+  ApiError,
+  ChatCreateRequest,
+  Chat,
+} from "./types";
 import { toCamelCase, toSnakeCase } from "./utils";
-
-// D1: 1 field → unwrapped into function params
-// D2: 0 fields → void action, no body
-// D3: 2+ fields → pass as object
 
 class MembersService {
   constructor(
@@ -11,7 +12,6 @@ class MembersService {
     private headers: Record<string, string>,
   ) {}
 
-  /** D1: addMembers — 1 field unwrapped */
   async addMembers(id: number, memberIds: number[]): Promise<void> {
     const response = await fetch(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
@@ -35,23 +35,6 @@ class ChatsService {
     private headers: Record<string, string>,
   ) {}
 
-  /** D2: archiveChat — void action, no body */
-  async archiveChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/archive`, {
-      method: "PUT",
-      headers: this.headers,
-    });
-    switch (response.status) {
-      case 204:
-        return;
-      case 401:
-        throw new OAuthError((await response.json()).error);
-      default:
-        throw new ApiError((await response.json()).errors);
-    }
-  }
-
-  /** D3: createChat — 2+ fields, pass as object */
   async createChat(request: ChatCreateRequest): Promise<Chat> {
     const response = await fetch(`${this.baseUrl}/chats`, {
       method: "POST",
@@ -66,6 +49,21 @@ class ChatsService {
         throw new OAuthError(body.error);
       default:
         throw new ApiError(body.errors);
+    }
+  }
+
+  async archiveChat(id: number): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/chats/${id}/archive`, {
+      method: "PUT",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError((await response.json()).error);
+      default:
+        throw new ApiError((await response.json()).errors);
     }
   }
 }

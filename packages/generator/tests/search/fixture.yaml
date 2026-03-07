@@ -1,0 +1,166 @@
+openapi: 3.0.0
+info:
+  title: Test API — Search
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Search
+paths:
+  /search/messages:
+    get:
+      operationId: SearchOperations_searchMessages
+      description: Поиск сообщений
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Поисковый запрос
+          schema:
+            type: string
+        - name: chat_ids[]
+          in: query
+          required: false
+          description: Фильтр по чатам
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: user_ids[]
+          in: query
+          required: false
+          description: Фильтр по авторам
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: created_from
+          in: query
+          required: false
+          description: Начальная дата
+          schema:
+            type: string
+            format: date-time
+        - name: created_to
+          in: query
+          required: false
+          description: Конечная дата
+          schema:
+            type: string
+            format: date-time
+        - name: sort
+          in: query
+          required: false
+          description: Сортировка
+          schema:
+            $ref: '#/components/schemas/SearchSort'
+        - name: limit
+          in: query
+          required: false
+          description: Количество записей
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор пагинации
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MessageSearchResult'
+                  meta:
+                    $ref: '#/components/schemas/SearchPaginationMeta'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Search
+      x-requirements:
+        scope: messages:read
+components:
+  schemas:
+    SearchSort:
+      type: string
+      enum:
+        - relevance
+        - date
+      x-enum-descriptions:
+        relevance: По релевантности
+        date: По дате
+
+    MessageSearchResult:
+      type: object
+      required:
+        - id
+        - chat_id
+        - user_id
+        - content
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор сообщения
+        chat_id:
+          type: integer
+          format: int32
+          description: Идентификатор чата
+        user_id:
+          type: integer
+          format: int32
+          description: Идентификатор автора
+        content:
+          type: string
+          description: Текст сообщения
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания
+      description: Результат поиска сообщений
+
+    SearchPaginationMeta:
+      type: object
+      required:
+        - total
+        - paginate
+      properties:
+        total:
+          type: integer
+          format: int32
+          description: Общее количество результатов
+        paginate:
+          type: object
+          required:
+            - next_page
+          properties:
+            next_page:
+              type: string
+              description: Курсор следующей страницы
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

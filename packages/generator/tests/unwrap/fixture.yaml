@@ -1,0 +1,201 @@
+openapi: 3.0.0
+info:
+  title: Test API — Unwrap
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Chats
+  - name: Members
+paths:
+  # D1: 1 field → unwrap to function params
+  /chats/{id}/members:
+    post:
+      operationId: MemberOperations_addMembers
+      description: Добавление участников в чат
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: No content.
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Members
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMembersRequest'
+      x-requirements:
+        scope: chats:write
+
+  # D2: 0 fields (void action) — no body
+  /chats/{id}/archive:
+    put:
+      operationId: ChatOperations_archiveChat
+      description: Архивирование чата
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: No content.
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:write
+
+  # D3: 2+ fields → pass as object
+  /chats:
+    post:
+      operationId: ChatOperations_createChat
+      description: Создание чата
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Chats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCreateRequest'
+      x-requirements:
+        scope: chats:write
+components:
+  schemas:
+    # D1: 1 field → unwrap
+    AddMembersRequest:
+      type: object
+      required:
+        - member_ids
+      properties:
+        member_ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+          description: Идентификаторы пользователей
+      description: Запрос на добавление участников
+
+    # D3: 2+ fields → pass as object
+    ChatCreateRequest:
+      type: object
+      required:
+        - chat
+      properties:
+        chat:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Название чата
+            channel:
+              type: boolean
+              description: Создать как канал
+            public:
+              type: boolean
+              description: Публичный чат
+            member_ids:
+              type: array
+              items:
+                type: integer
+                format: int32
+              description: Идентификаторы участников
+          description: Данные чата
+      description: Запрос на создание чата
+
+    Chat:
+      type: object
+      required:
+        - id
+        - name
+        - is_channel
+        - is_public
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        is_channel:
+          type: boolean
+        is_public:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

@@ -1,0 +1,93 @@
+package pachca
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"time"
+)
+
+type authTransport struct {
+	token string
+	base  http.RoundTripper
+}
+
+func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("Authorization", "Bearer "+t.token)
+	return t.base.RoundTrip(req)
+}
+
+// SearchService handles search operations.
+type SearchService struct {
+	baseURL string
+	client  *http.Client
+}
+
+// SearchMessages searches for messages.
+func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
+	u, _ := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
+	q := u.Query()
+	q.Set("query", params.Query)
+	for _, id := range params.ChatIDs {
+		q.Add("chat_ids[]", fmt.Sprintf("%d", id))
+	}
+	for _, id := range params.UserIDs {
+		q.Add("user_ids[]", fmt.Sprintf("%d", id))
+	}
+	if params.CreatedFrom != nil {
+		q.Set("created_from", params.CreatedFrom.Format(time.RFC3339))
+	}
+	if params.CreatedTo != nil {
+		q.Set("created_to", params.CreatedTo.Format(time.RFC3339))
+	}
+	if params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
+	}
+	if params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%d", *params.Limit))
+	}
+	if params.Cursor != nil {
+		q.Set("cursor", *params.Cursor)
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result SearchMessagesResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		json.NewDecoder(resp.Body).Decode(&e)
+		return nil, &e
+	default:
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+}
+
+// PachcaClient is the main client for the Pachca API.
+type PachcaClient struct {
+	Search *SearchService
+}
+
+// NewPachcaClient creates a new PachcaClient.
+func NewPachcaClient(baseURL, token string) *PachcaClient {
+	client := &http.Client{
+		Transport: &authTransport{token: token, base: http.DefaultTransport},
+	}
+	return &PachcaClient{
+		Search: &SearchService{baseURL: baseURL, client: client},
+	}
+}

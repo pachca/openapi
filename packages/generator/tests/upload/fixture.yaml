@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: Test API — Upload
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Common
+paths:
+  /uploads:
+    post:
+      operationId: DirectUploadOperations_uploadFile
+      description: Загрузка файла
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created.
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Common
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequest'
+      x-requirements:
+        scope: uploads:write
+components:
+  schemas:
+    FileUploadRequest:
+      type: object
+      required:
+        - key
+        - file
+      properties:
+        content-disposition:
+          type: string
+          description: Content-Disposition заголовок
+        acl:
+          type: string
+          description: ACL для загружаемого файла
+        policy:
+          type: string
+          description: Политика загрузки
+        x-amz-credential:
+          type: string
+          description: AWS credential
+        x-amz-algorithm:
+          type: string
+          description: AWS algorithm
+        x-amz-date:
+          type: string
+          description: AWS date
+        x-amz-signature:
+          type: string
+          description: AWS signature
+        key:
+          type: string
+          description: Ключ файла
+        file:
+          type: string
+          format: binary
+          description: Файл для загрузки
+      description: Запрос на загрузку файла
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

@@ -1,0 +1,397 @@
+openapi: 3.0.0
+info:
+  title: Test API — CRUD
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Chats
+paths:
+  /chats:
+    get:
+      operationId: ChatOperations_listChats
+      description: Список чатов
+      parameters:
+        - name: availability
+          in: query
+          required: false
+          description: Фильтр доступности
+          schema:
+            $ref: '#/components/schemas/ChatAvailability'
+        - name: limit
+          in: query
+          required: false
+          description: Количество записей
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор пагинации
+          schema:
+            type: string
+        - name: sort[field]
+          in: query
+          required: false
+          description: Поле сортировки
+          schema:
+            type: string
+          x-param-names:
+            - sort_field
+        - name: sort[order]
+          in: query
+          required: false
+          description: Порядок сортировки
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+          x-param-names:
+            - sort_order
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Chat'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:read
+    post:
+      operationId: ChatOperations_createChat
+      description: Создание чата
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCreateRequest'
+      x-requirements:
+        scope: chats:write
+  /chats/{id}:
+    get:
+      operationId: ChatOperations_getChat
+      description: Получение чата
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:read
+    put:
+      operationId: ChatOperations_updateChat
+      description: Обновление чата
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Chat'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatUpdateRequest'
+      x-requirements:
+        scope: chats:write
+    delete:
+      operationId: ChatOperations_deleteChat
+      description: Удаление чата
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: No content.
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:write
+  /chats/{id}/archive:
+    put:
+      operationId: ChatOperations_archiveChat
+      description: Архивирование чата
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор чата
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: No content.
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Chats
+      x-requirements:
+        scope: chats:write
+components:
+  schemas:
+    SortOrder:
+      type: string
+      enum:
+        - asc
+        - desc
+
+    ChatAvailability:
+      type: string
+      enum:
+        - is_member
+        - public
+      x-enum-descriptions:
+        is_member: Чаты, где пользователь является участником
+        public: Все открытые чаты компании
+
+    Chat:
+      type: object
+      required:
+        - id
+        - name
+        - is_channel
+        - is_public
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор чата
+        name:
+          type: string
+          description: Название чата
+        is_channel:
+          type: boolean
+          description: Является ли каналом
+        is_public:
+          type: boolean
+          description: Публичный ли чат
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания
+        member_ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+          description: Идентификаторы участников
+      description: Чат
+
+    ChatCreateRequest:
+      type: object
+      required:
+        - chat
+      properties:
+        chat:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Название чата
+            channel:
+              type: boolean
+              description: Создать как канал
+            public:
+              type: boolean
+              description: Публичный чат
+            member_ids:
+              type: array
+              items:
+                type: integer
+                format: int32
+              description: Идентификаторы участников
+          description: Данные чата
+      description: Запрос на создание чата
+
+    ChatUpdateRequest:
+      type: object
+      required:
+        - chat
+      properties:
+        chat:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Название чата
+            public:
+              type: boolean
+              description: Публичный чат
+          description: Данные для обновления
+      description: Запрос на обновление чата
+
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string
+
+    PaginationMeta:
+      type: object
+      properties:
+        paginate:
+          type: object
+          properties:
+            next_page:
+              type: string

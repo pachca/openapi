@@ -1,0 +1,325 @@
+openapi: 3.0.0
+info:
+  title: Test API — Models
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # A2: Enum referenced by models
+    UserRole:
+      type: string
+      enum:
+        - admin
+        - user
+        - multi_admin
+        - bot
+      description: Роль пользователя
+      x-enum-descriptions:
+        admin: Администратор
+        user: Сотрудник
+        multi_admin: Мультиадмин
+        bot: Бот
+
+    # B1: Core entity — mix of field types
+    User:
+      type: object
+      required:
+        - id
+        - first_name
+        - last_name
+        - email
+        - role
+        - is_active
+        - created_at
+        - tag_ids
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор пользователя
+          example: 123
+        first_name:
+          type: string
+          description: Имя
+          example: Иван
+        last_name:
+          type: string
+          description: Фамилия
+          example: Иванов
+        email:
+          type: string
+          description: Email
+          example: ivan@example.com
+        phone_number:
+          type: string
+          nullable: true
+          description: Номер телефона
+          example: '+79001234567'
+        role:
+          allOf:
+            - $ref: '#/components/schemas/UserRole'
+          description: Роль пользователя
+        is_active:
+          type: boolean
+          description: Активен ли пользователь
+          example: true
+        bot_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Идентификатор связанного бота
+          example: 9876543210
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания
+          example: '2025-01-15T10:30:00Z'
+        birthday:
+          type: string
+          format: date
+          nullable: true
+          description: День рождения
+          example: '1990-05-20'
+        tag_ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+          description: Идентификаторы тегов
+          example: [1, 2, 3]
+        custom_properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomProperty'
+          description: Пользовательские свойства
+        status:
+          $ref: '#/components/schemas/UserStatus'
+      description: Пользователь
+
+    # B2: Referenced model — small model
+    UserStatus:
+      type: object
+      properties:
+        emoji:
+          type: string
+          description: Эмодзи
+          example: '🏖️'
+        title:
+          type: string
+          description: Текст статуса
+          example: В отпуске
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Время истечения
+      description: Статус пользователя
+
+    CustomProperty:
+      type: object
+      required:
+        - id
+        - name
+        - data_type
+        - value
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Идентификатор свойства
+        name:
+          type: string
+          description: Название свойства
+        data_type:
+          type: string
+          description: Тип данных
+        value:
+          type: string
+          description: Значение свойства
+      description: Пользовательское свойство
+
+    # B3: Request wrapper — { item: { nested } }
+    UserCreateRequest:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          type: object
+          required:
+            - first_name
+            - last_name
+            - email
+          properties:
+            first_name:
+              type: string
+              description: Имя
+            last_name:
+              type: string
+              description: Фамилия
+            email:
+              type: string
+              description: Email
+            role:
+              allOf:
+                - $ref: '#/components/schemas/UserRole'
+              description: Роль пользователя
+            is_active:
+              type: boolean
+              description: Активен ли пользователь
+              default: true
+          description: Данные пользователя
+      description: Запрос на создание пользователя
+
+    # B4: Update request — partial fields
+    UserUpdateRequest:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          type: object
+          properties:
+            first_name:
+              type: string
+              description: Имя
+            last_name:
+              type: string
+              description: Фамилия
+            phone_number:
+              type: string
+              nullable: true
+              description: Номер телефона
+            role:
+              allOf:
+                - $ref: '#/components/schemas/UserRole'
+              description: Роль пользователя
+          description: Данные для обновления
+      description: Запрос на обновление пользователя
+
+    # B5: Request with inline array objects
+    MessageCreateRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: object
+          required:
+            - entity_id
+            - content
+          properties:
+            entity_id:
+              type: integer
+              format: int32
+              description: Идентификатор чата
+            content:
+              type: string
+              description: Текст сообщения
+            files:
+              type: array
+              items:
+                type: object
+                required:
+                  - key
+                  - name
+                  - file_type
+                  - size
+                properties:
+                  key:
+                    type: string
+                    description: Ключ файла
+                  name:
+                    type: string
+                    description: Имя файла
+                  file_type:
+                    type: string
+                    description: MIME-тип файла
+                  size:
+                    type: integer
+                    format: int32
+                    description: Размер в байтах
+              description: Прикреплённые файлы
+            buttons:
+              type: array
+              items:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - text
+                  properties:
+                    text:
+                      type: string
+                      description: Текст кнопки
+                    url:
+                      type: string
+                      description: URL для перехода
+                    data:
+                      type: string
+                      description: Данные для callback
+                  description: Кнопка
+              description: 2D-массив кнопок (ряды кнопок)
+          description: Данные сообщения
+      description: Запрос на создание сообщения
+
+    # B9: Error models
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                description: Код ошибки
+              value:
+                type: string
+                description: Описание ошибки
+            description: Элемент ошибки
+          description: Массив ошибок
+      description: Ошибка API
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Код ошибки OAuth
+      description: Ошибка OAuth
+
+    # B10: Pagination meta
+    PaginationMeta:
+      type: object
+      properties:
+        paginate:
+          type: object
+          properties:
+            next_page:
+              type: string
+              description: Курсор пагинации следующей страницы
+          description: Вспомогательная информация
+      description: Метаданные пагинации
+
+    SearchPaginationMeta:
+      type: object
+      required:
+        - total
+        - paginate
+      properties:
+        total:
+          type: integer
+          format: int32
+          description: Общее количество найденных результатов
+        paginate:
+          type: object
+          required:
+            - next_page
+          properties:
+            next_page:
+              type: string
+              description: Курсор пагинации следующей страницы
+          description: Вспомогательная информация
+      description: Метаданные пагинации поиска

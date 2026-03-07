@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import httpx
 
-from .models import ApiError, OAuthError
+from .models import OAuthError, ApiError
 from .utils import from_dict
-
 
 class CommonService:
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
-    async def download_export(self, id: int) -> str:
+    async def download_export(
+        self,
+        id: int,
+    ) -> str:
         response = await self._client.get(
             f"/exports/{id}",
             follow_redirects=False,

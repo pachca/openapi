@@ -4,16 +4,17 @@ from dataclasses import asdict
 
 import httpx
 
-from .models import ApiError, LinkPreviewsRequest, OAuthError
+from .models import LinkPreviewsRequest, OAuthError, ApiError
 from .utils import from_dict
-
 
 class LinkPreviewsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
     async def create_link_previews(
-        self, id: int, request: LinkPreviewsRequest
+        self,
+        id: int,
+        request: LinkPreviewsRequest,
     ) -> None:
         response = await self._client.post(
             f"/messages/{id}/link_previews",

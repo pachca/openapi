@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
-
 
 class UserRole(StrEnum):
     """Роль пользователя"""
@@ -11,21 +10,6 @@ class UserRole(StrEnum):
     USER = "user"  # Сотрудник
     MULTI_ADMIN = "multi_admin"  # Мультиадмин
     BOT = "bot"  # Бот
-
-
-@dataclass
-class UserStatus:
-    emoji: str | None = None
-    title: str | None = None
-    expires_at: str | None = None
-
-
-@dataclass
-class CustomProperty:
-    id: int
-    name: str
-    data_type: str
-    value: str
 
 
 @dataclass
@@ -46,12 +30,27 @@ class User:
 
 
 @dataclass
+class UserStatus:
+    emoji: str | None = None
+    title: str | None = None
+    expires_at: str | None = None
+
+
+@dataclass
+class CustomProperty:
+    id: int
+    name: str
+    data_type: str
+    value: str
+
+
+@dataclass
 class UserCreateRequestUser:
     first_name: str
     last_name: str
     email: str
     role: UserRole | None = None
-    is_active: bool = True
+    is_active: bool | None = True
 
 
 @dataclass
@@ -117,21 +116,21 @@ class OAuthError(Exception):
 
 
 @dataclass
-class PaginationPaginate:
+class PaginationMetaPaginate:
     next_page: str | None = None
 
 
 @dataclass
 class PaginationMeta:
-    paginate: PaginationPaginate | None = None
+    paginate: PaginationMetaPaginate | None = None
 
 
 @dataclass
-class SearchPaginationPaginate:
+class SearchPaginationMetaPaginate:
     next_page: str
 
 
 @dataclass
 class SearchPaginationMeta:
     total: int
-    paginate: SearchPaginationPaginate
+    paginate: SearchPaginationMetaPaginate

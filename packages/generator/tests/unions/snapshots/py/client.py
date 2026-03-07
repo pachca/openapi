@@ -1,6 +1,6 @@
 from .models import (
     ViewBlockHeader,
-    ViewBlockImage,
     ViewBlockPlainText,
+    ViewBlockImage,
     ViewBlockUnion,
 )

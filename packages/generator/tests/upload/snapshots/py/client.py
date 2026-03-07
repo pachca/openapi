@@ -5,13 +5,16 @@ import httpx
 from .models import FileUploadRequest, OAuthError
 from .utils import from_dict
 
-
 class CommonService:
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
-    async def upload_file(self, request: FileUploadRequest) -> None:
-        data: dict[str, str] = {"key": request.key}
+    async def upload_file(
+        self,
+        request: FileUploadRequest,
+    ) -> None:
+        data: dict[str, str] = {}
+        data["key"] = request.key
         if request.content_disposition is not None:
             data["content-disposition"] = request.content_disposition
         if request.acl is not None:
@@ -27,7 +30,7 @@ class CommonService:
         if request.x_amz_signature is not None:
             data["x-amz-signature"] = request.x_amz_signature
         response = await self._client.post(
-            "/uploads",
+            f"/uploads",
             data=data,
             files={"file": request.file},
         )

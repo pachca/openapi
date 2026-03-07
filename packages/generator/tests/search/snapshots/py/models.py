@@ -3,10 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-
 class SearchSort(StrEnum):
-    """Сортировка"""
-
     RELEVANCE = "relevance"  # По релевантности
     DATE = "date"  # По дате
 
@@ -21,14 +18,14 @@ class MessageSearchResult:
 
 
 @dataclass
-class SearchPaginationPaginate:
+class SearchPaginationMetaPaginate:
     next_page: str
 
 
 @dataclass
 class SearchPaginationMeta:
     total: int
-    paginate: SearchPaginationPaginate
+    paginate: SearchPaginationMetaPaginate
 
 
 @dataclass

@@ -3,15 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
-
 class SortOrder(StrEnum):
     ASC = "asc"
     DESC = "desc"
 
 
 class ChatAvailability(StrEnum):
-    """Доступность чатов для пользователя"""
-
     IS_MEMBER = "is_member"  # Чаты, где пользователь является участником
     PUBLIC = "public"  # Все открытые чаты компании
 
@@ -67,13 +64,13 @@ class OAuthError(Exception):
 
 
 @dataclass
-class PaginationPaginate:
+class PaginationMetaPaginate:
     next_page: str | None = None
 
 
 @dataclass
 class PaginationMeta:
-    paginate: PaginationPaginate | None = None
+    paginate: PaginationMetaPaginate | None = None
 
 
 @dataclass

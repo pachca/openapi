@@ -2,35 +2,39 @@ from __future__ import annotations
 
 import httpx
 
-from .models import OAuthError, SearchMessagesParams, SearchMessagesResponse
+from .models import SearchMessagesParams, SearchMessagesResponse, OAuthError
 from .utils import from_dict
-
 
 class SearchService:
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
     async def search_messages(
-        self, params: SearchMessagesParams
+        self,
+        params: SearchMessagesParams,
     ) -> SearchMessagesResponse:
-        query: list[tuple[str, str]] = [("query", params.query)]
+        query: list[tuple[str, str]] = []
+        query.append(("query", params.query))
         if params.chat_ids is not None:
             for v in params.chat_ids:
                 query.append(("chat_ids[]", str(v)))
         if params.user_ids is not None:
             for v in params.user_ids:
                 query.append(("user_ids[]", str(v)))
-        if params.created_from is not None:
+        if params is not None and params.created_from is not None:
             query.append(("created_from", params.created_from))
-        if params.created_to is not None:
+        if params is not None and params.created_to is not None:
             query.append(("created_to", params.created_to))
-        if params.sort is not None:
+        if params is not None and params.sort is not None:
             query.append(("sort", params.sort))
-        if params.limit is not None:
+        if params is not None and params.limit is not None:
             query.append(("limit", str(params.limit)))
-        if params.cursor is not None:
+        if params is not None and params.cursor is not None:
             query.append(("cursor", params.cursor))
-        response = await self._client.get("/search/messages", params=query)
+        response = await self._client.get(
+            f"/search/messages",
+            params=query,
+        )
         body = response.json()
         match response.status_code:
             case 200:

@@ -5,37 +5,39 @@ from dataclasses import asdict
 import httpx
 
 from .models import (
+    ListChatsParams,
+    ListChatsResponse,
+    OAuthError,
     ApiError,
     Chat,
     ChatCreateRequest,
     ChatUpdateRequest,
-    ListChatsParams,
-    ListChatsResponse,
-    OAuthError,
 )
 from .utils import from_dict
-
 
 class ChatsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
     async def list_chats(
-        self, params: ListChatsParams | None = None
+        self,
+        params: ListChatsParams | None = None,
     ) -> ListChatsResponse:
         query: dict[str, str] = {}
-        if params:
-            if params.availability is not None:
-                query["availability"] = params.availability
-            if params.limit is not None:
-                query["limit"] = str(params.limit)
-            if params.cursor is not None:
-                query["cursor"] = params.cursor
-            if params.sort_field is not None:
-                query["sort[field]"] = params.sort_field
-            if params.sort_order is not None:
-                query["sort[order]"] = params.sort_order
-        response = await self._client.get("/chats", params=query)
+        if params is not None and params.availability is not None:
+            query["availability"] = params.availability
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        if params is not None and params.sort_field is not None:
+            query["sort[field]"] = params.sort_field
+        if params is not None and params.sort_order is not None:
+            query["sort[order]"] = params.sort_order
+        response = await self._client.get(
+            f"/chats",
+            params=query,
+        )
         body = response.json()
         match response.status_code:
             case 200:
@@ -45,8 +47,13 @@ class ChatsService:
             case _:
                 raise from_dict(ApiError, body)
 
-    async def get_chat(self, id: int) -> Chat:
-        response = await self._client.get(f"/chats/{id}")
+    async def get_chat(
+        self,
+        id: int,
+    ) -> Chat:
+        response = await self._client.get(
+            f"/chats/{id}",
+        )
         body = response.json()
         match response.status_code:
             case 200:
@@ -56,8 +63,14 @@ class ChatsService:
             case _:
                 raise from_dict(ApiError, body)
 
-    async def create_chat(self, request: ChatCreateRequest) -> Chat:
-        response = await self._client.post("/chats", json=asdict(request))
+    async def create_chat(
+        self,
+        request: ChatCreateRequest,
+    ) -> Chat:
+        response = await self._client.post(
+            f"/chats",
+            json=asdict(request),
+        )
         body = response.json()
         match response.status_code:
             case 201:
@@ -68,9 +81,14 @@ class ChatsService:
                 raise from_dict(ApiError, body)
 
     async def update_chat(
-        self, id: int, request: ChatUpdateRequest
+        self,
+        id: int,
+        request: ChatUpdateRequest,
     ) -> Chat:
-        response = await self._client.put(f"/chats/{id}", json=asdict(request))
+        response = await self._client.put(
+            f"/chats/{id}",
+            json=asdict(request),
+        )
         body = response.json()
         match response.status_code:
             case 200:
@@ -80,8 +98,13 @@ class ChatsService:
             case _:
                 raise from_dict(ApiError, body)
 
-    async def delete_chat(self, id: int) -> None:
-        response = await self._client.delete(f"/chats/{id}")
+    async def archive_chat(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.put(
+            f"/chats/{id}/archive",
+        )
         match response.status_code:
             case 204:
                 return
@@ -90,8 +113,13 @@ class ChatsService:
             case _:
                 raise from_dict(ApiError, response.json())
 
-    async def archive_chat(self, id: int) -> None:
-        response = await self._client.put(f"/chats/{id}/archive")
+    async def delete_chat(
+        self,
+        id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/chats/{id}",
+        )
         match response.status_code:
             case 204:
                 return

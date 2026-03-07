@@ -11,9 +11,9 @@ type AddMembersRequest struct {
 }
 
 type ChatCreateRequestChat struct {
-	Name string `json:"name"`
-	Channel *bool `json:"channel,omitempty"`
-	Public *bool `json:"public,omitempty"`
+	Name      string  `json:"name"`
+	Channel   *bool   `json:"channel,omitempty"`
+	Public    *bool   `json:"public,omitempty"`
 	MemberIDs []int32 `json:"member_ids,omitempty"`
 }
 
@@ -22,15 +22,15 @@ type ChatCreateRequest struct {
 }
 
 type Chat struct {
-	ID int32 `json:"id"`
-	Name string `json:"name"`
-	IsChannel bool `json:"is_channel"`
-	IsPublic bool `json:"is_public"`
+	ID        int32     `json:"id"`
+	Name      string    `json:"name"`
+	IsChannel bool      `json:"is_channel"`
+	IsPublic  bool      `json:"is_public"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type ApiErrorItem struct {
-	Key *string `json:"key,omitempty"`
+	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 

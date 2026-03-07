@@ -34,19 +34,19 @@ func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessage
 	for _, v := range params.UserIDs {
 		q.Add("user_ids[]", fmt.Sprintf("%v", v))
 	}
-	if params != nil && params.CreatedFrom != nil {
-		q.Set("created_from", fmt.Sprintf("%v", *params.CreatedFrom))
+	if params.CreatedFrom != nil {
+		q.Set("created_from", params.CreatedFrom.Format(time.RFC3339))
 	}
-	if params != nil && params.CreatedTo != nil {
-		q.Set("created_to", fmt.Sprintf("%v", *params.CreatedTo))
+	if params.CreatedTo != nil {
+		q.Set("created_to", params.CreatedTo.Format(time.RFC3339))
 	}
-	if params != nil && params.Sort != nil {
-		q.Set("sort", fmt.Sprintf("%v", *params.Sort))
+	if params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
 	}
-	if params != nil && params.Limit != nil {
+	if params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
 	}
-	if params != nil && params.Cursor != nil {
+	if params.Cursor != nil {
 		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
 	}
 	u.RawQuery = q.Encode()

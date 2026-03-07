@@ -6,7 +6,7 @@ import (
 )
 
 type ApiErrorItem struct {
-	Key *string `json:"key,omitempty"`
+	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 

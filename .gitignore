@@ -25,6 +25,11 @@ dist/
 .build/
 Package.resolved
 
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
 # Debug
 npm-debug.log*
 yarn-debug.log*

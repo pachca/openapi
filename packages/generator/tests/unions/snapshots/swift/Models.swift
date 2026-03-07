@@ -29,11 +29,11 @@ enum ViewBlockUnion: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
         switch type {
-        case "view_block_header":
+        case "header":
             self = .viewBlockHeader(try ViewBlockHeader(from: decoder))
-        case "view_block_plain_text":
+        case "plain_text":
             self = .viewBlockPlainText(try ViewBlockPlainText(from: decoder))
-        case "view_block_image":
+        case "image":
             self = .viewBlockImage(try ViewBlockImage(from: decoder))
         default:
             throw DecodingError.dataCorrupted(

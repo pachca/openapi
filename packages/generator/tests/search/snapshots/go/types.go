@@ -8,14 +8,14 @@ type SearchSort string
 
 const (
 	SearchSortRelevance SearchSort = "relevance" // По релевантности
-	SearchSortDate SearchSort = "date" // По дате
+	SearchSortDate      SearchSort = "date" // По дате
 )
 
 type MessageSearchResult struct {
-	ID int32 `json:"id"`
-	ChatID int32 `json:"chat_id"`
-	UserID int32 `json:"user_id"`
-	Content string `json:"content"`
+	ID        int32     `json:"id"`
+	ChatID    int32     `json:"chat_id"`
+	UserID    int32     `json:"user_id"`
+	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -24,7 +24,7 @@ type SearchPaginationMetaPaginate struct {
 }
 
 type SearchPaginationMeta struct {
-	Total int32 `json:"total"`
+	Total    int32                        `json:"total"`
 	Paginate SearchPaginationMetaPaginate `json:"paginate"`
 }
 
@@ -40,17 +40,17 @@ func (e *OAuthError) Error() string {
 }
 
 type SearchMessagesParams struct {
-	Query string
-	ChatIDs []int32
-	UserIDs []int32
+	Query       string
+	ChatIDs     []int32
+	UserIDs     []int32
 	CreatedFrom *time.Time
-	CreatedTo *time.Time
-	Sort *SearchSort
-	Limit *int32
-	Cursor *string
+	CreatedTo   *time.Time
+	Sort        *SearchSort
+	Limit       *int32
+	Cursor      *string
 }
 
 type SearchMessagesResponse struct {
 	Data []MessageSearchResult `json:"data"`
-	Meta SearchPaginationMeta `json:"meta"`
+	Meta SearchPaginationMeta  `json:"meta"`
 }

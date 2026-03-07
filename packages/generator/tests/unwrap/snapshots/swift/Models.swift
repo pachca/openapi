@@ -12,7 +12,7 @@ struct ChatCreateRequestChat: Codable {
     let name: String
     let channel: Bool?
     let `public`: Bool?
-    let memberIds: [Int?]?
+    let memberIds: [Int]?
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -48,7 +48,7 @@ struct ApiErrorItem: Codable {
 }
 
 struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem?]?
+    let errors: [ApiErrorItem]?
 }
 
 struct OAuthError: Codable, Error {

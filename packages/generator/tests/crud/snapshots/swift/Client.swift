@@ -14,11 +14,11 @@ struct ChatsService {
     func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
         var components = URLComponents(string: "\(baseURL)/chats")!
         var queryItems: [URLQueryItem] = []
-        if let availability { queryItems.append(URLQueryItem(name: "availability", value: String($0))) }
-        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String($0))) }
-        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String($0))) }
-        if let sortField { queryItems.append(URLQueryItem(name: "sort[field]", value: String($0))) }
-        if let sortOrder { queryItems.append(URLQueryItem(name: "sort[order]", value: String($0))) }
+        if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if let sortField { queryItems.append(URLQueryItem(name: "sort[field]", value: String(sortField))) }
+        if let sortOrder { queryItems.append(URLQueryItem(name: "sort[order]", value: sortOrder.rawValue)) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }

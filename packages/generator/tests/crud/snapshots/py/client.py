@@ -35,7 +35,7 @@ class ChatsService:
         if params is not None and params.sort_order is not None:
             query["sort[order]"] = params.sort_order
         response = await self._client.get(
-            f"/chats",
+            "/chats",
             params=query,
         )
         body = response.json()
@@ -68,7 +68,7 @@ class ChatsService:
         request: ChatCreateRequest,
     ) -> Chat:
         response = await self._client.post(
-            f"/chats",
+            "/chats",
             json=asdict(request),
         )
         body = response.json()

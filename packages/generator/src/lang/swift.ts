@@ -34,10 +34,10 @@ function swiftType(ft: IRFieldType, opts: { nullable?: boolean } = {}): string {
       base = ft.ref ?? 'String';
       break;
     case 'array':
-      base = `[${swiftType(ft.items!, opts)}]`;
+      base = `[${swiftType(ft.items!)}]`;
       break;
     case 'record':
-      base = `[String: ${swiftType(ft.valueType!, opts)}]`;
+      base = `[String: ${swiftType(ft.valueType!)}]`;
       break;
     case 'literal':
       base = 'String';
@@ -95,7 +95,7 @@ function emitModel(lines: string[], m: IRModel): void {
   lines.push('}');
 }
 
-function emitUnion(lines: string[], u: IRUnion): void {
+function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push(`enum ${u.name}: Codable {`);
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
@@ -112,7 +112,10 @@ function emitUnion(lines: string[], u: IRUnion): void {
   lines.push('        switch type {');
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
-    lines.push(`        case ${JSON.stringify(c.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`).replace(/^_/, ''))}:`);
+    const model = models.find((m) => m.name === ref);
+    const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+    const disc = typeField?.type.literalValue ?? c;
+    lines.push(`        case ${JSON.stringify(disc)}:`);
     lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
   }
   lines.push('        default:');
@@ -153,7 +156,7 @@ function generateModels(ir: IR): string {
     lines.push('');
   }
   for (const u of ir.unions) {
-    emitUnion(lines, u);
+    emitUnion(lines, u, ir.models);
     lines.push('');
   }
   for (const rt of ir.responses) {
@@ -190,6 +193,10 @@ function opReturn(op: IROperation, ir: IR): string {
   return op.successResponse.dataRef ?? 'String';
 }
 
+function isEnumRef(ft: IRFieldType, ir: IR): boolean {
+  return (ft.kind === 'enum' || ft.kind === 'model') && !!ft.ref && ir.enums.some((e) => e.name === ft.ref);
+}
+
 function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const args: string[] = [];
   for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
@@ -215,13 +222,14 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('        var queryItems: [URLQueryItem] = []');
     for (const q of op.queryParams) {
       const n = snakeToCamel(q.sdkName);
+      const isEnum = isEnumRef(q.type, ir);
       if (q.isArray) {
         lines.push(`        if let ${n} { ${n}.forEach { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: String($0))) } }`);
       } else if (q.required) {
-        const v = q.type.kind === 'enum' ? `${n}.rawValue` : `String(${n})`;
+        const v = isEnum ? `${n}.rawValue` : `String(${n})`;
         lines.push(`        queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${v}))`);
       } else {
-        const v = q.type.kind === 'enum' ? `$0.rawValue` : 'String($0)';
+        const v = isEnum ? `${n}.rawValue` : `String(${n})`;
         lines.push(`        if let ${n} { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${v})) }`);
       }
     }
@@ -306,23 +314,24 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     return;
   }
 
-  lines.push('        let (data, urlResponse) = try await session.data(for: request)');
+  const resVar = op.requestBody?.contentType === 'multipart' ? 'responseData' : 'data';
+  lines.push(`        let (${resVar}, urlResponse) = try await session.data(for: request)`);
   lines.push('        let statusCode = (urlResponse as! HTTPURLResponse).statusCode');
   lines.push('        switch statusCode {');
   const okCode = op.successResponse.statusCode;
   lines.push(`        case ${okCode}:`);
   if (!op.successResponse.hasBody) lines.push('            return');
-  else if (op.successResponse.isList) lines.push(`            return try pachcaDecoder.decode(${opReturn(op, ir)}.self, from: data)`);
-  else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try pachcaDecoder.decode(${op.successResponse.dataRef}DataWrapper.self, from: data).data`);
-  else lines.push(`            return try pachcaDecoder.decode(${opReturn(op, ir)}.self, from: data)`);
+  else if (op.successResponse.isList) lines.push(`            return try pachcaDecoder.decode(${opReturn(op, ir)}.self, from: ${resVar})`);
+  else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try pachcaDecoder.decode(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
+  else lines.push(`            return try pachcaDecoder.decode(${opReturn(op, ir)}.self, from: ${resVar})`);
 
   if (op.hasOAuthError) {
     lines.push('        case 401:');
-    lines.push('            throw try pachcaDecoder.decode(OAuthError.self, from: data)');
+    lines.push(`            throw try pachcaDecoder.decode(OAuthError.self, from: ${resVar})`);
   }
   if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('        default:');
-    lines.push('            throw try pachcaDecoder.decode(ApiError.self, from: data)');
+    lines.push(`            throw try pachcaDecoder.decode(ApiError.self, from: ${resVar})`);
   } else {
     lines.push('        default:');
     lines.push('            throw URLError(.badServerResponse)');

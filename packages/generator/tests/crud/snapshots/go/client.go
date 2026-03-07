@@ -1,9 +1,9 @@
 package pachca
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"bytes"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -28,7 +28,7 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 	u, _ := url.Parse(fmt.Sprintf("%s/chats", s.baseURL))
 	q := u.Query()
 	if params != nil && params.Availability != nil {
-		q.Set("availability", fmt.Sprintf("%v", *params.Availability))
+		q.Set("availability", string(*params.Availability))
 	}
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -40,7 +40,7 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 		q.Set("sort[field]", fmt.Sprintf("%v", *params.SortField))
 	}
 	if params != nil && params.SortOrder != nil {
-		q.Set("sort[order]", fmt.Sprintf("%v", *params.SortOrder))
+		q.Set("sort[order]", string(*params.SortOrder))
 	}
 	u.RawQuery = q.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)

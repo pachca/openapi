@@ -17,6 +17,10 @@ function upperFirst(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+function isEnumRef(ft: IRFieldType, ir: IR): boolean {
+  return (ft.kind === 'enum' || ft.kind === 'model') && !!ft.ref && ir.enums.some((e) => e.name === ft.ref);
+}
+
 function goExportName(raw: string): string {
   const normalized = raw.replace(/-/g, '_');
   const pascal = snakeToPascal(normalized);
@@ -40,6 +44,19 @@ function goServiceField(tag: string): string {
 
 function isOptionalField(field: IRField): boolean {
   return !field.required || field.nullable;
+}
+
+function goAligned(rows: string[][]): string[] {
+  if (rows.length === 0) return [];
+  const cols = Math.max(...rows.map((r) => r.length));
+  const widths: number[] = [];
+  for (let i = 0; i < cols - 1; i++) {
+    widths[i] = Math.max(...rows.map((r) => (r[i] ?? '').length));
+  }
+  return rows.map((row) => {
+    const parts = row.map((p, i) => (i < row.length - 1 ? p.padEnd(widths[i]) : p));
+    return '\t' + parts.join(' ');
+  });
 }
 
 function goPrimitive(
@@ -90,7 +107,7 @@ function goJsonTag(field: IRField): string {
   return omit ? `${field.name},omitempty` : field.name;
 }
 
-function goFieldDecl(field: IRField, modelName: string): string {
+function goFieldInfo(field: IRField, modelName: string): { name: string; typeName: string; tag: string; comment: string } {
   const name = modelName === 'OAuthError' && field.name === 'error'
     ? 'Err'
     : goExportName(field.name);
@@ -102,21 +119,23 @@ function goFieldDecl(field: IRField, modelName: string): string {
     (field.type.kind === 'primitive' || field.type.kind === 'model' || field.type.kind === 'enum' || field.type.kind === 'union') &&
     isOptionalField(field);
   const typeName = pointer ? `*${base}` : base;
+  const tag = `\`json:"${goJsonTag(field)}"\``;
   const comment = field.type.kind === 'literal' && field.type.literalValue
     ? ` // always "${field.type.literalValue}"`
     : '';
-  return `\t${name} ${typeName} \`json:"${goJsonTag(field)}"\`${comment}`;
+  return { name, typeName, tag, comment };
 }
 
 function emitEnum(lines: string[], e: IREnum): void {
   lines.push(`type ${e.name} string`);
   lines.push('');
   lines.push('const (');
-  for (const m of e.members) {
+  const rows = e.members.map((m) => {
     const cname = `${e.name}${goExportName(m.value)}`;
     const suffix = m.description ? ` // ${m.description}` : '';
-    lines.push(`\t${cname} ${e.name} = ${JSON.stringify(m.value)}${suffix}`);
-  }
+    return [cname, e.name, '=', `${JSON.stringify(m.value)}${suffix}`];
+  });
+  for (const line of goAligned(rows)) lines.push(line);
   lines.push(')');
 }
 
@@ -132,7 +151,9 @@ function emitModel(lines: string[], m: IRModel): void {
     if (ao !== bo) return ao ? 1 : -1;
     return 0;
   });
-  for (const f of sorted) lines.push(goFieldDecl(f, m.name));
+  const infos = sorted.map((f) => goFieldInfo(f, m.name));
+  const rows = infos.map((fi) => [fi.name, fi.typeName, `${fi.tag}${fi.comment}`]);
+  for (const line of goAligned(rows)) lines.push(line);
   lines.push('}');
 
   if (m.name === 'ApiError') {
@@ -164,8 +185,41 @@ function emitModel(lines: string[], m: IRModel): void {
   }
 }
 
-function emitUnion(lines: string[], u: IRUnion): void {
-  lines.push(`type ${u.name} interface{}`);
+function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
+  lines.push(`type ${u.name} struct {`);
+  const fieldRows = u.memberRefs.map((ref) => [ref, `*${ref}`]);
+  for (const line of goAligned(fieldRows)) lines.push(line);
+  lines.push('}');
+  lines.push('');
+  lines.push(`func (u *${u.name}) UnmarshalJSON(data []byte) error {`);
+  lines.push('\tvar disc struct {');
+  lines.push('\t\tType string `json:"type"`');
+  lines.push('\t}');
+  lines.push('\tif err := json.Unmarshal(data, &disc); err != nil {');
+  lines.push('\t\treturn err');
+  lines.push('\t}');
+  lines.push('\tswitch disc.Type {');
+  for (const ref of u.memberRefs) {
+    const model = models.find((m) => m.name === ref);
+    const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+    const disc = typeField?.type.literalValue ?? ref;
+    lines.push(`\tcase ${JSON.stringify(disc)}:`);
+    lines.push(`\t\tu.${ref} = &${ref}{}`);
+    lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+  }
+  lines.push('\tdefault:');
+  lines.push(`\t\treturn fmt.Errorf("unknown ${u.name} type: %s", disc.Type)`);
+  lines.push('\t}');
+  lines.push('}');
+  lines.push('');
+  lines.push(`func (u ${u.name}) MarshalJSON() ([]byte, error) {`);
+  for (const ref of u.memberRefs) {
+    lines.push(`\tif u.${ref} != nil {`);
+    lines.push(`\t\treturn json.Marshal(u.${ref})`);
+    lines.push('\t}');
+  }
+  lines.push(`\treturn nil, fmt.Errorf("empty ${u.name}")`);
+  lines.push('}');
 }
 
 function emitParamsType(lines: string[], name: string, params: IROperation['queryParams']): void {
@@ -174,23 +228,26 @@ function emitParamsType(lines: string[], name: string, params: IROperation['quer
     if (a.required !== b.required) return a.required ? -1 : 1;
     return 0;
   });
-  for (const p of sorted) {
+  const rows = sorted.map((p) => {
     const field = goExportName(p.sdkName);
     const t = goType(p.type, { forParam: true });
     const pointer = !p.required && (p.type.kind !== 'array' && p.type.kind !== 'record');
-    lines.push(`\t${field} ${pointer ? `*${t}` : t}`);
-  }
+    return [field, pointer ? `*${t}` : t];
+  });
+  for (const line of goAligned(rows)) lines.push(line);
   lines.push('}');
 }
 
 function emitResponseType(lines: string[], rt: IRResponseType): void {
   lines.push(`type ${rt.name} struct {`);
-  lines.push(`\tData []${rt.dataRef} \`json:"data"\``);
+  const rows: string[][] = [];
+  rows.push(['Data', `[]${rt.dataRef}`, '`json:"data"`']);
   if (rt.metaRef) {
     const opt = rt.metaIsRequired ? '' : '*';
     const tag = rt.metaIsRequired ? 'meta' : 'meta,omitempty';
-    lines.push(`\tMeta ${opt}${rt.metaRef} \`json:"${tag}"\``);
+    rows.push(['Meta', `${opt}${rt.metaRef}`, `\`json:"${tag}"\``]);
   }
+  for (const line of goAligned(rows)) lines.push(line);
   lines.push('}');
 }
 
@@ -205,14 +262,15 @@ function generateTypes(ir: IR): string {
   ].some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && (f.type.format === 'date' || f.type.format === 'date-time'));
   const needFmtStrings = ir.models.some((m) => m.name === 'ApiError');
   const needIO = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'binary'));
+  const hasUnions = ir.unions.length > 0;
 
   const imports: string[] = [];
-  if (needFmtStrings) {
-    imports.push('"fmt"');
-    imports.push('"strings"');
-  }
+  if (hasUnions) imports.push('"encoding/json"');
+  if (needFmtStrings || hasUnions) imports.push('"fmt"');
   if (needIO) imports.push('"io"');
+  if (needFmtStrings) imports.push('"strings"');
   if (needTime) imports.push('"time"');
+  imports.sort();
 
   if (imports.length > 0) {
     lines.push('import (');
@@ -236,7 +294,7 @@ function generateTypes(ir: IR): string {
   }
 
   for (const u of ir.unions) {
-    emitUnion(lines, u);
+    emitUnion(lines, u, ir.models);
     lines.push('');
   }
 
@@ -381,18 +439,27 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     if (op.queryParams.length > 0) {
       lines.push(`\tu, _ := url.Parse(${urlExpr})`);
       lines.push('\tq := u.Query()');
+      const hasReqParams = op.queryParams.some((q) => q.required);
       for (const p of op.queryParams) {
         const pn = goExportName(p.sdkName);
+        const isTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && (p.type.format === 'date' || p.type.format === 'date-time');
         if (p.isArray) {
           lines.push(`\tfor _, v := range params.${pn} {`);
           lines.push(`\t\tq.Add(${JSON.stringify(p.name)}, fmt.Sprintf("%v", v))`);
           lines.push('\t}');
         } else if (p.required) {
-          const conv = p.type.kind === 'enum' ? `string(params.${pn})` : `fmt.Sprintf("%v", params.${pn})`;
+          let conv: string;
+          if (isTime) conv = `params.${pn}.Format(time.RFC3339)`;
+          else if (isEnumRef(p.type, ir)) conv = `string(params.${pn})`;
+          else conv = `fmt.Sprintf("%v", params.${pn})`;
           lines.push(`\tq.Set(${JSON.stringify(p.name)}, ${conv})`);
         } else {
-          lines.push(`\tif params != nil && params.${pn} != nil {`);
-          const conv = p.type.kind === 'enum' ? `string(*params.${pn})` : `fmt.Sprintf("%v", *params.${pn})`;
+          const guard = hasReqParams ? '' : 'params != nil && ';
+          lines.push(`\tif ${guard}params.${pn} != nil {`);
+          let conv: string;
+          if (isTime) conv = `params.${pn}.Format(time.RFC3339)`;
+          else if (isEnumRef(p.type, ir)) conv = `string(*params.${pn})`;
+          else conv = `fmt.Sprintf("%v", *params.${pn})`;
           lines.push(`\t\tq.Set(${JSON.stringify(p.name)}, ${conv})`);
           lines.push('\t}');
         }
@@ -485,12 +552,16 @@ function generateClient(ir: IR): string {
   lines.push('package pachca');
   lines.push('');
 
+  if (ir.services.length === 0) {
+    return lines.join('\n');
+  }
+
   const needBytes = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'json'));
   const needURL = ir.services.some((s) => s.operations.some((o) => o.queryParams.length > 0));
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
-  const imports = ['"context"', '"encoding/json"', '"fmt"', '"net/http"'];
-  if (needBytes) imports.splice(2, 0, '"bytes"');
+  const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"'];
+  if (needBytes) imports.push('"bytes"');
   if (needURL) imports.push('"net/url"');
   if (needErrors) imports.push('"errors"');
   if (needMultipart) {
@@ -500,6 +571,7 @@ function generateClient(ir: IR): string {
   if (ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && (q.type.format === 'date' || q.type.format === 'date-time')))) {
     imports.push('"time"');
   }
+  imports.sort();
 
   lines.push('import (');
   for (const imp of imports) lines.push(`\t${imp}`);
@@ -534,7 +606,8 @@ function generateClient(ir: IR): string {
   const fields = ir.services
     .map((s) => ({ f: goServiceField(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.f.localeCompare(b.f));
-  for (const f of fields) lines.push(`\t${f.f} *${f.cls}`);
+  const clientRows = fields.map((f) => [f.f, `*${f.cls}`]);
+  for (const line of goAligned(clientRows)) lines.push(line);
   lines.push('}');
   lines.push('');
   lines.push('func NewPachcaClient(baseURL, token string) *PachcaClient {');
@@ -547,11 +620,24 @@ function generateClient(ir: IR): string {
   }
   lines.push('\t}');
   lines.push('\treturn &PachcaClient{');
-  for (const f of fields) lines.push(`\t\t${f.f}: &${f.cls}{baseURL: baseURL, client: client},`);
+  const maxField = Math.max(...fields.map((f) => f.f.length));
+  for (const f of fields) lines.push(`\t\t${f.f.padEnd(maxField)}: &${f.cls}{baseURL: baseURL, client: client},`);
   lines.push('\t}');
   lines.push('}');
   lines.push('');
   return lines.join('\n');
+}
+
+function generateUtils(): string {
+  return [
+    'package pachca',
+    '',
+    '// Ptr returns a pointer to the given value.',
+    'func Ptr[T any](v T) *T {',
+    '\treturn &v',
+    '}',
+    '',
+  ].join('\n');
 }
 
 export class GoGenerator implements LanguageGenerator {
@@ -561,6 +647,7 @@ export class GoGenerator implements LanguageGenerator {
     return [
       { path: 'types.go', content: generateTypes(ir) },
       { path: 'client.go', content: generateClient(ir) },
+      { path: 'utils.go', content: generateUtils() },
     ];
   }
 }

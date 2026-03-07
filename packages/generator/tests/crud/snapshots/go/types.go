@@ -9,7 +9,7 @@ import (
 type SortOrder string
 
 const (
-	SortOrderAsc SortOrder = "asc"
+	SortOrderAsc  SortOrder = "asc"
 	SortOrderDesc SortOrder = "desc"
 )
 
@@ -17,22 +17,22 @@ type ChatAvailability string
 
 const (
 	ChatAvailabilityIsMember ChatAvailability = "is_member" // Чаты, где пользователь является участником
-	ChatAvailabilityPublic ChatAvailability = "public" // Все открытые чаты компании
+	ChatAvailabilityPublic   ChatAvailability = "public" // Все открытые чаты компании
 )
 
 type Chat struct {
-	ID int32 `json:"id"`
-	Name string `json:"name"`
-	IsChannel bool `json:"is_channel"`
-	IsPublic bool `json:"is_public"`
+	ID        int32     `json:"id"`
+	Name      string    `json:"name"`
+	IsChannel bool      `json:"is_channel"`
+	IsPublic  bool      `json:"is_public"`
 	CreatedAt time.Time `json:"created_at"`
-	MemberIDs []int32 `json:"member_ids,omitempty"`
+	MemberIDs []int32   `json:"member_ids,omitempty"`
 }
 
 type ChatCreateRequestChat struct {
-	Name string `json:"name"`
-	Channel *bool `json:"channel,omitempty"`
-	Public *bool `json:"public,omitempty"`
+	Name      string  `json:"name"`
+	Channel   *bool   `json:"channel,omitempty"`
+	Public    *bool   `json:"public,omitempty"`
 	MemberIDs []int32 `json:"member_ids,omitempty"`
 }
 
@@ -41,8 +41,8 @@ type ChatCreateRequest struct {
 }
 
 type ChatUpdateRequestChat struct {
-	Name *string `json:"name,omitempty"`
-	Public *bool `json:"public,omitempty"`
+	Name   *string `json:"name,omitempty"`
+	Public *bool   `json:"public,omitempty"`
 }
 
 type ChatUpdateRequest struct {
@@ -50,7 +50,7 @@ type ChatUpdateRequest struct {
 }
 
 type ApiErrorItem struct {
-	Key *string `json:"key,omitempty"`
+	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 
@@ -95,13 +95,13 @@ type PaginationMeta struct {
 
 type ListChatsParams struct {
 	Availability *ChatAvailability
-	Limit *int32
-	Cursor *string
-	SortField *string
-	SortOrder *SortOrder
+	Limit        *int32
+	Cursor       *string
+	SortField    *string
+	SortOrder    *SortOrder
 }
 
 type ListChatsResponse struct {
-	Data []Chat `json:"data"`
+	Data []Chat          `json:"data"`
 	Meta *PaginationMeta `json:"meta,omitempty"`
 }

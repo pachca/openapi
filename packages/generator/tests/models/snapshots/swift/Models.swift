@@ -23,7 +23,7 @@ struct User: Codable {
     let createdAt: Date
     let birthday: String?
     let tagIds: [Int]
-    let customProperties: [CustomProperty?]?
+    let customProperties: [CustomProperty]?
     let status: UserStatus?
 
     enum CodingKeys: String, CodingKey {
@@ -130,8 +130,8 @@ struct MessageCreateRequestButton: Codable {
 struct MessageCreateRequestMessage: Codable {
     let entityId: Int
     let content: String
-    let files: [MessageCreateRequestFile?]?
-    let buttons: [[MessageCreateRequestButton?]?]?
+    let files: [MessageCreateRequestFile]?
+    let buttons: [[MessageCreateRequestButton]]?
 
     enum CodingKeys: String, CodingKey {
         case entityId = "entity_id"
@@ -151,7 +151,7 @@ struct ApiErrorItem: Codable {
 }
 
 struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem?]?
+    let errors: [ApiErrorItem]?
 }
 
 struct OAuthError: Codable, Error {

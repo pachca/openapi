@@ -3,9 +3,9 @@ package pachca
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	"errors"
 )
 
 type authTransport struct {

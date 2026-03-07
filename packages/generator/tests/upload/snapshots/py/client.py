@@ -30,7 +30,7 @@ class CommonService:
         if request.x_amz_signature is not None:
             data["x-amz-signature"] = request.x_amz_signature
         response = await self._client.post(
-            f"/uploads",
+            "/uploads",
             data=data,
             files={"file": request.file},
         )

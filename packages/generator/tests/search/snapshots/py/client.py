@@ -32,7 +32,7 @@ class SearchService:
         if params is not None and params.cursor is not None:
             query.append(("cursor", params.cursor))
         response = await self._client.get(
-            f"/search/messages",
+            "/search/messages",
             params=query,
         )
         body = response.json()

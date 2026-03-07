@@ -38,13 +38,13 @@ struct CommonService {
         data.append("\r\n".data(using: .utf8)!)
         data.append("--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = data
-        let (data, urlResponse) = try await session.data(for: request)
+        let (responseData, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try pachcaDecoder.decode(OAuthError.self, from: responseData)
         default:
             throw URLError(.badServerResponse)
         }

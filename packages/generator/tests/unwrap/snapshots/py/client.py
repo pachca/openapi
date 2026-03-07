@@ -43,7 +43,7 @@ class ChatsService:
         request: ChatCreateRequest,
     ) -> Chat:
         response = await self._client.post(
-            f"/chats",
+            "/chats",
             json=asdict(request),
         )
         body = response.json()

@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"io"
 	"mime/multipart"
+	"net/http"
 )
 
 type authTransport struct {

@@ -6,9 +6,9 @@ import (
 )
 
 type LinkPreview struct {
-	Title string `json:"title"`
+	Title       string  `json:"title"`
 	Description *string `json:"description,omitempty"`
-	ImageURL *string `json:"image_url,omitempty"`
+	ImageURL    *string `json:"image_url,omitempty"`
 }
 
 type LinkPreviewsRequest struct {
@@ -16,7 +16,7 @@ type LinkPreviewsRequest struct {
 }
 
 type ApiErrorItem struct {
-	Key *string `json:"key,omitempty"`
+	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 

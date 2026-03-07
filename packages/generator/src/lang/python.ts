@@ -408,13 +408,15 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       const filesExpr = binary
         ? `{"${binary.name}": request.${pyFieldName(binary)}}`
         : '{}';
+      const mpPathStr = path.includes('{') ? `f"${path}"` : `"${path}"`;
       lines.push('        response = await self._client.post(');
-      lines.push(`            f"${path}",`);
+      lines.push(`            ${mpPathStr},`);
       lines.push('            data=data,');
       lines.push(`            files=${filesExpr},`);
       lines.push('        )');
     } else {
-      lines.push(`        response = await self._client.${op.method.toLowerCase()}(f"${path}")`);
+      const elsePathStr = path.includes('{') ? `f"${path}"` : `"${path}"`;
+      lines.push(`        response = await self._client.${op.method.toLowerCase()}(${elsePathStr})`);
     }
   } else {
     if (op.queryParams.length > 0) {
@@ -458,8 +460,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     const method = op.method.toLowerCase();
     const hasBody = op.requestBody?.contentType === 'json';
     const hasQuery = op.queryParams.length > 0;
+    const pathStr = path.includes('{') ? `f"${path}"` : `"${path}"`;
     lines.push(`        response = await self._client.${method}(`);
-    lines.push(`            f"${path}",`);
+    lines.push(`            ${pathStr},`);
     if (hasQuery) lines.push('            params=query,');
     if (op.successResponse.isRedirect) lines.push('            follow_redirects=False,');
     if (hasBody) {

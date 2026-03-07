@@ -1,9 +1,9 @@
 package pachca
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"bytes"
 	"fmt"
 	"net/http"
 )
@@ -117,7 +117,7 @@ func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
 }
 
 type PachcaClient struct {
-	Chats *ChatsService
+	Chats   *ChatsService
 	Members *MembersService
 }
 
@@ -126,7 +126,7 @@ func NewPachcaClient(baseURL, token string) *PachcaClient {
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Chats: &ChatsService{baseURL: baseURL, client: client},
+		Chats  : &ChatsService{baseURL: baseURL, client: client},
 		Members: &MembersService{baseURL: baseURL, client: client},
 	}
 }

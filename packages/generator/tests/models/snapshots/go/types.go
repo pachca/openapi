@@ -9,47 +9,47 @@ import (
 type UserRole string
 
 const (
-	UserRoleAdmin UserRole = "admin" // Администратор
-	UserRoleUser UserRole = "user" // Сотрудник
+	UserRoleAdmin      UserRole = "admin" // Администратор
+	UserRoleUser       UserRole = "user" // Сотрудник
 	UserRoleMultiAdmin UserRole = "multi_admin" // Мультиадмин
-	UserRoleBot UserRole = "bot" // Бот
+	UserRoleBot        UserRole = "bot" // Бот
 )
 
 type User struct {
-	ID int32 `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName string `json:"last_name"`
-	Email string `json:"email"`
-	Role UserRole `json:"role"`
-	IsActive bool `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
-	TagIDs []int32 `json:"tag_ids"`
-	PhoneNumber *string `json:"phone_number"`
-	BotID *int64 `json:"bot_id"`
-	Birthday *string `json:"birthday"`
+	ID               int32            `json:"id"`
+	FirstName        string           `json:"first_name"`
+	LastName         string           `json:"last_name"`
+	Email            string           `json:"email"`
+	Role             UserRole         `json:"role"`
+	IsActive         bool             `json:"is_active"`
+	CreatedAt        time.Time        `json:"created_at"`
+	TagIDs           []int32          `json:"tag_ids"`
+	PhoneNumber      *string          `json:"phone_number"`
+	BotID            *int64           `json:"bot_id"`
+	Birthday         *string          `json:"birthday"`
 	CustomProperties []CustomProperty `json:"custom_properties,omitempty"`
-	Status *UserStatus `json:"status,omitempty"`
+	Status           *UserStatus      `json:"status,omitempty"`
 }
 
 type UserStatus struct {
-	Emoji *string `json:"emoji,omitempty"`
-	Title *string `json:"title,omitempty"`
+	Emoji     *string `json:"emoji,omitempty"`
+	Title     *string `json:"title,omitempty"`
 	ExpiresAt *string `json:"expires_at"`
 }
 
 type CustomProperty struct {
-	ID int32 `json:"id"`
-	Name string `json:"name"`
+	ID       int32  `json:"id"`
+	Name     string `json:"name"`
 	DataType string `json:"data_type"`
-	Value string `json:"value"`
+	Value    string `json:"value"`
 }
 
 type UserCreateRequestUser struct {
-	FirstName string `json:"first_name"`
-	LastName string `json:"last_name"`
-	Email string `json:"email"`
-	Role *UserRole `json:"role,omitempty"`
-	IsActive *bool `json:"is_active,omitempty"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	Role      *UserRole `json:"role,omitempty"`
+	IsActive  *bool     `json:"is_active,omitempty"`
 }
 
 type UserCreateRequest struct {
@@ -57,10 +57,10 @@ type UserCreateRequest struct {
 }
 
 type UserUpdateRequestUser struct {
-	FirstName *string `json:"first_name,omitempty"`
-	LastName *string `json:"last_name,omitempty"`
-	PhoneNumber *string `json:"phone_number"`
-	Role *UserRole `json:"role,omitempty"`
+	FirstName   *string   `json:"first_name,omitempty"`
+	LastName    *string   `json:"last_name,omitempty"`
+	PhoneNumber *string   `json:"phone_number"`
+	Role        *UserRole `json:"role,omitempty"`
 }
 
 type UserUpdateRequest struct {
@@ -68,23 +68,23 @@ type UserUpdateRequest struct {
 }
 
 type MessageCreateRequestFile struct {
-	Key string `json:"key"`
-	Name string `json:"name"`
+	Key      string `json:"key"`
+	Name     string `json:"name"`
 	FileType string `json:"file_type"`
-	Size int32 `json:"size"`
+	Size     int32  `json:"size"`
 }
 
 type MessageCreateRequestButton struct {
-	Text string `json:"text"`
-	URL *string `json:"url,omitempty"`
+	Text string  `json:"text"`
+	URL  *string `json:"url,omitempty"`
 	Data *string `json:"data,omitempty"`
 }
 
 type MessageCreateRequestMessage struct {
-	EntityID int32 `json:"entity_id"`
-	Content string `json:"content"`
-	Files []MessageCreateRequestFile `json:"files,omitempty"`
-	Buttons [][]MessageCreateRequestButton `json:"buttons,omitempty"`
+	EntityID int32                          `json:"entity_id"`
+	Content  string                         `json:"content"`
+	Files    []MessageCreateRequestFile     `json:"files,omitempty"`
+	Buttons  [][]MessageCreateRequestButton `json:"buttons,omitempty"`
 }
 
 type MessageCreateRequest struct {
@@ -92,7 +92,7 @@ type MessageCreateRequest struct {
 }
 
 type ApiErrorItem struct {
-	Key *string `json:"key,omitempty"`
+	Key   *string `json:"key,omitempty"`
 	Value *string `json:"value,omitempty"`
 }
 
@@ -140,6 +140,6 @@ type SearchPaginationMetaPaginate struct {
 }
 
 type SearchPaginationMeta struct {
-	Total int32 `json:"total"`
+	Total    int32                        `json:"total"`
 	Paginate SearchPaginationMetaPaginate `json:"paginate"`
 }

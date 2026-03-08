@@ -581,7 +581,8 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   }
 
   lines.push('class PachcaClient:');
-  lines.push('    def __init__(self, base_url: str, token: str) -> None:');
+  const pyDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  lines.push(`    def __init__(self, token: str, base_url: str${pyDefault}) -> None:`);
   lines.push('        self._client = httpx.AsyncClient(');
   lines.push('            base_url=base_url,');
   lines.push('            headers={"Authorization": f"Bearer {token}"},');

@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import * as fs from 'node:fs';
 import { generate, SUPPORTED_LANGS } from '../src/index.js';

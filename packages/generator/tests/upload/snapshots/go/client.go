@@ -84,11 +84,15 @@ type PachcaClient struct {
 	Common *CommonService
 }
 
-func NewPachcaClient(baseURL, token string) *PachcaClient {
+const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
+
+func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
+	url := DefaultBaseURL
+	if len(baseURL) > 0 { url = baseURL[0] }
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Common: &CommonService{baseURL: baseURL, client: client},
+		Common: &CommonService{baseURL: url, client: client},
 	}
 }

@@ -1,24 +1,33 @@
 import Foundation
 
-enum SortOrder: String, Codable, CaseIterable {
+public enum SortOrder: String, Codable, CaseIterable {
     case asc
     case desc
 }
 
-enum ChatAvailability: String, Codable, CaseIterable {
+public enum ChatAvailability: String, Codable, CaseIterable {
     /// Чаты, где пользователь является участником
     case isMember = "is_member"
     /// Все открытые чаты компании
     case `public` = "public"
 }
 
-struct Chat: Codable {
-    let id: Int
-    let name: String
-    let isChannel: Bool
-    let isPublic: Bool
-    let createdAt: Date
-    let memberIds: [Int]?
+public struct Chat: Codable {
+    public let id: Int
+    public let name: String
+    public let isChannel: Bool
+    public let isPublic: Bool
+    public let createdAt: Date
+    public let memberIds: [Int]?
+
+    public init(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: Date, memberIds: [Int]? = nil) {
+        self.id = id
+        self.name = name
+        self.isChannel = isChannel
+        self.isPublic = isPublic
+        self.createdAt = createdAt
+        self.memberIds = memberIds
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -30,11 +39,18 @@ struct Chat: Codable {
     }
 }
 
-struct ChatCreateRequestChat: Codable {
-    let name: String
-    let channel: Bool?
-    let `public`: Bool?
-    let memberIds: [Int]?
+public struct ChatCreateRequestChat: Codable {
+    public let name: String
+    public let channel: Bool?
+    public let `public`: Bool?
+    public let memberIds: [Int]?
+
+    public init(name: String, channel: Bool? = nil, `public`: Bool? = nil, memberIds: [Int]? = nil) {
+        self.name = name
+        self.channel = channel
+        self.`public` = `public`
+        self.memberIds = memberIds
+    }
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -44,13 +60,22 @@ struct ChatCreateRequestChat: Codable {
     }
 }
 
-struct ChatCreateRequest: Codable {
-    let chat: ChatCreateRequestChat
+public struct ChatCreateRequest: Codable {
+    public let chat: ChatCreateRequestChat
+
+    public init(chat: ChatCreateRequestChat) {
+        self.chat = chat
+    }
 }
 
-struct ChatUpdateRequestChat: Codable {
-    let name: String?
-    let `public`: Bool?
+public struct ChatUpdateRequestChat: Codable {
+    public let name: String?
+    public let `public`: Bool?
+
+    public init(name: String? = nil, `public`: Bool? = nil) {
+        self.name = name
+        self.`public` = `public`
+    }
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -58,38 +83,63 @@ struct ChatUpdateRequestChat: Codable {
     }
 }
 
-struct ChatUpdateRequest: Codable {
-    let chat: ChatUpdateRequestChat
+public struct ChatUpdateRequest: Codable {
+    public let chat: ChatUpdateRequestChat
+
+    public init(chat: ChatUpdateRequestChat) {
+        self.chat = chat
+    }
 }
 
-struct ApiErrorItem: Codable {
-    let key: String?
-    let value: String?
+public struct ApiErrorItem: Codable {
+    public let key: String?
+    public let value: String?
+
+    public init(key: String? = nil, value: String? = nil) {
+        self.key = key
+        self.value = value
+    }
 }
 
-struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem]?
+public struct ApiError: Codable, Error {
+    public let errors: [ApiErrorItem]?
+
+    public init(errors: [ApiErrorItem]? = nil) {
+        self.errors = errors
+    }
 }
 
-struct OAuthError: Codable, Error {
-    let error: String?
+public struct OAuthError: Codable, Error {
+    public let error: String?
+
+    public init(error: String? = nil) {
+        self.error = error
+    }
 }
 
-struct PaginationMetaPaginate: Codable {
-    let nextPage: String?
+public struct PaginationMetaPaginate: Codable {
+    public let nextPage: String?
+
+    public init(nextPage: String? = nil) {
+        self.nextPage = nextPage
+    }
 
     enum CodingKeys: String, CodingKey {
         case nextPage = "next_page"
     }
 }
 
-struct PaginationMeta: Codable {
-    let paginate: PaginationMetaPaginate?
+public struct PaginationMeta: Codable {
+    public let paginate: PaginationMetaPaginate?
+
+    public init(paginate: PaginationMetaPaginate? = nil) {
+        self.paginate = paginate
+    }
 }
 
-struct ListChatsResponse: Codable {
-    let data: [Chat]
-    let meta: PaginationMeta? = nil
+public struct ListChatsResponse: Codable {
+    public let data: [Chat]
+    public let meta: PaginationMeta? = nil
 }
 
 struct ChatDataWrapper: Codable {

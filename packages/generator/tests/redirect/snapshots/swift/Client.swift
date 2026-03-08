@@ -1,6 +1,6 @@
 import Foundation
 
-struct CommonService {
+public struct CommonService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -11,7 +11,7 @@ struct CommonService {
         self.session = session
     }
 
-    func downloadExport(id: Int) async throws -> String {
+    public func downloadExport(id: Int) async throws -> String {
         var request = URLRequest(url: URL(string: "\(baseURL)/exports/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let delegate = RedirectPreventer()
@@ -43,10 +43,10 @@ private final class RedirectPreventer: NSObject, URLSessionTaskDelegate {
     }
 }
 
-struct PachcaClient {
-    let common: CommonService
+public struct PachcaClient {
+    public let common: CommonService
 
-    init(baseURL: String, token: String) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
         let headers = ["Authorization": "Bearer \(token)"]
         self.common = CommonService(baseURL: baseURL, headers: headers)
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-struct CommonService {
+public struct CommonService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -11,7 +11,7 @@ struct CommonService {
         self.session = session
     }
 
-    func uploadFile(request body: FileUploadRequest) async throws -> Void {
+    public func uploadFile(request body: FileUploadRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -51,10 +51,10 @@ struct CommonService {
     }
 }
 
-struct PachcaClient {
-    let common: CommonService
+public struct PachcaClient {
+    public let common: CommonService
 
-    init(baseURL: String, token: String) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
         let headers = ["Authorization": "Bearer \(token)"]
         self.common = CommonService(baseURL: baseURL, headers: headers)
     }

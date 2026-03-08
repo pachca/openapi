@@ -53,7 +53,7 @@ class ChatsService internal constructor(
     }
 }
 
-class PachcaClient(baseUrl: String, token: String) : Closeable {
+class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {

@@ -1,22 +1,38 @@
 import Foundation
 
-struct ViewBlockHeader: Codable {
-    let type: String
-    let text: String
+public struct ViewBlockHeader: Codable {
+    public let type: String
+    public let text: String
+
+    public init(type: String, text: String) {
+        self.type = type
+        self.text = text
+    }
 }
 
-struct ViewBlockPlainText: Codable {
-    let type: String
-    let text: String
+public struct ViewBlockPlainText: Codable {
+    public let type: String
+    public let text: String
+
+    public init(type: String, text: String) {
+        self.type = type
+        self.text = text
+    }
 }
 
-struct ViewBlockImage: Codable {
-    let type: String
-    let url: String
-    let alt: String?
+public struct ViewBlockImage: Codable {
+    public let type: String
+    public let url: String
+    public let alt: String?
+
+    public init(type: String, url: String, alt: String? = nil) {
+        self.type = type
+        self.url = url
+        self.alt = alt
+    }
 }
 
-enum ViewBlockUnion: Codable {
+public enum ViewBlockUnion: Codable {
     case viewBlockHeader(ViewBlockHeader)
     case viewBlockPlainText(ViewBlockPlainText)
     case viewBlockImage(ViewBlockImage)
@@ -25,7 +41,7 @@ enum ViewBlockUnion: Codable {
         case type
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
         switch type {
@@ -42,7 +58,7 @@ enum ViewBlockUnion: Codable {
         }
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         switch self {
         case .viewBlockHeader(let value):
             try value.encode(to: encoder)

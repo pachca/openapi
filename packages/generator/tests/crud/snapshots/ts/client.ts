@@ -26,7 +26,7 @@ class ChatsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body = await response.json();
+    const body: any = await response.json();
     switch (response.status) {
       case 200:
         return toCamelCase(body) as ListChatsResponse;
@@ -41,7 +41,7 @@ class ChatsService {
     const response = await fetch(`${this.baseUrl}/chats/${id}`, {
       headers: this.headers,
     });
-    const body = await response.json();
+    const body: any = await response.json();
     switch (response.status) {
       case 200:
         return toCamelCase(body.data) as Chat;
@@ -58,7 +58,7 @@ class ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(toSnakeCase(request)),
     });
-    const body = await response.json();
+    const body: any = await response.json();
     switch (response.status) {
       case 201:
         return toCamelCase(body.data) as Chat;
@@ -75,7 +75,7 @@ class ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(toSnakeCase(request)),
     });
-    const body = await response.json();
+    const body: any = await response.json();
     switch (response.status) {
       case 200:
         return toCamelCase(body.data) as Chat;
@@ -95,9 +95,9 @@ class ChatsService {
       case 204:
         return;
       case 401:
-        throw new OAuthError((await response.json()).error);
+        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError((await response.json()).errors);
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 
@@ -110,9 +110,9 @@ class ChatsService {
       case 204:
         return;
       case 401:
-        throw new OAuthError((await response.json()).error);
+        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError((await response.json()).errors);
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 }
@@ -120,7 +120,7 @@ class ChatsService {
 export class PachcaClient {
   readonly chats: ChatsService;
 
-  constructor(baseUrl: string, token: string) {
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
     this.chats = new ChatsService(baseUrl, headers);
   }

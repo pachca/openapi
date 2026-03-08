@@ -24,7 +24,7 @@ class SearchService {
     const response = await fetch(`${this.baseUrl}/search/messages?${query}`, {
       headers: this.headers,
     });
-    const body = await response.json();
+    const body: any = await response.json();
     switch (response.status) {
       case 200:
         return toCamelCase(body) as SearchMessagesResponse;
@@ -39,7 +39,7 @@ class SearchService {
 export class PachcaClient {
   readonly search: SearchService;
 
-  constructor(baseUrl: string, token: string) {
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
     this.search = new SearchService(baseUrl, headers);
   }

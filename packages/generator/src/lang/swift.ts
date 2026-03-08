@@ -12,9 +12,17 @@ import type {
 import type { GeneratedFile, LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName } from '../naming.js';
 
+const SWIFT_KEYWORDS = new Set([
+  'as', 'break', 'case', 'catch', 'class', 'continue', 'default', 'defer', 'do', 'else',
+  'enum', 'extension', 'fallthrough', 'false', 'for', 'func', 'guard', 'if', 'import', 'in',
+  'init', 'inout', 'internal', 'is', 'let', 'nil', 'operator', 'private', 'protocol', 'public',
+  'repeat', 'rethrows', 'return', 'self', 'static', 'struct', 'subscript', 'super', 'switch',
+  'throw', 'throws', 'true', 'try', 'typealias', 'var', 'where', 'while',
+]);
+
 function swiftIdentifier(name: string): string {
-  const camel = snakeToCamel(name.replace(/-/g, '_'));
-  if (camel === 'public' || camel === 'private') return `\`${camel}\``;
+  const camel = snakeToCamel(name.replace(/[-:]/g, '_'));
+  if (SWIFT_KEYWORDS.has(camel)) return `\`${camel}\``;
   return camel;
 }
 
@@ -54,7 +62,7 @@ function isOptionalField(field: IRField): boolean {
 }
 
 function emitEnum(lines: string[], e: IREnum): void {
-  lines.push(`enum ${e.name}: String, Codable, CaseIterable {`);
+  lines.push(`public enum ${e.name}: String, Codable, CaseIterable {`);
   for (const m of e.members) {
     const id = swiftIdentifier(m.value);
     const caseDecl = id === m.value ? `case ${id}` : `case ${id} = ${JSON.stringify(m.value)}`;
@@ -79,24 +87,37 @@ function emitCodingKeys(lines: string[], fields: IRField[]): void {
 
 function emitModel(lines: string[], m: IRModel): void {
   const proto = m.isError ? 'Codable, Error' : 'Codable';
-  lines.push(`struct ${m.name}: ${proto} {`);
+  lines.push(`public struct ${m.name}: ${proto} {`);
   if (m.fields.length === 0) {
     lines.push('}');
     return;
   }
+  const fieldInfos: { name: string; type: string; optional: boolean; mutable: boolean }[] = [];
   for (const f of m.fields) {
     const name = swiftIdentifier(f.name);
-    const nullable = !f.required || f.nullable;
-    const t = swiftType(f.type, { nullable: nullable || f.nullable });
-    const mutable = f.type.kind === 'binary' ? 'var' : 'let';
-    lines.push(`    ${mutable} ${name}: ${t}`);
+    const optional = !f.required || f.nullable;
+    const t = swiftType(f.type, { nullable: optional || f.nullable });
+    const mutable = f.type.kind === 'binary';
+    lines.push(`    public ${mutable ? 'var' : 'let'} ${name}: ${t}`);
+    fieldInfos.push({ name, type: t, optional, mutable });
   }
+  // Generate public memberwise init
+  lines.push('');
+  const initParams = fieldInfos.map((fi) => {
+    const defaultVal = fi.optional ? ' = nil' : '';
+    return `${fi.name}: ${fi.type}${defaultVal}`;
+  });
+  lines.push(`    public init(${initParams.join(', ')}) {`);
+  for (const fi of fieldInfos) {
+    lines.push(`        self.${fi.name} = ${fi.name}`);
+  }
+  lines.push('    }');
   emitCodingKeys(lines, m.fields);
   lines.push('}');
 }
 
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
-  lines.push(`enum ${u.name}: Codable {`);
+  lines.push(`public enum ${u.name}: Codable {`);
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
     lines.push(`    case ${c}(${ref})`);
@@ -106,7 +127,7 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push('        case type');
   lines.push('    }');
   lines.push('');
-  lines.push('    init(from decoder: Decoder) throws {');
+  lines.push('    public init(from decoder: Decoder) throws {');
   lines.push('        let container = try decoder.container(keyedBy: CodingKeys.self)');
   lines.push('        let type = try container.decode(String.self, forKey: .type)');
   lines.push('        switch type {');
@@ -125,7 +146,7 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push('        }');
   lines.push('    }');
   lines.push('');
-  lines.push('    func encode(to encoder: Encoder) throws {');
+  lines.push('    public func encode(to encoder: Encoder) throws {');
   lines.push('        switch self {');
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
@@ -160,9 +181,9 @@ function generateModels(ir: IR): string {
     lines.push('');
   }
   for (const rt of ir.responses) {
-    lines.push(`struct ${rt.name}: Codable {`);
-    lines.push(`    let data: [${rt.dataRef}]`);
-    if (rt.metaRef) lines.push(`    let meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
+    lines.push(`public struct ${rt.name}: Codable {`);
+    lines.push(`    public let data: [${rt.dataRef}]`);
+    if (rt.metaRef) lines.push(`    public let meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
     lines.push('}');
     lines.push('');
   }
@@ -212,21 +233,35 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
   }
 
-  lines.push(`    func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
+  lines.push(`    public func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
   if (op.queryParams.length > 0) {
     lines.push(`        var components = URLComponents(string: "\\(baseURL)${op.path}")!`);
     lines.push('        var queryItems: [URLQueryItem] = []');
     for (const q of op.queryParams) {
       const n = snakeToCamel(q.sdkName);
       const isEnum = q.type.kind === 'enum';
-      if (q.isArray) {
-        lines.push(`        if let ${n} { ${n}.forEach { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: String($0))) } }`);
+      const isDate = q.type.kind === 'primitive' && (q.type.format === 'date' || q.type.format === 'date-time');
+      const isModel = q.type.kind === 'model' || q.type.kind === 'record';
+      function valueExpr(varName: string): string {
+        if (isEnum) return `${varName}.rawValue`;
+        if (isDate && q.required) return `ISO8601DateFormatter().string(from: ${varName})`;
+        if (isDate) return varName; // optional dates are typed as String
+        if (isModel) return `String(data: try! JSONEncoder().encode(${varName}), encoding: .utf8)!`;
+        return `String(${varName})`;
+      }
+      const isArray = q.type.kind === 'array';
+      if (q.isArray || isArray) {
+        const itemIsEnum = q.type.kind === 'array' && q.type.items?.kind === 'enum';
+        const itemExpr = itemIsEnum ? '$0.rawValue' : 'String($0)';
+        if (q.required) {
+          lines.push(`        ${n}.forEach { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${itemExpr})) }`);
+        } else {
+          lines.push(`        if let ${n} { ${n}.forEach { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${itemExpr})) } }`);
+        }
       } else if (q.required) {
-        const v = isEnum ? `${n}.rawValue` : `String(${n})`;
-        lines.push(`        queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${v}))`);
+        lines.push(`        queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${valueExpr(n)}))`);
       } else {
-        const v = isEnum ? `${n}.rawValue` : `String(${n})`;
-        lines.push(`        if let ${n} { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${v})) }`);
+        lines.push(`        if let ${n} { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: ${valueExpr(n)})) }`);
       }
     }
     lines.push('        if !queryItems.isEmpty { components.queryItems = queryItems }');
@@ -342,7 +377,7 @@ function generateClient(ir: IR): string {
   lines.push('');
   for (const s of ir.services) {
     const cls = tagToServiceName(s.tag);
-    lines.push(`struct ${cls} {`);
+    lines.push(`public struct ${cls} {`);
     lines.push('    let baseURL: String');
     lines.push('    let headers: [String: String]');
     lines.push('    let session: URLSession');
@@ -376,13 +411,14 @@ function generateClient(ir: IR): string {
     lines.push('');
   }
 
-  lines.push('struct PachcaClient {');
+  lines.push('public struct PachcaClient {');
   const svcs = ir.services
     .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.prop.localeCompare(b.prop));
-  for (const s of svcs) lines.push(`    let ${s.prop}: ${s.cls}`);
+  for (const s of svcs) lines.push(`    public let ${s.prop}: ${s.cls}`);
   lines.push('');
-  lines.push('    init(baseURL: String, token: String) {');
+  const swiftDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  lines.push(`    public init(token: String, baseURL: String${swiftDefault}) {`);
   lines.push('        let headers = ["Authorization": "Bearer \\(token)"]');
   for (const s of svcs) lines.push(`        self.${s.prop} = ${s.cls}(baseURL: baseURL, headers: headers)`);
   lines.push('    }');

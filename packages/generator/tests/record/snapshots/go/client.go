@@ -56,11 +56,15 @@ type PachcaClient struct {
 	LinkPreviews *LinkPreviewsService
 }
 
-func NewPachcaClient(baseURL, token string) *PachcaClient {
+const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
+
+func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
+	url := DefaultBaseURL
+	if len(baseURL) > 0 { url = baseURL[0] }
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		LinkPreviews: &LinkPreviewsService{baseURL: baseURL, client: client},
+		LinkPreviews: &LinkPreviewsService{baseURL: url, client: client},
 	}
 }

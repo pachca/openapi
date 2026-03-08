@@ -1,6 +1,6 @@
 import Foundation
 
-enum UserRole: String, Codable, CaseIterable {
+public enum UserRole: String, Codable, CaseIterable {
     /// Администратор
     case admin
     /// Сотрудник
@@ -11,20 +11,36 @@ enum UserRole: String, Codable, CaseIterable {
     case bot
 }
 
-struct User: Codable {
-    let id: Int
-    let firstName: String
-    let lastName: String
-    let email: String
-    let phoneNumber: String?
-    let role: UserRole
-    let isActive: Bool
-    let botId: Int64?
-    let createdAt: Date
-    let birthday: String?
-    let tagIds: [Int]
-    let customProperties: [CustomProperty]?
-    let status: UserStatus?
+public struct User: Codable {
+    public let id: Int
+    public let firstName: String
+    public let lastName: String
+    public let email: String
+    public let phoneNumber: String?
+    public let role: UserRole
+    public let isActive: Bool
+    public let botId: Int64?
+    public let createdAt: Date
+    public let birthday: String?
+    public let tagIds: [Int]
+    public let customProperties: [CustomProperty]?
+    public let status: UserStatus?
+
+    public init(id: Int, firstName: String, lastName: String, email: String, phoneNumber: String? = nil, role: UserRole, isActive: Bool, botId: Int64? = nil, createdAt: Date, birthday: String? = nil, tagIds: [Int], customProperties: [CustomProperty]? = nil, status: UserStatus? = nil) {
+        self.id = id
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
+        self.phoneNumber = phoneNumber
+        self.role = role
+        self.isActive = isActive
+        self.botId = botId
+        self.createdAt = createdAt
+        self.birthday = birthday
+        self.tagIds = tagIds
+        self.customProperties = customProperties
+        self.status = status
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -43,10 +59,16 @@ struct User: Codable {
     }
 }
 
-struct UserStatus: Codable {
-    let emoji: String?
-    let title: String?
-    let expiresAt: String?
+public struct UserStatus: Codable {
+    public let emoji: String?
+    public let title: String?
+    public let expiresAt: String?
+
+    public init(emoji: String? = nil, title: String? = nil, expiresAt: String? = nil) {
+        self.emoji = emoji
+        self.title = title
+        self.expiresAt = expiresAt
+    }
 
     enum CodingKeys: String, CodingKey {
         case emoji
@@ -55,11 +77,18 @@ struct UserStatus: Codable {
     }
 }
 
-struct CustomProperty: Codable {
-    let id: Int
-    let name: String
-    let dataType: String
-    let value: String
+public struct CustomProperty: Codable {
+    public let id: Int
+    public let name: String
+    public let dataType: String
+    public let value: String
+
+    public init(id: Int, name: String, dataType: String, value: String) {
+        self.id = id
+        self.name = name
+        self.dataType = dataType
+        self.value = value
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -69,12 +98,20 @@ struct CustomProperty: Codable {
     }
 }
 
-struct UserCreateRequestUser: Codable {
-    let firstName: String
-    let lastName: String
-    let email: String
-    let role: UserRole?
-    let isActive: Bool?
+public struct UserCreateRequestUser: Codable {
+    public let firstName: String
+    public let lastName: String
+    public let email: String
+    public let role: UserRole?
+    public let isActive: Bool?
+
+    public init(firstName: String, lastName: String, email: String, role: UserRole? = nil, isActive: Bool? = nil) {
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
+        self.role = role
+        self.isActive = isActive
+    }
 
     enum CodingKeys: String, CodingKey {
         case firstName = "first_name"
@@ -85,15 +122,26 @@ struct UserCreateRequestUser: Codable {
     }
 }
 
-struct UserCreateRequest: Codable {
-    let user: UserCreateRequestUser
+public struct UserCreateRequest: Codable {
+    public let user: UserCreateRequestUser
+
+    public init(user: UserCreateRequestUser) {
+        self.user = user
+    }
 }
 
-struct UserUpdateRequestUser: Codable {
-    let firstName: String?
-    let lastName: String?
-    let phoneNumber: String?
-    let role: UserRole?
+public struct UserUpdateRequestUser: Codable {
+    public let firstName: String?
+    public let lastName: String?
+    public let phoneNumber: String?
+    public let role: UserRole?
+
+    public init(firstName: String? = nil, lastName: String? = nil, phoneNumber: String? = nil, role: UserRole? = nil) {
+        self.firstName = firstName
+        self.lastName = lastName
+        self.phoneNumber = phoneNumber
+        self.role = role
+    }
 
     enum CodingKeys: String, CodingKey {
         case firstName = "first_name"
@@ -103,15 +151,26 @@ struct UserUpdateRequestUser: Codable {
     }
 }
 
-struct UserUpdateRequest: Codable {
-    let user: UserUpdateRequestUser
+public struct UserUpdateRequest: Codable {
+    public let user: UserUpdateRequestUser
+
+    public init(user: UserUpdateRequestUser) {
+        self.user = user
+    }
 }
 
-struct MessageCreateRequestFile: Codable {
-    let key: String
-    let name: String
-    let fileType: String
-    let size: Int
+public struct MessageCreateRequestFile: Codable {
+    public let key: String
+    public let name: String
+    public let fileType: String
+    public let size: Int
+
+    public init(key: String, name: String, fileType: String, size: Int) {
+        self.key = key
+        self.name = name
+        self.fileType = fileType
+        self.size = size
+    }
 
     enum CodingKeys: String, CodingKey {
         case key
@@ -121,17 +180,30 @@ struct MessageCreateRequestFile: Codable {
     }
 }
 
-struct MessageCreateRequestButton: Codable {
-    let text: String
-    let url: String?
-    let data: String?
+public struct MessageCreateRequestButton: Codable {
+    public let text: String
+    public let url: String?
+    public let data: String?
+
+    public init(text: String, url: String? = nil, data: String? = nil) {
+        self.text = text
+        self.url = url
+        self.data = data
+    }
 }
 
-struct MessageCreateRequestMessage: Codable {
-    let entityId: Int
-    let content: String
-    let files: [MessageCreateRequestFile]?
-    let buttons: [[MessageCreateRequestButton]]?
+public struct MessageCreateRequestMessage: Codable {
+    public let entityId: Int
+    public let content: String
+    public let files: [MessageCreateRequestFile]?
+    public let buttons: [[MessageCreateRequestButton]]?
+
+    public init(entityId: Int, content: String, files: [MessageCreateRequestFile]? = nil, buttons: [[MessageCreateRequestButton]]? = nil) {
+        self.entityId = entityId
+        self.content = content
+        self.files = files
+        self.buttons = buttons
+    }
 
     enum CodingKeys: String, CodingKey {
         case entityId = "entity_id"
@@ -141,44 +213,78 @@ struct MessageCreateRequestMessage: Codable {
     }
 }
 
-struct MessageCreateRequest: Codable {
-    let message: MessageCreateRequestMessage
+public struct MessageCreateRequest: Codable {
+    public let message: MessageCreateRequestMessage
+
+    public init(message: MessageCreateRequestMessage) {
+        self.message = message
+    }
 }
 
-struct ApiErrorItem: Codable {
-    let key: String?
-    let value: String?
+public struct ApiErrorItem: Codable {
+    public let key: String?
+    public let value: String?
+
+    public init(key: String? = nil, value: String? = nil) {
+        self.key = key
+        self.value = value
+    }
 }
 
-struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem]?
+public struct ApiError: Codable, Error {
+    public let errors: [ApiErrorItem]?
+
+    public init(errors: [ApiErrorItem]? = nil) {
+        self.errors = errors
+    }
 }
 
-struct OAuthError: Codable, Error {
-    let error: String?
+public struct OAuthError: Codable, Error {
+    public let error: String?
+
+    public init(error: String? = nil) {
+        self.error = error
+    }
 }
 
-struct PaginationMetaPaginate: Codable {
-    let nextPage: String?
+public struct PaginationMetaPaginate: Codable {
+    public let nextPage: String?
+
+    public init(nextPage: String? = nil) {
+        self.nextPage = nextPage
+    }
 
     enum CodingKeys: String, CodingKey {
         case nextPage = "next_page"
     }
 }
 
-struct PaginationMeta: Codable {
-    let paginate: PaginationMetaPaginate?
+public struct PaginationMeta: Codable {
+    public let paginate: PaginationMetaPaginate?
+
+    public init(paginate: PaginationMetaPaginate? = nil) {
+        self.paginate = paginate
+    }
 }
 
-struct SearchPaginationMetaPaginate: Codable {
-    let nextPage: String
+public struct SearchPaginationMetaPaginate: Codable {
+    public let nextPage: String
+
+    public init(nextPage: String) {
+        self.nextPage = nextPage
+    }
 
     enum CodingKeys: String, CodingKey {
         case nextPage = "next_page"
     }
 }
 
-struct SearchPaginationMeta: Codable {
-    let total: Int
-    let paginate: SearchPaginationMetaPaginate
+public struct SearchPaginationMeta: Codable {
+    public let total: Int
+    public let paginate: SearchPaginationMetaPaginate
+
+    public init(total: Int, paginate: SearchPaginationMetaPaginate) {
+        self.total = total
+        self.paginate = paginate
+    }
 }

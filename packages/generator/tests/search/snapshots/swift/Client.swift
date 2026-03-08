@@ -1,6 +1,6 @@
 import Foundation
 
-struct SearchService {
+public struct SearchService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -11,14 +11,14 @@ struct SearchService {
         self.session = session
     }
 
-    func searchMessages(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
+    public func searchMessages(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
         var components = URLComponents(string: "\(baseURL)/search/messages")!
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "query", value: String(query)))
         if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
         if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) } }
-        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String(createdFrom))) }
-        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String(createdTo))) }
+        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
+        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
         if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
@@ -38,10 +38,10 @@ struct SearchService {
     }
 }
 
-struct PachcaClient {
-    let search: SearchService
+public struct PachcaClient {
+    public let search: SearchService
 
-    init(baseURL: String, token: String) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
         let headers = ["Authorization": "Bearer \(token)"]
         self.search = SearchService(baseURL: baseURL, headers: headers)
     }

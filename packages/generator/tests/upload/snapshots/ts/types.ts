@@ -7,7 +7,7 @@ export interface FileUploadRequest {
   xAmzDate?: string;
   xAmzSignature?: string;
   key: string;
-  file: File | Blob;
+  file: Blob;
 }
 
 export class OAuthError extends Error {

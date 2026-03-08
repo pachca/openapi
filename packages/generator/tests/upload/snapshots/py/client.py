@@ -46,7 +46,7 @@ class CommonService:
 
 
 class PachcaClient:
-    def __init__(self, base_url: str, token: str) -> None:
+    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},

@@ -92,7 +92,7 @@ jobs:
 
       - name: Generate SDKs
         run: |
-          npx @pachca/generator \
+          bun packages/generator/bin/generator.ts \
             --spec packages/spec/openapi.yaml \
             --output "$RUNNER_TEMP/sdk" \
             --lang typescript,python,go,kotlin,swift

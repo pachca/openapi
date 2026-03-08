@@ -20,9 +20,9 @@ class CommonService {
         return location;
       }
       case 401:
-        throw new OAuthError((await response.json()).error);
+        throw new OAuthError(((await response.json()) as any).error);
       default:
-        throw new ApiError((await response.json()).errors);
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 }
@@ -30,7 +30,7 @@ class CommonService {
 export class PachcaClient {
   readonly common: CommonService;
 
-  constructor(baseUrl: string, token: string) {
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
     this.common = new CommonService(baseUrl, headers);
   }

@@ -36,6 +36,7 @@ function isTypeNullable(field: IRField): boolean {
 
 function collectModelRefs(ft: IRFieldType, refs: string[]): void {
   if (ft.kind === 'model' && ft.ref) refs.push(ft.ref);
+  if (ft.kind === 'enum' && ft.ref) refs.push(ft.ref);
   if (ft.kind === 'array' && ft.items) collectModelRefs(ft.items, refs);
   if (ft.kind === 'record' && ft.valueType) collectModelRefs(ft.valueType, refs);
   if (ft.kind === 'union' && ft.members) {
@@ -55,7 +56,7 @@ function tsType(
     case 'primitive':
       return tsPrimitive(ft);
     case 'binary':
-      return 'File | Blob';
+      return 'Blob';
     case 'enum':
     case 'model':
     case 'union':
@@ -124,7 +125,7 @@ function inlineObjectType(
 
 function enumMemberName(value: string): string {
   return value
-    .split(/[_\-\s]+/)
+    .split(/[_\-:\s]+/)
     .filter(Boolean)
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
     .join('');
@@ -361,18 +362,22 @@ function escapeTemplatePath(path: string, op: IROperation): string {
 }
 
 function queryValueExpr(p: IRParam, valueExpr: string): string {
-  if (p.type.kind === 'primitive' && (p.type.primitive === 'integer' || p.type.primitive === 'number')) {
-    return `String(${valueExpr})`;
+  if (p.type.kind === 'primitive' && p.type.primitive === 'string') {
+    return valueExpr;
   }
-  return valueExpr;
+  if (p.type.kind === 'enum') {
+    return valueExpr;
+  }
+  return `String(${valueExpr})`;
 }
 
 function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   const lines: string[] = [];
   const importedTypes: string[] = [];
   const importedSet = new Set<string>();
+  const TS_BUILTINS = new Set(['unknown', 'string', 'number', 'boolean', 'void', 'never', 'any', 'object']);
   const addImport = (name: string): void => {
-    if (!importedSet.has(name)) {
+    if (!importedSet.has(name) && !TS_BUILTINS.has(name)) {
       importedSet.add(name);
       importedTypes.push(name);
     }
@@ -391,13 +396,19 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
           for (const r of refs) addImport(r);
         }
         if (op.requestBody?.schemaRef) {
-          addImport(op.requestBody.schemaRef);
           const rb = op.requestBody;
           const shouldUnwrap =
             rb.unwrapMode === 'single' &&
             rb.unwrapField &&
             rb.unwrapField.type.kind !== 'model' &&
             rb.unwrapField.type.kind !== 'record';
+          if (shouldUnwrap && rb.unwrapField) {
+            const refs: string[] = [];
+            collectModelRefs(rb.unwrapField.type, refs);
+            for (const r of refs) addImport(r);
+          } else {
+            addImport(rb.schemaRef);
+          }
           if (!shouldUnwrap && rb.contentType === 'json') needsToSnake = true;
         }
         if (op.queryParams.length > 0) addImport(irParamTypeName(op));
@@ -462,7 +473,8 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
       .sort((a, b) => a.prop.localeCompare(b.prop));
     for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
     lines.push('');
-    lines.push('  constructor(baseUrl: string, token: string) {');
+    const defaultUrl = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+    lines.push(`  constructor(token: string, baseUrl: string${defaultUrl}) {`);
     lines.push('    const headers = { Authorization: `Bearer ${token}` };');
     for (const s of serviceEntries) {
       lines.push(`    this.${s.prop} = new ${s.cls}(baseUrl, headers);`);
@@ -598,7 +610,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   lines.push('    });');
 
   const preloadBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
-  if (preloadBody) lines.push('    const body = await response.json();');
+  if (preloadBody) lines.push('    const body: any = await response.json();');
   emitResponseSwitch(lines, op, ir, preloadBody);
   lines.push('  }');
 }
@@ -635,7 +647,7 @@ function emitResponseSwitch(
   if (op.hasOAuthError) {
     lines.push('      case 401:');
     lines.push(
-      `        throw new OAuthError(${preloadBody ? 'body.error' : '(await response.json()).error'});`,
+      `        throw new OAuthError(${preloadBody ? 'body.error' : '((await response.json()) as any).error'});`,
     );
   }
 
@@ -643,7 +655,7 @@ function emitResponseSwitch(
   lines.push('      default:');
   if (hasApiError) {
     lines.push(
-      `        throw new ApiError(${preloadBody ? 'body.errors' : '(await response.json()).errors'});`,
+      `        throw new ApiError(${preloadBody ? 'body.errors' : '((await response.json()) as any).errors'});`,
     );
   } else {
     lines.push(

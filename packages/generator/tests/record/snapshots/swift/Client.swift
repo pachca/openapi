@@ -1,6 +1,6 @@
 import Foundation
 
-struct LinkPreviewsService {
+public struct LinkPreviewsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -11,7 +11,7 @@ struct LinkPreviewsService {
         self.session = session
     }
 
-    func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+    public func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -30,10 +30,10 @@ struct LinkPreviewsService {
     }
 }
 
-struct PachcaClient {
-    let linkPreviews: LinkPreviewsService
+public struct PachcaClient {
+    public let linkPreviews: LinkPreviewsService
 
-    init(baseURL: String, token: String) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
         let headers = ["Authorization": "Bearer \(token)"]
         self.linkPreviews = LinkPreviewsService(baseURL: baseURL, headers: headers)
     }

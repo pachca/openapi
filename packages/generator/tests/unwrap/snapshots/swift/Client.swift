@@ -1,6 +1,6 @@
 import Foundation
 
-struct MembersService {
+public struct MembersService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -11,7 +11,7 @@ struct MembersService {
         self.session = session
     }
 
-    func addMembers(id: Int, memberIds: [Int]) async throws -> Void {
+    public func addMembers(id: Int, memberIds: [Int]) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/members")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -30,7 +30,7 @@ struct MembersService {
     }
 }
 
-struct ChatsService {
+public struct ChatsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -41,7 +41,7 @@ struct ChatsService {
         self.session = session
     }
 
-    func createChat(request body: ChatCreateRequest) async throws -> Chat {
+    public func createChat(request body: ChatCreateRequest) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -59,7 +59,7 @@ struct ChatsService {
         }
     }
 
-    func archiveChat(id: Int) async throws -> Void {
+    public func archiveChat(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/archive")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -76,11 +76,11 @@ struct ChatsService {
     }
 }
 
-struct PachcaClient {
-    let chats: ChatsService
-    let members: MembersService
+public struct PachcaClient {
+    public let chats: ChatsService
+    public let members: MembersService
 
-    init(baseURL: String, token: String) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
         let headers = ["Authorization": "Bearer \(token)"]
         self.chats = ChatsService(baseURL: baseURL, headers: headers)
         self.members = MembersService(baseURL: baseURL, headers: headers)

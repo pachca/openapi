@@ -1,8 +1,8 @@
 import Foundation
 
-struct PachcaClient {
+public struct PachcaClient {
 
-    init(baseURL: String, token: String) {
+    public init(token: String, baseURL: String) {
         let headers = ["Authorization": "Bearer \(token)"]
     }
 }

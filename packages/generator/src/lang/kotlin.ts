@@ -51,7 +51,8 @@ function needsSerialName(field: IRField): boolean {
 
 function fieldSdkName(field: IRField): string {
   if (field.name.includes('-')) {
-    return field.name.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    const camel = field.name.replace(/-([a-zA-Z])/g, (_, c) => c.toUpperCase());
+    return camel.charAt(0).toLowerCase() + camel.slice(1);
   }
   return snakeToCamel(field.name);
 }
@@ -271,7 +272,7 @@ function emitModel(
 
   if (fields.length === 0) {
     const ext = m.isError ? ' : Exception()' : '';
-    lines.push(`data class ${m.name}()${ext}`);
+    lines.push(`class ${m.name}${ext}`);
     return;
   }
 
@@ -701,7 +702,8 @@ function emitPachcaClient(
   ir: IR,
   hasRedirect: boolean,
 ): void {
-  lines.push('class PachcaClient(baseUrl: String, token: String) : Closeable {');
+  const ktDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  lines.push(`class PachcaClient(token: String, baseUrl: String${ktDefault}) : Closeable {`);
   lines.push('    private val client = HttpClient {');
   lines.push('        expectSuccess = false');
   if (hasRedirect) {

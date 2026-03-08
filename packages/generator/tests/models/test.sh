@@ -4,7 +4,7 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 OUT=$(mktemp -d)
 trap 'rm -rf "$OUT"' EXIT
 
-npx @pachca/generator \
+bun "$(dirname "$DIR")"/../bin/generator.ts \
   --spec "$DIR/fixture.yaml" \
   --output "$OUT" \
   --lang typescript,python,go,kotlin,swift

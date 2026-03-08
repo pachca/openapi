@@ -30,9 +30,7 @@ func (e *ApiError) Error() string {
 	}
 	parts := make([]string, 0, len(e.Errors))
 	for _, item := range e.Errors {
-		if item.Key != nil && item.Value != nil {
-			parts = append(parts, fmt.Sprintf("%s: %s", *item.Key, *item.Value))
-		}
+		parts = append(parts, fmt.Sprintf("%+v", item))
 	}
 	if len(parts) == 0 {
 		return "api error"

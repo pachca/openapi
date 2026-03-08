@@ -9,9 +9,9 @@ export function snakeToPascal(str: string): string {
   return camel.charAt(0).toUpperCase() + camel.slice(1);
 }
 
-/** snake_case → UPPER_SNAKE_CASE: "is_member" → "IS_MEMBER" */
+/** snake_case → UPPER_SNAKE_CASE: "is_member" → "IS_MEMBER", "chats:read" → "CHATS_READ" */
 export function snakeToUpperSnake(str: string): string {
-  return str.toUpperCase();
+  return str.replace(/[^a-zA-Z0-9_]/g, '_').toUpperCase();
 }
 
 /** camelCase → snake_case: "firstName" → "first_name" */
@@ -19,9 +19,10 @@ export function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 }
 
-/** kebab-case → camelCase: "x-amz-date" → "xAmzDate", "content-disposition" → "contentDisposition" */
+/** kebab-case → camelCase: "x-amz-date" → "xAmzDate", "Content-Disposition" → "contentDisposition" */
 export function kebabToCamel(str: string): string {
-  return str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+  const result = str.replace(/-([a-zA-Z])/g, (_, c) => c.toUpperCase());
+  return result.charAt(0).toLowerCase() + result.slice(1);
 }
 
 /** Extract schema name from $ref: "#/components/schemas/Chat" → "Chat" */

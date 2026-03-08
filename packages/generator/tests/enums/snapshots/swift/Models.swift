@@ -1,11 +1,11 @@
 import Foundation
 
-enum SortOrder: String, Codable, CaseIterable {
+public enum SortOrder: String, Codable, CaseIterable {
     case asc
     case desc
 }
 
-enum UserRole: String, Codable, CaseIterable {
+public enum UserRole: String, Codable, CaseIterable {
     /// Администратор
     case admin
     /// Сотрудник
@@ -16,7 +16,7 @@ enum UserRole: String, Codable, CaseIterable {
     case bot
 }
 
-enum ViewBlockHeaderType: String, Codable, CaseIterable {
+public enum ViewBlockHeaderType: String, Codable, CaseIterable {
     /// Для заголовков всегда header
     case header
 }

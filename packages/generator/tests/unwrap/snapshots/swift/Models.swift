@@ -1,18 +1,29 @@
 import Foundation
 
-struct AddMembersRequest: Codable {
-    let memberIds: [Int]
+public struct AddMembersRequest: Codable {
+    public let memberIds: [Int]
+
+    public init(memberIds: [Int]) {
+        self.memberIds = memberIds
+    }
 
     enum CodingKeys: String, CodingKey {
         case memberIds = "member_ids"
     }
 }
 
-struct ChatCreateRequestChat: Codable {
-    let name: String
-    let channel: Bool?
-    let `public`: Bool?
-    let memberIds: [Int]?
+public struct ChatCreateRequestChat: Codable {
+    public let name: String
+    public let channel: Bool?
+    public let `public`: Bool?
+    public let memberIds: [Int]?
+
+    public init(name: String, channel: Bool? = nil, `public`: Bool? = nil, memberIds: [Int]? = nil) {
+        self.name = name
+        self.channel = channel
+        self.`public` = `public`
+        self.memberIds = memberIds
+    }
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -22,16 +33,28 @@ struct ChatCreateRequestChat: Codable {
     }
 }
 
-struct ChatCreateRequest: Codable {
-    let chat: ChatCreateRequestChat
+public struct ChatCreateRequest: Codable {
+    public let chat: ChatCreateRequestChat
+
+    public init(chat: ChatCreateRequestChat) {
+        self.chat = chat
+    }
 }
 
-struct Chat: Codable {
-    let id: Int
-    let name: String
-    let isChannel: Bool
-    let isPublic: Bool
-    let createdAt: Date
+public struct Chat: Codable {
+    public let id: Int
+    public let name: String
+    public let isChannel: Bool
+    public let isPublic: Bool
+    public let createdAt: Date
+
+    public init(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: Date) {
+        self.id = id
+        self.name = name
+        self.isChannel = isChannel
+        self.isPublic = isPublic
+        self.createdAt = createdAt
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -42,17 +65,30 @@ struct Chat: Codable {
     }
 }
 
-struct ApiErrorItem: Codable {
-    let key: String?
-    let value: String?
+public struct ApiErrorItem: Codable {
+    public let key: String?
+    public let value: String?
+
+    public init(key: String? = nil, value: String? = nil) {
+        self.key = key
+        self.value = value
+    }
 }
 
-struct ApiError: Codable, Error {
-    let errors: [ApiErrorItem]?
+public struct ApiError: Codable, Error {
+    public let errors: [ApiErrorItem]?
+
+    public init(errors: [ApiErrorItem]? = nil) {
+        self.errors = errors
+    }
 }
 
-struct OAuthError: Codable, Error {
-    let error: String?
+public struct OAuthError: Codable, Error {
+    public let error: String?
+
+    public init(error: String? = nil) {
+        self.error = error
+    }
 }
 
 struct ChatDataWrapper: Codable {

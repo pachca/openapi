@@ -279,6 +279,27 @@ function transformUnion(name: string, schema: Schema): IRUnion {
 
 // ----- Operations → IR -----
 
+// Union of reserved words across all target languages (lowercase short keywords
+// that could collide with camelCase SDK names or snake_case Python names).
+const RESERVED_IDENTIFIERS = new Set([
+  // Python
+  'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue',
+  'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from',
+  'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not',
+  'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
+  // Kotlin
+  'fun', 'interface', 'object', 'package', 'super', 'this', 'throw',
+  'typealias', 'typeof', 'val', 'var', 'when',
+  // Swift
+  'case', 'catch', 'default', 'defer', 'do', 'enum', 'extension',
+  'fallthrough', 'fileprivate', 'func', 'guard', 'init', 'inout',
+  'internal', 'let', 'nil', 'open', 'operator', 'override', 'precedencegroup',
+  'private', 'protocol', 'public', 'rethrows', 'self', 'static', 'struct',
+  'subscript', 'switch', 'throws', 'where',
+  // TypeScript
+  'delete', 'instanceof', 'new', 'typeof', 'void',
+]);
+
 function transformParam(param: Parameter): IRParam {
   const isArray = param.name.endsWith('[]');
   const rawName = isArray ? param.name.slice(0, -2) : param.name;
@@ -286,12 +307,19 @@ function transformParam(param: Parameter): IRParam {
   // SDK name: x-param-names override, or derive from raw name
   let sdkName: string;
   if (param['x-param-names'] && param['x-param-names'].length > 0) {
-    sdkName = snakeToCamel(param['x-param-names'][0].name);
+    sdkName = snakeToCamel(param['x-param-names'][0].name.replace(/\[(\w+)\]/g, '_$1'));
   } else if (param.name.includes('[')) {
     // "sort[field]" → "sortField"
     sdkName = snakeToCamel(rawName.replace(/\[(\w+)\]/g, '_$1'));
   } else {
     sdkName = snakeToCamel(rawName);
+  }
+
+  if (RESERVED_IDENTIFIERS.has(sdkName) || RESERVED_IDENTIFIERS.has(rawName)) {
+    throw new Error(
+      `Parameter "${param.name}" resolves to reserved identifier "${sdkName}". ` +
+      `Use x-param-names to provide an alternative name.`,
+    );
   }
 
   let type = resolveFieldType(param.schema);
@@ -474,11 +502,14 @@ function transformSuccessResponse(endpoint: Endpoint): IRSuccessResponse {
     };
   }
 
+  // Direct $ref response (not wrapped in { data: T })
+  const directRef = responseSchema.$ref ? refName(responseSchema.$ref) : undefined;
   return {
     statusCode,
     hasBody: true,
     isList: false,
     isUnwrap: false,
+    dataRef: directRef,
     isRedirect: false,
   };
 }

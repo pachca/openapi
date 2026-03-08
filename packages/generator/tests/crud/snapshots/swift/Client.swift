@@ -1,6 +1,6 @@
 import Foundation
 
-struct ChatsService {
+public struct ChatsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -11,7 +11,7 @@ struct ChatsService {
         self.session = session
     }
 
-    func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
+    public func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
         var components = URLComponents(string: "\(baseURL)/chats")!
         var queryItems: [URLQueryItem] = []
         if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
@@ -34,7 +34,7 @@ struct ChatsService {
         }
     }
 
-    func getChat(id: Int) async throws -> Chat {
+    public func getChat(id: Int) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await session.data(for: request)
@@ -49,7 +49,7 @@ struct ChatsService {
         }
     }
 
-    func createChat(request body: ChatCreateRequest) async throws -> Chat {
+    public func createChat(request body: ChatCreateRequest) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -67,7 +67,7 @@ struct ChatsService {
         }
     }
 
-    func updateChat(id: Int, request body: ChatUpdateRequest) async throws -> Chat {
+    public func updateChat(id: Int, request body: ChatUpdateRequest) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -85,7 +85,7 @@ struct ChatsService {
         }
     }
 
-    func archiveChat(id: Int) async throws -> Void {
+    public func archiveChat(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/archive")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -101,7 +101,7 @@ struct ChatsService {
         }
     }
 
-    func deleteChat(id: Int) async throws -> Void {
+    public func deleteChat(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -118,10 +118,10 @@ struct ChatsService {
     }
 }
 
-struct PachcaClient {
-    let chats: ChatsService
+public struct PachcaClient {
+    public let chats: ChatsService
 
-    init(baseURL: String, token: String) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
         let headers = ["Authorization": "Bearer \(token)"]
         self.chats = ChatsService(baseURL: baseURL, headers: headers)
     }

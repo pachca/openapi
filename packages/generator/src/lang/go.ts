@@ -18,7 +18,7 @@ function upperFirst(s: string): string {
 }
 
 function goExportName(raw: string): string {
-  const normalized = raw.replace(/-/g, '_');
+  const normalized = raw.replace(/[-:]/g, '_');
   const pascal = snakeToPascal(normalized);
   return pascal
     .replace(/Id/g, 'ID')
@@ -135,7 +135,7 @@ function emitEnum(lines: string[], e: IREnum): void {
   lines.push(')');
 }
 
-function emitModel(lines: string[], m: IRModel): void {
+function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   lines.push(`type ${m.name} struct {`);
   if (m.fields.length === 0) {
     lines.push('}');
@@ -153,6 +153,14 @@ function emitModel(lines: string[], m: IRModel): void {
   lines.push('}');
 
   if (m.name === 'ApiError') {
+    // Find the items model for the errors array to determine which field to use
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
     lines.push('');
     lines.push('func (e *ApiError) Error() string {');
     lines.push('\tif len(e.Errors) == 0 {');
@@ -160,9 +168,11 @@ function emitModel(lines: string[], m: IRModel): void {
     lines.push('\t}');
     lines.push('\tparts := make([]string, 0, len(e.Errors))');
     lines.push('\tfor _, item := range e.Errors {');
-    lines.push('\t\tif item.Key != nil && item.Value != nil {');
-    lines.push('\t\t\tparts = append(parts, fmt.Sprintf("%s: %s", *item.Key, *item.Value))');
-    lines.push('\t\t}');
+    if (hasMessage) {
+      lines.push('\t\tparts = append(parts, item.Message)');
+    } else {
+      lines.push('\t\tparts = append(parts, fmt.Sprintf("%+v", item))');
+    }
     lines.push('\t}');
     lines.push('\tif len(parts) == 0 {');
     lines.push('\t\treturn "api error"');
@@ -171,10 +181,19 @@ function emitModel(lines: string[], m: IRModel): void {
     lines.push('}');
   }
   if (m.name === 'OAuthError') {
+    // Check if Err field is optional (pointer type)
+    const errField = m.fields.find((f) => f.name === 'error');
+    const isPointer = errField && isOptionalField(errField);
+
     lines.push('');
     lines.push('func (e *OAuthError) Error() string {');
-    lines.push('\tif e.Err != nil {');
-    lines.push('\t\treturn *e.Err');
+    if (isPointer) {
+      lines.push('\tif e.Err != nil {');
+      lines.push('\t\treturn *e.Err');
+    } else {
+      lines.push('\tif e.Err != "" {');
+      lines.push('\t\treturn e.Err');
+    }
     lines.push('\t}');
     lines.push('\treturn "oauth error"');
     lines.push('}');
@@ -195,10 +214,13 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push('\t\treturn err');
   lines.push('\t}');
   lines.push('\tswitch disc.Type {');
+  const seenDiscs = new Set<string>();
   for (const ref of u.memberRefs) {
     const model = models.find((m) => m.name === ref);
     const typeField = model?.fields.find((f) => f.type.kind === 'literal');
     const disc = typeField?.type.literalValue ?? ref;
+    if (seenDiscs.has(String(disc))) continue;
+    seenDiscs.add(String(disc));
     lines.push(`\tcase ${JSON.stringify(disc)}:`);
     lines.push(`\t\tu.${ref} = &${ref}{}`);
     lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
@@ -280,12 +302,15 @@ function generateTypes(ir: IR): string {
     lines.push('');
   }
 
+  // Collect all models (including inlines) for cross-referencing in error helpers
+  const allModels = ir.models.flatMap((m) => [...m.inlineObjects, m]);
+
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl);
+      emitModel(lines, inl, allModels);
       lines.push('');
     }
-    emitModel(lines, m);
+    emitModel(lines, m, allModels);
     lines.push('');
   }
 
@@ -451,11 +476,12 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
           lines.push(`\tq.Set(${JSON.stringify(p.name)}, ${conv})`);
         } else {
           const guard = hasReqParams ? '' : 'params != nil && ';
+          const isSlice = p.type.kind === 'array' || p.type.kind === 'record';
           lines.push(`\tif ${guard}params.${pn} != nil {`);
           let conv: string;
           if (isTime) conv = `params.${pn}.Format(time.RFC3339)`;
-          else if (p.type.kind === 'enum') conv = `string(*params.${pn})`;
-          else conv = `fmt.Sprintf("%v", *params.${pn})`;
+          else if (p.type.kind === 'enum') conv = `string(${isSlice ? '' : '*'}params.${pn})`;
+          else conv = `fmt.Sprintf("%v", ${isSlice ? '' : '*'}params.${pn})`;
           lines.push(`\t\tq.Set(${JSON.stringify(p.name)}, ${conv})`);
           lines.push('\t}');
         }
@@ -606,7 +632,17 @@ function generateClient(ir: IR): string {
   for (const line of goAligned(clientRows)) lines.push(line);
   lines.push('}');
   lines.push('');
-  lines.push('func NewPachcaClient(baseURL, token string) *PachcaClient {');
+  if (ir.baseUrl) {
+    lines.push(`const DefaultBaseURL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
+  }
+  lines.push('func NewPachcaClient(token string, baseURL ...string) *PachcaClient {');
+  if (ir.baseUrl) {
+    lines.push(`\turl := DefaultBaseURL`);
+  } else {
+    lines.push('\turl := ""');
+  }
+  lines.push('\tif len(baseURL) > 0 { url = baseURL[0] }');
   lines.push('\tclient := &http.Client{');
   lines.push('\t\tTransport: &authTransport{token: token, base: http.DefaultTransport},');
   if (needErrors) {
@@ -617,7 +653,7 @@ function generateClient(ir: IR): string {
   lines.push('\t}');
   lines.push('\treturn &PachcaClient{');
   const maxField = Math.max(...fields.map((f) => f.f.length));
-  for (const f of fields) lines.push(`\t\t${f.f.padEnd(maxField)}: &${f.cls}{baseURL: baseURL, client: client},`);
+  for (const f of fields) lines.push(`\t\t${f.f.padEnd(maxField)}: &${f.cls}{baseURL: url, client: client},`);
   lines.push('\t}');
   lines.push('}');
   lines.push('');

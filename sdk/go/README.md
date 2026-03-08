@@ -1,6 +1,6 @@
 # Pachca Go SDK
 
-Go клиент для Pachca API, сгенерированный с помощью [ogen](https://ogen.dev).
+Go клиент для [Pachca API](https://dev.pachca.com).
 
 ## Установка
 
@@ -22,30 +22,39 @@ import (
 )
 
 func main() {
-	client, err := pachca.NewPachcaClient(
-		"https://api.pachca.com/api/shared/v1",
-		"YOUR_TOKEN",
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	client := pachca.NewPachcaClient("YOUR_TOKEN")
 
 	ctx := context.Background()
 
 	// Отправка сообщения
-	res, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
+	msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
-			EntityType: pachca.NewOptMessageEntityType(pachca.MessageEntityTypeDiscussion),
-			EntityID:   12345,
-			Content:    "Привет из Go SDK!",
+			EntityID: 12345,
+			Content:  "Привет из Go SDK!",
 		},
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	created := res.(*pachca.MessageOperationsCreateMessageCreated)
-	fmt.Printf("Сообщение отправлено: %d\n", created.Data.ID)
+	fmt.Printf("Сообщение отправлено: %d\n", msg.ID)
 }
+```
+
+## Конвенции
+
+- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+
+```go
+// ≤2 поля → развёрнуто в аргументы
+reaction, err := client.Reactions.AddReaction(ctx, messageId, pachca.ReactionRequest{Code: "👍"})
+err = client.Messages.PinMessage(ctx, messageId)
+
+// >2 полей → объект-запрос
+msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{...})
+
+// Ответ: API возвращает {"data": ...}, SDK возвращает объект напрямую
+msg, err := client.Messages.CreateMessage(ctx, ...)  // *Message, не *MessageResponse
 ```
 
 ## Сервисы

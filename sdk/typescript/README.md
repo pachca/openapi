@@ -11,21 +11,34 @@ npm install @pachca/sdk
 ## Использование
 
 ```typescript
-import { Pachca } from "@pachca/sdk";
+import { PachcaClient } from "@pachca/sdk";
 
-const pachca = new Pachca({ token: "YOUR_TOKEN" });
+const pachca = new PachcaClient("YOUR_TOKEN");
 
 // Отправка сообщения
-const { data } = await pachca.messages.createMessage({
-  body: {
-    message: { entity_id: chatId, content: "Привет из TypeScript SDK!" },
-  },
+const message = await pachca.messages.createMessage({
+  message: { entity_id: chatId, content: "Привет из TypeScript SDK!" },
 });
 
-// Список всех пользователей (автопагинация)
-for await (const user of pachca.users.listAllUsers()) {
-  console.log(user.first_name);
-}
+// Список пользователей
+const users = await pachca.users.listUsers();
+```
+
+## Конвенции
+
+- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+
+```typescript
+// ≤2 поля → развёрнуто в аргументы
+await pachca.reactions.addReaction(messageId, { code: "👍" });
+await pachca.messages.pinMessage(messageId);
+
+// >2 полей → объект-запрос
+await pachca.messages.createMessage({ message: { entity_id: 123, content: "..." } });
+
+// Ответ: API возвращает { data: Message }, SDK возвращает Message
+const message = await pachca.messages.createMessage(...); // Message, не { data: Message }
 ```
 
 ## Сервисы
@@ -47,21 +60,6 @@ for await (const user of pachca.users.listAllUsers()) {
 | `pachca.security` | Журнал аудита |
 | `pachca.common` | Поиск, загрузки, формы и др. |
 
-## Прямой импорт функций
-
-Для tree-shaking можно импортировать функции напрямую:
-
-```typescript
-import { createClient, listUsers } from "@pachca/sdk";
-
-const client = createClient({
-  baseUrl: "https://api.pachca.com/api/shared/v1",
-  auth: () => "YOUR_TOKEN",
-});
-
-const { data } = await listUsers({ client });
-```
-
 ## Примеры
 
 См. [examples/main.ts](examples/main.ts) — echo-бот из 8 шагов, демонстрирующий CRUD, реакции, треды, пины.
@@ -81,6 +79,6 @@ cd sdk/typescript && bun run generate
 Это запускает 3-шаговый pipeline:
 1. `strip-operations.ts` — убирает `*Operations_` из operationId
 2. `openapi-ts` — генерирует типы и SDK-функции
-3. `generate-client.ts` — генерирует `Pachca` facade из сгенерированного кода
+3. `generate-client.ts` — генерирует `PachcaClient` facade из сгенерированного кода
 
 Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).

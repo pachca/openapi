@@ -17,12 +17,14 @@
   },
   "scripts": {
     "build": "bun build src/index.ts bin/generator.ts --outdir dist --target node --format esm --splitting",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@pachca/openapi-parser": "workspace:*",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.14.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.1.1"
   }
 }

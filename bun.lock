@@ -76,7 +76,6 @@
       "name": "@pachca/generator",
       "version": "0.1.0",
       "bin": {
-        "@pachca/generator": "./bin/generator.ts",
         "openapi-sdk-generator": "./dist/bin/generator.js",
       },
       "devDependencies": {
@@ -84,6 +83,7 @@
         "@types/js-yaml": "^4.0.9",
         "@types/node": "^22.14.0",
         "typescript": "^5.7.3",
+        "vitest": "^3.1.1",
       },
     },
     "packages/openapi-parser": {

@@ -23,11 +23,12 @@ class CommonService:
         data["x-amz-date"] = request.x_amz_date
         data["x-amz-signature"] = request.x_amz_signature
         data["key"] = request.key
-        response = await self._client.post(
-            direct_url,
-            data=data,
-            files={"file": request.file},
-        )
+        async with httpx.AsyncClient() as _no_auth:
+            response = await _no_auth.post(
+                direct_url,
+                data=data,
+                files={"file": request.file},
+            )
         match response.status_code:
             case 201:
                 return

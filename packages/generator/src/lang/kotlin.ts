@@ -577,11 +577,20 @@ function emitMethodBody(
         lines.push(`${indent3}setBody(request)`);
       }
     }
+    if (op.noAuth) lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
     lines.push(`${indent2}}`);
   } else {
-    lines.push(
-      `${indent2}val response = client.${httpMethod}(${urlExpr})`,
-    );
+    if (op.noAuth) {
+      lines.push(
+        `${indent2}val response = client.${httpMethod}(${urlExpr}) {`,
+      );
+      lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+      lines.push(`${indent2}}`);
+    } else {
+      lines.push(
+        `${indent2}val response = client.${httpMethod}(${urlExpr})`,
+      );
+    }
   }
 
   emitResponseHandling(lines, op, globalHasApiError);
@@ -648,7 +657,13 @@ function emitMultipartBody(
   }
 
   lines.push(`${indent3}},`);
-  lines.push(`${indent2})`);
+  if (op.noAuth) {
+    lines.push(`${indent2}) {`);
+    lines.push(`${indent3}headers.remove(HttpHeaders.Authorization)`);
+    lines.push(`${indent2}}`);
+  } else {
+    lines.push(`${indent2})`);
+  }
 
   emitResponseHandling(lines, op, globalHasApiError);
 }

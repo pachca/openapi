@@ -135,6 +135,8 @@ export interface IROperation {
   hasOAuthError: boolean;
   /** Parameter name for external URL (from x-external-url) */
   externalUrl?: string;
+  /** Skip Authorization header (from x-requirements.auth: false) */
+  noAuth?: boolean;
 }
 
 export interface IRService {

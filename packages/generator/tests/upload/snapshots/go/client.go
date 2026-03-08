@@ -49,7 +49,7 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 		return err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, err := s.client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}

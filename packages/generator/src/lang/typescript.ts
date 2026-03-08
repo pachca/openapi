@@ -544,7 +544,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       : `\`${'${this.baseUrl}'}${path}\``;
     lines.push(`    const response = await fetch(${fetchUrl}, {`);
     lines.push(`      method: ${JSON.stringify(op.method)},`);
-    lines.push('      headers: this.headers,');
+    if (!op.noAuth) lines.push('      headers: this.headers,');
     lines.push('      body: form,');
     lines.push('    });');
     emitResponseSwitch(lines, op, ir, false);
@@ -594,13 +594,19 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
   lines.push(`    const response = await fetch(${fetchTarget}, {`);
   if (op.method !== 'GET') lines.push(`      method: ${JSON.stringify(op.method)},`);
-  lines.push(
-    `      headers: ${
-      op.requestBody?.contentType === 'json'
-        ? '{ ...this.headers, "Content-Type": "application/json" }'
-        : 'this.headers'
-    },`,
-  );
+  if (op.noAuth) {
+    if (op.requestBody?.contentType === 'json') {
+      lines.push('      headers: { "Content-Type": "application/json" },');
+    }
+  } else {
+    lines.push(
+      `      headers: ${
+        op.requestBody?.contentType === 'json'
+          ? '{ ...this.headers, "Content-Type": "application/json" }'
+          : 'this.headers'
+      },`,
+    );
+  }
 
   if (op.successResponse.isRedirect) {
     lines.push('      redirect: "manual",');

@@ -219,7 +219,9 @@ class CommonService internal constructor(
                     append(HttpHeaders.ContentDisposition, "filename=\"file\"")
                 })
             },
-        )
+        ) {
+            headers.remove(HttpHeaders.Authorization)
+        }
         when (response.status.value) {
             201 -> return
             else -> throw response.body<ApiError>()

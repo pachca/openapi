@@ -411,16 +411,31 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       const mpPathStr = op.externalUrl
         ? camelToSnake(op.externalUrl)
         : path.includes('{') ? `f"${path}"` : `"${path}"`;
-      lines.push('        response = await self._client.post(');
-      lines.push(`            ${mpPathStr},`);
-      lines.push('            data=data,');
-      lines.push(`            files=${filesExpr},`);
-      lines.push('        )');
+      const pyClient = op.noAuth ? 'httpx.AsyncClient()' : 'self._client';
+      if (op.noAuth) {
+        lines.push(`        async with ${pyClient} as _no_auth:`);
+        lines.push('            response = await _no_auth.post(');
+        lines.push(`                ${mpPathStr},`);
+        lines.push('                data=data,');
+        lines.push(`                files=${filesExpr},`);
+        lines.push('            )');
+      } else {
+        lines.push('        response = await self._client.post(');
+        lines.push(`            ${mpPathStr},`);
+        lines.push('            data=data,');
+        lines.push(`            files=${filesExpr},`);
+        lines.push('        )');
+      }
     } else {
       const elsePathStr = op.externalUrl
         ? camelToSnake(op.externalUrl)
         : path.includes('{') ? `f"${path}"` : `"${path}"`;
-      lines.push(`        response = await self._client.${op.method.toLowerCase()}(${elsePathStr})`);
+      if (op.noAuth) {
+        lines.push(`        async with httpx.AsyncClient() as _no_auth:`);
+        lines.push(`            response = await _no_auth.${op.method.toLowerCase()}(${elsePathStr})`);
+      } else {
+        lines.push(`        response = await self._client.${op.method.toLowerCase()}(${elsePathStr})`);
+      }
     }
   } else {
     if (op.queryParams.length > 0) {
@@ -467,25 +482,48 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     const pathStr = op.externalUrl
       ? camelToSnake(op.externalUrl)
       : path.includes('{') ? `f"${path}"` : `"${path}"`;
-    lines.push(`        response = await self._client.${method}(`);
-    lines.push(`            ${pathStr},`);
-    if (hasQuery) lines.push('            params=query,');
-    if (op.successResponse.isRedirect) lines.push('            follow_redirects=False,');
-    if (hasBody) {
-      const rb = op.requestBody!;
-      const f = rb.unwrapField;
-      const shouldUnwrap =
-        rb.unwrapMode === 'single' &&
-        !!f &&
-        f.type.kind !== 'model' &&
-        f.type.kind !== 'record';
-      if (shouldUnwrap) {
-        lines.push(`            json={${JSON.stringify(f.name)}: ${pyFieldName(f)}},`);
-      } else {
-        lines.push('            json=serialize(request),');
+    if (op.noAuth) {
+      lines.push(`        async with httpx.AsyncClient() as _no_auth:`);
+      lines.push(`            response = await _no_auth.${method}(`);
+      lines.push(`                ${pathStr},`);
+      if (hasQuery) lines.push('                params=query,');
+      if (op.successResponse.isRedirect) lines.push('                follow_redirects=False,');
+      if (hasBody) {
+        const rb = op.requestBody!;
+        const f = rb.unwrapField;
+        const shouldUnwrap =
+          rb.unwrapMode === 'single' &&
+          !!f &&
+          f.type.kind !== 'model' &&
+          f.type.kind !== 'record';
+        if (shouldUnwrap) {
+          lines.push(`                json={${JSON.stringify(f.name)}: ${pyFieldName(f)}},`);
+        } else {
+          lines.push('                json=serialize(request),');
+        }
       }
+      lines.push('            )');
+    } else {
+      lines.push(`        response = await self._client.${method}(`);
+      lines.push(`            ${pathStr},`);
+      if (hasQuery) lines.push('            params=query,');
+      if (op.successResponse.isRedirect) lines.push('            follow_redirects=False,');
+      if (hasBody) {
+        const rb = op.requestBody!;
+        const f = rb.unwrapField;
+        const shouldUnwrap =
+          rb.unwrapMode === 'single' &&
+          !!f &&
+          f.type.kind !== 'model' &&
+          f.type.kind !== 'record';
+        if (shouldUnwrap) {
+          lines.push(`            json={${JSON.stringify(f.name)}: ${pyFieldName(f)}},`);
+        } else {
+          lines.push('            json=serialize(request),');
+        }
+      }
+      lines.push('        )');
     }
-    lines.push('        )');
   }
 
   const hasBody = op.successResponse.hasBody && !op.successResponse.isRedirect;

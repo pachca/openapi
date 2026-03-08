@@ -33,7 +33,9 @@ class CommonService internal constructor(
                     append(HttpHeaders.ContentDisposition, "filename=\"file\"")
                 })
             },
-        )
+        ) {
+            headers.remove(HttpHeaders.Authorization)
+        }
         when (response.status.value) {
             201 -> return
             401 -> throw response.body<OAuthError>()

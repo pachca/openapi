@@ -510,7 +510,8 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     if (hasJSON) lines.push('\treq.Header.Set("Content-Type", "application/json")');
   }
 
-  lines.push('\tresp, err := s.client.Do(req)');
+  const goClient = op.noAuth ? 'http.DefaultClient' : 's.client';
+  lines.push(`\tresp, err := ${goClient}.Do(req)`);
   lines.push('\tif err != nil {');
   lines.push(`\t\t${retErr()}`);
   lines.push('\t}');

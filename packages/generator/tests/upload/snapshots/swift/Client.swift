@@ -14,7 +14,6 @@ public struct CommonService {
     public func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(directUrl)")!)
         request.httpMethod = "POST"
-        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         var data = Data()

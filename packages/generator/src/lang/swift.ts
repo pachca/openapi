@@ -283,7 +283,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`        var request = URLRequest(url: URL(string: ${url})!)`);
   }
   if (op.method !== 'GET') lines.push(`        request.httpMethod = ${JSON.stringify(op.method)}`);
-  lines.push('        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }');
+  if (!op.noAuth) lines.push('        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }');
 
   if (op.requestBody?.contentType === 'json') {
     const rb = op.requestBody!;

@@ -566,6 +566,7 @@ function transformOperation(
     hasApiError,
     hasOAuthError,
     externalUrl: endpoint.externalUrl,
+    noAuth: endpoint.requirements?.auth === false ? true : undefined,
   };
 }
 

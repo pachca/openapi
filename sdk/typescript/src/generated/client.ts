@@ -330,7 +330,6 @@ class CommonService {
     form.set("file", request.file);
     const response = await fetch(directUrl, {
       method: "POST",
-      headers: this.headers,
       body: form,
     });
     switch (response.status) {

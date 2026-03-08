@@ -560,7 +560,7 @@ class File:
 
 @dataclass
 class FileUploadRequest:
-    Content_Disposition: str
+    content_disposition: str
     acl: str
     policy: str
     x_amz_credential: str
@@ -890,7 +890,7 @@ class UpdateMemberRoleRequest:
 
 @dataclass
 class UploadParams:
-    Content_Disposition: str
+    content_disposition: str
     acl: str
     policy: str
     x_amz_credential: str

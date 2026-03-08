@@ -49,7 +49,7 @@ async def main():
     await client.common.upload_file(
         params.direct_url,
         FileUploadRequest(
-            Content_Disposition=params.Content_Disposition,
+            content_disposition=params.content_disposition,
             acl=params.acl,
             policy=params.policy,
             x_amz_credential=params.x_amz_credential,

@@ -344,7 +344,7 @@ class CommonService:
         request: FileUploadRequest,
     ) -> None:
         data: dict[str, str] = {}
-        data["Content-Disposition"] = request.Content_Disposition
+        data["Content-Disposition"] = request.content_disposition
         data["acl"] = request.acl
         data["policy"] = request.policy
         data["x-amz-credential"] = request.x_amz_credential

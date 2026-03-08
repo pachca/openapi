@@ -17,7 +17,7 @@ class FileUploadRequest:
 
 @dataclass
 class UploadParams:
-    Content_Disposition: str
+    content_disposition: str
     acl: str
     policy: str
     x_amz_credential: str

@@ -17,8 +17,8 @@ import {
 } from '../naming.js';
 
 function pyFieldName(field: IRField): string {
-  if (field.name.includes('-')) return field.name.replace(/-/g, '_');
-  return field.name;
+  if (field.name.includes('-')) return field.name.replace(/-/g, '_').toLowerCase();
+  return camelToSnake(field.name);
 }
 
 function pyServiceProp(tag: string): string {
@@ -660,7 +660,7 @@ function generateUtils(): string {
     'def deserialize(cls: Type[T], data: dict) -> T:',
     '    """Create a dataclass instance from a dict, ignoring unknown keys."""',
     '    field_names = {f.name for f in fields(cls)}',
-    '    norm = {k.replace("-", "_"): v for k, v in data.items()}',
+    '    norm = {k.replace("-", "_").lower(): v for k, v in data.items()}',
     '    return cls(**{k: v for k, v in norm.items() if k in field_names})',
     '',
     '',

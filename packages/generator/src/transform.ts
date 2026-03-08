@@ -91,6 +91,12 @@ function resolveFieldType(schema: Schema): IRFieldType {
   }
 
   // Record (additionalProperties)
+  if (schema.additionalProperties === true) {
+    return {
+      kind: 'record',
+      valueType: { kind: 'primitive', primitive: 'any' },
+    };
+  }
   if (
     schema.additionalProperties &&
     typeof schema.additionalProperties === 'object'

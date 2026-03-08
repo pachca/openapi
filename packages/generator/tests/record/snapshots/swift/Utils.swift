@@ -24,7 +24,7 @@ func deserialize<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
 
 private func stripNulls(_ value: Any) -> Any {
     if let dict = value as? [String: Any] {
-        return dict.compactMapValues { v in
+        return dict.compactMapValues { v -> Any? in
             if v is NSNull { return nil }
             return stripNulls(v)
         }

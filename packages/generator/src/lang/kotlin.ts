@@ -27,6 +27,7 @@ function ktType(ft: IRFieldType): string {
         return ft.format === 'int64' ? 'Long' : 'Int';
       if (ft.primitive === 'number') return 'Double';
       if (ft.primitive === 'boolean') return 'Boolean';
+      if (ft.primitive === 'any') return 'Any';
       return 'String';
     case 'enum':
     case 'model':

@@ -62,6 +62,7 @@ function goPrimitive(
   if (ft.primitive === 'integer') return ft.format === 'int64' ? 'int64' : 'int32';
   if (ft.primitive === 'number') return 'float64';
   if (ft.primitive === 'boolean') return 'bool';
+  if (ft.primitive === 'any') return 'any';
   if (ft.primitive === 'string') {
     if (opts.forParam && (ft.format === 'date' || ft.format === 'date-time')) return 'time.Time';
     if (opts.forModelField && !opts.nullable && (ft.format === 'date' || ft.format === 'date-time')) {

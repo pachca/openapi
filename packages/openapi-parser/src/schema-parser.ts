@@ -44,6 +44,7 @@ export function parseSchema(
     if (schema.default !== undefined) parsed.default = schema.default;
     if (schema.example !== undefined) parsed.example = schema.example;
     if (getString(schema, 'description')) parsed.description = getString(schema, 'description');
+    if (getBoolean(schema, 'nullable')) parsed.nullable = true;
     return parsed;
   }
 

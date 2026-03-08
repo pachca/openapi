@@ -27,6 +27,7 @@ function fieldSdkName(field: IRField): string {
 function tsPrimitive(ft: IRFieldType): string {
   if (ft.primitive === 'integer' || ft.primitive === 'number') return 'number';
   if (ft.primitive === 'boolean') return 'boolean';
+  if (ft.primitive === 'any') return 'unknown';
   return 'string';
 }
 

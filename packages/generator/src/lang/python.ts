@@ -45,12 +45,25 @@ function isOptionalField(field: IRField): boolean {
   return !field.required || field.nullable;
 }
 
+function hasAnyTypeInField(ft: IRFieldType): boolean {
+  if (ft.kind === 'primitive' && ft.primitive === 'any') return true;
+  if (ft.items) return hasAnyTypeInField(ft.items);
+  if (ft.valueType) return hasAnyTypeInField(ft.valueType);
+  return false;
+}
+
+function hasAnyType(model: IRModel): boolean {
+  return model.fields.some((f) => hasAnyTypeInField(f.type)) ||
+    model.inlineObjects.some((m) => hasAnyType(m));
+}
+
 function pyType(ft: IRFieldType): string {
   switch (ft.kind) {
     case 'primitive':
       if (ft.primitive === 'integer') return 'int';
       if (ft.primitive === 'number') return 'float';
       if (ft.primitive === 'boolean') return 'bool';
+      if (ft.primitive === 'any') return 'Any';
       return 'str';
     case 'enum':
     case 'model':
@@ -184,19 +197,21 @@ function generateModels(ir: IR): string {
   const needDataclass = ir.models.length > 0 || ir.params.length > 0 || ir.responses.length > 0;
   const needEnum = ir.enums.length > 0;
   const needUnion = ir.unions.length > 0;
+  const needAny = ir.models.some((m) => hasAnyType(m)) || ir.params.some((p) => p.params.some((q) => hasAnyTypeInField(q.type)));
 
   lines.push('from __future__ import annotations');
   lines.push('');
   if (needDataclass) {
     lines.push('from dataclasses import dataclass');
     if (needEnum) lines.push('from enum import StrEnum');
-    if (needUnion) lines.push('from typing import Union');
-    lines.push('');
   } else if (needEnum) {
     lines.push('from enum import StrEnum');
-    if (needUnion) lines.push('from typing import Union');
-    lines.push('');
   }
+  const typingImports: string[] = [];
+  if (needAny) typingImports.push('Any');
+  if (needUnion) typingImports.push('Union');
+  if (typingImports.length > 0) lines.push(`from typing import ${typingImports.join(', ')}`);
+  if (needDataclass || needEnum) lines.push('');
 
   const unionMembers = new Set<string>();
   for (const u of ir.unions) for (const ref of u.memberRefs) unionMembers.add(ref);

@@ -33,6 +33,7 @@ function swiftType(ft: IRFieldType, opts: { nullable?: boolean } = {}): string {
       if (ft.primitive === 'integer') base = ft.format === 'int64' ? 'Int64' : 'Int';
       else if (ft.primitive === 'number') base = 'Double';
       else if (ft.primitive === 'boolean') base = 'Bool';
+      else if (ft.primitive === 'any') base = 'AnyCodable';
       else if (ft.format === 'date' || ft.format === 'date-time') base = opts.nullable ? 'String' : 'Date';
       else base = 'String';
       break;
@@ -85,9 +86,32 @@ function emitCodingKeys(lines: string[], fields: IRField[]): void {
   lines.push('    }');
 }
 
+function fieldRefsModel(ft: IRFieldType, modelName: string): boolean {
+  if (ft.kind === 'model' && ft.ref === modelName) return true;
+  if (ft.kind === 'array' && ft.items) return fieldRefsModel(ft.items, modelName);
+  if (ft.kind === 'record' && ft.valueType) return fieldRefsModel(ft.valueType, modelName);
+  return false;
+}
+
+function fieldHasAny(ft: IRFieldType): boolean {
+  if (ft.kind === 'primitive' && ft.primitive === 'any') return true;
+  if (ft.items) return fieldHasAny(ft.items);
+  if (ft.valueType) return fieldHasAny(ft.valueType);
+  return false;
+}
+
+function irNeedsAnyCodable(ir: IR): boolean {
+  return ir.models.some((m) => m.fields.some((f) => fieldHasAny(f.type)));
+}
+
+function isSelfReferencing(m: IRModel): boolean {
+  return m.fields.some((f) => fieldRefsModel(f.type, m.name));
+}
+
 function emitModel(lines: string[], m: IRModel): void {
   const proto = m.isError ? 'Codable, Error' : 'Codable';
-  lines.push(`public struct ${m.name}: ${proto} {`);
+  const keyword = isSelfReferencing(m) ? 'class' : 'struct';
+  lines.push(`public ${keyword} ${m.name}: ${proto} {`);
   if (m.fields.length === 0) {
     lines.push('}');
     return;
@@ -453,8 +477,8 @@ function generateClient(ir: IR): string {
   return lines.join('\n');
 }
 
-function generateUtils(): string {
-  return [
+function generateUtils(ir: IR): string {
+  const lines = [
     'import Foundation',
     '',
     'let pachcaDecoder: JSONDecoder = {',
@@ -479,9 +503,49 @@ function generateUtils(): string {
     '    return try pachcaDecoder.decode(type, from: data)',
     '}',
     '',
+  ];
+
+  if (irNeedsAnyCodable(ir)) {
+    lines.push(
+      'public struct AnyCodable: Codable {',
+      '    public let value: Any',
+      '',
+      '    public init(_ value: Any) { self.value = value }',
+      '',
+      '    public init(from decoder: Decoder) throws {',
+      '        let container = try decoder.singleValueContainer()',
+      '        if container.decodeNil() { value = NSNull() }',
+      '        else if let b = try? container.decode(Bool.self) { value = b }',
+      '        else if let i = try? container.decode(Int.self) { value = i }',
+      '        else if let d = try? container.decode(Double.self) { value = d }',
+      '        else if let s = try? container.decode(String.self) { value = s }',
+      '        else if let a = try? container.decode([AnyCodable].self) { value = a.map { $0.value } }',
+      '        else if let o = try? container.decode([String: AnyCodable].self) { value = o.mapValues { $0.value } }',
+      '        else { value = NSNull() }',
+      '    }',
+      '',
+      '    public func encode(to encoder: Encoder) throws {',
+      '        var container = encoder.singleValueContainer()',
+      '        switch value {',
+      '        case is NSNull: try container.encodeNil()',
+      '        case let b as Bool: try container.encode(b)',
+      '        case let i as Int: try container.encode(i)',
+      '        case let d as Double: try container.encode(d)',
+      '        case let s as String: try container.encode(s)',
+      '        case let a as [Any]: try container.encode(a.map { AnyCodable($0) })',
+      '        case let o as [String: Any]: try container.encode(o.mapValues { AnyCodable($0) })',
+      '        default: try container.encodeNil()',
+      '        }',
+      '    }',
+      '}',
+      '',
+    );
+  }
+
+  lines.push(
     'private func stripNulls(_ value: Any) -> Any {',
     '    if let dict = value as? [String: Any] {',
-    '        return dict.compactMapValues { v in',
+    '        return dict.compactMapValues { v -> Any? in',
     '            if v is NSNull { return nil }',
     '            return stripNulls(v)',
     '        }',
@@ -492,7 +556,8 @@ function generateUtils(): string {
     '    return value',
     '}',
     '',
-  ].join('\n');
+  );
+  return lines.join('\n');
 }
 
 export class SwiftGenerator implements LanguageGenerator {
@@ -502,7 +567,7 @@ export class SwiftGenerator implements LanguageGenerator {
     return [
       { path: 'Models.swift', content: generateModels(ir) },
       { path: 'Client.swift', content: generateClient(ir) },
-      { path: 'Utils.swift', content: generateUtils() },
+      { path: 'Utils.swift', content: generateUtils(ir) },
     ];
   }
 }

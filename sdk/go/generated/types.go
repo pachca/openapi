@@ -538,15 +538,15 @@ type File struct {
 }
 
 type FileUploadRequest struct {
-	ContentDisposition string    `json:"contentDisposition"`
-	ACL                string    `json:"acl"`
-	Policy             string    `json:"policy"`
-	XAMZCredential     string    `json:"xAmzCredential"`
-	XAMZAlgorithm      string    `json:"xAmzAlgorithm"`
-	XAMZDate           string    `json:"xAmzDate"`
-	XAMZSignature      string    `json:"xAmzSignature"`
-	Key                string    `json:"key"`
-	File               io.Reader `json:"file"`
+	Content_Disposition string    `json:"Content-Disposition"`
+	ACL                 string    `json:"acl"`
+	Policy              string    `json:"policy"`
+	XAMZCredential      string    `json:"x-amz-credential"`
+	XAMZAlgorithm       string    `json:"x-amz-algorithm"`
+	XAMZDate            string    `json:"x-amz-date"`
+	XAMZSignature       string    `json:"x-amz-signature"`
+	Key                 string    `json:"key"`
+	File                io.Reader `json:"file"`
 }
 
 type Forwarding struct {

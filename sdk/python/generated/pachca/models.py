@@ -560,13 +560,13 @@ class File:
 
 @dataclass
 class FileUploadRequest:
-    contentDisposition: str
+    Content_Disposition: str
     acl: str
     policy: str
-    xAmzCredential: str
-    xAmzAlgorithm: str
-    xAmzDate: str
-    xAmzSignature: str
+    x_amz_credential: str
+    x_amz_algorithm: str
+    x_amz_date: str
+    x_amz_signature: str
     key: str
     file: bytes
 

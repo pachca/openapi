@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 
 from .models import SearchMessagesParams, SearchMessagesResponse, OAuthError
-from .utils import from_dict
+from .utils import deserialize
 
 class SearchService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -38,9 +38,9 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(SearchMessagesResponse, body)
+                return deserialize(SearchMessagesResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

@@ -5,7 +5,7 @@ import {
   Event,
   UploadRequest,
 } from "./types";
-import { toCamelCase } from "./utils";
+import { deserialize } from "./utils";
 
 class EventsService {
   constructor(
@@ -25,7 +25,7 @@ class EventsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListEventsResponse;
+        return deserialize(body) as ListEventsResponse;
       default:
         throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
     }
@@ -40,7 +40,7 @@ class EventsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Event;
+        return deserialize(body.data) as Event;
       default:
         throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
     }

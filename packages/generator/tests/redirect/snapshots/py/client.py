@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 
 from .models import OAuthError, ApiError
-from .utils import from_dict
+from .utils import deserialize
 
 class CommonService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -26,9 +26,9 @@ class CommonService:
                     )
                 return location
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class PachcaClient:

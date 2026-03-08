@@ -1070,7 +1070,7 @@ public struct File: Codable {
 }
 
 public struct FileUploadRequest: Codable {
-    public let contentDisposition: String
+    public let Content_Disposition: String
     public let acl: String
     public let policy: String
     public let xAmzCredential: String
@@ -1080,8 +1080,8 @@ public struct FileUploadRequest: Codable {
     public let key: String
     public var file: Data
 
-    public init(contentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, file: Data) {
-        self.contentDisposition = contentDisposition
+    public init(Content_Disposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, file: Data) {
+        self.Content_Disposition = Content_Disposition
         self.acl = acl
         self.policy = policy
         self.xAmzCredential = xAmzCredential
@@ -1090,6 +1090,18 @@ public struct FileUploadRequest: Codable {
         self.xAmzSignature = xAmzSignature
         self.key = key
         self.file = file
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case Content_Disposition = "Content-Disposition"
+        case acl
+        case policy
+        case xAmzCredential = "x-amz-credential"
+        case xAmzAlgorithm = "x-amz-algorithm"
+        case xAmzDate = "x-amz-date"
+        case xAmzSignature = "x-amz-signature"
+        case key
+        case file
     }
 }
 

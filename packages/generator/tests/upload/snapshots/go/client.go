@@ -30,27 +30,13 @@ func (s *CommonService) UploadFile(ctx context.Context, request FileUploadReques
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
-		if request.ContentDisposition != nil {
-			writer.WriteField("content-disposition", fmt.Sprintf("%v", *request.ContentDisposition))
-		}
-		if request.ACL != nil {
-			writer.WriteField("acl", fmt.Sprintf("%v", *request.ACL))
-		}
-		if request.Policy != nil {
-			writer.WriteField("policy", fmt.Sprintf("%v", *request.Policy))
-		}
-		if request.XAMZCredential != nil {
-			writer.WriteField("x-amz-credential", fmt.Sprintf("%v", *request.XAMZCredential))
-		}
-		if request.XAMZAlgorithm != nil {
-			writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", *request.XAMZAlgorithm))
-		}
-		if request.XAMZDate != nil {
-			writer.WriteField("x-amz-date", fmt.Sprintf("%v", *request.XAMZDate))
-		}
-		if request.XAMZSignature != nil {
-			writer.WriteField("x-amz-signature", fmt.Sprintf("%v", *request.XAMZSignature))
-		}
+		writer.WriteField("content-disposition", fmt.Sprintf("%v", request.ContentDisposition))
+		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
+		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
+		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
+		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
+		writer.WriteField("x-amz-date", fmt.Sprintf("%v", request.XAMZDate))
+		writer.WriteField("x-amz-signature", fmt.Sprintf("%v", request.XAMZSignature))
 		writer.WriteField("key", fmt.Sprintf("%v", request.Key))
 		part, err := writer.CreateFormFile("file", "upload")
 		if err != nil {
@@ -58,7 +44,7 @@ func (s *CommonService) UploadFile(ctx context.Context, request FileUploadReques
 		}
 		io.Copy(part, request.File)
 	}()
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/uploads", s.baseURL), pr)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/direct_url", s.baseURL), pr)
 	if err != nil {
 		return err
 	}
@@ -77,6 +63,34 @@ func (s *CommonService) UploadFile(ctx context.Context, request FileUploadReques
 		return &e
 	default:
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+}
+
+func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/uploads", s.baseURL), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusCreated:
+		var result struct {
+			Data UploadParams `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		json.NewDecoder(resp.Body).Decode(&e)
+		return nil, &e
+	default:
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 }
 

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
-
 import httpx
 
 from .models import (
@@ -61,7 +59,7 @@ from .models import (
     UserUpdateRequest,
     OpenViewRequest,
 )
-from .utils import from_dict
+from .utils import deserialize, serialize
 
 class SecurityService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -95,11 +93,11 @@ class SecurityService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(GetAuditEventsResponse, body)
+                return deserialize(GetAuditEventsResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
 
 class BotsService:
@@ -122,11 +120,11 @@ class BotsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(GetWebhookEventsResponse, body)
+                return deserialize(GetWebhookEventsResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_bot(
         self,
@@ -135,16 +133,16 @@ class BotsService:
     ) -> BotResponse:
         response = await self._client.put(
             f"/bots/{id}",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(BotResponse, body["data"])
+                return deserialize(BotResponse, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def delete_webhook_event(
         self,
@@ -157,9 +155,9 @@ class BotsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class ChatsService:
@@ -192,11 +190,11 @@ class ChatsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListChatsResponse, body)
+                return deserialize(ListChatsResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_chat(
         self,
@@ -208,11 +206,11 @@ class ChatsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Chat, body["data"])
+                return deserialize(Chat, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def create_chat(
         self,
@@ -220,16 +218,16 @@ class ChatsService:
     ) -> Chat:
         response = await self._client.post(
             "/chats",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Chat, body["data"])
+                return deserialize(Chat, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_chat(
         self,
@@ -238,16 +236,16 @@ class ChatsService:
     ) -> Chat:
         response = await self._client.put(
             f"/chats/{id}",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Chat, body["data"])
+                return deserialize(Chat, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def archive_chat(
         self,
@@ -260,9 +258,9 @@ class ChatsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def unarchive_chat(
         self,
@@ -275,9 +273,9 @@ class ChatsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class CommonService:
@@ -301,9 +299,9 @@ class CommonService:
                     )
                 return location
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def list_properties(
         self,
@@ -318,11 +316,11 @@ class CommonService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListPropertiesResponse, body)
+                return deserialize(ListPropertiesResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def request_export(
         self,
@@ -330,28 +328,28 @@ class CommonService:
     ) -> None:
         response = await self._client.post(
             "/chats/exports",
-            json=asdict(request),
+            json=serialize(request),
         )
         match response.status_code:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def upload_file(
         self,
         request: FileUploadRequest,
     ) -> None:
         data: dict[str, str] = {}
-        data["contentDisposition"] = request.contentDisposition
+        data["Content-Disposition"] = request.Content_Disposition
         data["acl"] = request.acl
         data["policy"] = request.policy
-        data["xAmzCredential"] = request.xAmzCredential
-        data["xAmzAlgorithm"] = request.xAmzAlgorithm
-        data["xAmzDate"] = request.xAmzDate
-        data["xAmzSignature"] = request.xAmzSignature
+        data["x-amz-credential"] = request.x_amz_credential
+        data["x-amz-algorithm"] = request.x_amz_algorithm
+        data["x-amz-date"] = request.x_amz_date
+        data["x-amz-signature"] = request.x_amz_signature
         data["key"] = request.key
         response = await self._client.post(
             "/direct_url",
@@ -362,7 +360,7 @@ class CommonService:
             case 201:
                 return
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def get_upload_params(
         self) -> UploadParams:
@@ -372,11 +370,11 @@ class CommonService:
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(UploadParams, body)
+                return deserialize(UploadParams, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
 
 class MembersService:
@@ -402,11 +400,11 @@ class MembersService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListMembersResponse, body)
+                return deserialize(ListMembersResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def add_tags(
         self,
@@ -421,9 +419,9 @@ class MembersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def add_members(
         self,
@@ -432,15 +430,15 @@ class MembersService:
     ) -> None:
         response = await self._client.post(
             f"/chats/{id}/members",
-            json=asdict(request),
+            json=serialize(request),
         )
         match response.status_code:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def update_member_role(
         self,
@@ -456,9 +454,9 @@ class MembersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def remove_tag(
         self,
@@ -472,9 +470,9 @@ class MembersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def leave_chat(
         self,
@@ -487,9 +485,9 @@ class MembersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def remove_member(
         self,
@@ -503,9 +501,9 @@ class MembersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class GroupTagsService:
@@ -530,11 +528,11 @@ class GroupTagsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListTagsResponse, body)
+                return deserialize(ListTagsResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_tag(
         self,
@@ -546,11 +544,11 @@ class GroupTagsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(GroupTag, body["data"])
+                return deserialize(GroupTag, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_tag_users(
         self,
@@ -569,11 +567,11 @@ class GroupTagsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListMembersResponse, body)
+                return deserialize(ListMembersResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def create_tag(
         self,
@@ -581,16 +579,16 @@ class GroupTagsService:
     ) -> GroupTag:
         response = await self._client.post(
             "/group_tags",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(GroupTag, body["data"])
+                return deserialize(GroupTag, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_tag(
         self,
@@ -599,16 +597,16 @@ class GroupTagsService:
     ) -> GroupTag:
         response = await self._client.put(
             f"/group_tags/{id}",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(GroupTag, body["data"])
+                return deserialize(GroupTag, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def delete_tag(
         self,
@@ -621,9 +619,9 @@ class GroupTagsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class MessagesService:
@@ -649,11 +647,11 @@ class MessagesService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListChatMessagesResponse, body)
+                return deserialize(ListChatMessagesResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_message(
         self,
@@ -665,11 +663,11 @@ class MessagesService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Message, body["data"])
+                return deserialize(Message, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def create_message(
         self,
@@ -677,16 +675,16 @@ class MessagesService:
     ) -> Message:
         response = await self._client.post(
             "/messages",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Message, body["data"])
+                return deserialize(Message, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def pin_message(
         self,
@@ -699,9 +697,9 @@ class MessagesService:
             case 201:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def update_message(
         self,
@@ -710,16 +708,16 @@ class MessagesService:
     ) -> Message:
         response = await self._client.put(
             f"/messages/{id}",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Message, body["data"])
+                return deserialize(Message, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def delete_message(
         self,
@@ -732,9 +730,9 @@ class MessagesService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def unpin_message(
         self,
@@ -747,9 +745,9 @@ class MessagesService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class LinkPreviewsService:
@@ -763,15 +761,15 @@ class LinkPreviewsService:
     ) -> None:
         response = await self._client.post(
             f"/messages/{id}/link_previews",
-            json=asdict(request),
+            json=serialize(request),
         )
         match response.status_code:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class ReactionsService:
@@ -795,11 +793,11 @@ class ReactionsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListReactionsResponse, body)
+                return deserialize(ListReactionsResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def add_reaction(
         self,
@@ -808,16 +806,16 @@ class ReactionsService:
     ) -> Reaction:
         response = await self._client.post(
             f"/messages/{id}/reactions",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Reaction, body)
+                return deserialize(Reaction, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def remove_reaction(
         self,
@@ -836,9 +834,9 @@ class ReactionsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class ReadMembersService:
@@ -862,11 +860,11 @@ class ReadMembersService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(object, body)
+                return deserialize(object, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
 
 class ThreadsService:
@@ -883,11 +881,11 @@ class ThreadsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Thread, body["data"])
+                return deserialize(Thread, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def create_thread(
         self,
@@ -899,11 +897,11 @@ class ThreadsService:
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Thread, body["data"])
+                return deserialize(Thread, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
 
 class ProfileService:
@@ -918,11 +916,11 @@ class ProfileService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(AccessTokenInfo, body["data"])
+                return deserialize(AccessTokenInfo, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_profile(
         self) -> User:
@@ -932,11 +930,11 @@ class ProfileService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(User, body["data"])
+                return deserialize(User, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_status(
         self) -> object:
@@ -946,11 +944,11 @@ class ProfileService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(object, body)
+                return deserialize(object, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_status(
         self,
@@ -958,16 +956,16 @@ class ProfileService:
     ) -> UserStatus:
         response = await self._client.put(
             "/profile/status",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(UserStatus, body["data"])
+                return deserialize(UserStatus, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def delete_status(
         self) -> None:
@@ -978,9 +976,9 @@ class ProfileService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class SearchService:
@@ -1017,11 +1015,11 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListChatsResponse, body)
+                return deserialize(ListChatsResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def search_messages(
         self,
@@ -1053,11 +1051,11 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListChatMessagesResponse, body)
+                return deserialize(ListChatMessagesResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def search_users(
         self,
@@ -1087,11 +1085,11 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListMembersResponse, body)
+                return deserialize(ListMembersResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
 
 class TasksService:
@@ -1114,11 +1112,11 @@ class TasksService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListTasksResponse, body)
+                return deserialize(ListTasksResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_task(
         self,
@@ -1130,11 +1128,11 @@ class TasksService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Task, body["data"])
+                return deserialize(Task, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def create_task(
         self,
@@ -1142,16 +1140,16 @@ class TasksService:
     ) -> Task:
         response = await self._client.post(
             "/tasks",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Task, body["data"])
+                return deserialize(Task, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_task(
         self,
@@ -1160,16 +1158,16 @@ class TasksService:
     ) -> Task:
         response = await self._client.put(
             f"/tasks/{id}",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Task, body["data"])
+                return deserialize(Task, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def delete_task(
         self,
@@ -1182,9 +1180,9 @@ class TasksService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class UsersService:
@@ -1209,11 +1207,11 @@ class UsersService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListMembersResponse, body)
+                return deserialize(ListMembersResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_user(
         self,
@@ -1225,11 +1223,11 @@ class UsersService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(User, body["data"])
+                return deserialize(User, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_user_status(
         self,
@@ -1241,11 +1239,11 @@ class UsersService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(object, body)
+                return deserialize(object, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def create_user(
         self,
@@ -1253,16 +1251,16 @@ class UsersService:
     ) -> User:
         response = await self._client.post(
             "/users",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(User, body["data"])
+                return deserialize(User, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_user(
         self,
@@ -1271,16 +1269,16 @@ class UsersService:
     ) -> User:
         response = await self._client.put(
             f"/users/{id}",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(User, body["data"])
+                return deserialize(User, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_user_status(
         self,
@@ -1289,16 +1287,16 @@ class UsersService:
     ) -> UserStatus:
         response = await self._client.put(
             f"/users/{user_id}/status",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(UserStatus, body["data"])
+                return deserialize(UserStatus, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def delete_user(
         self,
@@ -1311,9 +1309,9 @@ class UsersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def delete_user_status(
         self,
@@ -1326,9 +1324,9 @@ class UsersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class ViewsService:
@@ -1341,15 +1339,15 @@ class ViewsService:
     ) -> None:
         response = await self._client.post(
             "/views/open",
-            json=asdict(request),
+            json=serialize(request),
         )
         match response.status_code:
             case 201:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class PachcaClient:

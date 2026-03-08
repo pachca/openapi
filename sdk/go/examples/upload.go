@@ -8,6 +8,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -40,16 +41,11 @@ func main() {
 
 	// ── Step 1: Read the local file ─────────────────────────────────
 	fmt.Printf("1. Reading file: %s\n", filePath)
-	f, err := os.Open(filePath)
+	fileData, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Fatalf("Failed to open file: %v", err)
+		log.Fatalf("Failed to read file: %v", err)
 	}
-	defer f.Close()
-	info, err := f.Stat()
-	if err != nil {
-		log.Fatalf("Failed to stat file: %v", err)
-	}
-	fileSize := info.Size()
+	fileSize := len(fileData)
 	fmt.Printf("   Size: %d bytes\n", fileSize)
 
 	// ── Step 2: Get upload params ───────────────────────────────────
@@ -58,13 +54,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("GetUploadParams failed: %v", err)
 	}
-	fmt.Printf("   Got params\n")
+	key := strings.Replace(params.Key, "${filename}", filename, 1)
+	fmt.Printf("   Got direct_url: %s\n", params.DirectURL)
 
-	// ── Step 3: Upload the file to S3 ──────────────────────────────
+	// ── Step 3: Upload the file via SDK ─────────────────────────────
 	fmt.Println("3. Uploading file...")
-	// Upload logic depends on the params structure — omitted for brevity
-	_ = params
-	key := strings.Replace("uploads/${filename}", "${filename}", filename, 1)
+	err = client.Common.UploadFile(ctx, pachca.FileUploadRequest{
+		Content_Disposition: params.Content_Disposition,
+		ACL:                params.ACL,
+		Policy:             params.Policy,
+		XAMZCredential:     params.XAMZCredential,
+		XAMZAlgorithm:      params.XAMZAlgorithm,
+		XAMZDate:           params.XAMZDate,
+		XAMZSignature:      params.XAMZSignature,
+		Key:                key,
+		File:               bytes.NewReader(fileData),
+	}, params.DirectURL)
+	if err != nil {
+		log.Fatalf("UploadFile failed: %v", err)
+	}
 	fmt.Printf("   Uploaded, key: %s\n", key)
 
 	// ── Step 4: Send message with the file attached ─────────────────

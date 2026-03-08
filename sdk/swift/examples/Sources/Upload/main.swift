@@ -29,14 +29,24 @@ print("  Size: \(fileSize) bytes")
 
 print("Step 2: Getting upload params...")
 let params = try await client.common.getUploadParams()
-print("  Got upload params")
+let key = params.key.replacingOccurrences(of: "${filename}", with: filename)
+print("  Got direct_url: \(params.directUrl)")
 
-// ── Step 3: Upload the file to S3 ──────────────────────────────
+// ── Step 3: Upload the file via SDK ─────────────────────────────
 
 print("Step 3: Uploading file...")
-// Upload logic depends on the params structure — omitted for brevity
-let key = "uploads/\(filename)"
-_ = params
+var uploadRequest = FileUploadRequest(
+    Content_Disposition: params.Content_Disposition,
+    acl: params.acl,
+    policy: params.policy,
+    xAmzCredential: params.xAmzCredential,
+    xAmzAlgorithm: params.xAmzAlgorithm,
+    xAmzDate: params.xAmzDate,
+    xAmzSignature: params.xAmzSignature,
+    key: key,
+    file: fileData
+)
+try await client.common.uploadFile(request: uploadRequest, url: params.directUrl)
 print("  Uploaded, key: \(key)")
 
 // ── Step 4: Send message with the file attached ─────────────────

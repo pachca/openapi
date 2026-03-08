@@ -11,12 +11,11 @@ import asyncio
 import os
 import sys
 
-import httpx
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "generated"))
 
 from pachca.client import PachcaClient
 from pachca.models import (
+    FileUploadRequest,
     MessageCreateRequest,
     MessageCreateRequestMessage,
     MessageCreateRequestFile,
@@ -42,14 +41,25 @@ async def main():
     # 2. Get upload params
     print("2. Getting upload params...")
     params = await client.common.get_upload_params()
+    key = params.key.replace("${filename}", filename)
     print(f"   Got direct_url: {params.direct_url}")
 
-    # 3. Upload to S3
+    # 3. Upload file via SDK
     print("3. Uploading file...")
-    fields = {k: v for k, v in vars(params).items() if k != "direct_url" and v is not None}
-    async with httpx.AsyncClient() as http:
-        await http.post(params.direct_url, data=fields, files={"file": (filename, file_bytes)})
-    key = params.key.replace("${filename}", filename)
+    await client.common.upload_file(
+        FileUploadRequest(
+            content_disposition=params.Content_Disposition,
+            acl=params.acl,
+            policy=params.policy,
+            x_amz_credential=params.x_amz_credential,
+            x_amz_algorithm=params.x_amz_algorithm,
+            x_amz_date=params.x_amz_date,
+            x_amz_signature=params.x_amz_signature,
+            key=key,
+            file=file_bytes,
+        ),
+        url=params.direct_url,
+    )
     print(f"   Uploaded, key: {key}")
 
     # 4. Send message with attachment

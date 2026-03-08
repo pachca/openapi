@@ -1,4 +1,5 @@
-import { FileUploadRequest, OAuthError } from "./types";
+import { FileUploadRequest, OAuthError, UploadParams } from "./types";
+import { deserialize } from "./utils";
 
 class CommonService {
   constructor(
@@ -8,16 +9,16 @@ class CommonService {
 
   async uploadFile(request: FileUploadRequest): Promise<void> {
     const form = new FormData();
-    if (request.contentDisposition !== undefined) form.set("content-disposition", request.contentDisposition);
-    if (request.acl !== undefined) form.set("acl", request.acl);
-    if (request.policy !== undefined) form.set("policy", request.policy);
-    if (request.xAmzCredential !== undefined) form.set("x-amz-credential", request.xAmzCredential);
-    if (request.xAmzAlgorithm !== undefined) form.set("x-amz-algorithm", request.xAmzAlgorithm);
-    if (request.xAmzDate !== undefined) form.set("x-amz-date", request.xAmzDate);
-    if (request.xAmzSignature !== undefined) form.set("x-amz-signature", request.xAmzSignature);
+    form.set("content-disposition", request.contentDisposition);
+    form.set("acl", request.acl);
+    form.set("policy", request.policy);
+    form.set("x-amz-credential", request.xAmzCredential);
+    form.set("x-amz-algorithm", request.xAmzAlgorithm);
+    form.set("x-amz-date", request.xAmzDate);
+    form.set("x-amz-signature", request.xAmzSignature);
     form.set("key", request.key);
     form.set("file", request.file);
-    const response = await fetch(`${this.baseUrl}/uploads`, {
+    const response = await fetch(`${this.baseUrl}/direct_url`, {
       method: "POST",
       headers: this.headers,
       body: form,
@@ -29,6 +30,22 @@ class CommonService {
         throw new OAuthError(((await response.json()) as any).error);
       default:
         throw new Error(`HTTP ${response.status}`);
+    }
+  }
+
+  async getUploadParams(): Promise<UploadParams> {
+    const response = await fetch(`${this.baseUrl}/uploads`, {
+      method: "POST",
+      headers: this.headers,
+    });
+    const body: any = await response.json();
+    switch (response.status) {
+      case 201:
+        return deserialize(body.data) as UploadParams;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
     }
   }
 }

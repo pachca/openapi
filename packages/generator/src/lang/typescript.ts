@@ -382,8 +382,8 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
       importedTypes.push(name);
     }
   };
-  let needsToCamel = false;
-  let needsToSnake = false;
+  let needsDeserialize = false;
+  let needsSerialize = false;
   const hasServices = ir.services.length > 0;
   const inlineAsObject = buildInlineAsObjectSet(ir);
 
@@ -409,11 +409,11 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
           } else {
             addImport(rb.schemaRef);
           }
-          if (!shouldUnwrap && rb.contentType === 'json') needsToSnake = true;
+          if (!shouldUnwrap && rb.contentType === 'json') needsSerialize = true;
         }
         if (op.queryParams.length > 0) addImport(irParamTypeName(op));
         if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
-          needsToCamel = true;
+          needsDeserialize = true;
           if (op.successResponse.isList) {
             addImport(responseTypeName(op, ir));
           } else if (op.successResponse.dataRef) {
@@ -452,8 +452,8 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     }
   }
 
-  if (needsToCamel || needsToSnake) {
-    const utils = [needsToCamel ? 'toCamelCase' : null, needsToSnake ? 'toSnakeCase' : null]
+  if (needsDeserialize || needsSerialize) {
+    const utils = [needsDeserialize ? 'deserialize' : null, needsSerialize ? 'serialize' : null]
       .filter((x): x is string => !!x)
       .join(', ');
     lines.push(`import { ${utils} } from "./utils";`);
@@ -485,7 +485,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
 
   while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
   lines.push('');
-  return { content: lines.join('\n'), needsUtils: needsToCamel || needsToSnake };
+  return { content: lines.join('\n'), needsUtils: needsDeserialize || needsSerialize };
 }
 
 function emitService(lines: string[], svc: IRService, ir: IR): void {
@@ -604,7 +604,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       const sdk = snakeToCamel(f.name);
       lines.push(`      body: JSON.stringify({ ${f.name}: ${sdk} }),`);
     } else {
-      lines.push('      body: JSON.stringify(toSnakeCase(request)),');
+      lines.push('      body: JSON.stringify(serialize(request)),');
     }
   }
   lines.push('    });');
@@ -635,13 +635,13 @@ function emitResponseSwitch(
     lines.push('        return;');
   } else if (op.successResponse.isList) {
     lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return toCamelCase(body) as ${responseTypeName(op, ir)};`);
+    lines.push(`        return deserialize(body) as ${responseTypeName(op, ir)};`);
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
     lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return toCamelCase(body.data) as ${op.successResponse.dataRef};`);
+    lines.push(`        return deserialize(body.data) as ${op.successResponse.dataRef};`);
   } else {
     lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return toCamelCase(body) as ${responseTypeName(op, ir)};`);
+    lines.push(`        return deserialize(body) as ${responseTypeName(op, ir)};`);
   }
 
   if (op.hasOAuthError) {
@@ -668,28 +668,29 @@ function emitResponseSwitch(
 function generateUtils(): string {
   return [
     'function snakeToCamel(str: string): string {',
-    '  return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());',
+    '  const camel = str.replace(/[-_]([a-zA-Z])/g, (_, c) => c.toUpperCase());',
+    '  return camel.charAt(0).toLowerCase() + camel.slice(1);',
     '}',
     '',
     'function camelToSnake(str: string): string {',
     '  return str.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);',
     '}',
     '',
-    'export function toCamelCase(obj: unknown): unknown {',
-    '  if (Array.isArray(obj)) return obj.map(toCamelCase);',
+    'export function deserialize(obj: unknown): unknown {',
+    '  if (Array.isArray(obj)) return obj.map(deserialize);',
     '  if (obj !== null && typeof obj === "object") {',
     '    return Object.fromEntries(',
-    '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), toCamelCase(v)]),',
+    '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),',
     '    );',
     '  }',
     '  return obj;',
     '}',
     '',
-    'export function toSnakeCase(obj: unknown): unknown {',
-    '  if (Array.isArray(obj)) return obj.map(toSnakeCase);',
+    'export function serialize(obj: unknown): unknown {',
+    '  if (Array.isArray(obj)) return obj.map(serialize);',
     '  if (obj !== null && typeof obj === "object") {',
     '    return Object.fromEntries(',
-    '      Object.entries(obj).map(([k, v]) => [camelToSnake(k), toSnakeCase(v)]),',
+    '      Object.entries(obj).map(([k, v]) => [camelToSnake(k), serialize(v)]),',
     '    );',
     '  }',
     '  return obj;',

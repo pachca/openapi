@@ -5,11 +5,12 @@
  *
  * Usage:
  *
- *   PACHCA_TOKEN=your_token PACHCA_CHAT_ID=12345 PACHCA_FILE_PATH=./photo.png kotlin upload.kt
+ *   PACHCA_TOKEN=your_token PACHCA_CHAT_ID=12345 PACHCA_FILE_PATH=./photo.png gradle runExample -Dexample=examples.upload.MainKt
  */
 package examples.upload
 
 import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.FileUploadRequest
 import com.pachca.sdk.MessageCreateRequest
 import com.pachca.sdk.MessageCreateRequestMessage
 import com.pachca.sdk.MessageCreateRequestFile
@@ -38,12 +39,25 @@ fun main() = runBlocking {
     // ── Step 2: Get upload params ───────────────────────────────────
     println("2. Getting upload params...")
     val params = client.common.getUploadParams()
-    println("   Got upload params")
+    val key = params.key.replace("\${filename}", filename)
+    println("   Got direct_url: ${params.directUrl}")
 
-    // ── Step 3: Upload the file to S3 ──────────────────────────────
+    // ── Step 3: Upload the file via SDK ─────────────────────────────
     println("3. Uploading file...")
-    // Upload logic depends on the params structure — omitted for brevity
-    val key = "uploads/$filename"
+    client.common.uploadFile(
+        FileUploadRequest(
+            contentDisposition = params.contentDisposition,
+            acl = params.acl,
+            policy = params.policy,
+            xAmzCredential = params.xAmzCredential,
+            xAmzAlgorithm = params.xAmzAlgorithm,
+            xAmzDate = params.xAmzDate,
+            xAmzSignature = params.xAmzSignature,
+            key = key,
+            file = fileBytes,
+        ),
+        url = params.directUrl,
+    )
     println("   Uploaded, key: $key")
 
     // ── Step 4: Send message with the file attached ─────────────────

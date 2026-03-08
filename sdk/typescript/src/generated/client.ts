@@ -56,7 +56,7 @@ import {
   UserUpdateRequest,
   OpenViewRequest,
 } from "./types";
-import { toCamelCase, toSnakeCase } from "./utils";
+import { deserialize, serialize } from "./utils";
 
 class SecurityService {
   constructor(
@@ -81,7 +81,7 @@ class SecurityService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as GetAuditEventsResponse;
+        return deserialize(body) as GetAuditEventsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -107,7 +107,7 @@ class BotsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as GetWebhookEventsResponse;
+        return deserialize(body) as GetWebhookEventsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -119,12 +119,12 @@ class BotsService {
     const response = await fetch(`${this.baseUrl}/bots/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as BotResponse;
+        return deserialize(body.data) as BotResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -170,7 +170,7 @@ class ChatsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListChatsResponse;
+        return deserialize(body) as ListChatsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -185,7 +185,7 @@ class ChatsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Chat;
+        return deserialize(body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -197,12 +197,12 @@ class ChatsService {
     const response = await fetch(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body.data) as Chat;
+        return deserialize(body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -214,12 +214,12 @@ class ChatsService {
     const response = await fetch(`${this.baseUrl}/chats/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Chat;
+        return deserialize(body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -293,7 +293,7 @@ class CommonService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListPropertiesResponse;
+        return deserialize(body) as ListPropertiesResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -305,7 +305,7 @@ class CommonService {
     const response = await fetch(`${this.baseUrl}/chats/exports`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     switch (response.status) {
       case 204:
@@ -319,13 +319,13 @@ class CommonService {
 
   async uploadFile(request: FileUploadRequest): Promise<void> {
     const form = new FormData();
-    form.set("contentDisposition", request.contentDisposition);
+    form.set("Content-Disposition", request.contentDisposition);
     form.set("acl", request.acl);
     form.set("policy", request.policy);
-    form.set("xAmzCredential", request.xAmzCredential);
-    form.set("xAmzAlgorithm", request.xAmzAlgorithm);
-    form.set("xAmzDate", request.xAmzDate);
-    form.set("xAmzSignature", request.xAmzSignature);
+    form.set("x-amz-credential", request.xAmzCredential);
+    form.set("x-amz-algorithm", request.xAmzAlgorithm);
+    form.set("x-amz-date", request.xAmzDate);
+    form.set("x-amz-signature", request.xAmzSignature);
     form.set("key", request.key);
     form.set("file", request.file);
     const response = await fetch(`${this.baseUrl}/direct_url`, {
@@ -349,7 +349,7 @@ class CommonService {
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body) as UploadParams;
+        return deserialize(body) as UploadParams;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -376,7 +376,7 @@ class MembersService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListMembersResponse;
+        return deserialize(body) as ListMembersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -404,7 +404,7 @@ class MembersService {
     const response = await fetch(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     switch (response.status) {
       case 204:
@@ -496,7 +496,7 @@ class GroupTagsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListTagsResponse;
+        return deserialize(body) as ListTagsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -511,7 +511,7 @@ class GroupTagsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as GroupTag;
+        return deserialize(body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -530,7 +530,7 @@ class GroupTagsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListMembersResponse;
+        return deserialize(body) as ListMembersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -542,12 +542,12 @@ class GroupTagsService {
     const response = await fetch(`${this.baseUrl}/group_tags`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body.data) as GroupTag;
+        return deserialize(body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -559,12 +559,12 @@ class GroupTagsService {
     const response = await fetch(`${this.baseUrl}/group_tags/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as GroupTag;
+        return deserialize(body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -606,7 +606,7 @@ class MessagesService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListChatMessagesResponse;
+        return deserialize(body) as ListChatMessagesResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -621,7 +621,7 @@ class MessagesService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Message;
+        return deserialize(body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -633,12 +633,12 @@ class MessagesService {
     const response = await fetch(`${this.baseUrl}/messages`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body.data) as Message;
+        return deserialize(body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -665,12 +665,12 @@ class MessagesService {
     const response = await fetch(`${this.baseUrl}/messages/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Message;
+        return deserialize(body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -719,7 +719,7 @@ class LinkPreviewsService {
     const response = await fetch(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     switch (response.status) {
       case 204:
@@ -749,7 +749,7 @@ class ReactionsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListReactionsResponse;
+        return deserialize(body) as ListReactionsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -761,12 +761,12 @@ class ReactionsService {
     const response = await fetch(`${this.baseUrl}/messages/${id}/reactions`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body) as Reaction;
+        return deserialize(body) as Reaction;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -810,7 +810,7 @@ class ReadMembersService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as unknown;
+        return deserialize(body) as unknown;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -832,7 +832,7 @@ class ThreadsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Thread;
+        return deserialize(body.data) as Thread;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -848,7 +848,7 @@ class ThreadsService {
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body.data) as Thread;
+        return deserialize(body.data) as Thread;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -870,7 +870,7 @@ class ProfileService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as AccessTokenInfo;
+        return deserialize(body.data) as AccessTokenInfo;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -885,7 +885,7 @@ class ProfileService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as User;
+        return deserialize(body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -900,7 +900,7 @@ class ProfileService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as unknown;
+        return deserialize(body) as unknown;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -912,12 +912,12 @@ class ProfileService {
     const response = await fetch(`${this.baseUrl}/profile/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as UserStatus;
+        return deserialize(body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -965,7 +965,7 @@ class SearchService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListChatsResponse;
+        return deserialize(body) as ListChatsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -991,7 +991,7 @@ class SearchService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListChatMessagesResponse;
+        return deserialize(body) as ListChatMessagesResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1016,7 +1016,7 @@ class SearchService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListMembersResponse;
+        return deserialize(body) as ListMembersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1042,7 +1042,7 @@ class TasksService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListTasksResponse;
+        return deserialize(body) as ListTasksResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1057,7 +1057,7 @@ class TasksService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Task;
+        return deserialize(body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1069,12 +1069,12 @@ class TasksService {
     const response = await fetch(`${this.baseUrl}/tasks`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body.data) as Task;
+        return deserialize(body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1086,12 +1086,12 @@ class TasksService {
     const response = await fetch(`${this.baseUrl}/tasks/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Task;
+        return deserialize(body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1133,7 +1133,7 @@ class UsersService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListMembersResponse;
+        return deserialize(body) as ListMembersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1148,7 +1148,7 @@ class UsersService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as User;
+        return deserialize(body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1163,7 +1163,7 @@ class UsersService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as unknown;
+        return deserialize(body) as unknown;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1175,12 +1175,12 @@ class UsersService {
     const response = await fetch(`${this.baseUrl}/users`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body.data) as User;
+        return deserialize(body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1192,12 +1192,12 @@ class UsersService {
     const response = await fetch(`${this.baseUrl}/users/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as User;
+        return deserialize(body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1209,12 +1209,12 @@ class UsersService {
     const response = await fetch(`${this.baseUrl}/users/$${userId}/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as UserStatus;
+        return deserialize(body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1263,7 +1263,7 @@ class ViewsService {
     const response = await fetch(`${this.baseUrl}/views/open`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     switch (response.status) {
       case 201:

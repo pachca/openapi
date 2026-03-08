@@ -12,7 +12,7 @@ public struct CommonService {
     }
 
     public func uploadFile(request body: FileUploadRequest) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
+        var request = URLRequest(url: URL(string: "\(baseURL)/direct_url")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let boundary = UUID().uuidString
@@ -23,13 +23,13 @@ public struct CommonService {
             data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
             data.append("\(value)\r\n".data(using: .utf8)!)
         }
-        if let v = body.contentDisposition { appendField("content-disposition", String(describing: v)) }
-        if let v = body.acl { appendField("acl", String(describing: v)) }
-        if let v = body.policy { appendField("policy", String(describing: v)) }
-        if let v = body.xAmzCredential { appendField("x-amz-credential", String(describing: v)) }
-        if let v = body.xAmzAlgorithm { appendField("x-amz-algorithm", String(describing: v)) }
-        if let v = body.xAmzDate { appendField("x-amz-date", String(describing: v)) }
-        if let v = body.xAmzSignature { appendField("x-amz-signature", String(describing: v)) }
+        appendField("content-disposition", String(describing: body.contentDisposition))
+        appendField("acl", String(describing: body.acl))
+        appendField("policy", String(describing: body.policy))
+        appendField("x-amz-credential", String(describing: body.xAmzCredential))
+        appendField("x-amz-algorithm", String(describing: body.xAmzAlgorithm))
+        appendField("x-amz-date", String(describing: body.xAmzDate))
+        appendField("x-amz-signature", String(describing: body.xAmzSignature))
         appendField("key", String(describing: body.key))
         data.append("--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
@@ -45,6 +45,22 @@ public struct CommonService {
             return
         case 401:
             throw try pachcaDecoder.decode(OAuthError.self, from: responseData)
+        default:
+            throw URLError(.badServerResponse)
+        }
+    }
+
+    public func getUploadParams() async throws -> UploadParams {
+        var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
+        request.httpMethod = "POST"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await session.data(for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 201:
+            return try pachcaDecoder.decode(UploadParamsDataWrapper.self, from: data).data
+        case 401:
+            throw try pachcaDecoder.decode(OAuthError.self, from: data)
         default:
             throw URLError(.badServerResponse)
         }

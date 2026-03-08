@@ -2946,30 +2946,25 @@ interface UploadOperations {
 @doc("Данные для загрузки файла")
 model FileUploadRequest {
   @doc("Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "Content-Disposition")
-  contentDisposition: HttpPart<string>;
-  
+  `Content-Disposition`: HttpPart<string>;
+
   @doc("Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   acl: HttpPart<string>;
-  
+
   @doc("Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   policy: HttpPart<string>;
-  
+
   @doc("Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-credential")
-  xAmzCredential: HttpPart<string>;
-  
+  `x-amz-credential`: HttpPart<string>;
+
   @doc("Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-algorithm")
-  xAmzAlgorithm: HttpPart<string>;
-  
+  `x-amz-algorithm`: HttpPart<string>;
+
   @doc("Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-date")
-  xAmzDate: HttpPart<string>;
-  
+  `x-amz-date`: HttpPart<string>;
+
   @doc("Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-signature")
-  xAmzSignature: HttpPart<string>;
+  `x-amz-signature`: HttpPart<string>;
   
   @doc("Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   key: HttpPart<string>;

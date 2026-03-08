@@ -8,7 +8,7 @@ from .models import (
     Event,
     UploadRequest,
 )
-from .utils import from_dict
+from .utils import deserialize
 
 class EventsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -32,7 +32,7 @@ class EventsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListEventsResponse, body)
+                return deserialize(ListEventsResponse, body)
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"
@@ -50,7 +50,7 @@ class EventsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Event, body["data"])
+                return deserialize(Event, body["data"])
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

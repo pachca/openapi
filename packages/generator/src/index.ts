@@ -38,7 +38,7 @@ export function generate(specPath: string, outputDir: string, langs: string[]): 
     }
 
     const files = generator.generate(ir);
-    const langDir = path.join(outputDir, generator.dirName);
+    const langDir = langs.length === 1 ? outputDir : path.join(outputDir, generator.dirName);
     fs.mkdirSync(langDir, { recursive: true });
 
     for (const file of files) {
@@ -47,6 +47,6 @@ export function generate(specPath: string, outputDir: string, langs: string[]): 
       fs.writeFileSync(filePath, file.content);
     }
 
-    console.log(`  ${lang} → ${generator.dirName}/ (${files.length} files)`);
+    console.log(`  ${lang} → ${langs.length === 1 ? '.' : generator.dirName}/ (${files.length} files)`);
   }
 }

@@ -5265,7 +5265,7 @@ components:
     FileUploadRequest:
       type: object
       properties:
-        contentDisposition:
+        Content-Disposition:
           type: string
           description: Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
         acl:
@@ -5274,16 +5274,16 @@ components:
         policy:
           type: string
           description: Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzCredential:
+        x-amz-credential:
           type: string
           description: Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzAlgorithm:
+        x-amz-algorithm:
           type: string
           description: Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzDate:
+        x-amz-date:
           type: string
           description: Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzSignature:
+        x-amz-signature:
           type: string
           description: Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
         key:
@@ -5294,13 +5294,13 @@ components:
           format: binary
           description: Файл для загрузки
       required:
-        - contentDisposition
+        - Content-Disposition
         - acl
         - policy
-        - xAmzCredential
-        - xAmzAlgorithm
-        - xAmzDate
-        - xAmzSignature
+        - x-amz-credential
+        - x-amz-algorithm
+        - x-amz-date
+        - x-amz-signature
         - key
         - file
     Forwarding:

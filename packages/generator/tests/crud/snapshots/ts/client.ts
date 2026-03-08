@@ -7,7 +7,7 @@ import {
   ChatCreateRequest,
   ChatUpdateRequest,
 } from "./types";
-import { toCamelCase, toSnakeCase } from "./utils";
+import { deserialize, serialize } from "./utils";
 
 class ChatsService {
   constructor(
@@ -29,7 +29,7 @@ class ChatsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as ListChatsResponse;
+        return deserialize(body) as ListChatsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -44,7 +44,7 @@ class ChatsService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Chat;
+        return deserialize(body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -56,12 +56,12 @@ class ChatsService {
     const response = await fetch(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 201:
-        return toCamelCase(body.data) as Chat;
+        return deserialize(body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -73,12 +73,12 @@ class ChatsService {
     const response = await fetch(`${this.baseUrl}/chats/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(toSnakeCase(request)),
+      body: JSON.stringify(serialize(request)),
     });
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body.data) as Chat;
+        return deserialize(body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:

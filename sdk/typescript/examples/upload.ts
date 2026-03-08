@@ -10,7 +10,7 @@
 
 import { readFileSync, statSync } from "node:fs";
 import { basename } from "node:path";
-import { PachcaClient, MessageCreateRequest } from "../src/index.js";
+import { PachcaClient } from "../src/index.js";
 
 const token = process.env.PACHCA_TOKEN;
 const chatIdStr = process.env.PACHCA_CHAT_ID;
@@ -37,18 +37,22 @@ console.log(`   Size: ${fileSize} bytes`);
 // ── Step 2: Get upload params ───────────────────────────────────
 console.log("2. Getting upload params...");
 const params = await client.common.getUploadParams();
-console.log(`   Got direct_url: ${(params as any).direct_url}`);
+const key = params.key.replace("${filename}", filename);
+console.log(`   Got direct_url: ${params.directUrl}`);
 
-// ── Step 3: Upload the file to S3 ──────────────────────────────
+// ── Step 3: Upload the file via SDK ─────────────────────────────
 console.log("3. Uploading file...");
-const uploadParams = params as any;
-const formData = new FormData();
-for (const [key, value] of Object.entries(uploadParams)) {
-  if (key !== "direct_url") formData.append(key, value as string);
-}
-formData.append("file", file, filename);
-await fetch(uploadParams.direct_url, { method: "POST", body: formData });
-const key = uploadParams.key.replace("${filename}", filename);
+await client.common.uploadFile({
+  contentDisposition: params.contentDisposition,
+  acl: params.acl,
+  policy: params.policy,
+  xAmzCredential: params.xAmzCredential,
+  xAmzAlgorithm: params.xAmzAlgorithm,
+  xAmzDate: params.xAmzDate,
+  xAmzSignature: params.xAmzSignature,
+  key,
+  file,
+}, params.directUrl);
 console.log(`   Uploaded, key: ${key}`);
 
 // ── Step 4: Send message with the file attached ─────────────────
@@ -66,7 +70,7 @@ const msg = await client.messages.createMessage({
       },
     ],
   },
-} as MessageCreateRequest);
+});
 console.log(`   Message ID: ${msg.id}`);
 
 console.log("\nDone! File uploaded and sent.");

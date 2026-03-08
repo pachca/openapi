@@ -3,6 +3,8 @@ package com.pachca.sdk
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -17,15 +19,15 @@ class CommonService internal constructor(
 ) {
     suspend fun uploadFile(request: FileUploadRequest) {
         val response = client.submitFormWithBinaryData(
-            "$baseUrl/uploads",
+            "$baseUrl/direct_url",
             formData {
-                request.contentDisposition?.let { append("content-disposition", it) }
-                request.acl?.let { append("acl", it) }
-                request.policy?.let { append("policy", it) }
-                request.xAmzCredential?.let { append("x-amz-credential", it) }
-                request.xAmzAlgorithm?.let { append("x-amz-algorithm", it) }
-                request.xAmzDate?.let { append("x-amz-date", it) }
-                request.xAmzSignature?.let { append("x-amz-signature", it) }
+                append("content-disposition", request.contentDisposition)
+                append("acl", request.acl)
+                append("policy", request.policy)
+                append("x-amz-credential", request.xAmzCredential)
+                append("x-amz-algorithm", request.xAmzAlgorithm)
+                append("x-amz-date", request.xAmzDate)
+                append("x-amz-signature", request.xAmzSignature)
                 append("key", request.key)
                 append("file", request.file, Headers.build {
                     append(HttpHeaders.ContentDisposition, "filename=\"file\"")
@@ -34,6 +36,15 @@ class CommonService internal constructor(
         )
         when (response.status.value) {
             201 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw RuntimeException("Unexpected status code: ${response.status.value}")
+        }
+    }
+
+    suspend fun getUploadParams(): UploadParams {
+        val response = client.post("$baseUrl/uploads")
+        return when (response.status.value) {
+            201 -> response.body<UploadParamsDataWrapper>().data
             401 -> throw response.body<OAuthError>()
             else -> throw RuntimeException("Unexpected status code: ${response.status.value}")
         }

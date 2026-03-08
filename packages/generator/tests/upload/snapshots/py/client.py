@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import httpx
 
-from .models import FileUploadRequest, OAuthError
-from .utils import from_dict
+from .models import FileUploadRequest, OAuthError, UploadParams
+from .utils import deserialize
 
 class CommonService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -14,23 +14,16 @@ class CommonService:
         request: FileUploadRequest,
     ) -> None:
         data: dict[str, str] = {}
+        data["content-disposition"] = request.content_disposition
+        data["acl"] = request.acl
+        data["policy"] = request.policy
+        data["x-amz-credential"] = request.x_amz_credential
+        data["x-amz-algorithm"] = request.x_amz_algorithm
+        data["x-amz-date"] = request.x_amz_date
+        data["x-amz-signature"] = request.x_amz_signature
         data["key"] = request.key
-        if request.content_disposition is not None:
-            data["content-disposition"] = request.content_disposition
-        if request.acl is not None:
-            data["acl"] = request.acl
-        if request.policy is not None:
-            data["policy"] = request.policy
-        if request.x_amz_credential is not None:
-            data["x-amz-credential"] = request.x_amz_credential
-        if request.x_amz_algorithm is not None:
-            data["x-amz-algorithm"] = request.x_amz_algorithm
-        if request.x_amz_date is not None:
-            data["x-amz-date"] = request.x_amz_date
-        if request.x_amz_signature is not None:
-            data["x-amz-signature"] = request.x_amz_signature
         response = await self._client.post(
-            "/uploads",
+            "/direct_url",
             data=data,
             files={"file": request.file},
         )
@@ -38,7 +31,23 @@ class CommonService:
             case 201:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise RuntimeError(
+                    f"Unexpected status code: {response.status_code}"
+                )
+
+    async def get_upload_params(
+        self) -> UploadParams:
+        response = await self._client.post(
+            "/uploads",
+        )
+        body = response.json()
+        match response.status_code:
+            case 201:
+                return deserialize(UploadParams, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
             case _:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
-
 import httpx
 
 from .models import (
@@ -10,7 +8,7 @@ from .models import (
     ChatCreateRequest,
     Chat,
 )
-from .utils import from_dict
+from .utils import deserialize, serialize
 
 class MembersService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -29,9 +27,9 @@ class MembersService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class ChatsService:
@@ -44,16 +42,16 @@ class ChatsService:
     ) -> Chat:
         response = await self._client.post(
             "/chats",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Chat, body["data"])
+                return deserialize(Chat, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def archive_chat(
         self,
@@ -66,9 +64,9 @@ class ChatsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class PachcaClient:

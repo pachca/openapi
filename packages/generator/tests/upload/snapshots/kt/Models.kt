@@ -6,18 +6,34 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class FileUploadRequest(
+    @SerialName("content-disposition") val contentDisposition: String,
+    val acl: String,
+    val policy: String,
+    @SerialName("x-amz-credential") val xAmzCredential: String,
+    @SerialName("x-amz-algorithm") val xAmzAlgorithm: String,
+    @SerialName("x-amz-date") val xAmzDate: String,
+    @SerialName("x-amz-signature") val xAmzSignature: String,
     val key: String,
-    @SerialName("content-disposition") val contentDisposition: String? = null,
-    val acl: String? = null,
-    val policy: String? = null,
-    @SerialName("x-amz-credential") val xAmzCredential: String? = null,
-    @SerialName("x-amz-algorithm") val xAmzAlgorithm: String? = null,
-    @SerialName("x-amz-date") val xAmzDate: String? = null,
-    @SerialName("x-amz-signature") val xAmzSignature: String? = null,
     @Transient val file: ByteArray = ByteArray(0),
+)
+
+@Serializable
+data class UploadParams(
+    @SerialName("Content-Disposition") val contentDisposition: String,
+    val acl: String,
+    val policy: String,
+    @SerialName("x-amz-credential") val xAmzCredential: String,
+    @SerialName("x-amz-algorithm") val xAmzAlgorithm: String,
+    @SerialName("x-amz-date") val xAmzDate: String,
+    @SerialName("x-amz-signature") val xAmzSignature: String,
+    val key: String,
+    @SerialName("direct_url") val directUrl: String,
 )
 
 @Serializable
 data class OAuthError(
     val error: String? = null,
 ) : Exception()
+
+@Serializable
+data class UploadParamsDataWrapper(val data: UploadParams)

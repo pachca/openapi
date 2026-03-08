@@ -926,13 +926,13 @@ data class File(
 
 @Serializable
 data class FileUploadRequest(
-    val contentDisposition: String,
+    @SerialName("Content-Disposition") val contentDisposition: String,
     val acl: String,
     val policy: String,
-    val xAmzCredential: String,
-    val xAmzAlgorithm: String,
-    val xAmzDate: String,
-    val xAmzSignature: String,
+    @SerialName("x-amz-credential") val xAmzCredential: String,
+    @SerialName("x-amz-algorithm") val xAmzAlgorithm: String,
+    @SerialName("x-amz-date") val xAmzDate: String,
+    @SerialName("x-amz-signature") val xAmzSignature: String,
     val key: String,
     @Transient val file: ByteArray = ByteArray(0),
 )

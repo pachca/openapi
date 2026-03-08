@@ -1,5 +1,5 @@
 import { SearchMessagesParams, SearchMessagesResponse, OAuthError } from "./types";
-import { toCamelCase } from "./utils";
+import { deserialize } from "./utils";
 
 class SearchService {
   constructor(
@@ -27,7 +27,7 @@ class SearchService {
     const body: any = await response.json();
     switch (response.status) {
       case 200:
-        return toCamelCase(body) as SearchMessagesResponse;
+        return deserialize(body) as SearchMessagesResponse;
       case 401:
         throw new OAuthError(body.error);
       default:

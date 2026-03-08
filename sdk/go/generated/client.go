@@ -488,13 +488,13 @@ func (s *CommonService) UploadFile(ctx context.Context, request FileUploadReques
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
-		writer.WriteField("contentDisposition", fmt.Sprintf("%v", request.ContentDisposition))
+		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.Content_Disposition))
 		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
 		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
-		writer.WriteField("xAmzCredential", fmt.Sprintf("%v", request.XAMZCredential))
-		writer.WriteField("xAmzAlgorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
-		writer.WriteField("xAmzDate", fmt.Sprintf("%v", request.XAMZDate))
-		writer.WriteField("xAmzSignature", fmt.Sprintf("%v", request.XAMZSignature))
+		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
+		writer.WriteField("x-amz-algorithm", fmt.Sprintf("%v", request.XAMZAlgorithm))
+		writer.WriteField("x-amz-date", fmt.Sprintf("%v", request.XAMZDate))
+		writer.WriteField("x-amz-signature", fmt.Sprintf("%v", request.XAMZSignature))
 		writer.WriteField("key", fmt.Sprintf("%v", request.Key))
 		part, err := writer.CreateFormFile("file", "upload")
 		if err != nil {

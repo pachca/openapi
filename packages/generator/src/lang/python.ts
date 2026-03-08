@@ -473,7 +473,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       if (shouldUnwrap) {
         lines.push(`            json={${JSON.stringify(f.name)}: ${pyFieldName(f)}},`);
       } else {
-        lines.push('            json=asdict(request),');
+        lines.push('            json=serialize(request),');
       }
     }
     lines.push('        )');
@@ -503,26 +503,26 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
     );
     lines.push(`            case ${op.successResponse.statusCode}:`);
-    lines.push(`                return from_dict(${rt?.name ?? 'object'}, body)`);
+    lines.push(`                return deserialize(${rt?.name ?? 'object'}, body)`);
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
     lines.push(`            case ${op.successResponse.statusCode}:`);
-    lines.push(`                return from_dict(${op.successResponse.dataRef}, body["data"])`);
+    lines.push(`                return deserialize(${op.successResponse.dataRef}, body["data"])`);
   } else {
     lines.push(`            case ${op.successResponse.statusCode}:`);
-    lines.push(`                return from_dict(${op.successResponse.dataRef ?? 'object'}, body)`);
+    lines.push(`                return deserialize(${op.successResponse.dataRef ?? 'object'}, body)`);
   }
 
   if (op.hasOAuthError) {
     lines.push('            case 401:');
     lines.push(
-      `                raise from_dict(OAuthError, ${hasBody ? 'body' : 'response.json()'})`,
+      `                raise deserialize(OAuthError, ${hasBody ? 'body' : 'response.json()'})`,
     );
   }
 
   if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('            case _:');
     lines.push(
-      `                raise from_dict(ApiError, ${hasBody ? 'body' : 'response.json()'})`,
+      `                raise deserialize(ApiError, ${hasBody ? 'body' : 'response.json()'})`,
     );
   } else {
     lines.push('            case _:');
@@ -534,17 +534,13 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
 function generateClient(ir: IR): { content: string; needUtils: boolean } {
   const lines: string[] = [];
-  const needAsdict = needsAsdict(ir);
+  const needToDict = needsAsdict(ir);
   const imports = collectClientImports(ir);
   const needUtils = ir.services.length > 0;
 
   if (ir.services.length > 0) {
     lines.push('from __future__ import annotations');
     lines.push('');
-    if (needAsdict) {
-      lines.push('from dataclasses import asdict');
-      lines.push('');
-    }
     lines.push('import httpx');
     lines.push('');
   }
@@ -557,7 +553,9 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
       for (const imp of imports) lines.push(`    ${imp},`);
       lines.push(')');
     }
-    if (needUtils) lines.push('from .utils import from_dict');
+    const utilImports = ['deserialize'];
+    if (needToDict) utilImports.push('serialize');
+    if (needUtils) lines.push(`from .utils import ${utilImports.join(', ')}`);
   }
 
   if (ir.services.length === 0) {
@@ -606,16 +604,22 @@ function generateUtils(): string {
   return [
     'from __future__ import annotations',
     '',
-    'from dataclasses import fields',
+    'from dataclasses import asdict, fields',
     'from typing import Type, TypeVar',
     '',
     'T = TypeVar("T")',
     '',
     '',
-    'def from_dict(cls: Type[T], data: dict) -> T:',
+    'def deserialize(cls: Type[T], data: dict) -> T:',
     '    """Create a dataclass instance from a dict, ignoring unknown keys."""',
     '    field_names = {f.name for f in fields(cls)}',
-    '    return cls(**{k: v for k, v in data.items() if k in field_names})',
+    '    norm = {k.replace("-", "_"): v for k, v in data.items()}',
+    '    return cls(**{k: v for k, v in norm.items() if k in field_names})',
+    '',
+    '',
+    'def serialize(obj: object) -> dict:',
+    '    """Convert a dataclass to a dict, omitting None values."""',
+    '    return {k: v for k, v in asdict(obj).items() if v is not None}',
     '',
   ].join('\n');
 }

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
-
 import httpx
 
 from .models import (
@@ -13,7 +11,7 @@ from .models import (
     ChatCreateRequest,
     ChatUpdateRequest,
 )
-from .utils import from_dict
+from .utils import deserialize, serialize
 
 class ChatsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -41,11 +39,11 @@ class ChatsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(ListChatsResponse, body)
+                return deserialize(ListChatsResponse, body)
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def get_chat(
         self,
@@ -57,11 +55,11 @@ class ChatsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Chat, body["data"])
+                return deserialize(Chat, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def create_chat(
         self,
@@ -69,16 +67,16 @@ class ChatsService:
     ) -> Chat:
         response = await self._client.post(
             "/chats",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Chat, body["data"])
+                return deserialize(Chat, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def update_chat(
         self,
@@ -87,16 +85,16 @@ class ChatsService:
     ) -> Chat:
         response = await self._client.put(
             f"/chats/{id}",
-            json=asdict(request),
+            json=serialize(request),
         )
         body = response.json()
         match response.status_code:
             case 200:
-                return from_dict(Chat, body["data"])
+                return deserialize(Chat, body["data"])
             case 401:
-                raise from_dict(OAuthError, body)
+                raise deserialize(OAuthError, body)
             case _:
-                raise from_dict(ApiError, body)
+                raise deserialize(ApiError, body)
 
     async def archive_chat(
         self,
@@ -109,9 +107,9 @@ class ChatsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
     async def delete_chat(
         self,
@@ -124,9 +122,9 @@ class ChatsService:
             case 204:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class PachcaClient:

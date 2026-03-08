@@ -1,26 +1,27 @@
 function snakeToCamel(str: string): string {
-  return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  const camel = str.replace(/[-_]([a-zA-Z])/g, (_, c) => c.toUpperCase());
+  return camel.charAt(0).toLowerCase() + camel.slice(1);
 }
 
 function camelToSnake(str: string): string {
   return str.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 }
 
-export function toCamelCase(obj: unknown): unknown {
-  if (Array.isArray(obj)) return obj.map(toCamelCase);
+export function deserialize(obj: unknown): unknown {
+  if (Array.isArray(obj)) return obj.map(deserialize);
   if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), toCamelCase(v)]),
+      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),
     );
   }
   return obj;
 }
 
-export function toSnakeCase(obj: unknown): unknown {
-  if (Array.isArray(obj)) return obj.map(toSnakeCase);
+export function serialize(obj: unknown): unknown {
+  if (Array.isArray(obj)) return obj.map(serialize);
   if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => [camelToSnake(k), toSnakeCase(v)]),
+      Object.entries(obj).map(([k, v]) => [camelToSnake(k), serialize(v)]),
     );
   }
   return obj;

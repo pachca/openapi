@@ -5,15 +5,27 @@ import (
 )
 
 type FileUploadRequest struct {
+	ContentDisposition string    `json:"content-disposition"`
+	ACL                string    `json:"acl"`
+	Policy             string    `json:"policy"`
+	XAMZCredential     string    `json:"x-amz-credential"`
+	XAMZAlgorithm      string    `json:"x-amz-algorithm"`
+	XAMZDate           string    `json:"x-amz-date"`
+	XAMZSignature      string    `json:"x-amz-signature"`
 	Key                string    `json:"key"`
 	File               io.Reader `json:"file"`
-	ContentDisposition *string   `json:"content-disposition,omitempty"`
-	ACL                *string   `json:"acl,omitempty"`
-	Policy             *string   `json:"policy,omitempty"`
-	XAMZCredential     *string   `json:"x-amz-credential,omitempty"`
-	XAMZAlgorithm      *string   `json:"x-amz-algorithm,omitempty"`
-	XAMZDate           *string   `json:"x-amz-date,omitempty"`
-	XAMZSignature      *string   `json:"x-amz-signature,omitempty"`
+}
+
+type UploadParams struct {
+	Content_Disposition string `json:"Content-Disposition"`
+	ACL                 string `json:"acl"`
+	Policy              string `json:"policy"`
+	XAMZCredential      string `json:"x-amz-credential"`
+	XAMZAlgorithm       string `json:"x-amz-algorithm"`
+	XAMZDate            string `json:"x-amz-date"`
+	XAMZSignature       string `json:"x-amz-signature"`
+	Key                 string `json:"key"`
+	DirectURL           string `json:"direct_url"`
 }
 
 type OAuthError struct {

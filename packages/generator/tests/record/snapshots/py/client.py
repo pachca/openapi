@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import asdict
-
 import httpx
 
 from .models import LinkPreviewsRequest, OAuthError, ApiError
-from .utils import from_dict
+from .utils import deserialize, serialize
 
 class LinkPreviewsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -18,15 +16,15 @@ class LinkPreviewsService:
     ) -> None:
         response = await self._client.post(
             f"/messages/{id}/link_previews",
-            json=asdict(request),
+            json=serialize(request),
         )
         match response.status_code:
             case 201:
                 return
             case 401:
-                raise from_dict(OAuthError, response.json())
+                raise deserialize(OAuthError, response.json())
             case _:
-                raise from_dict(ApiError, response.json())
+                raise deserialize(ApiError, response.json())
 
 
 class PachcaClient:

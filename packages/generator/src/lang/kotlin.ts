@@ -367,6 +367,8 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.client.*');
   lines.push('import io.ktor.client.call.*');
   lines.push('import io.ktor.client.plugins.*');
+  lines.push('import io.ktor.client.plugins.auth.*');
+  lines.push('import io.ktor.client.plugins.auth.providers.*');
   lines.push('import io.ktor.client.plugins.contentnegotiation.*');
   lines.push('import io.ktor.client.request.*');
   if (hasMultipart) {

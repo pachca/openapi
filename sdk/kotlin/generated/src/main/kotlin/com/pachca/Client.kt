@@ -3,6 +3,8 @@ package com.pachca.sdk
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -205,13 +207,13 @@ class CommonService internal constructor(
         val response = client.submitFormWithBinaryData(
             "$baseUrl/direct_url",
             formData {
-                append("contentDisposition", request.contentDisposition)
+                append("Content-Disposition", request.contentDisposition)
                 append("acl", request.acl)
                 append("policy", request.policy)
-                append("xAmzCredential", request.xAmzCredential)
-                append("xAmzAlgorithm", request.xAmzAlgorithm)
-                append("xAmzDate", request.xAmzDate)
-                append("xAmzSignature", request.xAmzSignature)
+                append("x-amz-credential", request.xAmzCredential)
+                append("x-amz-algorithm", request.xAmzAlgorithm)
+                append("x-amz-date", request.xAmzDate)
+                append("x-amz-signature", request.xAmzSignature)
                 append("key", request.key)
                 append("file", request.file, Headers.build {
                     append(HttpHeaders.ContentDisposition, "filename=\"file\"")

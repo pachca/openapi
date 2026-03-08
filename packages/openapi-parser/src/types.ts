@@ -40,6 +40,7 @@ export interface Endpoint {
   responses: Record<string, Response>;
   security?: SecurityRequirement[];
   requirements?: EndpointRequirements;
+  externalUrl?: string;
 }
 
 export interface Parameter {

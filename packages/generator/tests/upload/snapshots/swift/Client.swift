@@ -11,8 +11,8 @@ public struct CommonService {
         self.session = session
     }
 
-    public func uploadFile(request body: FileUploadRequest) async throws -> Void {
-        var request = URLRequest(url: URL(string: "\(baseURL)/direct_url")!)
+    public func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(directUrl)")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let boundary = UUID().uuidString

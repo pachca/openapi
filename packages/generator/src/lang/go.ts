@@ -378,6 +378,9 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   };
 
   const args: string[] = ['ctx context.Context'];
+  if (op.externalUrl) {
+    args.push(`${op.externalUrl} string`);
+  }
   for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)} ${goType(p.type)}`);
 
   if (op.requestBody) {
@@ -400,9 +403,11 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`func (s *${tagToServiceName(op.tag)}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
 
   const { fmt: fmtPath, args: pathArgs } = goPathFormat(op.path, op);
-  const urlExpr = pathArgs.length > 0
-    ? `fmt.Sprintf("%s${fmtPath}", s.baseURL, ${pathArgs.join(', ')})`
-    : `fmt.Sprintf("%s${fmtPath}", s.baseURL)`;
+  const urlExpr = op.externalUrl
+    ? op.externalUrl
+    : pathArgs.length > 0
+      ? `fmt.Sprintf("%s${fmtPath}", s.baseURL, ${pathArgs.join(', ')})`
+      : `fmt.Sprintf("%s${fmtPath}", s.baseURL)`;
 
   const isMultipart = op.requestBody?.contentType === 'multipart';
   if (isMultipart) {

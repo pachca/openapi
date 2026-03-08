@@ -42,7 +42,7 @@ console.log(`   Got direct_url: ${params.directUrl}`);
 
 // ── Step 3: Upload the file via SDK ─────────────────────────────
 console.log("3. Uploading file...");
-await client.common.uploadFile({
+await client.common.uploadFile(params.directUrl, {
   contentDisposition: params.contentDisposition,
   acl: params.acl,
   policy: params.policy,
@@ -52,7 +52,7 @@ await client.common.uploadFile({
   xAmzSignature: params.xAmzSignature,
   key,
   file,
-}, params.directUrl);
+});
 console.log(`   Uploaded, key: ${key}`);
 
 // ── Step 4: Send message with the file attached ─────────────────

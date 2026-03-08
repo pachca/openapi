@@ -59,7 +59,7 @@ func main() {
 
 	// ── Step 3: Upload the file via SDK ─────────────────────────────
 	fmt.Println("3. Uploading file...")
-	err = client.Common.UploadFile(ctx, pachca.FileUploadRequest{
+	err = client.Common.UploadFile(ctx, params.DirectURL, pachca.FileUploadRequest{
 		Content_Disposition: params.Content_Disposition,
 		ACL:                params.ACL,
 		Policy:             params.Policy,
@@ -69,7 +69,7 @@ func main() {
 		XAMZSignature:      params.XAMZSignature,
 		Key:                key,
 		File:               bytes.NewReader(fileData),
-	}, params.DirectURL)
+	})
 	if err != nil {
 		log.Fatalf("UploadFile failed: %v", err)
 	}

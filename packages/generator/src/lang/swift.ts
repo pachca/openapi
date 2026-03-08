@@ -216,6 +216,9 @@ function opReturn(op: IROperation, ir: IR): string {
 
 function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const args: string[] = [];
+  if (op.externalUrl) {
+    args.push(`${op.externalUrl}: String`);
+  }
   for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
   if (op.requestBody) {
     const rb = op.requestBody;
@@ -235,7 +238,8 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
   lines.push(`    public func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
   if (op.queryParams.length > 0) {
-    lines.push(`        var components = URLComponents(string: "\\(baseURL)${op.path}")!`);
+    const swiftUrlBase = op.externalUrl ? `\\(${op.externalUrl})` : `\\(baseURL)${op.path}`;
+    lines.push(`        var components = URLComponents(string: "${swiftUrlBase}")!`);
     lines.push('        var queryItems: [URLQueryItem] = []');
     for (const q of op.queryParams) {
       const n = snakeToCamel(q.sdkName);
@@ -267,9 +271,14 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('        if !queryItems.isEmpty { components.queryItems = queryItems }');
     lines.push('        var request = URLRequest(url: components.url!)');
   } else {
-    let url = `"\\(baseURL)${op.path}"`;
-    for (const p of op.pathParams) {
-      url = url.replace(`{${p.name}}`, `\\(${snakeToCamel(p.sdkName)})`);
+    let url: string;
+    if (op.externalUrl) {
+      url = `"\\(${op.externalUrl})"`;
+    } else {
+      url = `"\\(baseURL)${op.path}"`;
+      for (const p of op.pathParams) {
+        url = url.replace(`{${p.name}}`, `\\(${snakeToCamel(p.sdkName)})`);
+      }
     }
     lines.push(`        var request = URLRequest(url: URL(string: ${url})!)`);
   }

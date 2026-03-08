@@ -47,6 +47,7 @@ async def main():
     # 3. Upload file via SDK
     print("3. Uploading file...")
     await client.common.upload_file(
+        params.direct_url,
         FileUploadRequest(
             content_disposition=params.Content_Disposition,
             acl=params.acl,
@@ -58,7 +59,6 @@ async def main():
             key=key,
             file=file_bytes,
         ),
-        url=params.direct_url,
     )
     print(f"   Uploaded, key: {key}")
 

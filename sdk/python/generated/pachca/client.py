@@ -340,6 +340,7 @@ class CommonService:
 
     async def upload_file(
         self,
+        direct_url: str,
         request: FileUploadRequest,
     ) -> None:
         data: dict[str, str] = {}
@@ -352,7 +353,7 @@ class CommonService:
         data["x-amz-signature"] = request.x_amz_signature
         data["key"] = request.key
         response = await self._client.post(
-            "/direct_url",
+            direct_url,
             data=data,
             files={"file": request.file},
         )

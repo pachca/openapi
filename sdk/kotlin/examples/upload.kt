@@ -45,6 +45,7 @@ fun main() = runBlocking {
     // ── Step 3: Upload the file via SDK ─────────────────────────────
     println("3. Uploading file...")
     client.common.uploadFile(
+        params.directUrl,
         FileUploadRequest(
             contentDisposition = params.contentDisposition,
             acl = params.acl,
@@ -56,7 +57,6 @@ fun main() = runBlocking {
             key = key,
             file = fileBytes,
         ),
-        url = params.directUrl,
     )
     println("   Uploaded, key: $key")
 

@@ -7,7 +7,7 @@ class CommonService {
     private headers: Record<string, string>,
   ) {}
 
-  async uploadFile(request: FileUploadRequest): Promise<void> {
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     const form = new FormData();
     form.set("content-disposition", request.contentDisposition);
     form.set("acl", request.acl);
@@ -18,7 +18,7 @@ class CommonService {
     form.set("x-amz-signature", request.xAmzSignature);
     form.set("key", request.key);
     form.set("file", request.file);
-    const response = await fetch(`${this.baseUrl}/direct_url`, {
+    const response = await fetch(directUrl, {
       method: "POST",
       headers: this.headers,
       body: form,

@@ -565,6 +565,7 @@ function transformOperation(
     errorResponses,
     hasApiError,
     hasOAuthError,
+    externalUrl: endpoint.externalUrl,
   };
 }
 

@@ -2978,6 +2978,7 @@ interface DirectUploadOperations {
   @extension("x-requirements", #{
     auth: false,
   })
+  @extension("x-external-url", "directUrl")
   @doc("""
 Загрузка файла
 

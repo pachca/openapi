@@ -42,6 +42,12 @@ export function parseEndpoint(
     };
   }
 
+  // x-external-url
+  const externalUrl = getString(operation, 'x-external-url');
+  if (externalUrl) {
+    endpoint.externalUrl = externalUrl;
+  }
+
   // Parameters
   const parameters = getArray(operation, 'parameters');
   if (parameters) {

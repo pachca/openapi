@@ -46,7 +46,7 @@ var uploadRequest = FileUploadRequest(
     key: key,
     file: fileData
 )
-try await client.common.uploadFile(request: uploadRequest, url: params.directUrl)
+try await client.common.uploadFile(directUrl: params.directUrl, request: uploadRequest)
 print("  Uploaded, key: \(key)")
 
 // ── Step 4: Send message with the file attached ─────────────────

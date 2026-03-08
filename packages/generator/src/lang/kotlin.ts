@@ -473,6 +473,10 @@ function buildMethodParams(
 ): string[] {
   const params: string[] = [];
 
+  if (op.externalUrl) {
+    params.push(`${op.externalUrl}: String`);
+  }
+
   for (const p of op.pathParams) {
     params.push(`${p.sdkName}: ${ktType(p.type)}`);
   }
@@ -529,9 +533,11 @@ function emitMethodBody(
     op.requestBody && op.requestBody.contentType === 'json';
   const needsBlock = hasQueryParams || hasJsonBody;
 
+  const urlExpr = op.externalUrl ? op.externalUrl : `"$baseUrl${urlPath}"`;
+
   if (needsBlock) {
     lines.push(
-      `${indent2}val response = client.${httpMethod}("$baseUrl${urlPath}") {`,
+      `${indent2}val response = client.${httpMethod}(${urlExpr}) {`,
     );
     for (const p of op.queryParams) {
       if (p.isArray) {
@@ -574,7 +580,7 @@ function emitMethodBody(
     lines.push(`${indent2}}`);
   } else {
     lines.push(
-      `${indent2}val response = client.${httpMethod}("$baseUrl${urlPath}")`,
+      `${indent2}val response = client.${httpMethod}(${urlExpr})`,
     );
   }
 
@@ -600,7 +606,8 @@ function emitMultipartBody(
   lines.push(
     `${indent2}val response = client.submitFormWithBinaryData(`,
   );
-  lines.push(`${indent3}"$baseUrl${urlPath}",`);
+  const multipartUrl = op.externalUrl ? op.externalUrl : `"$baseUrl${urlPath}"`;
+  lines.push(`${indent3}${multipartUrl},`);
   lines.push(`${indent3}formData {`);
 
   const binaryField = reqModel.fields.find(

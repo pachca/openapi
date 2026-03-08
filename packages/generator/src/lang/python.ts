@@ -345,6 +345,9 @@ function collectClientImports(ir: IR): string[] {
 
 function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const args: string[] = [];
+  if (op.externalUrl) {
+    args.push(`${camelToSnake(op.externalUrl)}: str`);
+  }
   for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
 
   if (op.requestBody) {
@@ -405,14 +408,18 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       const filesExpr = binary
         ? `{"${binary.name}": request.${pyFieldName(binary)}}`
         : '{}';
-      const mpPathStr = path.includes('{') ? `f"${path}"` : `"${path}"`;
+      const mpPathStr = op.externalUrl
+        ? camelToSnake(op.externalUrl)
+        : path.includes('{') ? `f"${path}"` : `"${path}"`;
       lines.push('        response = await self._client.post(');
       lines.push(`            ${mpPathStr},`);
       lines.push('            data=data,');
       lines.push(`            files=${filesExpr},`);
       lines.push('        )');
     } else {
-      const elsePathStr = path.includes('{') ? `f"${path}"` : `"${path}"`;
+      const elsePathStr = op.externalUrl
+        ? camelToSnake(op.externalUrl)
+        : path.includes('{') ? `f"${path}"` : `"${path}"`;
       lines.push(`        response = await self._client.${op.method.toLowerCase()}(${elsePathStr})`);
     }
   } else {
@@ -457,7 +464,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     const method = op.method.toLowerCase();
     const hasBody = op.requestBody?.contentType === 'json';
     const hasQuery = op.queryParams.length > 0;
-    const pathStr = path.includes('{') ? `f"${path}"` : `"${path}"`;
+    const pathStr = op.externalUrl
+      ? camelToSnake(op.externalUrl)
+      : path.includes('{') ? `f"${path}"` : `"${path}"`;
     lines.push(`        response = await self._client.${method}(`);
     lines.push(`            ${pathStr},`);
     if (hasQuery) lines.push('            params=query,');

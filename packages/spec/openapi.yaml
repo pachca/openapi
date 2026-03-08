@@ -1261,6 +1261,7 @@ paths:
   /direct_url:
     post:
       operationId: DirectUploadOperations_uploadFile
+      x-external-url: directUrl
       description: |-
         Загрузка файла
 

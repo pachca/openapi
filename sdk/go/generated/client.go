@@ -482,7 +482,7 @@ func (s *CommonService) RequestExport(ctx context.Context, request ExportRequest
 	}
 }
 
-func (s *CommonService) UploadFile(ctx context.Context, request FileUploadRequest) error {
+func (s *CommonService) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
 	pr, pw := io.Pipe()
 	writer := multipart.NewWriter(pw)
 	go func() {
@@ -502,7 +502,7 @@ func (s *CommonService) UploadFile(ctx context.Context, request FileUploadReques
 		}
 		io.Copy(part, request.File)
 	}()
-	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/direct_url", s.baseURL), pr)
+	req, err := http.NewRequestWithContext(ctx, "POST", directUrl, pr)
 	if err != nil {
 		return err
 	}

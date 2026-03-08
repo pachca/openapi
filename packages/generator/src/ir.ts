@@ -133,6 +133,8 @@ export interface IROperation {
   errorResponses: IRErrorResponse[];
   hasApiError: boolean;
   hasOAuthError: boolean;
+  /** Parameter name for external URL (from x-external-url) */
+  externalUrl?: string;
 }
 
 export interface IRService {

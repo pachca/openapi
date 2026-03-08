@@ -17,9 +17,9 @@ class CommonService internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) {
-    suspend fun uploadFile(request: FileUploadRequest) {
+    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         val response = client.submitFormWithBinaryData(
-            "$baseUrl/direct_url",
+            directUrl,
             formData {
                 append("content-disposition", request.contentDisposition)
                 append("acl", request.acl)

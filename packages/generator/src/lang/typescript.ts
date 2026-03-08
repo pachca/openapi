@@ -300,6 +300,9 @@ function generateTypes(ir: IR): string {
 
 function methodArgs(op: IROperation): string {
   const args: string[] = [];
+  if (op.externalUrl) {
+    args.push(`${op.externalUrl}: string`);
+  }
   for (const p of op.pathParams) {
     args.push(`${p.sdkName}: ${tsType(p.type, { allModels: new Map(), inlineAsObject: new Set() })}`);
   }
@@ -536,7 +539,10 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
         lines.push(`    form.set(${JSON.stringify(binary.name)}, request.${sdk});`);
       }
     }
-    lines.push(`    const response = await fetch(\`${'${this.baseUrl}'}${path}\`, {`);
+    const fetchUrl = op.externalUrl
+      ? op.externalUrl
+      : `\`${'${this.baseUrl}'}${path}\``;
+    lines.push(`    const response = await fetch(${fetchUrl}, {`);
     lines.push(`      method: ${JSON.stringify(op.method)},`);
     lines.push('      headers: this.headers,');
     lines.push('      body: form,');
@@ -569,13 +575,21 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   }
 
   const hasRequiredQuery = op.queryParams.some((p) => p.required);
+  const baseUrlExpr = op.externalUrl
+    ? op.externalUrl
+    : `\`${'${this.baseUrl}'}${path}\``;
   const fetchTarget = hasQuery
     ? hasRequiredQuery
-      ? `\`${'${this.baseUrl}'}${path}?${'${query}'}\``
+      ? op.externalUrl
+        ? `\`${'${' + op.externalUrl + '}'}?${'${query}'}\``
+        : `\`${'${this.baseUrl}'}${path}?${'${query}'}\``
       : 'url'
-    : `\`${'${this.baseUrl}'}${path}\``;
+    : baseUrlExpr;
   if (hasQuery && !hasRequiredQuery) {
-    lines.push(`    const url = \`${'${this.baseUrl}'}${path}${'${query.toString() ? `?${query}` : ""}'}\`;`);
+    const urlBase = op.externalUrl
+      ? `${'${' + op.externalUrl + '}'}`
+      : `${'${this.baseUrl}'}${path}`;
+    lines.push(`    const url = \`${urlBase}${'${query.toString() ? `?${query}` : ""}'}\`;`);
   }
 
   lines.push(`    const response = await fetch(${fetchTarget}, {`);

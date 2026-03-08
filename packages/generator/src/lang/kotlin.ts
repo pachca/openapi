@@ -20,7 +20,7 @@ import {
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function ktType(ft: IRFieldType, enumNames: Set<string>): string {
+function ktType(ft: IRFieldType): string {
   switch (ft.kind) {
     case 'primitive':
       if (ft.primitive === 'integer')
@@ -32,9 +32,9 @@ function ktType(ft: IRFieldType, enumNames: Set<string>): string {
     case 'model':
       return ft.ref ?? 'Any';
     case 'array':
-      return `List<${ktType(ft.items!, enumNames)}>`;
+      return `List<${ktType(ft.items!)}>`;
     case 'record':
-      return `Map<String, ${ktType(ft.valueType!, enumNames)}>`;
+      return `Map<String, ${ktType(ft.valueType!)}>`;
     case 'union':
       return ft.ref ?? 'Any';
     case 'literal':
@@ -56,21 +56,14 @@ function fieldSdkName(field: IRField): string {
   return snakeToCamel(field.name);
 }
 
-function isEnumType(ft: IRFieldType, enumNames: Set<string>): boolean {
-  if (ft.kind === 'enum') return true;
-  if (ft.kind === 'model' && ft.ref && enumNames.has(ft.ref)) return true;
-  return false;
-}
-
 function ktDefaultValue(
   value: unknown,
   type: IRFieldType,
-  enumNames: Set<string>,
 ): string | null {
   if (value === null) return 'null';
 
-  if (isEnumType(type, enumNames) && typeof value === 'string') {
-    const enumType = ktType(type, enumNames);
+  if (type.kind === 'enum' && typeof value === 'string') {
+    const enumType = ktType(type);
     return `${enumType}.${snakeToUpperSnake(value)}`;
   }
 
@@ -86,7 +79,7 @@ function ktDefaultValue(
   if (Array.isArray(value) && type.kind === 'array') {
     if (value.length === 0) return 'emptyList()';
     const rendered = value
-      .map((v) => ktDefaultValue(v, type.items!, enumNames))
+      .map((v) => ktDefaultValue(v, type.items!))
       .filter((v): v is string => v !== null);
     return rendered.length === value.length
       ? `listOf(${rendered.join(', ')})`
@@ -116,7 +109,6 @@ function shouldUnwrapBody(
 
 function generateModels(ir: IR): string {
   const lines: string[] = [];
-  const enumNames = new Set(ir.enums.map((e) => e.name));
   const unionMemberRefs = new Set<string>();
   for (const u of ir.unions) {
     for (const ref of u.memberRefs) unionMemberRefs.add(ref);
@@ -170,7 +162,7 @@ function generateModels(ir: IR): string {
   // Unions
   for (const u of ir.unions) {
     lines.push('');
-    emitUnion(lines, u, ir, enumNames);
+    emitUnion(lines, u, ir);
   }
 
   // Models (skip union members)
@@ -179,10 +171,10 @@ function generateModels(ir: IR): string {
     // Emit inline objects before parent
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl, enumNames);
+      emitModel(lines, inl);
     }
     lines.push('');
-    emitModel(lines, m, enumNames);
+    emitModel(lines, m);
   }
 
   // Response types
@@ -223,7 +215,6 @@ function emitUnion(
   lines: string[],
   u: IRUnion,
   ir: IR,
-  enumNames: Set<string>,
 ): void {
   const memberModels = u.memberRefs
     .map((ref) => ir.models.find((m) => m.name === ref))
@@ -258,7 +249,7 @@ function emitUnion(
     );
     for (const f of otherFields) {
       const sdkName = fieldSdkName(f);
-      const typeName = ktType(f.type, enumNames);
+      const typeName = ktType(f.type);
       const isOpt = !f.required;
       const fullType = isOpt ? `${typeName}?` : typeName;
       const default_ = isOpt ? ' = null' : '';
@@ -273,7 +264,6 @@ function emitUnion(
 function emitModel(
   lines: string[],
   m: IRModel,
-  enumNames: Set<string>,
 ): void {
   const fields = m.fields;
 
@@ -305,7 +295,7 @@ function emitModel(
 
   for (const f of sortedFields) {
     const sdkName = fieldSdkName(f);
-    const typeName = ktType(f.type, enumNames);
+    const typeName = ktType(f.type);
     const isBinary = f.type.kind === 'binary';
     const isOpt = !f.required || f.nullable;
 
@@ -318,7 +308,7 @@ function emitModel(
     } else if (isOpt) {
       fullType = `${typeName}?`;
       if (f.defaultValue !== undefined) {
-        const renderedDefault = ktDefaultValue(f.defaultValue, f.type, enumNames);
+        const renderedDefault = ktDefaultValue(f.defaultValue, f.type);
         default_ = renderedDefault !== null ? ` = ${renderedDefault}` : ' = null';
       } else {
         default_ = ' = null';
@@ -361,7 +351,6 @@ function generateClient(ir: IR): string {
   }
 
   const lines: string[] = [];
-  const enumNames = new Set(ir.enums.map((e) => e.name));
   const globalHasApiError = hasApiErrorModel(ir);
 
   const hasMultipart = ir.services.some((s) =>
@@ -390,7 +379,7 @@ function generateClient(ir: IR): string {
   // Services
   for (const svc of ir.services) {
     lines.push('');
-    emitService(lines, svc, ir, enumNames, globalHasApiError);
+    emitService(lines, svc, ir, globalHasApiError);
   }
 
   // PachcaClient
@@ -405,7 +394,6 @@ function emitService(
   lines: string[],
   svc: IRService,
   ir: IR,
-  enumNames: Set<string>,
   globalHasApiError: boolean,
 ): void {
   const serviceName = tagToServiceName(svc.tag);
@@ -417,7 +405,7 @@ function emitService(
 
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
-    emitOperation(lines, svc.operations[i], ir, enumNames, globalHasApiError);
+    emitOperation(lines, svc.operations[i], ir, globalHasApiError);
   }
 
   lines.push('}');
@@ -427,15 +415,14 @@ function emitOperation(
   lines: string[],
   op: IROperation,
   ir: IR,
-  enumNames: Set<string>,
   globalHasApiError: boolean,
 ): void {
   const indent = '    ';
   const indent2 = '        ';
 
-  const returnType = getReturnType(op, ir, enumNames);
+  const returnType = getReturnType(op, ir);
   const returnSuffix = returnType ? `: ${returnType}` : '';
-  const params = buildMethodParams(op, ir, enumNames);
+  const params = buildMethodParams(op, ir);
 
   if (params.length === 0) {
     lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
@@ -455,7 +442,7 @@ function emitOperation(
     lines.push(`${indent})${returnSuffix} {`);
   }
 
-  emitMethodBody(lines, op, ir, enumNames, globalHasApiError);
+  emitMethodBody(lines, op, ir, globalHasApiError);
 
   lines.push(`${indent}}`);
 }
@@ -463,7 +450,6 @@ function emitOperation(
 function getReturnType(
   op: IROperation,
   ir: IR,
-  enumNames: Set<string>,
 ): string | null {
   const resp = op.successResponse;
   if (resp.isRedirect) return 'String';
@@ -481,12 +467,11 @@ function getReturnType(
 function buildMethodParams(
   op: IROperation,
   ir: IR,
-  enumNames: Set<string>,
 ): string[] {
   const params: string[] = [];
 
   for (const p of op.pathParams) {
-    params.push(`${p.sdkName}: ${ktType(p.type, enumNames)}`);
+    params.push(`${p.sdkName}: ${ktType(p.type)}`);
   }
 
   if (op.requestBody) {
@@ -494,7 +479,7 @@ function buildMethodParams(
     if (shouldUnwrapBody(rb.unwrapMode, rb.unwrapField)) {
       const f = rb.unwrapField!;
       const sdkName = snakeToCamel(f.name);
-      const typeName = ktType(f.type, enumNames);
+      const typeName = ktType(f.type);
       params.push(`${sdkName}: ${typeName}`);
     } else if (rb.schemaRef) {
       params.push(`request: ${rb.schemaRef}`);
@@ -502,7 +487,7 @@ function buildMethodParams(
   }
 
   for (const p of op.queryParams) {
-    const typeName = ktType(p.type, enumNames);
+    const typeName = ktType(p.type);
     if (p.required) {
       params.push(`${p.sdkName}: ${typeName}`);
     } else {
@@ -517,7 +502,6 @@ function emitMethodBody(
   lines: string[],
   op: IROperation,
   ir: IR,
-  enumNames: Set<string>,
   globalHasApiError: boolean,
 ): void {
   const indent2 = '        ';
@@ -533,7 +517,7 @@ function emitMethodBody(
   }
 
   if (isMultipart) {
-    emitMultipartBody(lines, op, ir, enumNames, urlPath, globalHasApiError);
+    emitMultipartBody(lines, op, ir, urlPath, globalHasApiError);
     return;
   }
 
@@ -558,9 +542,9 @@ function emitMethodBody(
           );
         }
       } else {
-        const valueExpr = isEnumType(p.type, enumNames) ? 'it.value' : 'it';
+        const valueExpr = p.type.kind === 'enum' ? 'it.value' : 'it';
         if (p.required) {
-          const reqExpr = isEnumType(p.type, enumNames)
+          const reqExpr = p.type.kind === 'enum'
             ? `${p.sdkName}.value`
             : p.sdkName;
           lines.push(`${indent3}parameter("${p.name}", ${reqExpr})`);
@@ -598,7 +582,6 @@ function emitMultipartBody(
   lines: string[],
   op: IROperation,
   ir: IR,
-  _enumNames: Set<string>,
   urlPath: string,
   globalHasApiError: boolean,
 ): void {

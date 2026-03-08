@@ -69,7 +69,6 @@ function pyType(ft: IRFieldType): string {
 
 function pyDefault(
   field: IRField,
-  enumNames: Set<string>,
 ): string | null {
   if (field.defaultValue === undefined) return null;
   const value = field.defaultValue;
@@ -77,7 +76,7 @@ function pyDefault(
   if (typeof value === 'boolean') return value ? 'True' : 'False';
   if (typeof value === 'number') return String(value);
   if (typeof value === 'string') {
-    if ((field.type.kind === 'enum' || (field.type.kind === 'model' && field.type.ref && enumNames.has(field.type.ref))) && field.type.ref) {
+    if (field.type.kind === 'enum' && field.type.ref) {
       return `${field.type.ref}.${pyEnumMemberName(value)}`;
     }
     return JSON.stringify(value);
@@ -102,7 +101,6 @@ function emitEnum(lines: string[], e: IREnum): void {
 function emitModel(
   lines: string[],
   m: IRModel,
-  enumNames: Set<string>,
 ): void {
   lines.push('@dataclass');
   if (m.isError) {
@@ -134,7 +132,7 @@ function emitModel(
     let fullType = type;
     if (isOptionalField(f)) fullType = `${fullType} | None`;
 
-    const explicitDefault = pyDefault(f, enumNames);
+    const explicitDefault = pyDefault(f);
     if (explicitDefault !== null) {
       lines.push(`    ${name}: ${fullType} = ${explicitDefault}`);
     } else if (isOptionalField(f)) {
@@ -183,7 +181,6 @@ function emitResponseType(lines: string[], rt: IRResponseType): void {
 
 function generateModels(ir: IR): string {
   const lines: string[] = [];
-  const enumNames = new Set(ir.enums.map((e) => e.name));
   const needDataclass = ir.models.length > 0 || ir.params.length > 0 || ir.responses.length > 0;
   const needEnum = ir.enums.length > 0;
   const needUnion = ir.unions.length > 0;
@@ -212,17 +209,17 @@ function generateModels(ir: IR): string {
 
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl, enumNames);
+      emitModel(lines, inl);
       lines.push('');
       lines.push('');
     }
     if (unionMembers.has(m.name)) {
-      emitModel(lines, m, enumNames);
+      emitModel(lines, m);
       lines.push('');
       lines.push('');
       continue;
     }
-    emitModel(lines, m, enumNames);
+    emitModel(lines, m);
     lines.push('');
     lines.push('');
   }

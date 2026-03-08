@@ -4,7 +4,7 @@ import type {
   Endpoint,
   Parameter,
 } from '@pachca/openapi-parser';
-import { resolveAllOf, getSchemaType, isErrorSchema } from '@pachca/openapi-parser';
+import { resolveAllOf, getSchemaType, isEnumSchema, isErrorSchema } from '@pachca/openapi-parser';
 import type {
   IR,
   IREnum,
@@ -33,10 +33,6 @@ import {
 
 // ----- Schema classification -----
 
-function isEnum(schema: Schema): boolean {
-  return !!schema.enum && getSchemaType(schema) === 'string';
-}
-
 function isUnion(schema: Schema): boolean {
   return !!schema.anyOf && schema.anyOf.length > 0;
 }
@@ -47,9 +43,7 @@ function resolveFieldType(schema: Schema): IRFieldType {
   // $ref → enum or model reference
   if (schema.$ref) {
     const name = refName(schema.$ref);
-    // We don't know at this point if it's an enum or model,
-    // but the ref name is enough for code generation
-    return { kind: 'model', ref: name };
+    return { kind: isEnumSchema(schema) ? 'enum' : 'model', ref: name };
   }
 
   // anyOf → union
@@ -64,7 +58,8 @@ function resolveFieldType(schema: Schema): IRFieldType {
   if (schema.allOf && schema.allOf.length > 0) {
     const resolved = resolveAllOf(schema);
     if (schema.allOf.length === 1 && schema.allOf[0].$ref) {
-      return { kind: 'model', ref: refName(schema.allOf[0].$ref) };
+      const allOfName = refName(schema.allOf[0].$ref);
+      return { kind: isEnumSchema(schema.allOf[0]) ? 'enum' : 'model', ref: allOfName };
     }
     return resolveFieldType(resolved);
   }
@@ -590,7 +585,7 @@ export function transform(spec: ParsedAPI): IR {
   for (const [name, schema] of Object.entries(spec.schemas)) {
     if (isUnion(schema)) {
       unions.push(transformUnion(name, schema));
-    } else if (isEnum(schema)) {
+    } else if (isEnumSchema(schema)) {
       enums.push(transformEnum(name, schema));
     } else {
       models.push(transformModel(name, schema));

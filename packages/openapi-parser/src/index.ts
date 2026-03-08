@@ -19,6 +19,6 @@ export type {
   SecurityRequirement,
 } from './types.js';
 
-export { resolveAllOf, getSchemaType, isErrorSchema } from './utils.js';
+export { resolveAllOf, getSchemaType, isEnumSchema, isErrorSchema } from './utils.js';
 
 export { isRecord, getString, getBoolean, getArray, getRecord } from './type-guards.js';

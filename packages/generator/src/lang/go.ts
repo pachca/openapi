@@ -17,10 +17,6 @@ function upperFirst(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function isEnumRef(ft: IRFieldType, ir: IR): boolean {
-  return (ft.kind === 'enum' || ft.kind === 'model') && !!ft.ref && ir.enums.some((e) => e.name === ft.ref);
-}
-
 function goExportName(raw: string): string {
   const normalized = raw.replace(/-/g, '_');
   const pascal = snakeToPascal(normalized);
@@ -450,7 +446,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
         } else if (p.required) {
           let conv: string;
           if (isTime) conv = `params.${pn}.Format(time.RFC3339)`;
-          else if (isEnumRef(p.type, ir)) conv = `string(params.${pn})`;
+          else if (p.type.kind === 'enum') conv = `string(params.${pn})`;
           else conv = `fmt.Sprintf("%v", params.${pn})`;
           lines.push(`\tq.Set(${JSON.stringify(p.name)}, ${conv})`);
         } else {
@@ -458,7 +454,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
           lines.push(`\tif ${guard}params.${pn} != nil {`);
           let conv: string;
           if (isTime) conv = `params.${pn}.Format(time.RFC3339)`;
-          else if (isEnumRef(p.type, ir)) conv = `string(*params.${pn})`;
+          else if (p.type.kind === 'enum') conv = `string(*params.${pn})`;
           else conv = `fmt.Sprintf("%v", *params.${pn})`;
           lines.push(`\t\tq.Set(${JSON.stringify(p.name)}, ${conv})`);
           lines.push('\t}');

@@ -193,10 +193,6 @@ function opReturn(op: IROperation, ir: IR): string {
   return op.successResponse.dataRef ?? 'String';
 }
 
-function isEnumRef(ft: IRFieldType, ir: IR): boolean {
-  return (ft.kind === 'enum' || ft.kind === 'model') && !!ft.ref && ir.enums.some((e) => e.name === ft.ref);
-}
-
 function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const args: string[] = [];
   for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
@@ -222,7 +218,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('        var queryItems: [URLQueryItem] = []');
     for (const q of op.queryParams) {
       const n = snakeToCamel(q.sdkName);
-      const isEnum = isEnumRef(q.type, ir);
+      const isEnum = q.type.kind === 'enum';
       if (q.isArray) {
         lines.push(`        if let ${n} { ${n}.forEach { queryItems.append(URLQueryItem(name: ${JSON.stringify(q.name)}, value: String($0))) } }`);
       } else if (q.required) {

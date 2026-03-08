@@ -33,6 +33,13 @@ export function getSchemaType(schema: Schema): string {
 }
 
 /**
+ * Check whether a schema represents a string enum.
+ */
+export function isEnumSchema(schema: Schema): boolean {
+  return !!schema.enum && getSchemaType(schema) === 'string';
+}
+
+/**
  * Check whether a schema represents an error type via the x-error extension.
  */
 export function isErrorSchema(schema: Schema): boolean {

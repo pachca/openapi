@@ -377,6 +377,7 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.client.statement.*');
   lines.push('import io.ktor.http.*');
   lines.push('import io.ktor.serialization.kotlinx.json.*');
+  lines.push('import kotlinx.serialization.json.Json');
   lines.push('import java.io.Closeable');
 
   // Services
@@ -734,7 +735,7 @@ function emitPachcaClient(
     lines.push('        followRedirects = false');
   }
   lines.push('        install(ContentNegotiation) {');
-  lines.push('            json()');
+  lines.push('            json(Json { explicitNulls = false })');
   lines.push('        }');
   lines.push('        defaultRequest {');
   lines.push('            bearerAuth(token)');

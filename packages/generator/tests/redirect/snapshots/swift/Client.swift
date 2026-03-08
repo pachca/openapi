@@ -24,9 +24,9 @@ public struct CommonService {
             }
             return location
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }

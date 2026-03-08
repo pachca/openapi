@@ -43,7 +43,7 @@ public struct CommonService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: responseData)
+            throw try deserialize(OAuthError.self, from: responseData)
         default:
             throw URLError(.badServerResponse)
         }
@@ -57,9 +57,9 @@ public struct CommonService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(UploadParamsDataWrapper.self, from: data).data
+            return try deserialize(UploadParamsDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
             throw URLError(.badServerResponse)
         }

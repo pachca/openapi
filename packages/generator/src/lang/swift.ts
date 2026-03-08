@@ -265,9 +265,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       const isModel = q.type.kind === 'model' || q.type.kind === 'record';
       function valueExpr(varName: string): string {
         if (isEnum) return `${varName}.rawValue`;
-        if (isDate && q.required) return `ISO8601DateFormatter().string(from: ${varName})`;
+         if (isDate && q.required) return `ISO8601DateFormatter().string(from: ${varName})`;
         if (isDate) return varName; // optional dates are typed as String
-        if (isModel) return `String(data: try! pachcaEncoder.encode(${varName}), encoding: .utf8)!`;
+        if (isModel) return `String(data: try serialize(${varName}), encoding: .utf8)!`;
         return `String(${varName})`;
       }
       const isArray = q.type.kind === 'array';
@@ -312,7 +312,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       f.type.kind !== 'record';
     lines.push('        request.setValue("application/json", forHTTPHeaderField: "Content-Type")');
     if (shouldUnwrap) lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${swiftIdentifier(f.name)}])`);
-    else lines.push('        request.httpBody = try pachcaEncoder.encode(body)');
+    else lines.push('        request.httpBody = try serialize(body)');
   }
 
   if (op.requestBody?.contentType === 'multipart') {
@@ -357,11 +357,11 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('            return location');
     if (op.hasOAuthError) {
       lines.push('        case 401:');
-      lines.push('            throw try pachcaDecoder.decode(OAuthError.self, from: data)');
+      lines.push('            throw try deserialize(OAuthError.self, from: data)');
     }
     if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
       lines.push('        default:');
-      lines.push('            throw try pachcaDecoder.decode(ApiError.self, from: data)');
+      lines.push('            throw try deserialize(ApiError.self, from: data)');
     } else {
       lines.push('        default:');
       lines.push('            throw URLError(.badServerResponse)');
@@ -378,17 +378,17 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const okCode = op.successResponse.statusCode;
   lines.push(`        case ${okCode}:`);
   if (!op.successResponse.hasBody) lines.push('            return');
-  else if (op.successResponse.isList) lines.push(`            return try pachcaDecoder.decode(${opReturn(op, ir)}.self, from: ${resVar})`);
-  else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try pachcaDecoder.decode(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
-  else lines.push(`            return try pachcaDecoder.decode(${opReturn(op, ir)}.self, from: ${resVar})`);
+  else if (op.successResponse.isList) lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
+  else if (op.successResponse.isUnwrap && op.successResponse.dataRef) lines.push(`            return try deserialize(${op.successResponse.dataRef}DataWrapper.self, from: ${resVar}).data`);
+  else lines.push(`            return try deserialize(${opReturn(op, ir)}.self, from: ${resVar})`);
 
   if (op.hasOAuthError) {
     lines.push('        case 401:');
-    lines.push(`            throw try pachcaDecoder.decode(OAuthError.self, from: ${resVar})`);
+    lines.push(`            throw try deserialize(OAuthError.self, from: ${resVar})`);
   }
   if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('        default:');
-    lines.push(`            throw try pachcaDecoder.decode(ApiError.self, from: ${resVar})`);
+    lines.push(`            throw try deserialize(ApiError.self, from: ${resVar})`);
   } else {
     lines.push('        default:');
     lines.push('            throw URLError(.badServerResponse)');
@@ -468,6 +468,29 @@ function generateUtils(): string {
     '    encoder.dateEncodingStrategy = .iso8601',
     '    return encoder',
     '}()',
+    '',
+    'func serialize<T: Encodable>(_ value: T) throws -> Data {',
+    '    let data = try pachcaEncoder.encode(value)',
+    '    let json = try JSONSerialization.jsonObject(with: data)',
+    '    return try JSONSerialization.data(withJSONObject: stripNulls(json))',
+    '}',
+    '',
+    'func deserialize<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {',
+    '    return try pachcaDecoder.decode(type, from: data)',
+    '}',
+    '',
+    'private func stripNulls(_ value: Any) -> Any {',
+    '    if let dict = value as? [String: Any] {',
+    '        return dict.compactMapValues { v in',
+    '            if v is NSNull { return nil }',
+    '            return stripNulls(v)',
+    '        }',
+    '    }',
+    '    if let arr = value as? [Any] {',
+    '        return arr.map(stripNulls)',
+    '    }',
+    '    return value',
+    '}',
     '',
   ].join('\n');
 }

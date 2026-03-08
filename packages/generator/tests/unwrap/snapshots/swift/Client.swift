@@ -23,9 +23,9 @@ public struct MembersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -46,16 +46,16 @@ public struct ChatsService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try pachcaEncoder.encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(ChatDataWrapper.self, from: data).data
+            return try deserialize(ChatDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -69,9 +69,9 @@ public struct ChatsService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }

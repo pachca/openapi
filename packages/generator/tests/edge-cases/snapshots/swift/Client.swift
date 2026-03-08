@@ -16,7 +16,7 @@ public struct EventsService {
         var queryItems: [URLQueryItem] = []
         if let isActive { queryItems.append(URLQueryItem(name: "is_active", value: String(isActive))) }
         if let scopes { scopes.forEach { queryItems.append(URLQueryItem(name: "scopes", value: $0.rawValue)) } }
-        if let filter { queryItems.append(URLQueryItem(name: "filter", value: String(data: try! pachcaEncoder.encode(filter), encoding: .utf8)!)) }
+        if let filter { queryItems.append(URLQueryItem(name: "filter", value: String(data: try serialize(filter), encoding: .utf8)!)) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -24,7 +24,7 @@ public struct EventsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListEventsResponse.self, from: data)
+            return try deserialize(ListEventsResponse.self, from: data)
         default:
             throw URLError(.badServerResponse)
         }
@@ -40,7 +40,7 @@ public struct EventsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(EventDataWrapper.self, from: data).data
+            return try deserialize(EventDataWrapper.self, from: data).data
         default:
             throw URLError(.badServerResponse)
         }

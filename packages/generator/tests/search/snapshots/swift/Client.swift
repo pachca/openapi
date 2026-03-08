@@ -29,9 +29,9 @@ public struct SearchService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(SearchMessagesResponse.self, from: data)
+            return try deserialize(SearchMessagesResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
             throw URLError(.badServerResponse)
         }

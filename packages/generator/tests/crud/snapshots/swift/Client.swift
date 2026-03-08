@@ -54,7 +54,7 @@ public struct ChatsService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try pachcaEncoder.encode(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
@@ -72,7 +72,7 @@ public struct ChatsService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try pachcaEncoder.encode(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {

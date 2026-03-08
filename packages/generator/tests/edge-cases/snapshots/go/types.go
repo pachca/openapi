@@ -44,9 +44,13 @@ type Notification struct {
 }
 
 type MessageNotification struct {
+	Kind string `json:"kind"` // always "message"
+	Text string `json:"text"`
 }
 
 type ReactionNotification struct {
+	Kind  string `json:"kind"` // always "message"
+	Emoji string `json:"emoji"`
 }
 
 type NotificationUnion struct {
@@ -56,20 +60,17 @@ type NotificationUnion struct {
 
 func (u *NotificationUnion) UnmarshalJSON(data []byte) error {
 	var disc struct {
-		Type string `json:"type"`
+		Kind string `json:"kind"`
 	}
 	if err := json.Unmarshal(data, &disc); err != nil {
 		return err
 	}
-	switch disc.Type {
-	case "MessageNotification":
+	switch disc.Kind {
+	case "message":
 		u.MessageNotification = &MessageNotification{}
 		return json.Unmarshal(data, u.MessageNotification)
-	case "ReactionNotification":
-		u.ReactionNotification = &ReactionNotification{}
-		return json.Unmarshal(data, u.ReactionNotification)
 	default:
-		return fmt.Errorf("unknown NotificationUnion type: %s", disc.Type)
+		return fmt.Errorf("unknown NotificationUnion kind: %s", disc.Kind)
 	}
 }
 

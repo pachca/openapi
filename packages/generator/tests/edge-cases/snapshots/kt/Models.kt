@@ -20,19 +20,21 @@ enum class EventType(val value: String) {
 
 @Serializable
 sealed interface NotificationUnion {
-    val type: String
+    val kind: String
 }
 
 @Serializable
-@SerialName("")
+@SerialName("message")
 data class MessageNotification(
-    override val type: String = "",
+    override val kind: String = "message",
+    val text: String,
 ) : NotificationUnion
 
 @Serializable
-@SerialName("")
+@SerialName("message")
 data class ReactionNotification(
-    override val type: String = "",
+    override val kind: String = "message",
+    val emoji: String,
 ) : NotificationUnion
 
 @Serializable

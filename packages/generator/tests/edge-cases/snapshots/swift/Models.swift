@@ -57,9 +57,23 @@ public struct Notification: Codable {
 }
 
 public struct MessageNotification: Codable {
+    public let kind: String
+    public let text: String
+
+    public init(kind: String, text: String) {
+        self.kind = kind
+        self.text = text
+    }
 }
 
 public struct ReactionNotification: Codable {
+    public let kind: String
+    public let emoji: String
+
+    public init(kind: String, emoji: String) {
+        self.kind = kind
+        self.emoji = emoji
+    }
 }
 
 public enum NotificationUnion: Codable {
@@ -67,16 +81,16 @@ public enum NotificationUnion: Codable {
     case reactionNotification(ReactionNotification)
 
     private enum CodingKeys: String, CodingKey {
-        case type
+        case kind
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let type = try container.decode(String.self, forKey: .type)
+        let type = try container.decode(String.self, forKey: .kind)
         switch type {
-        case "messageNotification":
+        case "message":
             self = .messageNotification(try MessageNotification(from: decoder))
-        case "reactionNotification":
+        case "message":
             self = .reactionNotification(try ReactionNotification(from: decoder))
         default:
             throw DecodingError.dataCorrupted(

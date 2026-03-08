@@ -35,7 +35,7 @@ class PublishEventRequest:
 @dataclass
 class UploadRequest:
     file: bytes
-    Content_Disposition: str
+    content_disposition: str
 
 
 @dataclass
@@ -45,12 +45,14 @@ class Notification:
 
 @dataclass
 class MessageNotification:
-    pass
+    kind: str  # literal "message"
+    text: str
 
 
 @dataclass
 class ReactionNotification:
-    pass
+    kind: str  # literal "message"
+    emoji: str
 
 
 NotificationUnion = Union[MessageNotification, ReactionNotification]

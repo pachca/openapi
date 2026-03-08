@@ -16,7 +16,7 @@ public struct EventsService {
         var queryItems: [URLQueryItem] = []
         if let isActive { queryItems.append(URLQueryItem(name: "is_active", value: String(isActive))) }
         if let scopes { scopes.forEach { queryItems.append(URLQueryItem(name: "scopes", value: $0.rawValue)) } }
-        if let filter { queryItems.append(URLQueryItem(name: "filter", value: String(data: try! JSONEncoder().encode(filter), encoding: .utf8)!)) }
+        if let filter { queryItems.append(URLQueryItem(name: "filter", value: String(data: try! pachcaEncoder.encode(filter), encoding: .utf8)!)) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }

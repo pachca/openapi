@@ -34,7 +34,8 @@ import {
 // ----- Schema classification -----
 
 function isUnion(schema: Schema): boolean {
-  return !!schema.anyOf && schema.anyOf.length > 0;
+  return (!!schema.anyOf && schema.anyOf.length > 0) ||
+    (!!schema.oneOf && schema.oneOf.length > 0);
 }
 
 // ----- Field type resolution -----
@@ -46,22 +47,29 @@ function resolveFieldType(schema: Schema): IRFieldType {
     return { kind: isEnumSchema(schema) ? 'enum' : 'model', ref: name };
   }
 
-  // anyOf → union
-  if (schema.anyOf) {
+  // anyOf / oneOf → union
+  const unionMembers = schema.anyOf || schema.oneOf;
+  if (unionMembers) {
     return {
       kind: 'union',
-      members: schema.anyOf.map(resolveFieldType),
+      members: unionMembers.map(resolveFieldType),
     };
   }
 
   // allOf with single ref → treat as ref (common pattern for enum + description)
   if (schema.allOf && schema.allOf.length > 0) {
-    const resolved = resolveAllOf(schema);
-    if (schema.allOf.length === 1 && schema.allOf[0].$ref) {
+    if (schema.allOf.length === 1 && schema.allOf[0].$ref && !schema.properties) {
       const allOfName = refName(schema.allOf[0].$ref);
       return { kind: isEnumSchema(schema.allOf[0]) ? 'enum' : 'model', ref: allOfName };
     }
-    return resolveFieldType(resolved);
+    // Merge allOf entries and include sibling properties/required from the parent schema
+    const resolved = resolveAllOf(schema);
+    const merged: Schema = {
+      ...resolved,
+      properties: { ...resolved.properties, ...schema.properties },
+      required: [...(resolved.required || []), ...(schema.required || [])],
+    };
+    return resolveFieldType(merged);
   }
 
   // Enum with single value → literal (discriminator)
@@ -263,15 +271,26 @@ function transformEnum(name: string, schema: Schema): IREnum {
 }
 
 function transformModel(name: string, schema: Schema): IRModel {
+  // Resolve allOf at model level so inherited properties are included
+  let resolved = schema;
+  if (schema.allOf && schema.allOf.length > 0) {
+    const merged = resolveAllOf(schema);
+    resolved = {
+      ...merged,
+      properties: { ...merged.properties, ...schema.properties },
+      required: [...(merged.required || []), ...(schema.required || [])],
+    };
+  }
   const inlineObjects: IRModel[] = [];
-  const fields = extractFields(schema, name, inlineObjects);
+  const fields = extractFields(resolved, name, inlineObjects);
   const isError = isErrorSchema(schema) || name === 'ApiError' || name === 'OAuthError';
 
   return { name, description: schema.description, fields, isError, inlineObjects };
 }
 
 function transformUnion(name: string, schema: Schema): IRUnion {
-  const memberRefs = (schema.anyOf || [])
+  const members = schema.anyOf || schema.oneOf || [];
+  const memberRefs = members
     .filter((s) => s.$ref)
     .map((s) => refName(s.$ref!));
   return { name, memberRefs };

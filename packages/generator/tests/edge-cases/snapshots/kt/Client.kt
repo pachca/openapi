@@ -11,6 +11,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import java.io.Closeable
 
 class EventsService internal constructor(
@@ -70,7 +71,7 @@ class PachcaClient(token: String, baseUrl: String) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
-            json()
+            json(Json { explicitNulls = false })
         }
         defaultRequest {
             bearerAuth(token)

@@ -11,7 +11,7 @@ export function resolveRef(ref: string, openapi: OpenAPIDocument): Record<string
       throw new Error(`Could not resolve reference: ${ref}`);
     }
     current = current[part];
-    if (!current) {
+    if (current === undefined) {
       throw new Error(`Could not resolve reference: ${ref}`);
     }
   }

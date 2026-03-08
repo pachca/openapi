@@ -56,7 +56,7 @@ class UploadsService {
   async createUpload(request: UploadRequest): Promise<void> {
     const form = new FormData();
     form.set("Content-Disposition", request.contentDisposition);
-    form.set("file", request.file);
+    form.set("file", request.file, "upload");
     const response = await fetch(`${this.baseUrl}/uploads`, {
       method: "POST",
       headers: this.headers,

@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import java.io.Closeable
 
 class CommonService internal constructor(
@@ -32,7 +33,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         expectSuccess = false
         followRedirects = false
         install(ContentNegotiation) {
-            json()
+            json(Json { explicitNulls = false })
         }
         defaultRequest {
             bearerAuth(token)

@@ -66,7 +66,7 @@ class UploadsService:
         request: UploadRequest,
     ) -> None:
         data: dict[str, str] = {}
-        data["Content-Disposition"] = request.Content_Disposition
+        data["Content-Disposition"] = request.content_disposition
         response = await self._client.post(
             "/uploads",
             data=data,

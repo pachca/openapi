@@ -116,7 +116,20 @@ function emitModel(lines: string[], m: IRModel): void {
   lines.push('}');
 }
 
+function detectDiscriminatorField(u: IRUnion, models: IRModel[]): string {
+  const memberModels = u.memberRefs
+    .map((ref) => models.find((m) => m.name === ref))
+    .filter(Boolean) as IRModel[];
+  if (memberModels.length > 0) {
+    const litField = memberModels[0].fields.find((f) => f.type.kind === 'literal');
+    if (litField) return litField.name;
+  }
+  return 'type';
+}
+
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
+  const discField = detectDiscriminatorField(u, models);
+  const discSwiftName = snakeToCamel(discField.replace(/[-:]/g, '_'));
   lines.push(`public enum ${u.name}: Codable {`);
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
@@ -124,12 +137,16 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   }
   lines.push('');
   lines.push('    private enum CodingKeys: String, CodingKey {');
-  lines.push('        case type');
+  if (discSwiftName === discField) {
+    lines.push(`        case ${discSwiftName}`);
+  } else {
+    lines.push(`        case ${discSwiftName} = ${JSON.stringify(discField)}`);
+  }
   lines.push('    }');
   lines.push('');
   lines.push('    public init(from decoder: Decoder) throws {');
   lines.push('        let container = try decoder.container(keyedBy: CodingKeys.self)');
-  lines.push('        let type = try container.decode(String.self, forKey: .type)');
+  lines.push(`        let type = try container.decode(String.self, forKey: .${discSwiftName})`);
   lines.push('        switch type {');
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
@@ -250,7 +267,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
         if (isEnum) return `${varName}.rawValue`;
         if (isDate && q.required) return `ISO8601DateFormatter().string(from: ${varName})`;
         if (isDate) return varName; // optional dates are typed as String
-        if (isModel) return `String(data: try! JSONEncoder().encode(${varName}), encoding: .utf8)!`;
+        if (isModel) return `String(data: try! pachcaEncoder.encode(${varName}), encoding: .utf8)!`;
         return `String(${varName})`;
       }
       const isArray = q.type.kind === 'array';
@@ -295,7 +312,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       f.type.kind !== 'record';
     lines.push('        request.setValue("application/json", forHTTPHeaderField: "Content-Type")');
     if (shouldUnwrap) lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${swiftIdentifier(f.name)}])`);
-    else lines.push('        request.httpBody = try JSONEncoder().encode(body)');
+    else lines.push('        request.httpBody = try pachcaEncoder.encode(body)');
   }
 
   if (op.requestBody?.contentType === 'multipart') {
@@ -444,6 +461,12 @@ function generateUtils(): string {
     '    let decoder = JSONDecoder()',
     '    decoder.dateDecodingStrategy = .iso8601',
     '    return decoder',
+    '}()',
+    '',
+    'let pachcaEncoder: JSONEncoder = {',
+    '    let encoder = JSONEncoder()',
+    '    encoder.dateEncodingStrategy = .iso8601',
+    '    return encoder',
     '}()',
     '',
   ].join('\n');

@@ -32,9 +32,13 @@ export interface Notification {
 }
 
 export interface MessageNotification {
+  kind: "message";
+  text: string;
 }
 
 export interface ReactionNotification {
+  kind: "message";
+  emoji: string;
 }
 
 export type NotificationUnion = MessageNotification | ReactionNotification;

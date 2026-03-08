@@ -200,7 +200,20 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   }
 }
 
+function detectDiscriminatorField(u: IRUnion, models: IRModel[]): string {
+  const memberModels = u.memberRefs
+    .map((ref) => models.find((m) => m.name === ref))
+    .filter(Boolean) as IRModel[];
+  if (memberModels.length > 0) {
+    const litField = memberModels[0].fields.find((f) => f.type.kind === 'literal');
+    if (litField) return litField.name;
+  }
+  return 'type';
+}
+
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
+  const discField = detectDiscriminatorField(u, models);
+  const discGoName = goExportName(discField);
   lines.push(`type ${u.name} struct {`);
   const fieldRows = u.memberRefs.map((ref) => [ref, `*${ref}`]);
   for (const line of goAligned(fieldRows)) lines.push(line);
@@ -208,12 +221,12 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push('');
   lines.push(`func (u *${u.name}) UnmarshalJSON(data []byte) error {`);
   lines.push('\tvar disc struct {');
-  lines.push('\t\tType string `json:"type"`');
+  lines.push(`\t\t${discGoName} string \`json:"${discField}"\``);
   lines.push('\t}');
   lines.push('\tif err := json.Unmarshal(data, &disc); err != nil {');
   lines.push('\t\treturn err');
   lines.push('\t}');
-  lines.push('\tswitch disc.Type {');
+  lines.push(`\tswitch disc.${discGoName} {`);
   const seenDiscs = new Set<string>();
   for (const ref of u.memberRefs) {
     const model = models.find((m) => m.name === ref);
@@ -226,7 +239,7 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
     lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
   }
   lines.push('\tdefault:');
-  lines.push(`\t\treturn fmt.Errorf("unknown ${u.name} type: %s", disc.Type)`);
+  lines.push(`\t\treturn fmt.Errorf("unknown ${u.name} ${discField}: %s", disc.${discGoName})`);
   lines.push('\t}');
   lines.push('}');
   lines.push('');

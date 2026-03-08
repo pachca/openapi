@@ -22,7 +22,6 @@ from .models import (
     ListPropertiesResponse,
     ExportRequest,
     FileUploadRequest,
-    UploadParams,
     ListMembersParams,
     ListMembersResponse,
     AddMembersRequest,
@@ -40,7 +39,6 @@ from .models import (
     ListReactionsParams,
     ListReactionsResponse,
     ReactionRequest,
-    Reaction,
     RemoveReactionParams,
     ListReadMembersParams,
     Thread,
@@ -365,14 +363,14 @@ class CommonService:
                 raise from_dict(ApiError, response.json())
 
     async def get_upload_params(
-        self) -> UploadParams:
+        self) -> object:
         response = await self._client.post(
             "/uploads",
         )
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(UploadParams, body)
+                return from_dict(object, body)
             case 401:
                 raise from_dict(OAuthError, body)
             case _:
@@ -805,7 +803,7 @@ class ReactionsService:
         self,
         id: int,
         request: ReactionRequest,
-    ) -> Reaction:
+    ) -> object:
         response = await self._client.post(
             f"/messages/{id}/reactions",
             json=asdict(request),
@@ -813,7 +811,7 @@ class ReactionsService:
         body = response.json()
         match response.status_code:
             case 201:
-                return from_dict(Reaction, body)
+                return from_dict(object, body)
             case 401:
                 raise from_dict(OAuthError, body)
             case _:

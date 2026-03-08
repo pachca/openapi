@@ -3,8 +3,14 @@
   "tasks": {
     "generate": {
       "dependsOn": ["setup", "^generate"],
-      "inputs": ["typespec.tsp", "tspconfig.yaml"],
-      "outputs": ["openapi.yaml", "generated/**"],
+      "inputs": [
+        "typespec.tsp",
+        "tspconfig.yaml",
+        "../../packages/spec/openapi.yaml",
+        "../../packages/generator/src/**",
+        "../../packages/generator/bin/**"
+      ],
+      "outputs": ["openapi.yaml", "generated/**", "src/generated/**"],
       "cache": true
     },
     "setup": {

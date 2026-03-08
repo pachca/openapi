@@ -14,6 +14,7 @@ dist/
 # Gradle
 .gradle/
 .kotlin/
+META-INF/
 
 # OpenAPI Generator
 .openapi-generator/

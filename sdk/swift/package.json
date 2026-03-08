@@ -4,11 +4,10 @@
   "private": true,
   "scripts": {
     "setup": "true",
-    "generate": "mkdir -p generated/Sources/Pachca/GeneratedSources && cp ../../packages/spec/openapi.yaml generated/Sources/Pachca/openapi.yaml && swift run swift-openapi-generator generate --config generated/Sources/Pachca/openapi-generator-config.yaml --output-directory generated/Sources/Pachca/GeneratedSources generated/Sources/Pachca/openapi.yaml && bun generate-client.ts",
+    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang swift && rm -rf generated/Sources/Pachca/GeneratedSources && mkdir -p generated/Sources/Pachca/GeneratedSources && mv swift/* generated/Sources/Pachca/GeneratedSources/ && rmdir swift",
     "build": "swift build"
   },
   "devDependencies": {
-    "@pachca/spec": "workspace:*",
-    "yaml": "^2.7.0"
+    "@pachca/spec": "workspace:*"
   }
 }

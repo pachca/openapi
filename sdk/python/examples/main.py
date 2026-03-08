@@ -5,66 +5,81 @@ Usage:
     PACHCA_TOKEN=... PACHCA_CHAT_ID=... python examples/main.py
 """
 
+import asyncio
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "generated"))
 
-from pachca.pachca_client import Pachca
-from pachca.models.message_create_request_message import MessageCreateRequestMessage
-from pachca.models.message_entity_type import MessageEntityType
-from pachca.models.message_update_request_message import MessageUpdateRequestMessage
+from pachca.client import PachcaClient
+from pachca.models import (
+    MessageCreateRequest,
+    MessageCreateRequestMessage,
+    MessageUpdateRequest,
+    MessageUpdateRequestMessage,
+    ReactionRequest,
+)
 
 token = os.environ["PACHCA_TOKEN"]
 chat_id = int(os.environ["PACHCA_CHAT_ID"])
 
-client = Pachca(token)
 
-# 1. Create message
-msg = client.messages.create_message(
-    MessageCreateRequestMessage(
-        entity_id=chat_id,
-        content="SDK test Python 🐍",
-        entity_type=MessageEntityType.DISCUSSION,
+async def main():
+    client = PachcaClient(token)
+
+    # 1. Create message
+    msg = await client.messages.create_message(
+        MessageCreateRequest(
+            message=MessageCreateRequestMessage(
+                entity_id=chat_id,
+                content="SDK test Python 🐍",
+            )
+        )
     )
-)
-print(f"1. Created message #{msg.id}")
+    print(f"1. Created message #{msg.id}")
 
-# 2. Get message
-fetched = client.messages.get_message(msg.id)
-print(f"2. Fetched message: {fetched.content}")
+    # 2. Get message
+    fetched = await client.messages.get_message(msg.id)
+    print(f"2. Fetched message: {fetched.content}")
 
-# 3. Add reaction
-client.reactions.add_reaction(msg.id, code="👀")
-print("3. Added reaction 👀")
+    # 3. Add reaction
+    await client.reactions.add_reaction(msg.id, ReactionRequest(code="👀"))
+    print("3. Added reaction 👀")
 
-# 4. Create thread
-thread = client.thread.create_thread(msg.id)
-print(f"4. Created thread #{thread.id}")
+    # 4. Create thread
+    thread = await client.threads.create_thread(msg.id)
+    print(f"4. Created thread #{thread.id}")
 
-# 5. Reply in thread
-reply = client.messages.create_message(
-    MessageCreateRequestMessage(
-        entity_id=thread.id,
-        entity_type=MessageEntityType.THREAD,
-        content=f"Echo: {fetched.content}",
+    # 5. Reply in thread
+    reply = await client.messages.create_message(
+        MessageCreateRequest(
+            message=MessageCreateRequestMessage(
+                entity_id=thread.id,
+                entity_type="thread",
+                content=f"Echo: {fetched.content}",
+            )
+        )
     )
-)
-print(f"5. Replied in thread #{reply.id}")
+    print(f"5. Replied in thread #{reply.id}")
 
-# 6. Pin message
-client.messages.pin_message(msg.id)
-print("6. Pinned message")
+    # 6. Pin message
+    await client.messages.pin_message(msg.id)
+    print("6. Pinned message")
 
-# 7. Update reply
-client.messages.update_message(
-    reply.id,
-    MessageUpdateRequestMessage(content=f"{reply.content} (processed)"),
-)
-print("7. Updated reply")
+    # 7. Update reply
+    await client.messages.update_message(
+        reply.id,
+        MessageUpdateRequest(
+            message=MessageUpdateRequestMessage(content=f"{reply.content} (processed)")
+        ),
+    )
+    print("7. Updated reply")
 
-# 8. Unpin message
-client.messages.unpin_message(msg.id)
-print("8. Unpinned message")
+    # 8. Unpin message
+    await client.messages.unpin_message(msg.id)
+    print("8. Unpinned message")
 
-print("\nAll 8 steps completed!")
+    print("\nAll 8 steps completed!")
+
+
+asyncio.run(main())

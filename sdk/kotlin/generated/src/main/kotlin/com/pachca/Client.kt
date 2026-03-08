@@ -223,7 +223,7 @@ class CommonService internal constructor(
             headers.remove(HttpHeaders.Authorization)
         }
         when (response.status.value) {
-            201 -> return
+            204 -> return
             else -> throw response.body<ApiError>()
         }
     }

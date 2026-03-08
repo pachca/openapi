@@ -30,7 +30,7 @@ class CommonService:
                 files={"file": request.file},
             )
         match response.status_code:
-            case 201:
+            case 204:
                 return
             case 401:
                 raise deserialize(OAuthError, response.json())

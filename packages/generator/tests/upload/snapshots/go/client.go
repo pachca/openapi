@@ -55,7 +55,7 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case http.StatusCreated:
+	case http.StatusNoContent:
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError

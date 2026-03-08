@@ -39,8 +39,8 @@ paths:
       description: Загрузка файла
       parameters: []
       responses:
-        '201':
-          description: The request has succeeded and a new resource has been created.
+        '204':
+          description: No content.
         '401':
           description: Access is unauthorized.
           content:

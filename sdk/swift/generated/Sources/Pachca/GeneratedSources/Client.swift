@@ -321,7 +321,7 @@ public struct CommonService {
         let (responseData, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
-        case 201:
+        case 204:
             return
         default:
             throw try pachcaDecoder.decode(ApiError.self, from: responseData)

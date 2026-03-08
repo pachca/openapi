@@ -40,7 +40,7 @@ public struct CommonService {
         let (responseData, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
-        case 201:
+        case 204:
             return
         case 401:
             throw try pachcaDecoder.decode(OAuthError.self, from: responseData)

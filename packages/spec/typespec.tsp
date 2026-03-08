@@ -2994,7 +2994,7 @@ interface DirectUploadOperations {
   @route("direct_url")
   uploadFile(
     @multipartBody request: FileUploadRequest
-  ): {@statusCode _: 201};
+  ): {@statusCode _: 204};
 }
 
 @route("/chats/exports")

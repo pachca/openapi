@@ -327,13 +327,13 @@ class CommonService {
     form.set("x-amz-date", request.xAmzDate);
     form.set("x-amz-signature", request.xAmzSignature);
     form.set("key", request.key);
-    form.set("file", request.file);
+    form.set("file", request.file, "upload");
     const response = await fetch(directUrl, {
       method: "POST",
       body: form,
     });
     switch (response.status) {
-      case 201:
+      case 204:
         return;
       default:
         throw new ApiError(((await response.json()) as any).errors);

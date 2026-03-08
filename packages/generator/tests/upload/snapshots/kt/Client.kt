@@ -37,7 +37,7 @@ class CommonService internal constructor(
             headers.remove(HttpHeaders.Authorization)
         }
         when (response.status.value) {
-            201 -> return
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw RuntimeException("Unexpected status code: ${response.status.value}")
         }

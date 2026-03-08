@@ -536,7 +536,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       }
       if (binary) {
         const sdk = fieldSdkName(binary);
-        lines.push(`    form.set(${JSON.stringify(binary.name)}, request.${sdk});`);
+        lines.push(`    form.set(${JSON.stringify(binary.name)}, request.${sdk}, "upload");`);
       }
     }
     const fetchUrl = op.externalUrl

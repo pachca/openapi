@@ -9,5 +9,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["bin/**/*.ts", "src/**/*.ts", "tests/**/*.ts"]
+  "include": ["bin/**/*.ts", "src/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["tests/*/snapshots/**"]
 }

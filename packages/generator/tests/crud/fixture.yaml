@@ -11,6 +11,7 @@ paths:
     get:
       operationId: ChatOperations_listChats
       description: Список чатов
+      x-paginated: true
       parameters:
         - name: availability
           in: query

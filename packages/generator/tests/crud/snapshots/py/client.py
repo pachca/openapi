@@ -5,9 +5,9 @@ import httpx
 from .models import (
     ListChatsParams,
     ListChatsResponse,
+    Chat,
     OAuthError,
     ApiError,
-    Chat,
     ChatCreateRequest,
     ChatUpdateRequest,
 )
@@ -44,6 +44,23 @@ class ChatsService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def list_chats_all(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> list[Chat]:
+        items: list[Chat] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListChatsParams()
+            params.cursor = cursor
+            response = await self.list_chats(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def get_chat(
         self,

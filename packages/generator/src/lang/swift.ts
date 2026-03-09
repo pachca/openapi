@@ -418,6 +418,48 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   lines.push('    }');
 }
 
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const itemType = op.successResponse.dataRef ?? 'Any';
+
+  // Build params minus cursor
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
+  for (const q of op.queryParams) {
+    if (q.name === 'cursor') continue;
+    const t = swiftType(q.type, { nullable: !q.required });
+    args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
+  }
+
+  lines.push(`    public func ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
+  lines.push(`        var items: [${itemType}] = []`);
+  lines.push('        var cursor: String? = nil');
+  lines.push('        repeat {');
+
+  // Build call args for original method
+  const callArgs: string[] = [];
+  if (op.externalUrl) callArgs.push(`${op.externalUrl}: ${op.externalUrl}`);
+  for (const p of op.pathParams) {
+    const n = snakeToCamel(p.sdkName);
+    callArgs.push(`${n}: ${n}`);
+  }
+  for (const q of op.queryParams) {
+    const n = snakeToCamel(q.sdkName);
+    if (q.name === 'cursor') {
+      callArgs.push('cursor: cursor');
+    } else {
+      callArgs.push(`${n}: ${n}`);
+    }
+  }
+
+  lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
+  lines.push('            items.append(contentsOf: response.data)');
+  lines.push('            cursor = response.meta?.paginate?.nextPage');
+  lines.push('        } while cursor != nil');
+  lines.push('        return items');
+  lines.push('    }');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push('import Foundation');
@@ -437,6 +479,10 @@ function generateClient(ir: IR): string {
     lines.push('');
     for (let i = 0; i < s.operations.length; i++) {
       emitOperation(lines, s.operations[i], ir);
+      if (s.operations[i].isPaginated) {
+        lines.push('');
+        emitPaginationMethod(lines, s.operations[i], ir);
+      }
       if (i < s.operations.length - 1) lines.push('');
     }
     lines.push('}');

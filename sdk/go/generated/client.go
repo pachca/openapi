@@ -29,7 +29,10 @@ type SecurityService struct {
 }
 
 func (s *SecurityService) GetAuditEvents(ctx context.Context, params GetAuditEventsParams) (*GetAuditEventsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/audit_events", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/audit_events", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	q.Set("start_time", params.StartTime.Format(time.RFC3339))
 	q.Set("end_time", params.EndTime.Format(time.RFC3339))
@@ -82,13 +85,36 @@ func (s *SecurityService) GetAuditEvents(ctx context.Context, params GetAuditEve
 	}
 }
 
+func (s *SecurityService) GetAuditEventsAll(ctx context.Context, params *GetAuditEventsParams) ([]AuditEvent, error) {
+	if params == nil {
+		params = &GetAuditEventsParams{}
+	}
+	var items []AuditEvent
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.GetAuditEvents(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
+	}
+}
+
 type BotsService struct {
 	baseURL string
 	client  *http.Client
 }
 
 func (s *BotsService) GetWebhookEvents(ctx context.Context, params *GetWebhookEventsParams) (*GetWebhookEventsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/webhooks/events", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/webhooks/events", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -121,6 +147,26 @@ func (s *BotsService) GetWebhookEvents(ctx context.Context, params *GetWebhookEv
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *BotsService) GetWebhookEventsAll(ctx context.Context, params *GetWebhookEventsParams) ([]WebhookEvent, error) {
+	if params == nil {
+		params = &GetWebhookEventsParams{}
+	}
+	var items []WebhookEvent
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.GetWebhookEvents(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -189,7 +235,10 @@ type ChatsService struct {
 }
 
 func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (*ListChatsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/chats", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/chats", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.SortID != nil {
 		q.Set("sort[{field}]", string(*params.SortID))
@@ -237,6 +286,26 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *ChatsService) ListChatsAll(ctx context.Context, params *ListChatsParams) ([]Chat, error) {
+	if params == nil {
+		params = &ListChatsParams{}
+	}
+	var items []Chat
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListChats(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -422,7 +491,10 @@ func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, e
 }
 
 func (s *CommonService) ListProperties(ctx context.Context, params ListPropertiesParams) (*ListPropertiesResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/custom_properties", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/custom_properties", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	q.Set("entity_type", string(params.EntityType))
 	u.RawQuery = q.Encode()
@@ -500,7 +572,9 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 		if err != nil {
 			return
 		}
-		io.Copy(part, request.File)
+		if _, err := io.Copy(part, request.File); err != nil {
+			return
+		}
 	}()
 	req, err := http.NewRequestWithContext(ctx, "POST", directUrl, pr)
 	if err != nil {
@@ -556,7 +630,10 @@ type MembersService struct {
 }
 
 func (s *MembersService) ListMembers(ctx context.Context, id int32, params *ListMembersParams) (*ListMembersResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/chats/%v/members", s.baseURL, id))
+	u, err := url.Parse(fmt.Sprintf("%s/chats/%v/members", s.baseURL, id))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Role != nil {
 		q.Set("role", string(*params.Role))
@@ -592,6 +669,26 @@ func (s *MembersService) ListMembers(ctx context.Context, id int32, params *List
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *MembersService) ListMembersAll(ctx context.Context, id int32, params *ListMembersParams) ([]User, error) {
+	if params == nil {
+		params = &ListMembersParams{}
+	}
+	var items []User
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListMembers(ctx, id, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -760,7 +857,10 @@ type GroupTagsService struct {
 }
 
 func (s *GroupTagsService) ListTags(ctx context.Context, params *ListTagsParams) (*ListTagsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/group_tags", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/group_tags", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Names != nil {
 		q.Set("names", fmt.Sprintf("%v", *params.Names))
@@ -799,6 +899,26 @@ func (s *GroupTagsService) ListTags(ctx context.Context, params *ListTagsParams)
 	}
 }
 
+func (s *GroupTagsService) ListTagsAll(ctx context.Context, params *ListTagsParams) ([]GroupTag, error) {
+	if params == nil {
+		params = &ListTagsParams{}
+	}
+	var items []GroupTag
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListTags(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
+	}
+}
+
 func (s *GroupTagsService) GetTag(ctx context.Context, id int32) (*GroupTag, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/group_tags/%v", s.baseURL, id), nil)
 	if err != nil {
@@ -830,7 +950,10 @@ func (s *GroupTagsService) GetTag(ctx context.Context, id int32) (*GroupTag, err
 }
 
 func (s *GroupTagsService) GetTagUsers(ctx context.Context, id int32, params *GetTagUsersParams) (*ListMembersResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/group_tags/%v/users", s.baseURL, id))
+	u, err := url.Parse(fmt.Sprintf("%s/group_tags/%v/users", s.baseURL, id))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -863,6 +986,26 @@ func (s *GroupTagsService) GetTagUsers(ctx context.Context, id int32, params *Ge
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *GroupTagsService) GetTagUsersAll(ctx context.Context, id int32, params *GetTagUsersParams) ([]User, error) {
+	if params == nil {
+		params = &GetTagUsersParams{}
+	}
+	var items []User
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.GetTagUsers(ctx, id, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -966,7 +1109,10 @@ type MessagesService struct {
 }
 
 func (s *MessagesService) ListChatMessages(ctx context.Context, params ListChatMessagesParams) (*ListChatMessagesResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/messages", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/messages", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	q.Set("chat_id", fmt.Sprintf("%v", params.ChatID))
 	if params.SortID != nil {
@@ -1003,6 +1149,26 @@ func (s *MessagesService) ListChatMessages(ctx context.Context, params ListChatM
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *MessagesService) ListChatMessagesAll(ctx context.Context, params *ListChatMessagesParams) ([]Message, error) {
+	if params == nil {
+		params = &ListChatMessagesParams{}
+	}
+	var items []Message
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListChatMessages(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -1218,7 +1384,10 @@ type ReactionsService struct {
 }
 
 func (s *ReactionsService) ListReactions(ctx context.Context, id int32, params *ListReactionsParams) (*ListReactionsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/messages/%v/reactions", s.baseURL, id))
+	u, err := url.Parse(fmt.Sprintf("%s/messages/%v/reactions", s.baseURL, id))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -1251,6 +1420,26 @@ func (s *ReactionsService) ListReactions(ctx context.Context, id int32, params *
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *ReactionsService) ListReactionsAll(ctx context.Context, id int32, params *ListReactionsParams) ([]Reaction, error) {
+	if params == nil {
+		params = &ListReactionsParams{}
+	}
+	var items []Reaction
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListReactions(ctx, id, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -1288,7 +1477,10 @@ func (s *ReactionsService) AddReaction(ctx context.Context, id int32, request Re
 }
 
 func (s *ReactionsService) RemoveReaction(ctx context.Context, id int32, params RemoveReactionParams) error {
-	u, _ := url.Parse(fmt.Sprintf("%s/messages/%v/reactions", s.baseURL, id))
+	u, err := url.Parse(fmt.Sprintf("%s/messages/%v/reactions", s.baseURL, id))
+	if err != nil {
+		return err
+	}
 	q := u.Query()
 	q.Set("code", fmt.Sprintf("%v", params.Code))
 	if params.Name != nil {
@@ -1324,7 +1516,10 @@ type ReadMembersService struct {
 }
 
 func (s *ReadMembersService) ListReadMembers(ctx context.Context, id int32, params *ListReadMembersParams) (*any, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/messages/%v/read_member_ids", s.baseURL, id))
+	u, err := url.Parse(fmt.Sprintf("%s/messages/%v/read_member_ids", s.baseURL, id))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -1357,6 +1552,26 @@ func (s *ReadMembersService) ListReadMembers(ctx context.Context, id int32, para
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *ReadMembersService) ListReadMembersAll(ctx context.Context, id int32, params *ListReadMembersParams) ([]any, error) {
+	if params == nil {
+		params = &ListReadMembersParams{}
+	}
+	var items []any
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListReadMembers(ctx, id, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -1583,7 +1798,10 @@ type SearchService struct {
 }
 
 func (s *SearchService) SearchChats(ctx context.Context, params *SearchChatsParams) (*ListChatsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/search/chats", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/search/chats", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Query != nil {
 		q.Set("query", fmt.Sprintf("%v", *params.Query))
@@ -1640,8 +1858,31 @@ func (s *SearchService) SearchChats(ctx context.Context, params *SearchChatsPara
 	}
 }
 
+func (s *SearchService) SearchChatsAll(ctx context.Context, params *SearchChatsParams) ([]Chat, error) {
+	if params == nil {
+		params = &SearchChatsParams{}
+	}
+	var items []Chat
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.SearchChats(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
+	}
+}
+
 func (s *SearchService) SearchMessages(ctx context.Context, params *SearchMessagesParams) (*ListChatMessagesResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Query != nil {
 		q.Set("query", fmt.Sprintf("%v", *params.Query))
@@ -1698,8 +1939,31 @@ func (s *SearchService) SearchMessages(ctx context.Context, params *SearchMessag
 	}
 }
 
+func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]Message, error) {
+	if params == nil {
+		params = &SearchMessagesParams{}
+	}
+	var items []Message
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.SearchMessages(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
+	}
+}
+
 func (s *SearchService) SearchUsers(ctx context.Context, params *SearchUsersParams) (*ListMembersResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/search/users", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/search/users", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Query != nil {
 		q.Set("query", fmt.Sprintf("%v", *params.Query))
@@ -1753,13 +2017,36 @@ func (s *SearchService) SearchUsers(ctx context.Context, params *SearchUsersPara
 	}
 }
 
+func (s *SearchService) SearchUsersAll(ctx context.Context, params *SearchUsersParams) ([]User, error) {
+	if params == nil {
+		params = &SearchUsersParams{}
+	}
+	var items []User
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.SearchUsers(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
+	}
+}
+
 type TasksService struct {
 	baseURL string
 	client  *http.Client
 }
 
 func (s *TasksService) ListTasks(ctx context.Context, params *ListTasksParams) (*ListTasksResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/tasks", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/tasks", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -1792,6 +2079,26 @@ func (s *TasksService) ListTasks(ctx context.Context, params *ListTasksParams) (
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *TasksService) ListTasksAll(ctx context.Context, params *ListTasksParams) ([]Task, error) {
+	if params == nil {
+		params = &ListTasksParams{}
+	}
+	var items []Task
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListTasks(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 
@@ -1925,7 +2232,10 @@ type UsersService struct {
 }
 
 func (s *UsersService) ListUsers(ctx context.Context, params *ListUsersParams) (*ListMembersResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/users", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/users", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Query != nil {
 		q.Set("query", fmt.Sprintf("%v", *params.Query))
@@ -1961,6 +2271,26 @@ func (s *UsersService) ListUsers(ctx context.Context, params *ListUsersParams) (
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
+	}
+}
+
+func (s *UsersService) ListUsersAll(ctx context.Context, params *ListUsersParams) ([]User, error) {
+	if params == nil {
+		params = &ListUsersParams{}
+	}
+	var items []User
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListUsers(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
 	}
 }
 

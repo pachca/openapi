@@ -36,6 +36,17 @@ public struct SearchService {
             throw URLError(.badServerResponse)
         }
     }
+
+    public func searchMessagesAll(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil) async throws -> [MessageSearchResult] {
+        var items: [MessageSearchResult] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await searchMessages(query: query, chatIds: chatIds, userIds: userIds, createdFrom: createdFrom, createdTo: createdTo, sort: sort, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
+    }
 }
 
 public struct PachcaClient {

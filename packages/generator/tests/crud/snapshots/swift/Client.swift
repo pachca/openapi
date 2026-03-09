@@ -34,6 +34,17 @@ public struct ChatsService {
         }
     }
 
+    public func listChatsAll(availability: ChatAvailability? = nil, limit: Int? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> [Chat] {
+        var items: [Chat] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listChats(availability: availability, limit: limit, cursor: cursor, sortField: sortField, sortOrder: sortOrder)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
+    }
+
     public func getChat(id: Int) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }

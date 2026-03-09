@@ -41,6 +41,7 @@ export interface Endpoint {
   security?: SecurityRequirement[];
   requirements?: EndpointRequirements;
   externalUrl?: string;
+  paginated?: boolean;
 }
 
 export interface Parameter {

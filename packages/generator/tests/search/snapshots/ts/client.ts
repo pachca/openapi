@@ -1,4 +1,9 @@
-import { SearchMessagesParams, SearchMessagesResponse, OAuthError } from "./types";
+import {
+  SearchMessagesParams,
+  SearchMessagesResponse,
+  MessageSearchResult,
+  OAuthError,
+} from "./types";
 import { deserialize } from "./utils";
 
 class SearchService {
@@ -33,6 +38,17 @@ class SearchService {
       default:
         throw new Error(`HTTP ${response.status}: ${JSON.stringify(body)}`);
     }
+  }
+
+  async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageSearchResult[]> {
+    const items: MessageSearchResult[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 }
 

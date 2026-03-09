@@ -1,10 +1,12 @@
 import {
   GetAuditEventsParams,
   GetAuditEventsResponse,
+  AuditEvent,
   OAuthError,
   ApiError,
   GetWebhookEventsParams,
   GetWebhookEventsResponse,
+  WebhookEvent,
   BotUpdateRequest,
   BotResponse,
   ListChatsParams,
@@ -19,6 +21,7 @@ import {
   UploadParams,
   ListMembersParams,
   ListMembersResponse,
+  User,
   AddMembersRequest,
   ChatMemberRole,
   ListTagsParams,
@@ -34,13 +37,12 @@ import {
   LinkPreviewsRequest,
   ListReactionsParams,
   ListReactionsResponse,
-  ReactionRequest,
   Reaction,
+  ReactionRequest,
   RemoveReactionParams,
   ListReadMembersParams,
   Thread,
   AccessTokenInfo,
-  User,
   StatusUpdateRequest,
   UserStatus,
   SearchChatsParams,
@@ -78,7 +80,7 @@ class SecurityService {
     const response = await fetch(`${this.baseUrl}/audit_events?${query}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as GetAuditEventsResponse;
@@ -87,6 +89,17 @@ class SecurityService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async getAuditEventsAll(params: Omit<GetAuditEventsParams, 'cursor'>): Promise<AuditEvent[]> {
+    const items: AuditEvent[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.getAuditEvents({ ...params, cursor } as GetAuditEventsParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 }
 
@@ -104,7 +117,7 @@ class BotsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as GetWebhookEventsResponse;
@@ -115,13 +128,24 @@ class BotsService {
     }
   }
 
+  async getWebhookEventsAll(params?: Omit<GetWebhookEventsParams, 'cursor'>): Promise<WebhookEvent[]> {
+    const items: WebhookEvent[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.getWebhookEvents({ ...params, cursor } as GetWebhookEventsParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async updateBot(id: number, request: BotUpdateRequest): Promise<BotResponse> {
     const response = await fetch(`${this.baseUrl}/bots/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as BotResponse;
@@ -167,7 +191,7 @@ class ChatsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListChatsResponse;
@@ -178,11 +202,22 @@ class ChatsService {
     }
   }
 
+  async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
+    const items: Chat[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listChats({ ...params, cursor } as ListChatsParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async getChat(id: number): Promise<Chat> {
     const response = await fetch(`${this.baseUrl}/chats/${id}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Chat;
@@ -199,7 +234,7 @@ class ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as Chat;
@@ -216,7 +251,7 @@ class ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Chat;
@@ -290,7 +325,7 @@ class CommonService {
     const response = await fetch(`${this.baseUrl}/custom_properties?${query}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListPropertiesResponse;
@@ -345,7 +380,7 @@ class CommonService {
       method: "POST",
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body) as UploadParams;
@@ -372,7 +407,7 @@ class MembersService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListMembersResponse;
@@ -381,6 +416,17 @@ class MembersService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async listMembersAll(id: number, params?: Omit<ListMembersParams, 'cursor'>): Promise<User[]> {
+    const items: User[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listMembers(id, { ...params, cursor } as ListMembersParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 
   async addTags(id: number, groupTagIds: number[]): Promise<void> {
@@ -492,7 +538,7 @@ class GroupTagsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListTagsResponse;
@@ -503,11 +549,22 @@ class GroupTagsService {
     }
   }
 
+  async listTagsAll(params?: Omit<ListTagsParams, 'cursor'>): Promise<GroupTag[]> {
+    const items: GroupTag[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listTags({ ...params, cursor } as ListTagsParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async getTag(id: number): Promise<GroupTag> {
     const response = await fetch(`${this.baseUrl}/group_tags/${id}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as GroupTag;
@@ -526,7 +583,7 @@ class GroupTagsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListMembersResponse;
@@ -537,13 +594,24 @@ class GroupTagsService {
     }
   }
 
+  async getTagUsersAll(id: number, params?: Omit<GetTagUsersParams, 'cursor'>): Promise<User[]> {
+    const items: User[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.getTagUsers(id, { ...params, cursor } as GetTagUsersParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async createTag(request: GroupTagRequest): Promise<GroupTag> {
     const response = await fetch(`${this.baseUrl}/group_tags`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as GroupTag;
@@ -560,7 +628,7 @@ class GroupTagsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as GroupTag;
@@ -602,7 +670,7 @@ class MessagesService {
     const response = await fetch(`${this.baseUrl}/messages?${query}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListChatMessagesResponse;
@@ -613,11 +681,22 @@ class MessagesService {
     }
   }
 
+  async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
+    const items: Message[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listChatMessages({ ...params, cursor } as ListChatMessagesParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async getMessage(id: number): Promise<Message> {
     const response = await fetch(`${this.baseUrl}/messages/${id}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Message;
@@ -634,7 +713,7 @@ class MessagesService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as Message;
@@ -666,7 +745,7 @@ class MessagesService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Message;
@@ -745,7 +824,7 @@ class ReactionsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListReactionsResponse;
@@ -756,13 +835,24 @@ class ReactionsService {
     }
   }
 
+  async listReactionsAll(id: number, params?: Omit<ListReactionsParams, 'cursor'>): Promise<Reaction[]> {
+    const items: Reaction[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listReactions(id, { ...params, cursor } as ListReactionsParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async addReaction(id: number, request: ReactionRequest): Promise<Reaction> {
     const response = await fetch(`${this.baseUrl}/messages/${id}/reactions`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body) as Reaction;
@@ -806,7 +896,7 @@ class ReadMembersService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as unknown;
@@ -815,6 +905,17 @@ class ReadMembersService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async listReadMembersAll(id: number, params?: Omit<ListReadMembersParams, 'cursor'>): Promise<unknown[]> {
+    const items: unknown[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listReadMembers(id, { ...params, cursor } as ListReadMembersParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 }
 
@@ -828,7 +929,7 @@ class ThreadsService {
     const response = await fetch(`${this.baseUrl}/threads/${id}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Thread;
@@ -844,7 +945,7 @@ class ThreadsService {
       method: "POST",
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as Thread;
@@ -866,7 +967,7 @@ class ProfileService {
     const response = await fetch(`${this.baseUrl}/oauth/token/info`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as AccessTokenInfo;
@@ -881,7 +982,7 @@ class ProfileService {
     const response = await fetch(`${this.baseUrl}/profile`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as User;
@@ -896,7 +997,7 @@ class ProfileService {
     const response = await fetch(`${this.baseUrl}/profile/status`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as unknown;
@@ -913,7 +1014,7 @@ class ProfileService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as UserStatus;
@@ -961,7 +1062,7 @@ class SearchService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListChatsResponse;
@@ -970,6 +1071,17 @@ class SearchService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async searchChatsAll(params?: Omit<SearchChatsParams, 'cursor'>): Promise<Chat[]> {
+    const items: Chat[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.searchChats({ ...params, cursor } as SearchChatsParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 
   async searchMessages(params?: SearchMessagesParams): Promise<ListChatMessagesResponse> {
@@ -987,7 +1099,7 @@ class SearchService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListChatMessagesResponse;
@@ -996,6 +1108,17 @@ class SearchService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async searchMessagesAll(params?: Omit<SearchMessagesParams, 'cursor'>): Promise<Message[]> {
+    const items: Message[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 
   async searchUsers(params?: SearchUsersParams): Promise<ListMembersResponse> {
@@ -1012,7 +1135,7 @@ class SearchService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListMembersResponse;
@@ -1021,6 +1144,17 @@ class SearchService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async searchUsersAll(params?: Omit<SearchUsersParams, 'cursor'>): Promise<User[]> {
+    const items: User[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.searchUsers({ ...params, cursor } as SearchUsersParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 }
 
@@ -1038,7 +1172,7 @@ class TasksService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListTasksResponse;
@@ -1049,11 +1183,22 @@ class TasksService {
     }
   }
 
+  async listTasksAll(params?: Omit<ListTasksParams, 'cursor'>): Promise<Task[]> {
+    const items: Task[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listTasks({ ...params, cursor } as ListTasksParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async getTask(id: number): Promise<Task> {
     const response = await fetch(`${this.baseUrl}/tasks/${id}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Task;
@@ -1070,7 +1215,7 @@ class TasksService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as Task;
@@ -1087,7 +1232,7 @@ class TasksService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Task;
@@ -1129,7 +1274,7 @@ class UsersService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListMembersResponse;
@@ -1140,11 +1285,22 @@ class UsersService {
     }
   }
 
+  async listUsersAll(params?: Omit<ListUsersParams, 'cursor'>): Promise<User[]> {
+    const items: User[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listUsers({ ...params, cursor } as ListUsersParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
+  }
+
   async getUser(id: number): Promise<User> {
     const response = await fetch(`${this.baseUrl}/users/${id}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as User;
@@ -1159,7 +1315,7 @@ class UsersService {
     const response = await fetch(`${this.baseUrl}/users/$${userId}/status`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as unknown;
@@ -1176,7 +1332,7 @@ class UsersService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as User;
@@ -1193,7 +1349,7 @@ class UsersService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as User;
@@ -1210,7 +1366,7 @@ class UsersService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as UserStatus;

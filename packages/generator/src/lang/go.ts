@@ -588,6 +588,50 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   lines.push('}');
 }
 
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const itemType = op.successResponse.dataRef ?? 'any';
+  const paramsName = `${upperFirst(op.methodName)}Params`;
+  const svcName = tagToServiceName(op.tag);
+
+  const args: string[] = ['ctx context.Context'];
+  if (op.externalUrl) args.push(`${op.externalUrl} string`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)} ${goType(p.type)}`);
+  if (op.queryParams.length > 0) {
+    args.push(`params *${paramsName}`);
+  }
+
+  lines.push(`func (s *${svcName}) ${goMethodName(op)}All(${args.join(', ')}) ([]${itemType}, error) {`);
+  if (op.queryParams.length > 0) {
+    lines.push('\tif params == nil {');
+    lines.push(`\t\tparams = &${paramsName}{}`);
+    lines.push('\t}');
+  }
+  lines.push(`\tvar items []${itemType}`);
+  lines.push('\tvar cursor *string');
+  lines.push('\tfor {');
+  if (op.queryParams.length > 0) {
+    lines.push('\t\tparams.Cursor = cursor');
+  }
+
+  // Build call args
+  const callArgs: string[] = ['ctx'];
+  if (op.externalUrl) callArgs.push(op.externalUrl);
+  for (const p of op.pathParams) callArgs.push(snakeToCamel(p.sdkName));
+  if (op.queryParams.length > 0) callArgs.push('params');
+
+  lines.push(`\t\tresult, err := s.${goMethodName(op)}(${callArgs.join(', ')})`);
+  lines.push('\t\tif err != nil {');
+  lines.push('\t\t\treturn nil, err');
+  lines.push('\t\t}');
+  lines.push('\t\titems = append(items, result.Data...)');
+  lines.push('\t\tif result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {');
+  lines.push('\t\t\treturn items, nil');
+  lines.push('\t\t}');
+  lines.push('\t\tcursor = result.Meta.Paginate.NextPage');
+  lines.push('\t}');
+  lines.push('}');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push('package pachca');
@@ -640,6 +684,10 @@ function generateClient(ir: IR): string {
     for (const op of s.operations) {
       emitOp(lines, op, ir);
       lines.push('');
+      if (op.isPaginated) {
+        emitPaginationMethod(lines, op, ir);
+        lines.push('');
+      }
     }
   }
 

@@ -43,6 +43,34 @@ class SearchService internal constructor(
             else -> throw RuntimeException("Unexpected status code: ${response.status.value}")
         }
     }
+
+    suspend fun searchMessagesAll(
+        query: String,
+        chatIds: List<Int>? = null,
+        userIds: List<Int>? = null,
+        createdFrom: String? = null,
+        createdTo: String? = null,
+        sort: SearchSort? = null,
+        limit: Int? = null,
+    ): List<MessageSearchResult> {
+        val items = mutableListOf<MessageSearchResult>()
+        var cursor: String? = null
+        do {
+            val response = searchMessages(
+                query = query,
+                chatIds = chatIds,
+                userIds = userIds,
+                createdFrom = createdFrom,
+                createdTo = createdTo,
+                sort = sort,
+                limit = limit,
+                cursor = cursor,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
 }
 
 class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {

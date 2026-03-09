@@ -594,6 +594,7 @@ function transformOperation(
     hasOAuthError,
     externalUrl: endpoint.externalUrl,
     noAuth: endpoint.requirements?.auth === false ? true : undefined,
+    isPaginated: endpoint.paginated || undefined,
   };
 }
 

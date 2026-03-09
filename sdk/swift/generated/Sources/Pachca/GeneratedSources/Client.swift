@@ -30,12 +30,23 @@ public struct SecurityService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(GetAuditEventsResponse.self, from: data)
+            return try deserialize(GetAuditEventsResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func getAuditEventsAll(startTime: Date, endTime: Date, eventKey: AuditEventKey? = nil, actorId: String? = nil, actorType: String? = nil, entityId: String? = nil, entityType: String? = nil, limit: Int? = nil) async throws -> [AuditEvent] {
+        var items: [AuditEvent] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await getAuditEvents(startTime: startTime, endTime: endTime, eventKey: eventKey, actorId: actorId, actorType: actorType, entityId: entityId, entityType: entityType, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 }
 
@@ -62,12 +73,23 @@ public struct BotsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(GetWebhookEventsResponse.self, from: data)
+            return try deserialize(GetWebhookEventsResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func getWebhookEventsAll(limit: Int? = nil) async throws -> [WebhookEvent] {
+        var items: [WebhookEvent] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await getWebhookEvents(limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func updateBot(id: Int, request body: BotUpdateRequest) async throws -> BotResponse {
@@ -75,16 +97,16 @@ public struct BotsService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(BotResponseDataWrapper.self, from: data).data
+            return try deserialize(BotResponseDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -98,9 +120,9 @@ public struct BotsService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -133,12 +155,23 @@ public struct ChatsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListChatsResponse.self, from: data)
+            return try deserialize(ListChatsResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listChatsAll(sortId: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
+        var items: [Chat] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listChats(sortId: sortId, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func getChat(id: Int) async throws -> Chat {
@@ -148,11 +181,11 @@ public struct ChatsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ChatDataWrapper.self, from: data).data
+            return try deserialize(ChatDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -161,16 +194,16 @@ public struct ChatsService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(ChatDataWrapper.self, from: data).data
+            return try deserialize(ChatDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -179,16 +212,16 @@ public struct ChatsService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ChatDataWrapper.self, from: data).data
+            return try deserialize(ChatDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -202,9 +235,9 @@ public struct ChatsService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -218,9 +251,9 @@ public struct ChatsService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -249,9 +282,9 @@ public struct CommonService {
             }
             return location
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -266,11 +299,11 @@ public struct CommonService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListPropertiesResponse.self, from: data)
+            return try deserialize(ListPropertiesResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -279,16 +312,16 @@ public struct CommonService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -324,7 +357,7 @@ public struct CommonService {
         case 204:
             return
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: responseData)
+            throw try deserialize(ApiError.self, from: responseData)
         }
     }
 
@@ -336,11 +369,11 @@ public struct CommonService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(UploadParams.self, from: data)
+            return try deserialize(UploadParams.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -369,12 +402,23 @@ public struct MembersService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListMembersResponse.self, from: data)
+            return try deserialize(ListMembersResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listMembersAll(id: Int, role: ChatMemberRoleFilter? = nil, limit: Int? = nil) async throws -> [User] {
+        var items: [User] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listMembers(id: id, role: role, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func addTags(id: Int, groupTagIds: [Int]) async throws -> Void {
@@ -389,9 +433,9 @@ public struct MembersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -400,16 +444,16 @@ public struct MembersService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -425,9 +469,9 @@ public struct MembersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -441,9 +485,9 @@ public struct MembersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -457,9 +501,9 @@ public struct MembersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -473,9 +517,9 @@ public struct MembersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -494,7 +538,7 @@ public struct GroupTagsService {
     public func listTags(names: TagNamesFilter? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListTagsResponse {
         var components = URLComponents(string: "\(baseURL)/group_tags")!
         var queryItems: [URLQueryItem] = []
-        if let names { queryItems.append(URLQueryItem(name: "names", value: String(data: try! JSONEncoder().encode(names), encoding: .utf8)!)) }
+        if let names { queryItems.append(URLQueryItem(name: "names", value: String(data: try serialize(names), encoding: .utf8)!)) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
@@ -504,12 +548,23 @@ public struct GroupTagsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListTagsResponse.self, from: data)
+            return try deserialize(ListTagsResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listTagsAll(names: TagNamesFilter? = nil, limit: Int? = nil) async throws -> [GroupTag] {
+        var items: [GroupTag] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listTags(names: names, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func getTag(id: Int) async throws -> GroupTag {
@@ -519,11 +574,11 @@ public struct GroupTagsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(GroupTagDataWrapper.self, from: data).data
+            return try deserialize(GroupTagDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -539,12 +594,23 @@ public struct GroupTagsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListMembersResponse.self, from: data)
+            return try deserialize(ListMembersResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func getTagUsersAll(id: Int, limit: Int? = nil) async throws -> [User] {
+        var items: [User] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await getTagUsers(id: id, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func createTag(request body: GroupTagRequest) async throws -> GroupTag {
@@ -552,16 +618,16 @@ public struct GroupTagsService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(GroupTagDataWrapper.self, from: data).data
+            return try deserialize(GroupTagDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -570,16 +636,16 @@ public struct GroupTagsService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(GroupTagDataWrapper.self, from: data).data
+            return try deserialize(GroupTagDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -593,9 +659,9 @@ public struct GroupTagsService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -625,12 +691,23 @@ public struct MessagesService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListChatMessagesResponse.self, from: data)
+            return try deserialize(ListChatMessagesResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listChatMessagesAll(chatId: Int, sortId: SortOrder? = nil, limit: Int? = nil) async throws -> [Message] {
+        var items: [Message] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listChatMessages(chatId: chatId, sortId: sortId, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func getMessage(id: Int) async throws -> Message {
@@ -640,11 +717,11 @@ public struct MessagesService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(MessageDataWrapper.self, from: data).data
+            return try deserialize(MessageDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -653,16 +730,16 @@ public struct MessagesService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(MessageDataWrapper.self, from: data).data
+            return try deserialize(MessageDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -676,9 +753,9 @@ public struct MessagesService {
         case 201:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -687,16 +764,16 @@ public struct MessagesService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(MessageDataWrapper.self, from: data).data
+            return try deserialize(MessageDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -710,9 +787,9 @@ public struct MessagesService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -726,9 +803,9 @@ public struct MessagesService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -749,16 +826,16 @@ public struct LinkPreviewsService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -786,12 +863,23 @@ public struct ReactionsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListReactionsResponse.self, from: data)
+            return try deserialize(ListReactionsResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listReactionsAll(id: Int, limit: Int? = nil) async throws -> [Reaction] {
+        var items: [Reaction] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listReactions(id: id, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func addReaction(id: Int, request body: ReactionRequest) async throws -> Reaction {
@@ -799,16 +887,16 @@ public struct ReactionsService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(Reaction.self, from: data)
+            return try deserialize(Reaction.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -827,9 +915,9 @@ public struct ReactionsService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -857,12 +945,23 @@ public struct ReadMembersService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(String.self, from: data)
+            return try deserialize(String.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listReadMembersAll(id: Int, limit: Int? = nil) async throws -> [Any] {
+        var items: [Any] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listReadMembers(id: id, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 }
 
@@ -884,11 +983,11 @@ public struct ThreadsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ThreadDataWrapper.self, from: data).data
+            return try deserialize(ThreadDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -900,11 +999,11 @@ public struct ThreadsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(ThreadDataWrapper.self, from: data).data
+            return try deserialize(ThreadDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -927,11 +1026,11 @@ public struct ProfileService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(AccessTokenInfoDataWrapper.self, from: data).data
+            return try deserialize(AccessTokenInfoDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -942,11 +1041,11 @@ public struct ProfileService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(UserDataWrapper.self, from: data).data
+            return try deserialize(UserDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -957,11 +1056,11 @@ public struct ProfileService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(String.self, from: data)
+            return try deserialize(String.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -970,16 +1069,16 @@ public struct ProfileService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(UserStatusDataWrapper.self, from: data).data
+            return try deserialize(UserStatusDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -993,9 +1092,9 @@ public struct ProfileService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -1030,12 +1129,23 @@ public struct SearchService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListChatsResponse.self, from: data)
+            return try deserialize(ListChatsResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func searchChatsAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, active: Bool? = nil, chatSubtype: ChatSubtype? = nil, personal: Bool? = nil) async throws -> [Chat] {
+        var items: [Chat] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await searchChats(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, active: active, chatSubtype: chatSubtype, personal: personal)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func searchMessages(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> ListChatMessagesResponse {
@@ -1057,12 +1167,23 @@ public struct SearchService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListChatMessagesResponse.self, from: data)
+            return try deserialize(ListChatMessagesResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func searchMessagesAll(query: String? = nil, limit: Int? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> [Message] {
+        var items: [Message] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await searchMessages(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func searchUsers(query: String? = nil, limit: Int? = nil, cursor: String? = nil, sort: SearchSortOrder? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, companyRoles: [UserRole]? = nil) async throws -> ListMembersResponse {
@@ -1083,12 +1204,23 @@ public struct SearchService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListMembersResponse.self, from: data)
+            return try deserialize(ListMembersResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func searchUsersAll(query: String? = nil, limit: Int? = nil, sort: SearchSortOrder? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, companyRoles: [UserRole]? = nil) async throws -> [User] {
+        var items: [User] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await searchUsers(query: query, limit: limit, cursor: cursor, sort: sort, order: order, createdFrom: createdFrom, createdTo: createdTo, companyRoles: companyRoles)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 }
 
@@ -1115,12 +1247,23 @@ public struct TasksService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListTasksResponse.self, from: data)
+            return try deserialize(ListTasksResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listTasksAll(limit: Int? = nil) async throws -> [Task] {
+        var items: [Task] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listTasks(limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func getTask(id: Int) async throws -> Task {
@@ -1130,11 +1273,11 @@ public struct TasksService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(TaskDataWrapper.self, from: data).data
+            return try deserialize(TaskDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1143,16 +1286,16 @@ public struct TasksService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(TaskDataWrapper.self, from: data).data
+            return try deserialize(TaskDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1161,16 +1304,16 @@ public struct TasksService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(TaskDataWrapper.self, from: data).data
+            return try deserialize(TaskDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1184,9 +1327,9 @@ public struct TasksService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -1215,12 +1358,23 @@ public struct UsersService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(ListMembersResponse.self, from: data)
+            return try deserialize(ListMembersResponse.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
+    }
+
+    public func listUsersAll(query: String? = nil, limit: Int? = nil) async throws -> [User] {
+        var items: [User] = []
+        var cursor: String? = nil
+        repeat {
+            let response = try await listUsers(query: query, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while cursor != nil
+        return items
     }
 
     public func getUser(id: Int) async throws -> User {
@@ -1230,11 +1384,11 @@ public struct UsersService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(UserDataWrapper.self, from: data).data
+            return try deserialize(UserDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1245,11 +1399,11 @@ public struct UsersService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(String.self, from: data)
+            return try deserialize(String.self, from: data)
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1258,16 +1412,16 @@ public struct UsersService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
-            return try pachcaDecoder.decode(UserDataWrapper.self, from: data).data
+            return try deserialize(UserDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1276,16 +1430,16 @@ public struct UsersService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(UserDataWrapper.self, from: data).data
+            return try deserialize(UserDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1294,16 +1448,16 @@ public struct UsersService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try pachcaDecoder.decode(UserStatusDataWrapper.self, from: data).data
+            return try deserialize(UserStatusDataWrapper.self, from: data).data
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1317,9 +1471,9 @@ public struct UsersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 
@@ -1333,9 +1487,9 @@ public struct UsersService {
         case 204:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }
@@ -1356,16 +1510,16 @@ public struct ViewsService {
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try serialize(body)
         let (data, urlResponse) = try await session.data(for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
             return
         case 401:
-            throw try pachcaDecoder.decode(OAuthError.self, from: data)
+            throw try deserialize(OAuthError.self, from: data)
         default:
-            throw try pachcaDecoder.decode(ApiError.self, from: data)
+            throw try deserialize(ApiError.self, from: data)
         }
     }
 }

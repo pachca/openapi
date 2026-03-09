@@ -73,6 +73,26 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 	}
 }
 
+func (s *ChatsService) ListChatsAll(ctx context.Context, params *ListChatsParams) ([]Chat, error) {
+	if params == nil {
+		params = &ListChatsParams{}
+	}
+	var items []Chat
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.ListChats(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
+	}
+}
+
 func (s *ChatsService) GetChat(ctx context.Context, id int32) (*Chat, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/chats/%v", s.baseURL, id), nil)
 	if err != nil {

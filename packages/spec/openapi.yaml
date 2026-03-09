@@ -157,6 +157,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Security
+      x-paginated: true
       x-requirements:
         scope: audit_events:read
         plan: corporation
@@ -419,6 +420,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Chats
+      x-paginated: true
       x-requirements:
         scope: chats:read
   /chats/exports:
@@ -964,6 +966,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Members
+      x-paginated: true
       x-requirements:
         scope: chat_members:read
     post:
@@ -1261,7 +1264,6 @@ paths:
   /direct_url:
     post:
       operationId: DirectUploadOperations_uploadFile
-      x-external-url: directUrl
       description: |-
         Загрузка файла
 
@@ -1275,7 +1277,7 @@ paths:
       parameters: []
       responses:
         '204':
-          description: No content.
+          description: 'There is no content to send for this request, but the headers may be useful. '
       tags:
         - Common
       requestBody:
@@ -1284,6 +1286,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/FileUploadRequest'
+      x-external-url: directUrl
       x-requirements:
         auth: false
   /group_tags:
@@ -1425,6 +1428,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-paginated: true
       x-requirements:
         scope: group_tags:read
   /group_tags/{id}:
@@ -1683,6 +1687,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-paginated: true
       x-requirements:
         scope: group_tags:read
   /messages:
@@ -1847,6 +1852,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
+      x-paginated: true
       x-requirements:
         scope: messages:read
   /messages/{id}:
@@ -2414,6 +2420,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Reactions
+      x-paginated: true
       x-requirements:
         scope: reactions:read
   /messages/{id}/read_member_ids:
@@ -2505,6 +2512,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Read members
+      x-paginated: true
       x-requirements:
         scope: messages:read
   /messages/{id}/thread:
@@ -2885,6 +2893,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Search
+      x-paginated: true
       x-requirements:
         scope: search:chats
   /search/messages:
@@ -3039,6 +3048,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Search
+      x-paginated: true
       x-requirements:
         scope: search:messages
   /search/users:
@@ -3176,6 +3186,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Search
+      x-paginated: true
       x-requirements:
         scope: search:users
   /tasks:
@@ -3313,6 +3324,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Tasks
+      x-paginated: true
       x-requirements:
         scope: tasks:read
   /tasks/{id}:
@@ -3708,6 +3720,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Users
+      x-paginated: true
       x-requirements:
         scope: users:read
   /users/{id}:
@@ -4173,6 +4186,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Bots
+      x-paginated: true
       x-requirements:
         scope: webhooks:events:read
   /webhooks/events/{id}:

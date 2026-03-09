@@ -5,10 +5,12 @@ import httpx
 from .models import (
     GetAuditEventsParams,
     GetAuditEventsResponse,
+    AuditEvent,
     OAuthError,
     ApiError,
     GetWebhookEventsParams,
     GetWebhookEventsResponse,
+    WebhookEvent,
     BotUpdateRequest,
     BotResponse,
     ListChatsParams,
@@ -23,6 +25,7 @@ from .models import (
     UploadParams,
     ListMembersParams,
     ListMembersResponse,
+    User,
     AddMembersRequest,
     ListTagsParams,
     ListTagsResponse,
@@ -37,13 +40,12 @@ from .models import (
     LinkPreviewsRequest,
     ListReactionsParams,
     ListReactionsResponse,
-    ReactionRequest,
     Reaction,
+    ReactionRequest,
     RemoveReactionParams,
     ListReadMembersParams,
     Thread,
     AccessTokenInfo,
-    User,
     StatusUpdateRequest,
     UserStatus,
     SearchChatsParams,
@@ -99,6 +101,23 @@ class SecurityService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def get_audit_events_all(
+        self,
+        params: GetAuditEventsParams,
+    ) -> list[AuditEvent]:
+        items: list[AuditEvent] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = GetAuditEventsParams()
+            params.cursor = cursor
+            response = await self.get_audit_events(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
+
 
 class BotsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -125,6 +144,23 @@ class BotsService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def get_webhook_events_all(
+        self,
+        params: GetWebhookEventsParams | None = None,
+    ) -> list[WebhookEvent]:
+        items: list[WebhookEvent] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = GetWebhookEventsParams()
+            params.cursor = cursor
+            response = await self.get_webhook_events(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def update_bot(
         self,
@@ -178,7 +214,7 @@ class ChatsService:
         if params is not None and params.last_message_at_before is not None:
             query["last_message_at_before"] = params.last_message_at_before
         if params is not None and params.personal is not None:
-            query["personal"] = params.personal
+            query["personal"] = str(params.personal).lower()
         if params is not None and params.limit is not None:
             query["limit"] = str(params.limit)
         if params is not None and params.cursor is not None:
@@ -195,6 +231,23 @@ class ChatsService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def list_chats_all(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> list[Chat]:
+        items: list[Chat] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListChatsParams()
+            params.cursor = cursor
+            response = await self.list_chats(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def get_chat(
         self,
@@ -408,6 +461,24 @@ class MembersService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def list_members_all(
+        self,
+        id: int,
+        params: ListMembersParams | None = None,
+    ) -> list[User]:
+        items: list[User] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListMembersParams()
+            params.cursor = cursor
+            response = await self.list_members(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
+
     async def add_tags(
         self,
         id: int,
@@ -536,6 +607,23 @@ class GroupTagsService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def list_tags_all(
+        self,
+        params: ListTagsParams | None = None,
+    ) -> list[GroupTag]:
+        items: list[GroupTag] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListTagsParams()
+            params.cursor = cursor
+            response = await self.list_tags(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
+
     async def get_tag(
         self,
         id: int,
@@ -574,6 +662,24 @@ class GroupTagsService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def get_tag_users_all(
+        self,
+        id: int,
+        params: GetTagUsersParams | None = None,
+    ) -> list[User]:
+        items: list[User] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = GetTagUsersParams()
+            params.cursor = cursor
+            response = await self.get_tag_users(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def create_tag(
         self,
@@ -654,6 +760,23 @@ class MessagesService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def list_chat_messages_all(
+        self,
+        params: ListChatMessagesParams,
+    ) -> list[Message]:
+        items: list[Message] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListChatMessagesParams()
+            params.cursor = cursor
+            response = await self.list_chat_messages(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def get_message(
         self,
@@ -801,6 +924,24 @@ class ReactionsService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def list_reactions_all(
+        self,
+        id: int,
+        params: ListReactionsParams | None = None,
+    ) -> list[Reaction]:
+        items: list[Reaction] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListReactionsParams()
+            params.cursor = cursor
+            response = await self.list_reactions(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
+
     async def add_reaction(
         self,
         id: int,
@@ -867,6 +1008,24 @@ class ReadMembersService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def list_read_members_all(
+        self,
+        id: int,
+        params: ListReadMembersParams | None = None,
+    ) -> list[object]:
+        items: list[object] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListReadMembersParams()
+            params.cursor = cursor
+            response = await self.list_read_members(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
 
 class ThreadsService:
@@ -1005,11 +1164,11 @@ class SearchService:
         if params is not None and params.created_to is not None:
             query["created_to"] = params.created_to
         if params is not None and params.active is not None:
-            query["active"] = params.active
+            query["active"] = str(params.active).lower()
         if params is not None and params.chat_subtype is not None:
             query["chat_subtype"] = params.chat_subtype
         if params is not None and params.personal is not None:
-            query["personal"] = params.personal
+            query["personal"] = str(params.personal).lower()
         response = await self._client.get(
             "/search/chats",
             params=query,
@@ -1022,6 +1181,23 @@ class SearchService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def search_chats_all(
+        self,
+        params: SearchChatsParams | None = None,
+    ) -> list[Chat]:
+        items: list[Chat] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = SearchChatsParams()
+            params.cursor = cursor
+            response = await self.search_chats(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def search_messages(
         self,
@@ -1045,7 +1221,7 @@ class SearchService:
         if params is not None and params.user_ids is not None:
             query["user_ids"] = params.user_ids
         if params is not None and params.active is not None:
-            query["active"] = params.active
+            query["active"] = str(params.active).lower()
         response = await self._client.get(
             "/search/messages",
             params=query,
@@ -1058,6 +1234,23 @@ class SearchService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def search_messages_all(
+        self,
+        params: SearchMessagesParams | None = None,
+    ) -> list[Message]:
+        items: list[Message] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = SearchMessagesParams()
+            params.cursor = cursor
+            response = await self.search_messages(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def search_users(
         self,
@@ -1093,6 +1286,23 @@ class SearchService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def search_users_all(
+        self,
+        params: SearchUsersParams | None = None,
+    ) -> list[User]:
+        items: list[User] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = SearchUsersParams()
+            params.cursor = cursor
+            response = await self.search_users(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
+
 
 class TasksService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -1119,6 +1329,23 @@ class TasksService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def list_tasks_all(
+        self,
+        params: ListTasksParams | None = None,
+    ) -> list[Task]:
+        items: list[Task] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListTasksParams()
+            params.cursor = cursor
+            response = await self.list_tasks(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def get_task(
         self,
@@ -1214,6 +1441,23 @@ class UsersService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def list_users_all(
+        self,
+        params: ListUsersParams | None = None,
+    ) -> list[User]:
+        items: list[User] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = ListUsersParams()
+            params.cursor = cursor
+            response = await self.list_users(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
     async def get_user(
         self,

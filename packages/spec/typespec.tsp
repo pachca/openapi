@@ -3207,6 +3207,7 @@ interface UserOperations {
 
 Метод для получения актуального списка сотрудников вашей компании.
 """)
+  @extension("x-paginated", true)
   @get
   listUsers(
     @doc("Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).")
@@ -3506,6 +3507,7 @@ interface GroupTagOperations {
 
 Метод для получения актуального списка тегов сотрудников. Названия тегов являются уникальными в компании.
 """)
+  @extension("x-paginated", true)
   @get
   listTags(
     @doc("Массив названий тегов, по которым вы хотите отфильтровать список")
@@ -3546,6 +3548,7 @@ interface GroupTagOperations {
 
 Метод для получения актуального списка сотрудников тега.
 """)
+  @extension("x-paginated", true)
   @route("/{id}/users")
   @get
   getTagUsers(
@@ -3723,6 +3726,7 @@ interface ChatOperations {
 
 Метод для получения списка чатов по заданным параметрам.
 """)
+  @extension("x-paginated", true)
   @get
   listChats(
     @doc("Составной параметр сортировки сущностей выборки")
@@ -3885,6 +3889,7 @@ interface ChatMemberOperations {
 
 Владелец пространства может получить состав участников любого чата пространства. Администраторы и боты могут получить список участников только тех чатов, в которых состоят (или которые являются открытыми).
 """)
+  @extension("x-paginated", true)
   @route("/chats/{id}/members")
   @get
   listMembers(
@@ -4424,6 +4429,7 @@ interface ChatMessageOperations {
 
 Для получения сообщений вам необходимо знать `chat_id` требуемой беседы, канала, треда или диалога, и указать его в `URL` запроса. Сообщения будут возвращены в порядке убывания даты отправки (то есть, сначала будут идти последние сообщения чата). Для получения более ранних сообщений чата доступны параметры `limit` и `cursor`.
 """)
+  @extension("x-paginated", true)
   @get
   listChatMessages(
     @doc("Идентификатор чата (беседа, канал, диалог или чат треда)")
@@ -4479,6 +4485,7 @@ interface ReadMemberOperations {
 
 Метод для получения актуального списка пользователей, прочитавших сообщение.
 """)
+  @extension("x-paginated", true)
   @route("/messages/{id}/read_member_ids")
   @get
   listReadMembers(
@@ -4619,6 +4626,7 @@ interface ReactionOperations {
 
 Метод для получения актуального списка реакций на сообщение.
 """)
+  @extension("x-paginated", true)
   @get
   listReactions(
     @doc("Идентификатор сообщения")
@@ -4719,6 +4727,7 @@ interface SearchOperations {
 
 Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
 """)
+  @extension("x-paginated", true)
   @route("/users")
   @get
   searchUsers(
@@ -4772,6 +4781,7 @@ interface SearchOperations {
 
 Метод для полнотекстового поиска каналов и бесед.
 """)
+  @extension("x-paginated", true)
   @route("/chats")
   @get
   searchChats(
@@ -4828,6 +4838,7 @@ interface SearchOperations {
 
 Метод для полнотекстового поиска сообщений.
 """)
+  @extension("x-paginated", true)
   @route("/messages")
   @get
   searchMessages(
@@ -4929,6 +4940,7 @@ interface TaskOperations {
 
 Метод для получения списка напоминаний.
 """)
+  @extension("x-paginated", true)
   @get
   listTasks(
     @doc("Количество возвращаемых сущностей за один запрос")
@@ -5148,6 +5160,7 @@ interface BotOperations {
 
 Для получения истории событий конкретного бота вам необходимо знать его `access_token` и использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.
 """)
+  @extension("x-paginated", true)
   @route("/webhooks/events")
   @get
   getWebhookEvents(
@@ -5228,6 +5241,7 @@ interface SecurityOperations {
 
 Метод для получения логов событий на основе указанных фильтров.
 """)
+  @extension("x-paginated", true)
   @get
   getAuditEvents(
     @doc("Начальная метка времени (включительно)")

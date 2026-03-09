@@ -38,6 +38,28 @@ class ChatsService internal constructor(
         }
     }
 
+    suspend fun listChatsAll(
+        availability: ChatAvailability? = null,
+        limit: Int? = null,
+        sortField: String? = null,
+        sortOrder: SortOrder? = null,
+    ): List<Chat> {
+        val items = mutableListOf<Chat>()
+        var cursor: String? = null
+        do {
+            val response = listChats(
+                availability = availability,
+                limit = limit,
+                cursor = cursor,
+                sortField = sortField,
+                sortOrder = sortOrder,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
+
     suspend fun getChat(id: Int): Chat {
         val response = client.get("$baseUrl/chats/$id")
         return when (response.status.value) {

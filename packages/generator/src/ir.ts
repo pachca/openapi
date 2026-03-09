@@ -137,6 +137,8 @@ export interface IROperation {
   externalUrl?: string;
   /** Skip Authorization header (from x-requirements.auth: false) */
   noAuth?: boolean;
+  /** Generate *All pagination helper (from x-paginated: true) */
+  isPaginated?: boolean;
 }
 
 export interface IRService {

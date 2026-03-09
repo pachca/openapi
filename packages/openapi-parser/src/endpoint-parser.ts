@@ -48,6 +48,11 @@ export function parseEndpoint(
     endpoint.externalUrl = externalUrl;
   }
 
+  // x-paginated
+  if (getBoolean(operation, 'x-paginated')) {
+    endpoint.paginated = true;
+  }
+
   // Parameters
   const parameters = getArray(operation, 'parameters');
   if (parameters) {

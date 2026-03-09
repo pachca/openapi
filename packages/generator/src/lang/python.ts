@@ -330,6 +330,9 @@ function collectClientImports(ir: IR): string[] {
             (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
           );
           if (rt) add(rt.name);
+          if (op.isPaginated && op.successResponse.dataRef) {
+            add(op.successResponse.dataRef);
+          }
         } else if (op.successResponse.dataRef) {
           add(op.successResponse.dataRef);
         }
@@ -569,6 +572,43 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   }
 }
 
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const itemType = op.successResponse.dataRef ?? 'object';
+  const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+  const paramsType = op.queryParams.length > 0 ? `${pascal}Params` : null;
+
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
+  for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
+  if (paramsType) {
+    const hasRequired = op.queryParams.some((p) => p.required && p.name !== 'cursor');
+    args.push(
+      hasRequired ? `params: ${paramsType}` : `params: ${paramsType} | None = None`,
+    );
+  }
+
+  lines.push(`    async def ${pyMethodName(op)}_all(`);
+  lines.push('        self,');
+  for (const a of args) lines.push(`        ${a},`);
+  lines.push(`    ) -> list[${itemType}]:`);
+  lines.push(`        items: list[${itemType}] = []`);
+  lines.push('        cursor: str | None = None');
+  lines.push('        while True:');
+  if (paramsType) {
+    lines.push('            if params is None:');
+    lines.push(`                params = ${paramsType}()`);
+    lines.push('            params.cursor = cursor');
+    lines.push(`            response = await self.${pyMethodName(op)}(params=params)`);
+  } else {
+    lines.push(`            response = await self.${pyMethodName(op)}()`);
+  }
+  lines.push('            items.extend(response.data)');
+  lines.push('            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None');
+  lines.push('            if not cursor:');
+  lines.push('                break');
+  lines.push('        return items');
+}
+
 function generateClient(ir: IR): { content: string; needUtils: boolean } {
   const lines: string[] = [];
   const needToDict = needsAsdict(ir);
@@ -609,6 +649,10 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     lines.push('');
     for (let i = 0; i < svc.operations.length; i++) {
       emitOperation(lines, svc.operations[i], ir);
+      if (svc.operations[i].isPaginated) {
+        lines.push('');
+        emitPaginationMethod(lines, svc.operations[i], ir);
+      }
       if (i < svc.operations.length - 1) lines.push('');
     }
     lines.push('');

@@ -21,7 +21,9 @@ export function serialize(obj: unknown): unknown {
   if (Array.isArray(obj)) return obj.map(serialize);
   if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => [camelToSnake(k), serialize(v)]),
+      Object.entries(obj)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [camelToSnake(k), serialize(v)]),
     );
   }
   return obj;

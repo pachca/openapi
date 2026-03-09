@@ -78,6 +78,26 @@ func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessage
 	}
 }
 
+func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageSearchResult, error) {
+	if params == nil {
+		params = &SearchMessagesParams{}
+	}
+	var items []MessageSearchResult
+	var cursor *string
+	for {
+		params.Cursor = cursor
+		result, err := s.SearchMessages(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+			return items, nil
+		}
+		cursor = result.Meta.Paginate.NextPage
+	}
+}
+
 type PachcaClient struct {
 	Search *SearchService
 }

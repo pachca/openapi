@@ -11,6 +11,7 @@ paths:
     get:
       operationId: SearchOperations_searchMessages
       description: Поиск сообщений
+      x-paginated: true
       parameters:
         - name: query
           in: query

@@ -1,9 +1,9 @@
 import {
   ListChatsParams,
   ListChatsResponse,
+  Chat,
   OAuthError,
   ApiError,
-  Chat,
   ChatCreateRequest,
   ChatUpdateRequest,
 } from "./types";
@@ -35,6 +35,17 @@ class ChatsService {
       default:
         throw new ApiError(body.errors);
     }
+  }
+
+  async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
+    const items: Chat[] = [];
+    let cursor: string | undefined;
+    do {
+      const response = await this.listChats({ ...params, cursor } as ListChatsParams);
+      items.push(...response.data);
+      cursor = response.meta?.paginate?.nextPage;
+    } while (cursor);
+    return items;
   }
 
   async getChat(id: number): Promise<Chat> {

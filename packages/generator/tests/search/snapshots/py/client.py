@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import httpx
 
-from .models import SearchMessagesParams, SearchMessagesResponse, OAuthError
+from .models import (
+    SearchMessagesParams,
+    SearchMessagesResponse,
+    MessageSearchResult,
+    OAuthError,
+)
 from .utils import deserialize
 
 class SearchService:
@@ -45,6 +50,23 @@ class SearchService:
                 raise RuntimeError(
                     f"Unexpected status code: {response.status_code}"
                 )
+
+    async def search_messages_all(
+        self,
+        params: SearchMessagesParams,
+    ) -> list[MessageSearchResult]:
+        items: list[MessageSearchResult] = []
+        cursor: str | None = None
+        while True:
+            if params is None:
+                params = SearchMessagesParams()
+            params.cursor = cursor
+            response = await self.search_messages(params=params)
+            items.extend(response.data)
+            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not cursor:
+                break
+        return items
 
 
 class PachcaClient:

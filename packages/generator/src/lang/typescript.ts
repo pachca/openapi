@@ -411,6 +411,9 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
           needsDeserialize = true;
           if (op.successResponse.isList) {
             addImport(responseTypeName(op, ir));
+            if (op.isPaginated && op.successResponse.dataRef) {
+              addImport(op.successResponse.dataRef);
+            }
           } else if (op.successResponse.dataRef) {
             addImport(op.successResponse.dataRef);
           }
@@ -493,6 +496,10 @@ function emitService(lines: string[], svc: IRService, ir: IR): void {
   lines.push('');
   for (let i = 0; i < svc.operations.length; i++) {
     emitOperation(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated) {
+      lines.push('');
+      emitPaginationMethod(lines, svc.operations[i], ir);
+    }
     if (i < svc.operations.length - 1) lines.push('');
   }
   lines.push('}');
@@ -619,6 +626,39 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const preloadBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
   if (preloadBody) lines.push('    const body = await response.json();');
   emitResponseSwitch(lines, op, ir, preloadBody);
+  lines.push('  }');
+}
+
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const itemType = op.successResponse.dataRef ?? 'unknown';
+  const respType = responseTypeName(op, ir);
+  const paramsType = op.queryParams.length > 0 ? irParamTypeName(op) : null;
+
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: string`);
+  for (const p of op.pathParams) {
+    args.push(`${p.sdkName}: ${tsType(p.type, { allModels: new Map(), inlineAsObject: new Set() })}`);
+  }
+  if (paramsType) {
+    const hasRequired = op.queryParams.some((q) => q.required && q.name !== 'cursor');
+    args.push(hasRequired ? `params: Omit<${paramsType}, 'cursor'>` : `params?: Omit<${paramsType}, 'cursor'>`);
+  }
+
+  lines.push(`  async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
+  lines.push(`    const items: ${itemType}[] = [];`);
+  lines.push('    let cursor: string | undefined;');
+  lines.push('    do {');
+
+  // Build call args
+  const callArgs: string[] = [];
+  if (op.externalUrl) callArgs.push(op.externalUrl);
+  for (const p of op.pathParams) callArgs.push(p.sdkName);
+  if (paramsType) callArgs.push('{ ...params, cursor } as ' + paramsType);
+  lines.push(`      const response = await this.${op.methodName}(${callArgs.join(', ')});`);
+  lines.push('      items.push(...response.data);');
+  lines.push('      cursor = response.meta?.paginate?.nextPage;');
+  lines.push('    } while (cursor);');
+  lines.push('    return items;');
   lines.push('  }');
 }
 

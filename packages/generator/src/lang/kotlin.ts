@@ -401,9 +401,63 @@ function emitService(
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
     emitOperation(lines, svc.operations[i], ir, globalHasApiError);
+    if (svc.operations[i].isPaginated) {
+      lines.push('');
+      emitPaginationMethod(lines, svc.operations[i], ir);
+    }
   }
 
   lines.push('}');
+}
+
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const itemType = op.successResponse.dataRef ?? 'Any';
+
+  // Build params: same as original minus cursor
+  const params: string[] = [];
+  if (op.externalUrl) params.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) params.push(`${p.sdkName}: ${ktType(p.type)}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') continue;
+    const typeName = ktType(p.type);
+    params.push(p.required ? `${p.sdkName}: ${typeName}` : `${p.sdkName}: ${typeName}? = null`);
+  }
+
+  if (params.length <= 2) {
+    lines.push(`${indent}suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> {`);
+  } else {
+    lines.push(`${indent}suspend fun ${op.methodName}All(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent}): List<${itemType}> {`);
+  }
+
+  lines.push(`${indent2}val items = mutableListOf<${itemType}>()`);
+  lines.push(`${indent2}var cursor: String? = null`);
+  lines.push(`${indent2}do {`);
+
+  // Build call args for original method
+  const callArgs: string[] = [];
+  if (op.externalUrl) callArgs.push(`${op.externalUrl} = ${op.externalUrl}`);
+  for (const p of op.pathParams) callArgs.push(`${p.sdkName} = ${p.sdkName}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') {
+      callArgs.push('cursor = cursor');
+    } else {
+      callArgs.push(`${p.sdkName} = ${p.sdkName}`);
+    }
+  }
+
+  const callStr = callArgs.length <= 3
+    ? `${op.methodName}(${callArgs.join(', ')})`
+    : `${op.methodName}(\n${callArgs.map(a => `${indent2}        ${a},`).join('\n')}\n${indent2}    )`;
+  lines.push(`${indent2}    val response = ${callStr}`);
+  lines.push(`${indent2}    items.addAll(response.data)`);
+  lines.push(`${indent2}    cursor = response.meta?.paginate?.nextPage`);
+  lines.push(`${indent2}} while (cursor != null)`);
+  lines.push(`${indent2}return items`);
+  lines.push(`${indent}}`);
 }
 
 function emitOperation(

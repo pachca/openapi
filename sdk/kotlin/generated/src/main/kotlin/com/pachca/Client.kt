@@ -46,6 +46,36 @@ class SecurityService internal constructor(
             else -> throw response.body<ApiError>()
         }
     }
+
+    suspend fun getAuditEventsAll(
+        startTime: String,
+        endTime: String,
+        eventKey: AuditEventKey? = null,
+        actorId: String? = null,
+        actorType: String? = null,
+        entityId: String? = null,
+        entityType: String? = null,
+        limit: Int? = null,
+    ): List<AuditEvent> {
+        val items = mutableListOf<AuditEvent>()
+        var cursor: String? = null
+        do {
+            val response = getAuditEvents(
+                startTime = startTime,
+                endTime = endTime,
+                eventKey = eventKey,
+                actorId = actorId,
+                actorType = actorType,
+                entityId = entityId,
+                entityType = entityType,
+                limit = limit,
+                cursor = cursor,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
 }
 
 class BotsService internal constructor(
@@ -62,6 +92,17 @@ class BotsService internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    suspend fun getWebhookEventsAll(limit: Int? = null): List<WebhookEvent> {
+        val items = mutableListOf<WebhookEvent>()
+        var cursor: String? = null
+        do {
+            val response = getWebhookEvents(limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
     }
 
     suspend fun updateBot(id: Int, request: BotUpdateRequest): BotResponse {
@@ -113,6 +154,32 @@ class ChatsService internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    suspend fun listChatsAll(
+        sortId: SortOrder? = null,
+        availability: ChatAvailability? = null,
+        lastMessageAtAfter: String? = null,
+        lastMessageAtBefore: String? = null,
+        personal: Boolean? = null,
+        limit: Int? = null,
+    ): List<Chat> {
+        val items = mutableListOf<Chat>()
+        var cursor: String? = null
+        do {
+            val response = listChats(
+                sortId = sortId,
+                availability = availability,
+                lastMessageAtAfter = lastMessageAtAfter,
+                lastMessageAtBefore = lastMessageAtBefore,
+                personal = personal,
+                limit = limit,
+                cursor = cursor,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
     }
 
     suspend fun getChat(id: Int): Chat {
@@ -261,6 +328,26 @@ class MembersService internal constructor(
         }
     }
 
+    suspend fun listMembersAll(
+        id: Int,
+        role: ChatMemberRoleFilter? = null,
+        limit: Int? = null,
+    ): List<User> {
+        val items = mutableListOf<User>()
+        var cursor: String? = null
+        do {
+            val response = listMembers(
+                id = id,
+                role = role,
+                limit = limit,
+                cursor = cursor,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
+
     suspend fun addTags(id: Int, groupTagIds: List<Int>) {
         val response = client.post("$baseUrl/chats/$id/group_tags") {
             contentType(ContentType.Application.Json)
@@ -350,6 +437,17 @@ class GroupTagsService internal constructor(
         }
     }
 
+    suspend fun listTagsAll(names: TagNamesFilter? = null, limit: Int? = null): List<GroupTag> {
+        val items = mutableListOf<GroupTag>()
+        var cursor: String? = null
+        do {
+            val response = listTags(names = names, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
+
     suspend fun getTag(id: Int): GroupTag {
         val response = client.get("$baseUrl/group_tags/$id")
         return when (response.status.value) {
@@ -373,6 +471,17 @@ class GroupTagsService internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    suspend fun getTagUsersAll(id: Int, limit: Int? = null): List<User> {
+        val items = mutableListOf<User>()
+        var cursor: String? = null
+        do {
+            val response = getTagUsers(id = id, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
     }
 
     suspend fun createTag(request: GroupTagRequest): GroupTag {
@@ -430,6 +539,26 @@ class MessagesService internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    suspend fun listChatMessagesAll(
+        chatId: Int,
+        sortId: SortOrder? = null,
+        limit: Int? = null,
+    ): List<Message> {
+        val items = mutableListOf<Message>()
+        var cursor: String? = null
+        do {
+            val response = listChatMessages(
+                chatId = chatId,
+                sortId = sortId,
+                limit = limit,
+                cursor = cursor,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
     }
 
     suspend fun getMessage(id: Int): Message {
@@ -530,6 +659,17 @@ class ReactionsService internal constructor(
         }
     }
 
+    suspend fun listReactionsAll(id: Int, limit: Int? = null): List<Reaction> {
+        val items = mutableListOf<Reaction>()
+        var cursor: String? = null
+        do {
+            val response = listReactions(id = id, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
+
     suspend fun addReaction(id: Int, request: ReactionRequest): Reaction {
         val response = client.post("$baseUrl/messages/$id/reactions") {
             contentType(ContentType.Application.Json)
@@ -577,6 +717,17 @@ class ReadMembersService internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    suspend fun listReadMembersAll(id: Int, limit: Int? = null): List<Any> {
+        val items = mutableListOf<Any>()
+        var cursor: String? = null
+        do {
+            val response = listReadMembers(id = id, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
     }
 }
 
@@ -689,6 +840,36 @@ class SearchService internal constructor(
         }
     }
 
+    suspend fun searchChatsAll(
+        query: String? = null,
+        limit: Int? = null,
+        order: SortOrder? = null,
+        createdFrom: String? = null,
+        createdTo: String? = null,
+        active: Boolean? = null,
+        chatSubtype: ChatSubtype? = null,
+        personal: Boolean? = null,
+    ): List<Chat> {
+        val items = mutableListOf<Chat>()
+        var cursor: String? = null
+        do {
+            val response = searchChats(
+                query = query,
+                limit = limit,
+                cursor = cursor,
+                order = order,
+                createdFrom = createdFrom,
+                createdTo = createdTo,
+                active = active,
+                chatSubtype = chatSubtype,
+                personal = personal,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
+
     suspend fun searchMessages(
         query: String? = null,
         limit: Int? = null,
@@ -718,6 +899,36 @@ class SearchService internal constructor(
         }
     }
 
+    suspend fun searchMessagesAll(
+        query: String? = null,
+        limit: Int? = null,
+        order: SortOrder? = null,
+        createdFrom: String? = null,
+        createdTo: String? = null,
+        chatIds: List<Int>? = null,
+        userIds: List<Int>? = null,
+        active: Boolean? = null,
+    ): List<Message> {
+        val items = mutableListOf<Message>()
+        var cursor: String? = null
+        do {
+            val response = searchMessages(
+                query = query,
+                limit = limit,
+                cursor = cursor,
+                order = order,
+                createdFrom = createdFrom,
+                createdTo = createdTo,
+                chatIds = chatIds,
+                userIds = userIds,
+                active = active,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
+
     suspend fun searchUsers(
         query: String? = null,
         limit: Int? = null,
@@ -744,6 +955,34 @@ class SearchService internal constructor(
             else -> throw response.body<ApiError>()
         }
     }
+
+    suspend fun searchUsersAll(
+        query: String? = null,
+        limit: Int? = null,
+        sort: SearchSortOrder? = null,
+        order: SortOrder? = null,
+        createdFrom: String? = null,
+        createdTo: String? = null,
+        companyRoles: List<UserRole>? = null,
+    ): List<User> {
+        val items = mutableListOf<User>()
+        var cursor: String? = null
+        do {
+            val response = searchUsers(
+                query = query,
+                limit = limit,
+                cursor = cursor,
+                sort = sort,
+                order = order,
+                createdFrom = createdFrom,
+                createdTo = createdTo,
+                companyRoles = companyRoles,
+            )
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
+    }
 }
 
 class TasksService internal constructor(
@@ -760,6 +999,17 @@ class TasksService internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    suspend fun listTasksAll(limit: Int? = null): List<Task> {
+        val items = mutableListOf<Task>()
+        var cursor: String? = null
+        do {
+            val response = listTasks(limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
     }
 
     suspend fun getTask(id: Int): Task {
@@ -824,6 +1074,17 @@ class UsersService internal constructor(
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
+    }
+
+    suspend fun listUsersAll(query: String? = null, limit: Int? = null): List<User> {
+        val items = mutableListOf<User>()
+        var cursor: String? = null
+        do {
+            val response = listUsers(query = query, limit = limit, cursor = cursor)
+            items.addAll(response.data)
+            cursor = response.meta?.paginate?.nextPage
+        } while (cursor != null)
+        return items
     }
 
     suspend fun getUser(id: Int): User {

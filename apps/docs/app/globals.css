@@ -226,39 +226,11 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Скрываем main до установки позиции скролла при загрузке с якорем */
-.hash-loading #main-content {
-  visibility: hidden;
-}
-
 /* Disable transitions during theme switch */
 .disable-transitions *,
 .disable-transitions *::before,
 .disable-transitions *::after {
   transition: none !important;
-}
-
-/* Main container padding - mobile header offset */
-.main-container-padding {
-  padding-top: var(--mobile-header-height);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-  padding-bottom: env(safe-area-inset-bottom);
-  height: 100vh;
-}
-
-/* На мобильных используем dvh для лучшей поддержки */
-@supports (height: 100dvh) {
-  .main-container-padding {
-    height: 100dvh;
-  }
-}
-
-@media (min-width: 1024px) {
-  .main-container-padding {
-    padding-top: 0;
-    height: 100vh;
-  }
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -571,6 +543,26 @@ html.dark .code-block-container .shiki span {
   border-radius: var(--radius-lg);
 }
 
+html.dark .animate-dropdown {
+  background-color: var(--color-background-tertiary);
+  border-color: var(--color-background-border);
+}
+
+html.dark [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
+  background: var(--color-background-tertiary);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .animate-dropdown {
+    background-color: var(--color-background-tertiary);
+    border-color: var(--color-background-border);
+  }
+
+  html:not(.light) [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
+    background: var(--color-background-tertiary);
+  }
+}
+
 /* Стили для активного элемента сайдбара */
 .bg-primary.text-white {
   color: white !important;
@@ -647,7 +639,6 @@ html.dark .code-block-container .shiki span {
 }
 
 html {
-  scroll-behavior: smooth;
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
 }
@@ -655,4 +646,10 @@ html {
 /* Main uses auto by default, smooth scroll is handled programmatically */
 main {
   scroll-behavior: auto;
+}
+
+/* Dropdown panels (mobile TOC, skill filters, etc.) */
+.dropdown-panel {
+  max-height: 20rem; /* 320px, same as max-h-80 */
+  overflow-y: auto;
 }

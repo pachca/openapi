@@ -6,7 +6,8 @@ import {
   generateEndpointMarkdown,
   generateStaticPageMarkdownAsync,
 } from '../lib/markdown-generator';
-import { getOrderedGuidePages, sortTagsByOrder } from '../lib/guides-config';
+import { sortTagsByOrder } from '../lib/guides-config';
+import { getOrderedPages } from '../lib/ordered-pages';
 import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
@@ -28,7 +29,7 @@ function groupByTag(endpoints: Endpoint[]) {
 function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const grouped = groupByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
-  const guidePages = getOrderedGuidePages();
+  const guidePages = getOrderedPages();
 
   let content = '# Пачка API Documentation\n\n';
   content +=
@@ -91,7 +92,7 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   const baseUrl = api.servers[0]?.url;
   const grouped = groupByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
-  const guidePages = getOrderedGuidePages();
+  const guidePages = getOrderedPages();
 
   let content = '# Пачка API - Полная документация\n\n';
   content +=
@@ -246,7 +247,7 @@ function generateLegacySkillMd(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url;
   const grouped = groupByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
-  const guidePages = getOrderedGuidePages();
+  const guidePages = getOrderedPages();
 
   const FRONTMATTER = `---
 name: pachca
@@ -553,7 +554,7 @@ async function generateEndpointMdFiles(api: Awaited<ReturnType<typeof parseOpenA
 }
 
 async function generateGuideMdFiles() {
-  const guidePages = getOrderedGuidePages();
+  const guidePages = getOrderedPages();
   const files: { path: string; content: string }[] = [];
 
   for (const guide of guidePages) {

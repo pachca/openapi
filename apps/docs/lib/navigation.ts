@@ -1,7 +1,9 @@
 import { parseOpenAPI } from './openapi/parser';
 import { generateUrlFromOperation, generateTitle, groupEndpointsByTag } from './openapi/mapper';
-import type { NavigationSection } from './openapi/types';
-import { getOrderedGuidePages, sortTagsByOrder } from './guides-config';
+import type { NavigationSection, NavigationItem } from './openapi/types';
+import { GUIDE_SECTIONS, API_GUIDE_PAGES, type TabId } from './tabs-config';
+import { getGuideData } from './content-loader';
+import { sortTagsByOrder } from './guides-config';
 import { loadUpdates, isNewUpdate } from './updates-parser';
 
 const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
@@ -25,57 +27,159 @@ const TAG_TRANSLATIONS: Record<string, string> = {
   Search: 'Поиск',
 };
 
-export async function generateNavigation(): Promise<NavigationSection[]> {
-  const api = await parseOpenAPI();
+/**
+ * Generate navigation for a specific tab.
+ */
+export async function generateNavigation(tab?: TabId): Promise<NavigationSection[]> {
+  if (tab === 'guide') {
+    return generateGuideNavigation();
+  }
+  if (tab === 'api') {
+    return generateApiNavigation();
+  }
 
+  // Default: return combined navigation for backward compatibility
+  return generateFullNavigation();
+}
+
+/**
+ * Developer Guide tab sidebar.
+ * Sections are always-visible headers. Items can be direct links or groups with children.
+ */
+function generateGuideNavigation(): NavigationSection[] {
+  const sections: NavigationSection[] = [];
+  const hasNewUpdates = loadUpdates().some((u) => isNewUpdate(u.date));
+
+  for (const section of GUIDE_SECTIONS) {
+    const items: NavigationItem[] = [];
+
+    for (const page of section.items) {
+      if (page.children) {
+        // Group with children — collapsible in sidebar
+        const children: NavigationItem[] = page.children.map((child) => {
+          const data = getGuideData(child.path.replace('/guides/', ''));
+          return {
+            title: data?.frontmatter.title || child.title,
+            href: child.path,
+          };
+        });
+        items.push({
+          title: page.title,
+          href: page.path,
+          children,
+        });
+      } else {
+        const data = getGuideData(page.path.replace('/guides/', ''));
+        const item: NavigationItem = {
+          title: data?.frontmatter.title || page.title,
+          href: page.path,
+        };
+        if (page.path === '/guides/updates' && hasNewUpdates) {
+          item.badge = 'new';
+        }
+        items.push(item);
+      }
+    }
+
+    sections.push({ title: section.title, items });
+  }
+
+  return sections;
+}
+
+/**
+ * API Reference tab sidebar.
+ * Two sections: "Using the API" (flat pages) and "Методы API" (groups by tag).
+ */
+async function generateApiNavigation(): Promise<NavigationSection[]> {
+  const api = await parseOpenAPI();
   const sections: NavigationSection[] = [];
 
-  // Check if there are new updates (within last 7 days)
-  const updates = loadUpdates();
-  const hasNewUpdates = updates.some((update) => isNewUpdate(update.date));
-
-  // Add "Getting Started" section (dynamically collected from page.tsx files)
-  const guidePages = getOrderedGuidePages();
-  sections.push({
-    title: 'Начало работы',
-    items: guidePages.map((guide) => ({
-      title: guide.title,
-      href: guide.path,
-      // Add badge for updates page if there are new updates
-      badge: guide.path === '/guides/updates' && hasNewUpdates ? 'new' : undefined,
-    })),
+  // "Using the API" section — MDX guide pages (flat)
+  const apiGuideItems: NavigationItem[] = API_GUIDE_PAGES.map((page) => {
+    const data = getGuideData(`api/${page.path.replace('/api/', '')}`);
+    return {
+      title: data?.frontmatter.title || page.title,
+      href: page.path,
+    };
   });
 
-  // Group endpoints by tag
-  const grouped = groupEndpointsByTag(api.endpoints);
+  sections.push({
+    title: 'Основы API',
+    items: apiGuideItems,
+  });
 
-  // Sort sections by OpenAPI tag order
+  // "Методы API" section — each tag becomes a collapsible group
+  const grouped = groupEndpointsByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
 
-  // Create sections from tags
+  const methodGroups: NavigationItem[] = [];
+
   for (const tag of sortedTags) {
     const endpoints = grouped.get(tag)!;
     endpoints.sort((a, b) => (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99));
     const translation = TAG_TRANSLATIONS[tag];
     const title = translation || tag;
 
-    sections.push({
+    const children: NavigationItem[] = endpoints.map((endpoint) => ({
+      title: generateTitle(endpoint),
+      href: generateUrlFromOperation(endpoint),
+      method: endpoint.method,
+    }));
+
+    methodGroups.push({
       title,
+      href: children[0]?.href || '',
       originalTitle: translation ? tag : undefined,
-      items: endpoints.map((endpoint) => ({
-        title: generateTitle(endpoint),
-        href: generateUrlFromOperation(endpoint),
-        method: endpoint.method,
-      })),
+      children,
     });
   }
+
+  sections.push({
+    title: 'Методы API',
+    items: methodGroups,
+  });
 
   return sections;
 }
 
+/**
+ * Full navigation (for backward compatibility, search, sitemap, etc.)
+ */
+async function generateFullNavigation(): Promise<NavigationSection[]> {
+  const guideNav = generateGuideNavigation();
+  const apiNav = await generateApiNavigation();
+  return [...guideNav, ...apiNav];
+}
+
+/**
+ * Flatten all navigable items (including children) for prev/next.
+ */
+function flattenItems(sections: NavigationSection[]): NavigationItem[] {
+  const result: NavigationItem[] = [];
+  for (const section of sections) {
+    for (const item of section.items) {
+      if (item.children) {
+        result.push(...item.children);
+      } else {
+        result.push(item);
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * Get previous/next items for page navigation.
+ */
 export async function getAdjacentItems(currentHref: string) {
-  const sections = await generateNavigation();
-  const allItems = sections.flatMap((s) => s.items);
+  // Determine tab from URL
+  let tab: TabId | undefined;
+  if (currentHref.startsWith('/guides')) tab = 'guide';
+  else if (currentHref.startsWith('/api')) tab = 'api';
+
+  const sections = await generateNavigation(tab);
+  const allItems = flattenItems(sections);
   const currentIndex = allItems.findIndex((item) => item.href === currentHref);
 
   return {

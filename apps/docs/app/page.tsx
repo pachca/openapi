@@ -2,46 +2,82 @@ import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
 import { getAdjacentItems } from '@/lib/navigation';
 import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
-import { getGuideContent } from '@/lib/content-loader';
+import { getGuideData, extractFirstParagraph } from '@/lib/content-loader';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: {
-    absolute: 'Обзор - Пачка для разработчиков',
-  },
-  description: 'Создавайте уникальные решения на одной платформе',
-  alternates: {
-    canonical: '/',
-    types: {
-      'text/markdown': '/.md',
-    },
-  },
-  openGraph: {
-    images: ['/api/og'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const data = getGuideData('home');
 
-export default function HomePage() {
-  return <HomeContent />;
-}
-
-async function HomeContent() {
-  const adjacent = await getAdjacentItems('/');
-  const content = getGuideContent('home');
-
-  if (!content) {
-    return (
-      <StaticPageWrapper adjacent={adjacent} hideTableOfContents>
-        <StaticPageHeader title="Обзор" pageUrl="/" />
-        <p>Контент страницы не найден.</p>
-      </StaticPageWrapper>
-    );
+  if (!data) {
+    return { title: 'Страница не найдена' };
   }
 
+  const description = data.frontmatter.description || extractFirstParagraph(data.content);
+
+  return {
+    title: data.frontmatter.title,
+    description,
+    alternates: {
+      canonical: '/',
+      types: {
+        'text/markdown': '/index.md',
+      },
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'Пачка',
+      locale: 'ru_RU',
+      description,
+      images: ['/api/og'],
+    },
+  };
+}
+
+export default async function HomePage() {
+  const data = getGuideData('home');
+
+  if (!data) {
+    notFound();
+  }
+
+  const adjacent = await getAdjacentItems('/');
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'TechArticle',
+        headline: data.frontmatter.title,
+        description: data.frontmatter.description,
+        url: 'https://dev.pachca.com',
+        inLanguage: 'ru',
+        isPartOf: {
+          '@type': 'WebSite',
+          url: 'https://dev.pachca.com',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Пачка',
+          url: 'https://pachca.com',
+        },
+      },
+    ],
+  };
+
   return (
-    <StaticPageWrapper adjacent={adjacent} hideTableOfContents>
-      <StaticPageHeader title="Обзор" pageUrl="/" />
-      <MarkdownContent content={content} />
+    <StaticPageWrapper
+      adjacent={adjacent}
+      hideTableOfContents={data.frontmatter.hideTableOfContents}
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
+      <StaticPageHeader title={data.frontmatter.title} pageUrl="/" />
+      <MarkdownContent content={data.content} />
     </StaticPageWrapper>
   );
 }

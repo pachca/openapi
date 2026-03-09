@@ -48,7 +48,7 @@ interface GeneratedCommand {
 }
 
 function generateCommand(endpoint: Endpoint, examples?: string[]): GeneratedCommand {
-  const url = generateUrlFromOperation(endpoint);
+  const url = generateUrlFromOperation(endpoint).replace(/^\/api\//, '/');
   const [, section, action] = url.split('/');
   const filename = `${action}.ts`;
   const className = toPascalCase(section) + toPascalCase(action);
@@ -994,7 +994,7 @@ async function loadWorkflowExamples(endpoints: Endpoint[]): Promise<Map<string, 
     // Build mapping: "METHOD /path" → "pachca section action"
     const pathToCommand = new Map<string, string>();
     for (const ep of endpoints) {
-      const url = generateUrlFromOperation(ep);
+      const url = generateUrlFromOperation(ep).replace(/^\/api\//, '/');
       const [, section, action] = url.split('/');
       const cliCmd = `pachca ${section} ${action}`;
       pathToCommand.set(`${ep.method} ${ep.path}`, cliCmd);

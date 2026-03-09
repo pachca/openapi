@@ -91,7 +91,7 @@ export function useTheme() {
   return { theme, selectTheme, mounted };
 }
 
-function SettingsDropdown<T extends string>({
+export function SettingsDropdown<T extends string>({
   options,
   value,
   onChange,
@@ -114,7 +114,7 @@ function SettingsDropdown<T extends string>({
         <DropdownMenu.Trigger asChild>
           {compact ? (
             <button
-              className="w-9 h-9 flex justify-center items-center rounded-lg cursor-pointer text-text-secondary hover:text-text-primary"
+              className="w-9 h-9 flex justify-center items-center rounded-lg cursor-pointer text-text-secondary hover:text-text-primary outline-none"
               aria-label={ariaLabel}
             >
               <CurrentIcon className="w-5 h-5" />

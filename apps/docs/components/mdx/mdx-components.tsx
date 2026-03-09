@@ -13,7 +13,7 @@ import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
-import { getOrderedGuidePages } from '@/lib/guides-config';
+import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
 import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
@@ -181,8 +181,8 @@ export async function CodeBlock({ language = 'text', title, children }: CodeBloc
 // ============================================
 
 export function GuideCards() {
-  const guides = getOrderedGuidePages().filter(
-    (g) => g.path !== '/' && g.path !== '/guides/updates'
+  const guides = getOrderedPages().filter(
+    (g) => g.path !== '/' && !g.path.startsWith('/guides/updates') && !g.path.startsWith('/api/')
   );
 
   return (
@@ -203,18 +203,19 @@ export function GuideCards() {
 export async function ApiCards() {
   const sections = await generateNavigation();
   // Skip first section ("Начало работы" — guides) and "Профиль и статус"
-  const apiSections = sections.filter((s) => s.items[0]?.method != null);
+  const methodsSection = sections.find((s) => s.title === 'Методы API');
+  const apiGroups = methodsSection?.items ?? [];
 
   return (
     <CardGroup>
-      {apiSections.map((section) => {
-        const meta = API_SECTION_META[section.title];
-        const firstHref = section.items[0]?.href;
+      {apiGroups.map((group) => {
+        const meta = API_SECTION_META[group.title];
+        const firstHref = group.children?.[0]?.href || group.href;
         if (!firstHref) return null;
 
         return (
-          <Card key={section.title} title={section.title} icon={meta?.icon} href={firstHref}>
-            {meta?.description ?? section.title}
+          <Card key={group.title} title={group.title} icon={meta?.icon} href={firstHref}>
+            {meta?.description ?? group.title}
           </Card>
         );
       })}

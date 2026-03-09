@@ -39,9 +39,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ results: [] });
   }
 
-  const results = await search(query);
+  const { results, isCodeQuery } = await search(query);
 
   return NextResponse.json({
     results: results.slice(0, 20),
+    isCodeQuery,
   });
 }

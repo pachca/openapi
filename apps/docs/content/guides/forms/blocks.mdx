@@ -1,0 +1,87 @@
+---
+title: Блоки представления
+description: 10 типов блоков для построения форм в Пачке
+---
+
+# Блоки представления
+
+Блоки - это компоненты представления, которые позволяют вам формировать необходимые поля ввода данных и отображать дополнительную пояснительную информацию. Они указываются в поле `view.blocks` при открытии представления. Вы можете добавить до **100 блоков** в одно представление.
+
+## Заголовок (header)
+
+<ImageCard src="/images/forms/header.png" alt="Заголовок" caption="Заголовок" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockHeader" />
+
+## Обычный текст (plain_text)
+
+<ImageCard src="/images/forms/plaintext.png" alt="Обычный текст" caption="Обычный текст" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockPlainText" />
+
+## Форматированный текст (markdown)
+
+<ImageCard src="/images/forms/markdown.png" alt="Форматированный текст" caption="Форматированный текст" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockMarkdown" />
+
+В поле `text` вам необходимо прислать форматированный текст в синтаксисе `markdown`. Поддерживаются конструкции, указанные в таблице ниже.
+
+| Элемент | Синтаксис | Результат |
+|---------|-----------|-----------|
+| Жирный | `**это жирный текст**` или `__это жирный текст__` | **это жирный текст** |
+| Курсив | `*это курсивный текст*` или `_это курсивный текст_` | *это курсивный текст* |
+| Ссылки | `[текст ссылки](https://www.google.com)` | [текст ссылки](https://www.google.com) |
+| Маркированный список | `- первый пункт`<br/>`- второй пункт` | • первый пункт<br/>• второй пункт |
+| Нумерованный список | `1. первый пункт`<br/>`2. второй пункт` | 1. первый пункт<br/>2. второй пункт |
+| Зачеркнутый | `~~это зачеркнутый текст~~` | ~~это зачеркнутый текст~~ |
+| Строчный код | `` `код в тексте` `` | `код в тексте` |
+| Блок кода | `` ``` ``<br/>Блок кода<br/>`` ``` `` | `Блок кода` |
+
+## Разделитель (divider)
+
+<ImageCard src="/images/forms/divider.png" alt="Разделитель" caption="Разделитель" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockDivider" />
+
+## Текстовое поле (input)
+
+<ImageCard src="/images/forms/input.png" alt="Текстовое поле" caption="Текстовое поле" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockInput" />
+
+## Выпадающий список (select)
+
+<ImageCard src="/images/forms/select.png" alt="Выпадающий список" caption="Выпадающий список" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockSelect" />
+
+## Радиокнопки (radio)
+
+<ImageCard src="/images/forms/radio.png" alt="Радиокнопки" caption="Радиокнопки" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockRadio" />
+
+## Чекбоксы (checkbox)
+
+<ImageCard src="/images/forms/checkbox.png" alt="Чекбоксы" caption="Чекбоксы" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockCheckbox" />
+
+## Выбор даты (date)
+
+<ImageCard src="/images/forms/date.png" alt="Выбор даты" caption="Выбор даты" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockDate" />
+
+## Выбор времени (time)
+
+<ImageCard src="/images/forms/time.png" alt="Выбор времени" caption="Выбор времени" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockTime" />
+
+## Загрузка файлов (file_input)
+
+<ImageCard src="/images/forms/file.png" alt="Загрузка файлов" caption="Загрузка файлов" maxWidth={810} />
+
+<SchemaBlock name="ViewBlockFileInput" />

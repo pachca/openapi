@@ -3,7 +3,10 @@ import { generateNavigation } from '@/lib/navigation';
 
 export async function CliCommands() {
   const sections = await generateNavigation();
-  const allCommands = sections.filter((s) => s.items[0]?.method != null).flatMap((s) => s.items);
+  const methodsSection = sections.find((s) => s.title === 'Методы API');
+  const allCommands = methodsSection
+    ? methodsSection.items.flatMap((group) => group.children ?? [])
+    : [];
 
   return (
     <div className="my-6 overflow-x-auto not-prose">

@@ -387,7 +387,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                     {wf.requirements.scopes.map((scope) => (
                       <Link
                         key={scope}
-                        href="/guides/authorization#skoupy"
+                        href="/api/authorization#skoupy"
                         className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                       >
                         {scope}
@@ -396,7 +396,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                     {wf.requirements.plans.map((plan) => (
                       <Link
                         key={plan}
-                        href="/guides/authorization"
+                        href="/api/authorization"
                         className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-callout-warning-bg)] ![color:var(--color-callout-warning-text)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                       >
                         {plan === 'corporation' ? 'Корпорация' : plan}

@@ -53,7 +53,7 @@ export function EndpointHeader({
               <div className="flex items-center gap-1.5 order-last sm:order-none basis-full sm:basis-auto pb-2 sm:pb-0">
                 {requirements.auth === false && (
                   <Link
-                    href="/guides/authorization"
+                    href="/api/authorization"
                     className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                   >
                     Без авторизации
@@ -61,7 +61,7 @@ export function EndpointHeader({
                 )}
                 {requirements.scope && (
                   <Link
-                    href="/guides/authorization#skoupy"
+                    href="/api/authorization#skoupy"
                     className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                   >
                     {requirements.scope}
@@ -69,7 +69,7 @@ export function EndpointHeader({
                 )}
                 {requirements.plan && (
                   <Link
-                    href="/guides/authorization"
+                    href="/api/authorization"
                     className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-callout-warning-bg)] ![color:var(--color-callout-warning-text)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                   >
                     {planNames[requirements.plan] ?? requirements.plan}

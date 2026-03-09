@@ -87,17 +87,17 @@ const iconMap: Record<string, LucideIcon> = {
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
-  '/guides/authorization': 'KeyRound',
   '/guides/ai-agents': 'Sparkles',
   '/guides/cli': 'Terminal',
   '/guides/workflows': 'Route',
-  '/guides/requests-responses': 'ArrowLeftRight',
   '/guides/webhook': 'Webhook',
-  '/guides/errors': 'AlertTriangle',
   '/guides/export': 'Download',
-  '/guides/forms': 'LayoutList',
+  '/guides/forms/overview': 'LayoutList',
   '/guides/dlp': 'ShieldCheck',
   '/guides/audit-events': 'ClipboardList',
+  '/api/authorization': 'KeyRound',
+  '/api/requests-responses': 'ArrowLeftRight',
+  '/api/errors': 'AlertTriangle',
   '/guides/updates': 'FileText',
 };
 

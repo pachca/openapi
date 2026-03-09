@@ -1,0 +1,84 @@
+---
+title: SDK
+description: Клиентские библиотеки для API Пачки на 5 языках
+---
+
+# SDK
+
+SDK для API Пачки автоматически генерируются из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Они предоставляют типизированные клиенты с автокомплитом и актуальными моделями данных.
+
+## Доступные SDK
+
+<CardGroup>
+  <Card title="TypeScript" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/typescript">
+    npm install @pachca/sdk
+  </Card>
+  <Card title="Python" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/python">
+    pip install pachca
+  </Card>
+  <Card title="Go" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/go">
+    go get github.com/pachca/openapi/sdk/go
+  </Card>
+  <Card title="Kotlin" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/kotlin">
+    Maven / Gradle
+  </Card>
+  <Card title="Swift" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/swift">
+    Swift Package Manager
+  </Card>
+</CardGroup>
+
+## Быстрый пример
+
+### TypeScript
+
+<CodeBlock language="typescript" title="TypeScript">
+{`import { createClient } from '@pachca/sdk';
+
+const client = createClient({
+  token: 'ваш_токен',
+});
+
+// Получить список чатов
+const chats = await client.GET('/chats', {
+  params: { query: { per: 10 } }
+});
+
+console.log(chats.data);`}
+</CodeBlock>
+
+### Python
+
+<CodeBlock language="python" title="Python">
+{`from pachca import Client
+
+client = Client(token="ваш_токен")
+
+# Получить список чатов
+chats = client.chats.list(per=10)
+print(chats.data)`}
+</CodeBlock>
+
+### Go
+
+<CodeBlock language="go" title="Go">
+{`package main
+
+import (
+    "context"
+    "fmt"
+    pachca "github.com/pachca/openapi/sdk/go"
+)
+
+func main() {
+    client := pachca.NewClient("ваш_токен")
+
+    chats, _ := client.Chats.List(context.Background(), &pachca.ListParams{Per: 10})
+    fmt.Println(chats.Data)
+}`}
+</CodeBlock>
+
+## Ссылки
+
+- [GitHub: pachca/openapi/sdk](https://github.com/pachca/openapi/tree/main/sdk) — исходный код всех SDK
+- [OpenAPI-спецификация](https://dev.pachca.com/openapi.yaml) — YAML-файл для генерации
+- <NpmBadge package="@pachca/sdk" />

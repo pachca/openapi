@@ -218,15 +218,25 @@ Detailed documentation on specific topics is available at:
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [CLI](https://dev.pachca.com/guides/cli) — Управление Пачкой из терминала — все API-методы одной командой
 - [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API
+- [Последние обновления](https://dev.pachca.com/guides/updates) — История изменений и новые возможности API
+- [Боты](https://dev.pachca.com/guides/bots) — Создание, настройка и возможности ботов в Пачке
+- [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Отправка сообщений от имени бота без использования API
 - [Исходящий Webhook](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
-- [Авторизация](https://dev.pachca.com/guides/authorization) — Типы токенов, скоупы и настройка доступа к API
-- [Запросы и ответы](https://dev.pachca.com/guides/requests-responses) — Формат запросов и ответов, тестирование API
-- [Ошибки и лимиты](https://dev.pachca.com/guides/errors) — Коды ошибок HTTP и rate limits
+- [Обзор](https://dev.pachca.com/guides/forms/overview) — Модальные формы ботов: поля ввода, жизненный цикл и валидация
+- [Блоки представления](https://dev.pachca.com/guides/forms/blocks) — 10 типов блоков для построения форм в Пачке
+- [Обработка форм](https://dev.pachca.com/guides/forms/handling) — Открытие представлений, получение результатов и валидация
 - [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов: запрос, скачивание и структура архива
-- [Формы](https://dev.pachca.com/guides/forms) — Модальные формы ботов: поля ввода, жизненный цикл и валидация
 - [DLP-система](https://dev.pachca.com/guides/dlp) — Создание правил DLP: условия, контексты и действия
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов
-- [Последние обновления](https://dev.pachca.com/guides/updates) — История изменений и новые возможности API
+- [n8n](https://dev.pachca.com/guides/n8n) — Визуальный конструктор автоматизаций для Пачки
+- [Albato](https://dev.pachca.com/guides/albato) — Интеграция 250+ сервисов с Пачкой без кода
+- [Быстрый старт](https://dev.pachca.com/api/quickstart) — Первый запрос к API Пачки за 5 минут
+- [Авторизация](https://dev.pachca.com/api/authorization) — Типы токенов, скоупы и настройка доступа к API
+- [Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов, тестирование API
+- [Пагинация](https://dev.pachca.com/api/pagination) — Cursor-based pagination в API Пачки
+- [Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговый процесс загрузки файлов через presigned URL
+- [Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP и rate limits
+- [SDK](https://dev.pachca.com/api/sdk) — Клиентские библиотеки для API Пачки на 5 языках
 
 
 ## Modular Skills

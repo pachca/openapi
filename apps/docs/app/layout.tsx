@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Sidebar } from '@/components/layout/sidebar-wrapper';
+import { HeaderServer } from '@/components/layout/header-wrapper';
 import { TransitionProvider } from '@/components/layout/transition-provider';
 import { DisplaySettingsProvider } from '@/components/layout/display-settings-context';
+import { MobileTableOfContents } from '@/components/layout/mobile-toc';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import './globals.css';
 
@@ -75,7 +77,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className="h-full" suppressHydrationWarning>
+    <html lang="ru" className="min-h-screen" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#36373d" media="(prefers-color-scheme: dark)" />
@@ -119,32 +121,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   }
                 } catch (e) {}
               })();
-              if (window.location.hash && window.location.hash.indexOf('#param-') !== 0) {
-                document.documentElement.classList.add('hash-loading');
-              }
             `,
           }}
         />
       </head>
       <body
-        className="h-full m-0 overflow-hidden font-sans text-text-primary antialiased bg-background"
+        className="min-h-screen m-0 font-sans text-text-primary antialiased bg-background"
         suppressHydrationWarning
       >
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-md focus:text-sm"
-        >
-          Перейти к содержимому
-        </a>
         <Tooltip.Provider delayDuration={0}>
           <DisplaySettingsProvider>
             <TransitionProvider />
-            <div className="flex w-full overflow-hidden main-container-padding">
+            <HeaderServer />
+            <MobileTableOfContents />
+            <div className="flex min-h-screen pt-[var(--mobile-header-height)]">
               <Sidebar />
-              <main
-                id="main-content"
-                className="flex-1 overflow-y-auto bg-background custom-scrollbar flex flex-col min-w-0"
-              >
+              <main className="flex-1 bg-background flex flex-col min-w-0 lg:pl-[280px]">
                 {children}
               </main>
             </div>

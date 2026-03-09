@@ -1,0 +1,130 @@
+---
+title: Загрузка файлов
+description: Трёхшаговый процесс загрузки файлов через presigned URL
+---
+
+# Загрузка файлов
+
+Загрузка файлов через API Пачки — трёхшаговый процесс с presigned URL (S3-совместимое хранилище).
+
+## Обзор процесса
+
+<Mermaid chart={`sequenceDiagram
+    participant App as Ваше приложение
+    participant API as API Пачки
+    participant S3 as Хранилище
+
+    App->>API: POST /uploads
+    API-->>App: Параметры загрузки (key, policy, signature, direct_url)
+    App->>S3: POST {direct_url} + multipart/form-data + файл
+    S3-->>App: 201 Created
+    App->>API: POST /messages + key (с именем файла)
+    API-->>App: Сообщение с файлом`} />
+
+## Шаг 1: Получение параметров загрузки
+
+Сделайте `POST`-запрос без тела для получения подписи и параметров:
+
+<ApiCodeExample operationId="UploadOperations_getUploadParams" title="Получение параметров загрузки" />
+
+В ответе вы получите параметры для следующего шага: `Content-Disposition`, `acl`, `policy`, `x-amz-credential`, `x-amz-algorithm`, `x-amz-date`, `x-amz-signature`, `key` и `direct_url`.
+
+## Шаг 2: Загрузка файла
+
+Отправьте `POST`-запрос с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл:
+
+<CodeBlock language="bash" title="cURL: загрузка файла">
+{`curl -X POST "$DIRECT_URL" \\
+  -F "Content-Disposition=$CONTENT_DISPOSITION" \\
+  -F "acl=$ACL" \\
+  -F "policy=$POLICY" \\
+  -F "x-amz-credential=$X_AMZ_CREDENTIAL" \\
+  -F "x-amz-algorithm=$X_AMZ_ALGORITHM" \\
+  -F "x-amz-date=$X_AMZ_DATE" \\
+  -F "x-amz-signature=$X_AMZ_SIGNATURE" \\
+  -F "key=$KEY" \\
+  -F "file=@./document.pdf"`}
+</CodeBlock>
+
+При успешной загрузке сервер вернёт `HTTP 201 Created`.
+
+<Danger>Порядок полей в multipart-запросе важен: файл (`file`) должен быть **последним** полем.</Danger>
+
+## Шаг 3: Использование файла
+
+Подставьте имя загруженного файла в поле `key` (замените `${filename}` на реальное имя файла) и используйте его при отправке сообщения:
+
+<CodeBlock language="json" title="Файл в сообщении">
+{`{
+  "message": {
+    "entity_type": "discussion",
+    "entity_id": 12345,
+    "content": "Документ прикреплён",
+    "files": [
+      {
+        "key": "attaches/files/93746/e354fd79-.../document.pdf",
+        "name": "document.pdf",
+        "file_type": "file",
+        "size": 102400
+      }
+    ]
+  }
+}`}
+</CodeBlock>
+
+## Типы файлов
+
+| Тип | `file_type` | Дополнительные поля |
+|-----|-------------|---------------------|
+| Файл | `file` | — |
+| Изображение | `image` | `width`, `height` — размеры в пикселях |
+
+## Полный пример
+
+<CodeBlock language="javascript" title="Node.js: загрузка и отправка файла">
+{`const TOKEN = 'ваш_токен';
+const BASE = 'https://api.pachca.com/api/shared/v1';
+const headers = { Authorization: \`Bearer \${TOKEN}\` };
+
+// Шаг 1: Получить параметры загрузки
+const params = await fetch(\`\${BASE}/uploads\`, {
+  method: 'POST', headers
+}).then(r => r.json());
+
+// Шаг 2: Загрузить файл
+const form = new FormData();
+form.append('Content-Disposition', params['Content-Disposition']);
+form.append('acl', params.acl);
+form.append('policy', params.policy);
+form.append('x-amz-credential', params['x-amz-credential']);
+form.append('x-amz-algorithm', params['x-amz-algorithm']);
+form.append('x-amz-date', params['x-amz-date']);
+form.append('x-amz-signature', params['x-amz-signature']);
+form.append('key', params.key);
+form.append('file', fs.createReadStream('./report.pdf'));
+
+await fetch(params.direct_url, { method: 'POST', body: form });
+
+// Шаг 3: Отправить сообщение с файлом
+const fileKey = params.key.replace('\${filename}', 'report.pdf');
+await fetch(\`\${BASE}/messages\`, {
+  method: 'POST',
+  headers: { ...headers, 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message: {
+      entity_type: 'discussion',
+      entity_id: 12345,
+      content: 'Отчёт прикреплён',
+      files: [{ key: fileKey, name: 'report.pdf', file_type: 'file', size: 102400 }]
+    }
+  })
+});`}
+</CodeBlock>
+
+## Частые ошибки
+
+| Ошибка | Причина | Решение |
+|--------|---------|---------|
+| `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через `POST /uploads` |
+| `400 Bad Request` | Неправильный Content-Type | Убедитесь, что запрос отправляется как `multipart/form-data`, а не `application/json` |
+| Файл не отображается | Неверный `key` | Проверьте, что `${filename}` в ключе заменён на реальное имя файла |

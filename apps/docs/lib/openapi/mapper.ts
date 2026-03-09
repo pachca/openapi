@@ -4,9 +4,9 @@ import { toSlug } from '@/lib/utils/transliterate';
 // Overrides for auto-generated command URLs that produce ugly names.
 // Key: "METHOD /path", value: "/section/action" for the CLI URL.
 const OPERATION_OVERRIDES: Record<string, string> = {
-  'GET /messages/{id}/read_member_ids': '/read-member/list-readers',
-  'GET /profile/status': '/profile/get-status',
-  'GET /users/{user_id}/status': '/users/get-status',
+  'GET /messages/{id}/read_member_ids': '/api/read-member/list-readers',
+  'GET /profile/status': '/api/profile/get-status',
+  'GET /users/{user_id}/status': '/api/users/get-status',
 };
 
 export function generateUrlFromOperation(endpoint: Endpoint): string {
@@ -43,7 +43,7 @@ export function generateUrlFromOperation(endpoint: Endpoint): string {
     }
   }
 
-  return `/${section}/${action}`;
+  return `/api/${section}/${action}`;
 }
 
 /**

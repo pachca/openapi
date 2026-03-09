@@ -4,7 +4,10 @@ import { ReactNode } from 'react';
 import Link from 'next/link';
 import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
 import gsap from 'gsap';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { toSlug } from '@/lib/utils/transliterate';
+
+gsap.registerPlugin(ScrollToPlugin);
 
 interface SmoothScrollLinkProps {
   href: string;
@@ -17,18 +20,15 @@ export function SmoothScrollLink({ href, children }: SmoothScrollLinkProps) {
 
     const targetId = toSlug(decodeURIComponent(href.replace('#', '')));
     const target = document.getElementById(targetId);
-    const mainContent = document.querySelector('main');
 
-    if (target && mainContent) {
-      // Стандартный скролл браузера обычно длится ~500-800мс
-      // Делаем его быстрым (300мс) с приятным ускорением/замедлением
-      gsap.to(mainContent, {
+    if (target) {
+      const targetScrollTop = target.getBoundingClientRect().top + window.scrollY - 80;
+      gsap.to(window, {
         duration: 0.4,
-        scrollTop: target.offsetTop - 80, // 80px отступ сверху (scroll-mt-20)
+        scrollTo: { y: targetScrollTop },
         ease: 'power2.out',
       });
 
-      // Обновляем URL без прыжка
       window.history.pushState(null, '', `#${targetId}`);
     }
   };

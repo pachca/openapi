@@ -44,7 +44,7 @@ export function SidebarScrollWrapper({ children }: SidebarScrollWrapperProps) {
       <nav
         ref={navRef}
         id="sidebar-scroll-container"
-        className="px-2.5 flex-1 overflow-y-auto min-h-0 custom-scrollbar"
+        className="px-2.5 flex-1 overflow-y-auto min-h-0 custom-scrollbar pb-4"
       >
         {children}
       </nav>

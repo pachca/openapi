@@ -27,23 +27,17 @@ export function TransitionProvider() {
     const handlePopState = () => {
       isBackForwardNavigation = true;
 
-      // Восстанавливаем скролл после того как Next.js обновит DOM
       const targetUrl = window.location.pathname;
       const savedPosition = scrollPositions.get(targetUrl);
 
       if (savedPosition !== undefined) {
-        // Используем несколько попыток с задержкой, т.к. DOM может обновляться асинхронно
         const restoreScroll = (attempts: number) => {
-          const mainContent = document.querySelector('main');
-          if (mainContent) {
-            mainContent.scrollTop = savedPosition;
-          }
+          window.scrollTo(0, savedPosition);
           if (attempts > 0) {
             requestAnimationFrame(() => restoreScroll(attempts - 1));
           }
         };
 
-        // Запускаем восстановление с несколькими попытками
         requestAnimationFrame(() => restoreScroll(5));
       }
     };
@@ -54,54 +48,31 @@ export function TransitionProvider() {
 
   // Сохраняем позицию скролла при каждом скролле
   useEffect(() => {
-    const mainContent = document.querySelector('main');
-    if (!mainContent) return;
-
     let scrollTimeout: ReturnType<typeof setTimeout>;
 
     const handleScroll = () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
-        scrollPositions.set(pathname, mainContent.scrollTop);
+        scrollPositions.set(pathname, window.scrollY);
       }, 50);
     };
 
-    mainContent.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       clearTimeout(scrollTimeout);
-      mainContent.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [pathname]);
 
-  // Сохраняем позицию перед переходом по ссылке и обрабатываем якорные ссылки
+  // Сохраняем позицию перед переходом по ссылке
   useEffect(() => {
-    const mainContent = document.querySelector('main');
-    if (!mainContent) return;
-
     const handleClick = (e: MouseEvent) => {
       const link = (e.target as HTMLElement).closest('a');
       if (!link) return;
 
-      // Обработка якорных ссылок (начинающихся с #)
-      const href = link.getAttribute('href');
-
-      if (href?.startsWith('#')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const rawId = decodeURIComponent(href.slice(1));
-        const element = document.getElementById(rawId) || document.getElementById(toSlug(rawId));
-
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          window.history.pushState(null, '', `#${element.id}`);
-        }
-        return;
-      }
-
       if (link.href && !link.href.startsWith('javascript:')) {
-        // Сохраняем текущую позицию перед переходом
-        scrollPositions.set(pathname, mainContent.scrollTop);
+        scrollPositions.set(pathname, window.scrollY);
       }
     };
 
@@ -118,32 +89,25 @@ export function TransitionProvider() {
       // Обработка якоря при первой загрузке страницы
       const hash = window.location.hash;
       if (hash) {
-        const rawId = decodeURIComponent(hash.slice(1));
-        const element = document.getElementById(rawId) || document.getElementById(toSlug(rawId));
-        if (element) {
-          element.scrollIntoView({ block: 'start' });
-        }
-        document.documentElement.classList.remove('hash-loading');
-      } else {
-        document.documentElement.classList.remove('hash-loading');
+        requestAnimationFrame(() => {
+          const rawId = decodeURIComponent(hash.slice(1));
+          const element = document.getElementById(rawId) || document.getElementById(toSlug(rawId));
+          if (element) {
+            element.scrollIntoView({ block: 'start' });
+          }
+        });
       }
       return;
     }
 
-    const mainContent = document.querySelector('main');
-    if (!mainContent) return;
-
-    // Сохраняем позицию предыдущей страницы
     if (lastPathname.current !== pathname) {
       lastPathname.current = pathname;
     }
 
     if (isBackForwardNavigation) {
-      // Позиция восстанавливается в handlePopState
       isBackForwardNavigation = false;
     } else {
-      // Обычная навигация вперёд - скроллим наверх
-      mainContent.scrollTop = 0;
+      window.scrollTo(0, 0);
     }
   }, [pathname]);
 
@@ -152,10 +116,8 @@ export function TransitionProvider() {
       return;
     }
 
-    // Отключаем анимации при смене страницы
     document.documentElement.classList.add('disable-transitions');
 
-    // Включаем анимации обратно
     const timer = setTimeout(() => {
       document.documentElement.classList.remove('disable-transitions');
     }, 50);

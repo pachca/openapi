@@ -2,28 +2,43 @@
 
 import { SidebarScrollWrapper } from './sidebar-scroll-wrapper';
 import { SidebarNav } from './sidebar-nav';
-import { SidebarHeader } from './sidebar-header';
-import { SidebarFooter } from './sidebar-footer';
+import { SearchButton } from './search-button';
 import { MobileSidebar } from './mobile-sidebar';
 import type { NavigationSection } from '@/lib/openapi/types';
+import { usePathname } from 'next/navigation';
+import { getActiveTab } from '@/lib/tabs-config';
 
 interface SidebarClientProps {
-  navigation: NavigationSection[];
+  guideNavigation: NavigationSection[];
+  apiNavigation: NavigationSection[];
 }
 
-function SidebarClient({ navigation }: SidebarClientProps) {
+function SidebarClient({ guideNavigation, apiNavigation }: SidebarClientProps) {
+  const pathname = usePathname();
+  const activeTab = getActiveTab(pathname);
+
+  // Choose navigation based on active tab (tabs without navigation get empty array)
+  const navigationByTab: Record<string, NavigationSection[]> = {
+    guide: guideNavigation,
+    api: apiNavigation,
+  };
+  const navigation = navigationByTab[activeTab ?? 'guide'] || [];
+
   return (
     <>
       {/* Мобильная версия */}
-      <MobileSidebar navigation={navigation} />
+      <MobileSidebar guideNavigation={guideNavigation} apiNavigation={apiNavigation} />
 
       {/* Десктопная версия */}
-      <aside className="hidden lg:flex w-[320px] min-w-[320px] h-screen bg-background-secondary border-r border-background-border flex-col shrink-0 z-40">
-        <SidebarHeader />
-        <SidebarScrollWrapper>
-          <SidebarNav navigation={navigation} />
-        </SidebarScrollWrapper>
-        <SidebarFooter />
+      <aside className="hidden lg:flex w-[280px] fixed top-[var(--mobile-header-height)] bottom-0 left-0 bg-background-secondary border-r border-background-border flex-col z-40">
+        <div className="px-2.5 py-4 shrink-0">
+          <SearchButton />
+        </div>
+        {navigation.length > 0 && (
+          <SidebarScrollWrapper>
+            <SidebarNav navigation={navigation} />
+          </SidebarScrollWrapper>
+        )}
       </aside>
     </>
   );

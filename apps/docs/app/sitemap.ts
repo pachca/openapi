@@ -1,14 +1,14 @@
 import type { MetadataRoute } from 'next';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { generateUrlFromOperation } from '@/lib/openapi/mapper';
-import { getOrderedGuidePages } from '@/lib/guides-config';
+import { getOrderedPages } from '@/lib/ordered-pages';
 import { loadUpdates } from '@/lib/updates-parser';
 
 const BASE_URL = 'https://dev.pachca.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const api = await parseOpenAPI();
-  const guidePages = getOrderedGuidePages();
+  const guidePages = getOrderedPages();
 
   const entries: MetadataRoute.Sitemap = [];
 

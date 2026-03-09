@@ -28,7 +28,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   const handleResultClick = (result: SearchResult) => {
     onClose();
 
-    if (result.matchedValue?.path) {
+    if (result.matchedByField && result.matchedValue?.path) {
       const paramId = generateParamId(result.matchedValue.path);
       const url = `${result.url}#${paramId}`;
       router.push(url);
@@ -121,7 +121,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-text-primary mb-1 text-[15px]">{result.title}</div>
-          {result.matchedValue?.path && (
+          {result.matchedByField && result.matchedValue?.path && (
             <div className=" text-xs mb-1">
               <span className="text-text-secondary flex items-center overflow-hidden gap-1 min-w-0">
                 <code className="text-[13px] font-bold font-mono text-text-secondary shrink-0">

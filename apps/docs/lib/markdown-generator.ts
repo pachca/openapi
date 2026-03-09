@@ -532,14 +532,16 @@ export function generateEndpointMarkdown(endpoint: Endpoint, baseUrl?: string): 
  * Generate markdown for a static page
  * Loads content from MDX/MD files in content/ directory
  */
-export async function generateStaticPageMarkdownAsync(path: string): Promise<string | null> {
+export async function generateStaticPageMarkdownAsync(pagePath: string): Promise<string | null> {
   // Convert path to content file path
-  // "/" -> "home", "/guides/forms" -> "forms", etc.
-  let contentPath = path;
-  if (path === '/') {
+  // "/" -> "home", "/guides/updates" -> "updates", "/api/authorization" -> "api/authorization"
+  let contentPath = pagePath;
+  if (pagePath === '/') {
     contentPath = 'home';
-  } else if (path.startsWith('/guides/')) {
-    contentPath = path.replace('/guides/', '');
+  } else if (pagePath.startsWith('/guides/')) {
+    contentPath = pagePath.replace('/guides/', '');
+  } else if (pagePath.startsWith('/api/')) {
+    contentPath = pagePath.slice(1); // Keep "api/..." prefix
   }
 
   // Load markdown/mdx file for this path

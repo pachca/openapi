@@ -25,7 +25,10 @@ type ChatsService struct {
 }
 
 func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (*ListChatsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/chats", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/chats", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.Availability != nil {
 		q.Set("availability", string(*params.Availability))

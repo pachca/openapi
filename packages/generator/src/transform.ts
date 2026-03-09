@@ -123,11 +123,13 @@ function resolveFieldType(schema: Schema): IRFieldType {
 
 // ----- Model extraction -----
 
-/** Naive singularize: strip trailing 's' */
+/** Singularize: strip trailing 's', with exceptions for words that already end in 's' */
 function singularize(name: string): string {
-  if (name.endsWith('s') && name.length > 1) {
-    return name.slice(0, -1);
-  }
+  if (name.length <= 1) return name;
+  const lower = name.toLowerCase();
+  // Words ending in ss/us/is/os are already singular (status, address, progress)
+  if (lower.endsWith('ss') || lower.endsWith('us') || lower.endsWith('is') || lower.endsWith('os')) return name;
+  if (name.endsWith('s')) return name.slice(0, -1);
   return name;
 }
 

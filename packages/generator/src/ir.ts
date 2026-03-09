@@ -161,6 +161,15 @@ export interface IRResponseType {
   metaIsRequired: boolean;
 }
 
+// ----- Helpers -----
+
+/** Whether a single-field request body should be unwrapped into a direct parameter */
+export function shouldUnwrapBody(rb: IRRequestBody): boolean {
+  if (rb.unwrapMode !== 'single' || !rb.unwrapField) return false;
+  const k = rb.unwrapField.type.kind;
+  return k !== 'model' && k !== 'record';
+}
+
 // ----- Top-level IR -----
 
 export interface IR {

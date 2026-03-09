@@ -20,7 +20,7 @@ class EventsService:
     ) -> ListEventsResponse:
         query: dict[str, str] = {}
         if params is not None and params.is_active is not None:
-            query["is_active"] = params.is_active
+            query["is_active"] = str(params.is_active).lower()
         if params is not None and params.scopes is not None:
             query["scopes"] = params.scopes
         if params is not None and params.filter is not None:

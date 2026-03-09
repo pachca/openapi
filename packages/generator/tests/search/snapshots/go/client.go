@@ -25,7 +25,10 @@ type SearchService struct {
 }
 
 func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	q.Set("query", fmt.Sprintf("%v", params.Query))
 	for _, v := range params.ChatIDs {

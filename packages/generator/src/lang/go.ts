@@ -1,13 +1,14 @@
-import type {
-  IR,
-  IREnum,
-  IRField,
-  IRFieldType,
-  IRModel,
-  IROperation,
-  IRService,
-  IRUnion,
-  IRResponseType,
+import {
+  shouldUnwrapBody,
+  type IR,
+  type IREnum,
+  type IRField,
+  type IRFieldType,
+  type IRModel,
+  type IROperation,
+  type IRService,
+  type IRUnion,
+  type IRResponseType,
 } from '../ir.js';
 import type { GeneratedFile, LanguageGenerator } from './types.js';
 import { snakeToCamel, snakeToPascal, tagToServiceName } from '../naming.js';
@@ -399,14 +400,12 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
 
   if (op.requestBody) {
     const rb = op.requestBody;
-    const f = rb.unwrapField;
-    const shouldUnwrap =
-      rb.unwrapMode === 'single' &&
-      !!f &&
-      f.type.kind !== 'model' &&
-      f.type.kind !== 'record';
-    if (shouldUnwrap) args.push(`${snakeToCamel(f.name)} ${goType(f.type)}`);
-    else if (rb.schemaRef) args.push(`request ${rb.schemaRef}`);
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      args.push(`${snakeToCamel(f.name)} ${goType(f.type)}`);
+    } else if (rb.schemaRef) {
+      args.push(`request ${rb.schemaRef}`);
+    }
   }
   if (op.queryParams.length > 0) {
     const pName = `${upperFirst(op.methodName)}Params`;
@@ -447,7 +446,9 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
         lines.push('\t\tif err != nil {');
         lines.push('\t\t\treturn');
         lines.push('\t\t}');
-        lines.push(`\t\tio.Copy(part, request.${goExportName(bin.name)})`);
+        lines.push(`\t\tif _, err := io.Copy(part, request.${goExportName(bin.name)}); err != nil {`);
+        lines.push('\t\t\treturn');
+        lines.push('\t\t}');
       }
     }
     lines.push('\t}()');
@@ -460,13 +461,8 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     const hasJSON = op.requestBody?.contentType === 'json';
     if (hasJSON) {
       const rb = op.requestBody!;
-      const f = rb.unwrapField;
-      const shouldUnwrap =
-        rb.unwrapMode === 'single' &&
-        !!f &&
-        f.type.kind !== 'model' &&
-        f.type.kind !== 'record';
-      if (shouldUnwrap) {
+      if (shouldUnwrapBody(rb)) {
+        const f = rb.unwrapField!;
         lines.push(`\tbody, err := json.Marshal(map[string]any{${JSON.stringify(f.name)}: ${snakeToCamel(f.name)}})`);
       } else {
         lines.push('\tbody, err := json.Marshal(request)');
@@ -477,7 +473,10 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     }
 
     if (op.queryParams.length > 0) {
-      lines.push(`\tu, _ := url.Parse(${urlExpr})`);
+      lines.push(`\tu, err := url.Parse(${urlExpr})`);
+      lines.push('\tif err != nil {');
+      lines.push(`\t\t${retErr()}`);
+      lines.push('\t}');
       lines.push('\tq := u.Query()');
       const hasReqParams = op.queryParams.some((q) => q.required);
       for (const p of op.queryParams) {

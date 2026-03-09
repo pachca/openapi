@@ -24,7 +24,7 @@ class SearchService {
     const response = await fetch(`${this.baseUrl}/search/messages?${query}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as SearchMessagesResponse;

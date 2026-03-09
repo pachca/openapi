@@ -26,7 +26,7 @@ class ChatsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListChatsResponse;
@@ -41,7 +41,7 @@ class ChatsService {
     const response = await fetch(`${this.baseUrl}/chats/${id}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Chat;
@@ -58,7 +58,7 @@ class ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as Chat;
@@ -75,7 +75,7 @@ class ChatsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Chat;

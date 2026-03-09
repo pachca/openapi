@@ -1,14 +1,15 @@
-import type {
-  IR,
-  IREnum,
-  IRModel,
-  IRUnion,
-  IRField,
-  IRFieldType,
-  IRService,
-  IROperation,
-  IRParam,
-  IRResponseType,
+import {
+  shouldUnwrapBody,
+  type IR,
+  type IREnum,
+  type IRModel,
+  type IRUnion,
+  type IRField,
+  type IRFieldType,
+  type IRService,
+  type IROperation,
+  type IRParam,
+  type IRResponseType,
 } from '../ir.js';
 import type { GeneratedFile, LanguageGenerator } from './types.js';
 import {
@@ -94,17 +95,6 @@ function ktDefaultValue(
 /** Check if ApiError model exists in IR */
 function hasApiErrorModel(ir: IR): boolean {
   return ir.models.some((m) => m.name === 'ApiError');
-}
-
-/** Whether to unwrap a single-field request body into function params */
-function shouldUnwrapBody(
-  unwrapMode: string,
-  unwrapField?: IRField,
-): boolean {
-  if (unwrapMode !== 'single' || !unwrapField) return false;
-  const k = unwrapField.type.kind;
-  // Only unwrap simple types (primitive, array, enum), not model/record
-  return k !== 'model' && k !== 'record';
 }
 
 // ── Models.kt ────────────────────────────────────────────────────────
@@ -485,7 +475,7 @@ function buildMethodParams(
 
   if (op.requestBody) {
     const rb = op.requestBody;
-    if (shouldUnwrapBody(rb.unwrapMode, rb.unwrapField)) {
+    if (shouldUnwrapBody(rb)) {
       const f = rb.unwrapField!;
       const sdkName = snakeToCamel(f.name);
       const typeName = ktType(f.type);
@@ -569,7 +559,7 @@ function emitMethodBody(
     if (hasJsonBody) {
       lines.push(`${indent3}contentType(ContentType.Application.Json)`);
       const rb = op.requestBody!;
-      if (shouldUnwrapBody(rb.unwrapMode, rb.unwrapField)) {
+      if (shouldUnwrapBody(rb)) {
         const f = rb.unwrapField!;
         const sdkName = snakeToCamel(f.name);
         lines.push(

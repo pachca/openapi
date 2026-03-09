@@ -42,7 +42,9 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 		if err != nil {
 			return
 		}
-		io.Copy(part, request.File)
+		if _, err := io.Copy(part, request.File); err != nil {
+			return
+		}
 	}()
 	req, err := http.NewRequestWithContext(ctx, "POST", directUrl, pr)
 	if err != nil {

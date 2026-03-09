@@ -11,7 +11,7 @@ class TasksService {
     const response = await fetch(`${this.baseUrl}/projects/$${projectId}/tasks/$${taskId}`, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Task;
@@ -26,7 +26,7 @@ class TasksService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Task;

@@ -27,7 +27,10 @@ type EventsService struct {
 }
 
 func (s *EventsService) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
-	u, _ := url.Parse(fmt.Sprintf("%s/events", s.baseURL))
+	u, err := url.Parse(fmt.Sprintf("%s/events", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
 	q := u.Query()
 	if params != nil && params.IsActive != nil {
 		q.Set("is_active", fmt.Sprintf("%v", *params.IsActive))
@@ -105,7 +108,9 @@ func (s *UploadsService) CreateUpload(ctx context.Context, request UploadRequest
 		if err != nil {
 			return
 		}
-		io.Copy(part, request.File)
+		if _, err := io.Copy(part, request.File); err != nil {
+			return
+		}
 	}()
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/uploads", s.baseURL), pr)
 	if err != nil {

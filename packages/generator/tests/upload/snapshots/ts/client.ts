@@ -37,7 +37,7 @@ class CommonService {
       method: "POST",
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 201:
         return deserialize(body.data) as UploadParams;

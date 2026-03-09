@@ -1,14 +1,15 @@
-import type {
-  IR,
-  IREnum,
-  IRModel,
-  IRUnion,
-  IRField,
-  IRFieldType,
-  IRService,
-  IROperation,
-  IRParam,
-  IRResponseType,
+import {
+  shouldUnwrapBody,
+  type IR,
+  type IREnum,
+  type IRModel,
+  type IRUnion,
+  type IRField,
+  type IRFieldType,
+  type IRService,
+  type IROperation,
+  type IRParam,
+  type IRResponseType,
 } from '../ir.js';
 import type { GeneratedFile, LanguageGenerator } from './types.js';
 import {
@@ -309,13 +310,8 @@ function methodArgs(op: IROperation): string {
   }
   if (op.requestBody) {
     const rb = op.requestBody;
-    const unwrapField = rb.unwrapField;
-    const shouldUnwrap =
-      rb.unwrapMode === 'single' &&
-      unwrapField &&
-      unwrapField.type.kind !== 'model' &&
-      unwrapField.type.kind !== 'record';
-    if (shouldUnwrap) {
+    if (shouldUnwrapBody(rb)) {
+      const unwrapField = rb.unwrapField!;
       args.push(
         `${snakeToCamel(unwrapField.name)}: ${tsType(unwrapField.type, {
           allModels: new Map(),
@@ -401,19 +397,14 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
         }
         if (op.requestBody?.schemaRef) {
           const rb = op.requestBody;
-          const shouldUnwrap =
-            rb.unwrapMode === 'single' &&
-            rb.unwrapField &&
-            rb.unwrapField.type.kind !== 'model' &&
-            rb.unwrapField.type.kind !== 'record';
-          if (shouldUnwrap && rb.unwrapField) {
+          if (shouldUnwrapBody(rb) && rb.unwrapField) {
             const refs: string[] = [];
             collectModelRefs(rb.unwrapField.type, refs);
             for (const r of refs) addImport(r);
           } else {
             addImport(rb.schemaRef);
           }
-          if (!shouldUnwrap && rb.contentType === 'json') needsSerialize = true;
+          if (!shouldUnwrapBody(rb) && rb.contentType === 'json') needsSerialize = true;
         }
         if (op.queryParams.length > 0) addImport(irParamTypeName(op));
         if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
@@ -615,12 +606,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
   if (op.requestBody?.contentType === 'json') {
     const rb = op.requestBody;
-    const shouldUnwrap =
-      rb.unwrapMode === 'single' &&
-      rb.unwrapField &&
-      rb.unwrapField.type.kind !== 'model' &&
-      rb.unwrapField.type.kind !== 'record';
-    if (shouldUnwrap) {
+    if (shouldUnwrapBody(rb)) {
       const f = rb.unwrapField!;
       const sdk = snakeToCamel(f.name);
       lines.push(`      body: JSON.stringify({ ${f.name}: ${sdk} }),`);
@@ -631,7 +617,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   lines.push('    });');
 
   const preloadBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
-  if (preloadBody) lines.push('    const body: any = await response.json();');
+  if (preloadBody) lines.push('    const body = await response.json();');
   emitResponseSwitch(lines, op, ir, preloadBody);
   lines.push('  }');
 }

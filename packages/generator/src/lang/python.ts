@@ -1,13 +1,14 @@
-import type {
-  IR,
-  IREnum,
-  IRField,
-  IRFieldType,
-  IRModel,
-  IROperation,
-  IRResponseType,
-  IRService,
-  IRUnion,
+import {
+  shouldUnwrapBody,
+  type IR,
+  type IREnum,
+  type IRField,
+  type IRFieldType,
+  type IRModel,
+  type IROperation,
+  type IRResponseType,
+  type IRService,
+  type IRUnion,
 } from '../ir.js';
 import type { GeneratedFile, LanguageGenerator } from './types.js';
 import {
@@ -286,14 +287,7 @@ function needsAsdict(ir: IR): boolean {
   return ir.services.some((s) =>
     s.operations.some((op) => {
       if (op.requestBody?.contentType !== 'json') return false;
-      const rb = op.requestBody;
-      const f = rb.unwrapField;
-      const shouldUnwrap =
-        rb.unwrapMode === 'single' &&
-        !!f &&
-        f.type.kind !== 'model' &&
-        f.type.kind !== 'record';
-      return !shouldUnwrap;
+      return !shouldUnwrapBody(op.requestBody);
     }),
   );
 }
@@ -324,13 +318,7 @@ function collectClientImports(ir: IR): string[] {
     for (const op of s.operations) {
       if (op.requestBody) {
         const rb = op.requestBody;
-        const f = rb.unwrapField;
-        const shouldUnwrap =
-          rb.unwrapMode === 'single' &&
-          !!f &&
-          f.type.kind !== 'model' &&
-          f.type.kind !== 'record';
-        if (rb.schemaRef && !shouldUnwrap) add(rb.schemaRef);
+        if (rb.schemaRef && !shouldUnwrapBody(rb)) add(rb.schemaRef);
       }
       if (op.queryParams.length > 0) {
         const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
@@ -367,13 +355,8 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
   if (op.requestBody) {
     const rb = op.requestBody;
-    const f = rb.unwrapField;
-    const shouldUnwrap =
-      rb.unwrapMode === 'single' &&
-      !!f &&
-      f.type.kind !== 'model' &&
-      f.type.kind !== 'record';
-    if (shouldUnwrap) {
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
       args.push(`${pyFieldName(f)}: ${pyType(f.type)}`);
     } else if (rb.schemaRef) {
       args.push(`request: ${rb.schemaRef}`);
@@ -469,10 +452,12 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
           lines.push(`            for v in ${v}:`);
           lines.push(`                query.append((${JSON.stringify(p.name)}, str(v)))`);
         } else {
-          const rhs = p.type.kind === 'primitive' &&
-            (p.type.primitive === 'integer' || p.type.primitive === 'number')
-            ? `str(${v})`
-            : v;
+          const rhs = p.type.kind === 'primitive' && p.type.primitive === 'boolean'
+            ? `str(${v}).lower()`
+            : p.type.kind === 'primitive' &&
+              (p.type.primitive === 'integer' || p.type.primitive === 'number')
+              ? `str(${v})`
+              : v;
           if (p.required) {
             if (op.queryParams.some((x) => x.isArray) || op.queryParams.some((x) => x.required)) {
               lines.push(`        query.append((${JSON.stringify(p.name)}, ${rhs}))`);
@@ -505,13 +490,8 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       if (op.successResponse.isRedirect) lines.push('                follow_redirects=False,');
       if (hasBody) {
         const rb = op.requestBody!;
-        const f = rb.unwrapField;
-        const shouldUnwrap =
-          rb.unwrapMode === 'single' &&
-          !!f &&
-          f.type.kind !== 'model' &&
-          f.type.kind !== 'record';
-        if (shouldUnwrap) {
+        if (shouldUnwrapBody(rb)) {
+          const f = rb.unwrapField!;
           lines.push(`                json={${JSON.stringify(f.name)}: ${pyFieldName(f)}},`);
         } else {
           lines.push('                json=serialize(request),');
@@ -525,13 +505,8 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       if (op.successResponse.isRedirect) lines.push('            follow_redirects=False,');
       if (hasBody) {
         const rb = op.requestBody!;
-        const f = rb.unwrapField;
-        const shouldUnwrap =
-          rb.unwrapMode === 'single' &&
-          !!f &&
-          f.type.kind !== 'model' &&
-          f.type.kind !== 'record';
-        if (shouldUnwrap) {
+        if (shouldUnwrapBody(rb)) {
+          const f = rb.unwrapField!;
           lines.push(`            json={${JSON.stringify(f.name)}: ${pyFieldName(f)}},`);
         } else {
           lines.push('            json=serialize(request),');

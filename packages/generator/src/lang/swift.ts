@@ -1,13 +1,14 @@
-import type {
-  IR,
-  IREnum,
-  IRField,
-  IRFieldType,
-  IRModel,
-  IROperation,
-  IRResponseType,
-  IRService,
-  IRUnion,
+import {
+  shouldUnwrapBody,
+  type IR,
+  type IREnum,
+  type IRField,
+  type IRFieldType,
+  type IRModel,
+  type IROperation,
+  type IRResponseType,
+  type IRService,
+  type IRUnion,
 } from '../ir.js';
 import type { GeneratedFile, LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName } from '../naming.js';
@@ -263,14 +264,12 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
   if (op.requestBody) {
     const rb = op.requestBody;
-    const f = rb.unwrapField;
-    const shouldUnwrap =
-      rb.unwrapMode === 'single' &&
-      !!f &&
-      f.type.kind !== 'model' &&
-      f.type.kind !== 'record';
-    if (shouldUnwrap) args.push(`${swiftIdentifier(f.name)}: ${swiftType(f.type)}`);
-    else if (rb.schemaRef) args.push(`request body: ${rb.schemaRef}`);
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      args.push(`${swiftIdentifier(f.name)}: ${swiftType(f.type)}`);
+    } else if (rb.schemaRef) {
+      args.push(`request body: ${rb.schemaRef}`);
+    }
   }
   for (const q of op.queryParams) {
     const t = swiftType(q.type, { nullable: !q.required });
@@ -328,15 +327,13 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
   if (op.requestBody?.contentType === 'json') {
     const rb = op.requestBody!;
-    const f = rb.unwrapField;
-    const shouldUnwrap =
-      rb.unwrapMode === 'single' &&
-      !!f &&
-      f.type.kind !== 'model' &&
-      f.type.kind !== 'record';
     lines.push('        request.setValue("application/json", forHTTPHeaderField: "Content-Type")');
-    if (shouldUnwrap) lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${swiftIdentifier(f.name)}])`);
-    else lines.push('        request.httpBody = try serialize(body)');
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${swiftIdentifier(f.name)}])`);
+    } else {
+      lines.push('        request.httpBody = try serialize(body)');
+    }
   }
 
   if (op.requestBody?.contentType === 'multipart') {
@@ -348,7 +345,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('            data.append("Content-Disposition: form-data; name=\\"\\(name)\\"\\r\\n\\r\\n".data(using: .utf8)!)');
     lines.push('            data.append("\\(value)\\r\\n".data(using: .utf8)!)');
     lines.push('        }');
-    const req = ir.models.find((m) => m.name === op.requestBody.schemaRef);
+    const req = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
     if (req) {
       for (const f of req.fields.filter((x) => x.type.kind !== 'binary')) {
         const n = swiftIdentifier(f.name);

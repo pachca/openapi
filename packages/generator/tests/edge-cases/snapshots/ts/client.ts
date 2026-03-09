@@ -22,7 +22,7 @@ class EventsService {
     const response = await fetch(url, {
       headers: this.headers,
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body) as ListEventsResponse;
@@ -37,7 +37,7 @@ class EventsService {
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify({ scope: scope }),
     });
-    const body: any = await response.json();
+    const body = await response.json();
     switch (response.status) {
       case 200:
         return deserialize(body.data) as Event;

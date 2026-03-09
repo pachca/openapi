@@ -906,17 +906,6 @@ class ReadMembersService {
         throw new ApiError(body.errors);
     }
   }
-
-  async listReadMembersAll(id: number, params?: Omit<ListReadMembersParams, 'cursor'>): Promise<unknown[]> {
-    const items: unknown[] = [];
-    let cursor: string | undefined;
-    do {
-      const response = await this.listReadMembers(id, { ...params, cursor } as ListReadMembersParams);
-      items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
-    return items;
-  }
 }
 
 class ThreadsService {

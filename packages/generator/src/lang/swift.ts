@@ -480,7 +480,7 @@ function generateClient(ir: IR): string {
     lines.push('');
     for (let i = 0; i < s.operations.length; i++) {
       emitOperation(lines, s.operations[i], ir);
-      if (s.operations[i].isPaginated) {
+      if (s.operations[i].isPaginated && s.operations[i].successResponse.dataRef) {
         lines.push('');
         emitPaginationMethod(lines, s.operations[i], ir);
       }
@@ -599,7 +599,7 @@ function generateUtils(ir: IR): string {
     '            } else {',
     '                delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000',
     '            }',
-    '            try await Task.sleep(nanoseconds: delay)',
+    '            try await _Concurrency.Task.sleep(nanoseconds: delay)',
     '            continue',
     '        }',
     '        return (data, response)',

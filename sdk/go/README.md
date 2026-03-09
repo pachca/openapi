@@ -78,6 +78,34 @@ msg, err := client.Messages.CreateMessage(ctx, ...)  // *Message, не *MessageR
 | `client.Exports` | Экспорт сообщений |
 | `client.Forms` | Интерактивные формы |
 
+## Пагинация
+
+Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+
+```go
+// Вручную
+var chats []pachca.Chat
+var cursor *string
+for {
+    result, err := client.Chats.ListChats(ctx, &pachca.ListChatsParams{Cursor: cursor})
+    if err != nil { break }
+    chats = append(chats, result.Data...)
+    if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+        break
+    }
+    cursor = result.Meta.Paginate.NextPage
+}
+
+// Автоматически
+allChats, err := client.Chats.ListChatsAll(ctx, nil)
+```
+
+Доступные методы: `ListChatsAll`, `ListUsersAll`, `ListTasksAll`, `ListTagsAll`, `ListMembersAll`, `ListChatMessagesAll`, `ListReactionsAll`, `SearchChatsAll`, `SearchMessagesAll`, `SearchUsersAll` и др.
+
+## Повторные запросы
+
+SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:

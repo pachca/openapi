@@ -401,7 +401,7 @@ function emitService(
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
     emitOperation(lines, svc.operations[i], ir, globalHasApiError);
-    if (svc.operations[i].isPaginated) {
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
       lines.push('');
       emitPaginationMethod(lines, svc.operations[i], ir);
     }

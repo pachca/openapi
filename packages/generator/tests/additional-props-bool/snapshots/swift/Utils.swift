@@ -66,7 +66,7 @@ func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any 
             } else {
                 delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000
             }
-            try await Task.sleep(nanoseconds: delay)
+            try await _Concurrency.Task.sleep(nanoseconds: delay)
             continue
         }
         return (data, response)

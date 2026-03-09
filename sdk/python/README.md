@@ -70,6 +70,31 @@ message = await client.messages.create_message(...)  # Message, не {"data": Me
 | `client.views` | `open_view` |
 | `client.common` | `list_properties`, `get_upload_params`, `upload_file`, `request_export`, `download_export` |
 
+## Пагинация
+
+Для эндпоинтов с курсорной пагинацией SDK генерирует `*_all`-методы, которые автоматически обходят все страницы:
+
+```python
+# Вручную
+chats = []
+cursor = None
+while True:
+    response = await client.chats.list_chats(cursor=cursor)
+    chats.extend(response.data)
+    cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+    if not cursor:
+        break
+
+# Автоматически
+all_chats = await client.chats.list_chats_all()
+```
+
+Доступные методы: `list_chats_all`, `list_users_all`, `list_tasks_all`, `list_tags_all`, `list_members_all`, `list_chat_messages_all`, `list_reactions_all`, `search_chats_all`, `search_messages_all`, `search_users_all` и др.
+
+## Повторные запросы
+
+SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
 ## Обработка ошибок
 
 ```python

@@ -718,17 +718,6 @@ class ReadMembersService internal constructor(
             else -> throw response.body<ApiError>()
         }
     }
-
-    suspend fun listReadMembersAll(id: Int, limit: Int? = null): List<Any> {
-        val items = mutableListOf<Any>()
-        var cursor: String? = null
-        do {
-            val response = listReadMembers(id = id, limit = limit, cursor = cursor)
-            items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
-        return items
-    }
 }
 
 class ThreadsService internal constructor(

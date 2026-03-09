@@ -952,17 +952,6 @@ public struct ReadMembersService {
             throw try deserialize(ApiError.self, from: data)
         }
     }
-
-    public func listReadMembersAll(id: Int, limit: Int? = nil) async throws -> [Any] {
-        var items: [Any] = []
-        var cursor: String? = nil
-        repeat {
-            let response = try await listReadMembers(id: id, limit: limit, cursor: cursor)
-            items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
-        return items
-    }
 }
 
 public struct ThreadsService {

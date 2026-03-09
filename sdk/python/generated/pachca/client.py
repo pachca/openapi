@@ -1009,24 +1009,6 @@ class ReadMembersService:
             case _:
                 raise deserialize(ApiError, body)
 
-    async def list_read_members_all(
-        self,
-        id: int,
-        params: ListReadMembersParams | None = None,
-    ) -> list[object]:
-        items: list[object] = []
-        cursor: str | None = None
-        while True:
-            if params is None:
-                params = ListReadMembersParams()
-            params.cursor = cursor
-            response = await self.list_read_members(params=params)
-            items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
-                break
-        return items
-
 
 class ThreadsService:
     def __init__(self, client: httpx.AsyncClient) -> None:

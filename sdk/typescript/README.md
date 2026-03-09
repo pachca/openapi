@@ -1,6 +1,6 @@
 # Pachca TypeScript SDK
 
-Типизированный клиент для [Pachca API](https://dev.pachca.com) на базе [@hey-api/openapi-ts](https://heyapi.dev).
+Типизированный клиент для [Pachca API](https://dev.pachca.com).
 
 ## Установка
 
@@ -59,6 +59,30 @@ const message = await pachca.messages.createMessage(...); // Message, не { dat
 | `pachca.bots` | Управление ботами |
 | `pachca.security` | Журнал аудита |
 | `pachca.common` | Поиск, загрузки, формы и др. |
+
+## Пагинация
+
+Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+
+```typescript
+// Вручную
+let cursor: string | undefined;
+const chats: Chat[] = [];
+do {
+  const response = await pachca.chats.listChats({ cursor });
+  chats.push(...response.data);
+  cursor = response.meta?.paginate?.nextPage;
+} while (cursor);
+
+// Автоматически
+const allChats = await pachca.chats.listChatsAll();
+```
+
+Доступные методы: `listChatsAll`, `listUsersAll`, `listTasksAll`, `listTagsAll`, `listMembersAll`, `listChatMessagesAll`, `listReactionsAll`, `searchChatsAll`, `searchMessagesAll`, `searchUsersAll` и др.
+
+## Повторные запросы
+
+SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
 ## Примеры
 

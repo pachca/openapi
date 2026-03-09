@@ -500,7 +500,7 @@ function emitService(lines: string[], svc: IRService, ir: IR): void {
   lines.push('');
   for (let i = 0; i < svc.operations.length; i++) {
     emitOperation(lines, svc.operations[i], ir);
-    if (svc.operations[i].isPaginated) {
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
       lines.push('');
       emitPaginationMethod(lines, svc.operations[i], ir);
     }

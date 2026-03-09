@@ -618,7 +618,10 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   const callArgs: string[] = ['ctx'];
   if (op.externalUrl) callArgs.push(op.externalUrl);
   for (const p of op.pathParams) callArgs.push(snakeToCamel(p.sdkName));
-  if (op.queryParams.length > 0) callArgs.push('params');
+  if (op.queryParams.length > 0) {
+    const hasReq = op.queryParams.some((p) => p.required);
+    callArgs.push(hasReq ? '*params' : 'params');
+  }
 
   lines.push(`\t\tresult, err := s.${goMethodName(op)}(${callArgs.join(', ')})`);
   lines.push('\t\tif err != nil {');
@@ -705,7 +708,7 @@ function generateClient(ir: IR): string {
     for (const op of s.operations) {
       emitOp(lines, op, ir);
       lines.push('');
-      if (op.isPaginated) {
+      if (op.isPaginated && op.successResponse.dataRef) {
         emitPaginationMethod(lines, op, ir);
         lines.push('');
       }

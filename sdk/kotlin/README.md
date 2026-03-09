@@ -61,6 +61,30 @@ val message = pachca.messages.createMessage(...)  // Message, не MessageRespon
 
 Полное описание параметров: [документация API](https://dev.pachca.com)
 
+## Пагинация
+
+Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+
+```kotlin
+// Вручную
+val chats = mutableListOf<Chat>()
+var cursor: String? = null
+do {
+    val response = pachca.chats.listChats(cursor = cursor)
+    chats.addAll(response.data)
+    cursor = response.meta?.paginate?.nextPage
+} while (cursor != null)
+
+// Автоматически
+val allChats = pachca.chats.listChatsAll()
+```
+
+Доступные методы: `listChatsAll`, `listUsersAll`, `listTasksAll`, `listTagsAll`, `listMembersAll`, `listChatMessagesAll`, `listReactionsAll`, `searchChatsAll`, `searchMessagesAll`, `searchUsersAll` и др.
+
+## Повторные запросы
+
+SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
 ## Разработка
 
 Генерация SDK:

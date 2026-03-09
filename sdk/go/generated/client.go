@@ -117,7 +117,7 @@ func (s *SecurityService) GetAuditEventsAll(ctx context.Context, params *GetAudi
 	var cursor *string
 	for {
 		params.Cursor = cursor
-		result, err := s.GetAuditEvents(ctx, params)
+		result, err := s.GetAuditEvents(ctx, *params)
 		if err != nil {
 			return nil, err
 		}
@@ -1184,7 +1184,7 @@ func (s *MessagesService) ListChatMessagesAll(ctx context.Context, params *ListC
 	var cursor *string
 	for {
 		params.Cursor = cursor
-		result, err := s.ListChatMessages(ctx, params)
+		result, err := s.ListChatMessages(ctx, *params)
 		if err != nil {
 			return nil, err
 		}
@@ -1576,26 +1576,6 @@ func (s *ReadMembersService) ListReadMembers(ctx context.Context, id int32, para
 		var e ApiError
 		json.NewDecoder(resp.Body).Decode(&e)
 		return nil, &e
-	}
-}
-
-func (s *ReadMembersService) ListReadMembersAll(ctx context.Context, id int32, params *ListReadMembersParams) ([]any, error) {
-	if params == nil {
-		params = &ListReadMembersParams{}
-	}
-	var items []any
-	var cursor *string
-	for {
-		params.Cursor = cursor
-		result, err := s.ListReadMembers(ctx, id, params)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
-			return items, nil
-		}
-		cursor = result.Meta.Paginate.NextPage
 	}
 }
 

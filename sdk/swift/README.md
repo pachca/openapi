@@ -60,6 +60,30 @@ let message = try await pachca.messages.createMessage(...)  // Message, не Mes
 
 Полное описание параметров: [документация API](https://dev.pachca.com)
 
+## Пагинация
+
+Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+
+```swift
+// Вручную
+var chats: [Chat] = []
+var cursor: String? = nil
+repeat {
+    let response = try await pachca.chats.listChats(cursor: cursor)
+    chats.append(contentsOf: response.data)
+    cursor = response.meta?.paginate?.nextPage
+} while cursor != nil
+
+// Автоматически
+let allChats = try await pachca.chats.listChatsAll()
+```
+
+Доступные методы: `listChatsAll`, `listUsersAll`, `listTasksAll`, `listTagsAll`, `listMembersAll`, `listChatMessagesAll`, `listReactionsAll`, `searchChatsAll`, `searchMessagesAll`, `searchUsersAll` и др.
+
+## Повторные запросы
+
+SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
 ## Разработка
 
 Генерация SDK:

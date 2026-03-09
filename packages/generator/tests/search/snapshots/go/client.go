@@ -110,7 +110,7 @@ func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMes
 	var cursor *string
 	for {
 		params.Cursor = cursor
-		result, err := s.SearchMessages(ctx, params)
+		result, err := s.SearchMessages(ctx, *params)
 		if err != nil {
 			return nil, err
 		}

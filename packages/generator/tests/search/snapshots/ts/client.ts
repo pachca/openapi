@@ -4,7 +4,7 @@ import {
   MessageSearchResult,
   OAuthError,
 } from "./types";
-import { deserialize } from "./utils";
+import { deserialize, fetchWithRetry } from "./utils";
 
 class SearchService {
   constructor(
@@ -26,7 +26,7 @@ class SearchService {
     if (params?.sort !== undefined) query.set("sort", params.sort);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
-    const response = await fetch(`${this.baseUrl}/search/messages?${query}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/search/messages?${query}`, {
       headers: this.headers,
     });
     const body = await response.json();

@@ -13,8 +13,8 @@ type AuditEventKey string
 const (
 	AuditEventKeyUserLogin             AuditEventKey = "user_login" // Пользователь успешно вошел в систему
 	AuditEventKeyUserLogout            AuditEventKey = "user_logout" // Пользователь вышел из системы
-	AuditEventKeyUser_2faFail          AuditEventKey = "user_2fa_fail" // Неудачная попытка двухфакторной аутентификации
-	AuditEventKeyUser_2faSuccess       AuditEventKey = "user_2fa_success" // Успешная двухфакторная аутентификация
+	AuditEventKeyUser2faFail           AuditEventKey = "user_2fa_fail" // Неудачная попытка двухфакторной аутентификации
+	AuditEventKeyUser2faSuccess        AuditEventKey = "user_2fa_success" // Успешная двухфакторная аутентификация
 	AuditEventKeyUserCreated           AuditEventKey = "user_created" // Создана новая учетная запись пользователя
 	AuditEventKeyUserDeleted           AuditEventKey = "user_deleted" // Учетная запись пользователя удалена
 	AuditEventKeyUserRoleChanged       AuditEventKey = "user_role_changed" // Роль пользователя была изменена
@@ -538,15 +538,15 @@ type File struct {
 }
 
 type FileUploadRequest struct {
-	Content_Disposition string    `json:"Content-Disposition"`
-	ACL                 string    `json:"acl"`
-	Policy              string    `json:"policy"`
-	XAMZCredential      string    `json:"x-amz-credential"`
-	XAMZAlgorithm       string    `json:"x-amz-algorithm"`
-	XAMZDate            string    `json:"x-amz-date"`
-	XAMZSignature       string    `json:"x-amz-signature"`
-	Key                 string    `json:"key"`
-	File                io.Reader `json:"file"`
+	ContentDisposition string    `json:"Content-Disposition"`
+	ACL                string    `json:"acl"`
+	Policy             string    `json:"policy"`
+	XAMZCredential     string    `json:"x-amz-credential"`
+	XAMZAlgorithm      string    `json:"x-amz-algorithm"`
+	XAMZDate           string    `json:"x-amz-date"`
+	XAMZSignature      string    `json:"x-amz-signature"`
+	Key                string    `json:"key"`
+	File               io.Reader `json:"file"`
 }
 
 type Forwarding struct {
@@ -781,41 +781,41 @@ type Task struct {
 	ChatID           *int32           `json:"chat_id"`
 }
 
-type TaskCreateRequestCustomPropertie struct {
+type TaskCreateRequestCustomProperty struct {
 	ID    int32  `json:"id"`
 	Value string `json:"value"`
 }
 
 type TaskCreateRequestTask struct {
-	Kind             TaskKind                           `json:"kind"`
-	Content          *string                            `json:"content,omitempty"`
-	DueAt            *time.Time                         `json:"due_at,omitempty"`
-	Priority         *int32                             `json:"priority,omitempty"`
-	PerformerIDs     []int32                            `json:"performer_ids,omitempty"`
-	ChatID           *int32                             `json:"chat_id,omitempty"`
-	AllDay           *bool                              `json:"all_day,omitempty"`
-	CustomProperties []TaskCreateRequestCustomPropertie `json:"custom_properties,omitempty"`
+	Kind             TaskKind                          `json:"kind"`
+	Content          *string                           `json:"content,omitempty"`
+	DueAt            *time.Time                        `json:"due_at,omitempty"`
+	Priority         *int32                            `json:"priority,omitempty"`
+	PerformerIDs     []int32                           `json:"performer_ids,omitempty"`
+	ChatID           *int32                            `json:"chat_id,omitempty"`
+	AllDay           *bool                             `json:"all_day,omitempty"`
+	CustomProperties []TaskCreateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 
 type TaskCreateRequest struct {
 	Task TaskCreateRequestTask `json:"task"`
 }
 
-type TaskUpdateRequestCustomPropertie struct {
+type TaskUpdateRequestCustomProperty struct {
 	ID    int32  `json:"id"`
 	Value string `json:"value"`
 }
 
 type TaskUpdateRequestTask struct {
-	Kind             *TaskKind                          `json:"kind,omitempty"`
-	Content          *string                            `json:"content,omitempty"`
-	DueAt            *time.Time                         `json:"due_at,omitempty"`
-	Priority         *int32                             `json:"priority,omitempty"`
-	PerformerIDs     []int32                            `json:"performer_ids,omitempty"`
-	Status           *TaskStatus                        `json:"status,omitempty"`
-	AllDay           *bool                              `json:"all_day,omitempty"`
-	DoneAt           *time.Time                         `json:"done_at,omitempty"`
-	CustomProperties []TaskUpdateRequestCustomPropertie `json:"custom_properties,omitempty"`
+	Kind             *TaskKind                         `json:"kind,omitempty"`
+	Content          *string                           `json:"content,omitempty"`
+	DueAt            *time.Time                        `json:"due_at,omitempty"`
+	Priority         *int32                            `json:"priority,omitempty"`
+	PerformerIDs     []int32                           `json:"performer_ids,omitempty"`
+	Status           *TaskStatus                       `json:"status,omitempty"`
+	AllDay           *bool                             `json:"all_day,omitempty"`
+	DoneAt           *time.Time                        `json:"done_at,omitempty"`
+	CustomProperties []TaskUpdateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 
 type TaskUpdateRequest struct {
@@ -835,15 +835,15 @@ type UpdateMemberRoleRequest struct {
 }
 
 type UploadParams struct {
-	Content_Disposition string `json:"Content-Disposition"`
-	ACL                 string `json:"acl"`
-	Policy              string `json:"policy"`
-	XAMZCredential      string `json:"x-amz-credential"`
-	XAMZAlgorithm       string `json:"x-amz-algorithm"`
-	XAMZDate            string `json:"x-amz-date"`
-	XAMZSignature       string `json:"x-amz-signature"`
-	Key                 string `json:"key"`
-	DirectURL           string `json:"direct_url"`
+	ContentDisposition string `json:"Content-Disposition"`
+	ACL                string `json:"acl"`
+	Policy             string `json:"policy"`
+	XAMZCredential     string `json:"x-amz-credential"`
+	XAMZAlgorithm      string `json:"x-amz-algorithm"`
+	XAMZDate           string `json:"x-amz-date"`
+	XAMZSignature      string `json:"x-amz-signature"`
+	Key                string `json:"key"`
+	DirectURL          string `json:"direct_url"`
 }
 
 type User struct {
@@ -869,23 +869,23 @@ type User struct {
 	ImageURL         *string          `json:"image_url"`
 }
 
-type UserCreateRequestCustomPropertie struct {
+type UserCreateRequestCustomProperty struct {
 	ID    int32  `json:"id"`
 	Value string `json:"value"`
 }
 
 type UserCreateRequestUser struct {
-	Email            string                             `json:"email"`
-	FirstName        *string                            `json:"first_name,omitempty"`
-	LastName         *string                            `json:"last_name,omitempty"`
-	PhoneNumber      *string                            `json:"phone_number,omitempty"`
-	Nickname         *string                            `json:"nickname,omitempty"`
-	Department       *string                            `json:"department,omitempty"`
-	Title            *string                            `json:"title,omitempty"`
-	Role             *UserRole                          `json:"role,omitempty"`
-	Suspended        *bool                              `json:"suspended,omitempty"`
-	ListTags         []string                           `json:"list_tags,omitempty"`
-	CustomProperties []UserCreateRequestCustomPropertie `json:"custom_properties,omitempty"`
+	Email            string                            `json:"email"`
+	FirstName        *string                           `json:"first_name,omitempty"`
+	LastName         *string                           `json:"last_name,omitempty"`
+	PhoneNumber      *string                           `json:"phone_number,omitempty"`
+	Nickname         *string                           `json:"nickname,omitempty"`
+	Department       *string                           `json:"department,omitempty"`
+	Title            *string                           `json:"title,omitempty"`
+	Role             *UserRole                         `json:"role,omitempty"`
+	Suspended        *bool                             `json:"suspended,omitempty"`
+	ListTags         []string                          `json:"list_tags,omitempty"`
+	CustomProperties []UserCreateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 
 type UserCreateRequest struct {
@@ -905,23 +905,23 @@ type UserStatus struct {
 	AwayMessage *UserStatusAwayMessage `json:"away_message"`
 }
 
-type UserUpdateRequestCustomPropertie struct {
+type UserUpdateRequestCustomProperty struct {
 	ID    int32  `json:"id"`
 	Value string `json:"value"`
 }
 
 type UserUpdateRequestUser struct {
-	FirstName        *string                            `json:"first_name,omitempty"`
-	LastName         *string                            `json:"last_name,omitempty"`
-	Email            *string                            `json:"email,omitempty"`
-	PhoneNumber      *string                            `json:"phone_number,omitempty"`
-	Nickname         *string                            `json:"nickname,omitempty"`
-	Department       *string                            `json:"department,omitempty"`
-	Title            *string                            `json:"title,omitempty"`
-	Role             *UserRole                          `json:"role,omitempty"`
-	Suspended        *bool                              `json:"suspended,omitempty"`
-	ListTags         []string                           `json:"list_tags,omitempty"`
-	CustomProperties []UserUpdateRequestCustomPropertie `json:"custom_properties,omitempty"`
+	FirstName        *string                           `json:"first_name,omitempty"`
+	LastName         *string                           `json:"last_name,omitempty"`
+	Email            *string                           `json:"email,omitempty"`
+	PhoneNumber      *string                           `json:"phone_number,omitempty"`
+	Nickname         *string                           `json:"nickname,omitempty"`
+	Department       *string                           `json:"department,omitempty"`
+	Title            *string                           `json:"title,omitempty"`
+	Role             *UserRole                         `json:"role,omitempty"`
+	Suspended        *bool                             `json:"suspended,omitempty"`
+	ListTags         []string                          `json:"list_tags,omitempty"`
+	CustomProperties []UserUpdateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 
 type UserUpdateRequest struct {

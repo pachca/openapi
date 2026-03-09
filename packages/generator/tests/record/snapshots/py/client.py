@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 
 from .models import LinkPreviewsRequest, OAuthError, ApiError
-from .utils import deserialize, serialize
+from .utils import deserialize, serialize, RetryTransport
 
 class LinkPreviewsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -32,6 +32,7 @@ class PachcaClient:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
+            transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
         self.link_previews = LinkPreviewsService(self._client)
 

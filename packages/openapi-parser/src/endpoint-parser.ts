@@ -18,7 +18,8 @@ export function parseEndpoint(
   path: string,
   method: string,
   operation: Record<string, unknown>,
-  openapi: OpenAPIDocument
+  openapi: OpenAPIDocument,
+  pathItem?: Record<string, unknown>,
 ): Endpoint {
   const endpoint: Endpoint = {
     id: getString(operation, 'operationId') || `${method}_${path}`,
@@ -53,12 +54,33 @@ export function parseEndpoint(
     endpoint.paginated = true;
   }
 
-  // Parameters
-  const parameters = getArray(operation, 'parameters');
-  if (parameters) {
-    endpoint.parameters = parameters
-      .filter((param): param is Record<string, unknown> => isRecord(param))
-      .map((param) => parseParameter(param, openapi));
+  // deprecated
+  if (getBoolean(operation, 'deprecated')) {
+    endpoint.deprecated = true;
+  }
+
+  // Parameters (merge path-level + operation-level, operation takes precedence)
+  const pathLevelParams = pathItem ? getArray(pathItem, 'parameters') : undefined;
+  const opParams = getArray(operation, 'parameters');
+  const paramMap = new Map<string, Record<string, unknown>>();
+  if (pathLevelParams) {
+    for (const p of pathLevelParams) {
+      if (!isRecord(p)) continue;
+      const resolved = getString(p, '$ref') ? resolveRef(getString(p, '$ref')!, openapi) : p;
+      const key = `${getString(resolved, 'in')}:${getString(resolved, 'name')}`;
+      paramMap.set(key, p as Record<string, unknown>);
+    }
+  }
+  if (opParams) {
+    for (const p of opParams) {
+      if (!isRecord(p)) continue;
+      const resolved = getString(p, '$ref') ? resolveRef(getString(p, '$ref')!, openapi) : p;
+      const key = `${getString(resolved, 'in')}:${getString(resolved, 'name')}`;
+      paramMap.set(key, p as Record<string, unknown>);
+    }
+  }
+  if (paramMap.size > 0) {
+    endpoint.parameters = [...paramMap.values()].map((param) => parseParameter(param, openapi));
   }
 
   // Request body

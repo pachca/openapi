@@ -22,7 +22,7 @@ public struct ChatsService {
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
@@ -48,7 +48,7 @@ public struct ChatsService {
     public func getChat(id: Int) async throws -> Chat {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
@@ -66,7 +66,7 @@ public struct ChatsService {
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try serialize(body)
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:
@@ -84,7 +84,7 @@ public struct ChatsService {
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try serialize(body)
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
@@ -100,7 +100,7 @@ public struct ChatsService {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)/archive")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 204:
@@ -116,7 +116,7 @@ public struct ChatsService {
         var request = URLRequest(url: URL(string: "\(baseURL)/chats/\(id)")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 204:

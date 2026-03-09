@@ -42,6 +42,7 @@ export interface Endpoint {
   requirements?: EndpointRequirements;
   externalUrl?: string;
   paginated?: boolean;
+  deprecated?: boolean;
 }
 
 export interface Parameter {

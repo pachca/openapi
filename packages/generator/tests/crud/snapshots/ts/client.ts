@@ -7,7 +7,7 @@ import {
   ChatCreateRequest,
   ChatUpdateRequest,
 } from "./types";
-import { deserialize, serialize } from "./utils";
+import { deserialize, serialize, fetchWithRetry } from "./utils";
 
 class ChatsService {
   constructor(
@@ -23,7 +23,7 @@ class ChatsService {
     if (params?.sortField !== undefined) query.set("sort[field]", params.sortField);
     if (params?.sortOrder !== undefined) query.set("sort[order]", params.sortOrder);
     const url = `${this.baseUrl}/chats${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -49,7 +49,7 @@ class ChatsService {
   }
 
   async getChat(id: number): Promise<Chat> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -64,7 +64,7 @@ class ChatsService {
   }
 
   async createChat(request: ChatCreateRequest): Promise<Chat> {
-    const response = await fetch(`${this.baseUrl}/chats`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -81,7 +81,7 @@ class ChatsService {
   }
 
   async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -98,7 +98,7 @@ class ChatsService {
   }
 
   async archiveChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/archive`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/archive`, {
       method: "PUT",
       headers: this.headers,
     });
@@ -113,7 +113,7 @@ class ChatsService {
   }
 
   async deleteChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       method: "DELETE",
       headers: this.headers,
     });

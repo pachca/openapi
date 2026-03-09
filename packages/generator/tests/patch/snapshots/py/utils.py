@@ -4,6 +4,8 @@ import dataclasses
 from dataclasses import asdict, fields
 from typing import Type, TypeVar, get_args, get_origin
 
+import httpx
+
 T = TypeVar("T")
 
 
@@ -67,3 +69,26 @@ def _strip_nones(val: object) -> object:
 def serialize(obj: object) -> dict:
     """Convert a dataclass to a dict, recursively omitting None values."""
     return _strip_nones(asdict(obj))
+
+
+_MAX_RETRIES = 3
+
+
+class RetryTransport(httpx.AsyncBaseTransport):
+    """Wraps an httpx transport with retry on 429 Too Many Requests."""
+
+    def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:
+        self._transport = transport
+        self._max_retries = max_retries
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        import asyncio
+        for attempt in range(self._max_retries + 1):
+            response = await self._transport.handle_async_request(request)
+            if response.status_code == 429 and attempt < self._max_retries:
+                retry_after = response.headers.get("retry-after")
+                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
+                await asyncio.sleep(delay)
+                continue
+            return response
+        return response  # unreachable

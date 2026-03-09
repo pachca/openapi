@@ -450,8 +450,12 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     }
   }
 
-  if (needsDeserialize || needsSerialize) {
-    const utils = [needsDeserialize ? 'deserialize' : null, needsSerialize ? 'serialize' : null]
+  if (needsDeserialize || needsSerialize || hasServices) {
+    const utils = [
+      needsDeserialize ? 'deserialize' : null,
+      needsSerialize ? 'serialize' : null,
+      hasServices ? 'fetchWithRetry' : null,
+    ]
       .filter((x): x is string => !!x)
       .join(', ');
     lines.push(`import { ${utils} } from "./utils";`);
@@ -483,7 +487,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
 
   while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
   lines.push('');
-  return { content: lines.join('\n'), needsUtils: needsDeserialize || needsSerialize };
+  return { content: lines.join('\n'), needsUtils: needsDeserialize || needsSerialize || hasServices };
 }
 
 function emitService(lines: string[], svc: IRService, ir: IR): void {
@@ -509,6 +513,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const args = methodArgs(op);
   const ret = responseTypeName(op, ir);
   const path = escapeTemplatePath(op.path, op);
+  if (op.deprecated) lines.push('  /** @deprecated */');
   lines.push(`  async ${op.methodName}(${args}): Promise<${ret}> {`);
 
   if (op.requestBody?.contentType === 'multipart') {
@@ -541,7 +546,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     const fetchUrl = op.externalUrl
       ? op.externalUrl
       : `\`${'${this.baseUrl}'}${path}\``;
-    lines.push(`    const response = await fetch(${fetchUrl}, {`);
+    lines.push(`    const response = await fetchWithRetry(${fetchUrl}, {`);
     lines.push(`      method: ${JSON.stringify(op.method)},`);
     if (!op.noAuth) lines.push('      headers: this.headers,');
     lines.push('      body: form,');
@@ -591,7 +596,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`    const url = \`${urlBase}${'${query.toString() ? `?${query}` : ""}'}\`;`);
   }
 
-  lines.push(`    const response = await fetch(${fetchTarget}, {`);
+  lines.push(`    const response = await fetchWithRetry(${fetchTarget}, {`);
   if (op.method !== 'GET') lines.push(`      method: ${JSON.stringify(op.method)},`);
   if (op.noAuth) {
     if (op.requestBody?.contentType === 'json') {
@@ -720,7 +725,10 @@ function generateUtils(): string {
     '}',
     '',
     'function camelToSnake(str: string): string {',
-    '  return str.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);',
+    '  return str',
+    '    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1_$2")',
+    '    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")',
+    '    .toLowerCase();',
     '}',
     '',
     'export function deserialize(obj: unknown): unknown {',
@@ -743,6 +751,21 @@ function generateUtils(): string {
     '    );',
     '  }',
     '  return obj;',
+    '}',
+    '',
+    'const MAX_RETRIES = 3;',
+    '',
+    'export async function fetchWithRetry(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {',
+    '  for (let attempt = 0; ; attempt++) {',
+    '    const response = await fetch(input, init);',
+    '    if (response.status === 429 && attempt < MAX_RETRIES) {',
+    '      const retryAfter = response.headers.get("retry-after");',
+    '      const delay = retryAfter ? Number(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);',
+    '      await new Promise((r) => setTimeout(r, delay));',
+    '      continue;',
+    '    }',
+    '    return response;',
+    '  }',
     '}',
     '',
   ].join('\n');

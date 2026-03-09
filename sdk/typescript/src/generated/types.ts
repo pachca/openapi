@@ -890,7 +890,7 @@ export interface Task {
   customProperties: CustomProperty[];
 }
 
-export interface TaskCreateRequestCustomPropertie {
+export interface TaskCreateRequestCustomProperty {
   id: number;
   value: string;
 }
@@ -905,11 +905,11 @@ export interface TaskCreateRequest {
     performerIds?: number[];
     chatId?: number;
     allDay?: boolean;
-    customProperties?: TaskCreateRequestCustomPropertie[];
+    customProperties?: TaskCreateRequestCustomProperty[];
   };
 }
 
-export interface TaskUpdateRequestCustomPropertie {
+export interface TaskUpdateRequestCustomProperty {
   id: number;
   value: string;
 }
@@ -924,7 +924,7 @@ export interface TaskUpdateRequest {
     status?: TaskStatus;
     allDay?: boolean;
     doneAt?: string;
-    customProperties?: TaskUpdateRequestCustomPropertie[];
+    customProperties?: TaskUpdateRequestCustomProperty[];
   };
 }
 
@@ -975,7 +975,7 @@ export interface User {
   imageUrl: string | null;
 }
 
-export interface UserCreateRequestCustomPropertie {
+export interface UserCreateRequestCustomProperty {
   id: number;
   value: string;
 }
@@ -992,7 +992,7 @@ export interface UserCreateRequest {
     role?: UserRole;
     suspended?: boolean;
     listTags?: string[];
-    customProperties?: UserCreateRequestCustomPropertie[];
+    customProperties?: UserCreateRequestCustomProperty[];
   };
   skipEmailNotify?: boolean;
 }
@@ -1007,7 +1007,7 @@ export interface UserStatus {
   } | null;
 }
 
-export interface UserUpdateRequestCustomPropertie {
+export interface UserUpdateRequestCustomProperty {
   id: number;
   value: string;
 }
@@ -1024,7 +1024,7 @@ export interface UserUpdateRequest {
     role?: UserRole;
     suspended?: boolean;
     listTags?: string[];
-    customProperties?: UserUpdateRequestCustomPropertie[];
+    customProperties?: UserUpdateRequestCustomProperty[];
   };
 }
 

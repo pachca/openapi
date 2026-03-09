@@ -376,6 +376,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     );
   }
 
+  if (op.deprecated) lines.push('    # Deprecated');
   lines.push(`    async def ${pyMethodName(op)}(`);
   if (args.length === 0) {
     lines.push(
@@ -632,6 +633,7 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     }
     const utilImports = ['deserialize'];
     if (needToDict) utilImports.push('serialize');
+    if (ir.services.length > 0) utilImports.push('RetryTransport');
     if (needUtils) lines.push(`from .utils import ${utilImports.join(', ')}`);
   }
 
@@ -665,6 +667,7 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   lines.push('        self._client = httpx.AsyncClient(');
   lines.push('            base_url=base_url,');
   lines.push('            headers={"Authorization": f"Bearer {token}"},');
+  lines.push('            transport=RetryTransport(httpx.AsyncHTTPTransport()),');
   lines.push('        )');
   const services = ir.services
     .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
@@ -688,6 +691,8 @@ function generateUtils(): string {
     'import dataclasses',
     'from dataclasses import asdict, fields',
     'from typing import Type, TypeVar, get_args, get_origin',
+    '',
+    'import httpx',
     '',
     'T = TypeVar("T")',
     '',
@@ -752,6 +757,29 @@ function generateUtils(): string {
     'def serialize(obj: object) -> dict:',
     '    """Convert a dataclass to a dict, recursively omitting None values."""',
     '    return _strip_nones(asdict(obj))',
+    '',
+    '',
+    '_MAX_RETRIES = 3',
+    '',
+    '',
+    'class RetryTransport(httpx.AsyncBaseTransport):',
+    '    """Wraps an httpx transport with retry on 429 Too Many Requests."""',
+    '',
+    '    def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:',
+    '        self._transport = transport',
+    '        self._max_retries = max_retries',
+    '',
+    '    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:',
+    '        import asyncio',
+    '        for attempt in range(self._max_retries + 1):',
+    '            response = await self._transport.handle_async_request(request)',
+    '            if response.status_code == 429 and attempt < self._max_retries:',
+    '                retry_after = response.headers.get("retry-after")',
+    '                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt',
+    '                await asyncio.sleep(delay)',
+    '                continue',
+    '            return response',
+    '        return response  # unreachable',
     '',
   ].join('\n');
 }

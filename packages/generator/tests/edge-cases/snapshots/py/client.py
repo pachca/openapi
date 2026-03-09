@@ -8,7 +8,7 @@ from .models import (
     Event,
     UploadRequest,
 )
-from .utils import deserialize
+from .utils import deserialize, RetryTransport
 
 class EventsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -86,6 +86,7 @@ class PachcaClient:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
+            transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
         self.events = EventsService(self._client)
         self.uploads = UploadsService(self._client)

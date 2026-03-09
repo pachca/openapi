@@ -15,7 +15,7 @@ public struct CommonService {
         var request = URLRequest(url: URL(string: "\(baseURL)/exports/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let delegate = RedirectPreventer()
-        let (data, urlResponse) = try await session.data(for: request, delegate: delegate)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request, delegate: delegate)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 302:

@@ -35,6 +35,13 @@ class PachcaClient(token: String, baseUrl: String = "https://api.example.com/v1"
         install(ContentNegotiation) {
             json(Json { explicitNulls = false })
         }
+        install(HttpRequestRetry) {
+            retryOnServerErrors(maxRetries = 3)
+            retryIf { _, response -> response.status.value == 429 }
+            delayMillis { retry ->
+                retry * 1000L
+            }
+        }
         defaultRequest {
             bearerAuth(token)
         }

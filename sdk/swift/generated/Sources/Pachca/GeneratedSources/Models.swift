@@ -6,9 +6,9 @@ public enum AuditEventKey: String, Codable, CaseIterable {
     /// Пользователь вышел из системы
     case userLogout = "user_logout"
     /// Неудачная попытка двухфакторной аутентификации
-    case user_2faFail = "user_2fa_fail"
+    case user2faFail = "user_2fa_fail"
     /// Успешная двухфакторная аутентификация
-    case user_2faSuccess = "user_2fa_success"
+    case user2faSuccess = "user_2fa_success"
     /// Создана новая учетная запись пользователя
     case userCreated = "user_created"
     /// Учетная запись пользователя удалена
@@ -1070,7 +1070,7 @@ public struct File: Codable {
 }
 
 public struct FileUploadRequest: Codable {
-    public let Content_Disposition: String
+    public let ContentDisposition: String
     public let acl: String
     public let policy: String
     public let xAmzCredential: String
@@ -1080,8 +1080,8 @@ public struct FileUploadRequest: Codable {
     public let key: String
     public var file: Data
 
-    public init(Content_Disposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, file: Data) {
-        self.Content_Disposition = Content_Disposition
+    public init(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, file: Data) {
+        self.ContentDisposition = ContentDisposition
         self.acl = acl
         self.policy = policy
         self.xAmzCredential = xAmzCredential
@@ -1093,7 +1093,7 @@ public struct FileUploadRequest: Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case Content_Disposition = "Content-Disposition"
+        case ContentDisposition = "Content-Disposition"
         case acl
         case policy
         case xAmzCredential = "x-amz-credential"
@@ -1738,7 +1738,7 @@ public struct Task: Codable {
     }
 }
 
-public struct TaskCreateRequestCustomPropertie: Codable {
+public struct TaskCreateRequestCustomProperty: Codable {
     public let id: Int
     public let value: String
 
@@ -1756,9 +1756,9 @@ public struct TaskCreateRequestTask: Codable {
     public let performerIds: [Int]?
     public let chatId: Int?
     public let allDay: Bool?
-    public let customProperties: [TaskCreateRequestCustomPropertie]?
+    public let customProperties: [TaskCreateRequestCustomProperty]?
 
-    public init(kind: TaskKind, content: String? = nil, dueAt: String? = nil, priority: Int? = nil, performerIds: [Int]? = nil, chatId: Int? = nil, allDay: Bool? = nil, customProperties: [TaskCreateRequestCustomPropertie]? = nil) {
+    public init(kind: TaskKind, content: String? = nil, dueAt: String? = nil, priority: Int? = nil, performerIds: [Int]? = nil, chatId: Int? = nil, allDay: Bool? = nil, customProperties: [TaskCreateRequestCustomProperty]? = nil) {
         self.kind = kind
         self.content = content
         self.dueAt = dueAt
@@ -1789,7 +1789,7 @@ public struct TaskCreateRequest: Codable {
     }
 }
 
-public struct TaskUpdateRequestCustomPropertie: Codable {
+public struct TaskUpdateRequestCustomProperty: Codable {
     public let id: Int
     public let value: String
 
@@ -1808,9 +1808,9 @@ public struct TaskUpdateRequestTask: Codable {
     public let status: TaskStatus?
     public let allDay: Bool?
     public let doneAt: String?
-    public let customProperties: [TaskUpdateRequestCustomPropertie]?
+    public let customProperties: [TaskUpdateRequestCustomProperty]?
 
-    public init(kind: TaskKind? = nil, content: String? = nil, dueAt: String? = nil, priority: Int? = nil, performerIds: [Int]? = nil, status: TaskStatus? = nil, allDay: Bool? = nil, doneAt: String? = nil, customProperties: [TaskUpdateRequestCustomPropertie]? = nil) {
+    public init(kind: TaskKind? = nil, content: String? = nil, dueAt: String? = nil, priority: Int? = nil, performerIds: [Int]? = nil, status: TaskStatus? = nil, allDay: Bool? = nil, doneAt: String? = nil, customProperties: [TaskUpdateRequestCustomProperty]? = nil) {
         self.kind = kind
         self.content = content
         self.dueAt = dueAt
@@ -1876,7 +1876,7 @@ public struct UpdateMemberRoleRequest: Codable {
 }
 
 public struct UploadParams: Codable {
-    public let Content_Disposition: String
+    public let ContentDisposition: String
     public let acl: String
     public let policy: String
     public let xAmzCredential: String
@@ -1886,8 +1886,8 @@ public struct UploadParams: Codable {
     public let key: String
     public let directUrl: String
 
-    public init(Content_Disposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String) {
-        self.Content_Disposition = Content_Disposition
+    public init(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String) {
+        self.ContentDisposition = ContentDisposition
         self.acl = acl
         self.policy = policy
         self.xAmzCredential = xAmzCredential
@@ -1899,7 +1899,7 @@ public struct UploadParams: Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case Content_Disposition = "Content-Disposition"
+        case ContentDisposition = "Content-Disposition"
         case acl
         case policy
         case xAmzCredential = "x-amz-credential"
@@ -1980,7 +1980,7 @@ public struct User: Codable {
     }
 }
 
-public struct UserCreateRequestCustomPropertie: Codable {
+public struct UserCreateRequestCustomProperty: Codable {
     public let id: Int
     public let value: String
 
@@ -2001,9 +2001,9 @@ public struct UserCreateRequestUser: Codable {
     public let role: UserRole?
     public let suspended: Bool?
     public let listTags: [String]?
-    public let customProperties: [UserCreateRequestCustomPropertie]?
+    public let customProperties: [UserCreateRequestCustomProperty]?
 
-    public init(firstName: String? = nil, lastName: String? = nil, email: String, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRole? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserCreateRequestCustomPropertie]? = nil) {
+    public init(firstName: String? = nil, lastName: String? = nil, email: String, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRole? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserCreateRequestCustomProperty]? = nil) {
         self.firstName = firstName
         self.lastName = lastName
         self.email = email
@@ -2079,7 +2079,7 @@ public struct UserStatus: Codable {
     }
 }
 
-public struct UserUpdateRequestCustomPropertie: Codable {
+public struct UserUpdateRequestCustomProperty: Codable {
     public let id: Int
     public let value: String
 
@@ -2100,9 +2100,9 @@ public struct UserUpdateRequestUser: Codable {
     public let role: UserRole?
     public let suspended: Bool?
     public let listTags: [String]?
-    public let customProperties: [UserUpdateRequestCustomPropertie]?
+    public let customProperties: [UserUpdateRequestCustomProperty]?
 
-    public init(firstName: String? = nil, lastName: String? = nil, email: String? = nil, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRole? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserUpdateRequestCustomPropertie]? = nil) {
+    public init(firstName: String? = nil, lastName: String? = nil, email: String? = nil, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRole? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserUpdateRequestCustomProperty]? = nil) {
         self.firstName = firstName
         self.lastName = lastName
         self.email = email

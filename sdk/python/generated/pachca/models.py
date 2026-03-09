@@ -828,7 +828,7 @@ class Task:
 
 
 @dataclass
-class TaskCreateRequestCustomPropertie:
+class TaskCreateRequestCustomProperty:
     id: int
     value: str
 
@@ -842,7 +842,7 @@ class TaskCreateRequestTask:
     performer_ids: list[int] | None = None
     chat_id: int | None = None
     all_day: bool | None = None
-    custom_properties: list[TaskCreateRequestCustomPropertie] | None = None
+    custom_properties: list[TaskCreateRequestCustomProperty] | None = None
 
 
 @dataclass
@@ -851,7 +851,7 @@ class TaskCreateRequest:
 
 
 @dataclass
-class TaskUpdateRequestCustomPropertie:
+class TaskUpdateRequestCustomProperty:
     id: int
     value: str
 
@@ -866,7 +866,7 @@ class TaskUpdateRequestTask:
     status: TaskStatus | None = None
     all_day: bool | None = None
     done_at: str | None = None
-    custom_properties: list[TaskUpdateRequestCustomPropertie] | None = None
+    custom_properties: list[TaskUpdateRequestCustomProperty] | None = None
 
 
 @dataclass
@@ -926,7 +926,7 @@ class User:
 
 
 @dataclass
-class UserCreateRequestCustomPropertie:
+class UserCreateRequestCustomProperty:
     id: int
     value: str
 
@@ -943,7 +943,7 @@ class UserCreateRequestUser:
     role: UserRole | None = None
     suspended: bool | None = None
     list_tags: list[str] | None = None
-    custom_properties: list[UserCreateRequestCustomPropertie] | None = None
+    custom_properties: list[UserCreateRequestCustomProperty] | None = None
 
 
 @dataclass
@@ -967,7 +967,7 @@ class UserStatus:
 
 
 @dataclass
-class UserUpdateRequestCustomPropertie:
+class UserUpdateRequestCustomProperty:
     id: int
     value: str
 
@@ -984,7 +984,7 @@ class UserUpdateRequestUser:
     role: UserRole | None = None
     suspended: bool | None = None
     list_tags: list[str] | None = None
-    custom_properties: list[UserUpdateRequestCustomPropertie] | None = None
+    custom_properties: list[UserUpdateRequestCustomProperty] | None = None
 
 
 @dataclass

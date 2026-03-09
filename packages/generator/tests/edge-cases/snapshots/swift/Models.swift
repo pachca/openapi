@@ -35,16 +35,16 @@ public struct PublishEventRequest: Codable {
 
 public struct UploadRequest: Codable {
     public var file: Data
-    public let Content_Disposition: String
+    public let ContentDisposition: String
 
-    public init(file: Data, Content_Disposition: String) {
+    public init(file: Data, ContentDisposition: String) {
         self.file = file
-        self.Content_Disposition = Content_Disposition
+        self.ContentDisposition = ContentDisposition
     }
 
     enum CodingKeys: String, CodingKey {
         case file
-        case Content_Disposition = "Content-Disposition"
+        case ContentDisposition = "Content-Disposition"
     }
 }
 

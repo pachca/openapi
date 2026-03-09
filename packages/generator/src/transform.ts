@@ -123,12 +123,18 @@ function resolveFieldType(schema: Schema): IRFieldType {
 
 // ----- Model extraction -----
 
-/** Singularize: strip trailing 's', with exceptions for words that already end in 's' */
+/** Singularize a PascalCase or camelCase name for inline model naming */
 function singularize(name: string): string {
   if (name.length <= 1) return name;
   const lower = name.toLowerCase();
-  // Words ending in ss/us/is/os are already singular (status, address, progress)
+  // Already singular: words ending in ss/us/is/os (status, address, progress, class)
   if (lower.endsWith('ss') || lower.endsWith('us') || lower.endsWith('is') || lower.endsWith('os')) return name;
+  // -ies → -y: entries → entry, categories → category
+  if (lower.endsWith('ies')) return name.slice(0, -3) + (name[name.length - 4] === name[name.length - 4].toUpperCase() ? 'Y' : 'y');
+  // -ses / -xes / -zes / -ches / -shes → drop -es
+  if (/(?:ses|xes|zes|ches|shes)$/i.test(name)) return name.slice(0, -2);
+  // Don't strip 's' from short words (≤3 chars) to avoid breaking "gas", "bus", etc.
+  if (name.length <= 3) return name;
   if (name.endsWith('s')) return name.slice(0, -1);
   return name;
 }
@@ -563,6 +569,13 @@ function transformOperation(
   const methodName = operationIdToMethod(endpoint.id);
   const tag = endpoint.tags[0] || 'Common';
 
+  // Warn about unsupported parameter locations
+  for (const p of endpoint.parameters) {
+    if (p.in === 'header' || p.in === 'cookie') {
+      console.warn(`Warning: ${endpoint.id} — ${p.in} parameter "${p.name}" is not supported by the generator and will be skipped`);
+    }
+  }
+
   const pathParams = endpoint.parameters
     .filter((p) => p.in === 'path')
     .map(transformParam);
@@ -595,6 +608,7 @@ function transformOperation(
     externalUrl: endpoint.externalUrl,
     noAuth: endpoint.requirements?.auth === false ? true : undefined,
     isPaginated: endpoint.paginated || undefined,
+    deprecated: endpoint.deprecated || undefined,
   };
 }
 

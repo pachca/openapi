@@ -58,7 +58,7 @@ import {
   UserUpdateRequest,
   OpenViewRequest,
 } from "./types";
-import { deserialize, serialize } from "./utils";
+import { deserialize, serialize, fetchWithRetry } from "./utils";
 
 class SecurityService {
   constructor(
@@ -77,7 +77,7 @@ class SecurityService {
     if (params?.entityType !== undefined) query.set("entity_type", params.entityType);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
-    const response = await fetch(`${this.baseUrl}/audit_events?${query}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/audit_events?${query}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -114,7 +114,7 @@ class BotsService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/webhooks/events${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -140,7 +140,7 @@ class BotsService {
   }
 
   async updateBot(id: number, request: BotUpdateRequest): Promise<BotResponse> {
-    const response = await fetch(`${this.baseUrl}/bots/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -157,7 +157,7 @@ class BotsService {
   }
 
   async deleteWebhookEvent(id: string): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/webhooks/events/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/webhooks/events/${id}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -188,7 +188,7 @@ class ChatsService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/chats${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -214,7 +214,7 @@ class ChatsService {
   }
 
   async getChat(id: number): Promise<Chat> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -229,7 +229,7 @@ class ChatsService {
   }
 
   async createChat(request: ChatCreateRequest): Promise<Chat> {
-    const response = await fetch(`${this.baseUrl}/chats`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -246,7 +246,7 @@ class ChatsService {
   }
 
   async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -263,7 +263,7 @@ class ChatsService {
   }
 
   async archiveChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/archive`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/archive`, {
       method: "PUT",
       headers: this.headers,
     });
@@ -278,7 +278,7 @@ class ChatsService {
   }
 
   async unarchiveChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/unarchive`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/unarchive`, {
       method: "PUT",
       headers: this.headers,
     });
@@ -300,7 +300,7 @@ class CommonService {
   ) {}
 
   async downloadExport(id: number): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/chats/exports/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports/${id}`, {
       headers: this.headers,
       redirect: "manual",
     });
@@ -322,7 +322,7 @@ class CommonService {
   async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
     const query = new URLSearchParams();
     query.set("entity_type", params.entityType);
-    const response = await fetch(`${this.baseUrl}/custom_properties?${query}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/custom_properties?${query}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -337,7 +337,7 @@ class CommonService {
   }
 
   async requestExport(request: ExportRequest): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/exports`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -363,7 +363,7 @@ class CommonService {
     form.set("x-amz-signature", request.xAmzSignature);
     form.set("key", request.key);
     form.set("file", request.file, "upload");
-    const response = await fetch(directUrl, {
+    const response = await fetchWithRetry(directUrl, {
       method: "POST",
       body: form,
     });
@@ -376,7 +376,7 @@ class CommonService {
   }
 
   async getUploadParams(): Promise<UploadParams> {
-    const response = await fetch(`${this.baseUrl}/uploads`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/uploads`, {
       method: "POST",
       headers: this.headers,
     });
@@ -404,7 +404,7 @@ class MembersService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/chats/${id}/members${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -430,7 +430,7 @@ class MembersService {
   }
 
   async addTags(id: number, groupTagIds: number[]): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/group_tags`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/group_tags`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify({ group_tag_ids: groupTagIds }),
@@ -446,7 +446,7 @@ class MembersService {
   }
 
   async addMembers(id: number, request: AddMembersRequest): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/members`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -462,7 +462,7 @@ class MembersService {
   }
 
   async updateMemberRole(id: number, userId: number, role: ChatMemberRole): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/members/$${userId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members/$${userId}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify({ role: role }),
@@ -478,7 +478,7 @@ class MembersService {
   }
 
   async removeTag(id: number, tagId: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/group_tags/$${tagId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/group_tags/$${tagId}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -493,7 +493,7 @@ class MembersService {
   }
 
   async leaveChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/leave`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/leave`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -508,7 +508,7 @@ class MembersService {
   }
 
   async removeMember(id: number, userId: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/members/$${userId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members/$${userId}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -535,7 +535,7 @@ class GroupTagsService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/group_tags${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -561,7 +561,7 @@ class GroupTagsService {
   }
 
   async getTag(id: number): Promise<GroupTag> {
-    const response = await fetch(`${this.baseUrl}/group_tags/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/group_tags/${id}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -580,7 +580,7 @@ class GroupTagsService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/group_tags/${id}/users${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -606,7 +606,7 @@ class GroupTagsService {
   }
 
   async createTag(request: GroupTagRequest): Promise<GroupTag> {
-    const response = await fetch(`${this.baseUrl}/group_tags`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/group_tags`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -623,7 +623,7 @@ class GroupTagsService {
   }
 
   async updateTag(id: number, request: GroupTagRequest): Promise<GroupTag> {
-    const response = await fetch(`${this.baseUrl}/group_tags/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/group_tags/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -640,7 +640,7 @@ class GroupTagsService {
   }
 
   async deleteTag(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/group_tags/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/group_tags/${id}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -667,7 +667,7 @@ class MessagesService {
     if (params?.sortId !== undefined) query.set("sort[{field}]", params.sortId);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
-    const response = await fetch(`${this.baseUrl}/messages?${query}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages?${query}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -693,7 +693,7 @@ class MessagesService {
   }
 
   async getMessage(id: number): Promise<Message> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -708,7 +708,7 @@ class MessagesService {
   }
 
   async createMessage(request: MessageCreateRequest): Promise<Message> {
-    const response = await fetch(`${this.baseUrl}/messages`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -725,7 +725,7 @@ class MessagesService {
   }
 
   async pinMessage(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}/pin`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
       method: "POST",
       headers: this.headers,
     });
@@ -740,7 +740,7 @@ class MessagesService {
   }
 
   async updateMessage(id: number, request: MessageUpdateRequest): Promise<Message> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -757,7 +757,7 @@ class MessagesService {
   }
 
   async deleteMessage(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -772,7 +772,7 @@ class MessagesService {
   }
 
   async unpinMessage(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}/pin`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/pin`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -794,7 +794,7 @@ class LinkPreviewsService {
   ) {}
 
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}/link_previews`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -821,7 +821,7 @@ class ReactionsService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/messages/${id}/reactions${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -847,7 +847,7 @@ class ReactionsService {
   }
 
   async addReaction(id: number, request: ReactionRequest): Promise<Reaction> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}/reactions`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/reactions`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -867,7 +867,7 @@ class ReactionsService {
     const query = new URLSearchParams();
     query.set("code", params.code);
     if (params?.name !== undefined) query.set("name", params.name);
-    const response = await fetch(`${this.baseUrl}/messages/${id}/reactions?${query}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/reactions?${query}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -893,7 +893,7 @@ class ReadMembersService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/messages/${id}/read_member_ids${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -926,7 +926,7 @@ class ThreadsService {
   ) {}
 
   async getThread(id: number): Promise<Thread> {
-    const response = await fetch(`${this.baseUrl}/threads/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/threads/${id}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -941,7 +941,7 @@ class ThreadsService {
   }
 
   async createThread(id: number): Promise<Thread> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}/thread`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/thread`, {
       method: "POST",
       headers: this.headers,
     });
@@ -964,7 +964,7 @@ class ProfileService {
   ) {}
 
   async getTokenInfo(): Promise<AccessTokenInfo> {
-    const response = await fetch(`${this.baseUrl}/oauth/token/info`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -979,7 +979,7 @@ class ProfileService {
   }
 
   async getProfile(): Promise<User> {
-    const response = await fetch(`${this.baseUrl}/profile`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/profile`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -994,7 +994,7 @@ class ProfileService {
   }
 
   async getStatus(): Promise<unknown> {
-    const response = await fetch(`${this.baseUrl}/profile/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1009,7 +1009,7 @@ class ProfileService {
   }
 
   async updateStatus(request: StatusUpdateRequest): Promise<UserStatus> {
-    const response = await fetch(`${this.baseUrl}/profile/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -1026,7 +1026,7 @@ class ProfileService {
   }
 
   async deleteStatus(): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/profile/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -1059,7 +1059,7 @@ class SearchService {
     if (params?.chatSubtype !== undefined) query.set("chat_subtype", params.chatSubtype);
     if (params?.personal !== undefined) query.set("personal", String(params.personal));
     const url = `${this.baseUrl}/search/chats${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1096,7 +1096,7 @@ class SearchService {
     if (params?.userIds !== undefined) query.set("user_ids", String(params.userIds));
     if (params?.active !== undefined) query.set("active", String(params.active));
     const url = `${this.baseUrl}/search/messages${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1132,7 +1132,7 @@ class SearchService {
     if (params?.createdTo !== undefined) query.set("created_to", params.createdTo);
     if (params?.companyRoles !== undefined) query.set("company_roles", String(params.companyRoles));
     const url = `${this.baseUrl}/search/users${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1169,7 +1169,7 @@ class TasksService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/tasks${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1195,7 +1195,7 @@ class TasksService {
   }
 
   async getTask(id: number): Promise<Task> {
-    const response = await fetch(`${this.baseUrl}/tasks/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/tasks/${id}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1210,7 +1210,7 @@ class TasksService {
   }
 
   async createTask(request: TaskCreateRequest): Promise<Task> {
-    const response = await fetch(`${this.baseUrl}/tasks`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/tasks`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -1227,7 +1227,7 @@ class TasksService {
   }
 
   async updateTask(id: number, request: TaskUpdateRequest): Promise<Task> {
-    const response = await fetch(`${this.baseUrl}/tasks/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/tasks/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -1244,7 +1244,7 @@ class TasksService {
   }
 
   async deleteTask(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/tasks/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/tasks/${id}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -1271,7 +1271,7 @@ class UsersService {
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/users${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1297,7 +1297,7 @@ class UsersService {
   }
 
   async getUser(id: number): Promise<User> {
-    const response = await fetch(`${this.baseUrl}/users/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1312,7 +1312,7 @@ class UsersService {
   }
 
   async getUserStatus(userId: number): Promise<unknown> {
-    const response = await fetch(`${this.baseUrl}/users/$${userId}/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/$${userId}/status`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1327,7 +1327,7 @@ class UsersService {
   }
 
   async createUser(request: UserCreateRequest): Promise<User> {
-    const response = await fetch(`${this.baseUrl}/users`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -1344,7 +1344,7 @@ class UsersService {
   }
 
   async updateUser(id: number, request: UserUpdateRequest): Promise<User> {
-    const response = await fetch(`${this.baseUrl}/users/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -1361,7 +1361,7 @@ class UsersService {
   }
 
   async updateUserStatus(userId: number, request: StatusUpdateRequest): Promise<UserStatus> {
-    const response = await fetch(`${this.baseUrl}/users/$${userId}/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/$${userId}/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -1378,7 +1378,7 @@ class UsersService {
   }
 
   async deleteUser(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/users/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -1393,7 +1393,7 @@ class UsersService {
   }
 
   async deleteUserStatus(userId: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/users/$${userId}/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/$${userId}/status`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -1415,7 +1415,7 @@ class ViewsService {
   ) {}
 
   async openView(request: OpenViewRequest): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/views/open`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/views/open`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),

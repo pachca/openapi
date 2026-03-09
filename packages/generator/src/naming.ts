@@ -1,6 +1,6 @@
-/** snake_case → camelCase: "first_name" → "firstName" */
+/** snake_case → camelCase: "first_name" → "firstName", "user_2fa" → "user2fa" */
 export function snakeToCamel(str: string): string {
-  return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  return str.replace(/_([a-zA-Z0-9])/g, (_, c: string) => c.toUpperCase());
 }
 
 /** snake_case → PascalCase: "first_name" → "FirstName" */
@@ -14,9 +14,12 @@ export function snakeToUpperSnake(str: string): string {
   return str.replace(/[^a-zA-Z0-9_]/g, '_').toUpperCase();
 }
 
-/** camelCase → snake_case: "firstName" → "first_name" */
+/** camelCase → snake_case: "firstName" → "first_name", "getHTTPClient" → "get_http_client" */
 export function camelToSnake(str: string): string {
-  return str.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+  return str
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')  // HTTPClient → HTTP_Client
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')       // getHTTP → get_HTTP
+    .toLowerCase();
 }
 
 /** kebab-case → camelCase: "x-amz-date" → "xAmzDate", "Content-Disposition" → "contentDisposition" */

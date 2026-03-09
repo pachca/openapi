@@ -37,7 +37,7 @@ public struct FileUploadRequest: Codable {
 }
 
 public struct UploadParams: Codable {
-    public let Content_Disposition: String
+    public let ContentDisposition: String
     public let acl: String
     public let policy: String
     public let xAmzCredential: String
@@ -47,8 +47,8 @@ public struct UploadParams: Codable {
     public let key: String
     public let directUrl: String
 
-    public init(Content_Disposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String) {
-        self.Content_Disposition = Content_Disposition
+    public init(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String) {
+        self.ContentDisposition = ContentDisposition
         self.acl = acl
         self.policy = policy
         self.xAmzCredential = xAmzCredential
@@ -60,7 +60,7 @@ public struct UploadParams: Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case Content_Disposition = "Content-Disposition"
+        case ContentDisposition = "Content-Disposition"
         case acl
         case policy
         case xAmzCredential = "x-amz-credential"

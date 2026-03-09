@@ -5,7 +5,7 @@ import {
   Event,
   UploadRequest,
 } from "./types";
-import { deserialize } from "./utils";
+import { deserialize, fetchWithRetry } from "./utils";
 
 class EventsService {
   constructor(
@@ -19,7 +19,7 @@ class EventsService {
     if (params?.scopes !== undefined) query.set("scopes", String(params.scopes));
     if (params?.filter !== undefined) query.set("filter", String(params.filter));
     const url = `${this.baseUrl}/events${query.toString() ? `?${query}` : ""}`;
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -32,7 +32,7 @@ class EventsService {
   }
 
   async publishEvent(id: number, scope: OAuthScope): Promise<Event> {
-    const response = await fetch(`${this.baseUrl}/events/${id}/publish`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/events/${id}/publish`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify({ scope: scope }),
@@ -57,7 +57,7 @@ class UploadsService {
     const form = new FormData();
     form.set("Content-Disposition", request.contentDisposition);
     form.set("file", request.file, "upload");
-    const response = await fetch(`${this.baseUrl}/uploads`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/uploads`, {
       method: "POST",
       headers: this.headers,
       body: form,

@@ -1,5 +1,5 @@
 import { ItemPatchRequest, Item, ApiError } from "./types";
-import { deserialize, serialize } from "./utils";
+import { deserialize, serialize, fetchWithRetry } from "./utils";
 
 class ItemsService {
   constructor(
@@ -8,7 +8,7 @@ class ItemsService {
   ) {}
 
   async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
-    const response = await fetch(`${this.baseUrl}/items/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/items/${id}`, {
       method: "PATCH",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),

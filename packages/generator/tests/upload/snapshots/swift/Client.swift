@@ -37,7 +37,7 @@ public struct CommonService {
         data.append("\r\n".data(using: .utf8)!)
         data.append("--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = data
-        let (responseData, urlResponse) = try await session.data(for: request)
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 204:
@@ -53,7 +53,7 @@ public struct CommonService {
         var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:

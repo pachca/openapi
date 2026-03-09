@@ -35,8 +35,8 @@ type PublishEventRequest struct {
 }
 
 type UploadRequest struct {
-	File                io.Reader `json:"file"`
-	Content_Disposition string    `json:"Content-Disposition"`
+	File               io.Reader `json:"file"`
+	ContentDisposition string    `json:"Content-Disposition"`
 }
 
 type Notification struct {

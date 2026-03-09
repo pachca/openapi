@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -21,6 +22,29 @@ type authTransport struct {
 func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Authorization", "Bearer "+t.token)
 	return t.base.RoundTrip(req)
+}
+
+const maxRetries = 3
+
+func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
+	for attempt := 0; ; attempt++ {
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
+			resp.Body.Close()
+			delay := time.Duration(1<<uint(attempt)) * time.Second
+			if ra := resp.Header.Get("Retry-After"); ra != "" {
+				if secs, err := strconv.Atoi(ra); err == nil {
+					delay = time.Duration(secs) * time.Second
+				}
+			}
+			time.Sleep(delay)
+			continue
+		}
+		return resp, nil
+	}
 }
 
 type SecurityService struct {
@@ -62,7 +86,7 @@ func (s *SecurityService) GetAuditEvents(ctx context.Context, params GetAuditEve
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +151,7 @@ func (s *BotsService) GetWebhookEvents(ctx context.Context, params *GetWebhookEv
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +204,7 @@ func (s *BotsService) UpdateBot(ctx context.Context, id int32, request BotUpdate
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +234,7 @@ func (s *BotsService) DeleteWebhookEvent(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -266,7 +290,7 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +338,7 @@ func (s *ChatsService) GetChat(ctx context.Context, id int32) (*Chat, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +373,7 @@ func (s *ChatsService) CreateChat(ctx context.Context, request ChatCreateRequest
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +408,7 @@ func (s *ChatsService) UpdateChat(ctx context.Context, id int32, request ChatUpd
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +438,7 @@ func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -438,7 +462,7 @@ func (s *ChatsService) UnarchiveChat(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -467,7 +491,7 @@ func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, e
 	if err != nil {
 		return "", err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return "", err
 	}
@@ -502,7 +526,7 @@ func (s *CommonService) ListProperties(ctx context.Context, params ListPropertie
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -535,7 +559,7 @@ func (s *CommonService) RequestExport(ctx context.Context, request ExportRequest
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -560,7 +584,7 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
-		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.Content_Disposition))
+		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
 		writer.WriteField("acl", fmt.Sprintf("%v", request.ACL))
 		writer.WriteField("policy", fmt.Sprintf("%v", request.Policy))
 		writer.WriteField("x-amz-credential", fmt.Sprintf("%v", request.XAMZCredential))
@@ -581,7 +605,7 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 		return err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := doWithRetry(http.DefaultClient, req)
 	if err != nil {
 		return err
 	}
@@ -601,7 +625,7 @@ func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, err
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -649,7 +673,7 @@ func (s *MembersService) ListMembers(ctx context.Context, id int32, params *List
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -702,7 +726,7 @@ func (s *MembersService) AddTags(ctx context.Context, id int32, groupTagIds []in
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -731,7 +755,7 @@ func (s *MembersService) AddMembers(ctx context.Context, id int32, request AddMe
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -760,7 +784,7 @@ func (s *MembersService) UpdateMemberRole(ctx context.Context, id int32, userId 
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -784,7 +808,7 @@ func (s *MembersService) RemoveTag(ctx context.Context, id int32, tagId int32) e
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -808,7 +832,7 @@ func (s *MembersService) LeaveChat(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -832,7 +856,7 @@ func (s *MembersService) RemoveMember(ctx context.Context, id int32, userId int3
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -876,7 +900,7 @@ func (s *GroupTagsService) ListTags(ctx context.Context, params *ListTagsParams)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -924,7 +948,7 @@ func (s *GroupTagsService) GetTag(ctx context.Context, id int32) (*GroupTag, err
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -966,7 +990,7 @@ func (s *GroupTagsService) GetTagUsers(ctx context.Context, id int32, params *Ge
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1019,7 +1043,7 @@ func (s *GroupTagsService) CreateTag(ctx context.Context, request GroupTagReques
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1054,7 +1078,7 @@ func (s *GroupTagsService) UpdateTag(ctx context.Context, id int32, request Grou
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1084,7 +1108,7 @@ func (s *GroupTagsService) DeleteTag(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -1129,7 +1153,7 @@ func (s *MessagesService) ListChatMessages(ctx context.Context, params ListChatM
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1177,7 +1201,7 @@ func (s *MessagesService) GetMessage(ctx context.Context, id int32) (*Message, e
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1212,7 +1236,7 @@ func (s *MessagesService) CreateMessage(ctx context.Context, request MessageCrea
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1242,7 +1266,7 @@ func (s *MessagesService) PinMessage(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -1271,7 +1295,7 @@ func (s *MessagesService) UpdateMessage(ctx context.Context, id int32, request M
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1301,7 +1325,7 @@ func (s *MessagesService) DeleteMessage(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -1325,7 +1349,7 @@ func (s *MessagesService) UnpinMessage(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -1359,7 +1383,7 @@ func (s *LinkPreviewsService) CreateLinkPreviews(ctx context.Context, id int32, 
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -1400,7 +1424,7 @@ func (s *ReactionsService) ListReactions(ctx context.Context, id int32, params *
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1453,7 +1477,7 @@ func (s *ReactionsService) AddReaction(ctx context.Context, id int32, request Re
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1491,7 +1515,7 @@ func (s *ReactionsService) RemoveReaction(ctx context.Context, id int32, params 
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -1532,7 +1556,7 @@ func (s *ReadMembersService) ListReadMembers(ctx context.Context, id int32, para
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1585,7 +1609,7 @@ func (s *ThreadsService) GetThread(ctx context.Context, id int32) (*Thread, erro
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1615,7 +1639,7 @@ func (s *ThreadsService) CreateThread(ctx context.Context, id int32) (*Thread, e
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1650,7 +1674,7 @@ func (s *ProfileService) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, er
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1680,7 +1704,7 @@ func (s *ProfileService) GetProfile(ctx context.Context) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1710,7 +1734,7 @@ func (s *ProfileService) GetStatus(ctx context.Context) (*any, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1743,7 +1767,7 @@ func (s *ProfileService) UpdateStatus(ctx context.Context, request StatusUpdateR
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1773,7 +1797,7 @@ func (s *ProfileService) DeleteStatus(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -1835,7 +1859,7 @@ func (s *SearchService) SearchChats(ctx context.Context, params *SearchChatsPara
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1916,7 +1940,7 @@ func (s *SearchService) SearchMessages(ctx context.Context, params *SearchMessag
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1994,7 +2018,7 @@ func (s *SearchService) SearchUsers(ctx context.Context, params *SearchUsersPara
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2059,7 +2083,7 @@ func (s *TasksService) ListTasks(ctx context.Context, params *ListTasksParams) (
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2107,7 +2131,7 @@ func (s *TasksService) GetTask(ctx context.Context, id int32) (*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2142,7 +2166,7 @@ func (s *TasksService) CreateTask(ctx context.Context, request TaskCreateRequest
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2177,7 +2201,7 @@ func (s *TasksService) UpdateTask(ctx context.Context, id int32, request TaskUpd
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2207,7 +2231,7 @@ func (s *TasksService) DeleteTask(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -2251,7 +2275,7 @@ func (s *UsersService) ListUsers(ctx context.Context, params *ListUsersParams) (
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2299,7 +2323,7 @@ func (s *UsersService) GetUser(ctx context.Context, id int32) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2329,7 +2353,7 @@ func (s *UsersService) GetUserStatus(ctx context.Context, userId int32) (*any, e
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2362,7 +2386,7 @@ func (s *UsersService) CreateUser(ctx context.Context, request UserCreateRequest
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2397,7 +2421,7 @@ func (s *UsersService) UpdateUser(ctx context.Context, id int32, request UserUpd
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2432,7 +2456,7 @@ func (s *UsersService) UpdateUserStatus(ctx context.Context, userId int32, reque
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -2462,7 +2486,7 @@ func (s *UsersService) DeleteUser(ctx context.Context, id int32) error {
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -2486,7 +2510,7 @@ func (s *UsersService) DeleteUserStatus(ctx context.Context, userId int32) error
 	if err != nil {
 		return err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}
@@ -2520,7 +2544,7 @@ func (s *ViewsService) OpenView(ctx context.Context, request OpenViewRequest) er
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}

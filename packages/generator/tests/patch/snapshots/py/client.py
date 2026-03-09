@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 
 from .models import ItemPatchRequest, Item, ApiError
-from .utils import deserialize, serialize
+from .utils import deserialize, serialize, RetryTransport
 
 class ItemsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -31,6 +31,7 @@ class PachcaClient:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
+            transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
         self.items = ItemsService(self._client)
 

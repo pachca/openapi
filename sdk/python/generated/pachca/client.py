@@ -61,7 +61,7 @@ from .models import (
     UserUpdateRequest,
     OpenViewRequest,
 )
-from .utils import deserialize, serialize
+from .utils import deserialize, serialize, RetryTransport
 
 class SecurityService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -1601,6 +1601,7 @@ class PachcaClient:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
+            transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
         self.bots = BotsService(self._client)
         self.chats = ChatsService(self._client)

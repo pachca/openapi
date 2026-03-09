@@ -1,5 +1,5 @@
 import { FileUploadRequest, OAuthError, UploadParams } from "./types";
-import { deserialize } from "./utils";
+import { deserialize, fetchWithRetry } from "./utils";
 
 class CommonService {
   constructor(
@@ -18,7 +18,7 @@ class CommonService {
     form.set("x-amz-signature", request.xAmzSignature);
     form.set("key", request.key);
     form.set("file", request.file, "upload");
-    const response = await fetch(directUrl, {
+    const response = await fetchWithRetry(directUrl, {
       method: "POST",
       body: form,
     });
@@ -33,7 +33,7 @@ class CommonService {
   }
 
   async getUploadParams(): Promise<UploadParams> {
-    const response = await fetch(`${this.baseUrl}/uploads`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/uploads`, {
       method: "POST",
       headers: this.headers,
     });

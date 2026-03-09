@@ -20,7 +20,7 @@ public struct EventsService {
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
@@ -36,7 +36,7 @@ public struct EventsService {
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: ["scope": scope])
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
@@ -70,7 +70,7 @@ public struct UploadsService {
             data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
             data.append("\(value)\r\n".data(using: .utf8)!)
         }
-        appendField("Content-Disposition", String(describing: body.Content_Disposition))
+        appendField("Content-Disposition", String(describing: body.ContentDisposition))
         data.append("--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"file\"; filename=\"upload\"\r\n".data(using: .utf8)!)
         data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
@@ -78,7 +78,7 @@ public struct UploadsService {
         data.append("\r\n".data(using: .utf8)!)
         data.append("--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = data
-        let (responseData, urlResponse) = try await session.data(for: request)
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 201:

@@ -17,15 +17,15 @@ type FileUploadRequest struct {
 }
 
 type UploadParams struct {
-	Content_Disposition string `json:"Content-Disposition"`
-	ACL                 string `json:"acl"`
-	Policy              string `json:"policy"`
-	XAMZCredential      string `json:"x-amz-credential"`
-	XAMZAlgorithm       string `json:"x-amz-algorithm"`
-	XAMZDate            string `json:"x-amz-date"`
-	XAMZSignature       string `json:"x-amz-signature"`
-	Key                 string `json:"key"`
-	DirectURL           string `json:"direct_url"`
+	ContentDisposition string `json:"Content-Disposition"`
+	ACL                string `json:"acl"`
+	Policy             string `json:"policy"`
+	XAMZCredential     string `json:"x-amz-credential"`
+	XAMZAlgorithm      string `json:"x-amz-algorithm"`
+	XAMZDate           string `json:"x-amz-date"`
+	XAMZSignature      string `json:"x-amz-signature"`
+	Key                string `json:"key"`
+	DirectURL          string `json:"direct_url"`
 }
 
 type OAuthError struct {

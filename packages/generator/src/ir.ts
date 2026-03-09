@@ -126,6 +126,8 @@ export interface IROperation {
   path: string;
   tag: string;
   description?: string;
+  /** Operation marked as deprecated in the spec */
+  deprecated?: boolean;
   pathParams: IRParam[];
   queryParams: IRParam[];
   requestBody?: IRRequestBody;

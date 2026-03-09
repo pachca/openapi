@@ -4,7 +4,7 @@ import {
   ChatCreateRequest,
   Chat,
 } from "./types";
-import { deserialize, serialize } from "./utils";
+import { deserialize, serialize, fetchWithRetry } from "./utils";
 
 class MembersService {
   constructor(
@@ -13,7 +13,7 @@ class MembersService {
   ) {}
 
   async addMembers(id: number, memberIds: number[]): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/members`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify({ member_ids: memberIds }),
@@ -36,7 +36,7 @@ class ChatsService {
   ) {}
 
   async createChat(request: ChatCreateRequest): Promise<Chat> {
-    const response = await fetch(`${this.baseUrl}/chats`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -53,7 +53,7 @@ class ChatsService {
   }
 
   async archiveChat(id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/chats/${id}/archive`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/archive`, {
       method: "PUT",
       headers: this.headers,
     });

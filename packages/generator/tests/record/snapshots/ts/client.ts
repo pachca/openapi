@@ -1,5 +1,5 @@
 import { LinkPreviewsRequest, OAuthError, ApiError } from "./types";
-import { serialize } from "./utils";
+import { serialize, fetchWithRetry } from "./utils";
 
 class LinkPreviewsService {
   constructor(
@@ -8,7 +8,7 @@ class LinkPreviewsService {
   ) {}
 
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/messages/${id}/link_previews`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),

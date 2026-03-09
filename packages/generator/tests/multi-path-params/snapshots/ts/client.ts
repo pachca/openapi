@@ -1,5 +1,5 @@
 import { Task, TaskUpdateRequest } from "./types";
-import { deserialize, serialize } from "./utils";
+import { deserialize, serialize, fetchWithRetry } from "./utils";
 
 class TasksService {
   constructor(
@@ -8,7 +8,7 @@ class TasksService {
   ) {}
 
   async getTask(projectId: number, taskId: number): Promise<Task> {
-    const response = await fetch(`${this.baseUrl}/projects/$${projectId}/tasks/$${taskId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/projects/$${projectId}/tasks/$${taskId}`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -21,7 +21,7 @@ class TasksService {
   }
 
   async updateTask(projectId: number, taskId: number, request: TaskUpdateRequest): Promise<Task> {
-    const response = await fetch(`${this.baseUrl}/projects/$${projectId}/tasks/$${taskId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/projects/$${projectId}/tasks/$${taskId}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -36,7 +36,7 @@ class TasksService {
   }
 
   async deleteComment(projectId: number, taskId: number, commentId: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/projects/$${projectId}/tasks/$${taskId}/comments/$${commentId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/projects/$${projectId}/tasks/$${taskId}/comments/$${commentId}`, {
       method: "DELETE",
       headers: this.headers,
     });

@@ -14,7 +14,7 @@ public struct TasksService {
     public func getTask(projectId: Int, taskId: Int) async throws -> Task {
         var request = URLRequest(url: URL(string: "\(baseURL)/projects/\(projectId)/tasks/\(taskId)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
@@ -30,7 +30,7 @@ public struct TasksService {
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try serialize(body)
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
@@ -44,7 +44,7 @@ public struct TasksService {
         var request = URLRequest(url: URL(string: "\(baseURL)/projects/\(projectId)/tasks/\(taskId)/comments/\(commentId)")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
-        let (data, urlResponse) = try await session.data(for: request)
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 204:

@@ -9,6 +9,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"strconv"
+	"time"
 )
 
 type authTransport struct {
@@ -19,6 +21,29 @@ type authTransport struct {
 func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Authorization", "Bearer "+t.token)
 	return t.base.RoundTrip(req)
+}
+
+const maxRetries = 3
+
+func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
+	for attempt := 0; ; attempt++ {
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
+			resp.Body.Close()
+			delay := time.Duration(1<<uint(attempt)) * time.Second
+			if ra := resp.Header.Get("Retry-After"); ra != "" {
+				if secs, err := strconv.Atoi(ra); err == nil {
+					delay = time.Duration(secs) * time.Second
+				}
+			}
+			time.Sleep(delay)
+			continue
+		}
+		return resp, nil
+	}
 }
 
 type EventsService struct {
@@ -46,7 +71,7 @@ func (s *EventsService) ListEvents(ctx context.Context, params *ListEventsParams
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +98,7 @@ func (s *EventsService) PublishEvent(ctx context.Context, id int32, scope OAuthS
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +128,7 @@ func (s *UploadsService) CreateUpload(ctx context.Context, request UploadRequest
 	go func() {
 		defer pw.Close()
 		defer writer.Close()
-		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.Content_Disposition))
+		writer.WriteField("Content-Disposition", fmt.Sprintf("%v", request.ContentDisposition))
 		part, err := writer.CreateFormFile("file", "upload")
 		if err != nil {
 			return
@@ -117,7 +142,7 @@ func (s *UploadsService) CreateUpload(ctx context.Context, request UploadRequest
 		return err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return err
 	}

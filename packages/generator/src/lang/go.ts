@@ -413,6 +413,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     args.push(`${snakeToCamel('params')} ${hasReq ? pName : `*${pName}`}`);
   }
 
+  if (op.deprecated) lines.push(`// Deprecated: ${goMethodName(op)} is deprecated.`);
   lines.push(`func (s *${tagToServiceName(op.tag)}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
 
   const { fmt: fmtPath, args: pathArgs } = goPathFormat(op.path, op);
@@ -524,7 +525,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   }
 
   const goClient = op.noAuth ? 'http.DefaultClient' : 's.client';
-  lines.push(`\tresp, err := ${goClient}.Do(req)`);
+  lines.push(`\tresp, err := doWithRetry(${goClient}, req)`);
   lines.push('\tif err != nil {');
   lines.push(`\t\t${retErr()}`);
   lines.push('\t}');
@@ -645,16 +646,13 @@ function generateClient(ir: IR): string {
   const needURL = ir.services.some((s) => s.operations.some((o) => o.queryParams.length > 0));
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
-  const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"'];
+  const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"strconv"', '"time"'];
   if (needBytes) imports.push('"bytes"');
   if (needURL) imports.push('"net/url"');
   if (needErrors) imports.push('"errors"');
   if (needMultipart) {
     imports.push('"io"');
     imports.push('"mime/multipart"');
-  }
-  if (ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && (q.type.format === 'date' || q.type.format === 'date-time')))) {
-    imports.push('"time"');
   }
   imports.sort();
 
@@ -671,6 +669,29 @@ function generateClient(ir: IR): string {
   lines.push('func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {');
   lines.push('\treq.Header.Set("Authorization", "Bearer "+t.token)');
   lines.push('\treturn t.base.RoundTrip(req)');
+  lines.push('}');
+  lines.push('');
+  lines.push('const maxRetries = 3');
+  lines.push('');
+  lines.push('func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {');
+  lines.push('\tfor attempt := 0; ; attempt++ {');
+  lines.push('\t\tresp, err := client.Do(req)');
+  lines.push('\t\tif err != nil {');
+  lines.push('\t\t\treturn nil, err');
+  lines.push('\t\t}');
+  lines.push('\t\tif resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {');
+  lines.push('\t\t\tresp.Body.Close()');
+  lines.push('\t\t\tdelay := time.Duration(1<<uint(attempt)) * time.Second');
+  lines.push('\t\t\tif ra := resp.Header.Get("Retry-After"); ra != "" {');
+  lines.push('\t\t\t\tif secs, err := strconv.Atoi(ra); err == nil {');
+  lines.push('\t\t\t\t\tdelay = time.Duration(secs) * time.Second');
+  lines.push('\t\t\t\t}');
+  lines.push('\t\t\t}');
+  lines.push('\t\t\ttime.Sleep(delay)');
+  lines.push('\t\t\tcontinue');
+  lines.push('\t\t}');
+  lines.push('\t\treturn resp, nil');
+  lines.push('\t}');
   lines.push('}');
   lines.push('');
 

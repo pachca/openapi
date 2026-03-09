@@ -473,6 +473,7 @@ function emitOperation(
   const returnSuffix = returnType ? `: ${returnType}` : '';
   const params = buildMethodParams(op, ir);
 
+  if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
   if (params.length === 0) {
     lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
   } else if (params.length === 1) {
@@ -781,6 +782,13 @@ function emitPachcaClient(
   }
   lines.push('        install(ContentNegotiation) {');
   lines.push('            json(Json { explicitNulls = false })');
+  lines.push('        }');
+  lines.push('        install(HttpRequestRetry) {');
+  lines.push('            retryOnServerErrors(maxRetries = 3)');
+  lines.push('            retryIf { _, response -> response.status.value == 429 }');
+  lines.push('            delayMillis { retry ->');
+  lines.push('                retry * 1000L');
+  lines.push('            }');
   lines.push('        }');
   lines.push('        defaultRequest {');
   lines.push('            bearerAuth(token)');

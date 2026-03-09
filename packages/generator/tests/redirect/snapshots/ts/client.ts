@@ -1,4 +1,5 @@
 import { OAuthError, ApiError } from "./types";
+import { fetchWithRetry } from "./utils";
 
 class CommonService {
   constructor(
@@ -7,7 +8,7 @@ class CommonService {
   ) {}
 
   async downloadExport(id: number): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/exports/${id}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/exports/${id}`, {
       headers: this.headers,
       redirect: "manual",
     });

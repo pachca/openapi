@@ -1152,7 +1152,7 @@ data class Task(
 )
 
 @Serializable
-data class TaskCreateRequestCustomPropertie(
+data class TaskCreateRequestCustomProperty(
     val id: Int,
     val value: String,
 )
@@ -1166,7 +1166,7 @@ data class TaskCreateRequestTask(
     @SerialName("performer_ids") val performerIds: List<Int>? = null,
     @SerialName("chat_id") val chatId: Int? = null,
     @SerialName("all_day") val allDay: Boolean? = null,
-    @SerialName("custom_properties") val customProperties: List<TaskCreateRequestCustomPropertie>? = null,
+    @SerialName("custom_properties") val customProperties: List<TaskCreateRequestCustomProperty>? = null,
 )
 
 @Serializable
@@ -1175,7 +1175,7 @@ data class TaskCreateRequest(
 )
 
 @Serializable
-data class TaskUpdateRequestCustomPropertie(
+data class TaskUpdateRequestCustomProperty(
     val id: Int,
     val value: String,
 )
@@ -1190,7 +1190,7 @@ data class TaskUpdateRequestTask(
     val status: TaskStatus? = null,
     @SerialName("all_day") val allDay: Boolean? = null,
     @SerialName("done_at") val doneAt: String? = null,
-    @SerialName("custom_properties") val customProperties: List<TaskUpdateRequestCustomPropertie>? = null,
+    @SerialName("custom_properties") val customProperties: List<TaskUpdateRequestCustomProperty>? = null,
 )
 
 @Serializable
@@ -1250,7 +1250,7 @@ data class User(
 )
 
 @Serializable
-data class UserCreateRequestCustomPropertie(
+data class UserCreateRequestCustomProperty(
     val id: Int,
     val value: String,
 )
@@ -1267,7 +1267,7 @@ data class UserCreateRequestUser(
     val role: UserRole? = null,
     val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
-    @SerialName("custom_properties") val customProperties: List<UserCreateRequestCustomPropertie>? = null,
+    @SerialName("custom_properties") val customProperties: List<UserCreateRequestCustomProperty>? = null,
 )
 
 @Serializable
@@ -1291,7 +1291,7 @@ data class UserStatus(
 )
 
 @Serializable
-data class UserUpdateRequestCustomPropertie(
+data class UserUpdateRequestCustomProperty(
     val id: Int,
     val value: String,
 )
@@ -1308,7 +1308,7 @@ data class UserUpdateRequestUser(
     val role: UserRole? = null,
     val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
-    @SerialName("custom_properties") val customProperties: List<UserUpdateRequestCustomPropertie>? = null,
+    @SerialName("custom_properties") val customProperties: List<UserUpdateRequestCustomProperty>? = null,
 )
 
 @Serializable

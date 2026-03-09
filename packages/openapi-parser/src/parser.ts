@@ -69,7 +69,7 @@ export function parseOpenAPI(
       for (const [method, operation] of Object.entries(pathItem)) {
         if (['get', 'post', 'put', 'delete', 'patch'].includes(method.toLowerCase())) {
           if (!isRecord(operation)) continue;
-          const endpoint = parseEndpoint(pathStr, method.toUpperCase(), operation, openapi);
+          const endpoint = parseEndpoint(pathStr, method.toUpperCase(), operation, openapi, pathItem);
           parsed.endpoints.push(endpoint);
         }
       }

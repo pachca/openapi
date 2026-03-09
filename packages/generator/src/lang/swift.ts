@@ -276,6 +276,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
   }
 
+  if (op.deprecated) lines.push('    @available(*, deprecated)');
   lines.push(`    public func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
   if (op.queryParams.length > 0) {
     const swiftUrlBase = op.externalUrl ? `\\(${op.externalUrl})` : `\\(baseURL)${op.path}`;
@@ -368,7 +369,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
 
   if (op.successResponse.isRedirect) {
     lines.push('        let delegate = RedirectPreventer()');
-    lines.push('        let (data, urlResponse) = try await session.data(for: request, delegate: delegate)');
+    lines.push('        let (data, urlResponse) = try await dataWithRetry(session: session, for: request, delegate: delegate)');
     lines.push('        let statusCode = (urlResponse as! HTTPURLResponse).statusCode');
     lines.push('        switch statusCode {');
     lines.push('        case 302:');
@@ -393,7 +394,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   }
 
   const resVar = op.requestBody?.contentType === 'multipart' ? 'responseData' : 'data';
-  lines.push(`        let (${resVar}, urlResponse) = try await session.data(for: request)`);
+  lines.push(`        let (${resVar}, urlResponse) = try await dataWithRetry(session: session, for: request)`);
   lines.push('        let statusCode = (urlResponse as! HTTPURLResponse).statusCode');
   lines.push('        switch statusCode {');
   const okCode = op.successResponse.statusCode;
@@ -584,6 +585,29 @@ function generateUtils(ir: IR): string {
       '',
     );
   }
+
+  lines.push(
+    'private let maxRetries = 3',
+    '',
+    'func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {',
+    '    for attempt in 0...maxRetries {',
+    '        let (data, response) = try await session.data(for: request, delegate: delegate)',
+    '        if let http = response as? HTTPURLResponse, http.statusCode == 429, attempt < maxRetries {',
+    '            let delay: UInt64',
+    '            if let ra = http.value(forHTTPHeaderField: "Retry-After"), let secs = UInt64(ra) {',
+    '                delay = secs * 1_000_000_000',
+    '            } else {',
+    '                delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000',
+    '            }',
+    '            try await Task.sleep(nanoseconds: delay)',
+    '            continue',
+    '        }',
+    '        return (data, response)',
+    '    }',
+    '    return try await session.data(for: request, delegate: delegate) // unreachable',
+    '}',
+    '',
+  );
 
   lines.push(
     'private func stripNulls(_ value: Any) -> Any {',

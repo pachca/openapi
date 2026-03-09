@@ -11,7 +11,7 @@ from .models import (
     ChatCreateRequest,
     ChatUpdateRequest,
 )
-from .utils import deserialize, serialize
+from .utils import deserialize, serialize, RetryTransport
 
 class ChatsService:
     def __init__(self, client: httpx.AsyncClient) -> None:
@@ -149,6 +149,7 @@ class PachcaClient:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
+            transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
         self.chats = ChatsService(self._client)
 

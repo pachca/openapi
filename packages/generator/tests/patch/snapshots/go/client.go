@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type authTransport struct {
@@ -16,6 +18,29 @@ type authTransport struct {
 func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Set("Authorization", "Bearer "+t.token)
 	return t.base.RoundTrip(req)
+}
+
+const maxRetries = 3
+
+func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
+	for attempt := 0; ; attempt++ {
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
+			resp.Body.Close()
+			delay := time.Duration(1<<uint(attempt)) * time.Second
+			if ra := resp.Header.Get("Retry-After"); ra != "" {
+				if secs, err := strconv.Atoi(ra); err == nil {
+					delay = time.Duration(secs) * time.Second
+				}
+			}
+			time.Sleep(delay)
+			continue
+		}
+		return resp, nil
+	}
 }
 
 type ItemsService struct {
@@ -33,7 +58,7 @@ func (s *ItemsService) PatchItem(ctx context.Context, id int32, request ItemPatc
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := s.client.Do(req)
+	resp, err := doWithRetry(s.client, req)
 	if err != nil {
 		return nil, err
 	}

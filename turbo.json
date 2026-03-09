@@ -48,6 +48,7 @@
       "cache": true
     },
     "typecheck": {
+      "dependsOn": ["^build"],
       "cache": true
     },
     "knip": {
@@ -65,7 +66,7 @@
       "cache": true
     },
     "test": {
-      "dependsOn": ["generate-cli"],
+      "dependsOn": ["^build", "generate-cli"],
       "inputs": ["src/**", "tests/**"],
       "cache": true
     },

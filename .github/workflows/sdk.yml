@@ -26,6 +26,9 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+      - name: Build parser
+        working-directory: packages/openapi-parser
+        run: bun run build
       - name: Generate SDKs
         run: npx turbo run generate
 

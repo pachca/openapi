@@ -1364,6 +1364,7 @@ model AccessTokenInfo {
 // Error Models
 // ============================================================================
 
+@extension("x-error", true)
 @doc("Ошибка API (используется для 400, 403, 404, 409, 410, 422)")
 model ApiError {
   @doc("Массив ошибок")
@@ -1393,6 +1394,7 @@ model ApiErrorItem {
   payload: string | null;
 }
 
+@extension("x-error", true)
 @doc("Ошибка OAuth авторизации (используется для 401 и 403)")
 model OAuthError {
   @doc("Код ошибки")
@@ -2944,30 +2946,25 @@ interface UploadOperations {
 @doc("Данные для загрузки файла")
 model FileUploadRequest {
   @doc("Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "Content-Disposition")
-  contentDisposition: HttpPart<string>;
-  
+  `Content-Disposition`: HttpPart<string>;
+
   @doc("Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   acl: HttpPart<string>;
-  
+
   @doc("Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   policy: HttpPart<string>;
-  
+
   @doc("Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-credential")
-  xAmzCredential: HttpPart<string>;
-  
+  `x-amz-credential`: HttpPart<string>;
+
   @doc("Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-algorithm")
-  xAmzAlgorithm: HttpPart<string>;
-  
+  `x-amz-algorithm`: HttpPart<string>;
+
   @doc("Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-date")
-  xAmzDate: HttpPart<string>;
-  
+  `x-amz-date`: HttpPart<string>;
+
   @doc("Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
-  @encodedName("multipart/form-data", "x-amz-signature")
-  xAmzSignature: HttpPart<string>;
+  `x-amz-signature`: HttpPart<string>;
   
   @doc("Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)")
   key: HttpPart<string>;
@@ -2981,6 +2978,7 @@ interface DirectUploadOperations {
   @extension("x-requirements", #{
     auth: false,
   })
+  @extension("x-external-url", "directUrl")
   @doc("""
 Загрузка файла
 
@@ -2996,7 +2994,7 @@ interface DirectUploadOperations {
   @route("direct_url")
   uploadFile(
     @multipartBody request: FileUploadRequest
-  ): {@statusCode _: 201};
+  ): {@statusCode _: 204};
 }
 
 @route("/chats/exports")
@@ -3209,6 +3207,7 @@ interface UserOperations {
 
 Метод для получения актуального списка сотрудников вашей компании.
 """)
+  @extension("x-paginated", true)
   @get
   listUsers(
     @doc("Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).")
@@ -3508,6 +3507,7 @@ interface GroupTagOperations {
 
 Метод для получения актуального списка тегов сотрудников. Названия тегов являются уникальными в компании.
 """)
+  @extension("x-paginated", true)
   @get
   listTags(
     @doc("Массив названий тегов, по которым вы хотите отфильтровать список")
@@ -3548,6 +3548,7 @@ interface GroupTagOperations {
 
 Метод для получения актуального списка сотрудников тега.
 """)
+  @extension("x-paginated", true)
   @route("/{id}/users")
   @get
   getTagUsers(
@@ -3725,6 +3726,7 @@ interface ChatOperations {
 
 Метод для получения списка чатов по заданным параметрам.
 """)
+  @extension("x-paginated", true)
   @get
   listChats(
     @doc("Составной параметр сортировки сущностей выборки")
@@ -3887,6 +3889,7 @@ interface ChatMemberOperations {
 
 Владелец пространства может получить состав участников любого чата пространства. Администраторы и боты могут получить список участников только тех чатов, в которых состоят (или которые являются открытыми).
 """)
+  @extension("x-paginated", true)
   @route("/chats/{id}/members")
   @get
   listMembers(
@@ -4426,6 +4429,7 @@ interface ChatMessageOperations {
 
 Для получения сообщений вам необходимо знать `chat_id` требуемой беседы, канала, треда или диалога, и указать его в `URL` запроса. Сообщения будут возвращены в порядке убывания даты отправки (то есть, сначала будут идти последние сообщения чата). Для получения более ранних сообщений чата доступны параметры `limit` и `cursor`.
 """)
+  @extension("x-paginated", true)
   @get
   listChatMessages(
     @doc("Идентификатор чата (беседа, канал, диалог или чат треда)")
@@ -4481,6 +4485,7 @@ interface ReadMemberOperations {
 
 Метод для получения актуального списка пользователей, прочитавших сообщение.
 """)
+  @extension("x-paginated", true)
   @route("/messages/{id}/read_member_ids")
   @get
   listReadMembers(
@@ -4621,6 +4626,7 @@ interface ReactionOperations {
 
 Метод для получения актуального списка реакций на сообщение.
 """)
+  @extension("x-paginated", true)
   @get
   listReactions(
     @doc("Идентификатор сообщения")
@@ -4721,6 +4727,7 @@ interface SearchOperations {
 
 Метод для полнотекстового поиска сотрудников по имени, email, должности и другим полям.
 """)
+  @extension("x-paginated", true)
   @route("/users")
   @get
   searchUsers(
@@ -4774,6 +4781,7 @@ interface SearchOperations {
 
 Метод для полнотекстового поиска каналов и бесед.
 """)
+  @extension("x-paginated", true)
   @route("/chats")
   @get
   searchChats(
@@ -4830,6 +4838,7 @@ interface SearchOperations {
 
 Метод для полнотекстового поиска сообщений.
 """)
+  @extension("x-paginated", true)
   @route("/messages")
   @get
   searchMessages(
@@ -4931,6 +4940,7 @@ interface TaskOperations {
 
 Метод для получения списка напоминаний.
 """)
+  @extension("x-paginated", true)
   @get
   listTasks(
     @doc("Количество возвращаемых сущностей за один запрос")
@@ -5150,6 +5160,7 @@ interface BotOperations {
 
 Для получения истории событий конкретного бота вам необходимо знать его `access_token` и использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.
 """)
+  @extension("x-paginated", true)
   @route("/webhooks/events")
   @get
   getWebhookEvents(
@@ -5230,6 +5241,7 @@ interface SecurityOperations {
 
 Метод для получения логов событий на основе указанных фильтров.
 """)
+  @extension("x-paginated", true)
   @get
   getAuditEvents(
     @doc("Начальная метка времени (включительно)")

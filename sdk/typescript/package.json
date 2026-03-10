@@ -1,6 +1,6 @@
 {
   "name": "@pachca/sdk",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,14 +22,12 @@
   },
   "scripts": {
     "setup": "true",
-    "generate": "bun scripts/strip-operations.ts && openapi-ts && bun generate-client.ts",
+    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang typescript && rm -rf src/generated && mv ts src/generated",
     "build": "tsc"
   },
   "dependencies": {},
   "devDependencies": {
     "@pachca/spec": "workspace:*",
-    "@hey-api/openapi-ts": "^0.93.0",
-    "yaml": "^2.7.0",
     "typescript": "^5.0.0"
   }
 }

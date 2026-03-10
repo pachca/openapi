@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  title: Test API — Record
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Link Previews
+paths:
+  /messages/{id}/link_previews:
+    post:
+      operationId: LinkPreviewOperations_createLinkPreviews
+      description: Разворачивание ссылок
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор сообщения
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created.
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Link Previews
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkPreviewsRequest'
+      x-requirements:
+        scope: messages:write
+components:
+  schemas:
+    LinkPreview:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Заголовок
+        description:
+          type: string
+          description: Описание
+        image_url:
+          type: string
+          description: URL изображения
+      description: Предпросмотр ссылки
+
+    LinkPreviewsRequest:
+      type: object
+      required:
+        - link_previews
+      properties:
+        link_previews:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/LinkPreview'
+          description: Карта предпросмотров ссылок
+          x-record-key-example: https://website.com/articles/123
+      description: Запрос на разворачивание ссылок
+
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

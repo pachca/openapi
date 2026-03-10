@@ -10,7 +10,7 @@
 
 import { readFileSync, statSync } from "node:fs";
 import { basename } from "node:path";
-import { Pachca } from "../src/index.js";
+import { PachcaClient } from "../src/index.js";
 
 const token = process.env.PACHCA_TOKEN;
 const chatIdStr = process.env.PACHCA_CHAT_ID;
@@ -25,7 +25,7 @@ if (!token || !chatIdStr || !filePath) {
 
 const chatId = Number(chatIdStr);
 const filename = basename(filePath);
-const pachca = new Pachca({ token });
+const client = new PachcaClient(token);
 
 // ── Step 1: Read the local file ─────────────────────────────────
 console.log(`1. Reading file: ${filePath}`);
@@ -36,33 +36,41 @@ console.log(`   Size: ${fileSize} bytes`);
 
 // ── Step 2: Get upload params ───────────────────────────────────
 console.log("2. Getting upload params...");
-const { data: params } = await pachca.common.getUploadParams();
-console.log(`   Got direct_url: ${params!.direct_url}`);
+const params = await client.common.getUploadParams();
+const key = params.key.replace("${filename}", filename);
+console.log(`   Got direct_url: ${params.directUrl}`);
 
-// ── Step 3: Upload the file to S3 ──────────────────────────────
+// ── Step 3: Upload the file via SDK ─────────────────────────────
 console.log("3. Uploading file...");
-const key = await pachca.uploadFile(params!, file, filename);
+await client.common.uploadFile(params.directUrl, {
+  contentDisposition: params.contentDisposition,
+  acl: params.acl,
+  policy: params.policy,
+  xAmzCredential: params.xAmzCredential,
+  xAmzAlgorithm: params.xAmzAlgorithm,
+  xAmzDate: params.xAmzDate,
+  xAmzSignature: params.xAmzSignature,
+  key,
+  file,
+});
 console.log(`   Uploaded, key: ${key}`);
 
 // ── Step 4: Send message with the file attached ─────────────────
 console.log("4. Sending message with attachment...");
-const { data: msg } = await pachca.messages.createMessage({
-  body: {
-    message: {
-      entity_type: "discussion",
-      entity_id: chatId,
-      content: `File upload test: ${filename} 🚀`,
-      files: [
-        {
-          key,
-          name: filename,
-          file_type: "file",
-          size: fileSize,
-        },
-      ],
-    },
+const msg = await client.messages.createMessage({
+  message: {
+    entityId: chatId,
+    content: `File upload test: ${filename} 🚀`,
+    files: [
+      {
+        key,
+        name: filename,
+        fileType: "file",
+        size: fileSize,
+      },
+    ],
   },
 });
-console.log(`   Message ID: ${msg!.data.id}`);
+console.log(`   Message ID: ${msg.id}`);
 
 console.log("\nDone! File uploaded and sent.");

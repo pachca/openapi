@@ -157,6 +157,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Security
+      x-paginated: true
       x-requirements:
         scope: audit_events:read
         plan: corporation
@@ -419,6 +420,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Chats
+      x-paginated: true
       x-requirements:
         scope: chats:read
   /chats/exports:
@@ -964,6 +966,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Members
+      x-paginated: true
       x-requirements:
         scope: chat_members:read
     post:
@@ -1273,8 +1276,8 @@ paths:
         3. **Прикрепление файла к сообщению или другой сущности** — после загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `${filename}` на фактическое имя файла. Пример: Если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
       parameters: []
       responses:
-        '201':
-          description: The request has succeeded and a new resource has been created as a result.
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
       tags:
         - Common
       requestBody:
@@ -1283,6 +1286,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/FileUploadRequest'
+      x-external-url: directUrl
       x-requirements:
         auth: false
   /group_tags:
@@ -1424,6 +1428,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-paginated: true
       x-requirements:
         scope: group_tags:read
   /group_tags/{id}:
@@ -1682,6 +1687,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Group tags
+      x-paginated: true
       x-requirements:
         scope: group_tags:read
   /messages:
@@ -1846,6 +1852,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Messages
+      x-paginated: true
       x-requirements:
         scope: messages:read
   /messages/{id}:
@@ -2413,6 +2420,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Reactions
+      x-paginated: true
       x-requirements:
         scope: reactions:read
   /messages/{id}/read_member_ids:
@@ -2504,6 +2512,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Read members
+      x-paginated: true
       x-requirements:
         scope: messages:read
   /messages/{id}/thread:
@@ -2884,6 +2893,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Search
+      x-paginated: true
       x-requirements:
         scope: search:chats
   /search/messages:
@@ -3038,6 +3048,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Search
+      x-paginated: true
       x-requirements:
         scope: search:messages
   /search/users:
@@ -3175,6 +3186,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Search
+      x-paginated: true
       x-requirements:
         scope: search:users
   /tasks:
@@ -3312,6 +3324,7 @@ paths:
                 $ref: '#/components/schemas/OAuthError'
       tags:
         - Tasks
+      x-paginated: true
       x-requirements:
         scope: tasks:read
   /tasks/{id}:
@@ -3707,6 +3720,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Users
+      x-paginated: true
       x-requirements:
         scope: users:read
   /users/{id}:
@@ -4172,6 +4186,7 @@ paths:
                 $ref: '#/components/schemas/ApiError'
       tags:
         - Bots
+      x-paginated: true
       x-requirements:
         scope: webhooks:events:read
   /webhooks/events/{id}:
@@ -4332,6 +4347,7 @@ components:
             $ref: '#/components/schemas/ApiErrorItem'
           description: Массив ошибок
       description: Ошибка API (используется для 400, 403, 404, 409, 410, 422)
+      x-error: true
     ApiErrorItem:
       type: object
       required:
@@ -5264,7 +5280,7 @@ components:
     FileUploadRequest:
       type: object
       properties:
-        contentDisposition:
+        Content-Disposition:
           type: string
           description: Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
         acl:
@@ -5273,16 +5289,16 @@ components:
         policy:
           type: string
           description: Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzCredential:
+        x-amz-credential:
           type: string
           description: Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzAlgorithm:
+        x-amz-algorithm:
           type: string
           description: Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzDate:
+        x-amz-date:
           type: string
           description: Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
-        xAmzSignature:
+        x-amz-signature:
           type: string
           description: Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
         key:
@@ -5293,13 +5309,13 @@ components:
           format: binary
           description: Файл для загрузки
       required:
-        - contentDisposition
+        - Content-Disposition
         - acl
         - policy
-        - xAmzCredential
-        - xAmzAlgorithm
-        - xAmzDate
-        - xAmzSignature
+        - x-amz-credential
+        - x-amz-algorithm
+        - x-amz-date
+        - x-amz-signature
         - key
         - file
     Forwarding:
@@ -5913,6 +5929,7 @@ components:
           description: Описание ошибки
           example: Access token is missing
       description: Ошибка OAuth авторизации (используется для 401 и 403)
+      x-error: true
     OAuthScope:
       type: string
       enum:

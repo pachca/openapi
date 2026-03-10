@@ -1,0 +1,61 @@
+openapi: 3.0.0
+info:
+  title: Test API — oneOf
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    TextContent:
+      type: object
+      required:
+        - kind
+        - text
+      properties:
+        kind:
+          type: string
+          enum:
+            - text
+        text:
+          type: string
+          description: Text content
+
+    ImageContent:
+      type: object
+      required:
+        - kind
+        - url
+      properties:
+        kind:
+          type: string
+          enum:
+            - image
+        url:
+          type: string
+          description: Image URL
+        caption:
+          type: string
+          description: Image caption
+
+    VideoContent:
+      type: object
+      required:
+        - kind
+        - url
+      properties:
+        kind:
+          type: string
+          enum:
+            - video
+        url:
+          type: string
+          description: Video URL
+        duration:
+          type: integer
+          format: int32
+          description: Duration in seconds
+
+    ContentBlock:
+      oneOf:
+        - $ref: '#/components/schemas/TextContent'
+        - $ref: '#/components/schemas/ImageContent'
+        - $ref: '#/components/schemas/VideoContent'

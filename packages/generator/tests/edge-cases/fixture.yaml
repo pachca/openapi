@@ -1,0 +1,177 @@
+openapi: 3.1.0
+info:
+  title: Test API — Edge Cases
+  version: 1.0.0
+
+paths:
+  /events:
+    get:
+      operationId: listEvents
+      tags: [Events]
+      summary: List events with edge-case query params
+      parameters:
+        - name: is_active
+          in: query
+          description: Boolean query param
+          schema:
+            type: boolean
+        - name: scopes
+          in: query
+          description: Array of enum query param
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OAuthScope"
+        - name: filter
+          in: query
+          description: Model-typed query param
+          schema:
+            $ref: "#/components/schemas/EventFilter"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Event"
+
+  /events/{id}/publish:
+    put:
+      operationId: publishEvent
+      tags: [Events]
+      summary: Unwrapped request body with enum field
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishEventRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Event"
+
+  /uploads:
+    post:
+      operationId: createUpload
+      tags: [Uploads]
+      summary: Upload with kebab-case uppercase headers
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadRequest"
+      responses:
+        "201":
+          description: Created
+
+components:
+  schemas:
+    OAuthScope:
+      type: string
+      description: OAuth scope with colons
+      enum:
+        - chats:read
+        - chats:write
+        - users:read
+        - users:write
+
+    EventFilter:
+      type: object
+      description: Empty model (no fields)
+
+    Event:
+      type: object
+      required: [id, type]
+      properties:
+        id:
+          type: integer
+          format: int32
+        type:
+          $ref: "#/components/schemas/EventType"
+
+    EventType:
+      type: string
+      enum:
+        - message
+        - reaction
+
+    PublishEventRequest:
+      type: object
+      required: [scope]
+      properties:
+        scope:
+          $ref: "#/components/schemas/OAuthScope"
+
+    UploadRequest:
+      type: object
+      required: [file, Content-Disposition]
+      properties:
+        file:
+          type: string
+          format: binary
+        Content-Disposition:
+          type: string
+          description: Kebab-case field with uppercase
+
+    Notification:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          type: string
+
+    MessageNotification:
+      allOf:
+        - $ref: "#/components/schemas/Notification"
+        - type: object
+          required: [kind, text]
+          properties:
+            kind:
+              type: string
+              enum: [message]
+            text:
+              type: string
+
+    ReactionNotification:
+      allOf:
+        - $ref: "#/components/schemas/Notification"
+        - type: object
+          required: [kind, emoji]
+          properties:
+            kind:
+              type: string
+              enum: [message]
+            emoji:
+              type: string
+
+    NotificationUnion:
+      anyOf:
+        - $ref: "#/components/schemas/MessageNotification"
+        - $ref: "#/components/schemas/ReactionNotification"
+      discriminator:
+        propertyName: kind
+        mapping:
+          message: "#/components/schemas/MessageNotification"
+          reaction: "#/components/schemas/ReactionNotification"

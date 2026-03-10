@@ -1,3 +1,0 @@
-project_name_override: pachca-sdk
-package_name_override: pachca
-use_modern_python_tooling: true

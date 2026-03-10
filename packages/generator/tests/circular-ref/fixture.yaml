@@ -1,0 +1,42 @@
+openapi: 3.0.0
+info:
+  title: Test API — Circular Ref
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Category:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Category ID
+        name:
+          type: string
+          description: Category name
+        parent:
+          $ref: '#/components/schemas/Category'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          description: Child categories
+      description: A category with recursive parent/children references
+
+    TreeNode:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+          description: Node value
+        left:
+          $ref: '#/components/schemas/TreeNode'
+        right:
+          $ref: '#/components/schemas/TreeNode'
+      description: A binary tree node with recursive left/right

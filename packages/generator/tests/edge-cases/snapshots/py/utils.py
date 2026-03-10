@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import asdict, fields
-from typing import Type, TypeVar, get_args, get_origin
+from typing import Type, TypeVar, get_args, get_origin, get_type_hints
 
 import httpx
 
@@ -40,6 +40,7 @@ def _resolve_list_item_type(tp: type) -> type | None:
 def deserialize(cls: Type[T], data: dict) -> T:
     """Create a dataclass instance from a dict, recursively deserializing nested dataclasses."""
     field_map = {f.name: f for f in fields(cls)}
+    hints = get_type_hints(cls)
     norm = {k.replace("-", "_").lower(): v for k, v in data.items()}
     kwargs = {}
     for k, v in norm.items():
@@ -47,11 +48,11 @@ def deserialize(cls: Type[T], data: dict) -> T:
             continue
         f = field_map[k]
         if isinstance(v, dict):
-            nested = _resolve_type(f.type)
+            nested = _resolve_type(hints[f.name])
             if nested is not None:
                 v = deserialize(nested, v)
         elif isinstance(v, list) and v:
-            item_tp = _resolve_list_item_type(f.type)
+            item_tp = _resolve_list_item_type(hints[f.name])
             if item_tp is not None and _is_dataclass_type(item_tp):
                 v = [deserialize(item_tp, i) if isinstance(i, dict) else i for i in v]
         kwargs[k] = v

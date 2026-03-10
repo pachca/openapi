@@ -352,11 +352,7 @@ function responseTypeName(op: IROperation, ir: IR): string {
 function escapeTemplatePath(path: string, op: IROperation): string {
   let p = path;
   for (const param of op.pathParams) {
-    const interpolation = `\${${param.sdkName}}`;
-    p = p.replace(`{${param.name}}`, interpolation);
-    if (param.name !== param.sdkName) {
-      p = p.replace(`{${param.sdkName}}`, interpolation);
-    }
+    p = p.replace(`{${param.name}}`, `\${${param.sdkName}}`);
   }
   return p;
 }

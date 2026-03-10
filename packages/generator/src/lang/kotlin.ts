@@ -786,8 +786,9 @@ function emitPachcaClient(
   lines.push('        install(HttpRequestRetry) {');
   lines.push('            retryOnServerErrors(maxRetries = 3)');
   lines.push('            retryIf { _, response -> response.status.value == 429 }');
-  lines.push('            delayMillis { retry ->');
-  lines.push('                retry * 1000L');
+  lines.push('            delayMillis { retry, response ->');
+  lines.push('                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()');
+  lines.push('                if (retryAfter != null) retryAfter * 1000L else retry * 1000L');
   lines.push('            }');
   lines.push('        }');
   lines.push('        defaultRequest {');

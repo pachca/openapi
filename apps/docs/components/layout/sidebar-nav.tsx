@@ -101,9 +101,11 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
       {navigation.map((section, sIdx) => (
         <div key={sIdx} className="navigation-section">
           {/* Section header — always visible */}
-          <div className="px-2.5 pb-2 pt-1 text-[14px] font-medium text-text-primary">
-            {section.title}
-          </div>
+          {section.title && (
+            <div className="px-2.5 pb-2 pt-1 text-[14px] font-medium text-text-primary">
+              {section.title}
+            </div>
+          )}
 
           {/* Section items */}
           <ul className="space-y-0.5 list-none">

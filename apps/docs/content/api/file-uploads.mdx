@@ -7,70 +7,47 @@ description: Трёхшаговый процесс загрузки файлов
 
 Загрузка файлов через API Пачки — трёхшаговый процесс с presigned URL (S3-совместимое хранилище).
 
-## Обзор процесса
+## Процесс загрузки
 
-<Mermaid chart={`sequenceDiagram
-    participant App as Ваше приложение
-    participant API as API Пачки
-    participant S3 as Хранилище
+<Steps>
+  <Step title="Получение параметров загрузки">
+    Сделайте запрос к методу [Получение подписи, ключа и других параметров](POST /uploads) без тела для получения подписи и параметров. Данный метод необходимо использовать для загрузки каждого файла.
 
-    App->>API: POST /uploads
-    API-->>App: Параметры загрузки (key, policy, signature, direct_url)
-    App->>S3: POST {direct_url} + multipart/form-data + файл
-    S3-->>App: 201 Created
-    App->>API: POST /messages + key (с именем файла)
-    API-->>App: Сообщение с файлом`} />
+    <ApiCodeExample operationId="UploadOperations_getUploadParams" title="Получение параметров загрузки" />
 
-## Шаг 1: Получение параметров загрузки
+    В ответе вы получите параметры для следующего шага: `Content-Disposition`, `acl`, `policy`, `x-amz-credential`, `x-amz-algorithm`, `x-amz-date`, `x-amz-signature`, `key` и `direct_url`.
+  </Step>
+  <Step title="Загрузка файла">
+    Отправьте запрос к методу [Загрузка файла](POST /direct_url) с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл. При успешной загрузке сервер вернёт `HTTP 201 Created`.
 
-Сделайте `POST`-запрос без тела для получения подписи и параметров:
+    <ApiCodeExample operationId="DirectUploadOperations_uploadFile" title="Загрузка файла" />
 
-<ApiCodeExample operationId="UploadOperations_getUploadParams" title="Получение параметров загрузки" />
+    <Warning>Порядок полей в multipart-запросе важен: файл (`file`) должен быть **последним** полем.</Warning>
+  </Step>
+  <Step title="Прикрепление файла к сообщению или другой сущности">
+    После загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `${filename}` на фактическое имя файла.
 
-В ответе вы получите параметры для следующего шага: `Content-Disposition`, `acl`, `policy`, `x-amz-credential`, `x-amz-algorithm`, `x-amz-date`, `x-amz-signature`, `key` и `direct_url`.
+    Пример: если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
 
-## Шаг 2: Загрузка файла
-
-Отправьте `POST`-запрос с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл:
-
-```bash title="cURL: загрузка файла"
-curl -X POST "$DIRECT_URL" \
-  -F "Content-Disposition=$CONTENT_DISPOSITION" \
-  -F "acl=$ACL" \
-  -F "policy=$POLICY" \
-  -F "x-amz-credential=$X_AMZ_CREDENTIAL" \
-  -F "x-amz-algorithm=$X_AMZ_ALGORITHM" \
-  -F "x-amz-date=$X_AMZ_DATE" \
-  -F "x-amz-signature=$X_AMZ_SIGNATURE" \
-  -F "key=$KEY" \
-  -F "file=@./document.pdf"
-```
-
-При успешной загрузке сервер вернёт `HTTP 201 Created`.
-
-<Danger>Порядок полей в multipart-запросе важен: файл (`file`) должен быть **последним** полем.</Danger>
-
-## Шаг 3: Использование файла
-
-Подставьте имя загруженного файла в поле `key` (замените `${filename}` на реальное имя файла) и используйте его при отправке сообщения:
-
-```json title="Файл в сообщении"
-{
-  "message": {
-    "entity_type": "discussion",
-    "entity_id": 12345,
-    "content": "Документ прикреплён",
-    "files": [
-      {
-        "key": "attaches/files/93746/e354fd79-.../document.pdf",
-        "name": "document.pdf",
-        "file_type": "file",
-        "size": 102400
+    ```json title="Файл в сообщении"
+    {
+      "message": {
+        "entity_type": "discussion",
+        "entity_id": 12345,
+        "content": "Документ прикреплён",
+        "files": [
+          {
+            "key": "attaches/files/93746/e354fd79-.../document.pdf",
+            "name": "document.pdf",
+            "file_type": "file",
+            "size": 102400
+          }
+        ]
       }
-    ]
-  }
-}
-```
+    }
+    ```
+  </Step>
+</Steps>
 
 ## Типы файлов
 
@@ -82,16 +59,23 @@ curl -X POST "$DIRECT_URL" \
 ## Полный пример
 
 ```javascript title="Node.js: загрузка и отправка файла"
+const fs = require('node:fs');
+const path = require('node:path');
+
 const TOKEN = 'ваш_токен';
 const BASE = 'https://api.pachca.com/api/shared/v1';
 const headers = { Authorization: `Bearer ${TOKEN}` };
 
 // Шаг 1: Получить параметры загрузки
-const params = await fetch(`${BASE}/uploads`, {
+const { data: params } = await fetch(`${BASE}/uploads`, {
   method: 'POST', headers
 }).then(r => r.json());
 
 // Шаг 2: Загрузить файл
+const filePath = './report.pdf';
+const fileName = path.basename(filePath);
+const fileBuffer = fs.readFileSync(filePath);
+
 const form = new FormData();
 form.append('Content-Disposition', params['Content-Disposition']);
 form.append('acl', params.acl);
@@ -101,12 +85,12 @@ form.append('x-amz-algorithm', params['x-amz-algorithm']);
 form.append('x-amz-date', params['x-amz-date']);
 form.append('x-amz-signature', params['x-amz-signature']);
 form.append('key', params.key);
-form.append('file', fs.createReadStream('./report.pdf'));
+form.append('file', new File([fileBuffer], fileName));
 
 await fetch(params.direct_url, { method: 'POST', body: form });
 
 // Шаг 3: Отправить сообщение с файлом
-const fileKey = params.key.replace('${filename}', 'report.pdf');
+const fileKey = params.key.replace('${filename}', fileName);
 await fetch(`${BASE}/messages`, {
   method: 'POST',
   headers: { ...headers, 'Content-Type': 'application/json' },
@@ -115,7 +99,7 @@ await fetch(`${BASE}/messages`, {
       entity_type: 'discussion',
       entity_id: 12345,
       content: 'Отчёт прикреплён',
-      files: [{ key: fileKey, name: 'report.pdf', file_type: 'file', size: 102400 }]
+      files: [{ key: fileKey, name: fileName, file_type: 'file', size: fileBuffer.length }]
     }
   })
 });

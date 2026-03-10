@@ -1,9 +1,24 @@
 import type { Schema, RequestBody, Response, Parameter } from './types';
 
 /**
+ * Options for controlling example generation.
+ *
+ * - `requiredOnly` — only include required properties in objects (for minimal request bodies)
+ * - `minimal` — use null for nullable fields and [] for optional arrays (for compact responses)
+ */
+export interface ExampleOptions {
+  requiredOnly?: boolean;
+  minimal?: boolean;
+}
+
+/**
  * Generate example JSON from OpenAPI schema
  */
-export function generateExample(schema: Schema | undefined, depth = 0): unknown {
+export function generateExample(
+  schema: Schema | undefined,
+  depth = 0,
+  options: ExampleOptions = {}
+): unknown {
   if (!schema || depth > 5) {
     return undefined;
   }
@@ -18,7 +33,7 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
     const merged: Record<string, unknown> = {};
     let primitiveResult: unknown = undefined;
     for (const subSchema of schema.allOf) {
-      const example = generateExample(subSchema as Schema, depth);
+      const example = generateExample(subSchema as Schema, depth, options);
       if (example && typeof example === 'object' && !Array.isArray(example)) {
         Object.assign(merged, example);
       } else if (example !== undefined) {
@@ -33,9 +48,9 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
 
   // Handle oneOf / anyOf - берем первый вариант (не увеличиваем depth — это обёртка)
   if (schema.oneOf || schema.anyOf) {
-    const options = schema.oneOf || schema.anyOf;
-    if (options && options.length > 0) {
-      return generateExample(options[0] as Schema, depth);
+    const variants = schema.oneOf || schema.anyOf;
+    if (variants && variants.length > 0) {
+      return generateExample(variants[0] as Schema, depth, options);
     }
   }
 
@@ -47,7 +62,26 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
         const requiredFields = schema.required || [];
 
         for (const [propName, propSchema] of Object.entries(schema.properties)) {
-          const propExample = generateExample(propSchema as Schema, depth + 1);
+          const ps = propSchema as Schema;
+
+          // requiredOnly: skip non-required properties
+          if (options.requiredOnly && !requiredFields.includes(propName)) {
+            continue;
+          }
+
+          // minimal: nullable fields → null
+          if (options.minimal && ps.nullable) {
+            example[propName] = null;
+            continue;
+          }
+
+          // minimal: optional arrays → []
+          if (options.minimal && ps.type === 'array' && !requiredFields.includes(propName)) {
+            example[propName] = [];
+            continue;
+          }
+
+          const propExample = generateExample(ps, depth + 1, options);
           // Включаем свойство если оно обязательное или имеет пример
           if (propExample !== undefined || requiredFields.includes(propName)) {
             example[propName] = propExample !== undefined ? propExample : null;
@@ -58,7 +92,11 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
 
       // Если есть additionalProperties (Record<T>)
       if (schema.additionalProperties && typeof schema.additionalProperties !== 'boolean') {
-        const additionalExample = generateExample(schema.additionalProperties as Schema, depth + 1);
+        const additionalExample = generateExample(
+          schema.additionalProperties as Schema,
+          depth + 1,
+          options
+        );
         if (additionalExample !== undefined) {
           const recordKey = schema['x-record-key-example'] || 'key';
           return { [recordKey]: additionalExample };
@@ -74,11 +112,11 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
         const unionOptions = items.oneOf || items.anyOf;
         if (unionOptions && unionOptions.length > 1) {
           const examples = unionOptions
-            .map((opt) => generateExample(opt as Schema, depth))
+            .map((opt) => generateExample(opt as Schema, depth, options))
             .filter((ex) => ex !== undefined);
           return examples.length > 0 ? examples : [];
         }
-        const itemExample = generateExample(items, depth + 1);
+        const itemExample = generateExample(items, depth + 1, options);
         return itemExample !== undefined ? [itemExample] : [];
       }
       return [];
@@ -213,7 +251,10 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
 /**
  * Generate request body example from schema
  */
-export function generateRequestExample(requestBody: RequestBody | undefined): unknown {
+export function generateRequestExample(
+  requestBody: RequestBody | undefined,
+  options?: ExampleOptions
+): unknown {
   if (!requestBody) {
     return undefined;
   }
@@ -224,13 +265,16 @@ export function generateRequestExample(requestBody: RequestBody | undefined): un
     return undefined;
   }
 
-  return generateExample(content.schema);
+  return generateExample(content.schema, 0, options);
 }
 
 /**
  * Generate response example from schema
  */
-export function generateResponseExample(response: Response | undefined): unknown {
+export function generateResponseExample(
+  response: Response | undefined,
+  options?: ExampleOptions
+): unknown {
   if (!response) {
     return undefined;
   }
@@ -240,7 +284,7 @@ export function generateResponseExample(response: Response | undefined): unknown
     return undefined;
   }
 
-  return generateExample(jsonContent.schema);
+  return generateExample(jsonContent.schema, 0, options);
 }
 
 /**

@@ -16,7 +16,7 @@ export function Header() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 bg-background-secondary border-b border-background-border z-50 flex items-center px-3"
+      className="fixed top-0 left-0 right-0 bg-background border-b border-background-border z-50 flex items-center px-3"
       style={{ height: 'var(--mobile-header-height)' }}
     >
       {/* Hamburger — mobile only, left side */}

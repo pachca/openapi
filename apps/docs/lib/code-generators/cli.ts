@@ -1,9 +1,13 @@
 import type { Endpoint, Schema } from '../openapi/types';
 import { generateUrlFromOperation } from '../openapi/mapper';
-import { generateParameterExample, generateExample } from '../openapi/example-generator';
+import {
+  generateParameterExample,
+  generateExample,
+  type ExampleOptions,
+} from '../openapi/example-generator';
 import { requiresAuth, getQueryParams, resolveParamName } from './utils';
 
-export function generateCLI(endpoint: Endpoint): string {
+export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): string {
   const url = generateUrlFromOperation(endpoint);
   const [, section, action] = url.split('/');
   let command = `pachca ${section} ${action}`;
@@ -20,7 +24,7 @@ export function generateCLI(endpoint: Endpoint): string {
 
   // Body fields as flags (for POST/PUT/PATCH)
   if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
-    const bodyFields = extractUnwrappedBodyFields(endpoint.requestBody);
+    const bodyFields = extractUnwrappedBodyFields(endpoint.requestBody, options);
     for (const { name, example, schemaType } of bodyFields) {
       valueToFlag(name, example, schemaType, parts);
     }
@@ -118,7 +122,10 @@ interface BodyField {
   schemaType?: string | string[];
 }
 
-function extractUnwrappedBodyFields(requestBody: Endpoint['requestBody']): BodyField[] {
+function extractUnwrappedBodyFields(
+  requestBody: Endpoint['requestBody'],
+  options?: ExampleOptions
+): BodyField[] {
   if (!requestBody) return [];
 
   const content =
@@ -129,7 +136,7 @@ function extractUnwrappedBodyFields(requestBody: Endpoint['requestBody']): BodyF
   const properties = schema.properties;
   if (!properties || schema.type !== 'object') {
     // Not an object schema — generate example as-is
-    const example = generateExample(schema);
+    const example = generateExample(schema, 0, options);
     if (example && typeof example === 'object' && !Array.isArray(example)) {
       return Object.entries(example as Record<string, unknown>).map(([name, val]) => ({
         name,
@@ -150,6 +157,7 @@ function extractUnwrappedBodyFields(requestBody: Endpoint['requestBody']): BodyF
   if (objectKeys.length === 1) {
     const wrapperKey = objectKeys[0];
     const innerSchema = properties[wrapperKey] as Schema;
+    const innerRequired = innerSchema.required || [];
     const fields: BodyField[] = [];
 
     // Inner fields from the wrapper object
@@ -157,7 +165,8 @@ function extractUnwrappedBodyFields(requestBody: Endpoint['requestBody']): BodyF
       for (const [name, propSchema] of Object.entries(innerSchema.properties)) {
         const s = propSchema as Schema;
         if (s.readOnly) continue;
-        const example = generateExample(s);
+        if (options?.requiredOnly && !innerRequired.includes(name)) continue;
+        const example = generateExample(s, 0, options);
         if (example !== undefined) {
           fields.push({ name, example, schemaType: s.type });
         }
@@ -165,11 +174,13 @@ function extractUnwrappedBodyFields(requestBody: Endpoint['requestBody']): BodyF
     }
 
     // Sibling scalar fields (top-level properties outside the wrapper)
+    const topRequired = schema.required || [];
     for (const key of topKeys) {
       if (key === wrapperKey) continue;
       const s = properties[key] as Schema;
       if (s.readOnly) continue;
-      const example = generateExample(s);
+      if (options?.requiredOnly && !topRequired.includes(key)) continue;
+      const example = generateExample(s, 0, options);
       if (example !== undefined) {
         fields.push({ name: key, example, schemaType: s.type });
       }
@@ -179,11 +190,13 @@ function extractUnwrappedBodyFields(requestBody: Endpoint['requestBody']): BodyF
   }
 
   // No wrapper — use all top-level properties
+  const topRequired = schema.required || [];
   const fields: BodyField[] = [];
   for (const [name, propSchema] of Object.entries(properties)) {
     const s = propSchema as Schema;
     if (s.readOnly) continue;
-    const example = generateExample(s);
+    if (options?.requiredOnly && !topRequired.includes(name)) continue;
+    const example = generateExample(s, 0, options);
     if (example !== undefined) {
       fields.push({ name, example, schemaType: s.type });
     }

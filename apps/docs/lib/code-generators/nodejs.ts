@@ -1,5 +1,9 @@
 import type { Endpoint } from '../openapi/types';
-import { generateRequestExample, generateMultipartExample } from '../openapi/example-generator';
+import {
+  generateRequestExample,
+  generateMultipartExample,
+  type ExampleOptions,
+} from '../openapi/example-generator';
 import {
   requiresAuth,
   hasJsonContent,
@@ -10,7 +14,8 @@ import {
 
 export function generateNodeJS(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method.toLowerCase();
@@ -86,7 +91,7 @@ export function generateNodeJS(
 
   // Add request body for POST/PUT/PATCH
   if (['post', 'put', 'patch'].includes(method) && endpoint.requestBody) {
-    const requestExample = generateRequestExample(endpoint.requestBody);
+    const requestExample = generateRequestExample(endpoint.requestBody, options);
 
     if (requestExample) {
       code += `req.write(JSON.stringify(${JSON.stringify(requestExample, null, 4)}));\n`;

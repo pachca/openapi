@@ -1,5 +1,9 @@
 import type { Endpoint } from '../openapi/types';
-import { generateRequestExample, generateMultipartExample } from '../openapi/example-generator';
+import {
+  generateRequestExample,
+  generateMultipartExample,
+  type ExampleOptions,
+} from '../openapi/example-generator';
 import {
   isRecord,
   requiresAuth,
@@ -11,7 +15,8 @@ import {
 
 export function generateGo(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
@@ -80,7 +85,7 @@ export function generateGo(
 
   // Build request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-    const requestExample = generateRequestExample(endpoint.requestBody);
+    const requestExample = generateRequestExample(endpoint.requestBody, options);
 
     if (requestExample) {
       code += `    data := map[string]interface{}${goRepr(requestExample)}\n`;

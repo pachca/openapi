@@ -1,10 +1,15 @@
 import type { Endpoint } from '../openapi/types';
-import { generateRequestExample, generateMultipartExample } from '../openapi/example-generator';
+import {
+  generateRequestExample,
+  generateMultipartExample,
+  type ExampleOptions,
+} from '../openapi/example-generator';
 import { requiresAuth, hasMultipartContent, resolveUrl, buildQueryString } from './utils';
 
 export function generateDotNet(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
@@ -47,7 +52,7 @@ export function generateDotNet(
     code += `            "${fullUrl}", content);\n`;
   } else if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
     // Build request body for POST/PUT/PATCH
-    const requestExample = generateRequestExample(endpoint.requestBody);
+    const requestExample = generateRequestExample(endpoint.requestBody, options);
     const methodLower = method.toLowerCase();
     const methodCapitalized = methodLower.charAt(0).toUpperCase() + methodLower.slice(1);
 

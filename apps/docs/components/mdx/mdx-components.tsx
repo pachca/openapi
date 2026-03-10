@@ -203,7 +203,7 @@ export function GuideCards() {
 
 export async function ApiCards() {
   const sections = await generateNavigation();
-  // Skip first section ("Начало работы" — guides) and "Профиль и статус"
+  // Skip first section ("Инструменты" — guides) and "Профиль и статус"
   const methodsSection = sections.find((s) => s.title === 'Методы API');
   const apiGroups = methodsSection?.items ?? [];
 
@@ -234,9 +234,12 @@ export async function ApiCards() {
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="Custom title" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="With filters" params={{ event_key: "user_login", limit: 50 }} />
+ * <ApiCodeExample operationId="MessageOperations_createMessage" requestMode="required" responseMode="minimal" />
  *
  * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
  * params — override query parameter values; only specified + required params are included
+ * requestMode — "full" (default): all fields; "required": only required fields in request body
+ * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
  */
 
 interface ApiCodeExampleProps {
@@ -244,6 +247,8 @@ interface ApiCodeExampleProps {
   title?: string;
   show?: 'request' | 'response' | 'both';
   params?: Record<string, unknown>;
+  requestMode?: 'full' | 'required';
+  responseMode?: 'full' | 'minimal';
 }
 
 export async function ApiCodeExample({
@@ -251,6 +256,8 @@ export async function ApiCodeExample({
   title,
   show = 'request',
   params,
+  requestMode,
+  responseMode,
 }: ApiCodeExampleProps) {
   const endpoint = await getEndpointByOperation(operationId);
   const baseUrl = await getBaseUrl();
@@ -280,6 +287,8 @@ export async function ApiCodeExample({
       baseUrl={baseUrl}
       show={show}
       title={title}
+      requestMode={requestMode}
+      responseMode={responseMode}
       className="my-4"
     />
   );

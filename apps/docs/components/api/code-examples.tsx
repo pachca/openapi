@@ -14,7 +14,7 @@ import { generateNodeJS } from '@/lib/code-generators/nodejs';
 import { generateGo } from '@/lib/code-generators/go';
 import { generateDotNet } from '@/lib/code-generators/dotnet';
 import { generateCLI } from '@/lib/code-generators/cli';
-import { generateResponseExample } from '@/lib/openapi/example-generator';
+import { generateResponseExample, type ExampleOptions } from '@/lib/openapi/example-generator';
 import { CopyButton } from './copy-button';
 import { CodeBlock } from './code-block';
 import { BoxedPanel } from './boxed-panel';
@@ -24,6 +24,8 @@ interface CodeExamplesProps {
   baseUrl?: string;
   title?: string;
   show?: 'request' | 'response' | 'both';
+  requestMode?: 'full' | 'required';
+  responseMode?: 'full' | 'minimal';
   className?: string;
 }
 
@@ -59,6 +61,8 @@ export function CodeExamples({
   baseUrl,
   title,
   show = 'both',
+  requestMode = 'full',
+  responseMode = 'full',
   className,
 }: CodeExamplesProps) {
   const [activeTab, setActiveTab] = useState<Language>('curl');
@@ -77,27 +81,31 @@ export function CodeExamples({
   };
 
   const code = useMemo(() => {
+    const reqOpts: ExampleOptions | undefined =
+      requestMode === 'required' ? { requiredOnly: true } : undefined;
     const generators: Record<Language, () => string> = {
-      curl: () => generateCurl(endpoint, baseUrl),
-      cli: () => generateCLI(endpoint),
-      javascript: () => generateJavaScript(endpoint, baseUrl),
-      python: () => generatePython(endpoint, baseUrl),
-      ruby: () => generateRuby(endpoint, baseUrl),
-      php: () => generatePHP(endpoint, baseUrl),
-      java: () => generateJava(endpoint, baseUrl),
-      nodejs: () => generateNodeJS(endpoint, baseUrl),
-      go: () => generateGo(endpoint, baseUrl),
-      dotnet: () => generateDotNet(endpoint, baseUrl),
+      curl: () => generateCurl(endpoint, baseUrl, reqOpts),
+      cli: () => generateCLI(endpoint, reqOpts),
+      javascript: () => generateJavaScript(endpoint, baseUrl, reqOpts),
+      python: () => generatePython(endpoint, baseUrl, reqOpts),
+      ruby: () => generateRuby(endpoint, baseUrl, reqOpts),
+      php: () => generatePHP(endpoint, baseUrl, reqOpts),
+      java: () => generateJava(endpoint, baseUrl, reqOpts),
+      nodejs: () => generateNodeJS(endpoint, baseUrl, reqOpts),
+      go: () => generateGo(endpoint, baseUrl, reqOpts),
+      dotnet: () => generateDotNet(endpoint, baseUrl, reqOpts),
     };
     return generators[activeTab]();
-  }, [activeTab, endpoint, baseUrl]);
+  }, [activeTab, endpoint, baseUrl, requestMode]);
 
   const languages = languageLabels;
 
   const successCodes = ['200', '201', '204'];
   const successCode = successCodes.find((code) => endpoint.responses[code]) || '200';
   const successResponse = endpoint.responses[successCode];
-  const rawResponseExample = generateResponseExample(successResponse);
+  const resOpts: ExampleOptions | undefined =
+    responseMode === 'minimal' ? { minimal: true } : undefined;
+  const rawResponseExample = generateResponseExample(successResponse, resOpts);
 
   const isEmptyObject =
     rawResponseExample !== null &&

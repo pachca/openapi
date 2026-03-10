@@ -40,12 +40,11 @@ export const STATUS_URL = 'https://status.pachca.com';
  */
 export const GUIDE_SECTIONS: SidebarSection[] = [
   {
-    title: 'Начало работы',
+    title: 'Инструменты',
     items: [
       { title: 'AI агенты', path: '/guides/ai-agents' },
       { title: 'CLI', path: '/guides/cli' },
       { title: 'Сценарии', path: '/guides/workflows' },
-      { title: 'Обновления', path: '/guides/updates' },
     ],
   },
   {
@@ -53,7 +52,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Боты', path: '/guides/bots' },
       { title: 'Входящие вебхуки', path: '/guides/incoming-webhooks' },
-      { title: 'Исходящий вебхук', path: '/guides/webhook' },
+      { title: 'Исходящие вебхуки', path: '/guides/webhook' },
       {
         title: 'Формы',
         path: '/guides/forms/overview',
@@ -79,6 +78,10 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'n8n', path: '/guides/n8n' },
       { title: 'Albato', path: '/guides/albato' },
     ],
+  },
+  {
+    title: '',
+    items: [{ title: 'Обновления', path: '/guides/updates' }],
   },
 ];
 

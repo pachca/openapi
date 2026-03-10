@@ -28,20 +28,7 @@ description: Первый запрос к API Пачки за 5 минут
 
 API возвращает данные в формате JSON. Результат оборачивается в массив `data`:
 
-<CodeBlock language="json" title="Пример ответа">
-{`{
-  "data": [
-    {
-      "id": 163,
-      "first_name": "Иван",
-      "last_name": "Петров",
-      "role": "admin",
-      "suspended": false,
-      ...
-    }
-  ]
-}`}
-</CodeBlock>
+<ApiCodeExample operationId="UserOperations_listUsers" show="response" title="Пример ответа" />
 
 Для списочных методов в ответе также есть блок `meta` с информацией о пагинации — подробнее в разделе [Пагинация](/api/pagination).
 

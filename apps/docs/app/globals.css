@@ -276,26 +276,26 @@ body {
 }
 
 .prose h3 {
-  @apply text-[17px] font-bold tracking-tight text-text-primary mt-10 mb-5 leading-[1.35];
+  @apply text-[17px] font-bold tracking-tight text-text-primary mt-8 mb-4 leading-[1.35];
 }
 
 .prose p {
-  @apply text-[15px] text-text-primary leading-[1.6] mb-6;
+  @apply text-[15px] text-text-primary leading-[1.6] mb-4;
 }
 
 .prose ul {
-  @apply list-none pl-6 mb-6;
+  @apply list-none pl-6 mb-4;
 }
 
 .prose ol {
-  @apply list-none pl-8 mb-6;
+  @apply list-none pl-8 mb-4;
   counter-reset: item;
 }
 
 /* Уменьшаем отступ, если список идет сразу за текстом */
 .prose p + ul,
 .prose p + ol {
-  @apply -mt-3;
+  @apply -mt-2;
 }
 
 .prose ul li {

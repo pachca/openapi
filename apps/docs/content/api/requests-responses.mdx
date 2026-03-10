@@ -9,12 +9,12 @@ description: Формат запросов и ответов, тестирова
 
 При выполнении запроса, `access_token` необходимо поместить в заголовки (ключ `Authorization` с указанием типа `Bearer`), а в теле запроса указать все необходимые параметры метода. При этом не забудьте, что сервер ожидает перечисление параметров в формате `JSON`, кодировке `UTF-8` и по протоколу `HTTPS`.
 
-<CodeBlock language="http" title="Базовый URL">
-  {`https://api.pachca.com/api/shared/v1`}
-</CodeBlock>
+```http title="Базовый URL"
+https://api.pachca.com/api/shared/v1
+```
 
-<CodeBlock language="http" title="Пример запроса">
-{`POST /users HTTP/1.1
+```http title="Пример запроса"
+POST /users HTTP/1.1
 Authorization: Bearer YOUR_ACCESS_TOKEN
 Content-Type: application/json; charset=utf-8
 Host: api.pachca.com
@@ -37,9 +37,8 @@ Content-Length: 219
         ]
     },
     "skip_email_notify": true
-}`}
-
-</CodeBlock>
+}
+```
 
 ## Обработка ответа метода API
 
@@ -51,8 +50,8 @@ Content-Length: 219
 
 При ошибке выполнения запроса вы можете получить в теле ответа массив `errors` (подробнее об ошибках выполнения запросов вы можете прочитать в [следующем разделе](/api/errors) документации).
 
-<CodeBlock language="http" title="Пример ответа">
-{`HTTP/1.1 201 Created
+```http title="Пример ответа"
+HTTP/1.1 201 Created
 Server: nginx/1.14.2
 Date: Wed, 22 Apr 2020 12:32:29 GMT
 Content-Type: application/json; charset=utf-8
@@ -87,9 +86,8 @@ X-Rack-CORS: miss; no-origin
             }
         ]
     }
-}`}
-
-</CodeBlock>
+}
+```
 
 ## Тестирование API
 
@@ -114,9 +112,9 @@ X-Rack-CORS: miss; no-origin
 - **Postman** *File → Import*
 - **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
 
-<CodeBlock language="text" title="Коллекция Postman/Bruno">
-  {`https://dev.pachca.com/pachca.postman_collection.json`}
-</CodeBlock>
+```text title="Коллекция Postman/Bruno"
+https://dev.pachca.com/pachca.postman_collection.json
+```
 
 <CardGroup columns={1}>
   <Card title="Скачать коллекцию" href="/pachca.postman_collection.json" download>

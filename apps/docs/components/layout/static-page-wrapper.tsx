@@ -34,7 +34,7 @@ export function StaticPageWrapper({
               <Footer adjacent={adjacent} noMargin={true} />
             </div>
             {!hideTableOfContents && (
-              <aside className="hidden xl:block w-64 shrink-0 relative">
+              <aside className="hidden xl:block w-64 shrink-0 sticky top-[calc(var(--mobile-header-height)+40px)] max-h-[calc(100vh-var(--mobile-header-height)-80px)] self-start">
                 <TableOfContents />
               </aside>
             )}

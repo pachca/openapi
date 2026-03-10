@@ -1,16 +1,11 @@
 import type { Endpoint } from '../openapi/types';
-import {
-  generateParameterExample,
-  generateRequestExample,
-  generateMultipartExample,
-} from '../openapi/example-generator';
+import { generateRequestExample, generateMultipartExample } from '../openapi/example-generator';
 import {
   requiresAuth,
   hasJsonContent,
   hasMultipartContent,
   resolveUrl,
-  getQueryParams,
-  resolveParamName,
+  buildQueryString,
 } from './utils';
 
 export function generateJavaScript(
@@ -20,24 +15,8 @@ export function generateJavaScript(
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
 
-  let code = `const response = await fetch('${url}'`;
-
-  // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    code = `const response = await fetch('${url}?${paramParts.join('&')}'`;
-  }
+  const qs = buildQueryString(endpoint);
+  let code = `const response = await fetch('${url}${qs ? `?${qs}` : ''}'`;
 
   code += `, {\n  method: '${method}',`;
 

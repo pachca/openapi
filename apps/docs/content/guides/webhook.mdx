@@ -98,8 +98,8 @@ description: Получение уведомлений о событиях в р
 
 В теле вебхука также содержится поле `webhook_timestamp` — метка времени в формате UNIX, указывающая момент отправки вебхука. Рекомендуется проверять, что это значение находится в пределах одной минуты от времени получения запроса, чтобы предотвратить атаки повторной отправки (replay attacks).
 
-<CodeBlock language="http" title="Пример исходящего вебхука (новое сообщение)">
-{`POST https://yourweb.site/read HTTP/1.1
+```http title="Пример исходящего вебхука (новое сообщение)"
+POST https://yourweb.site/read HTTP/1.1
 host: yourweb.site
 content-Type: application/json
 pachca-signature: a805d3470c263f4628cafc4ed66235d8fe2229891d1fcf4e400331adff5d8e5a
@@ -120,22 +120,21 @@ content-length: 358
     "entity_id": 918264,
     "thread": null,
     "url": "https://app.pachca.com/chats/124511?message=56431"
-}`}
-
-</CodeBlock>
+}
+```
 
 <Steps>
   <Step title="Проверьте подпись">
     Для проверки подписи необходимо вычислить её самостоятельно, используя секрет вебхука `Signing secret`, который доступен в настройках бота во вкладке «Исходящий webhook». Рекомендуется использовать сырой (raw) контент тела запроса для вычисления хеша, так как при JSON-парсинге содержимое может быть изменено.
 
-    <CodeBlock language="javascript" title="Вычисление и сравнение подписи">
-    {`// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
+    ```javascript title="Вычисление и сравнение подписи"
+    // WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
 
-const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
-if (signature !== request.headers['pachca-signature']) {
-    throw "Invalid signature"
-}`}
-    </CodeBlock>
+    const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
+    if (signature !== request.headers['pachca-signature']) {
+        throw "Invalid signature"
+    }
+    ```
   </Step>
 
   <Step title="Валидируйте IP-адрес отправителя">

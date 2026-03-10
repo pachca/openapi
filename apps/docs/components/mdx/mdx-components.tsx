@@ -13,6 +13,7 @@ import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
+import { PackageBadge } from '@/components/mdx/package-badge';
 import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
@@ -241,10 +242,16 @@ export async function ApiCards() {
 interface ApiCodeExampleProps {
   operationId: string;
   title?: string;
+  show?: 'request' | 'response' | 'both';
   params?: Record<string, unknown>;
 }
 
-export async function ApiCodeExample({ operationId, title, params }: ApiCodeExampleProps) {
+export async function ApiCodeExample({
+  operationId,
+  title,
+  show = 'request',
+  params,
+}: ApiCodeExampleProps) {
   const endpoint = await getEndpointByOperation(operationId);
   const baseUrl = await getBaseUrl();
 
@@ -267,7 +274,15 @@ export async function ApiCodeExample({ operationId, title, params }: ApiCodeExam
     };
   }
 
-  return <CodeExamples endpoint={finalEndpoint} baseUrl={baseUrl} hideResponse title={title} />;
+  return (
+    <CodeExamples
+      endpoint={finalEndpoint}
+      baseUrl={baseUrl}
+      show={show}
+      title={title}
+      className="my-4"
+    />
+  );
 }
 
 export const customMdxComponents = {
@@ -296,4 +311,5 @@ export const customMdxComponents = {
   AgentSkillsWorkflows,
   CliCommands,
   NpmBadge,
+  PackageBadge,
 };

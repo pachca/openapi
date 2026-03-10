@@ -30,9 +30,48 @@ import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
+import { PackageBadge } from '@/components/mdx/package-badge';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 import { HeadingLink } from './heading-link';
+
+/**
+ * Rehype plugin: extracts title="..." from fenced code block meta strings
+ * and passes it as a prop to the <code> element.
+ *
+ * ```typescript title="My Title"
+ * code here
+ * ```
+ *
+ * becomes <code className="language-typescript" title="My Title">code here</code>
+ */
+interface HastNode {
+  type: string;
+  tagName?: string;
+  properties?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+  children?: HastNode[];
+}
+
+function rehypeCodeMeta() {
+  function visit(node: HastNode) {
+    if (node.tagName === 'code' && node.data?.meta) {
+      const match = String(node.data.meta).match(/title="([^"]+)"/);
+      if (match) {
+        node.properties = node.properties || {};
+        node.properties.title = match[1];
+      }
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        if (child.type === 'element') {
+          visit(child);
+        }
+      }
+    }
+  }
+  return (tree: HastNode) => visit(tree);
+}
 
 // Simple markdown components for server rendering
 const components = {
@@ -165,6 +204,7 @@ const components = {
   AgentSkillsWorkflows,
   CliCommands,
   NpmBadge,
+  PackageBadge,
 };
 
 interface MarkdownContentProps {
@@ -203,7 +243,7 @@ export async function MarkdownContent({
       <MDXRemote
         source={processedContent}
         components={components}
-        options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+        options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeCodeMeta] } }}
       />
     </div>
   );

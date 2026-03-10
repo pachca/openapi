@@ -1,16 +1,11 @@
 import type { Endpoint } from '../openapi/types';
-import {
-  generateParameterExample,
-  generateRequestExample,
-  generateMultipartExample,
-} from '../openapi/example-generator';
+import { generateRequestExample, generateMultipartExample } from '../openapi/example-generator';
 import {
   requiresAuth,
   hasJsonContent,
   hasMultipartContent,
   resolveUrl,
-  getQueryParams,
-  resolveParamName,
+  buildQueryString,
 } from './utils';
 
 export function generateNodeJS(
@@ -61,22 +56,8 @@ export function generateNodeJS(
   let code = `const https = require('https');\n\n`;
 
   // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  let path = new URL(url).pathname;
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    path = `${path}?${paramParts.join('&')}`;
-  }
+  const qs = buildQueryString(endpoint);
+  const path = qs ? `${new URL(url).pathname}?${qs}` : new URL(url).pathname;
 
   code += `const options = {\n`;
   code += `    hostname: 'api.pachca.com',\n`;

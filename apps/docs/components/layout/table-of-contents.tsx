@@ -167,10 +167,7 @@ export function TableOfContents() {
   if (toc.length === 0) return null;
 
   return (
-    <nav
-      ref={navRef}
-      className="sticky top-[calc(var(--mobile-header-height)+24px)] max-h-[calc(100vh-var(--mobile-header-height)-48px)] overflow-y-auto no-scrollbar py-2"
-    >
+    <nav ref={navRef} className="overflow-y-auto no-scrollbar py-2 max-h-[inherit]">
       <div
         ref={containerRef}
         className="relative flex flex-col border-l-1 border-background-border ml-4"

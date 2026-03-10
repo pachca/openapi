@@ -15,7 +15,7 @@ export function GuideCodeBlock({ code, language, title, className }: GuideCodeBl
   if (!title) {
     return (
       <div
-        className={`bg-background-tertiary rounded-lg border border-background-border overflow-hidden not-prose relative ${className ?? 'my-8'}`}
+        className={`bg-background-tertiary rounded-lg border border-background-border overflow-hidden not-prose relative ${className ?? 'my-4'}`}
       >
         <div className="absolute top-0 right-0 z-10 bg-background-tertiary pl-3 pb-2 pt-2 pr-3 rounded-bl-md">
           <CopyButton text={code} />
@@ -29,7 +29,7 @@ export function GuideCodeBlock({ code, language, title, className }: GuideCodeBl
 
   return (
     <BoxedPanel
-      className={className}
+      className={className ?? 'my-4'}
       header={
         <>
           <span className="text-[13px] font-medium text-text-primary truncate">{title}</span>

@@ -26,11 +26,11 @@ description: Отправка сообщений от имени бота без
 
 ## Минимальный формат запроса
 
-<CodeBlock language="json" title="POST на Webhook URL">
-{`{
+```json title="POST на Webhook URL"
+{
   "message": "Текст сообщения"
-}`}
-</CodeBlock>
+}
+```
 
 Поле `message` содержит текст, который будет опубликован от имени бота.
 
@@ -47,19 +47,19 @@ description: Отправка сообщений от имени бота без
 
 Если сервис отправляет JSON:
 
-<CodeBlock language="json" title="Входящий JSON от CRM">
-{`{
+```json title="Входящий JSON от CRM"
+{
   "client": "Иван Петров",
   "amount": 15000,
   "status": "оплачен"
-}`}
-</CodeBlock>
+}
+```
 
 Шаблон Liquid:
 
-<CodeBlock language="text" title="Шаблон сообщения">
-{`Заказ от {{ client }} на сумму {{ amount }} ₽ — {{ status }}`}
-</CodeBlock>
+```text title="Шаблон сообщения"
+Заказ от {{ client }} на сумму {{ amount }} ₽ — {{ status }}
+```
 
 Результат в чате: `Заказ от Иван Петров на сумму 15000 ₽ — оплачен`
 

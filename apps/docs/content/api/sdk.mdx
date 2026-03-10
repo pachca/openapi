@@ -5,80 +5,171 @@ description: Клиентские библиотеки для API Пачки н�
 
 # SDK
 
-SDK для API Пачки автоматически генерируются из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Они предоставляют типизированные клиенты с автокомплитом и актуальными моделями данных.
+SDK для API Пачки автоматически генерируются из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Они предоставляют типизированные клиенты с автокомплитом и актуальными моделями данных. Исходный код всех SDK доступен в [репозитории на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
 
-## Доступные SDK
+## TypeScript
 
-<CardGroup>
-  <Card title="TypeScript" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/typescript">
-    npm install @pachca/sdk
-  </Card>
-  <Card title="Python" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/python">
-    pip install pachca
-  </Card>
-  <Card title="Go" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/go">
-    go get github.com/pachca/openapi/sdk/go
-  </Card>
-  <Card title="Kotlin" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/kotlin">
-    Maven / Gradle
-  </Card>
-  <Card title="Swift" icon="Code" href="https://github.com/pachca/openapi/tree/main/sdk/swift">
-    Swift Package Manager
-  </Card>
-</CardGroup>
+<PackageBadge name="@pachca/sdk" href="https://www.npmjs.com/package/@pachca/sdk" />
 
-## Быстрый пример
+Установите пакет из npm:
 
-### TypeScript
+```bash
+npm install @pachca/sdk
+```
 
-<CodeBlock language="typescript" title="TypeScript">
-{`import { createClient } from '@pachca/sdk';
+```typescript
+import { Pachca } from "@pachca/sdk";
 
-const client = createClient({
-  token: 'ваш_токен',
+const pachca = new Pachca({ token: "ваш_токен" });
+
+// Отправка сообщения
+const { data } = await pachca.messages.createMessage({
+  body: {
+    message: { entity_id: 12345, content: "Привет из TypeScript SDK!" },
+  },
 });
 
-// Получить список чатов
-const chats = await client.GET('/chats', {
-  params: { query: { per: 10 } }
-});
+// Список всех пользователей (автопагинация)
+for await (const user of pachca.users.listAllUsers()) {
+  console.log(user.first_name);
+}
+```
 
-console.log(chats.data);`}
-</CodeBlock>
+## Python
 
-### Python
+<PackageBadge name="pachca" href="https://pypi.org/project/pachca/" />
 
-<CodeBlock language="python" title="Python">
-{`from pachca import Client
+Установите пакет из PyPI:
 
-client = Client(token="ваш_токен")
+```bash
+pip install pachca
+```
 
-# Получить список чатов
-chats = client.chats.list(per=10)
-print(chats.data)`}
-</CodeBlock>
+```python
+from pachca.pachca_client import Pachca
+from pachca.models.message_create_request_message import MessageCreateRequestMessage
 
-### Go
+client = Pachca("ваш_токен")
 
-<CodeBlock language="go" title="Go">
-{`package main
+# Отправка сообщения
+msg = client.messages.create_message(
+    MessageCreateRequestMessage(entity_id=12345, content="Привет из Python SDK!")
+)
+
+# Список пользователей
+users = client.users.list_users()
+```
+
+## Go
+
+<PackageBadge name="github.com/pachca/openapi/sdk/go" href="https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated" />
+
+Добавьте модуль в проект:
+
+```bash
+go get github.com/pachca/openapi/sdk/go/generated
+```
+
+```go
+package main
 
 import (
     "context"
     "fmt"
-    pachca "github.com/pachca/openapi/sdk/go"
+    "log"
+
+    pachca "github.com/pachca/openapi/sdk/go/generated"
 )
 
 func main() {
-    client := pachca.NewClient("ваш_токен")
+    client, err := pachca.NewPachcaClient(
+        "https://api.pachca.com/api/shared/v1",
+        "ваш_токен",
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    chats, _ := client.Chats.List(context.Background(), &pachca.ListParams{Per: 10})
-    fmt.Println(chats.Data)
-}`}
-</CodeBlock>
+    // Отправка сообщения
+    res, err := client.Messages.CreateMessage(context.Background(), &pachca.MessageCreateRequest{
+        Message: pachca.MessageCreateRequestMessage{
+            EntityID: 12345,
+            Content:  "Привет из Go SDK!",
+        },
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+    created := res.(*pachca.MessageOperationsCreateMessageCreated)
+    fmt.Printf("Сообщение: %d\n", created.Data.ID)
+}
+```
 
-## Ссылки
+## Kotlin
 
-- [GitHub: pachca/openapi/sdk](https://github.com/pachca/openapi/tree/main/sdk) — исходный код всех SDK
-- [OpenAPI-спецификация](https://dev.pachca.com/openapi.yaml) — YAML-файл для генерации
-- <NpmBadge package="@pachca/sdk" />
+<PackageBadge name="com.pachca:pachca-sdk" href="https://github.com/pachca/openapi/tree/main/sdk/kotlin" />
+
+Требуется Kotlin 2.2+ и Java 11+. Добавьте зависимость в Gradle:
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.pachca:pachca-sdk:1.0.0")
+}
+```
+
+```kotlin
+import com.pachca.PachcaClient
+import com.pachca.models.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+
+val pachca = PachcaClient(
+    httpClientConfig = {
+        it.defaultRequest {
+            header("Authorization", "Bearer ваш_токен")
+        }
+    }
+)
+
+// Отправка сообщения
+val message = pachca.messages.createMessage(MessageCreateRequest(
+    message = MessageCreateRequestMessage(
+        entityId = 12345,
+        content = "Привет из Kotlin SDK!"
+    )
+)).body()
+
+// Список пользователей
+val users = pachca.users.listUsers().body()
+```
+
+## Swift
+
+<PackageBadge name="PachcaSDK" href="https://github.com/pachca/openapi/tree/main/sdk/swift" />
+
+Требуется Swift 5.9+, macOS 13+ или iOS 16+. Добавьте пакет в `Package.swift`:
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+]
+```
+
+```swift
+import PachcaSDK
+
+let pachca = try PachcaClient("ваш_токен")
+
+// Отправка сообщения
+let message = try await pachca.messages.createMessage(.init(
+    body: .json(.init(message: .init(
+        entity_id: 12345,
+        content: "Привет из Swift SDK!"
+    )))
+))
+
+// Список пользователей
+let users = try await pachca.users.listUsers(.init())
+```

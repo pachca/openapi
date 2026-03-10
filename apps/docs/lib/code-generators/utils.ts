@@ -35,3 +35,21 @@ export function getQueryParams(endpoint: Endpoint): Parameter[] {
 export function resolveParamName(param: Parameter): string {
   return param['x-param-names']?.[0]?.name || param.name;
 }
+
+export function buildQueryString(endpoint: Endpoint): string {
+  const queryParams = getQueryParams(endpoint);
+  if (queryParams.length === 0) return '';
+
+  const parts: string[] = [];
+  for (const p of queryParams) {
+    const example = generateParameterExample(p);
+    if (Array.isArray(example)) {
+      for (const val of example) {
+        parts.push(`${resolveParamName(p)}[]=${String(val)}`);
+      }
+    } else {
+      parts.push(`${resolveParamName(p)}=${String(example)}`);
+    }
+  }
+  return parts.join('&');
+}

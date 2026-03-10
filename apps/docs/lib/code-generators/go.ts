@@ -1,17 +1,12 @@
 import type { Endpoint } from '../openapi/types';
-import {
-  generateParameterExample,
-  generateRequestExample,
-  generateMultipartExample,
-} from '../openapi/example-generator';
+import { generateRequestExample, generateMultipartExample } from '../openapi/example-generator';
 import {
   isRecord,
   requiresAuth,
   hasJsonContent,
   hasMultipartContent,
   resolveUrl,
-  getQueryParams,
-  resolveParamName,
+  buildQueryString,
 } from './utils';
 
 export function generateGo(
@@ -78,22 +73,8 @@ export function generateGo(
   code += `func main() {\n`;
 
   // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  let fullUrl = url;
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    fullUrl = `${url}?${paramParts.join('&')}`;
-  }
+  const qs = buildQueryString(endpoint);
+  const fullUrl = qs ? `${url}?${qs}` : url;
 
   code += `    url := "${fullUrl}"\n\n`;
 

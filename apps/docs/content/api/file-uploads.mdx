@@ -33,18 +33,18 @@ description: Трёхшаговый процесс загрузки файлов
 
 Отправьте `POST`-запрос с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл:
 
-<CodeBlock language="bash" title="cURL: загрузка файла">
-{`curl -X POST "$DIRECT_URL" \\
-  -F "Content-Disposition=$CONTENT_DISPOSITION" \\
-  -F "acl=$ACL" \\
-  -F "policy=$POLICY" \\
-  -F "x-amz-credential=$X_AMZ_CREDENTIAL" \\
-  -F "x-amz-algorithm=$X_AMZ_ALGORITHM" \\
-  -F "x-amz-date=$X_AMZ_DATE" \\
-  -F "x-amz-signature=$X_AMZ_SIGNATURE" \\
-  -F "key=$KEY" \\
-  -F "file=@./document.pdf"`}
-</CodeBlock>
+```bash title="cURL: загрузка файла"
+curl -X POST "$DIRECT_URL" \
+  -F "Content-Disposition=$CONTENT_DISPOSITION" \
+  -F "acl=$ACL" \
+  -F "policy=$POLICY" \
+  -F "x-amz-credential=$X_AMZ_CREDENTIAL" \
+  -F "x-amz-algorithm=$X_AMZ_ALGORITHM" \
+  -F "x-amz-date=$X_AMZ_DATE" \
+  -F "x-amz-signature=$X_AMZ_SIGNATURE" \
+  -F "key=$KEY" \
+  -F "file=@./document.pdf"
+```
 
 При успешной загрузке сервер вернёт `HTTP 201 Created`.
 
@@ -54,8 +54,8 @@ description: Трёхшаговый процесс загрузки файлов
 
 Подставьте имя загруженного файла в поле `key` (замените `${filename}` на реальное имя файла) и используйте его при отправке сообщения:
 
-<CodeBlock language="json" title="Файл в сообщении">
-{`{
+```json title="Файл в сообщении"
+{
   "message": {
     "entity_type": "discussion",
     "entity_id": 12345,
@@ -69,8 +69,8 @@ description: Трёхшаговый процесс загрузки файлов
       }
     ]
   }
-}`}
-</CodeBlock>
+}
+```
 
 ## Типы файлов
 
@@ -81,13 +81,13 @@ description: Трёхшаговый процесс загрузки файлов
 
 ## Полный пример
 
-<CodeBlock language="javascript" title="Node.js: загрузка и отправка файла">
-{`const TOKEN = 'ваш_токен';
+```javascript title="Node.js: загрузка и отправка файла"
+const TOKEN = 'ваш_токен';
 const BASE = 'https://api.pachca.com/api/shared/v1';
-const headers = { Authorization: \`Bearer \${TOKEN}\` };
+const headers = { Authorization: `Bearer ${TOKEN}` };
 
 // Шаг 1: Получить параметры загрузки
-const params = await fetch(\`\${BASE}/uploads\`, {
+const params = await fetch(`${BASE}/uploads`, {
   method: 'POST', headers
 }).then(r => r.json());
 
@@ -106,8 +106,8 @@ form.append('file', fs.createReadStream('./report.pdf'));
 await fetch(params.direct_url, { method: 'POST', body: form });
 
 // Шаг 3: Отправить сообщение с файлом
-const fileKey = params.key.replace('\${filename}', 'report.pdf');
-await fetch(\`\${BASE}/messages\`, {
+const fileKey = params.key.replace('${filename}', 'report.pdf');
+await fetch(`${BASE}/messages`, {
   method: 'POST',
   headers: { ...headers, 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -118,8 +118,8 @@ await fetch(\`\${BASE}/messages\`, {
       files: [{ key: fileKey, name: 'report.pdf', file_type: 'file', size: 102400 }]
     }
   })
-});`}
-</CodeBlock>
+});
+```
 
 ## Частые ошибки
 

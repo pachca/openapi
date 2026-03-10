@@ -985,7 +985,6 @@ function itemContainsExactQuery(item: SearchIndex, lowerQuery: string): boolean 
 
 export interface SearchResponse {
   results: SearchResult[];
-  isCodeQuery: boolean;
 }
 
 export async function search(query: string): Promise<SearchResponse> {
@@ -993,7 +992,7 @@ export async function search(query: string): Promise<SearchResponse> {
   const lowerQuery = query.toLowerCase().trim();
 
   if (!lowerQuery || !flexIndex) {
-    return { results: [], isCodeQuery: false };
+    return { results: [] };
   }
 
   // Detect if this is a code-like query (variable name, field name, etc.)
@@ -1141,6 +1140,5 @@ export async function search(query: string): Promise<SearchResponse> {
   // Sort by score (higher = better)
   return {
     results: results.sort((a, b) => (b.score || 0) - (a.score || 0)),
-    isCodeQuery,
   };
 }

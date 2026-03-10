@@ -94,32 +94,11 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
       if (schema.format === 'time') {
         return '10:00:00';
       }
-      if (schema.format === 'email') {
-        return 'user@example.com';
-      }
-      if (schema.format === 'uri' || schema.format === 'url') {
+      if (schema.format === 'uri') {
         return 'https://example.com';
-      }
-      if (schema.format === 'uuid') {
-        return '123e4567-e89b-12d3-a456-426614174000';
-      }
-      if (schema.format === 'ipv4') {
-        return '192.168.1.1';
-      }
-      if (schema.format === 'ipv6') {
-        return '2001:0db8:85a3:0000:0000:8a2e:0370:7334';
-      }
-      if (schema.format === 'hostname') {
-        return 'example.com';
-      }
-      if (schema.format === 'byte') {
-        return 'SGVsbG8gV29ybGQ=';
       }
       if (schema.format === 'binary') {
         return '0101010101010101';
-      }
-      if (schema.format === 'password') {
-        return '********';
       }
 
       // Проверяем enum
@@ -168,11 +147,6 @@ export function generateExample(schema: Schema | undefined, depth = 0): unknown 
         if (desc.includes('phone') || desc.includes('телефон')) {
           return '+7 (999) 123-45-67';
         }
-      }
-
-      // Fallback значения
-      if (schema.minLength && schema.minLength > 0) {
-        return 'x'.repeat(schema.minLength);
       }
 
       return 'string';

@@ -19,6 +19,13 @@ import {
   tagToServiceName,
 } from '../naming.js';
 
+const KOTLIN_KEYWORDS = new Set([
+  'as', 'break', 'class', 'continue', 'do', 'else', 'false', 'for', 'fun',
+  'if', 'in', 'interface', 'is', 'null', 'object', 'package', 'return',
+  'super', 'this', 'throw', 'true', 'try', 'typealias', 'typeof', 'val',
+  'var', 'when', 'while',
+]);
+
 // ── Helpers ──────────────────────────────────────────────────────────
 
 function ktType(ft: IRFieldType): string {
@@ -52,11 +59,15 @@ function needsSerialName(field: IRField): boolean {
 }
 
 function fieldSdkName(field: IRField): string {
+  let name: string;
   if (field.name.includes('-')) {
     const camel = field.name.replace(/-([a-zA-Z])/g, (_, c) => c.toUpperCase());
-    return camel.charAt(0).toLowerCase() + camel.slice(1);
+    name = camel.charAt(0).toLowerCase() + camel.slice(1);
+  } else {
+    name = snakeToCamel(field.name);
   }
-  return snakeToCamel(field.name);
+  if (KOTLIN_KEYWORDS.has(name)) return `\`${name}\``;
+  return name;
 }
 
 function ktDefaultValue(
@@ -212,13 +223,7 @@ function emitUnion(
     .map((ref) => ir.models.find((m) => m.name === ref))
     .filter(Boolean) as IRModel[];
 
-  let discriminatorField = 'type';
-  if (memberModels.length > 0) {
-    const litField = memberModels[0].fields.find(
-      (f) => f.type.kind === 'literal',
-    );
-    if (litField) discriminatorField = litField.name;
-  }
+  const discriminatorField = u.discriminatorField;
 
   lines.push('@Serializable');
   lines.push(`sealed interface ${u.name} {`);

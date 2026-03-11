@@ -202,19 +202,8 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   }
 }
 
-function detectDiscriminatorField(u: IRUnion, models: IRModel[]): string {
-  const memberModels = u.memberRefs
-    .map((ref) => models.find((m) => m.name === ref))
-    .filter(Boolean) as IRModel[];
-  if (memberModels.length > 0) {
-    const litField = memberModels[0].fields.find((f) => f.type.kind === 'literal');
-    if (litField) return litField.name;
-  }
-  return 'type';
-}
-
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
-  const discField = detectDiscriminatorField(u, models);
+  const discField = u.discriminatorField;
   const discGoName = goExportName(discField);
   lines.push(`type ${u.name} struct {`);
   const fieldRows = u.memberRefs.map((ref) => [ref, `*${ref}`]);

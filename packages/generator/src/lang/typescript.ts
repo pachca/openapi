@@ -742,7 +742,8 @@ function generateUtils(ir: IR): string {
     '}',
     '',
   ];
-  if (recordKeys.size > 0) {
+  const hasRecords = recordKeys.size > 0;
+  if (hasRecords) {
     const keyList = [...recordKeys].map((k) => JSON.stringify(k)).join(', ');
     lines.push(`const RECORD_KEYS = new Set([${keyList}]);`);
     lines.push('');
@@ -767,60 +768,35 @@ function generateUtils(ir: IR): string {
     lines.push('}');
     lines.push('');
   }
-  if (recordKeys.size > 0) {
-    lines.push(
-      'export function deserialize(obj: unknown): unknown {',
-      '  if (Array.isArray(obj)) return obj.map(deserialize);',
-      '  if (obj !== null && typeof obj === "object") {',
-      '    return Object.fromEntries(',
-      '      Object.entries(obj).map(([k, v]) => {',
-      '        const ck = snakeToCamel(k);',
-      '        return [ck, RECORD_KEYS.has(ck) ? deserializeRecord(v) : deserialize(v)];',
-      '      }),',
-      '    );',
-      '  }',
-      '  return obj;',
-      '}',
-      '',
-      'export function serialize(obj: unknown): unknown {',
-      '  if (Array.isArray(obj)) return obj.map(serialize);',
-      '  if (obj !== null && typeof obj === "object") {',
-      '    return Object.fromEntries(',
-      '      Object.entries(obj)',
-      '        .filter(([, v]) => v !== undefined)',
-      '        .map(([k, v]) => {',
-      '          return [camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecord(v) : serialize(v)];',
-      '        }),',
-      '    );',
-      '  }',
-      '  return obj;',
-      '}',
-    );
-  } else {
-    lines.push(
-      'export function deserialize(obj: unknown): unknown {',
-      '  if (Array.isArray(obj)) return obj.map(deserialize);',
-      '  if (obj !== null && typeof obj === "object") {',
-      '    return Object.fromEntries(',
-      '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),',
-      '    );',
-      '  }',
-      '  return obj;',
-      '}',
-      '',
-      'export function serialize(obj: unknown): unknown {',
-      '  if (Array.isArray(obj)) return obj.map(serialize);',
-      '  if (obj !== null && typeof obj === "object") {',
-      '    return Object.fromEntries(',
-      '      Object.entries(obj)',
-      '        .filter(([, v]) => v !== undefined)',
-      '        .map(([k, v]) => [camelToSnake(k), serialize(v)]),',
-      '    );',
-      '  }',
-      '  return obj;',
-      '}',
-    );
-  }
+  const deserializeValue = hasRecords
+    ? '([k, v]) => {\n        const ck = snakeToCamel(k);\n        return [ck, RECORD_KEYS.has(ck) ? deserializeRecord(v) : deserialize(v)];\n      }'
+    : '([k, v]) => [snakeToCamel(k), deserialize(v)]';
+  const serializeValue = hasRecords
+    ? '([k, v]) => {\n          return [camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecord(v) : serialize(v)];\n        }'
+    : '([k, v]) => [camelToSnake(k), serialize(v)]';
+  lines.push(
+    'export function deserialize(obj: unknown): unknown {',
+    '  if (Array.isArray(obj)) return obj.map(deserialize);',
+    '  if (obj !== null && typeof obj === "object") {',
+    '    return Object.fromEntries(',
+    `      Object.entries(obj).map(${deserializeValue}),`,
+    '    );',
+    '  }',
+    '  return obj;',
+    '}',
+    '',
+    'export function serialize(obj: unknown): unknown {',
+    '  if (Array.isArray(obj)) return obj.map(serialize);',
+    '  if (obj !== null && typeof obj === "object") {',
+    '    return Object.fromEntries(',
+    '      Object.entries(obj)',
+    '        .filter(([, v]) => v !== undefined)',
+    `        .map(${serializeValue}),`,
+    '    );',
+    '  }',
+    '  return obj;',
+    '}',
+  );
   return [...lines,
     '',
     'const MAX_RETRIES = 3;',

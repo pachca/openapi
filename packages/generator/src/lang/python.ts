@@ -17,9 +17,19 @@ import {
   tagToServiceName,
 } from '../naming.js';
 
+const PYTHON_KEYWORDS = new Set([
+  'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
+  'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
+  'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
+  'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
+]);
+
 function pyFieldName(field: IRField): string {
-  if (field.name.includes('-')) return field.name.replace(/-/g, '_').toLowerCase();
-  return camelToSnake(field.name);
+  const name = field.name.includes('-')
+    ? field.name.replace(/-/g, '_').toLowerCase()
+    : camelToSnake(field.name);
+  if (PYTHON_KEYWORDS.has(name)) return `${name}_`;
+  return name;
 }
 
 function pyServiceProp(tag: string): string {
@@ -703,6 +713,7 @@ function generateUtils(): string {
     'from __future__ import annotations',
     '',
     'import dataclasses',
+    'import keyword',
     'from dataclasses import asdict, fields',
     'from typing import Type, TypeVar, get_args, get_origin, get_type_hints',
     '',
@@ -747,7 +758,9 @@ function generateUtils(): string {
     '    kwargs = {}',
     '    for k, v in norm.items():',
     '        if k not in field_map:',
-    '            continue',
+    '            k = f"{k}_"',
+    '            if k not in field_map:',
+    '                continue',
     '        f = field_map[k]',
     '        if isinstance(v, dict):',
     '            nested = _resolve_type(hints[f.name])',
@@ -763,7 +776,10 @@ function generateUtils(): string {
     '',
     'def _strip_nones(val: object) -> object:',
     '    if isinstance(val, dict):',
-    '        return {k: _strip_nones(v) for k, v in val.items() if v is not None}',
+    '        return {',
+    '            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)',
+    '            for k, v in val.items() if v is not None',
+    '        }',
     '    if isinstance(val, list):',
     '        return [_strip_nones(v) for v in val]',
     '    return val',

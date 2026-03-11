@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import keyword
 from dataclasses import asdict, fields
 from typing import Type, TypeVar, get_args, get_origin, get_type_hints
 
@@ -45,7 +46,9 @@ def deserialize(cls: Type[T], data: dict) -> T:
     kwargs = {}
     for k, v in norm.items():
         if k not in field_map:
-            continue
+            k = f"{k}_"
+            if k not in field_map:
+                continue
         f = field_map[k]
         if isinstance(v, dict):
             nested = _resolve_type(hints[f.name])
@@ -61,7 +64,10 @@ def deserialize(cls: Type[T], data: dict) -> T:
 
 def _strip_nones(val: object) -> object:
     if isinstance(val, dict):
-        return {k: _strip_nones(v) for k, v in val.items() if v is not None}
+        return {
+            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)
+            for k, v in val.items() if v is not None
+        }
     if isinstance(val, list):
         return [_strip_nones(v) for v in val]
     return val

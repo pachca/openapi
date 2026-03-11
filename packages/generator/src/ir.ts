@@ -71,6 +71,8 @@ export interface IRUnion {
   name: string;
   /** Referenced type names */
   memberRefs: string[];
+  /** Discriminator field name detected from literal fields (e.g. "type", "entity_type") */
+  discriminatorField: string;
 }
 
 // ----- Operations -----

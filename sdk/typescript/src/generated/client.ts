@@ -462,7 +462,7 @@ class MembersService {
   }
 
   async updateMemberRole(id: number, userId: number, role: ChatMemberRole): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members/$${userId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members/${userId}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify({ role: role }),
@@ -478,7 +478,7 @@ class MembersService {
   }
 
   async removeTag(id: number, tagId: number): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/group_tags/$${tagId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/group_tags/${tagId}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -508,7 +508,7 @@ class MembersService {
   }
 
   async removeMember(id: number, userId: number): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members/$${userId}`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members/${userId}`, {
       method: "DELETE",
       headers: this.headers,
     });
@@ -1301,7 +1301,7 @@ class UsersService {
   }
 
   async getUserStatus(userId: number): Promise<unknown> {
-    const response = await fetchWithRetry(`${this.baseUrl}/users/$${userId}/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -1350,7 +1350,7 @@ class UsersService {
   }
 
   async updateUserStatus(userId: number, request: StatusUpdateRequest): Promise<UserStatus> {
-    const response = await fetchWithRetry(`${this.baseUrl}/users/$${userId}/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
       body: JSON.stringify(serialize(request)),
@@ -1382,7 +1382,7 @@ class UsersService {
   }
 
   async deleteUserStatus(userId: number): Promise<void> {
-    const response = await fetchWithRetry(`${this.baseUrl}/users/$${userId}/status`, {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       method: "DELETE",
       headers: this.headers,
     });

@@ -343,6 +343,16 @@ function collectClientImports(ir: IR): string[] {
       if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
         add('ApiError');
       }
+      for (const p of op.pathParams) {
+        if (p.type.ref) add(p.type.ref);
+      }
+      for (const p of op.queryParams) {
+        if (p.type.ref) add(p.type.ref);
+      }
+      if (op.requestBody && shouldUnwrapBody(op.requestBody)) {
+        const f = op.requestBody.unwrapField!;
+        if (f.type.ref) add(f.type.ref);
+      }
     }
   }
 
@@ -595,13 +605,17 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`        items: list[${itemType}] = []`);
   lines.push('        cursor: str | None = None');
   lines.push('        while True:');
-  if (paramsType) {
-    lines.push('            if params is None:');
-    lines.push(`                params = ${paramsType}()`);
-    lines.push('            params.cursor = cursor');
-    lines.push(`            response = await self.${pyMethodName(op)}(params=params)`);
-  } else {
-    lines.push(`            response = await self.${pyMethodName(op)}()`);
+  {
+    const callParts: string[] = [];
+    if (op.externalUrl) callParts.push(camelToSnake(op.externalUrl));
+    for (const p of op.pathParams) callParts.push(pyParamName(p.sdkName));
+    if (paramsType) {
+      lines.push('            if params is None:');
+      lines.push(`                params = ${paramsType}()`);
+      lines.push('            params.cursor = cursor');
+      callParts.push('params=params');
+    }
+    lines.push(`            response = await self.${pyMethodName(op)}(${callParts.join(', ')})`);
   }
   lines.push('            items.extend(response.data)');
   lines.push('            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None');

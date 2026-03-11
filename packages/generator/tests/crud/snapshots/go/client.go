@@ -25,6 +25,9 @@ const maxRetries = 3
 
 func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
 	for attempt := 0; ; attempt++ {
+		if attempt > 0 && req.GetBody != nil {
+			req.Body, _ = req.GetBody()
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			return nil, err

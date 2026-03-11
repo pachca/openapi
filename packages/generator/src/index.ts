@@ -33,8 +33,7 @@ export function generate(specPath: string, outputDir: string, langs: string[]): 
   for (const lang of langs) {
     const generator = generators[lang];
     if (!generator) {
-      console.error(`Unknown language: ${lang}. Supported: ${SUPPORTED_LANGS.join(', ')}`);
-      process.exit(1);
+      throw new Error(`Unknown language: ${lang}. Supported: ${SUPPORTED_LANGS.join(', ')}`);
     }
 
     const files = generator.generate(ir);

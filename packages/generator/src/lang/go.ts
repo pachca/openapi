@@ -22,11 +22,11 @@ function goExportName(raw: string): string {
   const normalized = raw.replace(/[-:]/g, '_');
   const pascal = snakeToPascal(normalized);
   return pascal
-    .replace(/Id/g, 'ID')
-    .replace(/Ids/g, 'IDs')
-    .replace(/Url/g, 'URL')
-    .replace(/Acl/g, 'ACL')
-    .replace(/Amz/g, 'AMZ')
+    .replace(/Id(?=[A-Z]|s(?=[A-Z]|$)|$)/g, 'ID')
+    .replace(/Ids(?=[A-Z]|$)/g, 'IDs')
+    .replace(/Url(?=[A-Z]|s(?=[A-Z]|$)|$)/g, 'URL')
+    .replace(/Acl(?=[A-Z]|s(?=[A-Z]|$)|$)/g, 'ACL')
+    .replace(/Amz(?=[A-Z]|s(?=[A-Z]|$)|$)/g, 'AMZ')
     .replace(/Oauth/g, 'OAuth');
 }
 
@@ -445,9 +445,11 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
       if (bin) {
         lines.push(`\t\tpart, err := writer.CreateFormFile(${JSON.stringify(bin.name)}, "upload")`);
         lines.push('\t\tif err != nil {');
+        lines.push('\t\t\tpw.CloseWithError(err)');
         lines.push('\t\t\treturn');
         lines.push('\t\t}');
         lines.push(`\t\tif _, err := io.Copy(part, request.${goExportName(bin.name)}); err != nil {`);
+        lines.push('\t\t\tpw.CloseWithError(err)');
         lines.push('\t\t\treturn');
         lines.push('\t\t}');
       }
@@ -678,6 +680,9 @@ function generateClient(ir: IR): string {
   lines.push('');
   lines.push('func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {');
   lines.push('\tfor attempt := 0; ; attempt++ {');
+  lines.push('\t\tif attempt > 0 && req.GetBody != nil {');
+  lines.push('\t\t\treq.Body, _ = req.GetBody()');
+  lines.push('\t\t}');
   lines.push('\t\tresp, err := client.Do(req)');
   lines.push('\t\tif err != nil {');
   lines.push('\t\t\treturn nil, err');

@@ -352,11 +352,7 @@ function responseTypeName(op: IROperation, ir: IR): string {
 function escapeTemplatePath(path: string, op: IROperation): string {
   let p = path;
   for (const param of op.pathParams) {
-    const interpolation = `\${${param.sdkName}}`;
-    p = p.replace(`{${param.name}}`, interpolation);
-    if (param.name !== param.sdkName) {
-      p = p.replace(`{${param.sdkName}}`, interpolation);
-    }
+    p = p.replace(`{${param.name}}`, `\${${param.sdkName}}`);
   }
   return p;
 }
@@ -717,8 +713,22 @@ function emitResponseSwitch(
   lines.push('    }');
 }
 
-function generateUtils(): string {
-  return [
+function collectRecordKeys(ir: IR): Set<string> {
+  const keys = new Set<string>();
+  for (const m of ir.models) {
+    for (const f of m.fields) {
+      if (f.type.kind === 'record') {
+        keys.add(f.name);
+        keys.add(snakeToCamel(f.name));
+      }
+    }
+  }
+  return keys;
+}
+
+function generateUtils(ir: IR): string {
+  const recordKeys = collectRecordKeys(ir);
+  const lines: string[] = [
     'function snakeToCamel(str: string): string {',
     '  const camel = str.replace(/[-_]([a-zA-Z])/g, (_, c) => c.toUpperCase());',
     '  return camel.charAt(0).toLowerCase() + camel.slice(1);',
@@ -731,11 +741,45 @@ function generateUtils(): string {
     '    .toLowerCase();',
     '}',
     '',
+  ];
+  const hasRecords = recordKeys.size > 0;
+  if (hasRecords) {
+    const keyList = [...recordKeys].map((k) => JSON.stringify(k)).join(', ');
+    lines.push(`const RECORD_KEYS = new Set([${keyList}]);`);
+    lines.push('');
+    lines.push('function deserializeRecord(obj: unknown): unknown {');
+    lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
+    lines.push('    return Object.fromEntries(');
+    lines.push('      Object.entries(obj).map(([k, v]) => [k, deserialize(v)]),');
+    lines.push('    );');
+    lines.push('  }');
+    lines.push('  return deserialize(obj);');
+    lines.push('}');
+    lines.push('');
+    lines.push('function serializeRecord(obj: unknown): unknown {');
+    lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
+    lines.push('    return Object.fromEntries(');
+    lines.push('      Object.entries(obj)');
+    lines.push('        .filter(([, v]) => v !== undefined)');
+    lines.push('        .map(([k, v]) => [k, serialize(v)]),');
+    lines.push('    );');
+    lines.push('  }');
+    lines.push('  return serialize(obj);');
+    lines.push('}');
+    lines.push('');
+  }
+  const deserializeValue = hasRecords
+    ? '([k, v]) => {\n        const ck = snakeToCamel(k);\n        return [ck, RECORD_KEYS.has(ck) ? deserializeRecord(v) : deserialize(v)];\n      }'
+    : '([k, v]) => [snakeToCamel(k), deserialize(v)]';
+  const serializeValue = hasRecords
+    ? '([k, v]) => {\n          return [camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecord(v) : serialize(v)];\n        }'
+    : '([k, v]) => [camelToSnake(k), serialize(v)]';
+  lines.push(
     'export function deserialize(obj: unknown): unknown {',
     '  if (Array.isArray(obj)) return obj.map(deserialize);',
     '  if (obj !== null && typeof obj === "object") {',
     '    return Object.fromEntries(',
-    '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),',
+    `      Object.entries(obj).map(${deserializeValue}),`,
     '    );',
     '  }',
     '  return obj;',
@@ -747,11 +791,13 @@ function generateUtils(): string {
     '    return Object.fromEntries(',
     '      Object.entries(obj)',
     '        .filter(([, v]) => v !== undefined)',
-    '        .map(([k, v]) => [camelToSnake(k), serialize(v)]),',
+    `        .map(${serializeValue}),`,
     '    );',
     '  }',
     '  return obj;',
     '}',
+  );
+  return [...lines,
     '',
     'const MAX_RETRIES = 3;',
     '',
@@ -779,7 +825,7 @@ export class TypeScriptGenerator implements LanguageGenerator {
     files.push({ path: 'types.ts', content: generateTypes(ir) });
     const client = generateClient(ir);
     files.push({ path: 'client.ts', content: client.content });
-    if (client.needsUtils) files.push({ path: 'utils.ts', content: generateUtils() });
+    if (client.needsUtils) files.push({ path: 'utils.ts', content: generateUtils(ir) });
     return files;
   }
 }

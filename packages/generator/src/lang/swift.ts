@@ -141,19 +141,8 @@ function emitModel(lines: string[], m: IRModel): void {
   lines.push('}');
 }
 
-function detectDiscriminatorField(u: IRUnion, models: IRModel[]): string {
-  const memberModels = u.memberRefs
-    .map((ref) => models.find((m) => m.name === ref))
-    .filter(Boolean) as IRModel[];
-  if (memberModels.length > 0) {
-    const litField = memberModels[0].fields.find((f) => f.type.kind === 'literal');
-    if (litField) return litField.name;
-  }
-  return 'type';
-}
-
 function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
-  const discField = detectDiscriminatorField(u, models);
+  const discField = u.discriminatorField;
   const discSwiftName = snakeToCamel(discField.replace(/[-:]/g, '_'));
   lines.push(`public enum ${u.name}: Codable {`);
   for (const ref of u.memberRefs) {
@@ -173,11 +162,14 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push('        let container = try decoder.container(keyedBy: CodingKeys.self)');
   lines.push(`        let type = try container.decode(String.self, forKey: .${discSwiftName})`);
   lines.push('        switch type {');
+  const seenDiscs = new Set<string>();
   for (const ref of u.memberRefs) {
     const c = ref.charAt(0).toLowerCase() + ref.slice(1);
     const model = models.find((m) => m.name === ref);
     const typeField = model?.fields.find((f) => f.type.kind === 'literal');
     const disc = typeField?.type.literalValue ?? c;
+    if (seenDiscs.has(String(disc))) continue;
+    seenDiscs.add(String(disc));
     lines.push(`        case ${JSON.stringify(disc)}:`);
     lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
   }
@@ -361,9 +353,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
         lines.push('        data.append("Content-Type: application/octet-stream\\r\\n\\r\\n".data(using: .utf8)!)');
         lines.push(`        data.append(body.${n})`);
         lines.push('        data.append("\\r\\n".data(using: .utf8)!)');
-        lines.push('        data.append("--\\(boundary)--\\r\\n".data(using: .utf8)!)');
       }
     }
+    lines.push('        data.append("--\\(boundary)--\\r\\n".data(using: .utf8)!)');
     lines.push('        request.httpBody = data');
   }
 

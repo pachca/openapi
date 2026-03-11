@@ -17,9 +17,19 @@ import {
   tagToServiceName,
 } from '../naming.js';
 
+const PYTHON_KEYWORDS = new Set([
+  'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
+  'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
+  'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
+  'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
+]);
+
 function pyFieldName(field: IRField): string {
-  if (field.name.includes('-')) return field.name.replace(/-/g, '_').toLowerCase();
-  return camelToSnake(field.name);
+  const name = field.name.includes('-')
+    ? field.name.replace(/-/g, '_').toLowerCase()
+    : camelToSnake(field.name);
+  if (PYTHON_KEYWORDS.has(name)) return `${name}_`;
+  return name;
 }
 
 function pyServiceProp(tag: string): string {
@@ -343,6 +353,16 @@ function collectClientImports(ir: IR): string[] {
       if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
         add('ApiError');
       }
+      for (const p of op.pathParams) {
+        if (p.type.ref) add(p.type.ref);
+      }
+      for (const p of op.queryParams) {
+        if (p.type.ref) add(p.type.ref);
+      }
+      if (op.requestBody && shouldUnwrapBody(op.requestBody)) {
+        const f = op.requestBody.unwrapField!;
+        if (f.type.ref) add(f.type.ref);
+      }
     }
   }
 
@@ -595,13 +615,17 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`        items: list[${itemType}] = []`);
   lines.push('        cursor: str | None = None');
   lines.push('        while True:');
-  if (paramsType) {
-    lines.push('            if params is None:');
-    lines.push(`                params = ${paramsType}()`);
-    lines.push('            params.cursor = cursor');
-    lines.push(`            response = await self.${pyMethodName(op)}(params=params)`);
-  } else {
-    lines.push(`            response = await self.${pyMethodName(op)}()`);
+  {
+    const callParts: string[] = [];
+    if (op.externalUrl) callParts.push(camelToSnake(op.externalUrl));
+    for (const p of op.pathParams) callParts.push(pyParamName(p.sdkName));
+    if (paramsType) {
+      lines.push('            if params is None:');
+      lines.push(`                params = ${paramsType}()`);
+      lines.push('            params.cursor = cursor');
+      callParts.push('params=params');
+    }
+    lines.push(`            response = await self.${pyMethodName(op)}(${callParts.join(', ')})`);
   }
   lines.push('            items.extend(response.data)');
   lines.push('            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None');
@@ -689,8 +713,9 @@ function generateUtils(): string {
     'from __future__ import annotations',
     '',
     'import dataclasses',
+    'import keyword',
     'from dataclasses import asdict, fields',
-    'from typing import Type, TypeVar, get_args, get_origin',
+    'from typing import Type, TypeVar, get_args, get_origin, get_type_hints',
     '',
     'import httpx',
     '',
@@ -728,18 +753,21 @@ function generateUtils(): string {
     'def deserialize(cls: Type[T], data: dict) -> T:',
     '    """Create a dataclass instance from a dict, recursively deserializing nested dataclasses."""',
     '    field_map = {f.name: f for f in fields(cls)}',
+    '    hints = get_type_hints(cls)',
     '    norm = {k.replace("-", "_").lower(): v for k, v in data.items()}',
     '    kwargs = {}',
     '    for k, v in norm.items():',
     '        if k not in field_map:',
-    '            continue',
+    '            k = f"{k}_"',
+    '            if k not in field_map:',
+    '                continue',
     '        f = field_map[k]',
     '        if isinstance(v, dict):',
-    '            nested = _resolve_type(f.type)',
+    '            nested = _resolve_type(hints[f.name])',
     '            if nested is not None:',
     '                v = deserialize(nested, v)',
     '        elif isinstance(v, list) and v:',
-    '            item_tp = _resolve_list_item_type(f.type)',
+    '            item_tp = _resolve_list_item_type(hints[f.name])',
     '            if item_tp is not None and _is_dataclass_type(item_tp):',
     '                v = [deserialize(item_tp, i) if isinstance(i, dict) else i for i in v]',
     '        kwargs[k] = v',
@@ -748,7 +776,10 @@ function generateUtils(): string {
     '',
     'def _strip_nones(val: object) -> object:',
     '    if isinstance(val, dict):',
-    '        return {k: _strip_nones(v) for k, v in val.items() if v is not None}',
+    '        return {',
+    '            (k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): _strip_nones(v)',
+    '            for k, v in val.items() if v is not None',
+    '        }',
     '    if isinstance(val, list):',
     '        return [_strip_nones(v) for v in val]',
     '    return val',

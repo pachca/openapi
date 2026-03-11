@@ -5,7 +5,9 @@ import httpx
 from .models import (
     ListEventsParams,
     ListEventsResponse,
+    EventFilter,
     Event,
+    OAuthScope,
     UploadRequest,
 )
 from .utils import deserialize, RetryTransport

@@ -302,12 +302,41 @@ function transformModel(name: string, schema: Schema): IRModel {
   return { name, description: schema.description, fields, isError, inlineObjects };
 }
 
-function transformUnion(name: string, schema: Schema): IRUnion {
+function detectDiscriminatorField(
+  schema: Schema,
+  memberRefs: string[],
+  schemas: Record<string, Schema>,
+): string {
+  // Prefer explicit OpenAPI discriminator.propertyName
+  const disc = (schema as Record<string, unknown>).discriminator as { propertyName?: string } | undefined;
+  if (disc?.propertyName) {
+    return disc.propertyName;
+  }
+  // Fall back to scanning first member for a literal (single-value enum) field
+  if (memberRefs.length === 0) return 'type';
+  const firstSchema = schemas[memberRefs[0]];
+  if (!firstSchema) return 'type';
+  // Resolve allOf to get merged properties
+  const resolved = firstSchema.allOf ? resolveAllOf(firstSchema) : firstSchema;
+  const merged = {
+    ...resolved,
+    properties: { ...resolved.properties, ...firstSchema.properties },
+  };
+  for (const [propName, propSchema] of Object.entries(merged.properties || {})) {
+    if (propSchema.enum && propSchema.enum.length === 1 && typeof propSchema.enum[0] === 'string') {
+      return propName;
+    }
+  }
+  return 'type';
+}
+
+function transformUnion(name: string, schema: Schema, schemas: Record<string, Schema>): IRUnion {
   const members = schema.anyOf || schema.oneOf || [];
   const memberRefs = members
     .filter((s) => s.$ref)
     .map((s) => refName(s.$ref!));
-  return { name, memberRefs };
+  const discriminatorField = detectDiscriminatorField(schema, memberRefs, schemas);
+  return { name, memberRefs, discriminatorField };
 }
 
 // ----- Operations → IR -----
@@ -659,7 +688,7 @@ export function transform(spec: ParsedAPI): IR {
   // Classify and transform schemas
   for (const [name, schema] of Object.entries(spec.schemas)) {
     if (isUnion(schema)) {
-      unions.push(transformUnion(name, schema));
+      unions.push(transformUnion(name, schema, spec.schemas));
     } else if (isEnumSchema(schema)) {
       enums.push(transformEnum(name, schema));
     } else {

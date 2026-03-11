@@ -8,6 +8,8 @@ from .models import (
     Chat,
     OAuthError,
     ApiError,
+    ChatAvailability,
+    SortOrder,
     ChatCreateRequest,
     ChatUpdateRequest,
 )

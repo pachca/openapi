@@ -7,6 +7,7 @@ from .models import (
     SearchMessagesResponse,
     MessageSearchResult,
     OAuthError,
+    SearchSort,
 )
 from .utils import deserialize, RetryTransport
 

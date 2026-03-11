@@ -90,8 +90,6 @@ public enum NotificationUnion: Codable {
         switch type {
         case "message":
             self = .messageNotification(try MessageNotification(from: decoder))
-        case "message":
-            self = .reactionNotification(try ReactionNotification(from: decoder))
         default:
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unknown type: \(type)")

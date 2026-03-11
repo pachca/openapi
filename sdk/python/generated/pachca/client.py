@@ -8,6 +8,7 @@ from .models import (
     AuditEvent,
     OAuthError,
     ApiError,
+    AuditEventKey,
     GetWebhookEventsParams,
     GetWebhookEventsResponse,
     WebhookEvent,
@@ -16,20 +17,26 @@ from .models import (
     ListChatsParams,
     ListChatsResponse,
     Chat,
+    SortOrder,
+    ChatAvailability,
     ChatCreateRequest,
     ChatUpdateRequest,
     ListPropertiesParams,
     ListPropertiesResponse,
+    SearchEntityType,
     ExportRequest,
     FileUploadRequest,
     UploadParams,
     ListMembersParams,
     ListMembersResponse,
     User,
+    ChatMemberRoleFilter,
     AddMembersRequest,
+    ChatMemberRole,
     ListTagsParams,
     ListTagsResponse,
     GroupTag,
+    TagNamesFilter,
     GetTagUsersParams,
     GroupTagRequest,
     ListChatMessagesParams,
@@ -49,8 +56,10 @@ from .models import (
     StatusUpdateRequest,
     UserStatus,
     SearchChatsParams,
+    ChatSubtype,
     SearchMessagesParams,
     SearchUsersParams,
+    SearchSortOrder,
     ListTasksParams,
     ListTasksResponse,
     Task,
@@ -472,7 +481,7 @@ class MembersService:
             if params is None:
                 params = ListMembersParams()
             params.cursor = cursor
-            response = await self.list_members(params=params)
+            response = await self.list_members(id, params=params)
             items.extend(response.data)
             cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
             if not cursor:
@@ -674,7 +683,7 @@ class GroupTagsService:
             if params is None:
                 params = GetTagUsersParams()
             params.cursor = cursor
-            response = await self.get_tag_users(params=params)
+            response = await self.get_tag_users(id, params=params)
             items.extend(response.data)
             cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
             if not cursor:
@@ -935,7 +944,7 @@ class ReactionsService:
             if params is None:
                 params = ListReactionsParams()
             params.cursor = cursor
-            response = await self.list_reactions(params=params)
+            response = await self.list_reactions(id, params=params)
             items.extend(response.data)
             cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
             if not cursor:

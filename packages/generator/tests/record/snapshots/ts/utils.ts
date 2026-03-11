@@ -10,11 +10,36 @@ function camelToSnake(str: string): string {
     .toLowerCase();
 }
 
+const RECORD_KEYS = new Set(["link_previews", "linkPreviews"]);
+
+function deserializeRecord(obj: unknown): unknown {
+  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [k, deserialize(v)]),
+    );
+  }
+  return deserialize(obj);
+}
+
+function serializeRecord(obj: unknown): unknown {
+  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, serialize(v)]),
+    );
+  }
+  return serialize(obj);
+}
+
 export function deserialize(obj: unknown): unknown {
   if (Array.isArray(obj)) return obj.map(deserialize);
   if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),
+      Object.entries(obj).map(([k, v]) => {
+        const ck = snakeToCamel(k);
+        return [ck, RECORD_KEYS.has(ck) ? deserializeRecord(v) : deserialize(v)];
+      }),
     );
   }
   return obj;
@@ -26,7 +51,9 @@ export function serialize(obj: unknown): unknown {
     return Object.fromEntries(
       Object.entries(obj)
         .filter(([, v]) => v !== undefined)
-        .map(([k, v]) => [camelToSnake(k), serialize(v)]),
+        .map(([k, v]) => {
+          return [camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecord(v) : serialize(v)];
+        }),
     );
   }
   return obj;

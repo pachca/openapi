@@ -2649,8 +2649,6 @@ public enum WebhookPayloadUnion: Codable {
             self = .chatMemberWebhookPayload(try ChatMemberWebhookPayload(from: decoder))
         case "company_member":
             self = .companyMemberWebhookPayload(try CompanyMemberWebhookPayload(from: decoder))
-        case "message":
-            self = .linkSharedWebhookPayload(try LinkSharedWebhookPayload(from: decoder))
         default:
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unknown type: \(type)")

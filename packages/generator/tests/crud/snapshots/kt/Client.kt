@@ -121,8 +121,9 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         install(HttpRequestRetry) {
             retryOnServerErrors(maxRetries = 3)
             retryIf { _, response -> response.status.value == 429 }
-            delayMillis { retry ->
-                retry * 1000L
+            delayMillis { retry, response ->
+                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                if (retryAfter != null) retryAfter * 1000L else retry * 1000L
             }
         }
         defaultRequest {

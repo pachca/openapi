@@ -52,7 +52,7 @@ jobs:
           REG_USER: ${{ secrets.GITLAB_REGISTRY_USER }}
           REG_PASS: ${{ secrets.GITLAB_REGISTRY_PASSWORD }}
         run: |
-          ssh "$DEPLOY_USER@$DEPLOY_HOST" "
+          ssh -vvv -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes "$DEPLOY_USER@$DEPLOY_HOST" "
             set -e
             cd /var/www/docs
             docker login -u '$REG_USER' -p '$REG_PASS' registry.primaverahq.com

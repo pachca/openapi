@@ -164,7 +164,7 @@ export function CodeExamples({
 
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="z-50 min-w-[140px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-dropdown"
+                  className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 shadow-xl animate-dropdown"
                   align="end"
                 >
                   {(Object.keys(languages) as Language[]).map((lang) => (
@@ -173,8 +173,8 @@ export function CodeExamples({
                       onClick={() => handleTabChange(lang)}
                       className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                         activeTab === lang
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:bg-background-tertiary'
+                          ? 'bg-primary/15 text-primary'
+                          : 'text-text-primary hover:bg-glass-hover'
                       }`}
                     >
                       {languages[lang]}

@@ -15,12 +15,12 @@ export function GuideCodeBlock({ code, language, title, className }: GuideCodeBl
   if (!title) {
     return (
       <div
-        className={`bg-background-tertiary rounded-lg border border-background-border overflow-hidden not-prose relative ${className ?? 'my-4'}`}
+        className={`bg-glass rounded-xl border border-glass-border overflow-hidden not-prose relative ${className ?? 'my-4'}`}
       >
-        <div className="absolute top-0 right-0 z-10 bg-background-tertiary pl-3 pb-2 pt-2 pr-3 rounded-bl-md">
+        <div className="absolute top-0 right-0 z-10 pl-3 pb-2 pt-2 pr-3 rounded-bl-xl rounded-tl-xl backdrop-blur-sm">
           <CopyButton text={code} />
         </div>
-        <div className="overflow-x-auto custom-scrollbar py-2.5 headerless-code min-h-[var(--boxed-header-height)]">
+        <div className="overflow-x-auto overflow-y-hidden custom-scrollbar py-2.5 headerless-code min-h-[var(--boxed-header-height)] rounded-xl">
           <CodeBlock code={code.trim()} language={language} />
         </div>
       </div>

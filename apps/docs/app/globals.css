@@ -2,30 +2,34 @@
 
 @theme {
   /* Colors - Light Mode */
-  --color-primary: oklch(54.82% 0.2498 270.55);
-  --color-primary-dark: oklch(49.82% 0.2498 270.55);
+  /* Primary — warm orange (Pachca brand), AA-compliant white text (4.82:1) */
+  --color-primary: oklch(48% 0.17 50);
+  --color-primary-dark: oklch(42% 0.17 50);
 
-  --color-text-primary: oklch(32.81% 0.006 274.97);
-  --color-text-secondary: oklch(56.38% 0.011 274.97);
-  --color-text-tertiary: oklch(64.98% 0.007 274.97);
+  /* Text — 4-level hierarchy, warm stone neutrals */
+  --color-text-primary: oklch(20% 0.01 70);
+  --color-text-secondary: oklch(46% 0.015 70);
+  --color-text-tertiary: oklch(62% 0.012 70);
 
-  --color-background: oklch(100% 0.003 274.97);
-  --color-background-secondary: oklch(97.95% 0.0054 274.97);
-  --color-background-tertiary: oklch(97.95% 0.0054 274.97);
-  --color-background-border: oklch(91.92% 0.006 274.97);
+  /* Surfaces — warm stone palette (hue 80 = sand/cream) */
+  --color-background: oklch(98.5% 0.007 80);
+  --color-background-secondary: oklch(96% 0.01 80);
+  --color-background-tertiary: oklch(93% 0.012 80);
+  --color-background-elevated: oklch(99.5% 0.003 80);
+  --color-background-border: oklch(91% 0.012 80);
 
   --color-callout-info-bg: oklch(60.2% 0.193 263 / 10%);
   --color-callout-info-border: oklch(60.2% 0.193 263 / 20%);
   --color-callout-info-header-bg: oklch(60.2% 0.193 263 / 12%);
   --color-callout-info-text: oklch(60.2% 0.193 263);
 
-  --color-accent-yellow: oklch(55% 0.14 85);
+  --color-accent-yellow: oklch(55% 0.14 55);
   --color-accent-green: oklch(50% 0.14 143.5);
   --color-accent-red: oklch(55% 0.17 28);
 
-  --color-callout-warning-bg: oklch(98% 0.02 85);
-  --color-callout-warning-border: oklch(92% 0.04 85);
-  --color-callout-warning-header-bg: oklch(96% 0.03 85);
+  --color-callout-warning-bg: oklch(98% 0.02 55);
+  --color-callout-warning-border: oklch(92% 0.04 55);
+  --color-callout-warning-header-bg: oklch(96% 0.03 55);
   --color-callout-warning-text: var(--color-accent-yellow);
 
   --color-callout-tip-bg: oklch(97.5% 0.015 143.5);
@@ -44,6 +48,15 @@
   --color-method-delete: oklch(63.9% 0.179 28);
   --color-method-patch: oklch(52.4% 0.211 329);
 
+  /* Glass surface tokens — glassmorphism that works in both themes */
+  --color-glass: oklch(0% 0 0 / 3%);
+  --color-glass-border: oklch(0% 0 0 / 7%);
+  --color-glass-hover: oklch(0% 0 0 / 5%);
+  --color-glass-heavy: oklch(100% 0 0 / 65%);
+  --color-glass-heavy-border: oklch(0% 0 0 / 14%);
+  --color-glass-divider: oklch(0% 0 0 / 7%);
+  --color-glass-active: oklch(0% 0 0 / 10%);
+
   --boxed-header-height: 40px;
   --mobile-header-height: 56px;
 
@@ -56,38 +69,55 @@
 
 /* Dark Mode - ручное переключение */
 html.dark {
-  --color-primary: oklch(53.91% 0.19 270);
-  --color-primary-dark: oklch(59.32% 0.179 270);
-  --color-text-primary: oklch(95% 0.005 240);
-  --color-text-secondary: oklch(75% 0.01 240);
-  --color-text-tertiary: oklch(62.84% 0.01 240);
+  /* Primary — lighter warm orange for dark mode, desaturated */
+  --color-primary: oklch(72% 0.15 50);
+  --color-primary-dark: oklch(78% 0.13 50);
 
-  --color-background: oklch(22.7% 0.0063 240);
-  --color-background-secondary: oklch(22.7% 0.0063 240);
-  --color-background-tertiary: oklch(27.77% 0.0068 240);
-  --color-background-border: oklch(34% 0.0077 240);
+  /* Text — warm off-white, clear 3-level separation */
+  --color-text-primary: oklch(93% 0.007 70);
+  --color-text-secondary: oklch(70% 0.012 70);
+  --color-text-tertiary: oklch(55% 0.012 70);
 
-  --color-callout-info-bg: oklch(66% 0.193 263 / 10%);
-  --color-callout-info-border: oklch(66% 0.193 263 / 20%);
-  --color-callout-info-header-bg: oklch(66% 0.193 263 / 8%);
+  /* Surfaces — warm dark palette, elevation: higher = lighter */
+  --color-background: oklch(15% 0.01 70);
+  --color-background-secondary: oklch(18% 0.012 70);
+  --color-background-tertiary: oklch(23% 0.012 70);
+  --color-background-elevated: oklch(20% 0.012 70);
+  --color-background-border: oklch(27.5% 0.012 70);
+
+  /* Callouts — slightly higher alpha for visibility on darker base */
+  --color-callout-info-bg: oklch(66% 0.193 263 / 12%);
+  --color-callout-info-border: oklch(66% 0.193 263 / 22%);
+  --color-callout-info-header-bg: oklch(66% 0.193 263 / 10%);
   --color-callout-info-text: oklch(66% 0.193 263);
 
-  --color-accent-yellow: oklch(81.1% 0.154 70.7);
+  /* Semantic accents — lighter, desaturated for dark backgrounds */
+  --color-accent-yellow: oklch(81.1% 0.154 50);
   --color-accent-green: oklch(75% 0.12 143.5);
   --color-accent-red: oklch(75% 0.13 17);
 
-  --color-callout-warning-bg: oklch(81.1% 0.154 70.7 / 12%);
-  --color-callout-warning-border: oklch(81.1% 0.154 70.7 / 20%);
-  --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
+  --color-callout-warning-bg: oklch(81.1% 0.154 50 / 14%);
+  --color-callout-warning-border: oklch(81.1% 0.154 50 / 22%);
+  --color-callout-warning-header-bg: oklch(81.1% 0.154 50 / 17%);
 
-  --color-callout-tip-bg: oklch(75% 0.12 143.5 / 12%);
-  --color-callout-tip-border: oklch(75% 0.12 143.5 / 20%);
-  --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 15%);
+  --color-callout-tip-bg: oklch(75% 0.12 143.5 / 14%);
+  --color-callout-tip-border: oklch(75% 0.12 143.5 / 22%);
+  --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 17%);
 
-  --color-callout-danger-bg: oklch(75% 0.13 17 / 12%);
-  --color-callout-danger-border: oklch(75% 0.13 17 / 20%);
-  --color-callout-danger-header-bg: oklch(75% 0.13 17 / 15%);
+  --color-callout-danger-bg: oklch(75% 0.13 17 / 14%);
+  --color-callout-danger-border: oklch(75% 0.13 17 / 22%);
+  --color-callout-danger-header-bg: oklch(75% 0.13 17 / 17%);
 
+  /* Glass surface tokens — dark mode */
+  --color-glass: oklch(100% 0 0 / 3%);
+  --color-glass-border: oklch(100% 0 0 / 6%);
+  --color-glass-hover: oklch(100% 0 0 / 6%);
+  --color-glass-heavy: oklch(100% 0 0 / 8%);
+  --color-glass-heavy-border: oklch(100% 0 0 / 8%);
+  --color-glass-divider: oklch(100% 0 0 / 4%);
+  --color-glass-active: oklch(100% 0 0 / 12%);
+
+  /* HTTP methods — lighter for dark mode readability */
   --color-method-get: oklch(66% 0.193 263);
   --color-method-post: oklch(68% 0.142 143.5);
   --color-method-put: oklch(68% 0.116 77);
@@ -98,37 +128,48 @@ html.dark {
 /* Dark Mode - системная тема (только если НЕ установлен класс .light) */
 @media (prefers-color-scheme: dark) {
   html:not(.light):not(.dark) {
-    --color-primary: oklch(53.91% 0.19 270);
-    --color-primary-dark: oklch(59.32% 0.179 270);
-    --color-text-primary: oklch(95% 0.005 240);
-    --color-text-secondary: oklch(75% 0.01 240);
-    --color-text-tertiary: oklch(62.84% 0.01 240);
+    --color-primary: oklch(72% 0.15 50);
+    --color-primary-dark: oklch(78% 0.13 50);
 
-    --color-background: oklch(22.7% 0.0063 240);
-    --color-background-secondary: oklch(22.7% 0.0063 240);
-    --color-background-tertiary: oklch(27.77% 0.0068 240);
-    --color-background-border: oklch(34% 0.0077 240);
+    --color-text-primary: oklch(93% 0.007 70);
+    --color-text-secondary: oklch(70% 0.012 70);
+    --color-text-tertiary: oklch(55% 0.012 70);
 
-    --color-callout-info-bg: oklch(66% 0.193 263 / 10%);
-    --color-callout-info-border: oklch(66% 0.193 263 / 20%);
-    --color-callout-info-header-bg: oklch(66% 0.193 263 / 8%);
+    --color-background: oklch(15% 0.01 70);
+    --color-background-secondary: oklch(18% 0.012 70);
+    --color-background-tertiary: oklch(23% 0.012 70);
+    --color-background-elevated: oklch(20% 0.012 70);
+    --color-background-border: oklch(27.5% 0.012 70);
+
+    --color-callout-info-bg: oklch(66% 0.193 263 / 12%);
+    --color-callout-info-border: oklch(66% 0.193 263 / 22%);
+    --color-callout-info-header-bg: oklch(66% 0.193 263 / 10%);
     --color-callout-info-text: oklch(66% 0.193 263);
 
-    --color-accent-yellow: oklch(81.1% 0.154 70.7);
+    --color-accent-yellow: oklch(81.1% 0.154 50);
     --color-accent-green: oklch(75% 0.12 143.5);
     --color-accent-red: oklch(75% 0.13 17);
 
-    --color-callout-warning-bg: oklch(81.1% 0.154 70.7 / 12%);
-    --color-callout-warning-border: oklch(81.1% 0.154 70.7 / 20%);
-    --color-callout-warning-header-bg: oklch(81.1% 0.154 70.7 / 15%);
+    --color-callout-warning-bg: oklch(81.1% 0.154 50 / 14%);
+    --color-callout-warning-border: oklch(81.1% 0.154 50 / 22%);
+    --color-callout-warning-header-bg: oklch(81.1% 0.154 50 / 17%);
 
-    --color-callout-tip-bg: oklch(75% 0.12 143.5 / 12%);
-    --color-callout-tip-border: oklch(75% 0.12 143.5 / 20%);
-    --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 15%);
+    --color-callout-tip-bg: oklch(75% 0.12 143.5 / 14%);
+    --color-callout-tip-border: oklch(75% 0.12 143.5 / 22%);
+    --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 17%);
 
-    --color-callout-danger-bg: oklch(75% 0.13 17 / 12%);
-    --color-callout-danger-border: oklch(75% 0.13 17 / 20%);
-    --color-callout-danger-header-bg: oklch(75% 0.13 17 / 15%);
+    --color-callout-danger-bg: oklch(75% 0.13 17 / 14%);
+    --color-callout-danger-border: oklch(75% 0.13 17 / 22%);
+    --color-callout-danger-header-bg: oklch(75% 0.13 17 / 17%);
+
+    /* Glass surface tokens — dark mode */
+    --color-glass: oklch(100% 0 0 / 3%);
+    --color-glass-border: oklch(100% 0 0 / 6%);
+    --color-glass-hover: oklch(100% 0 0 / 6%);
+    --color-glass-heavy: oklch(100% 0 0 / 8%);
+    --color-glass-heavy-border: oklch(100% 0 0 / 8%);
+    --color-glass-divider: oklch(100% 0 0 / 4%);
+    --color-glass-active: oklch(100% 0 0 / 12%);
 
     --color-method-get: oklch(66% 0.193 263);
     --color-method-post: oklch(68% 0.142 143.5);
@@ -234,7 +275,7 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -243,7 +284,7 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: var(--color-background-border);
-  border-radius: 10px;
+  border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -322,7 +363,7 @@ body {
 }
 
 .prose code:not(pre code) {
-  @apply bg-background-tertiary text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-background-border wrap-break-word;
+  @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-glass-border backdrop-blur-md whitespace-nowrap;
 }
 
 .prose table {
@@ -539,33 +580,12 @@ html.dark .code-block-container .shiki span {
 }
 
 [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
-  background: var(--color-background);
-  border-radius: var(--radius-lg);
-}
-
-html.dark .animate-dropdown {
-  background-color: var(--color-background-tertiary);
-  border-color: var(--color-background-border);
-}
-
-html.dark [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
-  background: var(--color-background-tertiary);
-}
-
-@media (prefers-color-scheme: dark) {
-  html:not(.light) .animate-dropdown {
-    background-color: var(--color-background-tertiary);
-    border-color: var(--color-background-border);
-  }
-
-  html:not(.light) [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
-    background: var(--color-background-tertiary);
-  }
+  background: transparent !important;
 }
 
 /* Стили для активного элемента сайдбара */
 .bg-primary.text-white {
-  color: white !important;
+  color: oklch(100% 0 0) !important;
 }
 
 /* Плавная прокрутка для всех ссылок-якорей */
@@ -578,7 +598,7 @@ html.dark [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
   text-decoration: underline !important;
   text-underline-offset: 4px !important;
   text-decoration-thickness: 1px !important;
-  text-decoration-color: color-mix(in srgb, var(--color-text-primary), transparent 70%) !important;
+  text-decoration-color: color-mix(in oklch, var(--color-text-primary) 30%, transparent) !important;
   transition:
     text-decoration-color 0.2s,
     text-decoration-thickness 0.2s !important;
@@ -586,7 +606,7 @@ html.dark [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
 
 .prose a:not(.endpoint-link):hover {
   text-decoration-color: var(--color-text-primary) !important;
-  text-decoration-thickness: 1.5px !important;
+  text-decoration-thickness: 2px !important;
 }
 
 /* Steps component */
@@ -613,7 +633,7 @@ html.dark [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 9999px;
-  background-color: var(--color-background-tertiary);
+  background-color: var(--color-background-secondary);
   color: var(--color-text-primary);
   font-size: 12px;
   font-weight: 600;
@@ -622,7 +642,7 @@ html.dark [data-radix-popper-content-wrapper]:has(.animate-dropdown) {
 .step-item::after {
   content: '';
   position: absolute;
-  left: 13px;
+  left: 12px;
   top: 2.25rem;
   bottom: 0.5rem;
   width: 1px;

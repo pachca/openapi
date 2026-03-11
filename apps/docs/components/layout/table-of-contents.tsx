@@ -170,9 +170,9 @@ export function TableOfContents() {
     <nav ref={navRef} className="overflow-y-auto no-scrollbar py-2 max-h-[inherit]">
       <div
         ref={containerRef}
-        className="relative flex flex-col border-l-1 border-background-border ml-4"
+        className="relative flex flex-col border-l border-background-border ml-4"
       >
-        <div ref={indicatorRef} className="absolute left-[-1px] w-[1px] bg-primary" />
+        <div ref={indicatorRef} className="absolute left-[-1px] w-px bg-primary" />
         {toc.map((item) => (
           <a
             key={item.id}

@@ -95,7 +95,7 @@ function StepContent({ segments }: { segments: StepSegment[] }) {
                 className="endpoint-link group inline-flex items-baseline gap-1 !no-underline hover:!no-underline"
               >
                 {badge}
-                <span className="font-semibold underline underline-offset-[3px] decoration-1 decoration-current/30 group-hover:decoration-current group-hover:decoration-[1.5px] transition-all">
+                <span className="font-semibold underline underline-offset-4 decoration-1 decoration-current/30 group-hover:decoration-current group-hover:decoration-[1.5px] transition-all">
                   {displayLabel}
                 </span>
               </Link>
@@ -133,7 +133,7 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 function CategoryBadge({ category }: { category: string }) {
   return (
     <span
-      className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${CATEGORY_COLORS[category] || 'bg-background-secondary text-text-secondary'}`}
+      className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${CATEGORY_COLORS[category] || 'bg-glass text-text-secondary'}`}
     >
       {CATEGORY_LABELS[category] ?? category}
     </span>
@@ -162,7 +162,7 @@ function FeaturedSection({
             key={wf.id}
             type="button"
             onClick={() => onNavigate(wf.id)}
-            className="flex flex-col gap-2 p-4 rounded-lg border border-background-border hover:bg-background-tertiary/50 transition-colors text-left cursor-pointer"
+            className="flex flex-col gap-2 p-4 rounded-lg border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover transition-colors text-left cursor-pointer"
           >
             <span className="font-semibold text-[14px] text-text-primary">{wf.title}</span>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -271,7 +271,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск..."
-              className="w-full sm:w-48 pl-9 pr-4 py-1.5 rounded-lg border border-background-border text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none focus:bg-background transition-colors"
+              className="w-full sm:w-48 pl-9 pr-4 py-1.5 rounded-lg border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none transition-colors"
             />
             {search && (
               <button
@@ -287,7 +287,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
           {/* Filter dropdown */}
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 h-[34px] rounded-lg border border-background-border bg-background text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 h-[34px] rounded-lg border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
                 <Filter className="w-3.5 h-3.5 shrink-0" />
                 {activeCategory ? (CATEGORY_LABELS[activeCategory] ?? activeCategory) : 'Все'}
                 <ChevronDown
@@ -299,7 +299,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
 
             <DropdownMenu.Portal>
               <DropdownMenu.Content
-                className="z-50 min-w-[180px] max-h-80 overflow-y-auto bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-dropdown"
+                className="z-50 min-w-[180px] max-h-80 overflow-y-auto bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 shadow-xl animate-dropdown"
                 align="end"
                 side="bottom"
                 sideOffset={6}
@@ -309,8 +309,8 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                   onClick={() => setActiveCategory(null)}
                   className={`flex items-center justify-between px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                     activeCategory === null
-                      ? 'bg-primary text-white'
-                      : 'text-text-primary hover:bg-background-tertiary'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-text-primary hover:bg-glass-hover'
                   }`}
                 >
                   Все категории
@@ -321,8 +321,8 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                     onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
                     className={`flex items-center justify-between px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                       activeCategory === cat
-                        ? 'bg-primary text-white'
-                        : 'text-text-primary hover:bg-background-tertiary'
+                        ? 'bg-primary/15 text-primary'
+                        : 'text-text-primary hover:bg-glass-hover'
                     }`}
                   >
                     <span>{CATEGORY_LABELS[cat] ?? cat}</span>
@@ -344,7 +344,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
         type="multiple"
         value={expandedIds}
         onValueChange={setExpandedIds}
-        className="divide-y divide-background-border"
+        className="divide-y divide-glass-divider"
       >
         {filteredWorkflows.map((wf) => (
           <Accordion.Item key={wf.id} value={wf.id} id={wf.id} className="overflow-hidden">
@@ -380,7 +380,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
               </div>
             </Accordion.Header>
             <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden pb-3">
-              <div className="pb-2 pt-2 ml-4 border-l border-background-border/60 pl-4">
+              <div className="pb-2 pt-2 ml-4 border-l border-glass-divider pl-4">
                 {/* Requirements */}
                 {(wf.requirements.plans.length > 0 || wf.requirements.scopes.length > 0) && (
                   <div className="flex flex-wrap items-center gap-1.5 mb-3">
@@ -450,7 +450,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                             key={title}
                             type="button"
                             onClick={() => handleNavigate(relId)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-medium bg-background border border-background-border text-text-primary hover:bg-background-secondary transition-colors cursor-pointer min-w-0 max-w-full"
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-medium bg-glass backdrop-blur-md border border-glass-border text-text-primary hover:bg-glass-hover transition-colors cursor-pointer min-w-0 max-w-full"
                           >
                             <span className="truncate min-w-0">{title}</span>
                             <span className="text-text-secondary shrink-0">→</span>
@@ -458,7 +458,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                         ) : (
                           <span
                             key={title}
-                            className="px-2.5 py-1 rounded-full text-[12px] font-medium bg-background-secondary border border-background-border text-text-tertiary"
+                            className="px-2.5 py-1 rounded-full text-[12px] font-medium bg-glass border border-glass-border text-text-tertiary"
                           >
                             {title}
                           </span>

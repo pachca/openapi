@@ -3,7 +3,7 @@
 import { Moon, Sun, SunMoon, BookOpenText, BookText, BookMinus, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { useDisplaySettings, type SchemaDetail } from './display-settings-context';
+import type { SchemaDetail } from './display-settings-context';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -14,13 +14,13 @@ interface Option<T> {
   description?: string;
 }
 
-const themeOptions: Option<Theme>[] = [
+export const themeOptions: Option<Theme>[] = [
   { value: 'light', label: 'Светлая', icon: Sun },
   { value: 'dark', label: 'Тёмная', icon: Moon },
   { value: 'system', label: 'Системная', icon: SunMoon },
 ];
 
-const schemaDetailOptions: Option<SchemaDetail>[] = [
+export const schemaDetailOptions: Option<SchemaDetail>[] = [
   {
     value: 'full',
     label: 'Полные схемы',
@@ -121,7 +121,7 @@ export function SettingsDropdown<T extends string>({
             </button>
           ) : (
             <button
-              className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-lg bg-background border border-background-border text-text-primary transition-colors cursor-pointer outline-none"
+              className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-lg bg-glass backdrop-blur-md border border-glass-border text-text-primary transition-colors cursor-pointer outline-none"
               aria-label={ariaLabel}
             >
               <CurrentIcon className="w-4 h-4 shrink-0" />
@@ -135,8 +135,8 @@ export function SettingsDropdown<T extends string>({
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="z-50 min-w-[140px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-dropdown"
-            align={compact ? 'end' : 'start'}
+            className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
+            align="end"
             side={compact ? 'bottom' : 'top'}
             sideOffset={8}
           >
@@ -146,8 +146,8 @@ export function SettingsDropdown<T extends string>({
                 onClick={() => onChange(optValue)}
                 className={`flex items-start gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                   value === optValue
-                    ? 'bg-primary text-white'
-                    : 'text-text-primary hover:bg-background-tertiary'
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-text-primary hover:bg-glass-hover'
                 }`}
               >
                 <Icon className="w-4 h-4 mt-0.5 shrink-0" />
@@ -155,7 +155,7 @@ export function SettingsDropdown<T extends string>({
                   <span>{label}</span>
                   {description && (
                     <span
-                      className={`text-[12px] font-normal ${value === optValue ? 'text-white/70' : 'text-text-secondary'}`}
+                      className={`text-[12px] font-normal ${value === optValue ? 'text-primary/70' : 'text-text-secondary'}`}
                     >
                       {description}
                     </span>
@@ -166,58 +166,6 @@ export function SettingsDropdown<T extends string>({
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
-    </div>
-  );
-}
-
-export function MobileSettingsButtons() {
-  const { theme, selectTheme, mounted } = useTheme();
-  const { schemaDetail, setSchemaDetail } = useDisplaySettings();
-
-  if (!mounted) return null;
-
-  return (
-    <>
-      <SettingsDropdown
-        options={themeOptions}
-        value={theme}
-        onChange={selectTheme}
-        ariaLabel="Тема оформления"
-        compact
-      />
-      <SettingsDropdown
-        options={schemaDetailOptions}
-        value={schemaDetail}
-        onChange={setSchemaDetail}
-        ariaLabel="Детализация схемы"
-        compact
-      />
-    </>
-  );
-}
-
-export function SidebarFooter() {
-  const { theme, selectTheme, mounted } = useTheme();
-  const { schemaDetail, setSchemaDetail } = useDisplaySettings();
-
-  if (!mounted) {
-    return <div className="flex-shrink-0 h-[49px]" />;
-  }
-
-  return (
-    <div className="flex-shrink-0 px-2.5 pt-4 pb-2.5 flex items-center gap-2">
-      <SettingsDropdown
-        options={themeOptions}
-        value={theme}
-        onChange={selectTheme}
-        ariaLabel="Тема оформления"
-      />
-      <SettingsDropdown
-        options={schemaDetailOptions}
-        value={schemaDetail}
-        onChange={setSchemaDetail}
-        ariaLabel="Детализация схемы"
-      />
     </div>
   );
 }

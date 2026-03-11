@@ -141,7 +141,7 @@ export function ResponseSection({ endpoint }: ResponseSectionProps) {
               onClick={() => setActiveCode(code)}
               className={`px-3 py-1 rounded-md text-[13px] font-medium transition-colors duration-200 ${
                 isActive
-                  ? 'bg-background text-text-primary '
+                  ? 'bg-glass-hover text-text-primary '
                   : 'text-text-tertiary hover:text-text-primary cursor-pointer'
               }`}
               title={label}
@@ -156,7 +156,7 @@ export function ResponseSection({ endpoint }: ResponseSectionProps) {
         {/* Всегда показываем описание кода ответа */}
         {currentResponse.description && (
           <div className="pt-6 mb-2">
-            <div className="flex items-start gap-4 px-4 py-3 rounded-xl bg-background-tertiary border border-background-border">
+            <div className="flex items-start gap-4 px-4 py-3 rounded-xl bg-glass backdrop-blur-md border border-glass-border">
               <div
                 className={`shrink-0 w-2 h-2 mt-2 rounded-full ${isError ? 'bg-method-delete' : 'bg-method-post'}`}
               />

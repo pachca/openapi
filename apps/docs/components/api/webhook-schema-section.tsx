@@ -123,13 +123,13 @@ export function WebhookSchemaSection({
 
   return (
     <div
-      className={`not-prose ${hideHeader ? 'mt-0 mb-6' : 'my-6'} border border-background-border rounded-lg overflow-hidden overflow-visible`}
+      className={`not-prose ${hideHeader ? 'mt-0 mb-6' : 'my-6'} border border-glass-border rounded-xl overflow-hidden overflow-visible`}
     >
       {!hideHeader && (
         <div
           onClick={() => setIsOpen(!isOpen)}
-          className={` w-full flex items-center gap-2 px-3 py-2 bg-background-tertiary transition-colors text-left min-h-(--boxed-header-height) group/variant cursor-pointer select-none ${
-            isOpen ? 'rounded-t-lg' : 'rounded-lg'
+          className={` w-full flex items-center gap-2 px-3 py-2 bg-glass backdrop-blur-md transition-colors text-left min-h-(--boxed-header-height) group/variant cursor-pointer select-none ${
+            isOpen ? 'rounded-t-xl' : 'rounded-xl'
           }`}
         >
           <ChevronDown
@@ -144,7 +144,7 @@ export function WebhookSchemaSection({
       )}
 
       {(isOpen || hideHeader) && (
-        <div className={`px-4 py-0 ${!hideHeader ? 'border-t border-background-border' : ''}`}>
+        <div className={`px-4 py-0 ${!hideHeader ? 'border-t border-glass-border' : ''}`}>
           <SchemaTree schema={schema} parentPath={schemaName} />
         </div>
       )}

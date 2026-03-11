@@ -23,6 +23,8 @@ export interface SidebarPageItem {
   title: string;
   path: string;
   children?: SidebarPageItem[];
+  /** External link (opens in new tab) */
+  external?: boolean;
 }
 
 /** Header tabs (order matters for rendering) */
@@ -81,7 +83,10 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
   },
   {
     title: '',
-    items: [{ title: 'Обновления', path: '/guides/updates' }],
+    items: [
+      { title: 'Последние обновления', path: '/guides/updates' },
+      { title: 'Статус API', path: STATUS_URL, external: true },
+    ],
   },
 ];
 

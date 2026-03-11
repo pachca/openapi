@@ -32,7 +32,7 @@ export function TreeFolder({
     <div className="tree-folder">
       <div
         className={`flex items-center gap-2 py-1 rounded transition-colors ${
-          openable ? 'cursor-pointer hover:bg-background-secondary' : ''
+          openable ? 'cursor-pointer hover:bg-glass-hover' : ''
         }`}
         onClick={handleToggle}
         onKeyDown={(e) => {
@@ -55,9 +55,7 @@ export function TreeFolder({
         <Folder strokeWidth={2.5} className="w-3.5 h-3.5 shrink-0 text-text-secondary" />
         <span className="text-[13px] text-text-primary font-medium">{name}</span>
       </div>
-      {isOpen && children && (
-        <div className="ml-7 border-l border-background-border">{children}</div>
-      )}
+      {isOpen && children && <div className="ml-7 border-l border-glass-divider">{children}</div>}
     </div>
   );
 }
@@ -78,7 +76,7 @@ interface TreeProps {
 
 export function Tree({ children }: TreeProps) {
   return (
-    <div className="tree my-6 px-3 py-2 rounded-lg border border-background-border bg-background font-mono not-prose">
+    <div className="tree my-6 px-3 py-2 rounded-lg border border-glass-border bg-glass backdrop-blur-md font-mono not-prose">
       {children}
     </div>
   );

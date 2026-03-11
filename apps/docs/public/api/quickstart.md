@@ -3,32 +3,42 @@
 
 Это руководство поможет вам выполнить первый запрос к API Пачки — от получения токена до отправки сообщения.
 
-## Получите токен
+> Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#настройка-доступа)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman--bruno).
+
+
+## Первый запрос
+
+
+  ### Шаг 1. Получите токен
 
 Для работы с API вам нужен токен доступа. Есть два способа его получить:
 
-- **Персональный токен** — в интерфейсе Пачки: **«Автоматизации»** → **«API»** (доступно администраторам)
-- **Токен бота** — создайте бота в **«Автоматизации»** → **«Интеграции»** → **«Чат-боты и Вебхуки»**
+    - **Персональный токен** — в интерфейсе Пачки: **«Автоматизации»** → **«API»** (доступно администраторам)
+    - **Токен бота** — создайте бота в **«Автоматизации»** → **«Интеграции»** → **«Чат-боты и Вебхуки»**
 
-Подробнее о типах токенов и скоупах — в разделе [Авторизация](/api/authorization).
+    > **Внимание:** Токен показывается один раз при создании — сохраните его в надёжном месте. Не публикуйте токен в открытых репозиториях и не передавайте третьим лицам.
 
-## Сделайте первый запрос
 
-Получим список сотрудников — простейший GET-запрос для проверки, что токен работает:
+    Подробнее о типах токенов и скоупах — в разделе [Авторизация](/api/authorization).
 
-**Получение списка сотрудников**
+
+  ### Шаг 2. Проверьте токен
+
+Получим информацию о своем профиле — простейший запрос [Информация о профиле](GET /profile) без параметров:
+
+    **Получение профиля**
 
 ### cURL
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
+curl "https://api.pachca.com/api/shared/v1/profile" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ### JavaScript
 
 ```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9', {
+const response = await fetch('https://api.pachca.com/api/shared/v1/profile', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
@@ -44,19 +54,12 @@ console.log(data);
 ```python
 import requests
 
-params = {
-    'query': 'Олег',
-    'limit': 1,
-    'cursor': 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
-}
-
 headers = {
     'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
 }
 
 response = requests.get(
-    'https://api.pachca.com/api/shared/v1/users',
-    params=params,
+    'https://api.pachca.com/api/shared/v1/profile',
     headers=headers
 )
 
@@ -71,7 +74,7 @@ const https = require('https');
 const options = {
     hostname: 'api.pachca.com',
     port: 443,
-    path: '/api/shared/v1/users?query=Олег&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9',
+    path: '/api/shared/v1/profile',
     method: 'GET',
     headers: {
         'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
@@ -103,14 +106,7 @@ req.end();
 require 'net/http'
 require 'json'
 
-uri = URI('https://api.pachca.com/api/shared/v1/users')
-params = {
-  'query' => 'Олег',
-  'limit' => 1,
-  'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9',
-}
-uri.query = URI.encode_www_form(params)
-
+uri = URI('https://api.pachca.com/api/shared/v1/profile')
 request = Net::HTTP::Get.new(uri)
 request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
 
@@ -126,11 +122,10 @@ puts JSON.parse(response.body)
 ```php
 <?php
 
-$params = ['query' => 'Олег', 'limit' => 1, 'cursor' => 'eyJpZCI6MTAsImRpciI6ImFzYyJ9'];
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/users?' . http_build_query($params)',
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/profile',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_CUSTOMREQUEST => 'GET',
     CURLOPT_HTTPHEADER => [
@@ -146,37 +141,16 @@ echo $response;
 ```
 
 
-Токен передаётся в заголовке `Authorization: Bearer TOKEN`.
+    Все запросы отправляются на базовый URL `https://api.pachca.com/api/shared/v1`. Токен передаётся в заголовке `Authorization: Bearer TOKEN`. Ответ содержит данные в объекте `data`, а для списочных методов — ещё и блок `meta` с информацией о [пагинации](/api/pagination).
 
-## Разберите ответ
-
-API возвращает данные в формате JSON. Результат оборачивается в массив `data`:
-
-**Пример ответа**
-
-```json
-{
-  "data": [
-    {
-      "id": 163,
-      "first_name": "Иван",
-      "last_name": "Петров",
-      "role": "admin",
-      "suspended": false,
-      ...
-    }
-  ]
-}
-```
+    > Если вместо данных вы получили `401 Unauthorized` — проверьте, что токен скопирован без лишних пробелов и что у него есть нужный [скоуп](/api/authorization#скоупы).
 
 
-Для списочных методов в ответе также есть блок `meta` с информацией о пагинации — подробнее в разделе [Пагинация](/api/pagination).
+  ### Шаг 3. Отправьте сообщение
 
-## Отправьте сообщение
+Теперь отправим сообщение в беседу. Все параметры — в описании метода [Новое сообщение](POST /messages).
 
-Теперь попробуем отправить сообщение — первый write-запрос:
-
-**Отправка сообщения**
+    **Отправка сообщения**
 
 ### cURL
 
@@ -504,12 +478,14 @@ echo $response;
 ```
 
 
-Укажите `entity_type` и `entity_id` — куда отправить сообщение. Подробнее о типах адресатов — в разделе [Сущности](/guides/entities).
+    Замените `entity_id` на ID вашей беседы или канала — его можно узнать в URL чата в веб-версии Пачки или через метод [Список каналов и бесед](GET /chats).
+
 
 ## Следующие шаги
 
-- [Авторизация](/api/authorization) — типы токенов, скоупы, роли
-- [Запросы и ответы](/api/requests-responses) — формат запросов и ответов
+- [Авторизация](/api/authorization) — типы токенов, скоупы и разрешения
+- [Запросы и ответы](/api/requests-responses) — формат данных и инструменты тестирования
 - [Ошибки и лимиты](/api/errors) — коды ошибок и rate limits
+- [Пагинация](/api/pagination) — обход больших списков
 - [Боты](/guides/bots) — создание ботов и автоматизаций
-- [SDK](/api/sdk) — клиентские библиотеки для 5 языков
+- [SDK](/api/sdk) — типизированные клиентские библиотеки

@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PanelLeftClose, ChevronDown, ArrowUpRight } from 'lucide-react';
+import { PanelLeftClose, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { SidebarNav } from './sidebar-nav';
 import type { NavigationSection } from '@/lib/openapi/types';
-import { TABS, STATUS_URL, getActiveTab, type TabId } from '@/lib/tabs-config';
+import { TABS, getActiveTab, type TabId } from '@/lib/tabs-config';
 
 interface MobileSidebarProps {
   guideNavigation: NavigationSection[];
@@ -61,6 +61,10 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
 
   const handleTabSelect = (tabId: TabId) => {
     setSelectedTab(tabId);
+    const scrollContainer = document.getElementById('mobile-sidebar-scroll-container');
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    }
   };
 
   return (
@@ -68,8 +72,8 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
       {/* Overlay */}
       <div
         className={`
-          lg:hidden fixed inset-0 bg-black/20 z-[60] backdrop-blur-sm
-          transition-all duration-300 ease-in-out
+          lg:hidden fixed inset-0 bg-[oklch(0%_0_0/0.2)] z-[60] backdrop-blur-sm
+          transition-all duration-200 ease-in-out
           ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
         `}
         onClick={() => setIsOpen(false)}
@@ -78,8 +82,8 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
       {/* Full-height sidebar over header */}
       <div
         className={`
-          lg:hidden fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-background-secondary z-[70]
-          transition-transform duration-300 ease-in-out
+          lg:hidden fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-background-secondary/80 backdrop-blur-xl z-[70]
+          transition-transform duration-200 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
@@ -102,7 +106,7 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
           <div className="px-2.5 pb-3 shrink-0">
             <DropdownMenu.Root modal={false}>
               <DropdownMenu.Trigger asChild>
-                <button className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-lg bg-background border border-background-border text-text-primary transition-colors cursor-pointer outline-none">
+                <button className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-lg bg-glass backdrop-blur-md border border-glass-heavy-border text-text-primary transition-colors cursor-pointer outline-none">
                   <span className="text-[13px] font-medium flex-1 text-left">
                     {selectedTabConfig?.title || 'Руководство разработчика'}
                   </span>
@@ -111,7 +115,7 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="z-[80] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-dropdown"
+                  className="z-[80] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
                   style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}
                   align="start"
                   side="bottom"
@@ -124,25 +128,13 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
                       onClick={() => handleTabSelect(tab.id)}
                       className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
                         selectedTab === tab.id
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:bg-background-tertiary'
+                          ? 'bg-primary/15 text-primary'
+                          : 'text-text-primary hover:bg-glass-hover'
                       }`}
                     >
                       {tab.title}
                     </DropdownMenu.Item>
                   ))}
-                  <DropdownMenu.Separator className="h-px bg-background-border my-1.5" />
-                  <DropdownMenu.Item asChild>
-                    <a
-                      href={STATUS_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none text-text-secondary hover:text-text-primary hover:bg-background-tertiary transition-colors"
-                    >
-                      Статус
-                      <ArrowUpRight className="w-3.5 h-3.5 text-text-tertiary" />
-                    </a>
-                  </DropdownMenu.Item>
                 </DropdownMenu.Content>
               </DropdownMenu.Portal>
             </DropdownMenu.Root>

@@ -5,32 +5,28 @@ import { usePathname } from 'next/navigation';
 import { useRef } from 'react';
 import type { NavigationItem } from '@/lib/openapi/types';
 import { useNavigationLoading } from '@/hooks/use-navigation-loading';
-import { Loader2 } from 'lucide-react';
-
-interface SidebarItemProps {
-  item: NavigationItem;
-}
+import { Loader2, ArrowUpRight } from 'lucide-react';
 
 const METHOD_COLORS = {
   GET: {
     ghost: 'bg-method-get/10 text-method-get',
-    active: 'bg-white text-primary',
+    active: 'bg-primary/20 text-primary',
   },
   POST: {
     ghost: 'bg-method-post/10 text-method-post',
-    active: 'bg-white text-primary',
+    active: 'bg-primary/20 text-primary',
   },
   PUT: {
     ghost: 'bg-method-put/10 text-method-put',
-    active: 'bg-white text-primary',
+    active: 'bg-primary/20 text-primary',
   },
   DELETE: {
     ghost: 'bg-method-delete/10 text-method-delete',
-    active: 'bg-white text-primary',
+    active: 'bg-primary/20 text-primary',
   },
   PATCH: {
     ghost: 'bg-method-patch/10 text-method-patch',
-    active: 'bg-white text-primary',
+    active: 'bg-primary/20 text-primary',
   },
 };
 
@@ -53,6 +49,22 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
     onItemClick?.();
   };
 
+  if (item.external) {
+    return (
+      <li>
+        <a
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-lg font-medium text-text-secondary hover:bg-glass-hover hover:text-text-primary transition-colors duration-200"
+        >
+          <span className="truncate flex-1">{item.title}</span>
+          <ArrowUpRight className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
+        </a>
+      </li>
+    );
+  }
+
   return (
     <li>
       <Link
@@ -61,15 +73,15 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
         onClick={handleLinkClick}
         className={`flex items-center gap-2 px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-lg font-medium group transition-colors duration-200 ${
           isActive
-            ? 'bg-primary text-white'
-            : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary'
+            ? 'bg-primary/15 text-primary'
+            : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
         }`}
       >
         <span className="truncate flex-1">{item.title}</span>
         {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
         {!isLoading && hasNewBadge && (
           <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
-            <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-primary'}`} />
+            <div className={`w-2 h-2 rounded-full bg-primary`} />
           </div>
         )}
         {!isLoading && item.method && (

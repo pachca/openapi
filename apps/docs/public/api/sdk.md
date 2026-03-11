@@ -1,22 +1,17 @@
 
 # SDK
 
-SDK для API Пачки автоматически генерируются из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Они предоставляют типизированные клиенты с автокомплитом и актуальными моделями данных.
+SDK для API Пачки автоматически генерируются из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Они предоставляют типизированные клиенты с автокомплитом и актуальными моделями данных. Исходный код всех SDK доступен в [репозитории на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
 
-## Доступные SDK
+## TypeScript
 
-- [TypeScript](https://github.com/pachca/openapi/tree/main/sdk/typescript) — npm install @pachca/sdk
-- [Python](https://github.com/pachca/openapi/tree/main/sdk/python) — pip install pachca
-- [Go](https://github.com/pachca/openapi/tree/main/sdk/go) — go get github.com/pachca/openapi/sdk/go
-- [Kotlin](https://github.com/pachca/openapi/tree/main/sdk/kotlin) — Maven / Gradle
-- [Swift](https://github.com/pachca/openapi/tree/main/sdk/swift) — Swift Package Manager
+<PackageBadge name="@pachca/sdk" href="https://www.npmjs.com/package/@pachca/sdk" />
 
+Установите пакет из npm:
 
-## Примеры
-
-### TypeScript
-
-**TypeScript**
+```bash
+npm install @pachca/sdk
+```
 
 ```typescript
 import { Pachca } from "@pachca/sdk";
@@ -36,10 +31,15 @@ for await (const user of pachca.users.listAllUsers()) {
 }
 ```
 
+## Python
 
-### Python
+<PackageBadge name="pachca" href="https://pypi.org/project/pachca/" />
 
-**Python**
+Установите пакет из PyPI:
+
+```bash
+pip install pachca
+```
 
 ```python
 from pachca.pachca_client import Pachca
@@ -56,10 +56,15 @@ msg = client.messages.create_message(
 users = client.users.list_users()
 ```
 
+## Go
 
-### Go
+<PackageBadge name="github.com/pachca/openapi/sdk/go" href="https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated" />
 
-**Go**
+Добавьте модуль в проект:
+
+```bash
+go get github.com/pachca/openapi/sdk/go/generated
+```
 
 ```go
 package main
@@ -92,14 +97,22 @@ func main() {
         log.Fatal(err)
     }
     created := res.(*pachca.MessageOperationsCreateMessageCreated)
-    fmt.Printf("Сообщение: %d\\n", created.Data.ID)
+    fmt.Printf("Сообщение: %d\n", created.Data.ID)
 }
 ```
 
+## Kotlin
 
-### Kotlin
+<PackageBadge name="com.pachca:pachca-sdk" href="https://github.com/pachca/openapi/tree/main/sdk/kotlin" />
 
-**Kotlin**
+Требуется Kotlin 2.2+ и Java 11+. Добавьте зависимость в Gradle:
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.pachca:pachca-sdk:1.0.0")
+}
+```
 
 ```kotlin
 import com.pachca.PachcaClient
@@ -127,10 +140,18 @@ val message = pachca.messages.createMessage(MessageCreateRequest(
 val users = pachca.users.listUsers().body()
 ```
 
+## Swift
 
-### Swift
+<PackageBadge name="PachcaSDK" href="https://github.com/pachca/openapi/tree/main/sdk/swift" />
 
-**Swift**
+Требуется Swift 5.9+, macOS 13+ или iOS 16+. Добавьте пакет в `Package.swift`:
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+]
+```
 
 ```swift
 import PachcaSDK

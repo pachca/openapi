@@ -14,7 +14,7 @@ export function SectionHeader({ title, subtitle, children }: SectionHeaderProps)
         {subtitle && <span className="text-[13px] text-text-secondary mt-1">{subtitle}</span>}
       </div>
       {children && (
-        <div className="flex bg-background-tertiary rounded-lg p-0.5 border border-background-border h-fit">
+        <div className="flex bg-glass backdrop-blur-md rounded-lg p-0.5 border border-glass-border h-fit">
           {children}
         </div>
       )}

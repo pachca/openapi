@@ -40,7 +40,7 @@ export function EndpointHeader({
 
       {method && path && (
         <div className="mt-4 not-prose">
-          <div className="flex flex-wrap items-center gap-x-2 px-3 rounded-md text-[13px] font-medium text-text-primary border border-background-border bg-background min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 px-3 rounded-md text-[13px] font-medium text-text-primary border border-glass-border bg-glass backdrop-blur-md min-w-0">
             <div className="flex gap-2 items-center overflow-hidden flex-1 min-w-0 min-h-[var(--boxed-header-height)]">
               <MethodBadge
                 method={method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'}
@@ -70,7 +70,7 @@ export function EndpointHeader({
                 {requirements.plan && (
                   <Link
                     href="/api/authorization"
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--color-callout-warning-bg)] ![color:var(--color-callout-warning-text)] ![text-decoration:none] hover:opacity-80 transition-opacity"
+                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary/15 ![color:var(--color-primary)] ![text-decoration:none] hover:opacity-80 transition-opacity"
                   >
                     {planNames[requirements.plan] ?? requirements.plan}
                   </Link>

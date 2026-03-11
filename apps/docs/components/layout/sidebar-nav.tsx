@@ -100,11 +100,13 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
     >
       {navigation.map((section, sIdx) => (
         <div key={sIdx} className="navigation-section">
-          {/* Section header — always visible */}
-          {section.title && (
+          {/* Section header or divider */}
+          {section.title ? (
             <div className="px-2.5 pb-2 pt-1 text-[14px] font-medium text-text-primary">
               {section.title}
             </div>
+          ) : (
+            <div className="mx-2.5 mb-4 border-t border-glass-divider" />
           )}
 
           {/* Section items */}
@@ -149,7 +151,7 @@ function SidebarGroup({
   return (
     <Accordion.Item value={item.title} className="overflow-hidden">
       <Accordion.Header>
-        <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-lg text-text-secondary hover:bg-background-tertiary transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
+        <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-lg text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
           <span className="min-w-0 flex items-center gap-1">
             <span className="truncate">{item.title}</span>
             {item.originalTitle && (
@@ -165,7 +167,7 @@ function SidebarGroup({
 
       {/* Show active child when group is collapsed */}
       {!isOpen && activeChild && (
-        <div className="ml-3 pl-4 border-l border-background-border/50 mt-1 space-y-0.5">
+        <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
           <ul className="list-none space-y-0.5">
             <SidebarItem item={activeChild} onItemClick={onItemClick} />
           </ul>
@@ -173,7 +175,7 @@ function SidebarGroup({
       )}
 
       <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-        <div className="ml-3 pl-4 border-l border-background-border/50 mt-1 space-y-0.5">
+        <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
           <ul className="list-none space-y-0.5">
             {item.children!.map((child, cIdx) => (
               <SidebarItem key={cIdx} item={child} onItemClick={onItemClick} />

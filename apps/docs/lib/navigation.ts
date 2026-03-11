@@ -68,6 +68,12 @@ function generateGuideNavigation(): NavigationSection[] {
           href: page.path,
           children,
         });
+      } else if (page.external) {
+        items.push({
+          title: page.title,
+          href: page.path,
+          external: true,
+        });
       } else {
         const data = getGuideData(page.path.replace('/guides/', ''));
         const item: NavigationItem = {
@@ -125,6 +131,7 @@ async function generateApiNavigation(): Promise<NavigationSection[]> {
       title: generateTitle(endpoint),
       href: generateUrlFromOperation(endpoint),
       method: endpoint.method,
+      apiPath: endpoint.path,
     }));
 
     methodGroups.push({

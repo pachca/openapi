@@ -12,7 +12,7 @@
 - [Боты](/guides/bots) — Кнопки, формы и unfurl
 - [Формы](/guides/forms/overview) — Модальные окна с полями ввода
 - [Входящие вебхуки](/guides/incoming-webhooks) — Сообщения по URL без кода
-- [Исходящий вебхук](/guides/webhook) — События в реальном времени
+- [Исходящие вебхуки](/guides/webhook) — События в реальном времени
 - [n8n](/guides/n8n) — No-code автоматизации
 - [Albato](/guides/albato) — No-code интеграции
 

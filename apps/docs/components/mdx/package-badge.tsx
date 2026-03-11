@@ -12,7 +12,7 @@ export function PackageBadge({ name, href, version }: PackageBadgeProps) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group not-prose flex items-center gap-2 px-3 my-4 rounded-lg border border-background-border hover:bg-background-tertiary transition-all duration-200 no-underline! whitespace-nowrap"
+      className="group not-prose flex items-center gap-2 px-3 my-4 rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200 no-underline! whitespace-nowrap"
       style={{ height: 'var(--boxed-header-height)' }}
     >
       <Package className="h-3.5 w-3.5 text-text-primary shrink-0" strokeWidth={2} />

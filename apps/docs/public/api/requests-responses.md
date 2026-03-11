@@ -1,35 +1,201 @@
 
 # Запросы и ответы
 
-## Структура запроса метода API
+## Базовый URL
 
-При выполнении запроса, `access_token` необходимо поместить в заголовки (ключ `Authorization` с указанием типа `Bearer`), а в теле запроса указать все необходимые параметры метода. При этом не забудьте, что сервер ожидает перечисление параметров в формате `JSON`, кодировке `UTF-8` и по протоколу `HTTPS`.
+Все запросы к API отправляются по HTTPS:
 
-**Базовый URL**
-
-```http
+```text
 https://api.pachca.com/api/shared/v1
 ```
 
+## Заголовки
 
-**Пример запроса**
+| Заголовок | Значение | Когда нужен |
+|-----------|----------|-------------|
+| `Authorization` | `Bearer YOUR_ACCESS_TOKEN` | Всегда |
+| `Content-Type` | `application/json; charset=utf-8` | POST, PUT, PATCH |
 
-```http
-POST /users HTTP/1.1
-Authorization: Bearer YOUR_ACCESS_TOKEN
-Content-Type: application/json; charset=utf-8
-Host: api.pachca.com
-Connection: close
-User-Agent: Paw/3.1.10 (Macintosh; OS X/10.15.3) GCDHTTPRequest
-Content-Length: 219
+Подробнее о типах токенов и скоупах — в разделе [Авторизация](/api/authorization).
 
+## Тело запроса
+
+Параметры передаются в формате JSON, кодировке UTF-8. Для методов, работающих с сущностями, тело оборачивается в корневой ключ с именем сущности:
+
+```json
 {
+  "message": {
+    "entity_id": 12345,
+    "content": "Привет!"
+  }
+}
+```
+
+> Обёртка используется не во всех методах — точную структуру тела смотрите в описании каждого метода.
+
+
+### Пример запроса
+
+**Создание сотрудника**
+
+### cURL
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/users" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "user": {
+    "first_name": "Олег",
+    "last_name": "Петров",
+    "email": "olegp@example.com",
+    "phone_number": "+79001234567",
+    "nickname": "olegpetrov",
+    "department": "Продукт",
+    "title": "CIO",
+    "role": "user",
+    "suspended": false,
+    "list_tags": [
+      "Product",
+      "Design"
+    ],
+    "custom_properties": [
+      {
+        "id": 1678,
+        "value": "Санкт-Петербург"
+      }
+    ]
+  },
+  "skip_email_notify": true
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://api.pachca.com/api/shared/v1/users', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+      "user": {
+          "first_name": "Олег",
+          "last_name": "Петров",
+          "email": "olegp@example.com",
+          "phone_number": "+79001234567",
+          "nickname": "olegpetrov",
+          "department": "Продукт",
+          "title": "CIO",
+          "role": "user",
+          "suspended": false,
+          "list_tags": [
+              "Product",
+              "Design"
+          ],
+          "custom_properties": [
+              {
+                  "id": 1678,
+                  "value": "Санкт-Петербург"
+              }
+          ]
+      },
+      "skip_email_notify": true
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+### Python
+
+```python
+import requests
+
+data = {
+    'user': {
+        'first_name': 'Олег',
+        'last_name': 'Петров',
+        'email': 'olegp@example.com',
+        'phone_number': '+79001234567',
+        'nickname': 'olegpetrov',
+        'department': 'Продукт',
+        'title': 'CIO',
+        'role': 'user',
+        'suspended': False,
+        'list_tags': [
+            'Product',
+            'Design'
+        ],
+        'custom_properties': [
+            {
+                'id': 1678,
+                'value': 'Санкт-Петербург'
+            }
+        ]
+    },
+    'skip_email_notify': True
+}
+
+headers = {
+    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
+}
+
+response = requests.post(
+    'https://api.pachca.com/api/shared/v1/users',
+    headers=headers,
+    json=data
+)
+
+print(response.json())
+```
+
+### Node.js
+
+```javascript
+const https = require('https');
+
+const options = {
+    hostname: 'api.pachca.com',
+    port: 443,
+    path: '/api/shared/v1/users',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
+    }
+};
+
+const req = https.request(options, (res) => {
+    let data = '';
+
+    res.on('data', (chunk) => {
+        data += chunk;
+    });
+
+    res.on('end', () => {
+        console.log(JSON.parse(data));
+    });
+});
+
+req.write(JSON.stringify({
     "user": {
         "first_name": "Олег",
         "last_name": "Петров",
         "email": "olegp@example.com",
+        "phone_number": "+79001234567",
+        "nickname": "olegpetrov",
         "department": "Продукт",
-        "list_tags": ["Product", "Design"],
+        "title": "CIO",
+        "role": "user",
+        "suspended": false,
+        "list_tags": [
+            "Product",
+            "Design"
+        ],
         "custom_properties": [
             {
                 "id": 1678,
@@ -38,61 +204,183 @@ Content-Length: 219
         ]
     },
     "skip_email_notify": true
-}
+}));
+req.on('error', (error) => {
+    console.error(error);
+});
+
+req.end();
 ```
 
+### Ruby
 
-## Обработка ответа метода API
+```ruby
+require 'net/http'
+require 'json'
 
-Мы используем обычные коды ответов HTTP для обозначения результата выполнения запроса.
+uri = URI('https://api.pachca.com/api/shared/v1/users')
+request = Net::HTTP::Post.new(uri)
+request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
+request['Content-Type'] = 'application/json'
 
-Ответ от сервера приходит в формате `JSON` и кодировке `UTF-8`.
+request.body = {
+  'user' => {
+    'first_name' => 'Олег',
+    'last_name' => 'Петров',
+    'email' => 'olegp@example.com',
+    'phone_number' => '+79001234567',
+    'nickname' => 'olegpetrov',
+    'department' => 'Продукт',
+    'title' => 'CIO',
+    'role' => 'user',
+    'suspended' => false,
+    'list_tags' => [
+      'Product',
+      'Design'
+    ],
+    'custom_properties' => [
+      {
+        'id' => 1678,
+        'value' => 'Санкт-Петербург'
+      }
+    ]
+  },
+  'skip_email_notify' => true
+}.to_json
 
-При успешном ответе возвращаемый сервером результат будет представлен в теле ответа массивом `data`.
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+  http.request(request)
+end
 
-При ошибке выполнения запроса вы можете получить в теле ответа массив `errors` (подробнее об ошибках выполнения запросов вы можете прочитать в [следующем разделе](/api/errors) документации).
+puts JSON.parse(response.body)
+```
 
-**Пример ответа**
+### PHP
 
-```http
-HTTP/1.1 201 Created
-Server: nginx/1.14.2
-Date: Wed, 22 Apr 2020 12:32:29 GMT
-Content-Type: application/json; charset=utf-8
-Transfer-Encoding: chunked
-Connection: close
-ETag: W/"4d63aae1430a3bbd35e95e3db6b364df"
-Cache-Control: max-age=0, private, must-revalidate
-X-Request-Id: 12f8a05c-c5cf-4a79-8d2f-f82cc477c410
-X-Runtime: 0.117503
-Vary: Origin
-X-Rack-CORS: miss; no-origin
+```php
+<?php
 
-{
-    "data": {
-        "id": 12,
-        "first_name": "Олег",
-        "last_name": "Петров",
-        "nickname": "",
-        "email": "olegp@example.com",
-        "phone_number": "",
-        "department": "Продукт",
-        "role": "admin",
-        "suspended": false,
-        "invite_status": "confirmed",
-        "list_tags": ["Product", "Design"],
-        "custom_properties": [
-            {
-                "id": 1678,
-                "name": "Город",
-                "data_type": "string",
-                "value": "Санкт-Петербург"
-            }
+$curl = curl_init();
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/users',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer YOUR_ACCESS_TOKEN',
+        'Content-Type: application/json',
+    ],
+    CURLOPT_POSTFIELDS => json_encode([
+    'user' => [
+        'first_name' => 'Олег',
+        'last_name' => 'Петров',
+        'email' => 'olegp@example.com',
+        'phone_number' => '+79001234567',
+        'nickname' => 'olegpetrov',
+        'department' => 'Продукт',
+        'title' => 'CIO',
+        'role' => 'user',
+        'suspended' => false,
+        'list_tags' => [
+            'Product',
+            'Design'
+        ],
+        'custom_properties' => [
+            [
+                'id' => 1678,
+                'value' => 'Санкт-Петербург'
+            ]
         ]
-    }
+    ],
+    'skip_email_notify' => true
+]),
+]);
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+echo $response;
+?>
+```
+
+
+## Формат ответа
+
+Ответы возвращаются в формате JSON, кодировке UTF-8.
+
+### Одиночный объект
+
+Успешный ответ содержит данные в объекте `data`:
+
+```json
+{
+  "data": {
+    "id": 12,
+    "first_name": "Олег",
+    "last_name": "Петров",
+    "email": "olegp@example.com"
+  }
 }
 ```
 
+### Список с пагинацией
+
+Списочные методы возвращают массив `data` и блок `meta` с курсором для следующей страницы:
+
+```json
+{
+  "data": [
+    { "id": 1, "name": "Общий" },
+    { "id": 2, "name": "Проект" }
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ"
+    }
+  }
+}
+```
+
+Подробнее — в разделе [Пагинация](/api/pagination).
+
+### Пустой ответ
+
+Некоторые методы (например, удаление) возвращают `204 No Content` без тела ответа.
+
+### Ошибка
+
+При ошибке возвращается одна из двух структур в зависимости от типа ошибки:
+
+```json title="Ошибка валидации (422)"
+{
+  "errors": [
+    {
+      "key": "invalid",
+      "message": "Не может быть пустым",
+      "value": "first_name"
+    }
+  ]
+}
+```
+
+```json title="Ошибка авторизации (401)"
+{
+  "error": "unauthenticated",
+  "error_description": "Требуется авторизация"
+}
+```
+
+Подробнее — в разделе [Ошибки и лимиты](/api/errors).
+
+## Соглашения
+
+| Соглашение | Пример |
+|------------|--------|
+| Имена полей — `snake_case` | `first_name`, `entity_id`, `created_at` |
+| Даты и время — ISO 8601 | `2024-01-15T10:30:00.000+03:00` |
+| Идентификаторы — целые числа | `"id": 12345` |
+| Пустые значения — `null` | `"nickname": null` |
+| Логические поля — `boolean` | `"suspended": false` |
 
 ## Тестирование API
 
@@ -113,12 +401,9 @@ X-Rack-CORS: miss; no-origin
 - **Postman** *File → Import*
 - **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
 
-**Коллекция Postman/Bruno**
-
-```text
+```text title="Коллекция Postman/Bruno"
 https://dev.pachca.com/pachca.postman_collection.json
 ```
-
 
 - [Скачать коллекцию](/pachca.postman_collection.json) — Файл в формате Postman Collection v2.1, совместим с Postman и Bruno.
 

@@ -517,7 +517,7 @@ export function ImageCard({ src, alt, caption, hint, maxWidth }: ImageCardProps)
   return (
     <>
       <div className="my-8 mx-auto" style={maxWidth ? { maxWidth: `${maxWidth}px` } : undefined}>
-        <div className="rounded-xl border border-background-border bg-background-tertiary overflow-hidden">
+        <div className="rounded-xl border border-glass-border bg-glass backdrop-blur-md overflow-hidden">
           {hint && <p className="text-sm text-text-secondary text-center px-4 pt-3 mb-0">{hint}</p>}
           <div className="p-3">
             <button

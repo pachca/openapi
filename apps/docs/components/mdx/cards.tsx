@@ -164,7 +164,7 @@ export function Card({ title, icon, href, download, children }: CardProps) {
 
   if (href) {
     const className =
-      'group relative flex flex-col gap-2.5 px-4 py-3 rounded-lg border border-background-border hover:bg-background-tertiary transition-all duration-200 no-underline!';
+      'group relative flex flex-col gap-2.5 px-4 py-3 rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200 no-underline!';
     const cornerIcon = download ? (
       <ArrowDownToLine className="absolute top-3 right-3 h-4 w-4 text-text-tertiary transition-transform duration-200 group-hover:translate-y-0.5" />
     ) : (
@@ -202,7 +202,7 @@ export function Card({ title, icon, href, download, children }: CardProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2.5 px-4 py-3 rounded-lg border border-background-border">
+    <div className="flex flex-col gap-2.5 px-4 py-3 rounded-xl border border-glass-border bg-glass backdrop-blur-md">
       {content}
     </div>
   );

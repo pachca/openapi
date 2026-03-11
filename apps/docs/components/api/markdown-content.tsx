@@ -153,10 +153,10 @@ const components = {
     </div>
   ),
   thead: ({ children }: { children: React.ReactNode }) => (
-    <thead className="border-b border-background-border">{children}</thead>
+    <thead className="border-b border-glass-border">{children}</thead>
   ),
   tbody: ({ children }: { children: React.ReactNode }) => (
-    <tbody className="divide-y divide-background-border/40">{children}</tbody>
+    <tbody className="divide-y divide-glass-divider">{children}</tbody>
   ),
   tr: ({ children }: { children: React.ReactNode }) => <tr>{children}</tr>,
   th: ({ children }: { children: React.ReactNode }) => (
@@ -169,7 +169,7 @@ const components = {
   ),
 
   // Other
-  hr: () => <hr className="my-8 border-background-border" />,
+  hr: () => <hr className="my-8 border-glass-border" />,
   em: ({ children }: { children: React.ReactNode }) => (
     <em className="text-text-secondary not-italic">{children}</em>
   ),

@@ -23,33 +23,31 @@ export function MobileTableOfContents() {
     setHasToc(!!document.querySelector('[data-has-toc]'));
   }, [pathname]);
 
-  // Auto-scroll panel to keep all active items visible
+  // Auto-scroll panel to keep all active items visible (also on open)
   useEffect(() => {
-    if (!contentRef.current) return;
-    const activeItems = toc.filter((item) => activeIds.has(item.id));
-    if (activeItems.length === 0) return;
-    const firstLink = contentRef.current.querySelector(
-      `[data-toc-id="${activeItems[0].id}"]`
-    ) as HTMLElement;
-    const lastLink = contentRef.current.querySelector(
-      `[data-toc-id="${activeItems[activeItems.length - 1].id}"]`
-    ) as HTMLElement;
-    if (!firstLink || !lastLink) return;
-    const panelRect = contentRef.current.getBoundingClientRect();
-    const firstRect = firstLink.getBoundingClientRect();
-    const lastRect = lastLink.getBoundingClientRect();
-    if (firstRect.top < panelRect.top) {
-      contentRef.current.scrollTo({
-        top: firstLink.offsetTop - 8,
-        behavior: 'smooth',
-      });
-    } else if (lastRect.bottom > panelRect.bottom) {
-      contentRef.current.scrollTo({
-        top: lastLink.offsetTop + lastLink.offsetHeight - contentRef.current.clientHeight + 8,
-        behavior: 'smooth',
-      });
-    }
-  }, [activeIds, toc]);
+    if (!open) return;
+    // Wait for Radix Portal to render content
+    const raf = requestAnimationFrame(() => {
+      const el = contentRef.current;
+      if (!el) return;
+      const activeItems = toc.filter((item) => activeIds.has(item.id));
+      if (activeItems.length === 0) return;
+      const firstLink = el.querySelector(`[data-toc-id="${activeItems[0].id}"]`) as HTMLElement;
+      const lastLink = el.querySelector(
+        `[data-toc-id="${activeItems[activeItems.length - 1].id}"]`
+      ) as HTMLElement;
+      if (!firstLink || !lastLink) return;
+      const panelRect = el.getBoundingClientRect();
+      const firstRect = firstLink.getBoundingClientRect();
+      const lastRect = lastLink.getBoundingClientRect();
+      if (firstRect.top < panelRect.top) {
+        el.scrollTop = firstLink.offsetTop - 8;
+      } else if (lastRect.bottom > panelRect.bottom) {
+        el.scrollTop = lastLink.offsetTop + lastLink.offsetHeight - el.clientHeight + 8;
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [open, activeIds, toc]);
 
   const handleItemClick = useCallback((e: Event, id: string) => {
     e.preventDefault();
@@ -57,7 +55,7 @@ export function MobileTableOfContents() {
     if (element) {
       const targetScrollTop = element.getBoundingClientRect().top + window.scrollY - 80;
       gsap.to(window, {
-        duration: 0.4,
+        duration: 0.2,
         scrollTo: { y: targetScrollTop },
         ease: 'power2.out',
       });
@@ -76,7 +74,7 @@ export function MobileTableOfContents() {
       <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
         <DropdownMenu.Trigger asChild>
           <button
-            className="p-2 rounded-lg flex items-center justify-center bg-background border border-background-border shadow-lg cursor-pointer transition-colors outline-none"
+            className="p-2 rounded-lg flex items-center justify-center bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border cursor-pointer transition-colors outline-none"
             aria-label="Table of contents"
           >
             <List className="w-5 h-5 text-text-primary" />
@@ -85,7 +83,7 @@ export function MobileTableOfContents() {
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             ref={contentRef}
-            className="w-72 dropdown-panel animate-dropdown bg-background border border-background-border rounded-xl shadow-lg py-2"
+            className="z-40 w-72 dropdown-panel animate-dropdown bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl shadow-lg p-1.5 space-y-0.5"
             align="end"
             side="bottom"
             sideOffset={8}
@@ -97,8 +95,8 @@ export function MobileTableOfContents() {
                 data-toc-id={item.id}
                 onSelect={(e) => handleItemClick(e, item.id)}
                 className={`
-                  block py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors
-                  ${item.level === 3 ? 'pl-6' : 'pl-4'}
+                  block py-1.5 pr-2.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors
+                  ${item.level === 3 ? 'pl-5' : 'pl-2.5'}
                   ${
                     activeIds.has(item.id)
                       ? 'text-text-primary'

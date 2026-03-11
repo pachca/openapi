@@ -77,7 +77,7 @@ function PrevButton({ item }: { item: NavigationItem }) {
     <Link
       href={item.href}
       onClick={handleClick}
-      className="flex flex-col gap-1 p-4 rounded-lg border border-background-border hover:bg-background-tertiary transition-all duration-200 group"
+      className="flex flex-col gap-1 p-4 rounded-lg border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover transition-all duration-200 group"
     >
       <div className="flex items-center gap-1 text-text-tertiary transition-colors duration-200">
         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <ChevronLeft size={16} />}
@@ -97,7 +97,7 @@ function NextButton({ item }: { item: NavigationItem }) {
     <Link
       href={item.href}
       onClick={handleClick}
-      className="flex flex-col items-end gap-1 p-4 rounded-lg border border-background-border hover:bg-background-tertiary transition-all duration-200 group text-right"
+      className="flex flex-col items-end gap-1 p-4 rounded-lg border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover transition-all duration-200 group text-right"
     >
       <div className="flex items-center gap-1 text-text-tertiary transition-colors duration-200">
         <span className="text-[13px]">Вперед</span>

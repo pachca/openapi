@@ -2,12 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ArrowUpRight } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { LogoLink } from './pachka-logo';
-import { TABS, STATUS_URL, getActiveTab } from '@/lib/tabs-config';
-import { Moon, Sun, SunMoon, BookOpenText, BookText, BookMinus } from 'lucide-react';
-import { useTheme, SettingsDropdown } from './sidebar-footer';
-import { useDisplaySettings, type SchemaDetail } from './display-settings-context';
+import { TABS, getActiveTab } from '@/lib/tabs-config';
+import { useTheme, SettingsDropdown, themeOptions, schemaDetailOptions } from './settings-controls';
+import { useDisplaySettings } from './display-settings-context';
 import { SearchButton } from './search-button';
 
 export function Header() {
@@ -16,7 +15,7 @@ export function Header() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 bg-background border-b border-background-border z-50 flex items-center px-3"
+      className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-b border-background-border z-50 flex items-center px-3"
       style={{ height: 'var(--mobile-header-height)' }}
     >
       {/* Hamburger — mobile only, left side */}
@@ -32,32 +31,25 @@ export function Header() {
       <LogoLink />
 
       {/* Tabs — desktop only, centered */}
-      <nav className="hidden lg:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+      <nav className="hidden lg:flex items-end gap-1 absolute left-1/2 -translate-x-1/2 h-full">
         {TABS.map((tab) => {
           const href = tab.id === 'guide' ? '/guides/ai-agents' : '/api/quickstart';
+          const isActive = activeTab === tab.id;
           return (
             <Link
               key={tab.id}
               href={href}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[14px] leading-[1.4] font-medium rounded-lg transition-colors duration-200 ${
-                activeTab === tab.id
-                  ? 'text-text-primary bg-background-tertiary'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-background-tertiary'
+              className={`relative flex items-center h-full px-3 text-[13px] leading-[1.4] font-medium transition-colors duration-200 ${
+                isActive ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               {tab.title}
+              {isActive && (
+                <span className="absolute -bottom-px left-3 right-3 h-px bg-primary z-10" />
+              )}
             </Link>
           );
         })}
-        <a
-          href={STATUS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[14px] leading-[1.4] font-medium rounded-lg text-text-secondary hover:text-text-primary hover:bg-background-tertiary transition-colors duration-200"
-        >
-          Статус
-          <ArrowUpRight className="w-4 h-4 text-text-tertiary" />
-        </a>
       </nav>
 
       <div className="flex-1" />
@@ -67,35 +59,6 @@ export function Header() {
     </header>
   );
 }
-
-type Theme = 'light' | 'dark' | 'system';
-
-const themeOptions = [
-  { value: 'light' as Theme, label: 'Светлая', icon: Sun },
-  { value: 'dark' as Theme, label: 'Тёмная', icon: Moon },
-  { value: 'system' as Theme, label: 'Системная', icon: SunMoon },
-];
-
-const schemaDetailOptions = [
-  {
-    value: 'full' as SchemaDetail,
-    label: 'Полные схемы',
-    icon: BookOpenText,
-    description: 'Описания параметров и примеры',
-  },
-  {
-    value: 'compact' as SchemaDetail,
-    label: 'Без примеров',
-    icon: BookText,
-    description: 'Только описания параметров',
-  },
-  {
-    value: 'minimal' as SchemaDetail,
-    label: 'Минимальные',
-    icon: BookMinus,
-    description: 'Без описаний и примеров',
-  },
-];
 
 function RightSideButtons() {
   const { theme, selectTheme, mounted } = useTheme();

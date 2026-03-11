@@ -1,0 +1,28 @@
+openapi: "3.0.3"
+info:
+  title: Test API — Reserved Keywords
+  version: "1.0.0"
+servers:
+  - url: https://api.example.com/api/v1
+paths: {}
+components:
+  schemas:
+    Entity:
+      type: object
+      required: [class, type, import]
+      properties:
+        class:
+          type: string
+          description: Entity classification
+        type:
+          type: string
+          description: Entity type
+        import:
+          type: boolean
+          description: Whether entity was imported
+        return:
+          type: string
+          description: Return address
+        val:
+          type: integer
+          description: Numeric value

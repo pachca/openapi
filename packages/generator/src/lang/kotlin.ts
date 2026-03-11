@@ -21,9 +21,9 @@ import {
 
 const KOTLIN_KEYWORDS = new Set([
   'as', 'break', 'class', 'continue', 'do', 'else', 'false', 'for', 'fun',
-  'if', 'in', 'interface', 'is', 'null', 'object', 'package', 'return',
-  'super', 'this', 'throw', 'true', 'try', 'typealias', 'typeof', 'val',
-  'var', 'when', 'while',
+  'if', 'import', 'in', 'interface', 'is', 'null', 'object', 'package',
+  'return', 'super', 'this', 'throw', 'true', 'try', 'typealias', 'typeof',
+  'val', 'var', 'when', 'while',
 ]);
 
 // ── Helpers ──────────────────────────────────────────────────────────

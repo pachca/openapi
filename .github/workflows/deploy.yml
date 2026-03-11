@@ -41,8 +41,8 @@ jobs:
       - name: Prepare SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
           printf "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
 
       - name: Deploy site via SSH
@@ -52,7 +52,7 @@ jobs:
           REG_USER: ${{ secrets.GITLAB_REGISTRY_USER }}
           REG_PASS: ${{ secrets.GITLAB_REGISTRY_PASSWORD }}
         run: |
-          ssh "$DEPLOY_USER@$DEPLOY_HOST" "
+          ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes "$DEPLOY_USER@$DEPLOY_HOST" "
             set -e
             cd /var/www/docs
             docker login -u '$REG_USER' -p '$REG_PASS' registry.primaverahq.com

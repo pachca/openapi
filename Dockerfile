@@ -5,6 +5,8 @@ COPY bun.lock package.json turbo.json ./
 COPY apps/docs/package.json apps/docs/package.json
 COPY packages/spec/package.json packages/spec/package.json
 COPY packages/cli/package.json packages/cli/package.json
+COPY packages/openapi-parser/package.json packages/openapi-parser/package.json
+COPY packages/generator/package.json packages/generator/package.json
 
 RUN bun install
 

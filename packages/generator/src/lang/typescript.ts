@@ -713,8 +713,22 @@ function emitResponseSwitch(
   lines.push('    }');
 }
 
-function generateUtils(): string {
-  return [
+function collectRecordKeys(ir: IR): Set<string> {
+  const keys = new Set<string>();
+  for (const m of ir.models) {
+    for (const f of m.fields) {
+      if (f.type.kind === 'record') {
+        keys.add(f.name);
+        keys.add(snakeToCamel(f.name));
+      }
+    }
+  }
+  return keys;
+}
+
+function generateUtils(ir: IR): string {
+  const recordKeys = collectRecordKeys(ir);
+  const lines: string[] = [
     'function snakeToCamel(str: string): string {',
     '  const camel = str.replace(/[-_]([a-zA-Z])/g, (_, c) => c.toUpperCase());',
     '  return camel.charAt(0).toLowerCase() + camel.slice(1);',
@@ -727,27 +741,87 @@ function generateUtils(): string {
     '    .toLowerCase();',
     '}',
     '',
-    'export function deserialize(obj: unknown): unknown {',
-    '  if (Array.isArray(obj)) return obj.map(deserialize);',
-    '  if (obj !== null && typeof obj === "object") {',
-    '    return Object.fromEntries(',
-    '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),',
-    '    );',
-    '  }',
-    '  return obj;',
-    '}',
-    '',
-    'export function serialize(obj: unknown): unknown {',
-    '  if (Array.isArray(obj)) return obj.map(serialize);',
-    '  if (obj !== null && typeof obj === "object") {',
-    '    return Object.fromEntries(',
-    '      Object.entries(obj)',
-    '        .filter(([, v]) => v !== undefined)',
-    '        .map(([k, v]) => [camelToSnake(k), serialize(v)]),',
-    '    );',
-    '  }',
-    '  return obj;',
-    '}',
+  ];
+  if (recordKeys.size > 0) {
+    const keyList = [...recordKeys].map((k) => JSON.stringify(k)).join(', ');
+    lines.push(`const RECORD_KEYS = new Set([${keyList}]);`);
+    lines.push('');
+    lines.push('function deserializeRecord(obj: unknown): unknown {');
+    lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
+    lines.push('    return Object.fromEntries(');
+    lines.push('      Object.entries(obj).map(([k, v]) => [k, deserialize(v)]),');
+    lines.push('    );');
+    lines.push('  }');
+    lines.push('  return deserialize(obj);');
+    lines.push('}');
+    lines.push('');
+    lines.push('function serializeRecord(obj: unknown): unknown {');
+    lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
+    lines.push('    return Object.fromEntries(');
+    lines.push('      Object.entries(obj)');
+    lines.push('        .filter(([, v]) => v !== undefined)');
+    lines.push('        .map(([k, v]) => [k, serialize(v)]),');
+    lines.push('    );');
+    lines.push('  }');
+    lines.push('  return serialize(obj);');
+    lines.push('}');
+    lines.push('');
+  }
+  if (recordKeys.size > 0) {
+    lines.push(
+      'export function deserialize(obj: unknown): unknown {',
+      '  if (Array.isArray(obj)) return obj.map(deserialize);',
+      '  if (obj !== null && typeof obj === "object") {',
+      '    return Object.fromEntries(',
+      '      Object.entries(obj).map(([k, v]) => {',
+      '        const ck = snakeToCamel(k);',
+      '        return [ck, RECORD_KEYS.has(ck) ? deserializeRecord(v) : deserialize(v)];',
+      '      }),',
+      '    );',
+      '  }',
+      '  return obj;',
+      '}',
+      '',
+      'export function serialize(obj: unknown): unknown {',
+      '  if (Array.isArray(obj)) return obj.map(serialize);',
+      '  if (obj !== null && typeof obj === "object") {',
+      '    return Object.fromEntries(',
+      '      Object.entries(obj)',
+      '        .filter(([, v]) => v !== undefined)',
+      '        .map(([k, v]) => {',
+      '          return [camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecord(v) : serialize(v)];',
+      '        }),',
+      '    );',
+      '  }',
+      '  return obj;',
+      '}',
+    );
+  } else {
+    lines.push(
+      'export function deserialize(obj: unknown): unknown {',
+      '  if (Array.isArray(obj)) return obj.map(deserialize);',
+      '  if (obj !== null && typeof obj === "object") {',
+      '    return Object.fromEntries(',
+      '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),',
+      '    );',
+      '  }',
+      '  return obj;',
+      '}',
+      '',
+      'export function serialize(obj: unknown): unknown {',
+      '  if (Array.isArray(obj)) return obj.map(serialize);',
+      '  if (obj !== null && typeof obj === "object") {',
+      '    return Object.fromEntries(',
+      '      Object.entries(obj)',
+      '        .filter(([, v]) => v !== undefined)',
+      '        .map(([k, v]) => [camelToSnake(k), serialize(v)]),',
+      '    );',
+      '  }',
+      '  return obj;',
+      '}',
+    );
+  }
+  return [...lines,
     '',
     'const MAX_RETRIES = 3;',
     '',
@@ -775,7 +849,7 @@ export class TypeScriptGenerator implements LanguageGenerator {
     files.push({ path: 'types.ts', content: generateTypes(ir) });
     const client = generateClient(ir);
     files.push({ path: 'client.ts', content: client.content });
-    if (client.needsUtils) files.push({ path: 'utils.ts', content: generateUtils() });
+    if (client.needsUtils) files.push({ path: 'utils.ts', content: generateUtils(ir) });
     return files;
   }
 }

@@ -66,9 +66,6 @@ export function Mermaid({ chart, title }: MermaidProps) {
               warningBg: '#211208', // opaque approx of callout-warning-bg
               warningBorder: '#331f10', // opaque approx of callout-warning-border
               warningText: '#e89960', // oklch(75% 0.12 55)
-              dangerBg: '#201210', // opaque approx of callout-danger-bg
-              dangerBorder: '#351c19', // opaque approx of callout-danger-border
-              dangerText: '#db665a', // oklch(65% 0.15 28)
               containerBg: '#15110e', // page bg + 3% white glass overlay
             }
           : {
@@ -85,9 +82,6 @@ export function Mermaid({ chart, title }: MermaidProps) {
               warningBg: '#fff5ec', // oklch(98% 0.02 55)
               warningBorder: '#fbdecc', // oklch(92% 0.04 55)
               warningText: '#ad5600', // oklch(55% 0.14 55)
-              dangerBg: '#fff3f1', // oklch(97.5% 0.015 28)
-              dangerBorder: '#f8d5cf', // oklch(90% 0.04 28)
-              dangerText: '#c13d34', // oklch(55% 0.17 28)
               containerBg: '#f5f3ee', // page bg + 3% black glass overlay
             };
 
@@ -247,12 +241,12 @@ export function Mermaid({ chart, title }: MermaidProps) {
               element.setAttribute('stroke-dasharray', 'none');
             });
 
-            // Применяем красный цвет к заметкам с временными ограничениями (3 секунды)
+            // Применяем цвет предупреждения к заметкам с временными ограничениями (3 секунды)
             const allTextElements = svgElement.querySelectorAll('text');
             allTextElements.forEach((textElement) => {
               const textContent = textElement.textContent || '';
 
-              // Обрабатываем заметки с "секунд" (красный цвет)
+              // Обрабатываем заметки с "секунд" (цвет предупреждения)
               if (textContent.includes('секунд')) {
                 // Находим родительскую группу
                 let noteGroup = textElement.parentElement;
@@ -262,17 +256,17 @@ export function Mermaid({ chart, title }: MermaidProps) {
                   if (rect) {
                     // Нашли группу с rect - это наша заметка
                     const rectElement = rect as SVGRectElement;
-                    rectElement.setAttribute('fill', colors.dangerBg);
-                    rectElement.setAttribute('stroke', colors.dangerBorder);
-                    rectElement.style.fill = colors.dangerBg;
-                    rectElement.style.stroke = colors.dangerBorder;
+                    rectElement.setAttribute('fill', colors.warningBg);
+                    rectElement.setAttribute('stroke', colors.warningBorder);
+                    rectElement.style.fill = colors.warningBg;
+                    rectElement.style.stroke = colors.warningBorder;
 
-                    // Применяем красный цвет ко всем текстовым элементам в этой группе
+                    // Применяем цвет предупреждения ко всем текстовым элементам в этой группе
                     const textElements = noteGroup.querySelectorAll('text, tspan');
                     textElements.forEach((text) => {
                       const textEl = text as SVGElement;
-                      textEl.setAttribute('fill', colors.dangerText);
-                      textEl.style.fill = colors.dangerText;
+                      textEl.setAttribute('fill', colors.warningText);
+                      textEl.style.fill = colors.warningText;
                     });
                     break;
                   }
@@ -524,8 +518,8 @@ export function Mermaid({ chart, title }: MermaidProps) {
 
   if (error) {
     return (
-      <div className="my-6 rounded-lg border border-callout-danger-border bg-callout-danger-bg p-4">
-        <p className="text-sm text-callout-danger-text">
+      <div className="my-6 rounded-xl border border-callout-warning-border bg-callout-warning-bg p-4">
+        <p className="text-sm text-callout-warning-text">
           <strong>Ошибка отображения диаграммы:</strong> {error}
         </p>
       </div>

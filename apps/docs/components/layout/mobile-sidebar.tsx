@@ -95,7 +95,7 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
           >
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full flex items-center p-2 rounded-lg transition-colors cursor-pointer text-text-primary"
+              className="w-full flex items-center p-2 rounded-md transition-colors cursor-pointer text-text-primary"
               aria-label="Закрыть меню"
             >
               <PanelLeftClose className="w-5 h-5" />
@@ -106,7 +106,7 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
           <div className="px-2.5 pb-3 shrink-0">
             <DropdownMenu.Root modal={false}>
               <DropdownMenu.Trigger asChild>
-                <button className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-lg bg-glass backdrop-blur-md border border-glass-heavy-border text-text-primary transition-colors cursor-pointer outline-none">
+                <button className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-md bg-glass backdrop-blur-md border border-glass-heavy-border text-text-primary transition-colors cursor-pointer outline-none">
                   <span className="text-[13px] font-medium flex-1 text-left">
                     {selectedTabConfig?.title || 'Руководство разработчика'}
                   </span>

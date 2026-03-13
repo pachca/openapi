@@ -56,10 +56,15 @@ interface HastNode {
 function rehypeCodeMeta() {
   function visit(node: HastNode) {
     if (node.tagName === 'code' && node.data?.meta) {
-      const match = String(node.data.meta).match(/title="([^"]+)"/);
-      if (match) {
+      const meta = String(node.data.meta);
+      const titleMatch = meta.match(/title="([^"]+)"/);
+      if (titleMatch) {
         node.properties = node.properties || {};
-        node.properties.title = match[1];
+        node.properties.title = titleMatch[1];
+      }
+      if (meta.includes('noCopy')) {
+        node.properties = node.properties || {};
+        node.properties['data-no-copy'] = 'true';
       }
     }
     if (node.children) {
@@ -85,20 +90,30 @@ const components = {
   // Code blocks
   pre: ({ children }: { children: React.ReactNode }) => <div className="my-4">{children}</div>,
 
-  code: ({
-    className,
-    children,
-    title,
-  }: {
+  code: (props: {
     className?: string;
     children: React.ReactNode;
     title?: string;
+    'data-no-copy'?: string;
+    [key: string]: unknown;
   }) => {
+    const { className, children, title } = props;
+    const dataNoCopy = props['data-no-copy'];
+    // eslint-disable-next-line no-console
+    if (String(children).includes('dev.pachca.com'))
+      console.log('[CODE PROPS]', Object.keys(props), 'dataNoCopy=', dataNoCopy);
     const match = /language-(\w+)/.exec(className || '');
     if (match) {
       const language = match[1] === 'bash' || match[1] === 'shell' ? 'curl' : match[1];
       const code = String(children).replace(/\n$/, '');
-      return <GuideCodeBlock language={language} code={code} title={title} />;
+      return (
+        <GuideCodeBlock
+          language={language}
+          code={code}
+          title={title}
+          copyButton={dataNoCopy !== 'true'}
+        />
+      );
     }
     return <CopyableInlineCode>{String(children)}</CopyableInlineCode>;
   },

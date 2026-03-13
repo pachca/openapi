@@ -122,7 +122,7 @@ pachca auth refresh bot-notify
 
 Имена команд совпадают с URL документации:
 
-```text
+```text noCopy
 dev.pachca.com/messages/create  →  pachca messages create
 dev.pachca.com/chats/list       →  pachca chats list
 dev.pachca.com/members/add      →  pachca members add
@@ -340,7 +340,7 @@ pachca guide "активные чаты"
 
 Флаги CLI используют **kebab-case** (через дефис), а не snake_case как в API-документации — это [стандартная конвенция](https://clig.dev/#arguments-and-flags) для CLI-инструментов:
 
-```text
+```text noCopy
 API-документация          CLI-флаг
 ─────────────────         ────────────────
 first_name            →   --first-name

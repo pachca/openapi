@@ -40,6 +40,8 @@ import {
   KeyRound,
   Terminal,
   Route,
+  MousePointerClick,
+  Blocks,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -83,6 +85,8 @@ const iconMap: Record<string, LucideIcon> = {
   KeyRound,
   Terminal,
   Route,
+  MousePointerClick,
+  Blocks,
 };
 
 /** Icon mapping for guide pages by path */

@@ -71,7 +71,7 @@ Protocol-native — these are functional, not decorative:
 
 ### Callout System
 
-Four variants (info, warning, tip, danger), each with:
+Three variants (info, warning, tip), each with:
 - Background: 10% opacity tint
 - Border: 20% opacity tint
 - Header background: 12% opacity tint
@@ -138,10 +138,11 @@ Sharp-leaning — technical, not playful:
 
 | Role | Family | Size | Weight | Tracking |
 |------|--------|------|--------|----------|
-| H1 | System sans | 32px | Bold (700) | Tight |
-| H2 | System sans | 22px | Bold (700) | Tight |
+| H1 | System sans | 36px | Bold (700) | Tight |
+| H2 | System sans | 26px | Bold (700) | Tight |
 | H3 | System sans | 17px | Bold (700) | Tight |
 | Body | System sans | 15px | Normal (400) | Normal |
+| Navigation | System sans | 14px | Medium (500) | Normal |
 | Labels | System sans | 13px | Medium (500) | Normal |
 | Small labels | System sans | 10-11px | Bold (700) | Widest, uppercase |
 | Inline code | System mono | 13px | Normal (400) | Normal |

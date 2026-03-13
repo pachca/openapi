@@ -95,7 +95,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 
   if (!highlightedHtml) {
     return (
-      <div className="flex items-center justify-center h-14 rounded-lg">
+      <div className="flex items-center justify-center h-14 rounded-md">
         <Loader2 className="w-4 h-4 animate-spin text-text-tertiary" />
       </div>
     );

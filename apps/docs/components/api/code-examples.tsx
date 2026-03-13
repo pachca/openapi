@@ -164,7 +164,7 @@ export function CodeExamples({
 
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 shadow-xl animate-dropdown"
+                  className="z-50 min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
                   align="end"
                 >
                   {(Object.keys(languages) as Language[]).map((lang) => (

@@ -74,7 +74,7 @@ export function MobileTableOfContents() {
       <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
         <DropdownMenu.Trigger asChild>
           <button
-            className="p-2 rounded-lg flex items-center justify-center bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border cursor-pointer transition-colors outline-none"
+            className="p-2 rounded-md flex items-center justify-center bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border cursor-pointer transition-colors outline-none"
             aria-label="Table of contents"
           >
             <List className="w-5 h-5 text-text-primary" />
@@ -83,7 +83,7 @@ export function MobileTableOfContents() {
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             ref={contentRef}
-            className="z-40 w-72 dropdown-panel animate-dropdown bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl shadow-lg p-1.5 space-y-0.5"
+            className="z-40 w-72 dropdown-panel animate-dropdown bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl shadow-xl p-1.5 space-y-0.5"
             align="end"
             side="bottom"
             sideOffset={8}

@@ -401,7 +401,7 @@ echo $response;
 - **Postman** *File → Import*
 - **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
 
-```text title="Коллекция Postman/Bruno"
+```plaintext title="Коллекция Postman/Bruno"
 https://dev.pachca.com/pachca.postman_collection.json
 ```
 

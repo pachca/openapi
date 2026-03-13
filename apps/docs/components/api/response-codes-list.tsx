@@ -13,7 +13,7 @@ interface ResponseCodesListProps {
 
 export function ResponseCodesList({ title, items }: ResponseCodesListProps) {
   return (
-    <div className="not-prose my-8 border border-glass-border rounded-lg overflow-hidden bg-glass backdrop-blur-md">
+    <div className="not-prose my-8 border border-glass-border rounded-xl overflow-hidden bg-glass backdrop-blur-md">
       <div className="flex items-center justify-between px-3 bg-glass border-b border-glass-border h-[var(--boxed-header-height)]">
         <span className="text-[13px] font-medium text-text-primary truncate">{title}</span>
       </div>

@@ -151,7 +151,7 @@ function SidebarGroup({
   return (
     <Accordion.Item value={item.title} className="overflow-hidden">
       <Accordion.Header>
-        <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-lg text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
+        <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
           <span className="min-w-0 flex items-center gap-1">
             <span className="truncate">{item.title}</span>
             {item.originalTitle && (

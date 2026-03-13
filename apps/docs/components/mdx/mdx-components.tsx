@@ -70,7 +70,7 @@ export async function SchemaBlock({
 
   if (!schema) {
     return (
-      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-lg text-red-700">
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
         Schema not found: {name}
       </div>
     );
@@ -153,7 +153,7 @@ export function Info({ children }: { children: React.ReactNode }) {
 }
 
 export function Danger({ children }: { children: React.ReactNode }) {
-  return <Callout type="danger">{children}</Callout>;
+  return <Callout type="warning">{children}</Callout>;
 }
 
 // ============================================
@@ -167,14 +167,22 @@ export function Danger({ children }: { children: React.ReactNode }) {
 interface CodeBlockProps {
   language?: string;
   title?: string;
+  copyButton?: boolean;
   children: React.ReactNode;
 }
 
-export async function CodeBlock({ language = 'text', title, children }: CodeBlockProps) {
+export async function CodeBlock({
+  language = 'text',
+  title,
+  copyButton,
+  children,
+}: CodeBlockProps) {
   const { GuideCodeBlock } = await import('@/components/api/guide-code-block');
   const code = String(children).replace(/\n$/, '');
   const mappedLanguage = language === 'bash' || language === 'shell' ? 'curl' : language;
-  return <GuideCodeBlock language={mappedLanguage} code={code} title={title} />;
+  return (
+    <GuideCodeBlock language={mappedLanguage} code={code} title={title} copyButton={copyButton} />
+  );
 }
 
 // ============================================
@@ -264,7 +272,7 @@ export async function ApiCodeExample({
 
   if (!endpoint) {
     return (
-      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-lg text-red-700">
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
         Endpoint not found: {operationId}
       </div>
     );

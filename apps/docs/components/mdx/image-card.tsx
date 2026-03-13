@@ -51,10 +51,10 @@ export function ImageCard({ src, alt, caption, hint, maxWidth }: ImageCardProps)
     const containerW = vw - padding * 2;
     const containerH = vh - padding * 2;
 
-    let targetW = containerW;
+    let targetW = Math.min(containerW, naturalW);
     let targetH = targetW / aspect;
     if (targetH > containerH) {
-      targetH = containerH;
+      targetH = Math.min(containerH, naturalH);
       targetW = targetH * aspect;
     }
 
@@ -531,7 +531,7 @@ export function ImageCard({ src, alt, caption, hint, maxWidth }: ImageCardProps)
                 ref={imgRef}
                 src={src}
                 alt={alt}
-                className="w-full h-auto rounded-lg"
+                className="w-full h-auto rounded-xl"
                 style={{ visibility: isOpen ? 'hidden' : 'visible' }}
               />
             </button>

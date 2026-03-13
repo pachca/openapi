@@ -114,14 +114,14 @@ export function SettingsDropdown<T extends string>({
         <DropdownMenu.Trigger asChild>
           {compact ? (
             <button
-              className="w-9 h-9 flex justify-center items-center rounded-lg cursor-pointer text-text-secondary hover:text-text-primary outline-none"
+              className="w-9 h-9 flex justify-center items-center rounded-md cursor-pointer text-text-secondary hover:text-text-primary outline-none"
               aria-label={ariaLabel}
             >
               <CurrentIcon className="w-5 h-5" />
             </button>
           ) : (
             <button
-              className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-lg bg-glass backdrop-blur-md border border-glass-border text-text-primary transition-colors cursor-pointer outline-none"
+              className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-md bg-glass backdrop-blur-md border border-glass-border text-text-primary transition-colors cursor-pointer outline-none"
               aria-label={ariaLabel}
             >
               <CurrentIcon className="w-4 h-4 shrink-0" />
@@ -155,7 +155,7 @@ export function SettingsDropdown<T extends string>({
                   <span>{label}</span>
                   {description && (
                     <span
-                      className={`text-[12px] font-normal ${value === optValue ? 'text-primary/70' : 'text-text-secondary'}`}
+                      className={`text-[11px] font-normal ${value === optValue ? 'text-primary/70' : 'text-text-secondary'}`}
                     >
                       {description}
                     </span>

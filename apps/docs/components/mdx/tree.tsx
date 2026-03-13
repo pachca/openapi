@@ -76,7 +76,7 @@ interface TreeProps {
 
 export function Tree({ children }: TreeProps) {
   return (
-    <div className="tree my-6 px-3 py-2 rounded-lg border border-glass-border bg-glass backdrop-blur-md font-mono not-prose">
+    <div className="tree my-6 px-3 py-2 rounded-xl border border-glass-border bg-glass backdrop-blur-md font-mono not-prose">
       {children}
     </div>
   );

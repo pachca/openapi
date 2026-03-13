@@ -21,7 +21,7 @@ export function Header() {
       {/* Hamburger — mobile only, left side */}
       <button
         onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-menu'))}
-        className="lg:hidden p-2 rounded-lg transition-colors cursor-pointer text-text-primary mr-2"
+        className="lg:hidden p-2 rounded-md transition-colors cursor-pointer text-text-primary mr-2"
         aria-label="Toggle menu"
       >
         <Menu className="w-5 h-5" />

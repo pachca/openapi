@@ -18,21 +18,21 @@ const METHOD_COLORS: Record<string, string> = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Messages: 'bg-method-post/10 text-method-post',
-  Thread: 'bg-method-post/10 text-method-post',
-  Reactions: 'bg-method-post/10 text-method-post',
-  'Read member': 'bg-method-get/10 text-method-get',
-  Chats: 'bg-method-put/10 text-method-put',
-  Members: 'bg-method-put/10 text-method-put',
-  Users: 'bg-primary/10 text-primary',
-  'Group tags': 'bg-primary/10 text-primary',
-  Profile: 'bg-primary/10 text-primary',
-  Bots: 'bg-method-patch/10 text-method-patch',
-  'Link Previews': 'bg-method-patch/10 text-method-patch',
-  Views: 'bg-method-delete/10 text-method-delete',
-  Tasks: 'bg-accent-yellow/10 text-accent-yellow',
-  Search: 'bg-method-get/10 text-method-get',
-  Security: 'bg-accent-red/10 text-accent-red',
+  Messages: 'cat-messaging',
+  Thread: 'cat-messaging',
+  Reactions: 'cat-messaging',
+  'Read member': 'cat-messaging',
+  Chats: 'cat-chats',
+  Members: 'cat-chats',
+  Users: 'cat-people',
+  'Group tags': 'cat-people',
+  Profile: 'cat-people',
+  Bots: 'cat-bots',
+  'Link Previews': 'cat-bots',
+  Views: 'cat-forms',
+  Tasks: 'cat-tasks',
+  Search: 'cat-search',
+  Security: 'cat-security',
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -131,9 +131,21 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 /* ── Sub-components ── */
 
 function CategoryBadge({ category }: { category: string }) {
+  const colorVar = CATEGORY_COLORS[category];
+  if (!colorVar) {
+    return (
+      <span className="px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-glass text-text-secondary">
+        {CATEGORY_LABELS[category] ?? category}
+      </span>
+    );
+  }
   return (
     <span
-      className={`px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${CATEGORY_COLORS[category] || 'bg-glass text-text-secondary'}`}
+      className="px-1.5 py-0.5 rounded-full text-[11px] font-semibold"
+      style={{
+        backgroundColor: `color-mix(in oklch, var(--color-${colorVar}) 15%, transparent)`,
+        color: `var(--color-${colorVar})`,
+      }}
     >
       {CATEGORY_LABELS[category] ?? category}
     </span>
@@ -142,39 +154,6 @@ function CategoryBadge({ category }: { category: string }) {
 
 function CommandBlock({ code }: { code: string }) {
   return <GuideCodeBlock code={code} language="bash" className="" />;
-}
-
-function FeaturedSection({
-  workflows,
-  onNavigate,
-}: {
-  workflows: WorkflowCardData[];
-  onNavigate: (id: string) => void;
-}) {
-  if (!workflows.length) return null;
-
-  return (
-    <div className="mb-6">
-      <p className="text-[14px] font-semibold text-text-secondary mb-3">Популярные сценарии</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {workflows.map((wf) => (
-          <button
-            key={wf.id}
-            type="button"
-            onClick={() => onNavigate(wf.id)}
-            className="flex flex-col gap-2 p-4 rounded-lg border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover transition-colors text-left cursor-pointer"
-          >
-            <span className="font-semibold text-[14px] text-text-primary">{wf.title}</span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {wf.categories.slice(0, 2).map((cat) => (
-                <CategoryBadge key={cat} category={cat} />
-              ))}
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 /* ── Main component ── */
@@ -218,8 +197,6 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
     return result;
   }, [workflows, activeCategory, search]);
 
-  const featuredWorkflows = useMemo(() => workflows.filter((wf) => wf.featured), [workflows]);
-
   const titleToId = useMemo(() => {
     const map = new Map<string, string>();
     workflows.forEach((wf) => map.set(wf.title, wf.id));
@@ -236,12 +213,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
   }, []);
 
   return (
-    <div className="not-prose my-4">
-      {/* Featured */}
-      {featuredWorkflows.length > 0 && (
-        <FeaturedSection workflows={featuredWorkflows} onNavigate={handleNavigate} />
-      )}
-
+    <div className="not-prose mt-8">
       {/* Toolbar: title + search + filter */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
         <span className="text-[15px] font-semibold text-text-primary">
@@ -265,13 +237,13 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
         <div className="flex items-center gap-2 sm:w-auto w-full">
           {/* Search */}
           <div className="relative group/search flex-1 sm:flex-none">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary group-focus-within/search:text-text-primary pointer-events-none transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 z-10 text-text-primary pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск..."
-              className="w-full sm:w-48 pl-9 pr-4 py-1.5 rounded-lg border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none transition-colors"
+              className="w-full sm:w-48 pl-[calc(0.75rem+1rem+0.375rem)] pr-4 py-1.5 h-[34px] rounded-md border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none transition-colors"
             />
             {search && (
               <button
@@ -287,8 +259,8 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
           {/* Filter dropdown */}
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 h-[34px] rounded-lg border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
-                <Filter className="w-3.5 h-3.5 shrink-0" />
+              <button className="flex items-center gap-1.5 px-3 py-1.5 h-[34px] rounded-md border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
+                <Filter className="w-4 h-4 shrink-0 text-text-primary" />
                 {activeCategory ? (CATEGORY_LABELS[activeCategory] ?? activeCategory) : 'Все'}
                 <ChevronDown
                   className="w-3.5 h-3.5 shrink-0 text-text-secondary group-hover:text-text-primary transition-colors"
@@ -299,7 +271,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
 
             <DropdownMenu.Portal>
               <DropdownMenu.Content
-                className="z-50 min-w-[180px] max-h-80 overflow-y-auto bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 shadow-xl animate-dropdown"
+                className="z-50 min-w-[180px] max-h-80 overflow-y-auto bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
                 align="end"
                 side="bottom"
                 sideOffset={6}
@@ -327,7 +299,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                   >
                     <span>{CATEGORY_LABELS[cat] ?? cat}</span>
                     <span
-                      className={`text-[12px] ml-3 ${activeCategory === cat ? 'text-white/70' : 'text-text-tertiary'}`}
+                      className={`text-[12px] ml-3 ${activeCategory === cat ? 'text-primary/70' : 'text-text-tertiary'}`}
                     >
                       {count}
                     </span>

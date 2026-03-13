@@ -55,6 +55,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Боты', path: '/guides/bots' },
       { title: 'Входящие вебхуки', path: '/guides/incoming-webhooks' },
       { title: 'Исходящие вебхуки', path: '/guides/webhook' },
+      { title: 'Кнопки в сообщениях', path: '/guides/buttons' },
       {
         title: 'Формы',
         path: '/guides/forms/overview',
@@ -64,6 +65,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Обработка форм', path: '/guides/forms/handling' },
         ],
       },
+      { title: 'Разворачивание ссылок', path: '/guides/link-previews' },
     ],
   },
   {
@@ -108,7 +110,7 @@ export const API_GUIDE_PAGES: SidebarPageItem[] = [
  * Determine which tab is active based on the current pathname.
  */
 export function getActiveTab(pathname: string): TabId | null {
-  if (pathname === '/') return null;
+  if (pathname === '/') return 'guide';
   for (const tab of TABS) {
     if (pathname.startsWith(tab.prefix)) return tab.id;
   }

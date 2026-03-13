@@ -310,6 +310,8 @@ echo $response;
           - Пример: `https://example.com/page1`
         - `domain` (string, **обязательный**): Домен ссылки
           - Пример: `example.com`
+      - `user_id` (integer, int32, **обязательный**): Идентификатор отправителя сообщения
+        - Пример: `2345`
       - `created_at` (string, date-time, **обязательный**): Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
         - Пример: `2024-09-18T19:53:14.000Z`
       - `webhook_timestamp` (integer, int32, **обязательный**): Дата и время отправки вебхука (UTC+0) в формате UNIX

@@ -374,7 +374,6 @@ function generateScenariosJson() {
       notes?: string;
     }[];
     notes?: string;
-    featured?: boolean;
     related?: string[];
   }[] = [];
   const skillNames = new Set(SKILL_TAG_MAP.map((c) => c.name));
@@ -396,7 +395,6 @@ function generateScenariosJson() {
           return s as (typeof scenarios)[0]['steps'][0];
         }),
         ...(wf.notes ? { notes: wf.notes } : {}),
-        ...(wf.featured ? { featured: true } : {}),
         ...(wf.related?.length ? { related: wf.related } : {}),
       });
     }

@@ -221,9 +221,11 @@ Detailed documentation on specific topics is available at:
 - [Боты](https://dev.pachca.com/guides/bots) — Создание, настройка и возможности ботов в Пачке
 - [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Отправка сообщений от имени бота без использования API
 - [Исходящие вебхуки](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
+- [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons) — Как добавить интерактивные кнопки в чат-ботов Пачки — возможности, примеры и код для разработчиков
 - [Обзор](https://dev.pachca.com/guides/forms/overview) — Модальные формы ботов: поля ввода, жизненный цикл и валидация
 - [Блоки представления](https://dev.pachca.com/guides/forms/blocks) — 10 типов блоков для построения форм в Пачке
 - [Обработка форм](https://dev.pachca.com/guides/forms/handling) — Открытие представлений, получение результатов и валидация
+- [Разворачивание ссылок](https://dev.pachca.com/guides/link-previews) — Создание превью ссылок из внутренних сервисов прямо в чате
 - [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов: запрос, скачивание и структура архива
 - [DLP-система](https://dev.pachca.com/guides/dlp) — Создание правил DLP: условия, контексты и действия
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов

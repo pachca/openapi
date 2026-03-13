@@ -56,7 +56,7 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
           href={item.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-lg font-medium text-text-secondary hover:bg-glass-hover hover:text-text-primary transition-colors duration-200"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md font-medium text-text-secondary hover:bg-glass-hover hover:text-text-primary transition-colors duration-200"
         >
           <span className="truncate flex-1">{item.title}</span>
           <ArrowUpRight className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
@@ -71,7 +71,7 @@ export function SidebarItem({ item, onItemClick }: SidebarItemProps) {
         href={item.href}
         ref={itemRef}
         onClick={handleLinkClick}
-        className={`flex items-center gap-2 px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-lg font-medium group transition-colors duration-200 ${
+        className={`flex items-center gap-2 px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md font-medium group transition-colors duration-200 ${
           isActive
             ? 'bg-primary/15 text-primary'
             : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'

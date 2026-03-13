@@ -27,20 +27,15 @@
   --color-accent-green: oklch(50% 0.14 143.5);
   --color-accent-red: oklch(55% 0.17 28);
 
-  --color-callout-warning-bg: oklch(98% 0.02 55);
-  --color-callout-warning-border: oklch(92% 0.04 55);
-  --color-callout-warning-header-bg: oklch(96% 0.03 55);
+  --color-callout-warning-bg: oklch(55% 0.14 55 / 10%);
+  --color-callout-warning-border: oklch(55% 0.14 55 / 20%);
+  --color-callout-warning-header-bg: oklch(55% 0.14 55 / 12%);
   --color-callout-warning-text: var(--color-accent-yellow);
 
-  --color-callout-tip-bg: oklch(97.5% 0.015 143.5);
-  --color-callout-tip-border: oklch(91% 0.03 143.5);
-  --color-callout-tip-header-bg: oklch(95% 0.02 143.5);
+  --color-callout-tip-bg: oklch(50% 0.14 143.5 / 10%);
+  --color-callout-tip-border: oklch(50% 0.14 143.5 / 20%);
+  --color-callout-tip-header-bg: oklch(50% 0.14 143.5 / 12%);
   --color-callout-tip-text: var(--color-accent-green);
-
-  --color-callout-danger-bg: oklch(97.5% 0.015 28);
-  --color-callout-danger-border: oklch(90% 0.04 28);
-  --color-callout-danger-header-bg: oklch(95% 0.025 28);
-  --color-callout-danger-text: var(--color-accent-red);
 
   --color-method-get: oklch(60.2% 0.193 263);
   --color-method-post: oklch(63.8% 0.142 143.5);
@@ -52,7 +47,7 @@
   --color-glass: oklch(0% 0 0 / 3%);
   --color-glass-border: oklch(0% 0 0 / 7%);
   --color-glass-hover: oklch(0% 0 0 / 5%);
-  --color-glass-heavy: oklch(100% 0 0 / 65%);
+  --color-glass-heavy: oklch(100% 0 0 / 82%);
   --color-glass-heavy-border: oklch(0% 0 0 / 14%);
   --color-glass-divider: oklch(0% 0 0 / 7%);
   --color-glass-active: oklch(0% 0 0 / 10%);
@@ -65,6 +60,18 @@
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif;
   --font-mono:
     'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+/* Category badge colors — outside @theme so they're always emitted as CSS vars */
+:root {
+  --color-cat-messaging: oklch(55% 0.12 55);
+  --color-cat-chats: oklch(52% 0.11 195);
+  --color-cat-people: oklch(50% 0.12 250);
+  --color-cat-bots: oklch(52% 0.13 315);
+  --color-cat-forms: oklch(54% 0.12 15);
+  --color-cat-tasks: oklch(52% 0.11 80);
+  --color-cat-search: oklch(50% 0.11 140);
+  --color-cat-security: oklch(50% 0.13 350);
 }
 
 /* Dark Mode - ручное переключение */
@@ -104,10 +111,6 @@ html.dark {
   --color-callout-tip-border: oklch(75% 0.12 143.5 / 22%);
   --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 17%);
 
-  --color-callout-danger-bg: oklch(75% 0.13 17 / 14%);
-  --color-callout-danger-border: oklch(75% 0.13 17 / 22%);
-  --color-callout-danger-header-bg: oklch(75% 0.13 17 / 17%);
-
   /* Glass surface tokens — dark mode */
   --color-glass: oklch(100% 0 0 / 3%);
   --color-glass-border: oklch(100% 0 0 / 6%);
@@ -123,6 +126,16 @@ html.dark {
   --color-method-put: oklch(68% 0.116 77);
   --color-method-delete: oklch(67.1% 0.145 17);
   --color-method-patch: oklch(69.4% 0.164 318);
+
+  /* Category badge colors — One Dark Pro palette, lighter for dark mode */
+  --color-cat-messaging: oklch(73% 0.12 55);
+  --color-cat-chats: oklch(72% 0.11 195);
+  --color-cat-people: oklch(72% 0.12 250);
+  --color-cat-bots: oklch(70% 0.13 315);
+  --color-cat-forms: oklch(72% 0.12 15);
+  --color-cat-tasks: oklch(73% 0.11 80);
+  --color-cat-search: oklch(72% 0.11 140);
+  --color-cat-security: oklch(70% 0.13 350);
 }
 
 /* Dark Mode - системная тема (только если НЕ установлен класс .light) */
@@ -158,10 +171,6 @@ html.dark {
     --color-callout-tip-border: oklch(75% 0.12 143.5 / 22%);
     --color-callout-tip-header-bg: oklch(75% 0.12 143.5 / 17%);
 
-    --color-callout-danger-bg: oklch(75% 0.13 17 / 14%);
-    --color-callout-danger-border: oklch(75% 0.13 17 / 22%);
-    --color-callout-danger-header-bg: oklch(75% 0.13 17 / 17%);
-
     /* Glass surface tokens — dark mode */
     --color-glass: oklch(100% 0 0 / 3%);
     --color-glass-border: oklch(100% 0 0 / 6%);
@@ -176,6 +185,15 @@ html.dark {
     --color-method-put: oklch(68% 0.116 77);
     --color-method-delete: oklch(67.1% 0.145 17);
     --color-method-patch: oklch(69.4% 0.164 318);
+
+    --color-cat-messaging: oklch(73% 0.12 55);
+    --color-cat-chats: oklch(72% 0.11 195);
+    --color-cat-people: oklch(72% 0.12 250);
+    --color-cat-bots: oklch(70% 0.13 315);
+    --color-cat-forms: oklch(72% 0.12 15);
+    --color-cat-tasks: oklch(73% 0.11 80);
+    --color-cat-search: oklch(72% 0.11 140);
+    --color-cat-security: oklch(70% 0.13 350);
   }
 }
 
@@ -232,24 +250,6 @@ html.dark {
   .bg-callout-tip-bg li::before,
   .bg-callout-tip-bg\! li::before {
     @apply bg-callout-tip-text/50!;
-  }
-
-  .bg-callout-danger-bg a,
-  .bg-callout-danger-bg\! a {
-    @apply text-callout-danger-text! font-semibold underline decoration-callout-danger-text/50! underline-offset-4 decoration-1 hover:decoration-callout-danger-text!;
-    transition:
-      text-decoration-color 0.2s,
-      text-decoration-thickness 0.2s !important;
-  }
-
-  .bg-callout-danger-bg code,
-  .bg-callout-danger-bg\! code {
-    @apply bg-callout-danger-header-bg! text-callout-danger-text! border-callout-danger-text/20!;
-  }
-
-  .bg-callout-danger-bg li::before,
-  .bg-callout-danger-bg\! li::before {
-    @apply bg-callout-danger-text/50!;
   }
 }
 
@@ -309,11 +309,11 @@ body {
 }
 
 .prose h1 {
-  @apply text-[32px] font-bold tracking-tight text-text-primary mt-0 mb-8 leading-[1.15];
+  @apply text-[36px] font-bold tracking-tight text-text-primary mt-0 mb-8 leading-[1.15];
 }
 
 .prose h2 {
-  @apply text-[22px] font-bold tracking-tight text-text-primary mt-12 mb-6 leading-tight;
+  @apply text-[26px] font-bold tracking-tight text-text-primary mt-12 mb-6 leading-tight;
 }
 
 .prose h3 {
@@ -446,6 +446,10 @@ html.dark .code-block-container .shiki span {
 
 .headerless-code .code-block-container .line {
   padding-right: 2.5rem;
+}
+
+.headerless-code.no-copy .code-block-container .line {
+  padding-right: 1rem;
 }
 
 .code-block-container .line::after {
@@ -598,7 +602,7 @@ html.dark .code-block-container .shiki span {
   text-decoration: underline !important;
   text-underline-offset: 4px !important;
   text-decoration-thickness: 1px !important;
-  text-decoration-color: color-mix(in oklch, var(--color-text-primary) 30%, transparent) !important;
+  text-decoration-color: color-mix(in oklch, var(--color-text-primary) 50%, transparent) !important;
   transition:
     text-decoration-color 0.2s,
     text-decoration-thickness 0.2s !important;

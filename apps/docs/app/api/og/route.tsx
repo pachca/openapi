@@ -142,6 +142,7 @@ async function generateUpdatesImage(date: string | null) {
           backgroundColor: OG_COLORS.backgroundSecondary,
           borderRadius: '16px',
           padding: '24px 32px',
+          margin: '0 -10px',
         }}
       >
         <span

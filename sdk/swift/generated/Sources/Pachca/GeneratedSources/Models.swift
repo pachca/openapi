@@ -394,6 +394,8 @@ public enum ValidationErrorCode: String, Codable, CaseIterable {
     case minLength = "min_length"
     /// Значение слишком длинное (пояснения вы получите в поле message)
     case maxLength = "max_length"
+    /// Использовано зарезервированное системное слово (here, all)
+    case useOfSystemWords = "use_of_system_words"
 }
 
 public enum WebhookEventType: String, Codable, CaseIterable {

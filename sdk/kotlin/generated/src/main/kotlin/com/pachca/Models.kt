@@ -438,6 +438,8 @@ enum class ValidationErrorCode(val value: String) {
     @SerialName("min_length") MIN_LENGTH("min_length"),
     /** Значение слишком длинное (пояснения вы получите в поле message) */
     @SerialName("max_length") MAX_LENGTH("max_length"),
+    /** Использовано зарезервированное системное слово (here, all) */
+    @SerialName("use_of_system_words") USE_OF_SYSTEM_WORDS("use_of_system_words"),
 }
 
 /** Тип события webhook */

@@ -412,6 +412,8 @@ export enum ValidationErrorCode {
   MinLength = "min_length",
   /** Значение слишком длинное (пояснения вы получите в поле message) */
   MaxLength = "max_length",
+  /** Использовано зарезервированное системное слово (here, all) */
+  UseOfSystemWords = "use_of_system_words",
 }
 
 /** Тип события webhook */

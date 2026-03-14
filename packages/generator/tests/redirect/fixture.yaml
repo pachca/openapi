@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: Test API — Redirect
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Common
+paths:
+  /exports/{id}:
+    get:
+      operationId: ExportOperations_downloadExport
+      description: Скачивание экспорта
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор экспорта
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '302':
+          description: Redirection
+          headers:
+            location:
+              required: true
+              schema:
+                type: string
+                format: uri
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Common
+      x-requirements:
+        scope: exports:read
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

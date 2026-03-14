@@ -14,6 +14,7 @@ dist/
 # Gradle
 .gradle/
 .kotlin/
+META-INF/
 
 # OpenAPI Generator
 .openapi-generator/
@@ -24,6 +25,11 @@ dist/
 # Swift
 .build/
 Package.resolved
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
 
 # Debug
 npm-debug.log*

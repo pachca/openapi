@@ -1,0 +1,52 @@
+openapi: 3.0.0
+info:
+  title: Test API — Deep Nesting
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Organization:
+      type: object
+      required:
+        - id
+        - name
+        - settings
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        settings:
+          type: object
+          required:
+            - notifications
+          properties:
+            theme:
+              type: string
+            notifications:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: object
+                  required:
+                    - enabled
+                  properties:
+                    enabled:
+                      type: boolean
+                    frequency:
+                      type: string
+                  description: Email notification settings
+                push:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    sound:
+                      type: string
+                  description: Push notification settings
+              description: Notification settings
+          description: Organization settings
+      description: Organization with 3+ level nested objects

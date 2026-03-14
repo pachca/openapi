@@ -1,0 +1,152 @@
+openapi: 3.0.0
+info:
+  title: Test API — Upload
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Common
+paths:
+  /uploads:
+    post:
+      operationId: UploadOperations_getUploadParams
+      description: Получение параметров загрузки
+      parameters: []
+      responses:
+        '201':
+          description: Upload parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UploadParams'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Common
+  /direct_url:
+    post:
+      operationId: DirectUploadOperations_uploadFile
+      x-external-url: directUrl
+      description: Загрузка файла
+      parameters: []
+      responses:
+        '204':
+          description: No content.
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Common
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequest'
+      x-requirements:
+        auth: false
+        scope: uploads:write
+components:
+  schemas:
+    FileUploadRequest:
+      type: object
+      required:
+        - content-disposition
+        - acl
+        - policy
+        - x-amz-credential
+        - x-amz-algorithm
+        - x-amz-date
+        - x-amz-signature
+        - key
+        - file
+      properties:
+        content-disposition:
+          type: string
+          description: Content-Disposition заголовок
+        acl:
+          type: string
+          description: ACL для загружаемого файла
+        policy:
+          type: string
+          description: Политика загрузки
+        x-amz-credential:
+          type: string
+          description: AWS credential
+        x-amz-algorithm:
+          type: string
+          description: AWS algorithm
+        x-amz-date:
+          type: string
+          description: AWS date
+        x-amz-signature:
+          type: string
+          description: AWS signature
+        key:
+          type: string
+          description: Ключ файла
+        file:
+          type: string
+          format: binary
+          description: Файл для загрузки
+      description: Запрос на загрузку файла
+
+    UploadParams:
+      type: object
+      required:
+        - Content-Disposition
+        - acl
+        - policy
+        - x-amz-credential
+        - x-amz-algorithm
+        - x-amz-date
+        - x-amz-signature
+        - key
+        - direct_url
+      properties:
+        Content-Disposition:
+          type: string
+          description: Используемый заголовок
+        acl:
+          type: string
+          description: Уровень безопасности
+        policy:
+          type: string
+          description: Политика загрузки
+        x-amz-credential:
+          type: string
+          description: AWS credential
+        x-amz-algorithm:
+          type: string
+          description: AWS algorithm
+        x-amz-date:
+          type: string
+          description: AWS date
+        x-amz-signature:
+          type: string
+          description: AWS signature
+        key:
+          type: string
+          description: Ключ файла
+        direct_url:
+          type: string
+          description: Адрес для загрузки файла
+      description: Параметры для загрузки файла
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

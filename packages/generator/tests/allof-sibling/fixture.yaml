@@ -1,0 +1,39 @@
+openapi: 3.0.0
+info:
+  title: Test API — allOf + Sibling Properties
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    BaseEntity:
+      type: object
+      required:
+        - id
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Entity ID
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+
+    Article:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+      properties:
+        title:
+          type: string
+          description: Article title
+        body:
+          type: string
+          description: Article body
+        is_published:
+          type: boolean
+          description: Whether the article is published
+      required:
+        - title
+        - body
+      description: An article extending BaseEntity with sibling properties

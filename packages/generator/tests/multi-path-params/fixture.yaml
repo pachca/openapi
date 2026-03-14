@@ -1,0 +1,132 @@
+openapi: 3.0.0
+info:
+  title: Test API — Multiple Path Params
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+tags:
+  - name: Tasks
+paths:
+  /projects/{project_id}/tasks/{task_id}:
+    get:
+      operationId: TaskOperations_getTask
+      description: Get a task within a project
+      tags:
+        - Tasks
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+    put:
+      operationId: TaskOperations_updateTask
+      description: Update a task within a project
+      tags:
+        - Tasks
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Task'
+  /projects/{project_id}/tasks/{task_id}/comments/{comment_id}:
+    delete:
+      operationId: TaskOperations_deleteComment
+      description: Delete a comment on a task
+      tags:
+        - Tasks
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: comment_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: No content
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: integer
+          format: int32
+        title:
+          type: string
+        is_done:
+          type: boolean
+
+    TaskUpdateRequest:
+      type: object
+      required:
+        - task
+      properties:
+        task:
+          type: object
+          properties:
+            title:
+              type: string
+            is_done:
+              type: boolean

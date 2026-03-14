@@ -1,0 +1,38 @@
+openapi: 3.0.0
+info:
+  title: Test API — Enums
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # A1: Simple enum (2 values)
+    SortOrder:
+      type: string
+      enum:
+        - asc
+        - desc
+      description: Порядок сортировки
+
+    # A2: Enum with x-enum-descriptions (4 values)
+    UserRole:
+      type: string
+      enum:
+        - admin
+        - user
+        - multi_admin
+        - bot
+      description: Роль пользователя
+      x-enum-descriptions:
+        admin: Администратор
+        user: Сотрудник
+        multi_admin: Мультиадмин
+        bot: Бот
+
+    # A3: Discriminator enum (single-value) — used in union members
+    ViewBlockHeaderType:
+      type: string
+      enum:
+        - header
+      description: Тип блока
+      x-enum-descriptions:
+        header: Для заголовков всегда header

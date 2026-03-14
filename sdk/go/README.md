@@ -1,6 +1,6 @@
 # Pachca Go SDK
 
-Go клиент для Pachca API, сгенерированный с помощью [ogen](https://ogen.dev).
+Go клиент для [Pachca API](https://dev.pachca.com).
 
 ## Установка
 
@@ -22,30 +22,39 @@ import (
 )
 
 func main() {
-	client, err := pachca.NewPachcaClient(
-		"https://api.pachca.com/api/shared/v1",
-		"YOUR_TOKEN",
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	client := pachca.NewPachcaClient("YOUR_TOKEN")
 
 	ctx := context.Background()
 
 	// Отправка сообщения
-	res, err := client.Messages.CreateMessage(ctx, &pachca.MessageCreateRequest{
+	msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{
 		Message: pachca.MessageCreateRequestMessage{
-			EntityType: pachca.NewOptMessageEntityType(pachca.MessageEntityTypeDiscussion),
-			EntityID:   12345,
-			Content:    "Привет из Go SDK!",
+			EntityID: 12345,
+			Content:  "Привет из Go SDK!",
 		},
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	created := res.(*pachca.MessageOperationsCreateMessageCreated)
-	fmt.Printf("Сообщение отправлено: %d\n", created.Data.ID)
+	fmt.Printf("Сообщение отправлено: %d\n", msg.ID)
 }
+```
+
+## Конвенции
+
+- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+
+```go
+// ≤2 поля → развёрнуто в аргументы
+reaction, err := client.Reactions.AddReaction(ctx, messageId, pachca.ReactionRequest{Code: "👍"})
+err = client.Messages.PinMessage(ctx, messageId)
+
+// >2 полей → объект-запрос
+msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{...})
+
+// Ответ: API возвращает {"data": ...}, SDK возвращает объект напрямую
+msg, err := client.Messages.CreateMessage(ctx, ...)  // *Message, не *MessageResponse
 ```
 
 ## Сервисы
@@ -68,6 +77,34 @@ func main() {
 | `client.Uploads` | Загрузка файлов |
 | `client.Exports` | Экспорт сообщений |
 | `client.Forms` | Интерактивные формы |
+
+## Пагинация
+
+Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
+
+```go
+// Вручную
+var chats []pachca.Chat
+var cursor *string
+for {
+    result, err := client.Chats.ListChats(ctx, &pachca.ListChatsParams{Cursor: cursor})
+    if err != nil { break }
+    chats = append(chats, result.Data...)
+    if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+        break
+    }
+    cursor = result.Meta.Paginate.NextPage
+}
+
+// Автоматически
+allChats, err := client.Chats.ListChatsAll(ctx, nil)
+```
+
+Доступные методы: `ListChatsAll`, `ListUsersAll`, `ListTasksAll`, `ListTagsAll`, `ListMembersAll`, `ListChatMessagesAll`, `ListReactionsAll`, `SearchChatsAll`, `SearchMessagesAll`, `SearchUsersAll` и др.
+
+## Повторные запросы
+
+SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
 ## Загрузка файлов
 

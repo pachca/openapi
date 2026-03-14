@@ -1,0 +1,32 @@
+{
+  "name": "@pachca/generator",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "openapi-sdk-generator": "./dist/bin/generator.js"
+  },
+  "main": "dist/src/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/src/index.js"
+    }
+  },
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts bin/generator.ts --outdir dist --target node --format esm --splitting",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pachca/openapi-parser": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.14.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.1.1"
+  }
+}

@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+  title: Test API — Unions
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    # B6: Discriminated union members (3 members)
+    ViewBlockHeader:
+      type: object
+      required:
+        - type
+        - text
+      properties:
+        type:
+          type: string
+          enum:
+            - header
+          description: Тип блока
+          x-enum-descriptions:
+            header: Для заголовков всегда header
+        text:
+          type: string
+          maxLength: 150
+          description: Текст заголовка
+      description: Блок header — заголовок
+
+    ViewBlockPlainText:
+      type: object
+      required:
+        - type
+        - text
+      properties:
+        type:
+          type: string
+          enum:
+            - plain_text
+          description: Тип блока
+          x-enum-descriptions:
+            plain_text: Для обычного текста всегда plain_text
+        text:
+          type: string
+          maxLength: 12000
+          description: Текст
+      description: Блок plain_text — обычный текст
+
+    ViewBlockImage:
+      type: object
+      required:
+        - type
+        - url
+      properties:
+        type:
+          type: string
+          enum:
+            - image
+          description: Тип блока
+          x-enum-descriptions:
+            image: Для изображений всегда image
+        url:
+          type: string
+          description: URL изображения
+        alt:
+          type: string
+          description: Альтернативный текст
+      description: Блок image — изображение
+
+    # B7: Union (anyOf)
+    ViewBlockUnion:
+      anyOf:
+        - $ref: '#/components/schemas/ViewBlockHeader'
+        - $ref: '#/components/schemas/ViewBlockPlainText'
+        - $ref: '#/components/schemas/ViewBlockImage'

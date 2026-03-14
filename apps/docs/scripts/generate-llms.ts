@@ -66,6 +66,33 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
     content += '\n';
   }
 
+  content += '## SDK\n\n';
+  content +=
+    'Типизированные клиенты для 5 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.\n\n';
+  content += '| Язык | Пакет | Установка |\n';
+  content += '|------|-------|----------|\n';
+  content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
+  content += '| Python | `pachca` | `pip install pachca` |\n';
+  content +=
+    '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
+  content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.0")` |\n';
+  content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n\n';
+  content += 'Конвенции:\n';
+  content +=
+    '- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.\n';
+  content +=
+    '- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.\n';
+  content +=
+    '- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.\n\n';
+  content += '```\n';
+  content += 'TypeScript: new PachcaClient("TOKEN") → pachca.messages.createMessage({...})\n';
+  content += 'Python:     PachcaClient("TOKEN")     → await client.messages.create_message(...)\n';
+  content += 'Go:         NewPachcaClient("TOKEN")  → client.Messages.CreateMessage(ctx, ...)\n';
+  content += 'Kotlin:     PachcaClient("TOKEN")     → pachca.messages.createMessage(...)\n';
+  content +=
+    'Swift:      PachcaClient(token: "TOKEN") → try await pachca.messages.createMessage(...)\n';
+  content += '```\n\n';
+
   content += '## Agent Skills\n\n';
   content += 'Скиллы для AI-агентов (Claude Code, Cursor и др.):\n\n';
   content += '| Скилл | Описание |\n';
@@ -111,7 +138,43 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   for (const tag of sortedTags) {
     content += `- [${tag}](#api-${tag.toLowerCase().replace(/\s+/g, '-')})\n`;
   }
+  content += '\n';
+
+  content += '### SDK\n';
+  content += '- [SDK](#sdk)\n';
   content += '\n---\n\n';
+
+  content += '# SDK\n\n';
+  content +=
+    'Типизированные клиенты для 5 языков. Единый паттерн: `PachcaClient(token)` → `client.service.method(request)`.\n\n';
+  content += '| Язык | Пакет | Установка |\n';
+  content += '|------|-------|----------|\n';
+  content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
+  content += '| Python | `pachca` | `pip install pachca` |\n';
+  content +=
+    '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
+  content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.0")` |\n';
+  content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n\n';
+  content += '## Конвенции SDK\n\n';
+  content +=
+    '- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.\n';
+  content +=
+    '- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.\n';
+  content +=
+    '- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.\n\n';
+  content += '### Примеры вызова по языкам\n\n';
+  content +=
+    '**TypeScript:**\n```typescript\nimport { PachcaClient } from "@pachca/sdk";\nconst pachca = new PachcaClient("YOUR_TOKEN");\nconst users = await pachca.users.listUsers();\nawait pachca.reactions.addReaction(messageId, { code: "👍" });\n```\n\n';
+  content +=
+    '**Python:**\n```python\nfrom pachca import PachcaClient\nclient = PachcaClient("YOUR_TOKEN")\nusers = await client.users.list_users()\nawait client.reactions.add_reaction(message_id, ReactionRequest(code="👍"))\n```\n\n';
+  content +=
+    '**Go:**\n```go\nclient := pachca.NewPachcaClient("YOUR_TOKEN")\nusers, err := client.Users.ListUsers(ctx, nil)\nreaction, err := client.Reactions.AddReaction(ctx, messageId, pachca.ReactionRequest{Code: "👍"})\n```\n\n';
+  content +=
+    '**Kotlin:**\n```kotlin\nval pachca = PachcaClient("YOUR_TOKEN")\nval users = pachca.users.listUsers()\npachca.reactions.addReaction(messageId, ReactionRequest(code = "👍"))\n```\n\n';
+  content +=
+    '**Swift:**\n```swift\nlet pachca = PachcaClient(token: "YOUR_TOKEN")\nlet users = try await pachca.users.listUsers()\ntry await pachca.reactions.addReaction(messageId, ReactionRequest(code: "👍"))\n```\n\n';
+
+  content += '---\n\n';
 
   content += '# Руководства\n\n';
   for (const guide of guidePages) {

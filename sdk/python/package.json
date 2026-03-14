@@ -3,12 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "setup": "pipx install openapi-python-client || python3 -m pip install --user openapi-python-client",
-    "generate": "openapi-python-client generate --path ../../packages/spec/openapi.yaml --output-path generated --overwrite --config openapi-python-client.yaml && npx tsx generate-client.ts"
+    "setup": "true",
+    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang python && rm -rf generated/pachca/api generated/pachca/models generated/pachca/client.py generated/pachca/errors.py generated/pachca/pachca_client.py generated/pachca/types.py && mv py/* generated/pachca/ && rmdir py"
   },
   "devDependencies": {
-    "@pachca/spec": "workspace:*",
-    "tsx": "^4.21.0",
-    "yaml": "^2.7.0"
+    "@pachca/spec": "workspace:*"
   }
 }

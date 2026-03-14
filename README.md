@@ -95,17 +95,21 @@ npx skills add pachca/openapi
 | [Kotlin](sdk/kotlin/README.md) | `com.pachca:sdk` | JitPack |
 | [Swift](sdk/swift/README.md) | `PachcaSDK` | SPM |
 
+Все SDK следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.
+
+**Конвенции:**
+- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.
+
 **Пример (TypeScript):**
 
 ```typescript
-import { createClient } from '@pachca/sdk';
+import { PachcaClient } from "@pachca/sdk";
 
-const client = createClient({
-  baseUrl: 'https://api.pachca.com/api/v1',
-  headers: { Authorization: 'Bearer YOUR_TOKEN' },
-});
-
-const { data, error } = await client.GET('/users');
+const pachca = new PachcaClient("YOUR_TOKEN");
+const users = await pachca.users.listUsers();
+await pachca.reactions.addReaction(messageId, { code: "👍" }); // ≤2 поля → аргументы
 ```
 
 SDK генерируются из `openapi.yaml` и публикуются автоматически при пуше в `main`: генерация → коммит `chore: regenerate SDK v{VERSION}` → теги → npm, PyPI, JitPack. Swift и Go — через Git-теги.
@@ -169,13 +173,15 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 │   └── docs/              # Next.js 16 сайт документации (@pachca/docs)
 ├── packages/
 │   ├── spec/              # TypeSpec спецификация + workflows.ts (@pachca/spec)
+│   ├── generator/         # SDK код-генератор для 5 языков (@pachca/generator)
+│   ├── openapi-parser/    # Парсер OpenAPI-спеки (@pachca/openapi-parser)
 │   └── cli/               # CLI для работы с API (@pachca/cli)
-├── sdk/                   # SDK для 5 языков
-│   ├── typescript/        # openapi-typescript → npm
-│   ├── python/            # openapi-python-client → PyPI
-│   ├── go/                # oapi-codegen → Go modules
-│   ├── kotlin/            # openapi-generator → JitPack
-│   └── swift/             # swift-openapi-generator → SPM
+├── sdk/                   # SDK для 5 языков (генерируются @pachca/generator)
+│   ├── typescript/        # npm
+│   ├── python/            # PyPI
+│   ├── go/                # Go modules
+│   ├── kotlin/            # JitPack
+│   └── swift/             # SPM
 ├── skills/                # Agent Skills (генерируются → apps/docs/public/.well-known/skills/)
 ├── .github/workflows/     # CI/CD (check, sdk, deploy, gitlab)
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)

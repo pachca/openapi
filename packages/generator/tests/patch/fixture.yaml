@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  title: Test API — PATCH Method
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+tags:
+  - name: Items
+paths:
+  /items/{id}:
+    patch:
+      operationId: ItemOperations_patchItem
+      description: Partially update an item
+      tags:
+        - Items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemPatchRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Item'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+components:
+  schemas:
+    Item:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int32
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        priority:
+          type: integer
+          format: int32
+
+    ItemPatchRequest:
+      type: object
+      required:
+        - item
+      properties:
+        item:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            priority:
+              type: integer
+              format: int32
+
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string

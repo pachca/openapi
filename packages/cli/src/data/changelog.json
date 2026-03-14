@@ -1,5 +1,16 @@
 [
   {
+    "version": "2026.3.6",
+    "date": "15 марта 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "threads",
+        "description": "Топик thread переименован в threads (pachca threads add, pachca threads get)"
+      }
+    ]
+  },
+  {
     "version": "2026.3.5",
     "date": "7 марта 2026",
     "changes": [

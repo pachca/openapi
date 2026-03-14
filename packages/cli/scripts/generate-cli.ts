@@ -1060,10 +1060,14 @@ async function main(): Promise<void> {
   console.log(`  Generated ${commands.length} commands`);
 
   // Clean up old generated files that no longer have a matching endpoint
-  const allSections = new Set(commands.map((c) => c.section));
-  for (const section of allSections) {
+  // Scan ALL subdirectories in commands/, not just current sections,
+  // so that renamed sections (e.g. thread/ → threads/) get cleaned up too
+  const generatedSections = new Set(commands.map((c) => c.section));
+  const allDirs = fs.readdirSync(COMMANDS_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
+  for (const section of allDirs) {
     const dir = path.join(COMMANDS_DIR, section);
-    if (!fs.existsSync(dir)) continue;
     const files = fs.readdirSync(dir).filter((f) => {
       if (!f.endsWith('.ts')) return false;
       const content = fs.readFileSync(path.join(dir, f), 'utf-8');
@@ -1073,6 +1077,30 @@ async function main(): Promise<void> {
       if (!commands.some((c) => c.section === section && c.filename === file)) {
         fs.unlinkSync(path.join(dir, file));
         console.log(`  Removed stale: ${section}/${file}`);
+      }
+    }
+    // Remove empty directories left after cleanup
+    if (fs.readdirSync(dir).length === 0) {
+      fs.rmdirSync(dir);
+      console.log(`  Removed empty dir: ${section}/`);
+    }
+  }
+
+  // Also clean up stale dist/commands/ directories so tsc leftovers don't pollute oclif manifest
+  const DIST_COMMANDS = path.join(CLI_SRC, '..', 'dist', 'commands');
+  if (fs.existsSync(DIST_COMMANDS)) {
+    const srcDirNames = new Set(
+      fs.readdirSync(COMMANDS_DIR, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => d.name),
+    );
+    const distDirs = fs.readdirSync(DIST_COMMANDS, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name);
+    for (const section of distDirs) {
+      if (!srcDirNames.has(section)) {
+        fs.rmSync(path.join(DIST_COMMANDS, section), { recursive: true });
+        console.log(`  Removed stale dist: ${section}/`);
       }
     }
   }

@@ -16,7 +16,7 @@ describe('generate-cli', () => {
       const expectedSections = [
         'bots', 'chats', 'common', 'group-tags', 'link-previews',
         'members', 'messages', 'profile', 'reactions', 'read-member',
-        'search', 'security', 'tasks', 'thread', 'users', 'views',
+        'search', 'security', 'tasks', 'threads', 'users', 'views',
       ];
 
       for (const section of expectedSections) {

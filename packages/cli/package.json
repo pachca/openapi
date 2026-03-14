@@ -55,7 +55,7 @@
       "search": { "description": "Полнотекстовый поиск" },
       "security": { "description": "Журнал аудита безопасности" },
       "tasks": { "description": "Напоминания" },
-      "thread": { "description": "Треды (обсуждения)" },
+      "threads": { "description": "Треды (обсуждения)" },
       "users": { "description": "Сотрудники" },
       "views": { "description": "Представления" }
     }

@@ -28,10 +28,12 @@ export async function generateMetadata({
   }
 
   const firstParagraph = extractFirstParagraph(data.content);
-  const title = data.frontmatter.title;
-  const description: string | undefined = data.frontmatter.description || firstParagraph;
-  const ogImage = `/api/og?type=guide&slug=${slug.join('-')}`;
+  const pageTitle = data.frontmatter.title;
   const pageUrl = `/guides/${slugPath}`;
+  const section = getSectionTitle(pageUrl);
+  const title = section ? `${section}: ${pageTitle}` : pageTitle;
+  const description: string | undefined = data.frontmatter.description || firstParagraph;
+  const ogImage = `/api/og?type=guide&slug=${slugPath}`;
 
   return {
     title,
@@ -62,6 +64,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   }
 
   const pageUrl = `/guides/${slugPath}`;
+  const ogImage = `/api/og?type=guide&slug=${slugPath}`;
   const adjacent = await getAdjacentItems(pageUrl);
 
   const jsonLd = {
@@ -73,15 +76,13 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         description: data.frontmatter.description,
         url: `https://dev.pachca.com${pageUrl}`,
         inLanguage: 'ru',
+        image: `https://dev.pachca.com${ogImage}`,
+        dateModified: new Date().toISOString(),
         isPartOf: {
           '@type': 'WebSite',
           url: 'https://dev.pachca.com',
         },
-        publisher: {
-          '@type': 'Organization',
-          name: 'Пачка',
-          url: 'https://pachca.com',
-        },
+        publisher: { '@id': 'https://pachca.com/#organization' },
       },
       {
         '@type': 'BreadcrumbList',
@@ -89,7 +90,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           {
             '@type': 'ListItem',
             position: 1,
-            name: 'Developer Guide',
+            name: 'Документация',
             item: 'https://dev.pachca.com',
           },
           {

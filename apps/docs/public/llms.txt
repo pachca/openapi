@@ -140,6 +140,31 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
+## SDK
+
+Типизированные клиенты для 5 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.
+
+| Язык | Пакет | Установка |
+|------|-------|----------|
+| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
+| Python | `pachca` | `pip install pachca` |
+| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
+| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.0")` |
+| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
+
+Конвенции:
+- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.
+
+```
+TypeScript: new PachcaClient("TOKEN") → pachca.messages.createMessage({...})
+Python:     PachcaClient("TOKEN")     → await client.messages.create_message(...)
+Go:         NewPachcaClient("TOKEN")  → client.Messages.CreateMessage(ctx, ...)
+Kotlin:     PachcaClient("TOKEN")     → pachca.messages.createMessage(...)
+Swift:      PachcaClient(token: "TOKEN") → try await pachca.messages.createMessage(...)
+```
+
 ## Agent Skills
 
 Скиллы для AI-агентов (Claude Code, Cursor и др.):

@@ -99,9 +99,6 @@ const components = {
   }) => {
     const { className, children, title } = props;
     const dataNoCopy = props['data-no-copy'];
-    // eslint-disable-next-line no-console
-    if (String(children).includes('dev.pachca.com'))
-      console.log('[CODE PROPS]', Object.keys(props), 'dataNoCopy=', dataNoCopy);
     const match = /language-(\w+)/.exec(className || '');
     if (match) {
       const language = match[1] === 'bash' || match[1] === 'shell' ? 'curl' : match[1];

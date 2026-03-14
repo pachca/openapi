@@ -46,8 +46,11 @@ const jsonLd = {
       inLanguage: 'ru',
       publisher: {
         '@type': 'Organization',
+        '@id': 'https://pachca.com/#organization',
         name: 'Пачка',
+        alternateName: ['Pachca'],
         url: 'https://pachca.com',
+        sameAs: ['https://github.com/pachca', 'https://www.npmjs.com/org/pachca'],
         logo: {
           '@type': 'ImageObject',
           url: 'https://dev.pachca.com/web-app-manifest-512x512.png',
@@ -66,10 +69,19 @@ const jsonLd = {
         'REST API для управления сообщениями, чатами, пользователями и задачами в мессенджере Пачка.',
       documentation: 'https://dev.pachca.com',
       url: 'https://api.pachca.com/api/shared/v1',
-      provider: {
-        '@type': 'Organization',
-        name: 'Пачка',
-        url: 'https://pachca.com',
+      provider: { '@id': 'https://pachca.com/#organization' },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Пачка',
+      alternateName: ['Pachca'],
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web, iOS, Android, macOS, Windows, Linux',
+      url: 'https://pachca.com',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'RUB',
       },
     },
   ],

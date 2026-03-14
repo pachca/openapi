@@ -368,6 +368,7 @@ enum ChatSubtype {
   payment_required: "Требуется оплата",
   min_length: "Значение слишком короткое (пояснения вы получите в поле message)",
   max_length: "Значение слишком длинное (пояснения вы получите в поле message)",
+  use_of_system_words: "Использовано зарезервированное системное слово (here, all)",
 })
 enum ValidationErrorCode {
   @doc("Обязательное поле (не может быть пустым)")
@@ -474,6 +475,9 @@ enum ValidationErrorCode {
 
   @doc("Значение слишком длинное (пояснения вы получите в поле message)")
   max_length: "max_length",
+
+  @doc("Использовано зарезервированное системное слово (here, all)")
+  use_of_system_words: "use_of_system_words",
 }
 
 @doc("Тип аудит-события")

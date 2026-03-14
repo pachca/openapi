@@ -1,9 +1,14 @@
 type Redirect = {
   source: string;
   destination: string;
+  permanent?: boolean;
 };
 
 const redirects: Redirect[] = [
+  // ===== Guides → Standalone (temporary to avoid browser 308 cache issues) =====
+  { source: '/guides/updates', destination: '/updates', permanent: false },
+  { source: '/guides/updates/:date', destination: '/updates/:date', permanent: false },
+
   // ===== Guides: accordion parent → first child =====
   { source: '/guides/forms', destination: '/guides/forms/overview' },
   { source: '/guides/forms.md', destination: '/guides/forms/overview.md' },

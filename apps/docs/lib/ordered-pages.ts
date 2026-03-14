@@ -4,7 +4,7 @@
  * tabs-config.ts must remain client-safe (imported by 'use client' components).
  */
 
-import { GUIDE_SECTIONS, API_GUIDE_PAGES } from './tabs-config';
+import { GUIDE_SECTIONS, API_GUIDE_PAGES, SIDEBAR_FOOTER } from './tabs-config';
 import type { SidebarPageItem } from './tabs-config';
 import { getGuideData } from './content-loader';
 
@@ -35,6 +35,19 @@ export function getOrderedPages(): { path: string; title: string; description: s
       } else {
         addPage(pages, item, '/guides/');
       }
+    }
+  }
+
+  // Footer pages (updates)
+  for (const item of SIDEBAR_FOOTER) {
+    if (item.external) continue;
+    const data = getGuideData(item.path.replace('/', ''));
+    if (data) {
+      pages.push({
+        path: item.path,
+        title: data.frontmatter.title || item.title,
+        description: data.frontmatter.description || '',
+      });
     }
   }
 

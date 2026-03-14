@@ -22,7 +22,7 @@ export async function GET(): Promise<Response> {
 
   const items = updates.map((update) => {
     const slug = toSlug(update.title);
-    const link = `${baseUrl}/guides/updates/${update.date}#${slug}`;
+    const link = `${baseUrl}/updates/${update.date}#${slug}`;
 
     return `    <item>
       <title>${escapeXml(update.title)}</title>
@@ -37,7 +37,7 @@ export async function GET(): Promise<Response> {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Пачка API — Обновления</title>
-    <link>${baseUrl}/guides/updates</link>
+    <link>${baseUrl}/updates</link>
     <description>История изменений и новые возможности API Пачки</description>
     <language>ru</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>

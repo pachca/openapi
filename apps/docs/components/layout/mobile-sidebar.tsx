@@ -6,7 +6,8 @@ import { usePathname } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { SidebarNav } from './sidebar-nav';
 import type { NavigationSection } from '@/lib/openapi/types';
-import { TABS, getActiveTab, type TabId } from '@/lib/tabs-config';
+import { TABS, type TabId } from '@/lib/tabs-config';
+import { useActiveTab } from './use-last-tab';
 
 interface MobileSidebarProps {
   guideNavigation: NavigationSection[];
@@ -17,7 +18,7 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<TabId>('guide');
   const pathname = usePathname();
-  const activeTab = getActiveTab(pathname);
+  const activeTab = useActiveTab();
 
   const navigationByTab: Record<string, NavigationSection[]> = {
     guide: guideNavigation,

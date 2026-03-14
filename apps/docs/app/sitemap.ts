@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const updates = loadUpdates();
   for (const update of updates) {
     entries.push({
-      url: `${BASE_URL}/guides/updates/${update.date}`,
+      url: `${BASE_URL}/updates/${update.date}`,
       lastModified: new Date(update.date),
       changeFrequency: 'monthly',
       priority: 0.6,

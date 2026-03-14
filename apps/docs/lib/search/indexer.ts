@@ -590,7 +590,7 @@ function loadAllGuides(): GuideMetadata[] {
   // Add updates page
   const updatesContent = buildUpdatesContent();
   if (updatesContent) {
-    guides.push(extractGuideMetadata(updatesContent, 'updates', '/guides/updates'));
+    guides.push(extractGuideMetadata(updatesContent, 'updates', '/updates'));
   }
 
   // Scan guides directory (recursively for nested paths like forms/blocks)

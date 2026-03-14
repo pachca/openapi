@@ -5,8 +5,7 @@ import { SidebarNav } from './sidebar-nav';
 import { SearchButton } from './search-button';
 import { MobileSidebar } from './mobile-sidebar';
 import type { NavigationSection } from '@/lib/openapi/types';
-import { usePathname } from 'next/navigation';
-import { getActiveTab } from '@/lib/tabs-config';
+import { useActiveTab } from './use-last-tab';
 
 interface SidebarClientProps {
   guideNavigation: NavigationSection[];
@@ -14,15 +13,14 @@ interface SidebarClientProps {
 }
 
 function SidebarClient({ guideNavigation, apiNavigation }: SidebarClientProps) {
-  const pathname = usePathname();
-  const activeTab = getActiveTab(pathname);
+  const activeTab = useActiveTab();
 
   // Choose navigation based on active tab (tabs without navigation get empty array)
   const navigationByTab: Record<string, NavigationSection[]> = {
     guide: guideNavigation,
     api: apiNavigation,
   };
-  const navigation = navigationByTab[activeTab ?? 'guide'] || [];
+  const navigation = navigationByTab[activeTab] || [];
 
   return (
     <>

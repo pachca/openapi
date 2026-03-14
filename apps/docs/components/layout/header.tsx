@@ -1,17 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { LogoLink } from './pachka-logo';
-import { TABS, getActiveTab } from '@/lib/tabs-config';
+import { TABS } from '@/lib/tabs-config';
 import { useTheme, SettingsDropdown, themeOptions, schemaDetailOptions } from './settings-controls';
 import { useDisplaySettings } from './display-settings-context';
 import { SearchButton } from './search-button';
+import { useActiveTab } from './use-last-tab';
 
 export function Header() {
-  const pathname = usePathname();
-  const activeTab = getActiveTab(pathname);
+  const activeTab = useActiveTab();
 
   return (
     <header

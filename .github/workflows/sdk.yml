@@ -46,12 +46,12 @@ jobs:
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
           if [ -n "$PREV_TAG" ]; then
-            CHANGED=$(git diff --name-only "$PREV_TAG" HEAD -- packages/cli/ | grep -q . && echo true || echo false)
+            CHANGED=$(git diff --name-only "$PREV_TAG" HEAD -- packages/cli/ | grep -v '^packages/cli/scripts/' | grep -q . && echo true || echo false)
           else
-            CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/cli/ | grep -q . && echo true || echo false)
+            CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/cli/ | grep -v '^packages/cli/scripts/' | grep -q . && echo true || echo false)
           fi
           # Also check uncommitted changes from generate
-          if git diff --name-only -- packages/cli/ | grep -q .; then
+          if git diff --name-only -- packages/cli/ | grep -v '^packages/cli/scripts/' | grep -q .; then
             CHANGED=true
           fi
           echo "changed=$CHANGED" >> $GITHUB_OUTPUT

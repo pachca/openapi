@@ -1,7 +1,7 @@
 import { parseOpenAPI } from './openapi/parser';
 import { generateUrlFromOperation, generateTitle, groupEndpointsByTag } from './openapi/mapper';
 import type { NavigationSection, NavigationItem } from './openapi/types';
-import { GUIDE_SECTIONS, API_GUIDE_PAGES, type TabId } from './tabs-config';
+import { GUIDE_SECTIONS, API_GUIDE_PAGES, SIDEBAR_FOOTER, type TabId } from './tabs-config';
 import { getGuideData } from './content-loader';
 import { sortTagsByOrder } from './guides-config';
 import { loadUpdates, isNewUpdate } from './updates-parser';
@@ -28,6 +28,20 @@ const TAG_TRANSLATIONS: Record<string, string> = {
 };
 
 /**
+ * Footer section shared across all sidebar tabs (updates + status).
+ */
+function generateFooterSection(): NavigationSection {
+  const hasNewUpdates = loadUpdates().some((u) => isNewUpdate(u.date));
+  const items: NavigationItem[] = SIDEBAR_FOOTER.map((page) => {
+    const item: NavigationItem = { title: page.title, href: page.path };
+    if (page.external) item.external = true;
+    if (page.path === '/updates' && hasNewUpdates) item.badge = 'new';
+    return item;
+  });
+  return { title: '', items };
+}
+
+/**
  * Generate navigation for a specific tab.
  */
 export async function generateNavigation(tab?: TabId): Promise<NavigationSection[]> {
@@ -48,7 +62,6 @@ export async function generateNavigation(tab?: TabId): Promise<NavigationSection
  */
 function generateGuideNavigation(): NavigationSection[] {
   const sections: NavigationSection[] = [];
-  const hasNewUpdates = loadUpdates().some((u) => isNewUpdate(u.date));
 
   for (const section of GUIDE_SECTIONS) {
     const items: NavigationItem[] = [];
@@ -68,28 +81,19 @@ function generateGuideNavigation(): NavigationSection[] {
           href: page.path,
           children,
         });
-      } else if (page.external) {
-        items.push({
-          title: page.title,
-          href: page.path,
-          external: true,
-        });
       } else {
         const data = getGuideData(page.path.replace('/guides/', ''));
-        const item: NavigationItem = {
+        items.push({
           title: data?.frontmatter.title || page.title,
           href: page.path,
-        };
-        if (page.path === '/guides/updates' && hasNewUpdates) {
-          item.badge = 'new';
-        }
-        items.push(item);
+        });
       }
     }
 
     sections.push({ title: section.title, items });
   }
 
+  sections.push(generateFooterSection());
   return sections;
 }
 
@@ -147,6 +151,7 @@ async function generateApiNavigation(): Promise<NavigationSection[]> {
     items: methodGroups,
   });
 
+  sections.push(generateFooterSection());
   return sections;
 }
 

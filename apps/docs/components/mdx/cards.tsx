@@ -102,7 +102,7 @@ const GUIDE_ICONS: Record<string, string> = {
   '/api/authorization': 'KeyRound',
   '/api/requests-responses': 'ArrowLeftRight',
   '/api/errors': 'AlertTriangle',
-  '/guides/updates': 'FileText',
+  '/updates': 'FileText',
 };
 
 /** Icon and description mapping for API sections by title */

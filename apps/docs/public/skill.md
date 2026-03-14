@@ -231,7 +231,7 @@ Detailed documentation on specific topics is available at:
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов
 - [n8n](https://dev.pachca.com/guides/n8n) — Автоматизации в Пачке через платформу n8n без программирования
 - [Albato](https://dev.pachca.com/guides/albato) — Интеграция Пачки с Albato — подключение сотен сервисов без кода
-- [Последние обновления](https://dev.pachca.com/guides/updates) — История изменений и новые возможности API
+- [Последние обновления](https://dev.pachca.com/updates) — История изменений и новые возможности API
 - [Быстрый старт](https://dev.pachca.com/api/quickstart) — Первый запрос к API Пачки за 5 минут
 - [Авторизация](https://dev.pachca.com/api/authorization) — Типы токенов, скоупы и настройка доступа к API
 - [Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов, тестирование API

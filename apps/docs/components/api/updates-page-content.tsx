@@ -14,7 +14,7 @@ export async function UpdatesPageContent() {
     notFound();
   }
 
-  const pageUrl = '/guides/updates';
+  const pageUrl = '/updates';
   const adjacent = await getAdjacentItems(pageUrl);
   const introContent = data.content.split(/<!--\s*update:/)[0].trim();
 

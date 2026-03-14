@@ -40,10 +40,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `/guides/updates/${date}`,
-      types: {
-        'text/markdown': '/guides/updates.md',
-      },
+      canonical: `/updates/${date}`,
     },
     openGraph: {
       type: 'article',

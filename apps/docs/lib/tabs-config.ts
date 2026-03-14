@@ -83,13 +83,12 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Albato', path: '/guides/albato' },
     ],
   },
-  {
-    title: '',
-    items: [
-      { title: 'Последние обновления', path: '/guides/updates' },
-      { title: 'Статус API', path: STATUS_URL, external: true },
-    ],
-  },
+];
+
+/** Footer links shared across all tabs */
+export const SIDEBAR_FOOTER: SidebarPageItem[] = [
+  { title: 'Последние обновления', path: '/updates' },
+  { title: 'Статус API', path: STATUS_URL, external: true },
 ];
 
 /**

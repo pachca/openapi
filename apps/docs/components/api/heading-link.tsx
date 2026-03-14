@@ -39,7 +39,7 @@ export function HeadingLink({ id, searchParam }: { id: string; searchParam?: str
     e.stopPropagation();
 
     const basePath = searchParam
-      ? `${window.location.origin}/guides/updates/${encodeURIComponent(searchParam)}`
+      ? `${window.location.origin}/updates/${encodeURIComponent(searchParam)}`
       : `${window.location.origin}${window.location.pathname}`;
     const url = `${basePath}#${id}`;
     const success = await copyToClipboard(url);

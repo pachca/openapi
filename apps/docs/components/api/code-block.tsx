@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
 
 interface CodeBlockProps {
   code: string;
@@ -93,15 +92,22 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     };
   }, [code, language]);
 
-  if (!highlightedHtml) {
-    return (
-      <div className="flex items-center justify-center h-14 rounded-md">
-        <Loader2 className="w-4 h-4 animate-spin text-text-tertiary" />
-      </div>
-    );
-  }
+  // Plain-text fallback that matches Shiki's rendered structure to prevent layout shift
+  const plainHtml = useMemo(() => {
+    const lines = code.split('\n');
+    const lineSpans = lines
+      .map((line) => {
+        const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<span class="line">${escaped || ' '}</span>`;
+      })
+      .join('');
+    return `<pre class="shiki" style="background-color:transparent"><code>${lineSpans}</code></pre>`;
+  }, [code]);
 
   return (
-    <div className="code-block-container" dangerouslySetInnerHTML={{ __html: highlightedHtml }} />
+    <div
+      className="code-block-container"
+      dangerouslySetInnerHTML={{ __html: highlightedHtml || plainHtml }}
+    />
   );
 }

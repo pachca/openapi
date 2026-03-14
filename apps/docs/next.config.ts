@@ -66,7 +66,7 @@ const nextConfig: NextConfig = {
     return redirectsList.map((r) => ({
       source: r.source,
       destination: r.destination,
-      permanent: true,
+      permanent: r.permanent ?? true,
     }));
   },
   async rewrites() {

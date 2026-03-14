@@ -18,21 +18,17 @@ npm install @pachca/sdk
 ```
 
 ```typescript
-import { Pachca } from "@pachca/sdk";
+import { PachcaClient } from "@pachca/sdk";
 
-const pachca = new Pachca({ token: "ваш_токен" });
+const pachca = new PachcaClient("ваш_токен");
 
 // Отправка сообщения
-const { data } = await pachca.messages.createMessage({
-  body: {
-    message: { entity_id: 12345, content: "Привет из TypeScript SDK!" },
-  },
+const message = await pachca.messages.createMessage({
+  message: { entityId: 12345, content: "Привет из TypeScript SDK!" },
 });
 
 // Список всех пользователей (автопагинация)
-for await (const user of pachca.users.listAllUsers()) {
-  console.log(user.first_name);
-}
+const allUsers = await pachca.users.listUsersAll();
 ```
 
 ## Python
@@ -46,18 +42,20 @@ pip install pachca
 ```
 
 ```python
-from pachca.pachca_client import Pachca
-from pachca.models.message_create_request_message import MessageCreateRequestMessage
+from pachca.client import PachcaClient
+from pachca.models import MessageCreateRequest, MessageCreateRequestMessage
 
-client = Pachca("ваш_токен")
+client = PachcaClient("ваш_токен")
 
 # Отправка сообщения
-msg = client.messages.create_message(
-    MessageCreateRequestMessage(entity_id=12345, content="Привет из Python SDK!")
+msg = await client.messages.create_message(
+    MessageCreateRequest(
+        message=MessageCreateRequestMessage(entity_id=12345, content="Привет из Python SDK!")
+    )
 )
 
-# Список пользователей
-users = client.users.list_users()
+# Список всех пользователей (автопагинация)
+all_users = await client.users.list_users_all()
 ```
 
 ## Go
@@ -82,16 +80,10 @@ import (
 )
 
 func main() {
-    client, err := pachca.NewPachcaClient(
-        "https://api.pachca.com/api/shared/v1",
-        "ваш_токен",
-    )
-    if err != nil {
-        log.Fatal(err)
-    }
+    client := pachca.NewPachcaClient("ваш_токен")
 
     // Отправка сообщения
-    res, err := client.Messages.CreateMessage(context.Background(), &pachca.MessageCreateRequest{
+    msg, err := client.Messages.CreateMessage(context.Background(), pachca.MessageCreateRequest{
         Message: pachca.MessageCreateRequestMessage{
             EntityID: 12345,
             Content:  "Привет из Go SDK!",
@@ -100,8 +92,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    created := res.(*pachca.MessageOperationsCreateMessageCreated)
-    fmt.Printf("Сообщение: %d\n", created.Data.ID)
+    fmt.Printf("Сообщение: %d\n", msg.ID)
 }
 ```
 
@@ -119,18 +110,10 @@ dependencies {
 ```
 
 ```kotlin
-import com.pachca.PachcaClient
-import com.pachca.models.*
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
+import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.*
 
-val pachca = PachcaClient(
-    httpClientConfig = {
-        it.defaultRequest {
-            header("Authorization", "Bearer ваш_токен")
-        }
-    }
-)
+val pachca = PachcaClient("ваш_токен")
 
 // Отправка сообщения
 val message = pachca.messages.createMessage(MessageCreateRequest(
@@ -138,10 +121,10 @@ val message = pachca.messages.createMessage(MessageCreateRequest(
         entityId = 12345,
         content = "Привет из Kotlin SDK!"
     )
-)).body()
+))
 
-// Список пользователей
-val users = pachca.users.listUsers().body()
+// Список всех пользователей (автопагинация)
+val allUsers = pachca.users.listUsersAll()
 ```
 
 ## Swift
@@ -160,16 +143,16 @@ dependencies: [
 ```swift
 import PachcaSDK
 
-let pachca = try PachcaClient("ваш_токен")
+let pachca = PachcaClient(token: "ваш_токен")
 
 // Отправка сообщения
-let message = try await pachca.messages.createMessage(.init(
-    body: .json(.init(message: .init(
-        entity_id: 12345,
+let message = try await pachca.messages.createMessage(request: MessageCreateRequest(
+    message: MessageCreateRequestMessage(
+        entityId: 12345,
         content: "Привет из Swift SDK!"
-    )))
+    )
 ))
 
-// Список пользователей
-let users = try await pachca.users.listUsers(.init())
+// Список всех пользователей (автопагинация)
+let allUsers = try await pachca.users.listUsersAll()
 ```

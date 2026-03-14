@@ -534,10 +534,12 @@ export function generateEndpointMarkdown(endpoint: Endpoint, baseUrl?: string): 
  */
 export async function generateStaticPageMarkdownAsync(pagePath: string): Promise<string | null> {
   // Convert path to content file path
-  // "/" -> "home", "/guides/updates" -> "updates", "/api/authorization" -> "api/authorization"
+  // "/" -> "home", "/updates" -> "updates", "/api/authorization" -> "api/authorization"
   let contentPath = pagePath;
   if (pagePath === '/') {
     contentPath = 'home';
+  } else if (pagePath === '/updates') {
+    contentPath = 'updates';
   } else if (pagePath.startsWith('/guides/')) {
     contentPath = pagePath.replace('/guides/', '');
   } else if (pagePath.startsWith('/api/')) {

@@ -53,7 +53,7 @@ function httpCodesToMarkdown(): string {
 
 function guideCardsToMarkdown(): string {
   const guides = getOrderedPages().filter(
-    (g) => g.path !== '/' && !g.path.startsWith('/guides/updates') && !g.path.startsWith('/api/')
+    (g) => g.path !== '/' && !g.path.startsWith('/updates') && !g.path.startsWith('/api/')
   );
 
   let md = '';

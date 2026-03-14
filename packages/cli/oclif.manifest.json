@@ -951,450 +951,6 @@
         "version.js"
       ]
     },
-    "bots:list-events": {
-      "aliases": [],
-      "args": {},
-      "description": "История событий",
-      "examples": [
-        "Обработка событий через историю (polling):\n  $ pachca bots list-events"
-      ],
-      "flags": {
-        "output": {
-          "char": "o",
-          "description": "Output format: table, json, yaml, csv",
-          "name": "output",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "table",
-            "json",
-            "yaml",
-            "csv"
-          ],
-          "type": "option"
-        },
-        "columns": {
-          "char": "c",
-          "description": "Columns to display (comma-separated)",
-          "name": "columns",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-header": {
-          "description": "Hide table header",
-          "name": "no-header",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-truncate": {
-          "description": "Do not truncate values in table",
-          "name": "no-truncate",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "profile": {
-          "char": "p",
-          "description": "Profile to use for this command",
-          "name": "profile",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "token": {
-          "description": "Bearer token for this call (not saved)",
-          "name": "token",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "quiet": {
-          "char": "q",
-          "description": "Suppress output except errors",
-          "name": "quiet",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-color": {
-          "description": "Disable color output",
-          "name": "no-color",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "verbose": {
-          "char": "v",
-          "description": "Show HTTP request/response details",
-          "name": "verbose",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-input": {
-          "description": "Disable interactive prompts",
-          "name": "no-input",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "dry-run": {
-          "description": "Show HTTP request without sending",
-          "name": "dry-run",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "timeout": {
-          "description": "Request timeout in seconds",
-          "name": "timeout",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-retry": {
-          "description": "Disable auto-retry on 429/503",
-          "name": "no-retry",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "json": {
-          "description": "Output as JSON (alias for --output json)",
-          "hidden": true,
-          "name": "json",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "limit": {
-          "description": "Количество результатов на страницу",
-          "name": "limit",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "cursor": {
-          "description": "Курсор для следующей страницы",
-          "name": "cursor",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "all": {
-          "description": "Загрузить все страницы автоматически",
-          "name": "all",
-          "allowNo": false,
-          "type": "boolean"
-        }
-      },
-      "hasDynamicHelp": false,
-      "hiddenAliases": [],
-      "id": "bots:list-events",
-      "pluginAlias": "@pachca/cli",
-      "pluginName": "@pachca/cli",
-      "pluginType": "core",
-      "strict": true,
-      "enableJsonFlag": false,
-      "scope": "webhooks:events:read",
-      "apiMethod": "GET",
-      "apiPath": "/webhooks/events",
-      "defaultColumns": [
-        "id",
-        "created_at",
-        "event_type",
-        "payload"
-      ],
-      "isESM": true,
-      "relativePath": [
-        "dist",
-        "commands",
-        "bots",
-        "list-events.js"
-      ]
-    },
-    "bots:remove-event": {
-      "aliases": [],
-      "args": {
-        "id": {
-          "description": "Идентификатор события (pachca bots list)",
-          "name": "id",
-          "required": true
-        }
-      },
-      "description": "Удаление события",
-      "examples": [
-        "Обработка событий через историю (polling):\n  $ pachca bots remove-event"
-      ],
-      "flags": {
-        "output": {
-          "char": "o",
-          "description": "Output format: table, json, yaml, csv",
-          "name": "output",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "table",
-            "json",
-            "yaml",
-            "csv"
-          ],
-          "type": "option"
-        },
-        "columns": {
-          "char": "c",
-          "description": "Columns to display (comma-separated)",
-          "name": "columns",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-header": {
-          "description": "Hide table header",
-          "name": "no-header",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-truncate": {
-          "description": "Do not truncate values in table",
-          "name": "no-truncate",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "profile": {
-          "char": "p",
-          "description": "Profile to use for this command",
-          "name": "profile",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "token": {
-          "description": "Bearer token for this call (not saved)",
-          "name": "token",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "quiet": {
-          "char": "q",
-          "description": "Suppress output except errors",
-          "name": "quiet",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-color": {
-          "description": "Disable color output",
-          "name": "no-color",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "verbose": {
-          "char": "v",
-          "description": "Show HTTP request/response details",
-          "name": "verbose",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-input": {
-          "description": "Disable interactive prompts",
-          "name": "no-input",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "dry-run": {
-          "description": "Show HTTP request without sending",
-          "name": "dry-run",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "timeout": {
-          "description": "Request timeout in seconds",
-          "name": "timeout",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-retry": {
-          "description": "Disable auto-retry on 429/503",
-          "name": "no-retry",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "json": {
-          "description": "Output as JSON (alias for --output json)",
-          "hidden": true,
-          "name": "json",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "force": {
-          "description": "Пропустить подтверждение",
-          "name": "force",
-          "allowNo": false,
-          "type": "boolean"
-        }
-      },
-      "hasDynamicHelp": false,
-      "hiddenAliases": [],
-      "id": "bots:remove-event",
-      "pluginAlias": "@pachca/cli",
-      "pluginName": "@pachca/cli",
-      "pluginType": "core",
-      "strict": true,
-      "enableJsonFlag": false,
-      "scope": "webhooks:events:delete",
-      "apiMethod": "DELETE",
-      "apiPath": "/webhooks/events/{id}",
-      "isESM": true,
-      "relativePath": [
-        "dist",
-        "commands",
-        "bots",
-        "remove-event.js"
-      ]
-    },
-    "bots:update": {
-      "aliases": [],
-      "args": {
-        "id": {
-          "description": "Идентификатор бота (pachca bots list)",
-          "name": "id",
-          "required": true
-        }
-      },
-      "description": "Редактирование бота",
-      "examples": [
-        "Обновить Webhook URL бота:\n  $ pachca bots update"
-      ],
-      "flags": {
-        "output": {
-          "char": "o",
-          "description": "Output format: table, json, yaml, csv",
-          "name": "output",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "table",
-            "json",
-            "yaml",
-            "csv"
-          ],
-          "type": "option"
-        },
-        "columns": {
-          "char": "c",
-          "description": "Columns to display (comma-separated)",
-          "name": "columns",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-header": {
-          "description": "Hide table header",
-          "name": "no-header",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-truncate": {
-          "description": "Do not truncate values in table",
-          "name": "no-truncate",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "profile": {
-          "char": "p",
-          "description": "Profile to use for this command",
-          "name": "profile",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "token": {
-          "description": "Bearer token for this call (not saved)",
-          "name": "token",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "quiet": {
-          "char": "q",
-          "description": "Suppress output except errors",
-          "name": "quiet",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-color": {
-          "description": "Disable color output",
-          "name": "no-color",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "verbose": {
-          "char": "v",
-          "description": "Show HTTP request/response details",
-          "name": "verbose",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-input": {
-          "description": "Disable interactive prompts",
-          "name": "no-input",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "dry-run": {
-          "description": "Show HTTP request without sending",
-          "name": "dry-run",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "timeout": {
-          "description": "Request timeout in seconds",
-          "name": "timeout",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-retry": {
-          "description": "Disable auto-retry on 429/503",
-          "name": "no-retry",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "json": {
-          "description": "Output as JSON (alias for --output json)",
-          "hidden": true,
-          "name": "json",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "webhook": {
-          "description": "Объект параметров вебхука",
-          "name": "webhook",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        }
-      },
-      "hasDynamicHelp": false,
-      "hiddenAliases": [],
-      "id": "bots:update",
-      "pluginAlias": "@pachca/cli",
-      "pluginName": "@pachca/cli",
-      "pluginType": "core",
-      "strict": true,
-      "enableJsonFlag": false,
-      "scope": "bots:write",
-      "apiMethod": "PUT",
-      "apiPath": "/bots/{id}",
-      "defaultColumns": [
-        "id"
-      ],
-      "requiredFlags": [
-        "webhook"
-      ],
-      "isESM": true,
-      "relativePath": [
-        "dist",
-        "commands",
-        "bots",
-        "update.js"
-      ]
-    },
     "auth:list": {
       "aliases": [],
       "args": {},
@@ -2174,6 +1730,450 @@
         "commands",
         "auth",
         "switch.js"
+      ]
+    },
+    "bots:list-events": {
+      "aliases": [],
+      "args": {},
+      "description": "История событий",
+      "examples": [
+        "Обработка событий через историю (polling):\n  $ pachca bots list-events"
+      ],
+      "flags": {
+        "output": {
+          "char": "o",
+          "description": "Output format: table, json, yaml, csv",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "table",
+            "json",
+            "yaml",
+            "csv"
+          ],
+          "type": "option"
+        },
+        "columns": {
+          "char": "c",
+          "description": "Columns to display (comma-separated)",
+          "name": "columns",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-header": {
+          "description": "Hide table header",
+          "name": "no-header",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-truncate": {
+          "description": "Do not truncate values in table",
+          "name": "no-truncate",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profile": {
+          "char": "p",
+          "description": "Profile to use for this command",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "Bearer token for this call (not saved)",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "quiet": {
+          "char": "q",
+          "description": "Suppress output except errors",
+          "name": "quiet",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-color": {
+          "description": "Disable color output",
+          "name": "no-color",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "verbose": {
+          "char": "v",
+          "description": "Show HTTP request/response details",
+          "name": "verbose",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-input": {
+          "description": "Disable interactive prompts",
+          "name": "no-input",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Show HTTP request without sending",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Request timeout in seconds",
+          "name": "timeout",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-retry": {
+          "description": "Disable auto-retry on 429/503",
+          "name": "no-retry",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Output as JSON (alias for --output json)",
+          "hidden": true,
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "limit": {
+          "description": "Количество результатов на страницу",
+          "name": "limit",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "cursor": {
+          "description": "Курсор для следующей страницы",
+          "name": "cursor",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "all": {
+          "description": "Загрузить все страницы автоматически",
+          "name": "all",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "bots:list-events",
+      "pluginAlias": "@pachca/cli",
+      "pluginName": "@pachca/cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "scope": "webhooks:events:read",
+      "apiMethod": "GET",
+      "apiPath": "/webhooks/events",
+      "defaultColumns": [
+        "id",
+        "created_at",
+        "event_type",
+        "payload"
+      ],
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "bots",
+        "list-events.js"
+      ]
+    },
+    "bots:remove-event": {
+      "aliases": [],
+      "args": {
+        "id": {
+          "description": "Идентификатор события (pachca bots list)",
+          "name": "id",
+          "required": true
+        }
+      },
+      "description": "Удаление события",
+      "examples": [
+        "Обработка событий через историю (polling):\n  $ pachca bots remove-event"
+      ],
+      "flags": {
+        "output": {
+          "char": "o",
+          "description": "Output format: table, json, yaml, csv",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "table",
+            "json",
+            "yaml",
+            "csv"
+          ],
+          "type": "option"
+        },
+        "columns": {
+          "char": "c",
+          "description": "Columns to display (comma-separated)",
+          "name": "columns",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-header": {
+          "description": "Hide table header",
+          "name": "no-header",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-truncate": {
+          "description": "Do not truncate values in table",
+          "name": "no-truncate",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profile": {
+          "char": "p",
+          "description": "Profile to use for this command",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "Bearer token for this call (not saved)",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "quiet": {
+          "char": "q",
+          "description": "Suppress output except errors",
+          "name": "quiet",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-color": {
+          "description": "Disable color output",
+          "name": "no-color",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "verbose": {
+          "char": "v",
+          "description": "Show HTTP request/response details",
+          "name": "verbose",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-input": {
+          "description": "Disable interactive prompts",
+          "name": "no-input",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Show HTTP request without sending",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Request timeout in seconds",
+          "name": "timeout",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-retry": {
+          "description": "Disable auto-retry on 429/503",
+          "name": "no-retry",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Output as JSON (alias for --output json)",
+          "hidden": true,
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "force": {
+          "description": "Пропустить подтверждение",
+          "name": "force",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "bots:remove-event",
+      "pluginAlias": "@pachca/cli",
+      "pluginName": "@pachca/cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "scope": "webhooks:events:delete",
+      "apiMethod": "DELETE",
+      "apiPath": "/webhooks/events/{id}",
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "bots",
+        "remove-event.js"
+      ]
+    },
+    "bots:update": {
+      "aliases": [],
+      "args": {
+        "id": {
+          "description": "Идентификатор бота (pachca bots list)",
+          "name": "id",
+          "required": true
+        }
+      },
+      "description": "Редактирование бота",
+      "examples": [
+        "Обновить Webhook URL бота:\n  $ pachca bots update"
+      ],
+      "flags": {
+        "output": {
+          "char": "o",
+          "description": "Output format: table, json, yaml, csv",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "table",
+            "json",
+            "yaml",
+            "csv"
+          ],
+          "type": "option"
+        },
+        "columns": {
+          "char": "c",
+          "description": "Columns to display (comma-separated)",
+          "name": "columns",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-header": {
+          "description": "Hide table header",
+          "name": "no-header",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-truncate": {
+          "description": "Do not truncate values in table",
+          "name": "no-truncate",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profile": {
+          "char": "p",
+          "description": "Profile to use for this command",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "Bearer token for this call (not saved)",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "quiet": {
+          "char": "q",
+          "description": "Suppress output except errors",
+          "name": "quiet",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-color": {
+          "description": "Disable color output",
+          "name": "no-color",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "verbose": {
+          "char": "v",
+          "description": "Show HTTP request/response details",
+          "name": "verbose",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-input": {
+          "description": "Disable interactive prompts",
+          "name": "no-input",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Show HTTP request without sending",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Request timeout in seconds",
+          "name": "timeout",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-retry": {
+          "description": "Disable auto-retry on 429/503",
+          "name": "no-retry",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Output as JSON (alias for --output json)",
+          "hidden": true,
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "webhook": {
+          "description": "Объект параметров вебхука",
+          "name": "webhook",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "bots:update",
+      "pluginAlias": "@pachca/cli",
+      "pluginName": "@pachca/cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "scope": "bots:write",
+      "apiMethod": "PUT",
+      "apiPath": "/bots/{id}",
+      "defaultColumns": [
+        "id"
+      ],
+      "requiredFlags": [
+        "webhook"
+      ],
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "bots",
+        "update.js"
       ]
     },
     "chats:archive": {
@@ -8240,161 +8240,6 @@
         "update-status.js"
       ]
     },
-    "read-member:list-readers": {
-      "aliases": [],
-      "args": {
-        "id": {
-          "description": "Идентификатор сообщения",
-          "name": "id",
-          "required": true
-        }
-      },
-      "description": "Список прочитавших сообщение",
-      "examples": [
-        "Проверить, кто прочитал сообщение:\n  $ pachca read-member list-readers"
-      ],
-      "flags": {
-        "output": {
-          "char": "o",
-          "description": "Output format: table, json, yaml, csv",
-          "name": "output",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "table",
-            "json",
-            "yaml",
-            "csv"
-          ],
-          "type": "option"
-        },
-        "columns": {
-          "char": "c",
-          "description": "Columns to display (comma-separated)",
-          "name": "columns",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-header": {
-          "description": "Hide table header",
-          "name": "no-header",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-truncate": {
-          "description": "Do not truncate values in table",
-          "name": "no-truncate",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "profile": {
-          "char": "p",
-          "description": "Profile to use for this command",
-          "name": "profile",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "token": {
-          "description": "Bearer token for this call (not saved)",
-          "name": "token",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "quiet": {
-          "char": "q",
-          "description": "Suppress output except errors",
-          "name": "quiet",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-color": {
-          "description": "Disable color output",
-          "name": "no-color",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "verbose": {
-          "char": "v",
-          "description": "Show HTTP request/response details",
-          "name": "verbose",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-input": {
-          "description": "Disable interactive prompts",
-          "name": "no-input",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "dry-run": {
-          "description": "Show HTTP request without sending",
-          "name": "dry-run",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "timeout": {
-          "description": "Request timeout in seconds",
-          "name": "timeout",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-retry": {
-          "description": "Disable auto-retry on 429/503",
-          "name": "no-retry",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "json": {
-          "description": "Output as JSON (alias for --output json)",
-          "hidden": true,
-          "name": "json",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "limit": {
-          "description": "Количество результатов на страницу",
-          "name": "limit",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "cursor": {
-          "description": "Курсор для следующей страницы",
-          "name": "cursor",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "all": {
-          "description": "Загрузить все страницы автоматически",
-          "name": "all",
-          "allowNo": false,
-          "type": "boolean"
-        }
-      },
-      "hasDynamicHelp": false,
-      "hiddenAliases": [],
-      "id": "read-member:list-readers",
-      "pluginAlias": "@pachca/cli",
-      "pluginName": "@pachca/cli",
-      "pluginType": "core",
-      "strict": true,
-      "enableJsonFlag": false,
-      "scope": "messages:read",
-      "apiMethod": "GET",
-      "apiPath": "/messages/{id}/read_member_ids",
-      "isESM": true,
-      "relativePath": [
-        "dist",
-        "commands",
-        "read-member",
-        "list-readers.js"
-      ]
-    },
     "reactions:add": {
       "aliases": [],
       "args": {
@@ -8873,6 +8718,410 @@
         "commands",
         "reactions",
         "remove.js"
+      ]
+    },
+    "read-member:list-readers": {
+      "aliases": [],
+      "args": {
+        "id": {
+          "description": "Идентификатор сообщения",
+          "name": "id",
+          "required": true
+        }
+      },
+      "description": "Список прочитавших сообщение",
+      "examples": [
+        "Проверить, кто прочитал сообщение:\n  $ pachca read-member list-readers"
+      ],
+      "flags": {
+        "output": {
+          "char": "o",
+          "description": "Output format: table, json, yaml, csv",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "table",
+            "json",
+            "yaml",
+            "csv"
+          ],
+          "type": "option"
+        },
+        "columns": {
+          "char": "c",
+          "description": "Columns to display (comma-separated)",
+          "name": "columns",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-header": {
+          "description": "Hide table header",
+          "name": "no-header",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-truncate": {
+          "description": "Do not truncate values in table",
+          "name": "no-truncate",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profile": {
+          "char": "p",
+          "description": "Profile to use for this command",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "Bearer token for this call (not saved)",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "quiet": {
+          "char": "q",
+          "description": "Suppress output except errors",
+          "name": "quiet",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-color": {
+          "description": "Disable color output",
+          "name": "no-color",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "verbose": {
+          "char": "v",
+          "description": "Show HTTP request/response details",
+          "name": "verbose",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-input": {
+          "description": "Disable interactive prompts",
+          "name": "no-input",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Show HTTP request without sending",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Request timeout in seconds",
+          "name": "timeout",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-retry": {
+          "description": "Disable auto-retry on 429/503",
+          "name": "no-retry",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Output as JSON (alias for --output json)",
+          "hidden": true,
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "limit": {
+          "description": "Количество результатов на страницу",
+          "name": "limit",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "cursor": {
+          "description": "Курсор для следующей страницы",
+          "name": "cursor",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "all": {
+          "description": "Загрузить все страницы автоматически",
+          "name": "all",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "read-member:list-readers",
+      "pluginAlias": "@pachca/cli",
+      "pluginName": "@pachca/cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "scope": "messages:read",
+      "apiMethod": "GET",
+      "apiPath": "/messages/{id}/read_member_ids",
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "read-member",
+        "list-readers.js"
+      ]
+    },
+    "security:list": {
+      "aliases": [],
+      "args": {},
+      "description": "Журнал аудита событий",
+      "examples": [
+        "Получить журнал аудита событий:\n  $ pachca security list",
+        "Мониторинг подозрительных входов:\n  $ pachca security list",
+        "Экспорт логов за период:\n  $ pachca security list"
+      ],
+      "flags": {
+        "output": {
+          "char": "o",
+          "description": "Output format: table, json, yaml, csv",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "table",
+            "json",
+            "yaml",
+            "csv"
+          ],
+          "type": "option"
+        },
+        "columns": {
+          "char": "c",
+          "description": "Columns to display (comma-separated)",
+          "name": "columns",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-header": {
+          "description": "Hide table header",
+          "name": "no-header",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-truncate": {
+          "description": "Do not truncate values in table",
+          "name": "no-truncate",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profile": {
+          "char": "p",
+          "description": "Profile to use for this command",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "Bearer token for this call (not saved)",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "quiet": {
+          "char": "q",
+          "description": "Suppress output except errors",
+          "name": "quiet",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-color": {
+          "description": "Disable color output",
+          "name": "no-color",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "verbose": {
+          "char": "v",
+          "description": "Show HTTP request/response details",
+          "name": "verbose",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-input": {
+          "description": "Disable interactive prompts",
+          "name": "no-input",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Show HTTP request without sending",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Request timeout in seconds",
+          "name": "timeout",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-retry": {
+          "description": "Disable auto-retry on 429/503",
+          "name": "no-retry",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Output as JSON (alias for --output json)",
+          "hidden": true,
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "start-time": {
+          "description": "Начальная метка времени (включительно)",
+          "name": "start-time",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "end-time": {
+          "description": "Конечная метка времени (исключительно)",
+          "name": "end-time",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "event-key": {
+          "description": "Фильтр по конкретному типу события",
+          "name": "event-key",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "user_login",
+            "user_logout",
+            "user_2fa_fail",
+            "user_2fa_success",
+            "user_created",
+            "user_deleted",
+            "user_role_changed",
+            "user_updated",
+            "tag_created",
+            "tag_deleted",
+            "user_added_to_tag",
+            "user_removed_from_tag",
+            "chat_created",
+            "chat_renamed",
+            "chat_permission_changed",
+            "user_chat_join",
+            "user_chat_leave",
+            "tag_added_to_chat",
+            "tag_removed_from_chat",
+            "message_updated",
+            "message_deleted",
+            "message_created",
+            "reaction_created",
+            "reaction_deleted",
+            "thread_created",
+            "access_token_created",
+            "access_token_updated",
+            "access_token_destroy",
+            "kms_encrypt",
+            "kms_decrypt",
+            "audit_events_accessed",
+            "dlp_violation_detected",
+            "search_users_api",
+            "search_chats_api",
+            "search_messages_api"
+          ],
+          "type": "option"
+        },
+        "actor-id": {
+          "description": "Идентификатор пользователя, выполнившего действие",
+          "name": "actor-id",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "actor-type": {
+          "description": "Тип актора",
+          "name": "actor-type",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "entity-id": {
+          "description": "Идентификатор затронутой сущности",
+          "name": "entity-id",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "entity-type": {
+          "description": "Тип сущности",
+          "name": "entity-type",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "limit": {
+          "description": "Количество результатов на страницу",
+          "name": "limit",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "cursor": {
+          "description": "Курсор для следующей страницы",
+          "name": "cursor",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "all": {
+          "description": "Загрузить все страницы автоматически",
+          "name": "all",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "security:list",
+      "pluginAlias": "@pachca/cli",
+      "pluginName": "@pachca/cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "scope": "audit_events:read",
+      "plan": "corporation",
+      "apiMethod": "GET",
+      "apiPath": "/audit_events",
+      "defaultColumns": [
+        "id",
+        "created_at",
+        "event_key",
+        "entity_id",
+        "entity_type"
+      ],
+      "requiredFlags": [
+        "start-time",
+        "end-time"
+      ],
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "security",
+        "list.js"
       ]
     },
     "search:list-chats": {
@@ -9501,6 +9750,288 @@
         "commands",
         "search",
         "list-users.js"
+      ]
+    },
+    "threads:add": {
+      "aliases": [],
+      "args": {
+        "id": {
+          "description": "Идентификатор сообщения",
+          "name": "id",
+          "required": true
+        }
+      },
+      "description": "Новый тред",
+      "examples": [
+        "Ответить в тред (комментарий к сообщению):\n  $ pachca thread add",
+        "Подписаться на тред сообщения:\n  $ pachca thread add"
+      ],
+      "flags": {
+        "output": {
+          "char": "o",
+          "description": "Output format: table, json, yaml, csv",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "table",
+            "json",
+            "yaml",
+            "csv"
+          ],
+          "type": "option"
+        },
+        "columns": {
+          "char": "c",
+          "description": "Columns to display (comma-separated)",
+          "name": "columns",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-header": {
+          "description": "Hide table header",
+          "name": "no-header",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-truncate": {
+          "description": "Do not truncate values in table",
+          "name": "no-truncate",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profile": {
+          "char": "p",
+          "description": "Profile to use for this command",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "Bearer token for this call (not saved)",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "quiet": {
+          "char": "q",
+          "description": "Suppress output except errors",
+          "name": "quiet",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-color": {
+          "description": "Disable color output",
+          "name": "no-color",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "verbose": {
+          "char": "v",
+          "description": "Show HTTP request/response details",
+          "name": "verbose",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-input": {
+          "description": "Disable interactive prompts",
+          "name": "no-input",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Show HTTP request without sending",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Request timeout in seconds",
+          "name": "timeout",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-retry": {
+          "description": "Disable auto-retry on 429/503",
+          "name": "no-retry",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Output as JSON (alias for --output json)",
+          "hidden": true,
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "threads:add",
+      "pluginAlias": "@pachca/cli",
+      "pluginName": "@pachca/cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "scope": "threads:create",
+      "apiMethod": "POST",
+      "apiPath": "/messages/{id}/thread",
+      "defaultColumns": [
+        "id",
+        "chat_id",
+        "message_id",
+        "message_chat_id",
+        "updated_at"
+      ],
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "threads",
+        "add.js"
+      ]
+    },
+    "threads:get": {
+      "aliases": [],
+      "args": {
+        "id": {
+          "description": "Идентификатор треда",
+          "name": "id",
+          "required": true
+        }
+      },
+      "description": "Информация о треде",
+      "flags": {
+        "output": {
+          "char": "o",
+          "description": "Output format: table, json, yaml, csv",
+          "name": "output",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "options": [
+            "table",
+            "json",
+            "yaml",
+            "csv"
+          ],
+          "type": "option"
+        },
+        "columns": {
+          "char": "c",
+          "description": "Columns to display (comma-separated)",
+          "name": "columns",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-header": {
+          "description": "Hide table header",
+          "name": "no-header",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-truncate": {
+          "description": "Do not truncate values in table",
+          "name": "no-truncate",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "profile": {
+          "char": "p",
+          "description": "Profile to use for this command",
+          "name": "profile",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "token": {
+          "description": "Bearer token for this call (not saved)",
+          "name": "token",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "quiet": {
+          "char": "q",
+          "description": "Suppress output except errors",
+          "name": "quiet",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-color": {
+          "description": "Disable color output",
+          "name": "no-color",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "verbose": {
+          "char": "v",
+          "description": "Show HTTP request/response details",
+          "name": "verbose",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "no-input": {
+          "description": "Disable interactive prompts",
+          "name": "no-input",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "dry-run": {
+          "description": "Show HTTP request without sending",
+          "name": "dry-run",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "timeout": {
+          "description": "Request timeout in seconds",
+          "name": "timeout",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        },
+        "no-retry": {
+          "description": "Disable auto-retry on 429/503",
+          "name": "no-retry",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "json": {
+          "description": "Output as JSON (alias for --output json)",
+          "hidden": true,
+          "name": "json",
+          "allowNo": false,
+          "type": "boolean"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "threads:get",
+      "pluginAlias": "@pachca/cli",
+      "pluginName": "@pachca/cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "scope": "threads:read",
+      "apiMethod": "GET",
+      "apiPath": "/threads/{id}",
+      "defaultColumns": [
+        "id",
+        "chat_id",
+        "message_id",
+        "message_chat_id",
+        "updated_at"
+      ],
+      "isESM": true,
+      "relativePath": [
+        "dist",
+        "commands",
+        "threads",
+        "get.js"
       ]
     },
     "tasks:create": {
@@ -10348,537 +10879,6 @@
         "commands",
         "tasks",
         "update.js"
-      ]
-    },
-    "threads:add": {
-      "aliases": [],
-      "args": {
-        "id": {
-          "description": "Идентификатор сообщения",
-          "name": "id",
-          "required": true
-        }
-      },
-      "description": "Новый тред",
-      "examples": [
-        "Ответить в тред (комментарий к сообщению):\n  $ pachca thread add",
-        "Подписаться на тред сообщения:\n  $ pachca thread add"
-      ],
-      "flags": {
-        "output": {
-          "char": "o",
-          "description": "Output format: table, json, yaml, csv",
-          "name": "output",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "table",
-            "json",
-            "yaml",
-            "csv"
-          ],
-          "type": "option"
-        },
-        "columns": {
-          "char": "c",
-          "description": "Columns to display (comma-separated)",
-          "name": "columns",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-header": {
-          "description": "Hide table header",
-          "name": "no-header",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-truncate": {
-          "description": "Do not truncate values in table",
-          "name": "no-truncate",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "profile": {
-          "char": "p",
-          "description": "Profile to use for this command",
-          "name": "profile",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "token": {
-          "description": "Bearer token for this call (not saved)",
-          "name": "token",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "quiet": {
-          "char": "q",
-          "description": "Suppress output except errors",
-          "name": "quiet",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-color": {
-          "description": "Disable color output",
-          "name": "no-color",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "verbose": {
-          "char": "v",
-          "description": "Show HTTP request/response details",
-          "name": "verbose",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-input": {
-          "description": "Disable interactive prompts",
-          "name": "no-input",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "dry-run": {
-          "description": "Show HTTP request without sending",
-          "name": "dry-run",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "timeout": {
-          "description": "Request timeout in seconds",
-          "name": "timeout",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-retry": {
-          "description": "Disable auto-retry on 429/503",
-          "name": "no-retry",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "json": {
-          "description": "Output as JSON (alias for --output json)",
-          "hidden": true,
-          "name": "json",
-          "allowNo": false,
-          "type": "boolean"
-        }
-      },
-      "hasDynamicHelp": false,
-      "hiddenAliases": [],
-      "id": "threads:add",
-      "pluginAlias": "@pachca/cli",
-      "pluginName": "@pachca/cli",
-      "pluginType": "core",
-      "strict": true,
-      "enableJsonFlag": false,
-      "scope": "threads:create",
-      "apiMethod": "POST",
-      "apiPath": "/messages/{id}/thread",
-      "defaultColumns": [
-        "id",
-        "chat_id",
-        "message_id",
-        "message_chat_id",
-        "updated_at"
-      ],
-      "isESM": true,
-      "relativePath": [
-        "dist",
-        "commands",
-        "threads",
-        "add.js"
-      ]
-    },
-    "threads:get": {
-      "aliases": [],
-      "args": {
-        "id": {
-          "description": "Идентификатор треда",
-          "name": "id",
-          "required": true
-        }
-      },
-      "description": "Информация о треде",
-      "flags": {
-        "output": {
-          "char": "o",
-          "description": "Output format: table, json, yaml, csv",
-          "name": "output",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "table",
-            "json",
-            "yaml",
-            "csv"
-          ],
-          "type": "option"
-        },
-        "columns": {
-          "char": "c",
-          "description": "Columns to display (comma-separated)",
-          "name": "columns",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-header": {
-          "description": "Hide table header",
-          "name": "no-header",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-truncate": {
-          "description": "Do not truncate values in table",
-          "name": "no-truncate",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "profile": {
-          "char": "p",
-          "description": "Profile to use for this command",
-          "name": "profile",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "token": {
-          "description": "Bearer token for this call (not saved)",
-          "name": "token",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "quiet": {
-          "char": "q",
-          "description": "Suppress output except errors",
-          "name": "quiet",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-color": {
-          "description": "Disable color output",
-          "name": "no-color",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "verbose": {
-          "char": "v",
-          "description": "Show HTTP request/response details",
-          "name": "verbose",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-input": {
-          "description": "Disable interactive prompts",
-          "name": "no-input",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "dry-run": {
-          "description": "Show HTTP request without sending",
-          "name": "dry-run",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "timeout": {
-          "description": "Request timeout in seconds",
-          "name": "timeout",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-retry": {
-          "description": "Disable auto-retry on 429/503",
-          "name": "no-retry",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "json": {
-          "description": "Output as JSON (alias for --output json)",
-          "hidden": true,
-          "name": "json",
-          "allowNo": false,
-          "type": "boolean"
-        }
-      },
-      "hasDynamicHelp": false,
-      "hiddenAliases": [],
-      "id": "threads:get",
-      "pluginAlias": "@pachca/cli",
-      "pluginName": "@pachca/cli",
-      "pluginType": "core",
-      "strict": true,
-      "enableJsonFlag": false,
-      "scope": "threads:read",
-      "apiMethod": "GET",
-      "apiPath": "/threads/{id}",
-      "defaultColumns": [
-        "id",
-        "chat_id",
-        "message_id",
-        "message_chat_id",
-        "updated_at"
-      ],
-      "isESM": true,
-      "relativePath": [
-        "dist",
-        "commands",
-        "threads",
-        "get.js"
-      ]
-    },
-    "security:list": {
-      "aliases": [],
-      "args": {},
-      "description": "Журнал аудита событий",
-      "examples": [
-        "Получить журнал аудита событий:\n  $ pachca security list",
-        "Мониторинг подозрительных входов:\n  $ pachca security list",
-        "Экспорт логов за период:\n  $ pachca security list"
-      ],
-      "flags": {
-        "output": {
-          "char": "o",
-          "description": "Output format: table, json, yaml, csv",
-          "name": "output",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "table",
-            "json",
-            "yaml",
-            "csv"
-          ],
-          "type": "option"
-        },
-        "columns": {
-          "char": "c",
-          "description": "Columns to display (comma-separated)",
-          "name": "columns",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-header": {
-          "description": "Hide table header",
-          "name": "no-header",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-truncate": {
-          "description": "Do not truncate values in table",
-          "name": "no-truncate",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "profile": {
-          "char": "p",
-          "description": "Profile to use for this command",
-          "name": "profile",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "token": {
-          "description": "Bearer token for this call (not saved)",
-          "name": "token",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "quiet": {
-          "char": "q",
-          "description": "Suppress output except errors",
-          "name": "quiet",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-color": {
-          "description": "Disable color output",
-          "name": "no-color",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "verbose": {
-          "char": "v",
-          "description": "Show HTTP request/response details",
-          "name": "verbose",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "no-input": {
-          "description": "Disable interactive prompts",
-          "name": "no-input",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "dry-run": {
-          "description": "Show HTTP request without sending",
-          "name": "dry-run",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "timeout": {
-          "description": "Request timeout in seconds",
-          "name": "timeout",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "no-retry": {
-          "description": "Disable auto-retry on 429/503",
-          "name": "no-retry",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "json": {
-          "description": "Output as JSON (alias for --output json)",
-          "hidden": true,
-          "name": "json",
-          "allowNo": false,
-          "type": "boolean"
-        },
-        "start-time": {
-          "description": "Начальная метка времени (включительно)",
-          "name": "start-time",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "end-time": {
-          "description": "Конечная метка времени (исключительно)",
-          "name": "end-time",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "event-key": {
-          "description": "Фильтр по конкретному типу события",
-          "name": "event-key",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "options": [
-            "user_login",
-            "user_logout",
-            "user_2fa_fail",
-            "user_2fa_success",
-            "user_created",
-            "user_deleted",
-            "user_role_changed",
-            "user_updated",
-            "tag_created",
-            "tag_deleted",
-            "user_added_to_tag",
-            "user_removed_from_tag",
-            "chat_created",
-            "chat_renamed",
-            "chat_permission_changed",
-            "user_chat_join",
-            "user_chat_leave",
-            "tag_added_to_chat",
-            "tag_removed_from_chat",
-            "message_updated",
-            "message_deleted",
-            "message_created",
-            "reaction_created",
-            "reaction_deleted",
-            "thread_created",
-            "access_token_created",
-            "access_token_updated",
-            "access_token_destroy",
-            "kms_encrypt",
-            "kms_decrypt",
-            "audit_events_accessed",
-            "dlp_violation_detected",
-            "search_users_api",
-            "search_chats_api",
-            "search_messages_api"
-          ],
-          "type": "option"
-        },
-        "actor-id": {
-          "description": "Идентификатор пользователя, выполнившего действие",
-          "name": "actor-id",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "actor-type": {
-          "description": "Тип актора",
-          "name": "actor-type",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "entity-id": {
-          "description": "Идентификатор затронутой сущности",
-          "name": "entity-id",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "entity-type": {
-          "description": "Тип сущности",
-          "name": "entity-type",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "limit": {
-          "description": "Количество результатов на страницу",
-          "name": "limit",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "cursor": {
-          "description": "Курсор для следующей страницы",
-          "name": "cursor",
-          "hasDynamicHelp": false,
-          "multiple": false,
-          "type": "option"
-        },
-        "all": {
-          "description": "Загрузить все страницы автоматически",
-          "name": "all",
-          "allowNo": false,
-          "type": "boolean"
-        }
-      },
-      "hasDynamicHelp": false,
-      "hiddenAliases": [],
-      "id": "security:list",
-      "pluginAlias": "@pachca/cli",
-      "pluginName": "@pachca/cli",
-      "pluginType": "core",
-      "strict": true,
-      "enableJsonFlag": false,
-      "scope": "audit_events:read",
-      "plan": "corporation",
-      "apiMethod": "GET",
-      "apiPath": "/audit_events",
-      "defaultColumns": [
-        "id",
-        "created_at",
-        "event_key",
-        "entity_id",
-        "entity_type"
-      ],
-      "requiredFlags": [
-        "start-time",
-        "end-time"
-      ],
-      "isESM": true,
-      "relativePath": [
-        "dist",
-        "commands",
-        "security",
-        "list.js"
       ]
     },
     "users:create": {

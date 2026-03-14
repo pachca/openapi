@@ -14,6 +14,7 @@ import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
+import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
 import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
@@ -329,4 +330,7 @@ export const customMdxComponents = {
   CliCommands,
   NpmBadge,
   PackageBadge,
+  HomeHero,
+  HomeHeroContent,
+  HomeHeroCode,
 };

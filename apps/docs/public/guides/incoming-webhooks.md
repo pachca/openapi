@@ -43,7 +43,7 @@
 
 Настройки входящего вебхука находятся на вкладке **Входящий Webhook** в настройках бота.
 
-![Вкладка Входящий Webhook в настройках бота](/images/incoming-webhooks/inc_webhook.png)
+![Вкладка Входящий Webhook в настройках бота](/images/incoming-webhooks/inc_webhook.webp)
 
 *Вкладка Входящий Webhook в настройках бота*
 

@@ -4,28 +4,25 @@ description: Руководство разработчика и документ
 hideTableOfContents: true
 ---
 
-<CardGroup>
-  <Card title="Быстрый старт" icon="Zap" href="/api/quickstart">
-    Первый запрос за 5 минут
-  </Card>
-  <Card title="Авторизация" icon="KeyRound" href="/api/authorization">
-    Токены и аутентификация
-  </Card>
-  <Card title="CLI" icon="Terminal" href="/guides/cli">
-    Все методы из терминала
-  </Card>
-  <Card title="AI-агенты" icon="Sparkles" href="/guides/ai-agents">
-    Навыки для Claude и GPT
-  </Card>
-  <Card title="Сценарии" icon="Route" href="/guides/workflows">
-    30+ готовых инструкций
-  </Card>
-  <Card title="SDK" icon="FileText" href="/api/sdk">
-    TypeScript, Python, Go, Kotlin, Swift
-  </Card>
-</CardGroup>
+<HomeHero>
+  <HomeHeroContent
+    subtitle="Пачка для разработчиков"
+    title="Обзор"
+    description="REST API Пачки позволяет автоматизировать работу в мессенджере: отправлять сообщения, управлять чатами и сотрудниками, создавать ботов и реагировать на события через вебхуки."
+  >
+    <Card compact title="Быстрый старт" icon="Zap" href="/guides/quickstart" />
+    <Card compact title="Авторизация" icon="KeyRound" href="/api/authorization" />
+    <Card compact title="CLI" icon="Terminal" href="/guides/cli" />
+    <Card compact title="SDK" icon="FileText" href="/api/sdk" />
+  </HomeHeroContent>
+  <HomeHeroCode>
+    <ApiCodeExample operationId="MessageOperations_createMessage" title="Отправка сообщения" show="request" requestMode="required" />
+  </HomeHeroCode>
+</HomeHero>
 
 ## Боты и автоматизации
+
+Создавайте ботов, обрабатывайте команды, добавляйте кнопки и формы в сообщения, получайте события через вебхуки.
 
 <CardGroup>
   <Card title="Боты" icon="Bot" href="/guides/bots">
@@ -50,6 +47,8 @@ hideTableOfContents: true
 
 ## No-code интеграции
 
+Подключайте Пачку к внешним сервисам без написания кода.
+
 <CardGroup>
   <Card title="n8n" icon="Blocks" href="/guides/n8n">
     Визуальные автоматизации
@@ -60,6 +59,8 @@ hideTableOfContents: true
 </CardGroup>
 
 ## Данные и безопасность
+
+Экспорт данных, защита от утечек и мониторинг событий.
 
 <CardGroup>
   <Card title="Экспорт сообщений" icon="Download" href="/guides/export">
@@ -73,34 +74,16 @@ hideTableOfContents: true
   </Card>
 </CardGroup>
 
-## Справочник API
+## Ресурсы
 
-<CardGroup>
-  <Card title="Сообщения" icon="MessageSquare" href="/api/messages/create">
-    Отправка и редактирование
-  </Card>
-  <Card title="Чаты" icon="MessagesSquare" href="/api/chats/list">
-    Каналы и беседы
-  </Card>
-  <Card title="Сотрудники" icon="Users" href="/api/users/list">
-    Участники пространства
-  </Card>
-  <Card title="Поиск" icon="Search" href="/api/search/list-messages">
-    Сообщения, чаты, сотрудники
-  </Card>
-  <Card title="Напоминания" icon="Bell" href="/api/tasks/list">
-    Задачи и напоминания
-  </Card>
-  <Card title="Безопасность" icon="Shield" href="/api/security/list">
-    Журнал аудита
-  </Card>
-</CardGroup>
-
-## Инструменты
+Спецификации, коллекции и файлы для интеграции.
 
 <CardGroup>
   <Card title="OpenAPI-спецификация" icon="FileSearch" href="/openapi.yaml" download>
     Описание всех методов в YAML
+  </Card>
+  <Card title="Коллекция Postman" icon="LayoutList" href="/pachca.postman_collection.json" download>
+    Все методы с примерами для Postman и Bruno
   </Card>
   <Card title="llms.txt" icon="Sparkles" href="/llms.txt" download>
     Краткое описание API для LLM

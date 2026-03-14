@@ -1,6 +1,5 @@
 import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
 import { getAdjacentItems } from '@/lib/navigation';
-import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { getGuideData, extractFirstParagraph } from '@/lib/content-loader';
 import { notFound } from 'next/navigation';
@@ -74,7 +73,6 @@ export default async function HomePage() {
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
         }}
       />
-      <StaticPageHeader title={data.frontmatter.title} pageUrl="/" />
       <MarkdownContent content={data.content} />
     </StaticPageWrapper>
   );

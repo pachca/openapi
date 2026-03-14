@@ -30,8 +30,8 @@ interface CodeExamplesProps {
 }
 
 type Language =
-  | 'curl'
   | 'cli'
+  | 'curl'
   | 'javascript'
   | 'python'
   | 'ruby'
@@ -44,8 +44,8 @@ type Language =
 const STORAGE_KEY = 'pachca-docs-code-lang';
 
 const languageLabels: Record<Language, string> = {
-  curl: 'cURL',
   cli: 'CLI',
+  curl: 'cURL',
   javascript: 'JavaScript',
   python: 'Python',
   ruby: 'Ruby',
@@ -65,7 +65,7 @@ export function CodeExamples({
   responseMode = 'full',
   className,
 }: CodeExamplesProps) {
-  const [activeTab, setActiveTab] = useState<Language>('curl');
+  const [activeTab, setActiveTab] = useState<Language>('cli');
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);

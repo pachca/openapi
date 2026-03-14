@@ -31,6 +31,7 @@ import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
+import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 import { HeadingLink } from './heading-link';
@@ -217,6 +218,9 @@ const components = {
   CliCommands,
   NpmBadge,
   PackageBadge,
+  HomeHero,
+  HomeHeroContent,
+  HomeHeroCode,
 };
 
 interface MarkdownContentProps {

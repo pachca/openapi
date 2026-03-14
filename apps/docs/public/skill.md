@@ -215,6 +215,7 @@ Error response body: `{ "errors": [{ "key": "field", "value": "description" }] }
 
 Detailed documentation on specific topics is available at:
 
+- [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [CLI](https://dev.pachca.com/guides/cli) — Управление Пачкой из терминала — все API-методы одной командой
 - [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API
@@ -232,7 +233,6 @@ Detailed documentation on specific topics is available at:
 - [n8n](https://dev.pachca.com/guides/n8n) — Автоматизации в Пачке через платформу n8n без программирования
 - [Albato](https://dev.pachca.com/guides/albato) — Интеграция Пачки с Albato — подключение сотен сервисов без кода
 - [Последние обновления](https://dev.pachca.com/updates) — История изменений и новые возможности API
-- [Быстрый старт](https://dev.pachca.com/api/quickstart) — Первый запрос к API Пачки за 5 минут
 - [Авторизация](https://dev.pachca.com/api/authorization) — Типы токенов, скоупы и настройка доступа к API
 - [Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов, тестирование API
 - [Пагинация](https://dev.pachca.com/api/pagination) — Cursor-based pagination в API Пачки

@@ -24,7 +24,7 @@ export async function CliCommands() {
         </thead>
         <tbody className="divide-y divide-glass-divider">
           {allCommands.map((item) => {
-            const command = `pachca ${item.href.slice(1).replace(/\//g, ' ')}`;
+            const command = `pachca ${item.href.replace(/^\/api\//, '').replace(/\//g, ' ')}`;
             return (
               <tr key={item.href}>
                 <td className="py-5 pl-0! text-text-primary">

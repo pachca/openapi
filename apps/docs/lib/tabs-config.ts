@@ -8,6 +8,8 @@ export type TabId = 'guide' | 'api';
 export interface TabConfig {
   id: TabId;
   title: string;
+  /** Shorter title for mobile UI */
+  shortTitle: string;
   /** URL prefix for matching active tab */
   prefix: string;
   /** Whether to show sidebar for this tab */
@@ -29,8 +31,14 @@ export interface SidebarPageItem {
 
 /** Header tabs (order matters for rendering) */
 export const TABS: TabConfig[] = [
-  { id: 'guide', title: 'Руководство разработчика', prefix: '/guides', hasSidebar: true },
-  { id: 'api', title: 'Документация API', prefix: '/api', hasSidebar: true },
+  {
+    id: 'guide',
+    title: 'Руководство разработчика',
+    shortTitle: 'Руководство разработчика',
+    prefix: '/guides',
+    hasSidebar: true,
+  },
+  { id: 'api', title: 'Документация API', shortTitle: 'API', prefix: '/api', hasSidebar: true },
 ];
 
 /** Status page external link */
@@ -44,6 +52,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
   {
     title: 'Инструменты',
     items: [
+      { title: 'Быстрый старт', path: '/guides/quickstart' },
       { title: 'AI агенты', path: '/guides/ai-agents' },
       { title: 'CLI', path: '/guides/cli' },
       { title: 'Сценарии', path: '/guides/workflows' },
@@ -96,7 +105,6 @@ export const SIDEBAR_FOOTER: SidebarPageItem[] = [
  * The "Справочник методов" section is generated dynamically from OpenAPI.
  */
 export const API_GUIDE_PAGES: SidebarPageItem[] = [
-  { title: 'Быстрый старт', path: '/api/quickstart' },
   { title: 'Авторизация', path: '/api/authorization' },
   { title: 'Запросы и ответы', path: '/api/requests-responses' },
   { title: 'Пагинация', path: '/api/pagination' },

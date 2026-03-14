@@ -20,7 +20,7 @@
 - **Кто может создавать интеграции** *(токены ботов)* — «Только администраторы» или «Администраторы и сотрудники»
 - **Кто может работать с API** *(персональные токены)* — «Только администраторы» (сотрудники не смогут создавать и использовать персональные токены) или «Все сотрудники»
 
-![Настройки доступа к API](/images/authorization/token_access.jpg)
+![Настройки доступа к API](/images/authorization/token_access.webp)
 
 *Настройки доступа к API*
 
@@ -34,14 +34,14 @@
 
 На странице отображается список персональных токенов: название, дата создания и дата последнего использования.
 
-![Список токенов](/images/authorization/user_tokens_list.png)
+![Список токенов](/images/authorization/user_tokens_list.webp)
 
 *Список токенов*
 
 
 Нажмите **«Создать новый токен»** — откроется диалог, в котором нужно задать название токена и выбрать разрешения (скоупы).
 
-![Создание API токена](/images/authorization/create_user_token_modal.png)
+![Создание API токена](/images/authorization/create_user_token_modal.webp)
 
 *Создание API токена*
 
@@ -121,10 +121,8 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 #### OAuthError
 
-- `error` (string, **обязательный**): Код ошибки
-  - Пример: `invalid_token`
-- `error_description` (string, **обязательный**): Описание ошибки
-  - Пример: `Access token is missing`
+- `error: string` (required) — Код ошибки
+- `error_description: string` (required) — Описание ошибки
 
 
 Подробнее о кодах ошибок и структуре ответов — в руководстве [Ошибки и лимиты](/api/errors).

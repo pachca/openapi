@@ -9,7 +9,7 @@ import { requiresAuth, getQueryParams, resolveParamName } from './utils';
 
 export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): string {
   const url = generateUrlFromOperation(endpoint);
-  const [, section, action] = url.split('/');
+  const [, , section, action] = url.split('/');
   let command = `pachca ${section} ${action}`;
 
   const positionalArgs: string[] = [];

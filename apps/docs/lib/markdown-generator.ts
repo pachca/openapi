@@ -1,12 +1,6 @@
 import type { Endpoint, Schema, Response } from './openapi/types';
 import { generateRequestExample, generateResponseExample } from './openapi/example-generator';
 import { generateCurl } from './code-generators/curl';
-import { generateJavaScript } from './code-generators/javascript';
-import { generatePython } from './code-generators/python';
-import { generateRuby } from './code-generators/ruby';
-import { generatePHP } from './code-generators/php';
-import { generateNodeJS } from './code-generators/nodejs';
-import { generateCLI } from './code-generators/cli';
 import { generateTitle, getDescriptionWithoutTitle } from './openapi/mapper';
 import { getGuideContent } from './content-loader';
 import { expandMdxComponents } from './mdx-expander';
@@ -85,8 +79,6 @@ export function schemaToMarkdown(
       const prop = resolveSchema(rawProp);
       const isRequired =
         requiredFields.includes(propName) || resolvedSchema.required?.includes(propName);
-      const requiredLabel = isRequired ? '**обязательный**' : 'опциональный';
-
       // Check for anyOf/oneOf on property level
       const hasUnion = prop.anyOf || prop.oneOf;
 
@@ -110,77 +102,59 @@ export function schemaToMarkdown(
           typeInfo = 'array (union)';
         } else {
           const itemType = items.type || 'object';
-          typeInfo = `array[${itemType}]`;
+          typeInfo = `array of ${itemType}`;
         }
       } else {
         typeInfo = prop.type || 'object';
       }
 
-      // Handle enum - will add descriptions below if available
-      const enumValues = prop.enum as unknown[] | undefined;
-      const hasEnum = enumValues && enumValues.length > 0;
-      if (hasEnum && !prop['x-enum-descriptions']) {
-        // Only inline enum if no descriptions
-        typeInfo += ` (enum: ${enumValues.join(', ')})`;
-      }
-      if (prop.format) {
+      // Use self-describing format as the type when base is string
+      if (prop.format && SELF_DESCRIBING_FORMATS.has(prop.format) && prop.type === 'string') {
+        typeInfo = prop.format;
+      } else if (prop.format) {
         typeInfo += `, ${prop.format}`;
       }
 
+      // Handle enum — inline values into type
+      const enumValues = prop.enum as unknown[] | undefined;
+      const hasEnum = enumValues && enumValues.length > 0;
+
+      // Build field line: `name: type` (required) — description. Constraints inline.
       const description = prop.description || rawProp.description || '';
-      content += `${indent}- \`${propName}\` (${typeInfo}, ${requiredLabel})`;
-      if (description) {
-        content += `: ${description}`;
-      }
-      content += '\n';
-
-      // Add example if available
-      if (prop.example !== undefined) {
-        const exampleStr =
-          typeof prop.example === 'string' ? prop.example : JSON.stringify(prop.example);
-        content += `${indent}  - Пример: \`${exampleStr}\`\n`;
-      }
-
-      // Add default value if available
+      const meta: string[] = [];
+      if (isRequired) meta.push('required');
       if (prop.default !== undefined) {
         const defaultStr =
           typeof prop.default === 'string' ? prop.default : JSON.stringify(prop.default);
-        content += `${indent}  - По умолчанию: \`${defaultStr}\`\n`;
+        meta.push(`default: ${defaultStr}`);
       }
+      // Inline constraints
+      if (prop.maxLength !== undefined) meta.push(`max length: ${prop.maxLength}`);
+      if (prop.minLength !== undefined) meta.push(`min length: ${prop.minLength}`);
+      if (prop.maxItems !== undefined) meta.push(`max items: ${prop.maxItems}`);
+      if (prop.minimum !== undefined) meta.push(`min: ${prop.minimum}`);
+      if (prop.maximum !== undefined) meta.push(`max: ${prop.maximum}`);
 
-      // Add constraints
-      if (prop.maxLength !== undefined) {
-        content += `${indent}  - Максимальная длина: ${prop.maxLength} символов\n`;
+      const metaStr = meta.length > 0 ? ` (${meta.join(', ')})` : '';
+      content += `${indent}- \`${propName}: ${typeInfo}\`${metaStr}`;
+      if (description) {
+        content += ` — ${description}`;
       }
-      if (prop.minLength !== undefined) {
-        content += `${indent}  - Минимальная длина: ${prop.minLength} символов\n`;
-      }
-      if (prop.maxItems !== undefined) {
-        content += `${indent}  - Максимум элементов: ${prop.maxItems}\n`;
-      }
-      if (prop.minimum !== undefined) {
-        content += `${indent}  - Минимум: ${prop.minimum}\n`;
-      }
-      if (prop.maximum !== undefined) {
-        content += `${indent}  - Максимум: ${prop.maximum}\n`;
-      }
+      content += '\n';
 
       // Add enum values with descriptions
       if (hasEnum && prop['x-enum-descriptions']) {
         const enumDescriptions = prop['x-enum-descriptions'] as Record<string, string>;
-        content += `${indent}  - **Возможные значения:**\n`;
+        content += `${indent}  Значения: `;
+        const parts: string[] = [];
         for (const enumValue of enumValues) {
           const enumKey = String(enumValue);
           const enumDesc = enumDescriptions[enumKey] || '';
-          if (enumDesc) {
-            content += `${indent}    - \`${enumKey}\`: ${enumDesc}\n`;
-          } else {
-            content += `${indent}    - \`${enumKey}\`\n`;
-          }
+          parts.push(enumDesc ? `\`${enumKey}\` — ${enumDesc}` : `\`${enumKey}\``);
         }
+        content += parts.join(', ') + '\n';
       } else if (hasEnum) {
-        // List enum values without descriptions
-        content += `${indent}  - **Возможные значения:** ${enumValues.map((v) => `\`${String(v)}\``).join(', ')}\n`;
+        content += `${indent}  Значения: ${enumValues.map((v) => `\`${String(v)}\``).join(', ')}\n`;
       }
 
       // Handle anyOf/oneOf on property level
@@ -258,6 +232,18 @@ export function schemaToMarkdown(
   return content;
 }
 
+/** Well-known formats that replace the base type (e.g. "date" instead of "string, date") */
+const SELF_DESCRIBING_FORMATS = new Set(['date', 'date-time', 'uri', 'email', 'uuid', 'binary']);
+
+/** Format parameter type string, e.g. "integer" or "date" */
+function formatParamType(schema?: Schema): string {
+  if (!schema) return 'string';
+  const base = Array.isArray(schema.type) ? schema.type.join(' | ') : schema.type || 'string';
+  if (schema.format && SELF_DESCRIBING_FORMATS.has(schema.format)) return schema.format;
+  if (schema.format) return `${base}, ${schema.format}`;
+  return base;
+}
+
 /**
  * Format parameters section for markdown
  */
@@ -276,13 +262,12 @@ function formatParameters(endpoint: Endpoint): string {
   if (pathParams.length > 0) {
     content += '### Path параметры\n\n';
     for (const param of pathParams) {
-      const required = param.required ? '**обязательный**' : 'опциональный';
-      const type = param.schema?.type || 'string';
+      const type = formatParamType(param.schema);
+      const meta = param.required ? ' (required)' : '';
       const description = param.description || '';
-      content += `- \`${param.name}\` (${type}, ${required}): ${description}\n`;
-      if (param.schema?.example !== undefined) {
-        content += `  - Пример: \`${param.schema.example}\`\n`;
-      }
+      content += `- \`${param.name}: ${type}\`${meta}`;
+      if (description) content += ` — ${description}`;
+      content += '\n';
     }
     content += '\n';
   }
@@ -290,18 +275,17 @@ function formatParameters(endpoint: Endpoint): string {
   if (queryParams.length > 0) {
     content += '### Query параметры\n\n';
     for (const param of queryParams) {
-      const required = param.required ? '**обязательный**' : 'опциональный';
-      let type = param.schema?.type || 'string';
-      if (param.schema?.enum) {
-        type += ` (enum: ${param.schema.enum.join(', ')})`;
-      }
+      const type = formatParamType(param.schema);
+      const meta: string[] = [];
+      if (param.required) meta.push('required');
+      if (param.schema?.default !== undefined) meta.push(`default: ${param.schema.default}`);
+      const metaStr = meta.length > 0 ? ` (${meta.join(', ')})` : '';
       const description = param.description || '';
-      content += `- \`${param.name}\` (${type}, ${required}): ${description}\n`;
-      if (param.schema?.example !== undefined) {
-        content += `  - Пример: \`${param.schema.example}\`\n`;
-      }
-      if (param.schema?.default !== undefined) {
-        content += `  - По умолчанию: \`${param.schema.default}\`\n`;
+      content += `- \`${param.name}: ${type}\`${metaStr}`;
+      if (description) content += ` — ${description}`;
+      content += '\n';
+      if (param.schema?.enum) {
+        content += `  Значения: ${param.schema.enum.map((v: unknown) => `\`${String(v)}\``).join(', ')}\n`;
       }
     }
     content += '\n';
@@ -310,13 +294,12 @@ function formatParameters(endpoint: Endpoint): string {
   if (headerParams.length > 0) {
     content += '### Header параметры\n\n';
     for (const param of headerParams) {
-      const required = param.required ? '**обязательный**' : 'опциональный';
-      const type = param.schema?.type || 'string';
+      const type = formatParamType(param.schema);
+      const meta = param.required ? ' (required)' : '';
       const description = param.description || '';
-      content += `- \`${param.name}\` (${type}, ${required}): ${description}\n`;
-      if (param.schema?.example !== undefined) {
-        content += `  - Пример: \`${param.schema.example}\`\n`;
-      }
+      content += `- \`${param.name}: ${type}\`${meta}`;
+      if (description) content += ` — ${description}`;
+      content += '\n';
     }
     content += '\n';
   }
@@ -478,49 +461,10 @@ export function generateEndpointMarkdown(endpoint: Endpoint, baseUrl?: string): 
   content += formatParameters(endpoint);
   content += formatRequestBody(endpoint);
 
-  // Add code examples in multiple languages
-  content += '\n## Примеры запроса\n\n';
-
-  // CLI
-  content += '### CLI\n\n';
-  content += '```bash\n';
-  content += generateCLI(endpoint);
-  content += '\n```\n\n';
-
-  // cURL
-  content += '### cURL\n\n';
+  // Add code example (cURL only — agents can derive other languages from it)
+  content += '\n## Пример запроса\n\n';
   content += '```bash\n';
   content += generateCurl(endpoint, baseUrl);
-  content += '\n```\n\n';
-
-  // JavaScript
-  content += '### JavaScript\n\n';
-  content += '```javascript\n';
-  content += generateJavaScript(endpoint, baseUrl);
-  content += '\n```\n\n';
-
-  // Python
-  content += '### Python\n\n';
-  content += '```python\n';
-  content += generatePython(endpoint, baseUrl);
-  content += '\n```\n\n';
-
-  // Node.js
-  content += '### Node.js\n\n';
-  content += '```javascript\n';
-  content += generateNodeJS(endpoint, baseUrl);
-  content += '\n```\n\n';
-
-  // Ruby
-  content += '### Ruby\n\n';
-  content += '```ruby\n';
-  content += generateRuby(endpoint, baseUrl);
-  content += '\n```\n\n';
-
-  // PHP
-  content += '### PHP\n\n';
-  content += '```php\n';
-  content += generatePHP(endpoint, baseUrl);
   content += '\n```\n';
 
   content += formatResponses(endpoint);

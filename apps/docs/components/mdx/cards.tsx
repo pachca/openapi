@@ -42,6 +42,7 @@ import {
   Route,
   MousePointerClick,
   Blocks,
+  Code,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -87,10 +88,12 @@ const iconMap: Record<string, LucideIcon> = {
   Route,
   MousePointerClick,
   Blocks,
+  Code,
 };
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
+  '/guides/quickstart': 'Zap',
   '/guides/ai-agents': 'Sparkles',
   '/guides/cli': 'Terminal',
   '/guides/workflows': 'Route',
@@ -148,11 +151,29 @@ interface CardProps {
   icon?: string;
   href?: string;
   download?: boolean;
-  children: React.ReactNode;
+  compact?: boolean;
+  children?: React.ReactNode;
 }
 
-export function Card({ title, icon, href, download, children }: CardProps) {
+export function Card({ title, icon, href, download, compact, children }: CardProps) {
   const Icon = icon ? iconMap[icon] : null;
+
+  if (compact && href) {
+    const compactContent = (
+      <>
+        {Icon && <Icon className="w-4 h-4 text-text-secondary" strokeWidth={2} />}
+        <span className="text-[14px] font-medium text-text-primary">{title}</span>
+        <ArrowUpRight className="w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      </>
+    );
+    const compactClassName =
+      'group no-underline! inline-flex items-center gap-2 px-3.5 py-2 text-[14px] font-medium rounded-lg border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200';
+    return (
+      <Link href={href} className={compactClassName}>
+        {compactContent}
+      </Link>
+    );
+  }
 
   const content = (
     <>

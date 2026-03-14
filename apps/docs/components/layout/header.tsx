@@ -30,22 +30,21 @@ export function Header() {
       <LogoLink />
 
       {/* Tabs — desktop only, centered */}
-      <nav className="hidden lg:flex items-end gap-1 absolute left-1/2 -translate-x-1/2 h-full">
+      <nav className="hidden lg:flex items-center gap-0.5 px-1 py-1 rounded-full bg-glass backdrop-blur-md border border-glass-border absolute left-1/2 -translate-x-1/2">
         {TABS.map((tab) => {
-          const href = tab.id === 'guide' ? '/guides/ai-agents' : '/api/quickstart';
+          const href = tab.id === 'guide' ? '/guides/quickstart' : '/api/authorization';
           const isActive = activeTab === tab.id;
           return (
             <Link
               key={tab.id}
               href={href}
-              className={`relative flex items-center h-full px-3 text-[13px] leading-[1.4] font-medium transition-colors duration-200 ${
-                isActive ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary'
+              className={`flex items-center px-2.5 py-1 text-[13px] leading-[1.4] font-medium rounded-full transition-colors duration-200 ${
+                isActive
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
               }`}
             >
               {tab.title}
-              {isActive && (
-                <span className="absolute -bottom-px left-3 right-3 h-px bg-primary z-10" />
-              )}
             </Link>
           );
         })}

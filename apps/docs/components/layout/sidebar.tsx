@@ -28,7 +28,7 @@ function SidebarClient({ guideNavigation, apiNavigation }: SidebarClientProps) {
       <MobileSidebar guideNavigation={guideNavigation} apiNavigation={apiNavigation} />
 
       {/* Десктопная версия */}
-      <aside className="hidden lg:flex w-[280px] fixed top-[var(--mobile-header-height)] bottom-0 left-0 bg-background-secondary/80 backdrop-blur-xl border-r border-glass-border flex-col z-40">
+      <aside className="hidden lg:flex w-[300px] fixed top-[var(--mobile-header-height)] bottom-0 left-0 bg-background-secondary/80 backdrop-blur-xl border-r border-glass-border flex-col z-40">
         <div className="px-2.5 py-4 shrink-0">
           <SearchButton />
         </div>

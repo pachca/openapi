@@ -18,16 +18,11 @@
 
 ### Схема
 
-- `start_at` (string, date, **обязательный**): Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD
-  - Пример: `2025-03-20`
-- `end_at` (string, date, **обязательный**): Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD
-  - Пример: `2025-03-20`
-- `webhook_url` (string, **обязательный**): Адрес, на который будет отправлен вебхук по завершению экспорта
-  - Пример: `https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2`
-- `chat_ids` (array[integer], опциональный): Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.
-  - Пример: `[1381521]`
-- `skip_chats_file` (boolean, опциональный): Пропуск формирования файла со списком чатов (chats.json)
-  - Пример: `false`
+- `start_at: date` (required) — Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD
+- `end_at: date` (required) — Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD
+- `webhook_url: string` (required) — Адрес, на который будет отправлен вебхук по завершению экспорта
+- `chat_ids: array of integer` — Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов.
+- `skip_chats_file: boolean` — Пропуск формирования файла со списком чатов (chats.json)
 
 ### Пример
 
@@ -43,22 +38,7 @@
 }
 ```
 
-## Примеры запроса
-
-### CLI
-
-```bash
-pachca api common \
-  --start-at=2025-03-20 \
-  --end-at=2025-03-20 \
-  --webhook-url=https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2 \
-  --chat-ids=1381521 \
-  --no-skip-chats-file \
-  --json \
-  --token YOUR_ACCESS_TOKEN
-```
-
-### cURL
+## Пример запроса
 
 ```bash
 curl "https://api.pachca.com/api/shared/v1/chats/exports" \
@@ -75,164 +55,6 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
 }'
 ```
 
-### JavaScript
-
-```javascript
-const response = await fetch('https://api.pachca.com/api/shared/v1/chats/exports', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-      "start_at": "2025-03-20",
-      "end_at": "2025-03-20",
-      "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
-      "chat_ids": [
-          1381521
-      ],
-      "skip_chats_file": false
-  })
-});
-
-const data = await response.json();
-console.log(data);
-```
-
-### Python
-
-```python
-import requests
-
-data = {
-    'start_at': '2025-03-20',
-    'end_at': '2025-03-20',
-    'webhook_url': 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
-    'chat_ids': [
-        1381521
-    ],
-    'skip_chats_file': False
-}
-
-headers = {
-    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
-    'Content-Type': 'application/json'
-}
-
-response = requests.post(
-    'https://api.pachca.com/api/shared/v1/chats/exports',
-    headers=headers,
-    json=data
-)
-
-print(response.json())
-```
-
-### Node.js
-
-```javascript
-const https = require('https');
-
-const options = {
-    hostname: 'api.pachca.com',
-    port: 443,
-    path: '/api/shared/v1/chats/exports',
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
-    }
-};
-
-const req = https.request(options, (res) => {
-    let data = '';
-
-    res.on('data', (chunk) => {
-        data += chunk;
-    });
-
-    res.on('end', () => {
-        console.log(JSON.parse(data));
-    });
-});
-
-req.write(JSON.stringify({
-    "start_at": "2025-03-20",
-    "end_at": "2025-03-20",
-    "webhook_url": "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
-    "chat_ids": [
-        1381521
-    ],
-    "skip_chats_file": false
-}));
-req.on('error', (error) => {
-    console.error(error);
-});
-
-req.end();
-```
-
-### Ruby
-
-```ruby
-require 'net/http'
-require 'json'
-
-uri = URI('https://api.pachca.com/api/shared/v1/chats/exports')
-request = Net::HTTP::Post.new(uri)
-request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
-request['Content-Type'] = 'application/json'
-
-request.body = {
-  'start_at' => '2025-03-20',
-  'end_at' => '2025-03-20',
-  'webhook_url' => 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
-  'chat_ids' => [
-    1381521
-  ],
-  'skip_chats_file' => false
-}.to_json
-
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-  http.request(request)
-end
-
-puts JSON.parse(response.body)
-```
-
-### PHP
-
-```php
-<?php
-
-$curl = curl_init();
-
-curl_setopt_array($curl, [
-    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/chats/exports',
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_CUSTOMREQUEST => 'POST',
-    CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer YOUR_ACCESS_TOKEN',
-        'Content-Type: application/json',
-    ],
-    CURLOPT_POSTFIELDS => json_encode([
-    'start_at' => '2025-03-20',
-    'end_at' => '2025-03-20',
-    'webhook_url' => 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
-    'chat_ids' => [
-        1381521
-    ],
-    'skip_chats_file' => false
-]),
-]);
-
-$response = curl_exec($curl);
-curl_close($curl);
-
-echo $response;
-?>
-```
-
 ## Ответы
 
 ### 204: There is no content to send for this request, but the headers may be useful. 
@@ -241,52 +63,13 @@ echo $response;
 
 **Схема ответа при ошибке:**
 
-- `errors` (array[object], **обязательный**): Массив ошибок
-  - `key` (string, **обязательный**): Ключ поля с ошибкой
-    - Пример: `field.name`
-  - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
-    - Пример: `invalid_value`
-  - `message` (string, **обязательный**): Сообщение об ошибке
-    - Пример: `Поле не может быть пустым`
-  - `code` (string, **обязательный**): Код ошибки
-    - **Возможные значения:**
-      - `blank`: Обязательное поле (не может быть пустым)
-      - `too_long`: Слишком длинное значение (пояснения вы получите в поле message)
-      - `invalid`: Поле не соответствует правилам (пояснения вы получите в поле message)
-      - `inclusion`: Поле имеет непредусмотренное значение
-      - `exclusion`: Поле имеет недопустимое значение
-      - `taken`: Название для этого поля уже существует
-      - `wrong_emoji`: Emoji статуса не может содержать значения отличные от Emoji символа
-      - `not_found`: Объект не найден
-      - `already_exists`: Объект уже существует (пояснения вы получите в поле message)
-      - `personal_chat`: Ошибка личного чата (пояснения вы получите в поле message)
-      - `displayed_error`: Отображаемая ошибка (пояснения вы получите в поле message)
-      - `not_authorized`: Действие запрещено
-      - `invalid_date_range`: Выбран слишком большой диапазон дат
-      - `invalid_webhook_url`: Некорректный URL вебхука
-      - `rate_limit`: Достигнут лимит запросов
-      - `licenses_limit`: Превышен лимит активных сотрудников (пояснения вы получите в поле message)
-      - `user_limit`: Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
-      - `unique_limit`: Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
-      - `general_limit`: Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-      - `unhandled`: Ошибка выполнения запроса (пояснения вы получите в поле message)
-      - `trigger_not_found`: Не удалось найти идентификатор события
-      - `trigger_expired`: Время жизни идентификатора события истекло
-      - `required`: Обязательный параметр не передан
-      - `in`: Недопустимое значение (не входит в список допустимых)
-      - `not_applicable`: Значение неприменимо в данном контексте (пояснения вы получите в поле message)
-      - `self_update`: Нельзя изменить свои собственные данные
-      - `owner_protected`: Нельзя изменить данные владельца
-      - `already_assigned`: Значение уже назначено
-      - `forbidden`: Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
-      - `permission_denied`: Доступ запрещён (недостаточно прав)
-      - `access_denied`: Доступ запрещён
-      - `wrong_params`: Некорректные параметры запроса (пояснения вы получите в поле message)
-      - `payment_required`: Требуется оплата
-      - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
-      - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
-  - `payload` (string, **обязательный**): Дополнительные данные об ошибке
-    - Пример: `null`
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой
+  - `value: string` (required) — Значение поля, которое вызвало ошибку
+  - `message: string` (required) — Сообщение об ошибке
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message)
+  - `payload: string` (required) — Дополнительные данные об ошибке
 
 **Пример ответа:**
 
@@ -308,10 +91,8 @@ echo $response;
 
 **Схема ответа при ошибке:**
 
-- `error` (string, **обязательный**): Код ошибки
-  - Пример: `invalid_token`
-- `error_description` (string, **обязательный**): Описание ошибки
-  - Пример: `Access token is missing`
+- `error: string` (required) — Код ошибки
+- `error_description: string` (required) — Описание ошибки
 
 **Пример ответа:**
 
@@ -329,57 +110,16 @@ echo $response;
 **anyOf** - один из вариантов:
 
 - **ApiError**: Ошибка API (используется для 400, 403, 404, 409, 410, 422)
-  - `errors` (array[object], **обязательный**): Массив ошибок
-    - `key` (string, **обязательный**): Ключ поля с ошибкой
-      - Пример: `field.name`
-    - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
-      - Пример: `invalid_value`
-    - `message` (string, **обязательный**): Сообщение об ошибке
-      - Пример: `Поле не может быть пустым`
-    - `code` (string, **обязательный**): Код ошибки
-      - **Возможные значения:**
-        - `blank`: Обязательное поле (не может быть пустым)
-        - `too_long`: Слишком длинное значение (пояснения вы получите в поле message)
-        - `invalid`: Поле не соответствует правилам (пояснения вы получите в поле message)
-        - `inclusion`: Поле имеет непредусмотренное значение
-        - `exclusion`: Поле имеет недопустимое значение
-        - `taken`: Название для этого поля уже существует
-        - `wrong_emoji`: Emoji статуса не может содержать значения отличные от Emoji символа
-        - `not_found`: Объект не найден
-        - `already_exists`: Объект уже существует (пояснения вы получите в поле message)
-        - `personal_chat`: Ошибка личного чата (пояснения вы получите в поле message)
-        - `displayed_error`: Отображаемая ошибка (пояснения вы получите в поле message)
-        - `not_authorized`: Действие запрещено
-        - `invalid_date_range`: Выбран слишком большой диапазон дат
-        - `invalid_webhook_url`: Некорректный URL вебхука
-        - `rate_limit`: Достигнут лимит запросов
-        - `licenses_limit`: Превышен лимит активных сотрудников (пояснения вы получите в поле message)
-        - `user_limit`: Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
-        - `unique_limit`: Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
-        - `general_limit`: Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-        - `unhandled`: Ошибка выполнения запроса (пояснения вы получите в поле message)
-        - `trigger_not_found`: Не удалось найти идентификатор события
-        - `trigger_expired`: Время жизни идентификатора события истекло
-        - `required`: Обязательный параметр не передан
-        - `in`: Недопустимое значение (не входит в список допустимых)
-        - `not_applicable`: Значение неприменимо в данном контексте (пояснения вы получите в поле message)
-        - `self_update`: Нельзя изменить свои собственные данные
-        - `owner_protected`: Нельзя изменить данные владельца
-        - `already_assigned`: Значение уже назначено
-        - `forbidden`: Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
-        - `permission_denied`: Доступ запрещён (недостаточно прав)
-        - `access_denied`: Доступ запрещён
-        - `wrong_params`: Некорректные параметры запроса (пояснения вы получите в поле message)
-        - `payment_required`: Требуется оплата
-        - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
-        - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
-    - `payload` (string, **обязательный**): Дополнительные данные об ошибке
-      - Пример: `null`
+  - `errors: array of object` (required) — Массив ошибок
+    - `key: string` (required) — Ключ поля с ошибкой
+    - `value: string` (required) — Значение поля, которое вызвало ошибку
+    - `message: string` (required) — Сообщение об ошибке
+    - `code: string` (required) — Код ошибки
+      Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message)
+    - `payload: string` (required) — Дополнительные данные об ошибке
 - **OAuthError**: Ошибка OAuth авторизации (используется для 401 и 403)
-  - `error` (string, **обязательный**): Код ошибки
-    - Пример: `invalid_token`
-  - `error_description` (string, **обязательный**): Описание ошибки
-    - Пример: `Access token is missing`
+  - `error: string` (required) — Код ошибки
+  - `error_description: string` (required) — Описание ошибки
 
 **Пример ответа:**
 
@@ -401,52 +141,13 @@ echo $response;
 
 **Схема ответа при ошибке:**
 
-- `errors` (array[object], **обязательный**): Массив ошибок
-  - `key` (string, **обязательный**): Ключ поля с ошибкой
-    - Пример: `field.name`
-  - `value` (string, **обязательный**): Значение поля, которое вызвало ошибку
-    - Пример: `invalid_value`
-  - `message` (string, **обязательный**): Сообщение об ошибке
-    - Пример: `Поле не может быть пустым`
-  - `code` (string, **обязательный**): Код ошибки
-    - **Возможные значения:**
-      - `blank`: Обязательное поле (не может быть пустым)
-      - `too_long`: Слишком длинное значение (пояснения вы получите в поле message)
-      - `invalid`: Поле не соответствует правилам (пояснения вы получите в поле message)
-      - `inclusion`: Поле имеет непредусмотренное значение
-      - `exclusion`: Поле имеет недопустимое значение
-      - `taken`: Название для этого поля уже существует
-      - `wrong_emoji`: Emoji статуса не может содержать значения отличные от Emoji символа
-      - `not_found`: Объект не найден
-      - `already_exists`: Объект уже существует (пояснения вы получите в поле message)
-      - `personal_chat`: Ошибка личного чата (пояснения вы получите в поле message)
-      - `displayed_error`: Отображаемая ошибка (пояснения вы получите в поле message)
-      - `not_authorized`: Действие запрещено
-      - `invalid_date_range`: Выбран слишком большой диапазон дат
-      - `invalid_webhook_url`: Некорректный URL вебхука
-      - `rate_limit`: Достигнут лимит запросов
-      - `licenses_limit`: Превышен лимит активных сотрудников (пояснения вы получите в поле message)
-      - `user_limit`: Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)
-      - `unique_limit`: Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)
-      - `general_limit`: Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)
-      - `unhandled`: Ошибка выполнения запроса (пояснения вы получите в поле message)
-      - `trigger_not_found`: Не удалось найти идентификатор события
-      - `trigger_expired`: Время жизни идентификатора события истекло
-      - `required`: Обязательный параметр не передан
-      - `in`: Недопустимое значение (не входит в список допустимых)
-      - `not_applicable`: Значение неприменимо в данном контексте (пояснения вы получите в поле message)
-      - `self_update`: Нельзя изменить свои собственные данные
-      - `owner_protected`: Нельзя изменить данные владельца
-      - `already_assigned`: Значение уже назначено
-      - `forbidden`: Недостаточно прав для выполнения действия (пояснения вы получите в поле message)
-      - `permission_denied`: Доступ запрещён (недостаточно прав)
-      - `access_denied`: Доступ запрещён
-      - `wrong_params`: Некорректные параметры запроса (пояснения вы получите в поле message)
-      - `payment_required`: Требуется оплата
-      - `min_length`: Значение слишком короткое (пояснения вы получите в поле message)
-      - `max_length`: Значение слишком длинное (пояснения вы получите в поле message)
-  - `payload` (string, **обязательный**): Дополнительные данные об ошибке
-    - Пример: `null`
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой
+  - `value: string` (required) — Значение поля, которое вызвало ошибку
+  - `message: string` (required) — Сообщение об ошибке
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message)
+  - `payload: string` (required) — Дополнительные данные об ошибке
 
 **Пример ответа:**
 

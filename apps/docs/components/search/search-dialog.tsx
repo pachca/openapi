@@ -176,7 +176,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="hidden sm:inline-block px-2 py-1 text-xs bg-glass-hover border border-glass-border rounded-md text-text-tertiary">
+          <kbd className="hidden lg:inline-block px-2 py-1 text-xs bg-glass-hover border border-glass-border rounded-md text-text-tertiary">
             ESC
           </kbd>
         </div>

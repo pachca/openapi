@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PanelLeftClose, ChevronDown } from 'lucide-react';
+import { PanelLeftClose } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { SidebarNav } from './sidebar-nav';
 import type { NavigationSection } from '@/lib/openapi/types';
 import { TABS, type TabId } from '@/lib/tabs-config';
@@ -25,8 +24,6 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
     api: apiNavigation,
   };
   const navigation = navigationByTab[selectedTab] || [];
-  const selectedTabConfig = TABS.find((t) => t.id === selectedTab);
-
   // Listen for toggle event from Header hamburger
   useEffect(() => {
     const handler = () => setIsOpen((prev) => !prev);
@@ -83,7 +80,7 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
       {/* Full-height sidebar over header */}
       <div
         className={`
-          lg:hidden fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-background-secondary/80 backdrop-blur-xl z-[70]
+          lg:hidden fixed inset-y-0 left-0 w-[300px] max-w-[85vw] bg-background-secondary/80 backdrop-blur-xl z-[70]
           transition-transform duration-200 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
@@ -103,42 +100,25 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
             </button>
           </div>
 
-          {/* Tab selector dropdown */}
+          {/* Tab selector pills */}
           <div className="px-2.5 pb-3 shrink-0">
-            <DropdownMenu.Root modal={false}>
-              <DropdownMenu.Trigger asChild>
-                <button className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-md bg-glass backdrop-blur-md border border-glass-heavy-border text-text-primary transition-colors cursor-pointer outline-none">
-                  <span className="text-[13px] font-medium flex-1 text-left">
-                    {selectedTabConfig?.title || 'Руководство разработчика'}
-                  </span>
-                  <ChevronDown className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
-                </button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                  className="z-[80] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
-                  style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}
-                  align="start"
-                  side="bottom"
-                  sideOffset={4}
-                  onCloseAutoFocus={(e) => e.preventDefault()}
+            <nav className="flex items-center gap-0.5 p-1 rounded-full bg-glass backdrop-blur-md border border-glass-border w-full">
+              {TABS.map((tab, i) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabSelect(tab.id)}
+                  className={`flex-auto px-3 py-1.5 text-[14px] leading-[1.4] font-medium rounded-full transition-colors duration-200 cursor-pointer text-center whitespace-nowrap ${
+                    i === 0 ? 'min-w-0 truncate' : ''
+                  } ${
+                    selectedTab === tab.id
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
+                  }`}
                 >
-                  {TABS.map((tab) => (
-                    <DropdownMenu.Item
-                      key={tab.id}
-                      onClick={() => handleTabSelect(tab.id)}
-                      className={`flex items-center px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
-                        selectedTab === tab.id
-                          ? 'bg-primary/15 text-primary'
-                          : 'text-text-primary hover:bg-glass-hover'
-                      }`}
-                    >
-                      {tab.title}
-                    </DropdownMenu.Item>
-                  ))}
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu.Root>
+                  {tab.shortTitle}
+                </button>
+              ))}
+            </nav>
           </div>
 
           {/* Navigation */}

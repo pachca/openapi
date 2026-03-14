@@ -5,11 +5,6 @@
 
 import { getSchemaByName, getEndpointByOperation, getBaseUrl } from './openapi/parser';
 import { generateCurl } from './code-generators/curl';
-import { generateJavaScript } from './code-generators/javascript';
-import { generatePython } from './code-generators/python';
-import { generateRuby } from './code-generators/ruby';
-import { generatePHP } from './code-generators/php';
-import { generateNodeJS } from './code-generators/nodejs';
 import { schemaToMarkdown } from './markdown-generator';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
@@ -267,6 +262,45 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return `> ${text}\n`;
   });
 
+  // <HomeHero>...<HomeHeroContent>...<HomeHeroCode>...</HomeHero> -> markdown
+  result = result.replace(/<HomeHero>\s*([\s\S]*?)\s*<\/HomeHero>/g, (_, inner) => {
+    let md = '';
+
+    // Extract HomeHeroContent props
+    const contentMatch = inner.match(/<HomeHeroContent\s+([\s\S]*?)>([\s\S]*?)<\/HomeHeroContent>/);
+    if (contentMatch) {
+      const attrs = contentMatch[1];
+      const children = contentMatch[2];
+      const title = attrs.match(/title="([^"]+)"/)?.[1];
+      const description = attrs.match(/description="([^"]+)"/)?.[1];
+
+      if (title) md += `# ${title}\n\n`;
+      if (description) md += `${description}\n\n`;
+
+      // Extract compact Card links
+      const compactCards: string[] = [];
+      const compactCardRegex = /<Card\s+compact\s+([\s\S]*?)\/>/g;
+      let cm;
+      while ((cm = compactCardRegex.exec(children)) !== null) {
+        const cAttrs = cm[1];
+        const cTitle = cAttrs.match(/title="([^"]+)"/)?.[1] ?? '';
+        const cHref = cAttrs.match(/href="([^"]+)"/)?.[1];
+        compactCards.push(cHref ? `- [${cTitle}](${cHref})` : `- ${cTitle}`);
+      }
+      if (compactCards.length > 0) {
+        md += compactCards.join('\n') + '\n\n';
+      }
+    }
+
+    // Extract HomeHeroCode children (ApiCodeExample will be expanded later)
+    const codeMatch = inner.match(/<HomeHeroCode>([\s\S]*?)<\/HomeHeroCode>/);
+    if (codeMatch) {
+      md += codeMatch[1].trim() + '\n\n';
+    }
+
+    return md;
+  });
+
   // <CardGroup>...<Card>...</Card>...</CardGroup> -> markdown list
   result = result.replace(/<CardGroup[^>]*>([\s\S]*?)<\/CardGroup>/g, (_, inner) => {
     const items: string[] = [];
@@ -417,15 +451,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
       let md = '';
       if (title) md += `**${title}**\n\n`;
 
-      md += '### cURL\n\n```bash\n' + generateCurl(finalEndpoint, baseUrl) + '\n```\n\n';
-      md +=
-        '### JavaScript\n\n```javascript\n' +
-        generateJavaScript(finalEndpoint, baseUrl) +
-        '\n```\n\n';
-      md += '### Python\n\n```python\n' + generatePython(finalEndpoint, baseUrl) + '\n```\n\n';
-      md += '### Node.js\n\n```javascript\n' + generateNodeJS(finalEndpoint, baseUrl) + '\n```\n\n';
-      md += '### Ruby\n\n```ruby\n' + generateRuby(finalEndpoint, baseUrl) + '\n```\n\n';
-      md += '### PHP\n\n```php\n' + generatePHP(finalEndpoint, baseUrl) + '\n```\n';
+      md += '```bash\n' + generateCurl(finalEndpoint, baseUrl) + '\n```\n';
 
       result = result.replace(fullMatch, md);
     }

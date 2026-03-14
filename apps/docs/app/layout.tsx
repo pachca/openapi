@@ -148,7 +148,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <MobileTableOfContents />
             <div className="flex min-h-screen pt-[var(--mobile-header-height)]">
               <Sidebar />
-              <main className="flex-1 bg-background flex flex-col min-w-0 lg:pl-[280px]">
+              <main className="flex-1 bg-background flex flex-col min-w-0 lg:pl-[300px]">
                 {children}
               </main>
             </div>

@@ -1,0 +1,153 @@
+---
+title: Запросы и ответы
+description: Формат запросов и ответов, тестирование API
+---
+
+# Запросы и ответы
+
+## Базовый URL
+
+Все запросы к API отправляются по HTTPS:
+
+```text
+https://api.pachca.com/api/shared/v1
+```
+
+## Заголовки
+
+| Заголовок | Значение | Когда нужен |
+|-----------|----------|-------------|
+| `Authorization` | `Bearer YOUR_ACCESS_TOKEN` | Всегда |
+| `Content-Type` | `application/json; charset=utf-8` | POST, PUT, PATCH |
+
+Подробнее о типах токенов и скоупах — в разделе [Авторизация](/api/authorization).
+
+## Тело запроса
+
+Параметры передаются в формате JSON, кодировке UTF-8. Для методов, работающих с сущностями, тело оборачивается в корневой ключ с именем сущности:
+
+```json
+{
+  "message": {
+    "entity_id": 12345,
+    "content": "Привет!"
+  }
+}
+```
+
+<Info>Обёртка используется не во всех методах — точную структуру тела смотрите в описании каждого метода.</Info>
+
+### Пример запроса
+
+<ApiCodeExample operationId="UserOperations_createUser" title="Создание сотрудника" show="request" requestMode="required" />
+
+## Формат ответа
+
+Ответы возвращаются в формате JSON, кодировке UTF-8.
+
+### Одиночный объект
+
+Успешный ответ содержит данные в объекте `data`:
+
+```json
+{
+  "data": {
+    "id": 12,
+    "first_name": "Олег",
+    "last_name": "Петров",
+    "email": "olegp@example.com"
+  }
+}
+```
+
+### Список с пагинацией
+
+Списочные методы возвращают массив `data` и блок `meta` с курсором для следующей страницы:
+
+```json
+{
+  "data": [
+    { "id": 1, "name": "Общий" },
+    { "id": 2, "name": "Проект" }
+  ],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ"
+    }
+  }
+}
+```
+
+Подробнее — в разделе [Пагинация](/api/pagination).
+
+### Пустой ответ
+
+Некоторые методы (например, удаление) возвращают `204 No Content` без тела ответа.
+
+### Ошибка
+
+При ошибке возвращается одна из двух структур в зависимости от типа ошибки:
+
+```json title="Ошибка валидации (422)"
+{
+  "errors": [
+    {
+      "key": "invalid",
+      "message": "Не может быть пустым",
+      "value": "first_name"
+    }
+  ]
+}
+```
+
+```json title="Ошибка авторизации (401)"
+{
+  "error": "unauthenticated",
+  "error_description": "Требуется авторизация"
+}
+```
+
+Подробнее — в разделе [Ошибки и лимиты](/api/errors).
+
+## Соглашения
+
+| Соглашение | Пример |
+|------------|--------|
+| Имена полей — `snake_case` | `first_name`, `entity_id`, `created_at` |
+| Даты и время — ISO 8601 | `2024-01-15T10:30:00.000+03:00` |
+| Идентификаторы — целые числа | `"id": 12345` |
+| Пустые значения — `null` | `"nickname": null` |
+| Логические поля — `boolean` | `"suspended": false` |
+
+## Тестирование API
+
+### Scalar
+
+Онлайн-клиент с интерфейсом для тестирования всех методов API прямо в браузере — без установки. Достаточно вставить токен и отправить запрос.
+
+<CardGroup columns={1}>
+  <Card title="Открыть Scalar API Client" href="https://client.scalar.com/?url=https://dev.pachca.com/openapi.yaml">
+    Браузерный клиент на основе OpenAPI-спецификации. Бесплатно, без регистрации.
+  </Card>
+</CardGroup>
+
+<Callout type="warning">
+  Браузерный клиент Scalar отправляет запросы через прокси-сервер `proxy.scalar.com` — это необходимо из-за ограничений браузера (CORS). Токен проходит через сервер Scalar, но [по их заявлению](https://github.com/scalar/scalar) данные не логируются. Scalar — проект с открытым исходным кодом (MIT), включая код прокси. Если вы хотите избежать передачи токена через сторонний сервер, используйте Postman или Bruno — они работают локально и отправляют запросы напрямую.
+</Callout>
+
+### Postman / Bruno
+
+Коллекция содержит все методы API с примерами запросов и настроенной авторизацией. Совместима с:
+
+- **Postman** *File → Import*
+- **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
+
+```plaintext title="Коллекция Postman/Bruno"
+https://dev.pachca.com/pachca.postman_collection.json
+```
+
+<CardGroup columns={1}>
+  <Card title="Скачать коллекцию" href="/pachca.postman_collection.json" download>
+    Файл в формате Postman Collection v2.1, совместим с Postman и Bruno.
+  </Card>
+</CardGroup>

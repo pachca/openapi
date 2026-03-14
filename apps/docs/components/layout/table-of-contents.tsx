@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+
+gsap.registerPlugin(ScrollToPlugin);
 
 interface TocItem {
   id: string;
@@ -10,9 +14,11 @@ interface TocItem {
 }
 
 export function TableOfContents() {
+  const pathname = usePathname();
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeIds, setActiveIds] = useState<Set<string>>(new Set());
   const isScrollingRef = useRef(false);
+  const navRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
   const isFirstRenderRef = useRef(true);
@@ -26,17 +32,12 @@ export function TableOfContents() {
     if (!href?.startsWith('#')) return;
     const id = href.slice(1);
     const element = document.getElementById(id);
-    const mainContent = document.querySelector('main');
-    if (element && mainContent) {
+    if (element) {
       isScrollingRef.current = true;
-      const targetScrollTop =
-        element.getBoundingClientRect().top -
-        mainContent.getBoundingClientRect().top +
-        mainContent.scrollTop -
-        80;
-      gsap.to(mainContent, {
+      const targetScrollTop = element.getBoundingClientRect().top + window.scrollY - 80;
+      gsap.to(window, {
         duration: 0.4,
-        scrollTop: targetScrollTop,
+        scrollTo: { y: targetScrollTop },
         ease: 'power2.out',
         onComplete: () => {
           setTimeout(() => {
@@ -83,27 +84,30 @@ export function TableOfContents() {
 
   // Прокрутка первого активного элемента в видимую область навигации
   useEffect(() => {
-    if (isScrollingRef.current) return;
+    if (isScrollingRef.current || !navRef.current) return;
     const firstActiveId = toc.find((item) => activeIds.has(item.id))?.id;
     if (!firstActiveId) return;
-    const navContainer = document.querySelector('nav.sticky') as HTMLElement;
-    const activeLink = document.querySelector(`a[href="#${firstActiveId}"]`) as HTMLElement;
-    if (activeLink && navContainer) {
-      const navRect = navContainer.getBoundingClientRect();
+    const activeLink = navRef.current.querySelector(`a[href="#${firstActiveId}"]`) as HTMLElement;
+    if (activeLink) {
+      const navRect = navRef.current.getBoundingClientRect();
       const linkRect = activeLink.getBoundingClientRect();
       const isVisible = linkRect.top >= navRect.top && linkRect.bottom <= navRect.bottom;
       if (!isVisible) {
         const targetScrollTop =
-          activeLink.offsetTop - navContainer.clientHeight / 2 + activeLink.clientHeight / 2;
-        navContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+          activeLink.offsetTop - navRef.current.clientHeight / 2 + activeLink.clientHeight / 2;
+        navRef.current.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
       }
     }
   }, [activeIds, toc]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setToc([]);
+    setActiveIds(new Set());
+    isFirstRenderRef.current = true;
+
     const container = document.querySelector('.prose');
-    const mainContent = document.querySelector('main');
-    if (!container || !mainContent) return;
+    if (!container) return;
 
     const headings = Array.from(container.querySelectorAll('h2, h3')) as HTMLElement[];
 
@@ -116,37 +120,22 @@ export function TableOfContents() {
       };
     });
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToc(items);
     if (items.length > 0) setActiveIds(new Set([items[0].id]));
 
-    // Абсолютная позиция заголовка от начала контента main (независимо от scroll)
-    const computeHeadingTop = (h: HTMLElement) => {
-      const mainRect = mainContent.getBoundingClientRect();
-      const hRect = h.getBoundingClientRect();
-      return hRect.top - mainRect.top + mainContent.scrollTop;
-    };
-
-    let headingTops: number[] = [];
-    const computePositions = () => {
-      headingTops = headings.map(computeHeadingTop);
-    };
-    computePositions();
-
     const updateActive = () => {
-      const scrollTop = mainContent.scrollTop;
-      // Зона видимости: от 80px (фиксированная шапка) до 80% высоты вьюпорта
-      const visibleTop = scrollTop + 80;
-      const visibleBottom = scrollTop + mainContent.clientHeight * 0.8;
+      const viewportTop = 80;
+      const viewportBottom = window.innerHeight * 0.8;
 
       const visibleIds: string[] = [];
 
       items.forEach((item, i) => {
-        // Секция занимает место от своего заголовка до начала следующего (или конца страницы)
-        const sectionStart = headingTops[i];
-        const sectionEnd = i < items.length - 1 ? headingTops[i + 1] : mainContent.scrollHeight;
+        const rect = headings[i].getBoundingClientRect();
+        const nextRect = i < items.length - 1 ? headings[i + 1].getBoundingClientRect() : null;
+        const sectionTop = rect.top;
+        const sectionBottom = nextRect ? nextRect.top : document.documentElement.scrollHeight;
 
-        if (sectionStart < visibleBottom && sectionEnd > visibleTop) {
+        if (sectionTop < viewportBottom && sectionBottom > viewportTop) {
           visibleIds.push(item.id);
         }
       });
@@ -154,10 +143,10 @@ export function TableOfContents() {
       if (visibleIds.length > 0) {
         setActiveIds(new Set(visibleIds));
       } else {
-        // Ни одна секция не пересекается — выбираем последнюю, которую уже проскроллили
-        const lastPassed = [...items]
-          .reverse()
-          .find((_, reverseIdx) => headingTops[items.length - 1 - reverseIdx] <= visibleTop);
+        const lastPassed = [...items].reverse().find((_, reverseIdx) => {
+          const idx = items.length - 1 - reverseIdx;
+          return headings[idx].getBoundingClientRect().top <= viewportTop;
+        });
         if (lastPassed) {
           setActiveIds(new Set([lastPassed.id]));
         } else if (items.length > 0) {
@@ -166,32 +155,24 @@ export function TableOfContents() {
       }
     };
 
-    updateActive();
+    requestAnimationFrame(updateActive);
 
-    mainContent.addEventListener('scroll', updateActive);
-
-    // Пересчитываем позиции при изменении размеров контента (например, раскрытие спойлеров)
-    const resizeObserver = new ResizeObserver(() => {
-      computePositions();
-      updateActive();
-    });
-    resizeObserver.observe(container);
+    window.addEventListener('scroll', updateActive, { passive: true });
 
     return () => {
-      mainContent.removeEventListener('scroll', updateActive);
-      resizeObserver.disconnect();
+      window.removeEventListener('scroll', updateActive);
     };
-  }, []);
+  }, [pathname]);
 
   if (toc.length === 0) return null;
 
   return (
-    <nav className="sticky top-6 lg:top-10 max-h-[calc(100vh-80px)] overflow-y-auto no-scrollbar py-2">
+    <nav ref={navRef} className="overflow-y-auto no-scrollbar py-2 max-h-[inherit]">
       <div
         ref={containerRef}
-        className="relative flex flex-col border-l-1 border-background-border ml-4"
+        className="relative flex flex-col border-l border-background-border ml-4"
       >
-        <div ref={indicatorRef} className="absolute left-[-1px] w-[1px] bg-primary" />
+        <div ref={indicatorRef} className="absolute left-[-1px] w-px bg-primary" />
         {toc.map((item) => (
           <a
             key={item.id}

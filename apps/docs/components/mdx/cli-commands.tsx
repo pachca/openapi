@@ -1,36 +1,40 @@
-import Link from 'next/link';
 import { generateNavigation } from '@/lib/navigation';
+import { CopyableInlineCode } from '@/components/api/copyable-inline-code';
+import { EndpointLink } from '@/components/api/endpoint-link';
 
 export async function CliCommands() {
   const sections = await generateNavigation();
-  const allCommands = sections.filter((s) => s.items[0]?.method != null).flatMap((s) => s.items);
+  const methodsSection = sections.find((s) => s.title === 'Методы API');
+  const allCommands = methodsSection
+    ? methodsSection.items.flatMap((group) => group.children ?? [])
+    : [];
 
   return (
     <div className="my-6 overflow-x-auto not-prose">
       <table className="w-full border-none text-[14px]">
-        <thead className="border-b border-background-border">
+        <thead className="border-b border-glass-border">
           <tr>
             <th className="text-left py-4 pl-0! text-text-primary! font-semibold! text-[15px]! normal-case! tracking-normal! bg-transparent!">
               Команда
             </th>
             <th className="text-left py-4 pl-0! text-text-primary! font-semibold! text-[15px]! normal-case! tracking-normal! bg-transparent!">
-              Описание
+              Метод API
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-background-border/40">
+        <tbody className="divide-y divide-glass-divider">
           {allCommands.map((item) => {
             const command = `pachca ${item.href.slice(1).replace(/\//g, ' ')}`;
             return (
               <tr key={item.href}>
                 <td className="py-5 pl-0! text-text-primary">
-                  <Link href={item.href} className="no-underline!">
-                    <code className="bg-background-secondary border border-background-border px-1 py-0.5 rounded text-[13px] font-mono text-text-primary hover:bg-background-tertiary transition-colors">
-                      {command}
-                    </code>
-                  </Link>
+                  <CopyableInlineCode>{command}</CopyableInlineCode>
                 </td>
-                <td className="py-5 pl-0! text-text-primary">{item.title}</td>
+                <td className="py-5 pl-0! text-text-primary">
+                  <EndpointLink method={item.method} href={item.href}>
+                    {item.title}
+                  </EndpointLink>
+                </td>
               </tr>
             );
           })}

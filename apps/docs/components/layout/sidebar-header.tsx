@@ -5,7 +5,7 @@ import { SearchButton } from './search-button';
 
 export function SidebarHeader() {
   return (
-    <div className="flex-shrink-0 bg-background-secondary z-10 relative">
+    <div className="flex-shrink-0 z-10 relative">
       <div className="p-4 pb-3 flex items-center">
         <LogoLink />
       </div>

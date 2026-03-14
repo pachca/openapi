@@ -50,42 +50,39 @@ export function Mermaid({ chart, title }: MermaidProps) {
         const isDark = getIsDark();
 
         // Цвета для светлой и темной темы (из globals.css)
+        // Exception: mermaid API requires hex values, OKLCH not supported
         const colors = isDark
           ? {
-              // Темная тема (OKLCH конвертированные в RGB)
-              textPrimary: '#f2f2f3', // oklch(95% 0.005 240)
-              textSecondary: '#bdbec1', // oklch(75% 0.01 240)
-              textTertiary: '#9a9b9e', // oklch(62.84% 0.01 240)
-              bgPrimary: '#2a2a2e', // oklch(22.7% 0.0063 240)
-              bgSecondary: '#2a2a2e', // oklch(22.7% 0.0063 240)
-              bgTertiary: '#3d3d42', // oklch(27.77% 0.0068 240)
-              bgBorder: '#4d4d53', // oklch(34% 0.0077 240)
-              primaryColor: '#3d3d42', // bg-background-tertiary
-              primaryBorder: '#4d4d53', // border-background-border
-              warningBg: '#3d3420', // Темный фон для предупреждений без прозрачности
-              warningBorder: '#5a4d2e', // Темная граница для предупреждений
-              warningText: '#f8c44b', // oklch(81.1% 0.154 70.7)
-              dangerBg: '#3d2020', // Темный красный фон
-              dangerBorder: '#5a2e2e', // Темная красная граница
-              dangerText: '#f86b6b', // Светлый красный текст
+              // Тёмная тема — тёплые тона (hue 70, warm stone)
+              textPrimary: '#ebe7e3', // oklch(93% 0.007 70)
+              textSecondary: '#a39d97', // oklch(70% 0.012 70)
+              textTertiary: '#76706a', // oklch(55% 0.012 70)
+              bgPrimary: '#1a1510', // oklch(20% 0.012 70) — elevated
+              bgSecondary: '#15110c', // oklch(18% 0.012 70)
+              bgTertiary: '#211c17', // oklch(23% 0.012 70)
+              bgBorder: '#2c2721', // oklch(27.5% 0.012 70)
+              primaryColor: '#211c17', // bg-background-tertiary
+              primaryBorder: '#2c2721', // border-background-border
+              warningBg: '#211208', // opaque approx of callout-warning-bg
+              warningBorder: '#331f10', // opaque approx of callout-warning-border
+              warningText: '#e89960', // oklch(75% 0.12 55)
+              containerBg: '#15110e', // page bg + 3% white glass overlay
             }
           : {
-              // Светлая тема (OKLCH конвертированные в RGB)
-              textPrimary: '#1f2024', // oklch(17.5% 0.006 240)
-              textSecondary: '#5f6066', // oklch(42.6% 0.01 240)
-              textTertiary: '#84858a', // oklch(56.1% 0.01 240)
-              bgPrimary: '#ffffff', // белый
-              bgSecondary: '#f7f8fa', // oklch(97.5% 0.003 240)
-              bgTertiary: '#f7f8fa', // oklch(97.5% 0.003 240)
-              bgBorder: '#dfe1e6', // oklch(90% 0.005 240)
-              primaryColor: '#f7f8fa', // bg-background-tertiary
-              primaryBorder: '#dfe1e6', // border-background-border
-              warningBg: '#fef8e8', // oklch(98% 0.02 85)
-              warningBorder: '#f5d88d', // oklch(92% 0.04 85)
-              warningText: '#9d6b0d', // oklch(55% 0.14 85)
-              dangerBg: '#fef2f2', // Светлый красный фон
-              dangerBorder: '#fca5a5', // Красная граница
-              dangerText: '#b91c1c', // Темный красный текст
+              // Светлая тема — тёплые тона (surfaces hue 80, text hue 70)
+              textPrimary: '#191511', // oklch(20% 0.01 70)
+              textSecondary: '#5e574f', // oklch(46% 0.015 70)
+              textTertiary: '#8b857f', // oklch(62% 0.012 70)
+              bgPrimary: '#fefdfb', // oklch(99.5% 0.003 80) — elevated
+              bgSecondary: '#f5f1ea', // oklch(96% 0.01 80)
+              bgTertiary: '#ece7df', // oklch(93% 0.012 80)
+              bgBorder: '#e5e1d9', // oklch(91% 0.012 80)
+              primaryColor: '#ece7df', // bg-background-tertiary
+              primaryBorder: '#e5e1d9', // border-background-border
+              warningBg: '#fff5ec', // oklch(98% 0.02 55)
+              warningBorder: '#fbdecc', // oklch(92% 0.04 55)
+              warningText: '#ad5600', // oklch(55% 0.14 55)
+              containerBg: '#f5f3ee', // page bg + 3% black glass overlay
             };
 
         // Сбрасываем флаг инициализации при смене темы
@@ -107,14 +104,14 @@ export function Mermaid({ chart, title }: MermaidProps) {
               lineColor: colors.textTertiary,
               secondaryColor: colors.bgTertiary,
               tertiaryColor: colors.bgSecondary,
-              background: colors.bgPrimary,
+              background: colors.containerBg,
               mainBkg: colors.bgSecondary,
               secondBkg: colors.bgTertiary,
               border1: colors.bgBorder,
               border2: colors.textTertiary,
               // Цвета для стрелок
               arrowheadColor: colors.textTertiary,
-              edgeLabelBackground: colors.bgPrimary,
+              edgeLabelBackground: colors.containerBg,
               // Note блоки - используем цвета warning callout
               note: colors.warningText,
               noteBkgColor: colors.warningBg,
@@ -138,7 +135,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
               width: 180,
               height: 60,
               boxMargin: 10,
-              boxTextMargin: 5,
+              boxTextMargin: 4,
               noteMargin: 10,
               messageMargin: 40,
               mirrorActors: true,
@@ -244,12 +241,12 @@ export function Mermaid({ chart, title }: MermaidProps) {
               element.setAttribute('stroke-dasharray', 'none');
             });
 
-            // Применяем красный цвет к заметкам с временными ограничениями (3 секунды)
+            // Применяем цвет предупреждения к заметкам с временными ограничениями (3 секунды)
             const allTextElements = svgElement.querySelectorAll('text');
             allTextElements.forEach((textElement) => {
               const textContent = textElement.textContent || '';
 
-              // Обрабатываем заметки с "секунд" (красный цвет)
+              // Обрабатываем заметки с "секунд" (цвет предупреждения)
               if (textContent.includes('секунд')) {
                 // Находим родительскую группу
                 let noteGroup = textElement.parentElement;
@@ -259,17 +256,17 @@ export function Mermaid({ chart, title }: MermaidProps) {
                   if (rect) {
                     // Нашли группу с rect - это наша заметка
                     const rectElement = rect as SVGRectElement;
-                    rectElement.setAttribute('fill', colors.dangerBg);
-                    rectElement.setAttribute('stroke', colors.dangerBorder);
-                    rectElement.style.fill = colors.dangerBg;
-                    rectElement.style.stroke = colors.dangerBorder;
+                    rectElement.setAttribute('fill', colors.warningBg);
+                    rectElement.setAttribute('stroke', colors.warningBorder);
+                    rectElement.style.fill = colors.warningBg;
+                    rectElement.style.stroke = colors.warningBorder;
 
-                    // Применяем красный цвет ко всем текстовым элементам в этой группе
+                    // Применяем цвет предупреждения ко всем текстовым элементам в этой группе
                     const textElements = noteGroup.querySelectorAll('text, tspan');
                     textElements.forEach((text) => {
                       const textEl = text as SVGElement;
-                      textEl.setAttribute('fill', colors.dangerText);
-                      textEl.style.fill = colors.dangerText;
+                      textEl.setAttribute('fill', colors.warningText);
+                      textEl.style.fill = colors.warningText;
                     });
                     break;
                   }
@@ -286,7 +283,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
               // Проверяем, содержит ли текст квадратные скобки
               if (textContent.includes('[') || textContent.includes(']')) {
                 // В светлой теме используем белую обводку, в темной - темную
-                const strokeColor = isDark ? '#1a1a1c' : colors.bgPrimary;
+                const strokeColor = colors.containerBg;
 
                 const textEl = textElement as SVGTextElement;
                 textEl.style.setProperty('paint-order', 'stroke fill', 'important');
@@ -521,8 +518,8 @@ export function Mermaid({ chart, title }: MermaidProps) {
 
   if (error) {
     return (
-      <div className="my-6 rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">
+      <div className="my-6 rounded-xl border border-callout-warning-border bg-callout-warning-bg p-4">
+        <p className="text-sm text-callout-warning-text">
           <strong>Ошибка отображения диаграммы:</strong> {error}
         </p>
       </div>
@@ -536,7 +533,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
           <span className="inline-flex items-center gap-1.5">{title}</span>
         </div>
       )}
-      <div className="relative flex items-center justify-center overflow-hidden rounded-lg border border-background-border bg-background p-6 min-h-[200px]">
+      <div className="relative flex items-center justify-center overflow-hidden rounded-xl border border-glass-border bg-glass backdrop-blur-md p-6 min-h-[200px]">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex items-center gap-2 text-text-secondary text-sm">
@@ -570,7 +567,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
           <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
             <button
               onClick={handleZoomIn}
-              className="p-2 rounded-md bg-background-secondary border border-background-border hover:bg-background-tertiary transition-colors"
+              className="p-2 rounded-md bg-glass backdrop-blur-md border border-glass-border hover:bg-glass-hover transition-colors"
               title="Увеличить"
               type="button"
             >
@@ -578,7 +575,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
             </button>
             <button
               onClick={handleZoomOut}
-              className="p-2 rounded-md bg-background-secondary border border-background-border hover:bg-background-tertiary transition-colors"
+              className="p-2 rounded-md bg-glass backdrop-blur-md border border-glass-border hover:bg-glass-hover transition-colors"
               title="Уменьшить"
               type="button"
             >
@@ -586,7 +583,7 @@ export function Mermaid({ chart, title }: MermaidProps) {
             </button>
             <button
               onClick={handleReset}
-              className="p-2 rounded-md bg-background-secondary border border-background-border hover:bg-background-tertiary transition-colors"
+              className="p-2 rounded-md bg-glass backdrop-blur-md border border-glass-border hover:bg-glass-hover transition-colors"
               title="Сбросить"
               type="button"
             >

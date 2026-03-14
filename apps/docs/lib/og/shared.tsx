@@ -5,17 +5,20 @@ import React from 'react';
 
 const FONT_DIR = join(process.cwd(), 'app/api/og/fonts');
 
-// Dark theme colors matching Пачка API dark UI
+// Dark theme colors — warm stone palette (OKLCH → hex for satori)
 export const OG_COLORS = {
-  background: '#191D1F',
-  textPrimary: '#e8eaed',
-  textSecondary: '#8b8f99',
-  primary: '#5c6bc0',
-  methodGet: '#4078f2',
-  methodPost: '#50a14f',
-  methodPut: '#986801',
-  methodDelete: '#e45649',
-  methodPatch: '#a626a4',
+  background: '#0e0a07', // oklch(15% 0.01 70) — canvas base
+  backgroundSecondary: '#15110c', // oklch(18% 0.012 70) — section fills
+  backgroundBorder: '#2c2721', // oklch(27.5% 0.012 70) — borders
+  textPrimary: '#ebe7e3', // oklch(93% 0.007 70) — headings, body
+  textSecondary: '#a39d97', // oklch(70% 0.012 70) — descriptions
+  textTertiary: '#76706a', // oklch(55% 0.012 70) — metadata
+  primary: '#ee8545', // oklch(72% 0.15 50) — brand orange
+  methodGet: '#508bff', // oklch(66% 0.193 263) — GET blue
+  methodPost: '#5dae5c', // oklch(68% 0.142 143.5) — POST green
+  methodPut: '#c08e3b', // oklch(68% 0.116 77) — PUT amber
+  methodDelete: '#e06c75', // oklch(67.1% 0.145 17) — DELETE red
+  methodPatch: '#c678de', // oklch(69.4% 0.164 318) — PATCH magenta
 } as const;
 
 export const METHOD_COLORS: Record<string, string> = {
@@ -62,7 +65,7 @@ function OgHeader() {
         style={{
           width: '2px',
           height: '56px',
-          backgroundColor: '#4a4e57',
+          backgroundColor: OG_COLORS.backgroundBorder,
         }}
       />
       <span

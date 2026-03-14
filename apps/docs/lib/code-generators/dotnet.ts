@@ -1,20 +1,15 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
+  type ExampleOptions,
 } from '../openapi/example-generator';
-import {
-  requiresAuth,
-  hasMultipartContent,
-  resolveUrl,
-  getQueryParams,
-  resolveParamName,
-} from './utils';
+import { requiresAuth, hasMultipartContent, resolveUrl, buildQueryString } from './utils';
 
 export function generateDotNet(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
@@ -31,22 +26,8 @@ export function generateDotNet(
   }
 
   // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  let fullUrl = url;
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    fullUrl = `${url}?${paramParts.join('&')}`;
-  }
+  const qs = buildQueryString(endpoint);
+  const fullUrl = qs ? `${url}?${qs}` : url;
 
   // Multipart form-data
   if (['POST', 'PUT', 'PATCH'].includes(method) && hasMultipartContent(endpoint)) {
@@ -71,20 +52,22 @@ export function generateDotNet(
     code += `            "${fullUrl}", content);\n`;
   } else if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
     // Build request body for POST/PUT/PATCH
-    const requestExample = generateRequestExample(endpoint.requestBody);
+    const requestExample = generateRequestExample(endpoint.requestBody, options);
+    const methodLower = method.toLowerCase();
+    const methodCapitalized = methodLower.charAt(0).toUpperCase() + methodLower.slice(1);
 
     if (requestExample) {
       const jsonBody = JSON.stringify(requestExample, null, 12).replace(/\n/g, '\n            ');
       code += `        var json = @"\n            ${jsonBody}\n            ";\n`;
       code += `        var content = new StringContent(json, Encoding.UTF8, "application/json");\n\n`;
-
-      const methodLower = method.toLowerCase();
-      const methodCapitalized = methodLower.charAt(0).toUpperCase() + methodLower.slice(1);
       code += `        var response = await client.${methodCapitalized}Async(\n`;
       code += `            "${fullUrl}", content);\n`;
     } else {
-      code += `        var response = await client.GetAsync("${fullUrl}");\n`;
+      code += `        var response = await client.${methodCapitalized}Async(\n`;
+      code += `            "${fullUrl}", null);\n`;
     }
+  } else if (method === 'DELETE') {
+    code += `        var response = await client.DeleteAsync("${fullUrl}");\n`;
   } else {
     code += `        var response = await client.GetAsync("${fullUrl}");\n`;
   }

@@ -143,4 +143,12 @@ export interface NavigationItem {
   href: string;
   badge?: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  /** API path for method endpoints (e.g. /chats/exports) */
+  apiPath?: string;
+  /** Sub-items for collapsible groups */
+  children?: NavigationItem[];
+  /** Original (untranslated) title shown next to the translated one */
+  originalTitle?: string;
+  /** External link (opens in new tab) */
+  external?: boolean;
 }

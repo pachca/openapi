@@ -1,8 +1,8 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
+  type ExampleOptions,
 } from '../openapi/example-generator';
 import {
   isRecord,
@@ -10,13 +10,13 @@ import {
   hasJsonContent,
   hasMultipartContent,
   resolveUrl,
-  getQueryParams,
-  resolveParamName,
+  buildQueryString,
 } from './utils';
 
 export function generateGo(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
@@ -78,28 +78,14 @@ export function generateGo(
   code += `func main() {\n`;
 
   // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  let fullUrl = url;
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    fullUrl = `${url}?${paramParts.join('&')}`;
-  }
+  const qs = buildQueryString(endpoint);
+  const fullUrl = qs ? `${url}?${qs}` : url;
 
   code += `    url := "${fullUrl}"\n\n`;
 
   // Build request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-    const requestExample = generateRequestExample(endpoint.requestBody);
+    const requestExample = generateRequestExample(endpoint.requestBody, options);
 
     if (requestExample) {
       code += `    data := map[string]interface{}${goRepr(requestExample)}\n`;

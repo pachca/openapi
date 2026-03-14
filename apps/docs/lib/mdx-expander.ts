@@ -13,7 +13,7 @@ import { generateNodeJS } from './code-generators/nodejs';
 import { schemaToMarkdown } from './markdown-generator';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
-import { getOrderedGuidePages } from './guides-config';
+import { getOrderedPages } from './ordered-pages';
 import { generateNavigation } from './navigation';
 import { WORKFLOWS } from '@pachca/spec/workflows';
 import { SKILL_TAG_MAP } from '../scripts/skills/config';
@@ -52,8 +52,8 @@ function httpCodesToMarkdown(): string {
 }
 
 function guideCardsToMarkdown(): string {
-  const guides = getOrderedGuidePages().filter(
-    (g) => g.path !== '/' && g.path !== '/guides/updates'
+  const guides = getOrderedPages().filter(
+    (g) => g.path !== '/' && !g.path.startsWith('/updates') && !g.path.startsWith('/api/')
   );
 
   let md = '';
@@ -89,15 +89,16 @@ async function apiCardsToMarkdown(): Promise<string> {
   };
 
   const sections = await generateNavigation();
-  const apiSections = sections.filter((s) => s.items[0]?.method != null);
+  const methodsSection = sections.find((s) => s.title === 'Методы API');
+  const apiGroups = methodsSection?.items ?? [];
 
   let md = '';
-  for (const section of apiSections) {
-    const meta = API_SECTION_META[section.title];
-    const firstHref = section.items[0]?.href;
+  for (const group of apiGroups) {
+    const meta = API_SECTION_META[group.title];
+    const firstHref = group.children?.[0]?.href || group.href;
     if (!firstHref) continue;
 
-    md += `- [${section.title}](${firstHref})`;
+    md += `- [${group.title}](${firstHref})`;
     if (meta?.description) {
       md += ` — ${meta.description}`;
     }
@@ -464,12 +465,13 @@ export async function expandMdxComponents(content: string): Promise<string> {
   // <CliCommands /> -> markdown table of CLI commands
   if (result.includes('<CliCommands')) {
     const sections = await generateNavigation();
-    const allCommands = sections.filter((s) => s.items[0]?.method != null).flatMap((s) => s.items);
+    const methodsSec = sections.find((s) => s.title === 'Методы API');
+    const allCommands = methodsSec ? methodsSec.items.flatMap((group) => group.children ?? []) : [];
 
     let md = '| Команда | Описание |\n';
     md += '|---------|----------|\n';
     for (const item of allCommands) {
-      const command = `pachca ${item.href.slice(1).replace(/\//g, ' ')}`;
+      const command = `pachca ${item.href.replace(/^\/api\//, '').replace(/\//g, ' ')}`;
       md += `| \`${command}\` | ${item.title} |\n`;
     }
     md += '\n';

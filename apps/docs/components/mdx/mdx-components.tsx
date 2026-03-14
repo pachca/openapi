@@ -13,7 +13,8 @@ import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
-import { getOrderedGuidePages } from '@/lib/guides-config';
+import { PackageBadge } from '@/components/mdx/package-badge';
+import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
 import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
@@ -69,7 +70,7 @@ export async function SchemaBlock({
 
   if (!schema) {
     return (
-      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-lg text-red-700">
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
         Schema not found: {name}
       </div>
     );
@@ -152,7 +153,7 @@ export function Info({ children }: { children: React.ReactNode }) {
 }
 
 export function Danger({ children }: { children: React.ReactNode }) {
-  return <Callout type="danger">{children}</Callout>;
+  return <Callout type="warning">{children}</Callout>;
 }
 
 // ============================================
@@ -166,14 +167,22 @@ export function Danger({ children }: { children: React.ReactNode }) {
 interface CodeBlockProps {
   language?: string;
   title?: string;
+  copyButton?: boolean;
   children: React.ReactNode;
 }
 
-export async function CodeBlock({ language = 'text', title, children }: CodeBlockProps) {
+export async function CodeBlock({
+  language = 'text',
+  title,
+  copyButton,
+  children,
+}: CodeBlockProps) {
   const { GuideCodeBlock } = await import('@/components/api/guide-code-block');
   const code = String(children).replace(/\n$/, '');
   const mappedLanguage = language === 'bash' || language === 'shell' ? 'curl' : language;
-  return <GuideCodeBlock language={mappedLanguage} code={code} title={title} />;
+  return (
+    <GuideCodeBlock language={mappedLanguage} code={code} title={title} copyButton={copyButton} />
+  );
 }
 
 // ============================================
@@ -181,8 +190,8 @@ export async function CodeBlock({ language = 'text', title, children }: CodeBloc
 // ============================================
 
 export function GuideCards() {
-  const guides = getOrderedGuidePages().filter(
-    (g) => g.path !== '/' && g.path !== '/guides/updates'
+  const guides = getOrderedPages().filter(
+    (g) => g.path !== '/' && !g.path.startsWith('/updates') && !g.path.startsWith('/api/')
   );
 
   return (
@@ -202,19 +211,20 @@ export function GuideCards() {
 
 export async function ApiCards() {
   const sections = await generateNavigation();
-  // Skip first section ("Начало работы" — guides) and "Профиль и статус"
-  const apiSections = sections.filter((s) => s.items[0]?.method != null);
+  // Skip first section ("Инструменты" — guides) and "Профиль и статус"
+  const methodsSection = sections.find((s) => s.title === 'Методы API');
+  const apiGroups = methodsSection?.items ?? [];
 
   return (
     <CardGroup>
-      {apiSections.map((section) => {
-        const meta = API_SECTION_META[section.title];
-        const firstHref = section.items[0]?.href;
+      {apiGroups.map((group) => {
+        const meta = API_SECTION_META[group.title];
+        const firstHref = group.children?.[0]?.href || group.href;
         if (!firstHref) return null;
 
         return (
-          <Card key={section.title} title={section.title} icon={meta?.icon} href={firstHref}>
-            {meta?.description ?? section.title}
+          <Card key={group.title} title={group.title} icon={meta?.icon} href={firstHref}>
+            {meta?.description ?? group.title}
           </Card>
         );
       })}
@@ -232,24 +242,37 @@ export async function ApiCards() {
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="Custom title" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="With filters" params={{ event_key: "user_login", limit: 50 }} />
+ * <ApiCodeExample operationId="MessageOperations_createMessage" requestMode="required" responseMode="minimal" />
  *
  * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
  * params — override query parameter values; only specified + required params are included
+ * requestMode — "full" (default): all fields; "required": only required fields in request body
+ * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
  */
 
 interface ApiCodeExampleProps {
   operationId: string;
   title?: string;
+  show?: 'request' | 'response' | 'both';
   params?: Record<string, unknown>;
+  requestMode?: 'full' | 'required';
+  responseMode?: 'full' | 'minimal';
 }
 
-export async function ApiCodeExample({ operationId, title, params }: ApiCodeExampleProps) {
+export async function ApiCodeExample({
+  operationId,
+  title,
+  show = 'request',
+  params,
+  requestMode,
+  responseMode,
+}: ApiCodeExampleProps) {
   const endpoint = await getEndpointByOperation(operationId);
   const baseUrl = await getBaseUrl();
 
   if (!endpoint) {
     return (
-      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-lg text-red-700">
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
         Endpoint not found: {operationId}
       </div>
     );
@@ -266,7 +289,17 @@ export async function ApiCodeExample({ operationId, title, params }: ApiCodeExam
     };
   }
 
-  return <CodeExamples endpoint={finalEndpoint} baseUrl={baseUrl} hideResponse title={title} />;
+  return (
+    <CodeExamples
+      endpoint={finalEndpoint}
+      baseUrl={baseUrl}
+      show={show}
+      title={title}
+      requestMode={requestMode}
+      responseMode={responseMode}
+      className="my-4"
+    />
+  );
 }
 
 export const customMdxComponents = {
@@ -295,4 +328,5 @@ export const customMdxComponents = {
   AgentSkillsWorkflows,
   CliCommands,
   NpmBadge,
+  PackageBadge,
 };

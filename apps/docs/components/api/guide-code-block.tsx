@@ -9,18 +9,29 @@ interface GuideCodeBlockProps {
   language: string;
   title?: string;
   className?: string;
+  copyButton?: boolean;
 }
 
-export function GuideCodeBlock({ code, language, title, className }: GuideCodeBlockProps) {
+export function GuideCodeBlock({
+  code,
+  language,
+  title,
+  className,
+  copyButton = true,
+}: GuideCodeBlockProps) {
   if (!title) {
     return (
       <div
-        className={`bg-background-tertiary rounded-lg border border-background-border overflow-hidden not-prose relative ${className ?? 'my-8'}`}
+        className={`bg-glass rounded-xl border border-glass-border overflow-hidden not-prose relative ${className ?? 'my-4'}`}
       >
-        <div className="absolute top-0 right-0 z-10 bg-background-tertiary pl-3 pb-2 pt-2 pr-3 rounded-bl-md">
-          <CopyButton text={code} />
-        </div>
-        <div className="overflow-x-auto custom-scrollbar py-2.5 headerless-code min-h-[var(--boxed-header-height)]">
+        {copyButton && (
+          <div className="absolute top-0 right-0 z-10 pl-3 pb-2 pt-2 pr-3 rounded-bl-xl rounded-tl-xl backdrop-blur-sm">
+            <CopyButton text={code} />
+          </div>
+        )}
+        <div
+          className={`overflow-x-auto overflow-y-hidden custom-scrollbar py-2.5 headerless-code rounded-xl ${copyButton ? 'min-h-[var(--boxed-header-height)]' : 'no-copy'}`}
+        >
           <CodeBlock code={code.trim()} language={language} />
         </div>
       </div>
@@ -29,11 +40,11 @@ export function GuideCodeBlock({ code, language, title, className }: GuideCodeBl
 
   return (
     <BoxedPanel
-      className={className}
+      className={className ?? 'my-4'}
       header={
         <>
           <span className="text-[13px] font-medium text-text-primary truncate">{title}</span>
-          <CopyButton text={code} />
+          {copyButton && <CopyButton text={code} />}
         </>
       }
       headerClassName=""

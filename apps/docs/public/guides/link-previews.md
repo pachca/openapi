@@ -1,0 +1,296 @@
+
+# Разворачивание ссылок
+
+Unfurling — это создание превью ссылки в сообщении. Когда пользователь отправляет ссылку на один из отслеживаемых доменов, бот получает вебхук, извлекает данные по URL из вашего сервиса и отправляет превью обратно в Пачку. В результате все участники чата видят заголовок, описание и изображение — даже если у них нет доступа к ресурсу.
+
+## Как это работает
+
+
+  ### Шаг 1. Создайте Unfurl-бота
+
+Перейдите в **Автоматизации** > **Интеграции** > **Чат-боты и Вебхуки** и создайте бота с типом **Unfurl бот**. Создать такого бота может только владелец пространства или участник с ролью «Администратор». Подробнее — в разделе [Боты](/guides/bots).
+
+
+  ### Шаг 2. Укажите домены
+
+В настройках Unfurl-бота укажите до 5 доменов, ссылки на которые бот будет отслеживать. Бот отслеживает ссылки во всех чатах пространства — добавлять его в конкретные чаты не нужно.
+
+
+  ### Шаг 3. Настройте исходящий вебхук
+
+На вкладке **Исходящий Webhook** укажите URL вашего сервера и включите событие **Отправка ссылок**. Подробнее — в разделе [Исходящие вебхуки](/guides/webhook).
+
+
+  ### Шаг 4. Обработайте вебхук
+
+При появлении ссылки на отслеживаемый домен бот получит вебхук с массивом обнаруженных ссылок. Извлеките данные из вашего сервиса по полученным URL.
+
+
+  ### Шаг 5. Отправьте превью
+
+Вызовите метод [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews), передав заголовок, описание и изображение для каждой ссылки.
+
+
+## Правила распознавания доменов
+
+- Формат: `example.com` или `subdomain.example.com`
+- Протокол не указывается — отслеживаются и `http`, и `https`
+- Поддомены включаются автоматически: `example.com` покрывает `sub.example.com`
+- Пути и параметры не учитываются — проверяется только домен
+- IP-адреса и порты не поддерживаются
+
+## Вебхук о ссылке
+
+При появлении ссылки на отслеживаемый домен бот получает вебхук с типом `link_shared`:
+
+#### LinkSharedWebhookPayload
+
+- `type` (string, **обязательный**): Тип объекта
+  - Пример: `message`
+  - **Возможные значения:**
+    - `message`: Для разворачивания ссылок всегда message
+- `event` (string, **обязательный**): Тип события
+  - Пример: `link_shared`
+  - **Возможные значения:**
+    - `link_shared`: Обнаружена ссылка на отслеживаемый домен
+- `chat_id` (integer, int32, **обязательный**): Идентификатор чата, в котором обнаружена ссылка
+  - Пример: `23438`
+- `message_id` (integer, int32, **обязательный**): Идентификатор сообщения, содержащего ссылку
+  - Пример: `268092`
+- `links` (array[object], **обязательный**): Массив обнаруженных ссылок на отслеживаемые домены
+  - `url` (string, **обязательный**): URL ссылки
+    - Пример: `https://example.com/page1`
+  - `domain` (string, **обязательный**): Домен ссылки
+    - Пример: `example.com`
+- `user_id` (integer, int32, **обязательный**): Идентификатор отправителя сообщения
+  - Пример: `2345`
+- `created_at` (string, date-time, **обязательный**): Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - Пример: `2024-09-18T19:53:14.000Z`
+- `webhook_timestamp` (integer, int32, **обязательный**): Дата и время отправки вебхука (UTC+0) в формате UNIX
+  - Пример: `1726685594`
+
+
+## Создание превью
+
+Для создания превью используйте метод [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews), передав `message_id` из вебхука.
+
+Тело запроса — объект `link_previews`, где каждый ключ — URL из массива `links` вебхука:
+
+**Unfurl (разворачивание ссылок)**
+
+### cURL
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/messages/194275/link_previews" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "link_previews": {
+    "https://website.com/articles/123": {
+      "title": "Статья: Отправка файлов",
+      "description": "Пример отправки файлов на удаленный сервер",
+      "image_url": "https://website.com/img/landing.png",
+      "image": {
+        "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
+        "name": "files-to-server.jpg",
+        "size": 695604
+      }
+    }
+  }
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://api.pachca.com/api/shared/v1/messages/194275/link_previews', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+      "link_previews": {
+          "https://website.com/articles/123": {
+              "title": "Статья: Отправка файлов",
+              "description": "Пример отправки файлов на удаленный сервер",
+              "image_url": "https://website.com/img/landing.png",
+              "image": {
+                  "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
+                  "name": "files-to-server.jpg",
+                  "size": 695604
+              }
+          }
+      }
+  })
+});
+
+const data = await response.json();
+console.log(data);
+```
+
+### Python
+
+```python
+import requests
+
+data = {
+    'link_previews': {
+        'https://website.com/articles/123': {
+            'title': 'Статья: Отправка файлов',
+            'description': 'Пример отправки файлов на удаленный сервер',
+            'image_url': 'https://website.com/img/landing.png',
+            'image': {
+                'key': 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}',
+                'name': 'files-to-server.jpg',
+                'size': 695604
+            }
+        }
+    }
+}
+
+headers = {
+    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
+}
+
+response = requests.post(
+    'https://api.pachca.com/api/shared/v1/messages/194275/link_previews',
+    headers=headers,
+    json=data
+)
+
+print(response.json())
+```
+
+### Node.js
+
+```javascript
+const https = require('https');
+
+const options = {
+    hostname: 'api.pachca.com',
+    port: 443,
+    path: '/api/shared/v1/messages/194275/link_previews',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
+    }
+};
+
+const req = https.request(options, (res) => {
+    let data = '';
+
+    res.on('data', (chunk) => {
+        data += chunk;
+    });
+
+    res.on('end', () => {
+        console.log(JSON.parse(data));
+    });
+});
+
+req.write(JSON.stringify({
+    "link_previews": {
+        "https://website.com/articles/123": {
+            "title": "Статья: Отправка файлов",
+            "description": "Пример отправки файлов на удаленный сервер",
+            "image_url": "https://website.com/img/landing.png",
+            "image": {
+                "key": "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
+                "name": "files-to-server.jpg",
+                "size": 695604
+            }
+        }
+    }
+}));
+req.on('error', (error) => {
+    console.error(error);
+});
+
+req.end();
+```
+
+### Ruby
+
+```ruby
+require 'net/http'
+require 'json'
+
+uri = URI('https://api.pachca.com/api/shared/v1/messages/194275/link_previews')
+request = Net::HTTP::Post.new(uri)
+request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
+request['Content-Type'] = 'application/json'
+
+request.body = {
+  'link_previews' => {
+    'https://website.com/articles/123' => {
+      'title' => 'Статья: Отправка файлов',
+      'description' => 'Пример отправки файлов на удаленный сервер',
+      'image_url' => 'https://website.com/img/landing.png',
+      'image' => {
+        'key' => 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}',
+        'name' => 'files-to-server.jpg',
+        'size' => 695604
+      }
+    }
+  }
+}.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+  http.request(request)
+end
+
+puts JSON.parse(response.body)
+```
+
+### PHP
+
+```php
+<?php
+
+$curl = curl_init();
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages/194275/link_previews',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer YOUR_ACCESS_TOKEN',
+        'Content-Type: application/json',
+    ],
+    CURLOPT_POSTFIELDS => json_encode([
+    'link_previews' => [
+        'https://website.com/articles/123' => [
+            'title' => 'Статья: Отправка файлов',
+            'description' => 'Пример отправки файлов на удаленный сервер',
+            'image_url' => 'https://website.com/img/landing.png',
+            'image' => [
+                'key' => 'attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}',
+                'name' => 'files-to-server.jpg',
+                'size' => 695604
+            ]
+        ]
+    ]
+]),
+]);
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+echo $response;
+?>
+```
+
+
+Изображение можно указать двумя способами:
+
+- **По ссылке** — параметр `image_url` с публичным URL изображения
+- **Загрузкой файла** — параметр `image` с данными, полученными через метод [Загрузка файлов](POST /direct_url). Если указаны оба параметра, `image` является приоритетным
+
+> **Внимание:** Если среди переданных URL будет ошибка (URL отсутствует в сообщении или домен не указан в настройках бота), запрос не будет выполнен — не будет создано ни одного превью.
+
+
+> На данный момент в сообщении отображается только первое созданное превью. Все переданные превью сохраняются и будут отображаться в ближайших обновлениях.
+

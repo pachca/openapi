@@ -579,6 +579,7 @@ function loadAllGuides(): GuideMetadata[] {
   const guides: GuideMetadata[] = [];
   const contentDir = path.join(process.cwd(), 'content');
   const guidesDir = path.join(contentDir, 'guides');
+  const apiDir = path.join(contentDir, 'api');
 
   // Add home page
   const homeContent = readContentFile(path.join(contentDir, 'home'));
@@ -586,32 +587,51 @@ function loadAllGuides(): GuideMetadata[] {
     guides.push(extractGuideMetadata(homeContent, 'home', '/'));
   }
 
-  // Scan guides directory
-  try {
-    if (fs.existsSync(guidesDir)) {
-      const files = fs.readdirSync(guidesDir);
+  // Add updates page
+  const updatesContent = buildUpdatesContent();
+  if (updatesContent) {
+    guides.push(extractGuideMetadata(updatesContent, 'updates', '/updates'));
+  }
 
-      for (const file of files) {
-        if (file.endsWith('.mdx') || file.endsWith('.md')) {
-          const id = file.replace(/\.(mdx?|md)$/, '');
-          const filePath = path.join(guidesDir, file);
+  // Scan guides directory (recursively for nested paths like forms/blocks)
+  function scanDir(dir: string, urlPrefix: string) {
+    try {
+      if (!fs.existsSync(dir)) return;
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-          // Special handling for updates page - use parsed updates content
-          if (id === 'updates') {
-            const updatesContent = buildUpdatesContent();
-            guides.push(extractGuideMetadata(updatesContent, id, `/guides/${id}`));
+      for (const entry of entries) {
+        if (entry.isFile() && (entry.name.endsWith('.mdx') || entry.name.endsWith('.md'))) {
+          const name = entry.name.replace(/\.(mdx?|md)$/, '');
+          const filePath = path.join(dir, entry.name);
+
+          if (name === 'index') {
+            // Directory index — use parent dir name as id
+            const dirName = path.basename(dir);
+            const content = readContentFile(filePath);
+            if (content) {
+              guides.push(extractGuideMetadata(content, dirName, urlPrefix));
+            }
+          } else if (name === 'updates' && urlPrefix === '/guides') {
+            // Skip — updates moved to content/updates.mdx
           } else {
             const content = readContentFile(filePath);
             if (content) {
-              guides.push(extractGuideMetadata(content, id, `/guides/${id}`));
+              guides.push(extractGuideMetadata(content, name, `${urlPrefix}/${name}`));
             }
           }
+        } else if (entry.isDirectory()) {
+          scanDir(path.join(dir, entry.name), `${urlPrefix}/${entry.name}`);
         }
       }
+    } catch (error) {
+      console.error(`Error scanning directory ${dir}:`, error);
     }
-  } catch (error) {
-    console.error('Error scanning guides directory:', error);
   }
+
+  scanDir(guidesDir, '/guides');
+
+  // Scan API guides directory
+  scanDir(apiDir, '/api');
 
   return guides;
 }
@@ -878,6 +898,8 @@ export async function buildSearchIndex(): Promise<SearchIndex[]> {
 export interface SearchResult extends SearchIndex {
   /** Matched value with optional description (from schema field or MDX code) */
   matchedValue?: CodeValueWithDescription;
+  /** True when the result was found primarily because of a field/code match, not title/description */
+  matchedByField?: boolean;
   /** FlexSearch relevance score (higher = better match) */
   score?: number;
 }
@@ -961,12 +983,16 @@ function itemContainsExactQuery(item: SearchIndex, lowerQuery: string): boolean 
   return false;
 }
 
-export async function search(query: string): Promise<SearchResult[]> {
+export interface SearchResponse {
+  results: SearchResult[];
+}
+
+export async function search(query: string): Promise<SearchResponse> {
   const index = await buildSearchIndex();
   const lowerQuery = query.toLowerCase().trim();
 
   if (!lowerQuery || !flexIndex) {
-    return [];
+    return { results: [] };
   }
 
   // Detect if this is a code-like query (variable name, field name, etc.)
@@ -1086,13 +1112,33 @@ export async function search(query: string): Promise<SearchResult[]> {
       else if (hasEntity) score += 5;
     }
 
+    // Determine if the result was found primarily through a field match
+    // (i.e., title and description don't already match significant query words)
+    let matchedByField = false;
+    if (matchResult) {
+      const titleLower = item.title.toLowerCase();
+      const descLower = item.description.toLowerCase();
+      const significantWords = lowerQuery.split(/\s+/).filter((w) => w.length > 2);
+      const titleOrDescMatchCount = significantWords.filter((w) => {
+        const variants = getWordVariants(w);
+        return variants.some((v) => titleLower.includes(v) || descLower.includes(v));
+      }).length;
+      // If less than half of significant query words match title/description,
+      // the field match is likely the primary reason this result appeared
+      matchedByField =
+        significantWords.length === 0 || titleOrDescMatchCount < significantWords.length / 2;
+    }
+
     results.push({
       ...item,
       matchedValue: matchResult?.value,
+      matchedByField,
       score,
     });
   }
 
   // Sort by score (higher = better)
-  return results.sort((a, b) => (b.score || 0) - (a.score || 0));
+  return {
+    results: results.sort((a, b) => (b.score || 0) - (a.score || 0)),
+  };
 }

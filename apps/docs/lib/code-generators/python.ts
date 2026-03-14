@@ -3,6 +3,7 @@ import {
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
+  type ExampleOptions,
 } from '../openapi/example-generator';
 import {
   isRecord,
@@ -16,7 +17,8 @@ import {
 
 export function generatePython(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method.toLowerCase();
@@ -82,7 +84,7 @@ export function generatePython(
   } else {
     // Add request body for POST/PUT/PATCH
     if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
-      const requestExample = generateRequestExample(endpoint.requestBody);
+      const requestExample = generateRequestExample(endpoint.requestBody, options);
 
       if (requestExample) {
         code += `data = ${pythonRepr(requestExample)}\n\n`;

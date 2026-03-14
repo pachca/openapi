@@ -45,10 +45,10 @@ export function CopyButton({ text }: CopyButtonProps) {
     <CopiedTooltip open={copied}>
       <button
         onClick={handleCopy}
-        className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors duration-200 cursor-pointer text-text-secondary hover:text-text-primary`}
+        className="flex items-center justify-center w-6 h-6 rounded-md transition-colors duration-200 cursor-pointer text-text-secondary hover:text-text-primary"
       >
         {copied ? (
-          <Check className="w-3.5 h-3.5 text-[#50A14F] dark:text-[#98C379]" strokeWidth={2.5} />
+          <Check className="w-3.5 h-3.5 text-accent-green" strokeWidth={2.5} />
         ) : (
           <Copy className="w-3.5 h-3.5" strokeWidth={2.5} />
         )}

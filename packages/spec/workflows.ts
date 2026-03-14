@@ -14,7 +14,7 @@ export interface Workflow {
   steps: WorkflowStep[];
   notes?: string;
   notesEn?: string;
-  featured?: boolean;
+
   related?: string[];
   relatedEn?: string[];
   inline?: boolean;
@@ -695,7 +695,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
     {
       title: 'Найти активные чаты за период',
       titleEn: 'Find active chats for period',
-      featured: true,
+
       steps: [
         {
           description: 'Получи чаты с активностью после указанной даты',
@@ -998,7 +998,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
     {
       title: 'Показать интерактивную форму пользователю',
       titleEn: 'Show interactive form to user',
-      featured: true,
+
       inline: false,
       related: [
         'Обработать отправку формы (view_submission)',
@@ -1388,7 +1388,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
     {
       title: 'Создать напоминание',
       titleEn: 'Create reminder',
-      featured: true,
+
       related: ['Получить список предстоящих задач', 'Создать серию напоминаний'],
       relatedEn: ['Get list of upcoming tasks', 'Create series of reminders'],
       steps: [
@@ -1569,7 +1569,7 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
     {
       title: 'Получить кастомные поля профиля',
       titleEn: 'Get custom profile fields',
-      featured: true,
+
       steps: [
         {
           description: 'Получи список дополнительных полей для сотрудников',

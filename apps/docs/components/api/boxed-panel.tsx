@@ -20,10 +20,10 @@ export function BoxedPanel({
   return (
     <div
       id={id}
-      className={`bg-background-tertiary rounded-lg border border-background-border overflow-hidden flex flex-col h-fit not-prose ${className}`}
+      className={`bg-glass backdrop-blur-md rounded-xl border border-glass-border overflow-hidden flex flex-col h-fit not-prose ${className}`}
     >
       <div
-        className={`flex gap-2 items-center justify-between pr-3 pl-4 border-b border-background-border min-h-[var(--boxed-header-height)] ${headerClassName}`}
+        className={`flex gap-2 items-center justify-between pr-3 pl-4 border-b border-glass-border min-h-[var(--boxed-header-height)] ${headerClassName}`}
       >
         {header}
       </div>

@@ -40,6 +40,8 @@ import {
   KeyRound,
   Terminal,
   Route,
+  MousePointerClick,
+  Blocks,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -83,22 +85,24 @@ const iconMap: Record<string, LucideIcon> = {
   KeyRound,
   Terminal,
   Route,
+  MousePointerClick,
+  Blocks,
 };
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
-  '/guides/authorization': 'KeyRound',
   '/guides/ai-agents': 'Sparkles',
   '/guides/cli': 'Terminal',
   '/guides/workflows': 'Route',
-  '/guides/requests-responses': 'ArrowLeftRight',
   '/guides/webhook': 'Webhook',
-  '/guides/errors': 'AlertTriangle',
   '/guides/export': 'Download',
-  '/guides/forms': 'LayoutList',
+  '/guides/forms/overview': 'LayoutList',
   '/guides/dlp': 'ShieldCheck',
   '/guides/audit-events': 'ClipboardList',
-  '/guides/updates': 'FileText',
+  '/api/authorization': 'KeyRound',
+  '/api/requests-responses': 'ArrowLeftRight',
+  '/api/errors': 'AlertTriangle',
+  '/updates': 'FileText',
 };
 
 /** Icon and description mapping for API sections by title */
@@ -164,7 +168,7 @@ export function Card({ title, icon, href, download, children }: CardProps) {
 
   if (href) {
     const className =
-      'group relative flex flex-col gap-2.5 px-4 py-3 rounded-lg border border-background-border hover:bg-background-tertiary transition-all duration-200 no-underline!';
+      'group relative flex flex-col gap-2.5 px-4 py-3 rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200 no-underline!';
     const cornerIcon = download ? (
       <ArrowDownToLine className="absolute top-3 right-3 h-4 w-4 text-text-tertiary transition-transform duration-200 group-hover:translate-y-0.5" />
     ) : (
@@ -202,7 +206,7 @@ export function Card({ title, icon, href, download, children }: CardProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2.5 px-4 py-3 rounded-lg border border-background-border">
+    <div className="flex flex-col gap-2.5 px-4 py-3 rounded-xl border border-glass-border bg-glass backdrop-blur-md">
       {content}
     </div>
   );

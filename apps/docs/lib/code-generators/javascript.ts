@@ -1,43 +1,27 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
+  type ExampleOptions,
 } from '../openapi/example-generator';
 import {
   requiresAuth,
   hasJsonContent,
   hasMultipartContent,
   resolveUrl,
-  getQueryParams,
-  resolveParamName,
+  buildQueryString,
 } from './utils';
 
 export function generateJavaScript(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
 
-  let code = `const response = await fetch('${url}'`;
-
-  // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    code = `const response = await fetch('${url}?${paramParts.join('&')}'`;
-  }
+  const qs = buildQueryString(endpoint);
+  let code = `const response = await fetch('${url}${qs ? `?${qs}` : ''}'`;
 
   code += `, {\n  method: '${method}',`;
 
@@ -85,7 +69,7 @@ export function generateJavaScript(
 
     // Add body for POST/PUT/PATCH
     if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-      const requestExample = generateRequestExample(endpoint.requestBody);
+      const requestExample = generateRequestExample(endpoint.requestBody, options);
 
       if (requestExample) {
         code += `,\n  body: JSON.stringify(${JSON.stringify(requestExample, null, 4).replace(/\n/g, '\n  ')})`;

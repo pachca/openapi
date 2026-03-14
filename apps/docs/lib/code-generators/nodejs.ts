@@ -1,21 +1,21 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
+  type ExampleOptions,
 } from '../openapi/example-generator';
 import {
   requiresAuth,
   hasJsonContent,
   hasMultipartContent,
   resolveUrl,
-  getQueryParams,
-  resolveParamName,
+  buildQueryString,
 } from './utils';
 
 export function generateNodeJS(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method.toLowerCase();
@@ -61,22 +61,8 @@ export function generateNodeJS(
   let code = `const https = require('https');\n\n`;
 
   // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  let path = new URL(url).pathname;
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    path = `${path}?${paramParts.join('&')}`;
-  }
+  const qs = buildQueryString(endpoint);
+  const path = qs ? `${new URL(url).pathname}?${qs}` : new URL(url).pathname;
 
   code += `const options = {\n`;
   code += `    hostname: 'api.pachca.com',\n`;
@@ -105,7 +91,7 @@ export function generateNodeJS(
 
   // Add request body for POST/PUT/PATCH
   if (['post', 'put', 'patch'].includes(method) && endpoint.requestBody) {
-    const requestExample = generateRequestExample(endpoint.requestBody);
+    const requestExample = generateRequestExample(endpoint.requestBody, options);
 
     if (requestExample) {
       code += `req.write(JSON.stringify(${JSON.stringify(requestExample, null, 4)}));\n`;

@@ -1,21 +1,21 @@
 import type { Endpoint } from '../openapi/types';
 import {
-  generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
+  type ExampleOptions,
 } from '../openapi/example-generator';
 import {
   requiresAuth,
   hasJsonContent,
   hasMultipartContent,
   resolveUrl,
-  getQueryParams,
-  resolveParamName,
+  buildQueryString,
 } from './utils';
 
 export function generateCurl(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const method = endpoint.method;
   const url = resolveUrl(endpoint, baseUrl);
@@ -54,7 +54,7 @@ export function generateCurl(
 
     // Add request body for POST/PUT/PATCH
     if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-      const requestExample = generateRequestExample(endpoint.requestBody);
+      const requestExample = generateRequestExample(endpoint.requestBody, options);
 
       if (requestExample) {
         curl += ` \\\n  -d '${JSON.stringify(requestExample, null, 2)}'`;
@@ -63,20 +63,9 @@ export function generateCurl(
   }
 
   // Add query parameters if any
-  const queryParams = getQueryParams(endpoint);
-  if (queryParams.length > 0) {
-    const paramParts: string[] = [];
-    for (const p of queryParams) {
-      const example = generateParameterExample(p);
-      if (Array.isArray(example)) {
-        for (const val of example) {
-          paramParts.push(`${resolveParamName(p)}[]=${String(val)}`);
-        }
-      } else {
-        paramParts.push(`${resolveParamName(p)}=${String(example)}`);
-      }
-    }
-    curl = curl.replace(`"${url}"`, `"${url}?${paramParts.join('&')}"`);
+  const qs = buildQueryString(endpoint);
+  if (qs) {
+    curl = curl.replace(`"${url}"`, `"${url}?${qs}"`);
   }
 
   return curl;

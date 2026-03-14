@@ -21,7 +21,7 @@ export interface WorkflowCardData {
   categories: string[];
   steps: { segments: StepSegment[]; command?: string }[];
   notes?: StepSegment[];
-  featured: boolean;
+
   requirements: { scopes: string[]; plans: string[] };
   related?: string[];
   stepCount: number;
@@ -99,7 +99,7 @@ export async function AgentSkillsWorkflows() {
           command: step.command,
         })),
         notes: wf.notes ? parseStep(wf.notes, endpoints) : undefined,
-        featured: wf.featured ?? false,
+
         requirements: deriveRequirements(wf, endpoints),
         related: wf.related,
         stepCount: wf.steps.length,

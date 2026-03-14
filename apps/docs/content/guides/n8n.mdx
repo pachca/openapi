@@ -1,0 +1,181 @@
+---
+title: n8n
+description: Автоматизации в Пачке через платформу n8n без программирования
+---
+
+# n8n
+
+## Что такое n8n
+
+n8n — платформа для автоматизации рабочих процессов с открытым исходным кодом. Можно развернуть на собственном сервере или использовать веб-версию. Платформа позволяет создавать интеграции с сервисами без написания кода, используя визуальный редактор с узлами (nodes).
+
+В n8n встроено более 400 готовых узлов для популярных сервисов. Узлы бывают двух типов:
+
+- **Узел триггера** — событие, запускающее рабочий процесс: новое сообщение, нажатие кнопки, обновление статуса и др.
+- **Узел действия** — логика после триггера: отправка сообщения в чат, создание задачи, добавление записи в БД и т.д.
+
+n8n автоматически выполняет каждое действие по триггеру в указанном порядке.
+
+<ImageCard src="/images/n8n/n8n-interface.avif" alt="Интерфейс n8n с визуальным редактором workflow" caption="Визуальный редактор n8n" maxWidth={960} />
+
+## Настройка
+
+<Steps>
+  <Step title="Установка n8n">
+    <Warning>Расширение Пачки доступно пока только в Beta. Его нет в веб-версии n8n — для использования нужно развернуть коробочную версию на собственном сервере.</Warning>
+
+    Два способа установки:
+
+    **С помощью команды** (требуется Node.js):
+
+    ```bash
+    npx n8n
+    ```
+
+    **С помощью Docker:**
+
+    ```bash
+    docker volume create n8n_data
+
+    docker run -it --rm \
+      --name n8n \
+      -p 5678:5678 \
+      -e GENERIC_TIMEZONE="<YOUR_TIMEZONE>" \
+      -e TZ="<YOUR_TIMEZONE>" \
+      -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
+      -e N8N_RUNNERS_ENABLED=true \
+      -v n8n_data:/home/node/.n8n \
+      docker.n8n.io/n8nio/n8n
+    ```
+
+    Подробные инструкции — в [официальной документации n8n](https://docs.n8n.io/hosting/) и на [GitHub](https://github.com/n8n-io/n8n).
+
+    После запуска настройте аккаунт владельца (Owner Account), указав почту, имя и пароль.
+
+    <ImageCard src="/images/n8n/owner-account.avif" alt="Настройка аккаунта владельца n8n" caption="Настройка Owner Account" maxWidth={960} />
+  </Step>
+  <Step title="Установка расширения Пачки">
+    Расширение доступно на [GitHub](https://github.com/doesntneedname/n8n-nodes-pachca) и [npmjs](https://www.npmjs.com/package/n8n-nodes-pachca).
+
+    Три способа установки:
+
+    1. Зайти в **Settings** > **Community nodes** и добавить `n8n-nodes-pachca` (рекомендуется)
+    2. Выполнить команду `npm i n8n-nodes-pachca` в директории n8n
+    3. Следовать README-инструкции на [GitHub](https://github.com/doesntneedname/n8n-nodes-pachca)
+
+    <ImageCard src="/images/n8n/community-nodes.avif" alt="Установка расширения Пачки через Community nodes" caption="Установка через Community nodes" maxWidth={960} />
+  </Step>
+  <Step title="Создание Credentials">
+    Credentials — данные для авторизации.
+
+    Нажмите **«Add Credential»**, найдите **Pachca API** в списке и заполните поля:
+
+    - **Base URL:** `https://api.pachca.com/api/shared/v1`
+    - **Access Token:** Токен доступа к API. В Пачке доступны два типа токенов:
+      - Персональный токен — доступен в разделе **Автоматизации** > **Интеграции** > **API**
+      - Токен бота — доступен в настройках бота на вкладке **API**
+
+    Подробнее о токенах — в разделе [Авторизация](/api/authorization). Credentials можно создать несколько — для разных операций и токенов.
+
+    <ImageCard src="/images/n8n/credentials.avif" alt="Создание Credentials для Пачки в n8n" caption="Настройка Pachca API Credentials" maxWidth={960} />
+  </Step>
+  <Step title="Создание Workflow">
+    Workflow — визуальный редактор, в котором выстраиваются цепочки триггеров и действий.
+
+    <ImageCard src="/images/n8n/workflow-editor.avif" alt="Визуальный редактор workflow в n8n" caption="Редактор workflow" maxWidth={960} />
+
+    Пример: отправка сообщения от лица бота. Триггер — нажатие кнопки **«Execute Workflow»**, действие — **Send a message** в Пачке:
+
+    - **Credential** — от чьего лица будет отправлено сообщение
+    - **Entity ID** — ID чата
+    - **Content** — содержание сообщения
+
+    Не забудьте добавить бота в чат.
+
+    <ImageCard src="/images/n8n/workflow-example.avif" alt="Пример workflow с отправкой сообщения" caption="Пример отправки сообщения" maxWidth={960} />
+
+    В платформу встроено более 400 узлов для популярных сервисов, а дополнительные Community nodes можно установить из интерфейса. При необходимости доступны HTTP-запросы к любому API, условия, кастомный JavaScript- или Python-код.
+  </Step>
+</Steps>
+
+## Методы API в nodes Pachca (Beta)
+
+Nodes (узлы) в расширении Пачки для n8n совпадают с методами API. Вот список доступных:
+
+### Действия с сообщениями
+
+- **Send a message** — [Новое сообщение](POST /messages)
+- **Get a message** — [Информация о сообщении](GET /messages/{id})
+- **Get messages from the chat** — [Список сообщений чата](GET /messages)
+- **Update a message** — [Редактирование сообщения](PUT /messages/{id})
+- **Delete a message** — [Удаление сообщения](DELETE /messages/{id})
+- **Pin a message** — [Закрепление сообщения](POST /messages/{id}/pin)
+- **Unpin a message** — [Открепление сообщения](DELETE /messages/{id}/pin)
+- **Get message readers** — [Список прочитавших сообщение](GET /messages/{id}/read_member_ids)
+- **Unfurl message links** — [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
+
+### Действия с тредами
+
+- **Create a thread** — [Новый тред](POST /messages/{id}/thread)
+- **Get a thread** — [Информация о треде](GET /threads/{id})
+
+### Действия с реакциями
+
+- **Add a reaction** — [Новая реакция](POST /messages/{id}/reactions)
+- **Remove a reaction** — [Удаление реакции](DELETE /messages/{id}/reactions)
+- **Get message reactions** — [Список реакций на сообщение](GET /messages/{id}/reactions)
+
+### Действия с чатом
+
+- **Get all chats** — [Список чатов](GET /chats)
+- **Get a chat** — [Информация о чате](GET /chats/{id})
+- **Create a chat** — [Новый чат](POST /chats)
+- **Update a chat** — [Обновление чата](PUT /chats/{id})
+- **Archive a chat** — [Архивация чата](PUT /chats/{id}/archive)
+- **Unarchive a chat** — [Разархивация чата](PUT /chats/{id}/unarchive)
+- **Get chat members** — [Список участников чата](GET /chats/{id}/members)
+- **Add users to chat** — [Добавление пользователей](POST /chats/{id}/members)
+- **Remove user from chat** — [Исключение пользователя](DELETE /chats/{id}/members/{user_id})
+- **Update user role in chat** — [Редактирование роли](PUT /chats/{id}/members/{user_id})
+- **Leave a chat** — [Выход из чата](DELETE /chats/{id}/leave)
+
+### Действия с пользователями
+
+- **Get all users** — [Список сотрудников](GET /users)
+- **Get a user** — [Информация о сотруднике](GET /users/{id})
+- **Create a user** — [Новый сотрудник](POST /users)
+- **Update a user** — [Редактирование сотрудника](PUT /users/{id})
+- **Delete a user** — [Удаление сотрудника](DELETE /users/{id})
+
+### Действия с тегами пользователей
+
+- **Get all group tags** — [Список тегов сотрудников](GET /group_tags)
+- **Get a group tag** — [Информация о теге](GET /group_tags/{id})
+- **Create a group tag** — [Новый тег](POST /group_tags)
+- **Update a group tag** — [Редактирование тега](PUT /group_tags/{id})
+- **Delete a group tag** — [Удаление тега](DELETE /group_tags/{id})
+- **Get users in group tag** — [Список сотрудников тега](GET /group_tags/{id}/users)
+- **Add tags to chat** — [Добавление тегов](POST /chats/{id}/group_tags)
+- **Remove tag from chat** — [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id})
+
+### Действия со статусом и профилем
+
+- **Get my profile** — [Информация о профиле](GET /profile)
+- **Get my status** — [Текущий статус](GET /profile/status)
+- **Set my status** — [Новый статус](PUT /profile/status)
+- **Clear my status** — [Удаление статуса](DELETE /profile/status)
+
+### Действия с формами
+
+- **Create a form** — [Открытие представления](POST /views/open)
+- **Process form submission** — закрытие и отображение ошибок
+- **Get form templates**
+
+### Другие действия
+
+- **Get custom properties** — [Список дополнительных полей](GET /custom_properties)
+- **Create a task** — [Новое напоминание](POST /tasks)
+- **Update a bot** — [Редактирование бота](PUT /bots/{id})
+- **Upload a file** — [Загрузка файла](POST /direct_url)
+
+<Warning>Некоторые действия доступны только с персональным токеном (владельца или участника с ролью «Администратор»).</Warning>

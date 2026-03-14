@@ -230,10 +230,10 @@ export function ValuesBox({ title, children }: { title: string; children: React.
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="mt-3 mb-1 border border-background-border rounded-lg w-full">
+    <div className="mt-3 mb-1 border border-glass-border rounded-xl w-full">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`px-3 flex items-center gap-2 bg-background-tertiary min-h-(--boxed-header-height) cursor-pointer select-none group/values ${isOpen ? 'rounded-t-lg' : 'rounded-lg'}`}
+        className={`px-3 flex items-center gap-2 bg-glass backdrop-blur-md min-h-(--boxed-header-height) cursor-pointer select-none group/values ${isOpen ? 'rounded-t-xl' : 'rounded-xl'}`}
       >
         <ChevronDown
           className={`w-3.5 h-3.5 text-text-secondary group-hover/values:text-text-primary transition-all duration-200 shrink-0 ${
@@ -244,9 +244,7 @@ export function ValuesBox({ title, children }: { title: string; children: React.
         <span className="text-[13px] font-medium text-text-primary">{title}</span>
       </div>
       {isOpen && (
-        <div className="divide-y divide-background-border/40 border-t border-background-border">
-          {children}
-        </div>
+        <div className="divide-y divide-glass-divider border-t border-glass-border">{children}</div>
       )}
     </div>
   );
@@ -278,7 +276,7 @@ export function CopyableCode({
     <CopiedTooltip open={copied}>
       <code
         onClick={handleCopy}
-        className={`bg-background-secondary border border-background-border px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary cursor-pointer hover:bg-background-tertiary transition-colors inline-block truncate ${className || ''}`}
+        className={`bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded-md text-[12px] font-mono text-text-primary cursor-pointer hover:bg-glass-hover transition-colors inline-block truncate ${className || ''}`}
         title="Нажмите, чтобы скопировать"
       >
         {displayValue || value}
@@ -309,7 +307,7 @@ function CopyableName({ name }: { name: string }) {
     <CopiedTooltip open={copied}>
       <span
         onClick={handleCopy}
-        className="font-bold font-mono text-[14px] text-text-primary break-all inline-block max-w-full transition-colors cursor-pointer hover:text-accent-emphasis"
+        className="font-bold font-mono text-[14px] text-text-primary break-all inline-block max-w-full transition-colors cursor-pointer hover:text-primary"
       >
         {name}
       </span>
@@ -343,15 +341,12 @@ function CopyLinkButton({ paramId, hasChevron }: { paramId: string; hasChevron?:
     <CopiedTooltip open={copied}>
       <button
         onClick={handleCopyLink}
-        className={`copy-link-btn absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[5px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-150 p-1 rounded bg-background hover:bg-background-tertiary hover:text-text-primary shrink-0`}
+        className={`copy-link-btn absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[5px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-200 p-1 rounded hover:bg-glass-hover hover:text-text-primary shrink-0`}
         title="Скопировать ссылку"
         type="button"
       >
         {showCheck ? (
-          <Check
-            className="w-3.5 h-3.5 text-[#50A14F] dark:text-[#98C379] transition-colors"
-            strokeWidth={2.5}
-          />
+          <Check className="w-3.5 h-3.5 text-accent-green transition-colors" strokeWidth={2.5} />
         ) : (
           <LinkIcon
             className="w-3.5 h-3.5 text-text-secondary transition-colors"
@@ -542,7 +537,7 @@ function SchemaTreeInner({
         {name && (
           <SchemaHeader name={name} schema={schema} required={required} typeOverride="object" />
         )}
-        <div className="divide-y divide-background-border/60">
+        <div className="divide-y divide-glass-divider">
           {Object.entries(schema.properties).map(([propName, propSchema]) => (
             <PropertyRow
               key={propName}
@@ -579,9 +574,9 @@ function SchemaTreeInner({
             <InlineCodeText text={schema.description} />
           </div>
         )}
-        <div className={valueIsObject ? '' : 'pl-4 border-l border-background-border/60'}>
+        <div className={valueIsObject ? '' : 'pl-4 border-l border-glass-divider'}>
           {valueIsObject && valueSchema.properties ? (
-            <div className="divide-y divide-background-border/60">
+            <div className="divide-y divide-glass-divider">
               {Object.entries(valueSchema.properties).map(([propName, propSchema]) => (
                 <PropertyRow
                   key={propName}
@@ -635,16 +630,16 @@ function SchemaTreeInner({
         {(schema.minItems !== undefined || schema.maxItems !== undefined) && (
           <div className="text-[13px] text-text-secondary flex items-center gap-1 mb-2 mt-1">
             <span className="text-text-secondary text-[13px] shrink-0">Количество:</span>
-            <code className="bg-background-secondary border border-background-border px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary">
+            <code className="bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded-md text-[12px] font-mono text-text-primary">
               {formatRange(schema.minItems, schema.maxItems, 'элементов')}
             </code>
           </div>
         )}
 
-        <div className={itemsIsObject ? '' : 'pl-4 border-l border-background-border/60'}>
+        <div className={itemsIsObject ? '' : 'pl-4 border-l border-glass-divider'}>
           {itemsIsObject && schema.items ? (
             // Если items - это объект с properties, рендерим его как таблицу свойств
-            <div className="divide-y divide-background-border/60">
+            <div className="divide-y divide-glass-divider">
               {Object.entries(schema.items.properties!).map(([propName, propSchema]) => {
                 // Приводим propSchema к типу Schema для корректной работы
                 const typedPropSchema = propSchema as Schema;
@@ -716,11 +711,11 @@ function VariantSection({
   }, [shouldAutoExpand, isOpen]);
 
   return (
-    <div className="border border-background-border rounded-lg overflow-visible">
+    <div className="border border-glass-border rounded-xl overflow-visible">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center gap-2 px-3 min-h-[var(--boxed-header-height)] bg-background-tertiary transition-colors text-left group/variant cursor-pointer select-none ${
-          isOpen ? 'rounded-t-lg' : 'rounded-lg'
+        className={`w-full flex items-center gap-2 px-3 min-h-[var(--boxed-header-height)] bg-glass backdrop-blur-md transition-colors text-left group/variant cursor-pointer select-none ${
+          isOpen ? 'rounded-t-xl' : 'rounded-xl'
         }`}
       >
         <ChevronDown
@@ -738,7 +733,7 @@ function VariantSection({
       </div>
 
       {isOpen && (
-        <div className="px-4 py-0 border-t border-background-border">
+        <div className="px-4 py-0 border-t border-glass-border">
           <SchemaTreeInner schema={schema} level={level + 1} parentPath={parentPath} />
         </div>
       )}
@@ -767,7 +762,7 @@ function MetadataRow({ label, children }: { label: string; children: React.React
 function CodeBadge({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-w-0 flex">
-      <code className="bg-background-secondary border border-background-border px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary relative block max-w-full truncate">
+      <code className="bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded-md text-[12px] font-mono text-text-primary relative block max-w-full truncate">
         {children}
       </code>
     </div>
@@ -1002,7 +997,7 @@ export function PropertyRow({
       )}
 
       {!hasMultipleVariants && isComplex && isExpanded && hasProperties && (
-        <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
+        <div className="mt-2 ml-4 border-l border-glass-divider pl-4">
           <SchemaTreeInner schema={schema} level={level + 1} parentPath={currentPath} />
         </div>
       )}
@@ -1012,16 +1007,16 @@ export function PropertyRow({
         isExpanded &&
         hasAdditionalProperties &&
         !hasProperties && (
-          <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
+          <div className="mt-2 ml-4 border-l border-glass-divider pl-4">
             <SchemaTreeInner schema={schema} level={level + 1} parentPath={currentPath} />
           </div>
         )}
 
       {!hasMultipleVariants && isComplex && isExpanded && isArrayType && schema.items && (
-        <div className="mt-2 ml-4 border-l border-background-border/60 pl-4">
+        <div className="mt-2 ml-4 border-l border-glass-divider pl-4">
           {isItemsObjectWithProperties(schema.items) && schema.items.properties ? (
             // Если items - это объект с properties, показываем его свойства напрямую
-            <div className="divide-y divide-background-border/60">
+            <div className="divide-y divide-glass-divider">
               {Object.entries(schema.items.properties).map(([propName, propSchema]) => (
                 <PropertyRow
                   key={propName}

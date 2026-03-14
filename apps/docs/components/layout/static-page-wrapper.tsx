@@ -18,7 +18,10 @@ export function StaticPageWrapper({
   hideTableOfContents,
 }: StaticPageWrapperProps) {
   return (
-    <div className="flex flex-col flex-1 min-h-full">
+    <div
+      className="flex flex-col flex-1 min-h-full"
+      data-has-toc={!hideTableOfContents || undefined}
+    >
       <div className="flex-1 flex flex-col">
         <div className="p-8 pt-10 xl:p-10 pb-0! flex-1 flex justify-center">
           <div className="w-full max-w-[1000px] flex flex-col xl:flex-row gap-12 relative">
@@ -31,7 +34,7 @@ export function StaticPageWrapper({
               <Footer adjacent={adjacent} noMargin={true} />
             </div>
             {!hideTableOfContents && (
-              <aside className="hidden xl:block w-64 shrink-0 relative">
+              <aside className="hidden xl:block w-64 shrink-0 sticky top-[calc(var(--mobile-header-height)+40px)] max-h-[calc(100vh-var(--mobile-header-height)-80px)] self-start">
                 <TableOfContents />
               </aside>
             )}

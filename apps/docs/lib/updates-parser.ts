@@ -73,10 +73,10 @@ export function parseUpdatesFromMdx(mdxContent: string): ParsedUpdate[] {
 }
 
 /**
- * Load and parse updates from content/guides/updates.mdx
+ * Load and parse updates from content/updates.mdx
  */
 export function loadUpdates(): ParsedUpdate[] {
-  const updatesPath = path.join(process.cwd(), 'content', 'guides', 'updates.mdx');
+  const updatesPath = path.join(process.cwd(), 'content', 'updates.mdx');
 
   try {
     const content = fs.readFileSync(updatesPath, 'utf-8');

@@ -1,7 +1,7 @@
 {
   "$schema": "https://dev.pachca.com/scenarios.schema.json",
   "version": "1.0",
-  "generated": "2026-03-07T10:16:27.341Z",
+  "generated": "2026-03-14T10:35:00.607Z",
   "scenarios": [
     {
       "id": "pachca-messages-0",
@@ -551,8 +551,7 @@
           "apiPath": "/chats",
           "notes": "Для диапазона добавь `--last-message-at-before`. Дата в ISO-8601 UTC+0"
         }
-      ],
-      "featured": true
+      ]
     },
     {
       "id": "pachca-chats-6",
@@ -812,7 +811,6 @@
         }
       ],
       "notes": "Формы работают только от бота.",
-      "featured": true,
       "related": [
         "Обработать отправку формы (view_submission)",
         "Отправить сообщение с кнопками",
@@ -1097,7 +1095,6 @@
         }
       ],
       "notes": "Тип `custom_properties[].value` всегда строка. Дополнительные поля: GET /custom_properties?entity_type=Task.",
-      "featured": true,
       "related": [
         "Получить список предстоящих задач",
         "Создать серию напоминаний"
@@ -1261,8 +1258,7 @@
           "apiPath": "/profile"
         }
       ],
-      "notes": "Кастомные поля настраиваются администратором пространства.",
-      "featured": true
+      "notes": "Кастомные поля настраиваются администратором пространства."
     },
     {
       "id": "pachca-search-0",

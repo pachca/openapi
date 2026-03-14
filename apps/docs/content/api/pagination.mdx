@@ -1,0 +1,69 @@
+---
+title: Пагинация
+description: Cursor-based pagination в API Пачки
+---
+
+# Пагинация
+
+API Пачки использует **cursor-based** пагинацию для всех списочных методов. Это обеспечивает стабильную работу при добавлении и удалении записей.
+
+## Параметры запроса
+
+| Параметр | Тип | Описание |
+|----------|-----|----------|
+| `limit` | integer | Количество записей на странице (1–50, по умолчанию 50). Для методов поиска — до 200 |
+| `cursor` | string | Курсор для получения следующей страницы (значение из `meta.paginate.next_page`) |
+
+## Структура ответа
+
+Каждый списочный метод возвращает объект `meta` с курсором следующей страницы:
+
+<SchemaBlock name="PaginationMeta" />
+
+```json title="Пример ответа"
+{
+  "data": [{ "id": 1, "..." : "..." }, { "id": 2, "..." : "..." }],
+  "meta": {
+    "paginate": {
+      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ"
+    }
+  }
+}
+```
+
+Для перехода на следующую страницу передайте значение `next_page` в параметр `cursor` следующего запроса. Последняя страница достигнута, когда массив `data` вернулся пустым.
+
+<Info>Не определяйте последнюю страницу по количеству записей в ответе — оно может быть меньше `limit` и на промежуточных страницах. Проверяйте пустой массив `data`. Курсор — непрозрачный токен: не парсите и не сохраняйте его между сессиями. Всегда явно указывайте `limit` — не полагайтесь на значение по умолчанию.</Info>
+
+### Методы поиска
+
+Методы поиска дополнительно возвращают поле `total` — общее количество найденных результатов:
+
+<SchemaBlock name="SearchPaginationMeta" />
+
+## Обход всех записей
+
+```javascript title="Обход всех записей"
+const TOKEN = 'ваш_токен';
+const BASE = 'https://api.pachca.com/api/shared/v1';
+const headers = { Authorization: `Bearer ${TOKEN}` };
+
+const allChats = [];
+let cursor;
+let batch;
+
+do {
+  const url = new URL(`${BASE}/chats`);
+  url.searchParams.set('limit', '50');
+  if (cursor) url.searchParams.set('cursor', cursor);
+
+  const res = await fetch(url, { headers });
+  const json = await res.json();
+  batch = json.data;
+  allChats.push(...batch);
+
+  cursor = json.meta?.paginate?.next_page;
+} while (batch.length);
+
+console.log(`Всего чатов: ${allChats.length}`);
+```

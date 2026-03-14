@@ -98,7 +98,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
         <span className="text-ellipsis overflow-hidden block w-full">Открыть как Markdown</span>
       </button>
 
-      <div className="w-px h-4 bg-background-border" />
+      <div className="w-px h-4 bg-glass-active" />
 
       <div className="relative">
         <CopiedTooltip open={copied}>
@@ -107,10 +107,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
               <DropdownMenu.Trigger asChild>
                 <button className="h-7 outline-none flex items-center gap-1 text-text-secondary font-medium hover:text-text-primary transition-colors cursor-pointer text-nowrap overflow-hidden">
                   {copied ? (
-                    <Check
-                      className="w-3.5 h-3.5 text-[#50A14F] dark:text-[#98C379] shrink-0"
-                      strokeWidth={2.5}
-                    />
+                    <Check className="w-3.5 h-3.5 text-accent-green shrink-0" strokeWidth={2.5} />
                   ) : (
                     <Copy className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
                   )}
@@ -121,12 +118,12 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
 
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="z-50 min-w-[220px] bg-background border border-background-border rounded-lg p-1.5 shadow-xl animate-dropdown"
+                  className="z-50 min-w-[220px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
                   align="start"
                 >
                   <DropdownMenu.Item
                     onClick={handleCopyMarkdown}
-                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
+                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-primary hover:bg-glass-hover"
                   >
                     <Bot className="w-4 h-4" />
                     Версию страницы для LLM
@@ -134,7 +131,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
 
                   <DropdownMenu.Item
                     onClick={handleCopyMarkdownUrl}
-                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
+                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-primary hover:bg-glass-hover"
                   >
                     <FileText className="w-4 h-4" />
                     Ссылку на .md версию
@@ -142,7 +139,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
 
                   <DropdownMenu.Item
                     onClick={handleCopyPageUrl}
-                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-secondary hover:bg-background-tertiary hover:text-text-primary"
+                    className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors text-text-primary hover:bg-glass-hover"
                   >
                     <Link className="w-4 h-4" />
                     Ссылку на страницу

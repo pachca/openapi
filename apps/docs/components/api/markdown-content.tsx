@@ -30,9 +30,53 @@ import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
+import { PackageBadge } from '@/components/mdx/package-badge';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 import { HeadingLink } from './heading-link';
+
+/**
+ * Rehype plugin: extracts title="..." from fenced code block meta strings
+ * and passes it as a prop to the <code> element.
+ *
+ * ```typescript title="My Title"
+ * code here
+ * ```
+ *
+ * becomes <code className="language-typescript" title="My Title">code here</code>
+ */
+interface HastNode {
+  type: string;
+  tagName?: string;
+  properties?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+  children?: HastNode[];
+}
+
+function rehypeCodeMeta() {
+  function visit(node: HastNode) {
+    if (node.tagName === 'code' && node.data?.meta) {
+      const meta = String(node.data.meta);
+      const titleMatch = meta.match(/title="([^"]+)"/);
+      if (titleMatch) {
+        node.properties = node.properties || {};
+        node.properties.title = titleMatch[1];
+      }
+      if (meta.includes('noCopy')) {
+        node.properties = node.properties || {};
+        node.properties['data-no-copy'] = 'true';
+      }
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        if (child.type === 'element') {
+          visit(child);
+        }
+      }
+    }
+  }
+  return (tree: HastNode) => visit(tree);
+}
 
 // Simple markdown components for server rendering
 const components = {
@@ -46,20 +90,30 @@ const components = {
   // Code blocks
   pre: ({ children }: { children: React.ReactNode }) => <div className="my-4">{children}</div>,
 
-  code: ({
-    className,
-    children,
-    title,
-  }: {
+  code: (props: {
     className?: string;
     children: React.ReactNode;
     title?: string;
+    'data-no-copy'?: string;
+    [key: string]: unknown;
   }) => {
+    const { className, children, title } = props;
+    const dataNoCopy = props['data-no-copy'];
+    // eslint-disable-next-line no-console
+    if (String(children).includes('dev.pachca.com'))
+      console.log('[CODE PROPS]', Object.keys(props), 'dataNoCopy=', dataNoCopy);
     const match = /language-(\w+)/.exec(className || '');
     if (match) {
       const language = match[1] === 'bash' || match[1] === 'shell' ? 'curl' : match[1];
       const code = String(children).replace(/\n$/, '');
-      return <GuideCodeBlock language={language} code={code} title={title} />;
+      return (
+        <GuideCodeBlock
+          language={language}
+          code={code}
+          title={title}
+          copyButton={dataNoCopy !== 'true'}
+        />
+      );
     }
     return <CopyableInlineCode>{String(children)}</CopyableInlineCode>;
   },
@@ -114,10 +168,10 @@ const components = {
     </div>
   ),
   thead: ({ children }: { children: React.ReactNode }) => (
-    <thead className="border-b border-background-border">{children}</thead>
+    <thead className="border-b border-glass-border">{children}</thead>
   ),
   tbody: ({ children }: { children: React.ReactNode }) => (
-    <tbody className="divide-y divide-background-border/40">{children}</tbody>
+    <tbody className="divide-y divide-glass-divider">{children}</tbody>
   ),
   tr: ({ children }: { children: React.ReactNode }) => <tr>{children}</tr>,
   th: ({ children }: { children: React.ReactNode }) => (
@@ -130,7 +184,7 @@ const components = {
   ),
 
   // Other
-  hr: () => <hr className="my-8 border-background-border" />,
+  hr: () => <hr className="my-8 border-glass-border" />,
   em: ({ children }: { children: React.ReactNode }) => (
     <em className="text-text-secondary not-italic">{children}</em>
   ),
@@ -165,6 +219,7 @@ const components = {
   AgentSkillsWorkflows,
   CliCommands,
   NpmBadge,
+  PackageBadge,
 };
 
 interface MarkdownContentProps {
@@ -203,7 +258,7 @@ export async function MarkdownContent({
       <MDXRemote
         source={processedContent}
         components={components}
-        options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+        options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeCodeMeta] } }}
       />
     </div>
   );

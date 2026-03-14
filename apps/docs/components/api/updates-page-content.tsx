@@ -4,6 +4,7 @@ import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { UpdatesList } from '@/components/api/updates-list';
 import { getGuideData } from '@/lib/content-loader';
+import { getSectionTitle } from '@/lib/tabs-config';
 import { notFound } from 'next/navigation';
 
 export async function UpdatesPageContent() {
@@ -13,7 +14,7 @@ export async function UpdatesPageContent() {
     notFound();
   }
 
-  const pageUrl = '/guides/updates';
+  const pageUrl = '/updates';
   const adjacent = await getAdjacentItems(pageUrl);
   const introContent = data.content.split(/<!--\s*update:/)[0].trim();
 
@@ -66,7 +67,11 @@ export async function UpdatesPageContent() {
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
         }}
       />
-      <StaticPageHeader title={data.frontmatter.title} pageUrl={pageUrl} />
+      <StaticPageHeader
+        title={data.frontmatter.title}
+        pageUrl={pageUrl}
+        sectionTitle={getSectionTitle(pageUrl) || undefined}
+      />
       <MarkdownContent content={introContent} />
       <UpdatesList />
     </StaticPageWrapper>

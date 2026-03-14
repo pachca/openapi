@@ -51,10 +51,10 @@ export function ImageCard({ src, alt, caption, hint, maxWidth }: ImageCardProps)
     const containerW = vw - padding * 2;
     const containerH = vh - padding * 2;
 
-    let targetW = containerW;
+    let targetW = Math.min(containerW, naturalW);
     let targetH = targetW / aspect;
     if (targetH > containerH) {
-      targetH = containerH;
+      targetH = Math.min(containerH, naturalH);
       targetW = targetH * aspect;
     }
 
@@ -517,7 +517,7 @@ export function ImageCard({ src, alt, caption, hint, maxWidth }: ImageCardProps)
   return (
     <>
       <div className="my-8 mx-auto" style={maxWidth ? { maxWidth: `${maxWidth}px` } : undefined}>
-        <div className="rounded-xl border border-background-border bg-background-tertiary overflow-hidden">
+        <div className="rounded-xl border border-glass-border bg-glass backdrop-blur-md overflow-hidden">
           {hint && <p className="text-sm text-text-secondary text-center px-4 pt-3 mb-0">{hint}</p>}
           <div className="p-3">
             <button
@@ -531,7 +531,7 @@ export function ImageCard({ src, alt, caption, hint, maxWidth }: ImageCardProps)
                 ref={imgRef}
                 src={src}
                 alt={alt}
-                className="w-full h-auto rounded-lg"
+                className="w-full h-auto rounded-xl"
                 style={{ visibility: isOpen ? 'hidden' : 'visible' }}
               />
             </button>

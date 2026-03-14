@@ -3,6 +3,7 @@ import {
   generateParameterExample,
   generateRequestExample,
   generateMultipartExample,
+  type ExampleOptions,
 } from '../openapi/example-generator';
 import {
   isRecord,
@@ -16,7 +17,8 @@ import {
 
 export function generatePHP(
   endpoint: Endpoint,
-  baseUrl: string = 'https://api.pachca.com/api/shared/v1'
+  baseUrl: string = 'https://api.pachca.com/api/shared/v1',
+  options?: ExampleOptions
 ): string {
   const url = resolveUrl(endpoint, baseUrl);
   const method = endpoint.method;
@@ -89,7 +91,7 @@ export function generatePHP(
 
   // Add request body for POST/PUT/PATCH
   if (['POST', 'PUT', 'PATCH'].includes(method) && endpoint.requestBody) {
-    const requestExample = generateRequestExample(endpoint.requestBody);
+    const requestExample = generateRequestExample(endpoint.requestBody, options);
 
     if (requestExample) {
       code += `    CURLOPT_POSTFIELDS => json_encode(${phpRepr(requestExample)}),\n`;

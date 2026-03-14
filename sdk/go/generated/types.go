@@ -274,6 +274,7 @@ const (
 	ValidationErrorCodePaymentRequired   ValidationErrorCode = "payment_required" // Требуется оплата
 	ValidationErrorCodeMinLength         ValidationErrorCode = "min_length" // Значение слишком короткое (пояснения вы получите в поле message)
 	ValidationErrorCodeMaxLength         ValidationErrorCode = "max_length" // Значение слишком длинное (пояснения вы получите в поле message)
+	ValidationErrorCodeUseOfSystemWords  ValidationErrorCode = "use_of_system_words" // Использовано зарезервированное системное слово (here, all)
 )
 
 type WebhookEventType string

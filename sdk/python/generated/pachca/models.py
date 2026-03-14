@@ -270,6 +270,7 @@ class ValidationErrorCode(StrEnum):
     PAYMENT_REQUIRED = "payment_required"  # Требуется оплата
     MIN_LENGTH = "min_length"  # Значение слишком короткое (пояснения вы получите в поле message)
     MAX_LENGTH = "max_length"  # Значение слишком длинное (пояснения вы получите в поле message)
+    USE_OF_SYSTEM_WORDS = "use_of_system_words"  # Использовано зарезервированное системное слово (here, all)
 
 
 class WebhookEventType(StrEnum):

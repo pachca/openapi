@@ -624,6 +624,7 @@ html.dark .code-block-container .shiki span {
 
 .step-item h3 {
   margin: 0;
+  line-height: 1.75rem;
 }
 
 .step-item::before {

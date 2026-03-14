@@ -13,7 +13,7 @@ export function Step({ title, children }: StepProps) {
     <div className="step-item relative pl-10 pb-6 last:pb-0">
       <h3
         id={id}
-        className="group/heading relative text-[17px] font-bold! text-text-primary h-7 flex items-center mb-2!"
+        className="group/heading relative text-[17px] font-bold! text-text-primary leading-7 mb-2!"
       >
         <HeadingLink id={id} />
         {title}

@@ -576,7 +576,7 @@ type GroupTagRequest struct {
 type LinkPreviewImage struct {
 	Key  string `json:"key"`
 	Name string `json:"name"`
-	Size int32  `json:"size"`
+	Size *int32 `json:"size,omitempty"`
 }
 
 type LinkPreview struct {
@@ -596,6 +596,7 @@ type LinkSharedWebhookPayload struct {
 	ChatID           int32         `json:"chat_id"`
 	MessageID        int32         `json:"message_id"`
 	Links            []WebhookLink `json:"links"`
+	UserID           int32         `json:"user_id"`
 	CreatedAt        time.Time     `json:"created_at"`
 	WebhookTimestamp int32         `json:"webhook_timestamp"`
 }

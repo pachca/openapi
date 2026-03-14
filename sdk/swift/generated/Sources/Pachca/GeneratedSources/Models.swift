@@ -1176,9 +1176,9 @@ public struct GroupTagRequest: Codable {
 public struct LinkPreviewImage: Codable {
     public let key: String
     public let name: String
-    public let size: Int
+    public let size: Int?
 
-    public init(key: String, name: String, size: Int) {
+    public init(key: String, name: String, size: Int? = nil) {
         self.key = key
         self.name = name
         self.size = size
@@ -1224,15 +1224,17 @@ public struct LinkSharedWebhookPayload: Codable {
     public let chatId: Int
     public let messageId: Int
     public let links: [WebhookLink]
+    public let userId: Int
     public let createdAt: Date
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], createdAt: Date, webhookTimestamp: Int) {
+    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], userId: Int, createdAt: Date, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.chatId = chatId
         self.messageId = messageId
         self.links = links
+        self.userId = userId
         self.createdAt = createdAt
         self.webhookTimestamp = webhookTimestamp
     }
@@ -1243,6 +1245,7 @@ public struct LinkSharedWebhookPayload: Codable {
         case chatId = "chat_id"
         case messageId = "message_id"
         case links
+        case userId = "user_id"
         case createdAt = "created_at"
         case webhookTimestamp = "webhook_timestamp"
     }

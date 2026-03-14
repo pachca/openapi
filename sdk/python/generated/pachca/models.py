@@ -603,7 +603,7 @@ class GroupTagRequest:
 class LinkPreviewImage:
     key: str
     name: str
-    size: int
+    size: int | None = None
 
 
 @dataclass
@@ -626,6 +626,7 @@ class LinkSharedWebhookPayload:
     chat_id: int
     message_id: int
     links: list[WebhookLink]
+    user_id: int
     created_at: str
     webhook_timestamp: int
 

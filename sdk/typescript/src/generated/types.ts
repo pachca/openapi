@@ -702,7 +702,7 @@ export interface LinkPreview {
   image?: {
     key: string;
     name: string;
-    size: number;
+    size?: number;
   };
 }
 
@@ -716,6 +716,7 @@ export interface LinkSharedWebhookPayload {
   chatId: number;
   messageId: number;
   links: WebhookLink[];
+  userId: number;
   createdAt: string;
   webhookTimestamp: number;
 }

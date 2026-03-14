@@ -760,6 +760,7 @@ data class LinkSharedWebhookPayload(
     @SerialName("chat_id") val chatId: Int,
     @SerialName("message_id") val messageId: Int,
     val links: List<WebhookLink>,
+    @SerialName("user_id") val userId: Int,
     @SerialName("created_at") val createdAt: String,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
@@ -969,7 +970,7 @@ data class GroupTagRequest(
 data class LinkPreviewImage(
     val key: String,
     val name: String,
-    val size: Int,
+    val size: Int? = null,
 )
 
 @Serializable

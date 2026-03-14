@@ -276,7 +276,7 @@ export function CopyableCode({
     <CopiedTooltip open={copied}>
       <code
         onClick={handleCopy}
-        className={`bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary cursor-pointer hover:bg-glass-hover transition-colors inline-block truncate ${className || ''}`}
+        className={`bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded-md text-[12px] font-mono text-text-primary cursor-pointer hover:bg-glass-hover transition-colors inline-block truncate ${className || ''}`}
         title="Нажмите, чтобы скопировать"
       >
         {displayValue || value}
@@ -307,7 +307,7 @@ function CopyableName({ name }: { name: string }) {
     <CopiedTooltip open={copied}>
       <span
         onClick={handleCopy}
-        className="font-bold font-mono text-[14px] text-text-primary break-all inline-block max-w-full transition-colors cursor-pointer hover:text-accent-emphasis"
+        className="font-bold font-mono text-[14px] text-text-primary break-all inline-block max-w-full transition-colors cursor-pointer hover:text-primary"
       >
         {name}
       </span>
@@ -341,7 +341,7 @@ function CopyLinkButton({ paramId, hasChevron }: { paramId: string; hasChevron?:
     <CopiedTooltip open={copied}>
       <button
         onClick={handleCopyLink}
-        className={`copy-link-btn absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[5px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-150 p-1 rounded hover:bg-glass-hover hover:text-text-primary shrink-0`}
+        className={`copy-link-btn absolute right-full ${hasChevron ? 'mr-[28px]' : 'mr-[5px]'} cursor-pointer top-1/2 -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/param-name:opacity-100 transition-opacity duration-200 p-1 rounded hover:bg-glass-hover hover:text-text-primary shrink-0`}
         title="Скопировать ссылку"
         type="button"
       >
@@ -630,7 +630,7 @@ function SchemaTreeInner({
         {(schema.minItems !== undefined || schema.maxItems !== undefined) && (
           <div className="text-[13px] text-text-secondary flex items-center gap-1 mb-2 mt-1">
             <span className="text-text-secondary text-[13px] shrink-0">Количество:</span>
-            <code className="bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary">
+            <code className="bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded-md text-[12px] font-mono text-text-primary">
               {formatRange(schema.minItems, schema.maxItems, 'элементов')}
             </code>
           </div>
@@ -762,7 +762,7 @@ function MetadataRow({ label, children }: { label: string; children: React.React
 function CodeBadge({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-w-0 flex">
-      <code className="bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary relative block max-w-full truncate">
+      <code className="bg-glass backdrop-blur-md border border-glass-border px-1.5 py-0.5 rounded-md text-[12px] font-mono text-text-primary relative block max-w-full truncate">
         {children}
       </code>
     </div>

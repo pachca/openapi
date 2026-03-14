@@ -25,7 +25,7 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [Боты](https://dev.pachca.com/guides/bots.md): Создание, настройка и возможности ботов в Пачке
 - [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks.md): Отправка сообщений от имени бота без использования API
 - [Исходящие вебхуки](https://dev.pachca.com/guides/webhook.md): Получение уведомлений о событиях в реальном времени
-- [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons.md): Как добавить интерактивные кнопки в чат-ботов Пачки — возможности, примеры и код для разработчиков
+- [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons.md): Интерактивные кнопки в сообщениях ботов для навигации и обработки действий
 - [Обзор](https://dev.pachca.com/guides/forms/overview.md): Модальные формы ботов: поля ввода, жизненный цикл и валидация
 - [Блоки представления](https://dev.pachca.com/guides/forms/blocks.md): 10 типов блоков для построения форм в Пачке
 - [Обработка форм](https://dev.pachca.com/guides/forms/handling.md): Открытие представлений, получение результатов и валидация
@@ -33,8 +33,8 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [Экспорт сообщений](https://dev.pachca.com/guides/export.md): Экспорт сообщений из чатов: запрос, скачивание и структура архива
 - [DLP-система](https://dev.pachca.com/guides/dlp.md): Создание правил DLP: условия, контексты и действия
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events.md): Журнал аудита: типы событий, фильтрация и примеры запросов
-- [n8n](https://dev.pachca.com/guides/n8n.md): Как настроить автоматизации в Пачке через платформу n8n без программирования
-- [Albato](https://dev.pachca.com/guides/albato.md): Интеграция Пачки с Albato — как подключить сотни сервисов через один коннектор без кода
+- [n8n](https://dev.pachca.com/guides/n8n.md): Автоматизации в Пачке через платформу n8n без программирования
+- [Albato](https://dev.pachca.com/guides/albato.md): Интеграция Пачки с Albato — подключение сотен сервисов без кода
 - [Последние обновления](https://dev.pachca.com/guides/updates.md): История изменений и новые возможности API
 - [Быстрый старт](https://dev.pachca.com/api/quickstart.md): Первый запрос к API Пачки за 5 минут
 - [Авторизация](https://dev.pachca.com/api/authorization.md): Типы токенов, скоупы и настройка доступа к API

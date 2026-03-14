@@ -1,7 +1,7 @@
 {
   "$schema": "https://dev.pachca.com/scenarios.schema.json",
   "version": "1.0",
-  "generated": "2026-03-13T18:16:05.043Z",
+  "generated": "2026-03-13T21:00:15.727Z",
   "scenarios": [
     {
       "id": "pachca-messages-0",

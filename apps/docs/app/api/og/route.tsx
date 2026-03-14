@@ -139,7 +139,7 @@ async function generateUpdatesImage(date: string | null) {
           flexDirection: 'column',
           gap: '12px',
           alignSelf: 'flex-start',
-          backgroundColor: '#222629',
+          backgroundColor: OG_COLORS.backgroundSecondary,
           borderRadius: '16px',
           padding: '24px 32px',
         }}

@@ -243,7 +243,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск..."
-              className="w-full sm:w-48 pl-[calc(0.75rem+1rem+0.375rem)] pr-4 py-1.5 h-[34px] rounded-md border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none transition-colors"
+              className="w-full sm:w-48 pl-[calc(0.75rem+1rem+0.375rem)] pr-4 py-1.5 h-8 rounded-md border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary placeholder:text-text-tertiary placeholder:font-medium focus:outline-none transition-colors"
             />
             {search && (
               <button
@@ -259,7 +259,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
           {/* Filter dropdown */}
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 h-[34px] rounded-md border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 h-8 rounded-md border border-glass-border bg-glass backdrop-blur-md text-[14px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
                 <Filter className="w-4 h-4 shrink-0 text-text-primary" />
                 {activeCategory ? (CATEGORY_LABELS[activeCategory] ?? activeCategory) : 'Все'}
                 <ChevronDown

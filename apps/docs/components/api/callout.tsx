@@ -12,7 +12,7 @@ const styles: Record<CalloutType, { bg: string; border: string; content: string 
     bg: 'bg-glass',
     border: 'border-glass-border',
     content:
-      '[&_p]:text-text-primary/90! text-text-primary/90! [&_em]:text-text-secondary [&]:text-inherit [&_p]:mb-0! [&_p]:last:mb-0 [&_code]:text-text-primary [&_a]:text-text-link [&_a]:underline [&_p+ul]:mt-4! [&_p+ul]:mb-0! [&_p+ol]:mt-4! [&_li]:text-text-primary/90! [&_li]:text-[13px]!',
+      '[&_p]:text-text-primary/90! text-text-primary/90! [&_em]:text-text-secondary [&]:text-inherit [&_p]:mb-0! [&_p]:last:mb-0 [&_code]:text-text-primary [&_a]:text-primary [&_a]:underline [&_p+ul]:mt-4! [&_p+ul]:mb-0! [&_p+ol]:mt-4! [&_li]:text-text-primary/90! [&_li]:text-[13px]!',
   },
   warning: {
     bg: 'bg-callout-warning-bg',

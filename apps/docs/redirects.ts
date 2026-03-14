@@ -6,11 +6,15 @@ type Redirect = {
 const redirects: Redirect[] = [
   // ===== Guides: accordion parent → first child =====
   { source: '/guides/forms', destination: '/guides/forms/overview' },
+  { source: '/guides/forms.md', destination: '/guides/forms/overview.md' },
 
   // ===== Guides → API Reference (переезд из /guides/ в /api/) =====
   { source: '/guides/authorization', destination: '/api/authorization' },
+  { source: '/guides/authorization.md', destination: '/api/authorization.md' },
   { source: '/guides/requests-responses', destination: '/api/requests-responses' },
+  { source: '/guides/requests-responses.md', destination: '/api/requests-responses.md' },
   { source: '/guides/errors', destination: '/api/errors' },
+  { source: '/guides/errors.md', destination: '/api/errors.md' },
 
   // ===== API methods: move under /api/ prefix =====
   { source: '/common/:path*', destination: '/api/common/:path*' },
@@ -27,10 +31,15 @@ const redirects: Redirect[] = [
   { source: '/tasks/:path*', destination: '/api/tasks/:path*' },
   { source: '/views/:path*', destination: '/api/views/:path*' },
   { source: '/bots/update', destination: '/api/bots/update' },
+  { source: '/bots/update.md', destination: '/api/bots/update.md' },
   { source: '/bots/list-events', destination: '/api/bots/list-events' },
+  { source: '/bots/list-events.md', destination: '/api/bots/list-events.md' },
   { source: '/bots/remove-event', destination: '/api/bots/remove-event' },
-  { source: '/bots/webhooks', destination: '/api/bots/webhooks' },
+  { source: '/bots/remove-event.md', destination: '/api/bots/remove-event.md' },
+  { source: '/bots/webhooks', destination: '/guides/webhook' },
+  { source: '/bots/webhooks.md', destination: '/guides/webhook.md' },
   { source: '/security/list', destination: '/api/security/list' },
+  { source: '/security/list.md', destination: '/api/security/list.md' },
   { source: '/search/:path*', destination: '/api/search/:path*' },
 
   // ===== mapper.ts cleanup (2026-03): action verbs + redundant suffix stripping =====

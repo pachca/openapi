@@ -57,7 +57,7 @@ export function HeadingLink({ id, searchParam }: { id: string; searchParam?: str
     <CopiedTooltip open={copied}>
       <button
         onClick={handleCopyLink}
-        className={`heading-link-btn cursor-pointer absolute right-full mr-[5px] top-[calc(0.6em+1px)] -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/heading:opacity-100 transition-opacity duration-150 p-1 rounded hover:bg-glass-hover shrink-0`}
+        className={`heading-link-btn cursor-pointer absolute right-full mr-[5px] top-[calc(0.6em+1px)] -translate-y-1/2 ${isVisible ? 'opacity-100' : 'opacity-0'} group-hover/heading:opacity-100 transition-opacity duration-200 p-1 rounded hover:bg-glass-hover shrink-0`}
         title="Скопировать ссылку"
         type="button"
       >

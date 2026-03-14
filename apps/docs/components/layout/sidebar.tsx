@@ -35,7 +35,7 @@ function SidebarClient({ guideNavigation, apiNavigation }: SidebarClientProps) {
           <SearchButton />
         </div>
         {navigation.length > 0 && (
-          <SidebarScrollWrapper>
+          <SidebarScrollWrapper key={activeTab}>
             <SidebarNav navigation={navigation} />
           </SidebarScrollWrapper>
         )}

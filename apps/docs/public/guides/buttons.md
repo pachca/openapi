@@ -1,35 +1,41 @@
 
-# Кнопки в чат-ботах
+# Кнопки в сообщениях
 
-![Кнопки в чат-ботах](/images/bots/buttons_header.jpg)
+Кнопки позволяют добавить к сообщению бота интерактивные элементы: ссылки для перехода на внешние ресурсы и кнопки действий для обработки на сервере. Кнопки располагаются под текстом сообщения в виде строк — каждая строка полностью занимается вложенными в неё кнопками.
 
+![Сообщение от бота с кнопками](/images/buttons/buttons_example.gif)
 
-## Как отправить сообщение с кнопками от имени бота
-
-Для отправки сообщения с кнопками вам потребуется воспользоваться методом API [Новое сообщение](POST /messages) и полем `message.buttons`.
-
-Кнопки под сообщением от бота отображаются в виде строк, которые полностью занимают вложенные в них кнопки. Поэтому, `buttons` — массив строк. Каждая строка — массив объектов кнопок.
-
-У кнопки есть `text` (отображаемый текст на кнопке) и тип кнопки `url` или `data`.
-
-- URL-кнопки — предназначены для перенаправления пользователя по ссылке.
-- Data-кнопки — позволяют получать от пользователя данные и реагировать (например, изменять сообщение или отправлять новое).
-
-**Ограничения:**
-
-- Максимальное количество кнопок в строке - 8
-- Максимальное число кнопок у сообщения - 100
-- Максимальная длина `text` на кнопке - 255 символов
-- Максимальная длина `data` у кнопки - 255 символов
-
-Пример сообщения от бота с кнопками:
-
-![Пример сообщения от бота с кнопками](/images/bots/buttons_example.gif)
-
-*Пример сообщения от бота с кнопками*
+*Сообщение от бота с кнопками*
 
 
-Пример URL-кнопки:
+## Как это работает
+
+
+  ### Шаг 1. Создайте бота
+
+Перейдите в **Автоматизации** > **Интеграции** > **Чат-боты и Вебхуки** и создайте бота. Подробнее — в разделе [Боты](/guides/bots).
+
+
+  ### Шаг 2. Отправьте сообщение с кнопками
+
+Используйте метод [Новое сообщение](POST /messages) с полем `buttons` — массив строк, каждая из которых содержит массив кнопок.
+
+
+  ### Шаг 3. Настройте исходящий вебхук
+
+Для обработки Data-кнопок укажите Webhook URL в настройках бота на вкладке **Исходящий Webhook** и включите событие **Нажатие кнопок**. Подробнее — в разделе [Исходящие вебхуки](/guides/webhook).
+
+
+  ### Шаг 4. Обработайте нажатие
+
+При нажатии Data-кнопки бот получает вебхук с данными кнопки. Обработайте событие и дайте обратную связь — отредактируйте сообщение, отправьте новое или откройте [модальную форму](/guides/forms/overview).
+
+
+## Типы кнопок
+
+### URL-кнопки
+
+URL-кнопка перенаправляет пользователя по указанной ссылке. При нажатии отображается модальное окно с подтверждением перехода.
 
 ```json
 {
@@ -38,7 +44,14 @@
 }
 ```
 
-Пример Data-кнопки:
+![Подтверждение перехода по ссылке](/images/buttons/buttons_url_confirm.png)
+
+*Подтверждение перехода по ссылке*
+
+
+### Data-кнопки
+
+Data-кнопка отправляет данные на сервер через [исходящий вебхук](/guides/webhook). При нажатии бот получает вебхук с информацией о кнопке, сообщении и пользователе, что позволяет реализовать любую логику обработки.
 
 ```json
 {
@@ -47,83 +60,380 @@
 }
 ```
 
-Пример запроса на отправку сообщения с кнопками методом `POST https://api.pachca.com/api/shared/v1/messages`
+## Отправка кнопок
 
-```json
-{
+Для отправки используйте метод [Новое сообщение](POST /messages) с полем `buttons`. Поле представляет собой массив строк, каждая из которых содержит массив кнопок. В одной строке можно комбинировать URL-кнопки и Data-кнопки.
+
+**Сообщение с кнопками**
+
+### cURL
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/messages" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
   "message": {
     "entity_type": "discussion",
-    "entity_id": 82753212,
-    "content": "Новый заказ [Создание одностраничного сайта](https://projects.com/inbox/534) на сумму 8000 руб.",
+    "entity_id": 334,
+    "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+    "files": [
+      {
+        "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+        "name": "logo.png",
+        "file_type": "image",
+        "size": 12345,
+        "width": 800,
+        "height": 600
+      }
+    ],
     "buttons": [
-      /* Строка из двух кнопок */
       [
         {
-          "text": "👍 Согласиться",
-          "data": "vote_yes"
+          "text": "Подробнее",
+          "url": "https://example.com/details"
         },
         {
-          "text": "❌ Отказаться",
-          "data": "vote_no"
-        }
-      ],
-      /* Одна кнопка */
-      [
-        {
-          "text": "🕒 Перенести на неделю",
-          "data": "pause_week"
-        }
-      ],
-      /* Одна url-кнопка. */
-      [
-        {
-          "text": "Все мои проекты",
-          "url": "https://projects.com/list"
+          "text": "Отлично!",
+          "data": "awesome"
         }
       ]
-    ]
+    ],
+    "parent_message_id": 194270,
+    "display_avatar_url": "https://example.com/avatar.png",
+    "display_name": "Бот Поддержки",
+    "skip_invite_mentions": false,
+    "link_preview": false
   }
-}
+}'
 ```
 
-> Метод [Редактирование сообщения](PUT /messages/{id}) также поддерживает поле `message.buttons`
+### JavaScript
 
+```javascript
+const response = await fetch('https://api.pachca.com/api/shared/v1/messages', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+      "message": {
+          "entity_type": "discussion",
+          "entity_id": 334,
+          "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+          "files": [
+              {
+                  "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+                  "name": "logo.png",
+                  "file_type": "image",
+                  "size": 12345,
+                  "width": 800,
+                  "height": 600
+              }
+          ],
+          "buttons": [
+              [
+                  {
+                      "text": "Подробнее",
+                      "url": "https://example.com/details"
+                  },
+                  {
+                      "text": "Отлично!",
+                      "data": "awesome"
+                  }
+              ]
+          ],
+          "parent_message_id": 194270,
+          "display_avatar_url": "https://example.com/avatar.png",
+          "display_name": "Бот Поддержки",
+          "skip_invite_mentions": false,
+          "link_preview": false
+      }
+  })
+});
 
-## URL-кнопки
-
-При нажатии на URL-кнопку пользователю будет отображено модальное окно с подтверждением перехода по ссылке:
-
-![Подтверждение перехода по ссылке](/images/bots/buttons_url_confirm.png)
-
-*Модальное окно с подтверждением перехода по ссылке*
-
-
-## Data-кнопки
-
-Для того чтобы получать события о нажатых пользователем кнопках, вам необходимо указать Webhook URL (куда вы будете получать события) в настройках [исходящего вебхука](/guides/webhook) бота и включить уведомления о событии «Нажатие кнопок».
-
-Пример настроек «Исходящий вебхук» у бота:
-
-![Настройки исходящего вебхука](/images/bots/buttons_webhook_settings.png)
-
-*Пример настроек «Исходящий вебхук» у бота*
-
-
-Когда пользователь нажмет кнопку, на указанный Webhook URL будет отправлен JSON объект с информацией о сообщении, нажатой кнопке и пользователе, который эту кнопку нажал.
-
-Пример исходящего вебхука о нажатии кнопки:
-
-```json
-{
-  "type": "button",
-  "message_id": 21344124,
-  "data": "vote_yes",
-  "user_id": 2412
-}
+const data = await response.json();
+console.log(data);
 ```
 
-После получения события вы можете дать обратную связь пользователю, например:
+### Python
 
-- Через метод API [Редактирование сообщения](PUT /messages/{id}) убрать уже не нужные кнопки и добавить новые, а в тексте сообщения показать, что действие совершено.
+```python
+import requests
 
-- Через метод API [Информация о сообщении](GET /messages/{id}) получить идентификатор чата, в котором лежит сообщение от бота, и написать в этот чат сообщение с новыми кнопками или с результатом действия бота.
+data = {
+    'message': {
+        'entity_type': 'discussion',
+        'entity_id': 334,
+        'content': 'Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)',
+        'files': [
+            {
+                'key': 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png',
+                'name': 'logo.png',
+                'file_type': 'image',
+                'size': 12345,
+                'width': 800,
+                'height': 600
+            }
+        ],
+        'buttons': [
+            [
+                {
+                    'text': 'Подробнее',
+                    'url': 'https://example.com/details'
+                },
+                {
+                    'text': 'Отлично!',
+                    'data': 'awesome'
+                }
+            ]
+        ],
+        'parent_message_id': 194270,
+        'display_avatar_url': 'https://example.com/avatar.png',
+        'display_name': 'Бот Поддержки',
+        'skip_invite_mentions': False,
+        'link_preview': False
+    }
+}
+
+headers = {
+    'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+    'Content-Type': 'application/json'
+}
+
+response = requests.post(
+    'https://api.pachca.com/api/shared/v1/messages',
+    headers=headers,
+    json=data
+)
+
+print(response.json())
+```
+
+### Node.js
+
+```javascript
+const https = require('https');
+
+const options = {
+    hostname: 'api.pachca.com',
+    port: 443,
+    path: '/api/shared/v1/messages',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
+    }
+};
+
+const req = https.request(options, (res) => {
+    let data = '';
+
+    res.on('data', (chunk) => {
+        data += chunk;
+    });
+
+    res.on('end', () => {
+        console.log(JSON.parse(data));
+    });
+});
+
+req.write(JSON.stringify({
+    "message": {
+        "entity_type": "discussion",
+        "entity_id": 334,
+        "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+        "files": [
+            {
+                "key": "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+                "name": "logo.png",
+                "file_type": "image",
+                "size": 12345,
+                "width": 800,
+                "height": 600
+            }
+        ],
+        "buttons": [
+            [
+                {
+                    "text": "Подробнее",
+                    "url": "https://example.com/details"
+                },
+                {
+                    "text": "Отлично!",
+                    "data": "awesome"
+                }
+            ]
+        ],
+        "parent_message_id": 194270,
+        "display_avatar_url": "https://example.com/avatar.png",
+        "display_name": "Бот Поддержки",
+        "skip_invite_mentions": false,
+        "link_preview": false
+    }
+}));
+req.on('error', (error) => {
+    console.error(error);
+});
+
+req.end();
+```
+
+### Ruby
+
+```ruby
+require 'net/http'
+require 'json'
+
+uri = URI('https://api.pachca.com/api/shared/v1/messages')
+request = Net::HTTP::Post.new(uri)
+request['Authorization'] = 'Bearer YOUR_ACCESS_TOKEN'
+request['Content-Type'] = 'application/json'
+
+request.body = {
+  'message' => {
+    'entity_type' => 'discussion',
+    'entity_id' => 334,
+    'content' => 'Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)',
+    'files' => [
+      {
+        'key' => 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png',
+        'name' => 'logo.png',
+        'file_type' => 'image',
+        'size' => 12345,
+        'width' => 800,
+        'height' => 600
+      }
+    ],
+    'buttons' => [
+      [
+        {
+          'text' => 'Подробнее',
+          'url' => 'https://example.com/details'
+        },
+        {
+          'text' => 'Отлично!',
+          'data' => 'awesome'
+        }
+      ]
+    ],
+    'parent_message_id' => 194270,
+    'display_avatar_url' => 'https://example.com/avatar.png',
+    'display_name' => 'Бот Поддержки',
+    'skip_invite_mentions' => false,
+    'link_preview' => false
+  }
+}.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+  http.request(request)
+end
+
+puts JSON.parse(response.body)
+```
+
+### PHP
+
+```php
+<?php
+
+$curl = curl_init();
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://api.pachca.com/api/shared/v1/messages',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer YOUR_ACCESS_TOKEN',
+        'Content-Type: application/json',
+    ],
+    CURLOPT_POSTFIELDS => json_encode([
+    'message' => [
+        'entity_type' => 'discussion',
+        'entity_id' => 334,
+        'content' => 'Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)',
+        'files' => [
+            [
+                'key' => 'attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png',
+                'name' => 'logo.png',
+                'file_type' => 'image',
+                'size' => 12345,
+                'width' => 800,
+                'height' => 600
+            ]
+        ],
+        'buttons' => [
+            [
+                [
+                    'text' => 'Подробнее',
+                    'url' => 'https://example.com/details'
+                ],
+                [
+                    'text' => 'Отлично!',
+                    'data' => 'awesome'
+                ]
+            ]
+        ],
+        'parent_message_id' => 194270,
+        'display_avatar_url' => 'https://example.com/avatar.png',
+        'display_name' => 'Бот Поддержки',
+        'skip_invite_mentions' => false,
+        'link_preview' => false
+    ]
+]),
+]);
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+echo $response;
+?>
+```
+
+
+> Метод [Редактирование сообщения](PUT /messages/{id}) также поддерживает поле `buttons`. Для удаления всех кнопок передайте пустой массив `[]`.
+
+
+## Обработка нажатий
+
+Для получения событий о нажатиях Data-кнопок настройте [исходящий вебхук](/guides/webhook) и включите событие **Нажатие кнопок**.
+
+При нажатии кнопки бот получает вебхук:
+
+#### ButtonWebhookPayload
+
+- `type` (string, **обязательный**): Тип объекта
+  - Пример: `button`
+  - **Возможные значения:**
+    - `button`: Для кнопки всегда button
+- `event` (string, **обязательный**): Тип события
+  - Пример: `click`
+  - **Возможные значения:**
+    - `click`: Нажатие кнопки
+- `message_id` (integer, int32, **обязательный**): Идентификатор сообщения, к которому относится кнопка
+  - Пример: `1245817`
+- `trigger_id` (string, **обязательный**): Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю
+  - Пример: `a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14`
+- `data` (string, **обязательный**): Данные нажатой кнопки
+  - Пример: `button_data`
+- `user_id` (integer, int32, **обязательный**): Идентификатор пользователя, который нажал кнопку
+  - Пример: `2345`
+- `chat_id` (integer, int32, **обязательный**): Идентификатор чата, в котором была нажата кнопка
+  - Пример: `9012`
+- `webhook_timestamp` (integer, int32, **обязательный**): Дата и время отправки вебхука (UTC+0) в формате UNIX
+  - Пример: `1747574400`
+
+
+После получения события вы можете:
+
+- [Отредактировать сообщение](PUT /messages/{id}) — убрать кнопки, добавить новые или обновить текст
+- [Отправить новое сообщение](POST /messages) — как ответ пользователю с результатом действия
+- [Открыть модальную форму](/guides/forms/overview) — используя `trigger_id` из вебхука (действителен 3 секунды)
+
+## Ограничения
+
+- Максимальное количество кнопок в строке — 8
+- Максимальное число кнопок у сообщения — 100
+- Максимальная длина `text` на кнопке — 255 символов
+- Максимальная длина `data` у кнопки — 255 символов

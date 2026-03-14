@@ -224,5 +224,5 @@ echo $response;
 
 ## Ответы
 
-### 201: The request has succeeded and a new resource has been created as a result.
+### 204: There is no content to send for this request, but the headers may be useful. 
 

@@ -52,15 +52,13 @@ export default async function HomePage() {
         description: data.frontmatter.description,
         url: 'https://dev.pachca.com',
         inLanguage: 'ru',
+        image: 'https://dev.pachca.com/api/og',
+        dateModified: new Date().toISOString(),
         isPartOf: {
           '@type': 'WebSite',
           url: 'https://dev.pachca.com',
         },
-        publisher: {
-          '@type': 'Organization',
-          name: 'Пачка',
-          url: 'https://pachca.com',
-        },
+        publisher: { '@id': 'https://pachca.com/#organization' },
       },
     ],
   };

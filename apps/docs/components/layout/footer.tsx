@@ -40,6 +40,14 @@ export function Footer({ adjacent, noMargin }: FooterProps) {
           </div>
           <div className="flex items-center gap-6">
             <a
+              href="https://pachca.com/contacts"
+              className="font-medium hover:text-primary transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Поддержка
+            </a>
+            <a
               href="https://pachca.com/security/bug-bounty"
               className="font-medium hover:text-primary transition-colors"
               target="_blank"

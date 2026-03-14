@@ -35,8 +35,8 @@ import { HTTP_CODES } from '@/lib/schemas/guide-schemas';
  *
  * <Updates />
  *
- * <ImageCard src="/images/example.png" alt="Описание" caption="Подпись" />
- * <ImageCard src="/images/example.png" alt="Описание" maxWidth={500} />
+ * <ImageCard src="/images/example.webp" alt="Описание" caption="Подпись" />
+ * <ImageCard src="/images/example.webp" alt="Описание" maxWidth={500} />
  */
 
 // ============================================

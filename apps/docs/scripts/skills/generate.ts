@@ -166,7 +166,7 @@ export function generateAllSkills(api: ParsedAPI) {
     path: 'apps/docs/public/.well-known/skills/index.json',
     content: generateIndexJson(),
   });
-  results.push({ path: 'AGENTS.md', content: generateAgentsMd(baseUrl) });
+  results.push({ path: 'AGENTS.md', content: generateAgentsMd() });
 
   return results;
 }
@@ -671,7 +671,7 @@ function generateIndexJson(): string {
   return JSON.stringify(index, null, 2) + '\n';
 }
 
-function generateAgentsMd(_baseUrl: string): string {
+function generateAgentsMd(): string {
   const lines: string[] = [];
 
   lines.push('# Pachca API — Agent Skills');

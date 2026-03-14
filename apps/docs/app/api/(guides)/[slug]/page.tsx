@@ -27,9 +27,11 @@ export async function generateMetadata({
   }
 
   const firstParagraph = extractFirstParagraph(data.content);
-  const title = data.frontmatter.title;
+  const pageTitle = data.frontmatter.title;
+  const section = getSectionTitle(`/api/${slug}`);
+  const title = section ? `${section}: ${pageTitle}` : pageTitle;
   const description: string | undefined = data.frontmatter.description || firstParagraph;
-  const ogImage = `/api/og?type=guide&slug=api-${slug}`;
+  const ogImage = `/api/og?type=guide&slug=api/${slug}`;
 
   return {
     title,
@@ -59,6 +61,7 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
   }
 
   const pageUrl = `/api/${slug}`;
+  const ogImage = `/api/og?type=guide&slug=api/${slug}`;
   const adjacent = await getAdjacentItems(pageUrl);
 
   const jsonLd = {
@@ -70,15 +73,13 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
         description: data.frontmatter.description,
         url: `https://dev.pachca.com${pageUrl}`,
         inLanguage: 'ru',
+        image: `https://dev.pachca.com${ogImage}`,
+        dateModified: new Date().toISOString(),
         isPartOf: {
           '@type': 'WebSite',
           url: 'https://dev.pachca.com',
         },
-        publisher: {
-          '@type': 'Organization',
-          name: 'Пачка',
-          url: 'https://pachca.com',
-        },
+        publisher: { '@id': 'https://pachca.com/#organization' },
       },
       {
         '@type': 'BreadcrumbList',
@@ -86,7 +87,7 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
           {
             '@type': 'ListItem',
             position: 1,
-            name: 'API Reference',
+            name: 'Документация',
             item: 'https://dev.pachca.com',
           },
           {

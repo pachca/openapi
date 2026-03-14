@@ -119,7 +119,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"contentDisposition\": \"your_api_token_here\",\n  \"acl\": \"your_api_token_here\",\n  \"policy\": \"your_api_token_here\",\n  \"xAmzCredential\": \"your_api_token_here\",\n  \"xAmzAlgorithm\": \"your_api_token_here\",\n  \"xAmzDate\": \"your_api_token_here\",\n  \"xAmzSignature\": \"your_api_token_here\",\n  \"key\": \"your_api_token_here\",\n  \"file\": \"0101010101010101\"\n}",
+              "raw": "{\n  \"Content-Disposition\": \"your_api_token_here\",\n  \"acl\": \"your_api_token_here\",\n  \"policy\": \"your_api_token_here\",\n  \"x-amz-credential\": \"your_api_token_here\",\n  \"x-amz-algorithm\": \"your_api_token_here\",\n  \"x-amz-date\": \"your_api_token_here\",\n  \"x-amz-signature\": \"your_api_token_here\",\n  \"key\": \"your_api_token_here\",\n  \"file\": \"0101010101010101\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

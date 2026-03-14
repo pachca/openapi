@@ -2,6 +2,7 @@ import { createOgImageResponse, OG_COLORS, METHOD_COLORS } from '@/lib/og/shared
 import { getEndpointByUrl } from '@/lib/openapi/parser';
 import { generateTitle } from '@/lib/openapi/mapper';
 import { getGuideData } from '@/lib/content-loader';
+import { getSectionTitle } from '@/lib/tabs-config';
 import { loadUpdates } from '@/lib/updates-parser';
 import { type NextRequest } from 'next/server';
 
@@ -185,16 +186,33 @@ async function generateGuideImage(slug: string) {
   const data = getGuideData(slug);
   const title = data?.frontmatter.title || 'Guide';
 
+  // Reconstruct pathname to resolve section title
+  const pathname = slug.startsWith('api/') ? `/${slug}` : `/guides/${slug}`;
+  const section = getSectionTitle(pathname);
+
   return createOgImageResponse(
-    <span
-      style={{
-        fontSize: '82px',
-        fontWeight: 600,
-        color: OG_COLORS.textPrimary,
-        lineHeight: 1.2,
-      }}
-    >
-      {title}
-    </span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {section && (
+        <span
+          style={{
+            fontSize: '36px',
+            fontWeight: 500,
+            color: OG_COLORS.textSecondary,
+          }}
+        >
+          {section}
+        </span>
+      )}
+      <span
+        style={{
+          fontSize: '82px',
+          fontWeight: 600,
+          color: OG_COLORS.textPrimary,
+          lineHeight: 1.2,
+        }}
+      >
+        {title}
+      </span>
+    </div>
   );
 }

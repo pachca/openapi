@@ -992,12 +992,12 @@ function goBuildOperationExample(
     }
   }
 
-  const call = `client.${serviceField}.${goMethodName(op)}(${callArgs.join(', ')})`;
+  const output = goBuildOutputFingerprint(op, ir, models);
+  const rawCall = `client.${serviceField}.${goMethodName(op)}(${callArgs.join(', ')})`;
+  const call = output ? `response, err := ${rawCall}` : rawCall;
   const usage = declarations.length > 0
     ? [...declarations, call].join('\n')
     : call;
-
-  const output = goBuildOutputFingerprint(op, ir, models);
 
   return { usage, output, imports: [...imports].sort() };
 }

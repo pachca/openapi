@@ -8,7 +8,7 @@
     "output": null
   },
   "ChatOperations_createChat": {
-    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\ntry await client.chats.createChat(body: body)",
+    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
     "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String)",
     "imports": [
       "ChatCreateRequest",

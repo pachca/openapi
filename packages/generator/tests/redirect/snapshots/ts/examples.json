@@ -4,7 +4,7 @@
     "output": null
   },
   "ExportOperations_downloadExport": {
-    "usage": "client.common.downloadExport(123)",
+    "usage": "const response = client.common.downloadExport(123)",
     "output": "string"
   }
 }

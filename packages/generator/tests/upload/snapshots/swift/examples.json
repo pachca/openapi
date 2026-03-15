@@ -11,7 +11,7 @@
     ]
   },
   "UploadOperations_getUploadParams": {
-    "usage": "try await client.common.getUploadParams()",
+    "usage": "let response = try await client.common.getUploadParams()",
     "output": "UploadParams(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
   }
 }

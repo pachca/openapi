@@ -4,7 +4,7 @@
     "output": null
   },
   "ChatOperations_listChats": {
-    "usage": "params = ListChatsParams(\n    availability=ChatAvailability.IS_MEMBER,\n    limit=123,\n    cursor=\"example\",\n    sort_field=\"example\",\n    sort_order=SortOrder.ASC\n)\nawait client.chats.list_chats(params=params)",
+    "usage": "params = ListChatsParams(\n    availability=ChatAvailability.IS_MEMBER,\n    limit=123,\n    cursor=\"example\",\n    sort_field=\"example\",\n    sort_order=SortOrder.ASC\n)\nresponse = await client.chats.list_chats(params=params)",
     "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)",
     "imports": [
       "ChatAvailability",
@@ -13,11 +13,11 @@
     ]
   },
   "ChatOperations_getChat": {
-    "usage": "await client.chats.get_chat(id=123)",
+    "usage": "response = await client.chats.get_chat(id=123)",
     "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)"
   },
   "ChatOperations_createChat": {
-    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nawait client.chats.create_chat(request=request)",
+    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
     "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)",
     "imports": [
       "ChatCreateRequest",
@@ -25,7 +25,7 @@
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name=\"example\", public=True))\nawait client.chats.update_chat(id=123, request=request)",
+    "usage": "request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name=\"example\", public=True))\nresponse = await client.chats.update_chat(id=123, request=request)",
     "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)",
     "imports": [
       "ChatUpdateRequest",

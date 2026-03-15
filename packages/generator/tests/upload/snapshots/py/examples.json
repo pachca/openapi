@@ -11,7 +11,7 @@
     ]
   },
   "UploadOperations_getUploadParams": {
-    "usage": "await client.common.get_upload_params()",
+    "usage": "response = await client.common.get_upload_params()",
     "output": "UploadParams(content_disposition: str, acl: str, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, direct_url: str)"
   }
 }

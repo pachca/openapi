@@ -4,7 +4,7 @@
     "output": null
   },
   "listEvents": {
-    "usage": "let scopes = [.chatsRead]\nlet filter = EventFilter()\ntry await client.events.listEvents(isActive: true, scopes: scopes, filter: filter)",
+    "usage": "let scopes = [.chatsRead]\nlet filter = EventFilter()\nlet response = try await client.events.listEvents(isActive: true, scopes: scopes, filter: filter)",
     "output": "ListEventsResponse(data: [Event])",
     "imports": [
       "EventFilter",
@@ -12,7 +12,7 @@
     ]
   },
   "publishEvent": {
-    "usage": "try await client.events.publishEvent(id: 123, scope: .chatsRead)",
+    "usage": "let response = try await client.events.publishEvent(id: 123, scope: .chatsRead)",
     "output": "Event(id: Int, type: EventType)",
     "imports": [
       "OAuthScope"

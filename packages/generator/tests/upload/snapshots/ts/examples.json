@@ -11,7 +11,7 @@
     ]
   },
   "UploadOperations_getUploadParams": {
-    "usage": "client.common.getUploadParams()",
+    "usage": "const response = client.common.getUploadParams()",
     "output": "UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })"
   }
 }

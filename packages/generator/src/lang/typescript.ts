@@ -1048,12 +1048,12 @@ function tsBuildOperationExample(
     }
   }
 
-  const call = `client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
+  const output = tsBuildOutputFingerprint(op, ir, models);
+  const rawCall = `client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
+  const call = output ? `const response = ${rawCall}` : rawCall;
   const usage = declarations.length > 0
     ? [...declarations, call].join('\n')
     : call;
-
-  const output = tsBuildOutputFingerprint(op, ir, models);
 
   return { usage, output, imports: [...imports].sort() };
 }

@@ -1034,12 +1034,12 @@ function buildOperationExample(
     }
   }
 
-  const call = `client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
+  const output = buildOutputFingerprint(op, ir, models);
+  const rawCall = `client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
+  const call = output ? `val response = ${rawCall}` : rawCall;
   const usage = declarations.length > 0
     ? [...declarations, call].join('\n')
     : call;
-
-  const output = buildOutputFingerprint(op, ir, models);
 
   return { usage, output, imports: [...imports].sort() };
 }

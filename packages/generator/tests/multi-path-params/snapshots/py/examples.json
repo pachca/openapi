@@ -4,11 +4,11 @@
     "output": null
   },
   "TaskOperations_getTask": {
-    "usage": "await client.tasks.get_task(project_id=123, task_id=123)",
+    "usage": "response = await client.tasks.get_task(project_id=123, task_id=123)",
     "output": "Task(id: int, title: str, is_done: bool | None)"
   },
   "TaskOperations_updateTask": {
-    "usage": "request = TaskUpdateRequest(task=TaskUpdateRequestTask(title=\"example\", is_done=True))\nawait client.tasks.update_task(project_id=123, task_id=123, request=request)",
+    "usage": "request = TaskUpdateRequest(task=TaskUpdateRequestTask(title=\"example\", is_done=True))\nresponse = await client.tasks.update_task(project_id=123, task_id=123, request=request)",
     "output": "Task(id: int, title: str, is_done: bool | None)",
     "imports": [
       "TaskUpdateRequest",

@@ -4,11 +4,11 @@
     "output": null
   },
   "TaskOperations_getTask": {
-    "usage": "client.tasks.getTask(projectId = 123, taskId = 123)",
+    "usage": "val response = client.tasks.getTask(projectId = 123, taskId = 123)",
     "output": "Task(id: Int, title: String, isDone: Boolean?)"
   },
   "TaskOperations_updateTask": {
-    "usage": "val request = TaskUpdateRequest(task = TaskUpdateRequestTask(title = \"example\", isDone = true))\nclient.tasks.updateTask(projectId = 123, taskId = 123, request = request)",
+    "usage": "val request = TaskUpdateRequest(task = TaskUpdateRequestTask(title = \"example\", isDone = true))\nval response = client.tasks.updateTask(projectId = 123, taskId = 123, request = request)",
     "output": "Task(id: Int, title: String, isDone: Boolean?)",
     "imports": [
       "TaskUpdateRequest",

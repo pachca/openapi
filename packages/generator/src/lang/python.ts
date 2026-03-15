@@ -1045,12 +1045,12 @@ function pyBuildOperationExample(
   }
 
   const method = pyMethodName(op);
-  const call = `await client.${serviceProp}.${method}(${callArgs.join(', ')})`;
+  const output = pyBuildOutputFingerprint(op, ir, models);
+  const rawCall = `await client.${serviceProp}.${method}(${callArgs.join(', ')})`;
+  const call = output ? `response = ${rawCall}` : rawCall;
   const usage = declarations.length > 0
     ? [...declarations, call].join('\n')
     : call;
-
-  const output = pyBuildOutputFingerprint(op, ir, models);
 
   return { usage, output, imports: [...imports].sort() };
 }

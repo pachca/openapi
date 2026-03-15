@@ -4,7 +4,7 @@
     "output": null
   },
   "ExportOperations_downloadExport": {
-    "usage": "client.common.downloadExport(id = 123)",
+    "usage": "val response = client.common.downloadExport(id = 123)",
     "output": "String"
   }
 }

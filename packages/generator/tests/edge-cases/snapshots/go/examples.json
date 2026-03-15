@@ -4,7 +4,7 @@
     "output": null
   },
   "listEvents": {
-    "usage": "params := &ListEventsParams{\n\tIsActive: Ptr(true),\n\tScopes: []OAuthScope{OAuthScopeChatsRead},\n\tFilter: Ptr(EventFilter{}),\n}\nclient.Events.ListEvents(ctx, params)",
+    "usage": "params := &ListEventsParams{\n\tIsActive: Ptr(true),\n\tScopes: []OAuthScope{OAuthScopeChatsRead},\n\tFilter: Ptr(EventFilter{}),\n}\nresponse, err := client.Events.ListEvents(ctx, params)",
     "output": "ListEventsResponse{Data: []Event}",
     "imports": [
       "EventFilter",
@@ -13,7 +13,7 @@
     ]
   },
   "publishEvent": {
-    "usage": "client.Events.PublishEvent(ctx, int32(123), OAuthScopeChatsRead)",
+    "usage": "response, err := client.Events.PublishEvent(ctx, int32(123), OAuthScopeChatsRead)",
     "output": "Event{ID: int32, Type: EventType}",
     "imports": [
       "OAuthScope"

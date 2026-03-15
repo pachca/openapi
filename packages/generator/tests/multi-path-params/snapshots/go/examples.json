@@ -4,11 +4,11 @@
     "output": null
   },
   "TaskOperations_getTask": {
-    "usage": "client.Tasks.GetTask(ctx, int32(123), int32(123))",
+    "usage": "response, err := client.Tasks.GetTask(ctx, int32(123), int32(123))",
     "output": "Task{ID: int32, Title: string, IsDone: *bool}"
   },
   "TaskOperations_updateTask": {
-    "usage": "request := TaskUpdateRequest{\n\tTask: TaskUpdateRequestTask{\n\t\tTitle: Ptr(\"example\"),\n\t\tIsDone: Ptr(true),\n\t},\n}\nclient.Tasks.UpdateTask(ctx, int32(123), int32(123), request)",
+    "usage": "request := TaskUpdateRequest{\n\tTask: TaskUpdateRequestTask{\n\t\tTitle: Ptr(\"example\"),\n\t\tIsDone: Ptr(true),\n\t},\n}\nresponse, err := client.Tasks.UpdateTask(ctx, int32(123), int32(123), request)",
     "output": "Task{ID: int32, Title: string, IsDone: *bool}",
     "imports": [
       "TaskUpdateRequest",

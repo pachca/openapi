@@ -4,11 +4,11 @@
     "output": null
   },
   "TaskOperations_getTask": {
-    "usage": "try await client.tasks.getTask(projectId: 123, taskId: 123)",
+    "usage": "let response = try await client.tasks.getTask(projectId: 123, taskId: 123)",
     "output": "Task(id: Int, title: String, isDone: Bool?)"
   },
   "TaskOperations_updateTask": {
-    "usage": "let body = TaskUpdateRequest(task: TaskUpdateRequestTask(title: \"example\", isDone: true))\ntry await client.tasks.updateTask(projectId: 123, taskId: 123, body: body)",
+    "usage": "let body = TaskUpdateRequest(task: TaskUpdateRequestTask(title: \"example\", isDone: true))\nlet response = try await client.tasks.updateTask(projectId: 123, taskId: 123, body: body)",
     "output": "Task(id: Int, title: String, isDone: Bool?)",
     "imports": [
       "TaskUpdateRequest",

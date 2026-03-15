@@ -4,7 +4,7 @@
     "output": null
   },
   "ExportOperations_downloadExport": {
-    "usage": "try await client.common.downloadExport(id: 123)",
+    "usage": "let response = try await client.common.downloadExport(id: 123)",
     "output": "String"
   }
 }

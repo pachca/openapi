@@ -8,7 +8,7 @@
     "output": null
   },
   "ChatOperations_createChat": {
-    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nawait client.chats.create_chat(request=request)",
+    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
     "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str)",
     "imports": [
       "ChatCreateRequest",

@@ -4,7 +4,7 @@
     "output": null
   },
   "listEvents": {
-    "usage": "client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
+    "usage": "const response = client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
     "output": "ListEventsResponse({ data: Event[] })",
     "imports": [
       "EventFilter",
@@ -12,7 +12,7 @@
     ]
   },
   "publishEvent": {
-    "usage": "client.events.publishEvent(123, OAuthScope.ChatsRead)",
+    "usage": "const response = client.events.publishEvent(123, OAuthScope.ChatsRead)",
     "output": "Event({ id: number, type: EventType })",
     "imports": [
       "OAuthScope"

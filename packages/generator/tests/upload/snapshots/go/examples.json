@@ -11,7 +11,7 @@
     ]
   },
   "UploadOperations_getUploadParams": {
-    "usage": "client.Common.GetUploadParams(ctx)",
+    "usage": "response, err := client.Common.GetUploadParams(ctx)",
     "output": "UploadParams{ContentDisposition: string, ACL: string, Policy: string, XAMZCredential: string, XAMZAlgorithm: string, XAMZDate: string, XAMZSignature: string, Key: string, DirectURL: string}"
   }
 }

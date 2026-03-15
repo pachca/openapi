@@ -837,12 +837,12 @@ function swiftBuildOperationExample(
     }
   }
 
-  const call = `try await client.${serviceProp}.${op.methodName}(${finalArgs.join(', ')})`;
+  const output = swiftBuildOutputFingerprint(op, ir, models);
+  const rawCall = `try await client.${serviceProp}.${op.methodName}(${finalArgs.join(', ')})`;
+  const call = output ? `let response = ${rawCall}` : rawCall;
   const usage = declarations.length > 0
     ? [...declarations, call].join('\n')
     : call;
-
-  const output = swiftBuildOutputFingerprint(op, ir, models);
 
   return { usage, output, imports: [...imports].sort() };
 }

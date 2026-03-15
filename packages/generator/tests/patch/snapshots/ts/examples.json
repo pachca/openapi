@@ -4,7 +4,7 @@
     "output": null
   },
   "ItemOperations_patchItem": {
-    "usage": "const request: ItemPatchRequest = {\n  item: {\n    name: \"example\",\n    description: \"example\",\n    priority: 123\n  }\n}\nclient.items.patchItem(123, request)",
+    "usage": "const request: ItemPatchRequest = {\n  item: {\n    name: \"example\",\n    description: \"example\",\n    priority: 123\n  }\n}\nconst response = client.items.patchItem(123, request)",
     "output": "Item({ id: number, name: string, description?: string | null, priority?: number })",
     "imports": [
       "ItemPatchRequest",

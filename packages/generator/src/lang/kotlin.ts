@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import type { GeneratedFile, GenerateOptions, LanguageGenerator } from './types.js';
+import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToUpperSnake,
@@ -821,17 +821,6 @@ function emitPachcaClient(
 }
 
 // ── Examples ──────────────────────────────────────────────────────────
-
-function buildModelIndex(ir: IR): Map<string, IRModel> {
-  const index = new Map<string, IRModel>();
-  for (const m of ir.models) {
-    index.set(m.name, m);
-    for (const inl of m.inlineObjects) {
-      index.set(inl.name, inl);
-    }
-  }
-  return index;
-}
 
 function ktLiteral(
   ft: IRFieldType,

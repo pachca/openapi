@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import type { GeneratedFile, GenerateOptions, LanguageGenerator } from './types.js';
+import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -819,17 +819,6 @@ function generateUtils(ir: IR): string {
 
 // ── Examples ──────────────────────────────────────────────────────────
 
-function buildModelIndex(ir: IR): Map<string, IRModel> {
-  const index = new Map<string, IRModel>();
-  for (const m of ir.models) {
-    index.set(m.name, m);
-    for (const inl of m.inlineObjects) {
-      index.set(inl.name, inl);
-    }
-  }
-  return index;
-}
-
 function tsLiteral(
   ft: IRFieldType,
   ir: IR,
@@ -882,7 +871,7 @@ function tsModelLiteral(
   visited: Set<string>,
   indent: number = 0,
 ): string {
-  if (visited.has(modelName)) return '{}';
+  if (visited.has(modelName)) return '{ /* circular */ }';
   const model = models.get(modelName);
   if (!model || model.fields.length === 0) return '{}';
 

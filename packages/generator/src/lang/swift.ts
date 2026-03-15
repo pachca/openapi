@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import type { GeneratedFile, GenerateOptions, LanguageGenerator } from './types.js';
+import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
@@ -620,17 +620,6 @@ function generateUtils(ir: IR): string {
 }
 
 // ── Examples ──────────────────────────────────────────────────────────
-
-function buildModelIndex(ir: IR): Map<string, IRModel> {
-  const index = new Map<string, IRModel>();
-  for (const m of ir.models) {
-    index.set(m.name, m);
-    for (const inl of m.inlineObjects) {
-      index.set(inl.name, inl);
-    }
-  }
-  return index;
-}
 
 function swiftLiteral(
   ft: IRFieldType,

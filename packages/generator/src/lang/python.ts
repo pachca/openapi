@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import type { GeneratedFile, GenerateOptions, LanguageGenerator } from './types.js';
+import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   camelToSnake,
   snakeToUpperSnake,
@@ -816,17 +816,6 @@ function generateUtils(): string {
 }
 
 // ── Examples ──────────────────────────────────────────────────────────
-
-function buildModelIndex(ir: IR): Map<string, IRModel> {
-  const index = new Map<string, IRModel>();
-  for (const m of ir.models) {
-    index.set(m.name, m);
-    for (const inl of m.inlineObjects) {
-      index.set(inl.name, inl);
-    }
-  }
-  return index;
-}
 
 function pyLiteral(
   ft: IRFieldType,

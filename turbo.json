@@ -31,7 +31,7 @@
         "../../packages/spec/workflows.ts",
         "../../apps/docs/scripts/skills/config.ts"
       ],
-      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "README.md"],
+      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "!src/data/changelog.json", "README.md"],
       "cache": true
     },
     "build": {

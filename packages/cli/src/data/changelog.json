@@ -1,5 +1,21 @@
 [
   {
+    "version": "2026.3.7",
+    "date": "15 марта 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "upload",
+        "description": "Загрузка файла одной командой (получает подпись + загружает автоматически)"
+      },
+      {
+        "type": "~",
+        "command": "common direct-url",
+        "description": "Обязательный флаг --direct-url вместо хардкод URL, запрос идёт без Authorization"
+      }
+    ]
+  },
+  {
     "version": "2026.3.6",
     "date": "15 марта 2026",
     "changes": [

@@ -1,0 +1,9 @@
+{
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+  },
+  "ExportOperations_downloadExport": {
+    "usage": "let response = try await client.common.downloadExport(id: 123)",
+    "output": "String"
+  }
+}

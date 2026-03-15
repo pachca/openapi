@@ -4,18 +4,20 @@ import * as fs from 'node:fs';
 import { generate, SUPPORTED_LANGS } from '../src/index.js';
 
 function usage(): never {
-  console.error(`Usage: @pachca/generator --spec <path> --output <dir> --lang <langs>`);
-  console.error(`  --spec    Path to OpenAPI YAML spec`);
-  console.error(`  --output  Output directory`);
-  console.error(`  --lang    Comma-separated languages: ${SUPPORTED_LANGS.join(', ')}`);
+  console.error(`Usage: @pachca/generator --spec <path> --output <dir> --lang <langs> [--examples]`);
+  console.error(`  --spec      Path to OpenAPI YAML spec`);
+  console.error(`  --output    Output directory`);
+  console.error(`  --lang      Comma-separated languages: ${SUPPORTED_LANGS.join(', ')}`);
+  console.error(`  --examples  Generate examples.json with sample input/output`);
   process.exit(1);
 }
 
-function parseArgs(): { spec: string; output: string; langs: string[] } {
+function parseArgs(): { spec: string; output: string; langs: string[]; examples: boolean } {
   const args = process.argv.slice(2);
   let spec = '';
   let output = '';
   let lang = '';
+  let examples = false;
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -27,6 +29,9 @@ function parseArgs(): { spec: string; output: string; langs: string[] } {
         break;
       case '--lang':
         lang = args[++i] || '';
+        break;
+      case '--examples':
+        examples = true;
         break;
       default:
         console.error(`Unknown argument: ${args[i]}`);
@@ -49,8 +54,8 @@ function parseArgs(): { spec: string; output: string; langs: string[] } {
     }
   }
 
-  return { spec, output, langs };
+  return { spec, output, langs, examples };
 }
 
-const { spec, output, langs } = parseArgs();
-generate(spec, output, langs);
+const { spec, output, langs, examples } = parseArgs();
+generate(spec, output, langs, { examples });

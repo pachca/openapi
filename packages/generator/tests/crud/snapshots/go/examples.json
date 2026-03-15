@@ -1,0 +1,40 @@
+{
+  "Client_Init": {
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
+  },
+  "ChatOperations_listChats": {
+    "usage": "params := &ListChatsParams{\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n\tSortField: Ptr(\"example\"),\n\tSortOrder: Ptr(SortOrderAsc),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
+    "output": "ListChatsResponse{Data: []Chat, Meta: *PaginationMeta}",
+    "imports": [
+      "ChatAvailability",
+      "ListChatsParams",
+      "SortOrder"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "response, err := client.Chats.GetChat(ctx, int32(123))",
+    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string, MemberIDs: *[]int32}"
+  },
+  "ChatOperations_createChat": {
+    "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(true),\n\t\tMemberIDs: []int32{int32(123)},\n\t},\n}\nresponse, err := client.Chats.CreateChat(ctx, request)",
+    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string, MemberIDs: *[]int32}",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "request := ChatUpdateRequest{\n\tChat: ChatUpdateRequestChat{\n\t\tName: Ptr(\"example\"),\n\t\tPublic: Ptr(true),\n\t},\n}\nresponse, err := client.Chats.UpdateChat(ctx, int32(123), request)",
+    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string, MemberIDs: *[]int32}",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "client.Chats.ArchiveChat(ctx, int32(123))"
+  },
+  "ChatOperations_deleteChat": {
+    "usage": "client.Chats.DeleteChat(ctx, int32(123))"
+  }
+}

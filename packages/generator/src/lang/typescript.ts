@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import type { GeneratedFile, LanguageGenerator } from './types.js';
+import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToPascal,
@@ -817,15 +817,288 @@ function generateUtils(ir: IR): string {
   ].join('\n');
 }
 
+// ── Examples ──────────────────────────────────────────────────────────
+
+function tsLiteral(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+  indent: number = 0,
+): string {
+  switch (ft.kind) {
+    case 'primitive': {
+      if (ft.primitive === 'integer' || ft.primitive === 'number') return ft.primitive === 'integer' ? '123' : '1.5';
+      if (ft.primitive === 'boolean') return 'true';
+      if (ft.primitive === 'any') return '{}';
+      if (ft.primitive === 'string') {
+        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date') return '"2024-01-01"';
+      }
+      return '"example"';
+    }
+    case 'enum': {
+      const e = ir.enums.find((en) => en.name === ft.ref);
+      if (e && e.members.length > 0) {
+        return `${e.name}.${enumMemberName(e.members[0].value)}`;
+      }
+      return `${ft.ref ?? 'unknown'}`;
+    }
+    case 'model': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return tsModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
+      return tsModelLiteral(ft.ref ?? 'unknown', ir, models, visited, indent);
+    }
+    case 'array':
+      return `[${tsLiteral(ft.items!, ir, models, visited, indent)}]`;
+    case 'record':
+      return `{ key: ${tsLiteral(ft.valueType!, ir, models, visited, indent)} }`;
+    case 'union': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return tsModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
+      return `${ft.ref ?? 'unknown'}`;
+    }
+    case 'literal':
+      return `"${ft.literalValue}"`;
+    case 'binary':
+      return 'new Blob([])';
+  }
+}
+
+function tsModelLiteral(
+  modelName: string,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+  indent: number = 0,
+): string {
+  if (visited.has(modelName)) return '{}';
+  const model = models.get(modelName);
+  if (!model || model.fields.length === 0) return '{}';
+
+  const nextVisited = new Set(visited);
+  nextVisited.add(modelName);
+
+  const isCyclic = (f: IRField) =>
+    f.type.kind === 'model' && f.type.ref != null && nextVisited.has(f.type.ref);
+  const fields = model.fields.filter(
+    (f) => (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
+  );
+  if (fields.length === 0) return '{}';
+
+  const multiLine = fields.length > 2;
+  const childIndent = indent + 1;
+  const pad = '  '.repeat(childIndent);
+  const closePad = '  '.repeat(indent);
+
+  const entries = fields.map((f) => {
+    const name = fieldSdkName(f);
+    const value = tsLiteral(f.type, ir, models, nextVisited, childIndent);
+    return `${name}: ${value}`;
+  });
+
+  const hasMultiLineChild = entries.some((e) => e.includes('\n'));
+  if (multiLine || hasMultiLineChild) {
+    return `{\n${entries.map((e) => `${pad}${e}`).join(',\n')}\n${closePad}}`;
+  }
+  return `{ ${entries.join(', ')} }`;
+}
+
+function tsFingerprint(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+): string {
+  switch (ft.kind) {
+    case 'primitive':
+      return tsPrimitive(ft);
+    case 'enum':
+      return ft.ref ?? 'unknown';
+    case 'model': {
+      const model = models.get(ft.ref!);
+      if (!model || visited.has(ft.ref!)) return ft.ref ?? 'unknown';
+      return tsModelFingerprint(model, ir, models, visited);
+    }
+    case 'array':
+      return `${tsFingerprint(ft.items!, ir, models, visited)}[]`;
+    case 'record':
+      return `Record<string, ${tsFingerprint(ft.valueType!, ir, models, visited)}>`;
+    case 'union':
+      return ft.ref ?? 'unknown';
+    case 'literal':
+      return 'string';
+    case 'binary':
+      return 'Blob';
+  }
+}
+
+function tsModelFingerprint(
+  model: IRModel,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+): string {
+  const nextVisited = new Set(visited);
+  nextVisited.add(model.name);
+
+  const fields = model.fields.map((f) => {
+    const name = fieldSdkName(f);
+    const type = tsFingerprint(f.type, ir, models, nextVisited);
+    const opt = !f.required ? '?' : '';
+    const nul = f.nullable ? ' | null' : '';
+    return `${name}${opt}: ${type}${nul}`;
+  });
+
+  return `${model.name}({ ${fields.join(', ')} })`;
+}
+
+function tsBuildOutputFingerprint(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+): string | null {
+  const resp = op.successResponse;
+  if (resp.isRedirect) return 'string';
+  if (!resp.hasBody) return null;
+
+  if (resp.isList && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const parts: string[] = [];
+      parts.push(`data: ${rt.dataRef}[]`);
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`meta${opt}: ${rt.metaRef}`);
+      }
+      return `${rt.name}({ ${parts.join(', ')} })`;
+    }
+  }
+
+  if (resp.dataRef) {
+    const model = models.get(resp.dataRef);
+    if (model) return tsModelFingerprint(model, ir, models, new Set());
+    return resp.dataRef;
+  }
+
+  return 'unknown';
+}
+
+function tsBuildOperationExample(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+  serviceProp: string,
+): { usage: string; output: string | null; imports: string[] } {
+  const args: { name: string; value: string }[] = [];
+  const imports = new Set<string>();
+
+  if (op.externalUrl) {
+    args.push({ name: op.externalUrl, value: '"https://example.com"' });
+  }
+
+  for (const p of op.pathParams) {
+    args.push({ name: p.sdkName, value: tsLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
+  }
+
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb) && rb.unwrapField) {
+      const sdkName = snakeToCamel(rb.unwrapField.name);
+      args.push({ name: sdkName, value: tsLiteral(rb.unwrapField.type, ir, models) });
+      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+    } else if (rb.schemaRef) {
+      args.push({ name: 'request', value: tsLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+    }
+  }
+
+  // Query params become a single object argument
+  const queryEntries: { name: string; value: string }[] = [];
+  for (const p of op.queryParams) {
+    queryEntries.push({ name: p.sdkName, value: tsLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
+  }
+
+  // Build declarations and call arguments
+  const declarations: string[] = [];
+  const callArgs: string[] = [];
+
+  for (const { name, value } of args) {
+    if (value.includes('{') || value.includes('[')) {
+      const typeName = name === 'request' && op.requestBody?.schemaRef
+        ? op.requestBody.schemaRef
+        : null;
+      const typeAnnotation = typeName ? `: ${typeName}` : '';
+      declarations.push(`const ${name}${typeAnnotation} = ${value}`);
+      callArgs.push(name);
+    } else {
+      callArgs.push(value);
+    }
+  }
+
+  if (queryEntries.length > 0) {
+    const multiLine = queryEntries.length > 2;
+    if (multiLine) {
+      const inner = queryEntries.map((e) => `  ${e.name}: ${e.value}`).join(',\n');
+      callArgs.push(`{\n${inner}\n}`);
+    } else {
+      const inner = queryEntries.map((e) => `${e.name}: ${e.value}`).join(', ');
+      callArgs.push(`{ ${inner} }`);
+    }
+  }
+
+  const output = tsBuildOutputFingerprint(op, ir, models);
+  const rawCall = `client.${serviceProp}.${op.methodName}(${callArgs.join(', ')})`;
+  const call = output ? `const response = ${rawCall}` : rawCall;
+  const usage = declarations.length > 0
+    ? [...declarations, call].join('\n')
+    : call;
+
+  return { usage, output, imports: [...imports].sort() };
+}
+
+function generateExamples(ir: IR): string {
+  const models = buildModelIndex(ir);
+  const result: Record<string, object> = {};
+
+  result['Client_Init'] = {
+    usage: 'import { PachcaClient } from "@pachca/sdk"\n\nconst client = new PachcaClient("YOUR_TOKEN")',
+  };
+
+  for (const svc of ir.services) {
+    const serviceProp = tagToProperty(svc.tag);
+    for (const op of svc.operations) {
+      const ex = tsBuildOperationExample(op, ir, models, serviceProp);
+      const entry: Record<string, unknown> = { usage: ex.usage };
+      if (ex.output) entry.output = ex.output;
+      if (ex.imports.length > 0) entry.imports = ex.imports;
+      result[op.operationId] = entry;
+    }
+  }
+
+  return JSON.stringify(result, null, 2) + '\n';
+}
+
+// ── Main ─────────────────────────────────────────────────────────────
+
 export class TypeScriptGenerator implements LanguageGenerator {
   readonly dirName = 'ts';
 
-  generate(ir: IR): GeneratedFile[] {
+  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
     const files: GeneratedFile[] = [];
     files.push({ path: 'types.ts', content: generateTypes(ir) });
     const client = generateClient(ir);
     files.push({ path: 'client.ts', content: client.content });
     if (client.needsUtils) files.push({ path: 'utils.ts', content: generateUtils(ir) });
+    if (options?.examples) {
+      files.push({ path: 'examples.json', content: generateExamples(ir) });
+    }
     return files;
   }
 }

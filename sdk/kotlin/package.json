@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "true",
-    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang kotlin && rm -rf generated/src/main/kotlin/com/pachca/apis generated/src/main/kotlin/com/pachca/infrastructure generated/src/main/kotlin/com/pachca/models && mv kt/* generated/src/main/kotlin/com/pachca/ && rmdir kt"
+    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang kotlin --examples && rm -rf generated/src/main/kotlin/com/pachca/apis generated/src/main/kotlin/com/pachca/infrastructure generated/src/main/kotlin/com/pachca/models && mv kt/* generated/src/main/kotlin/com/pachca/ && rmdir kt"
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*"

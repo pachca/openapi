@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "true",
-    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang swift && rm -rf generated/Sources/Pachca/GeneratedSources && mkdir -p generated/Sources/Pachca/GeneratedSources && mv swift/* generated/Sources/Pachca/GeneratedSources/ && rmdir swift",
+    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang swift --examples && rm -rf generated/Sources/Pachca/GeneratedSources && mkdir -p generated/Sources/Pachca/GeneratedSources && mv swift/* generated/Sources/Pachca/GeneratedSources/ && rmdir swift",
     "build": "swift build"
   },
   "devDependencies": {

@@ -36,7 +36,7 @@ describe('generator', () => {
       const specPath = path.join(fixtureDir, 'fixture.yaml');
       const snapshotsDir = path.join(fixtureDir, 'snapshots');
 
-      generate(specPath, tmpDir, SUPPORTED_LANGS);
+      generate(specPath, tmpDir, SUPPORTED_LANGS, { examples: true });
 
       const generated = readDirRecursive(tmpDir);
       const expected = readDirRecursive(snapshotsDir);

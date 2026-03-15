@@ -1,0 +1,39 @@
+{
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+  },
+  "ChatOperations_listChats": {
+    "usage": "let response = try await client.chats.listChats(availability: .isMember, limit: 123, cursor: \"example\", sortField: \"example\", sortOrder: .asc)",
+    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta?)",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "let response = try await client.chats.getChat(id: 123)",
+    "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
+    "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "let body = ChatUpdateRequest(chat: ChatUpdateRequestChat(name: \"example\", `public`: true))\nlet response = try await client.chats.updateChat(id: 123, body: body)",
+    "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "try await client.chats.archiveChat(id: 123)"
+  },
+  "ChatOperations_deleteChat": {
+    "usage": "try await client.chats.deleteChat(id: 123)"
+  }
+}

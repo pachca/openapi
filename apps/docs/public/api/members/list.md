@@ -26,7 +26,8 @@
 ## Пример запроса
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/chats/334/members?role=all&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
+curl "https://api.pachca.com/api/shared/v1/chats/334/members?role=all&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

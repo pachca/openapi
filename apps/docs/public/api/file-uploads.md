@@ -28,7 +28,8 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
     **Загрузка файла**
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/direct_url" \
+# URL получается из ответа POST /uploads (поле direct_url)
+curl "$DIRECT_URL" \
   -F "Content-Disposition=attachment" \
   -F "acl=private" \
   -F "policy=eyJloNBpcmF0aW9u..." \
@@ -68,6 +69,21 @@ curl "https://api.pachca.com/api/shared/v1/direct_url" \
     }
     ```
 
+
+## Через CLI
+
+Команда `pachca upload` автоматически выполняет шаги 1 и 2 — получает подпись и загружает файл на S3. Возвращает готовый `key`:
+
+```bash
+# Загрузить файл
+pachca upload report.pdf
+
+# Загрузить и отправить в чат
+KEY=$(pachca upload report.pdf -o json | jq -r '.key')
+pachca messages create --entity-id 12345 \
+  --content "Отчёт прикреплён" \
+  --files "[{\"key\":\"$KEY\",\"name\":\"report.pdf\",\"file_type\":\"file\",\"size\":$(stat -f%z report.pdf)}]"
+```
 
 ## Типы файлов
 

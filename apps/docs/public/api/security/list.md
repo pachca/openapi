@@ -29,7 +29,8 @@
 ## Пример запроса
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09:11:00Z&end_time=2025-05-02T09:11:00Z&event_key=user_login&actor_id=98765&actor_type=User&entity_id=98765&entity_type=User&limit=1&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9" \
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
+curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09:11:00Z&end_time=2025-05-02T09:11:00Z&event_key=user_login&actor_id=98765&actor_type=User&entity_id=98765&entity_type=User&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

@@ -18,6 +18,7 @@
 **Получение всех событий входа в систему за определенный период**
 
 ```bash
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
 curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&event_key=user_login&limit=50" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
@@ -26,6 +27,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 **Получение всех событий, связанных с конкретным пользователем**
 
 ```bash
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
 curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-02T00:00:00Z&actor_id=133321&actor_type=User" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
@@ -34,6 +36,7 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00
 **Получение всех изменений прав доступа к чатам**
 
 ```bash
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
 curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T00:00:00Z&end_time=2025-05-08T00:00:00Z&event_key=chat_permission_changed" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```

@@ -822,7 +822,7 @@ function swiftBuildOperationExample(
   const finalArgs: string[] = [];
 
   for (const { label, value } of callArgs) {
-    if (value.includes('(') && !value.startsWith('.') && !value.startsWith('"')) {
+    if ((value.includes('(') || value.includes('[')) && !value.startsWith('.') && !value.startsWith('"')) {
       declarations.push(`let ${label} = ${value}`);
       finalArgs.push(`${label}: ${label}`);
     } else {

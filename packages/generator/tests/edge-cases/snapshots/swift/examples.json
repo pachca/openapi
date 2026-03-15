@@ -1,6 +1,6 @@
 {
   "listEvents": {
-    "usage": "let filter = EventFilter()\ntry await client.events.listEvents(isActive: true, scopes: [.chatsRead], filter: filter)",
+    "usage": "let scopes = [.chatsRead]\nlet filter = EventFilter()\ntry await client.events.listEvents(isActive: true, scopes: scopes, filter: filter)",
     "output": "ListEventsResponse(data: [Event])"
   },
   "publishEvent": {

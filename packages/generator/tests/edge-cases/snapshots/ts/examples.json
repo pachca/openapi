@@ -1,14 +1,24 @@
 {
   "listEvents": {
     "usage": "client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
-    "output": "ListEventsResponse({ data: Event[] })"
+    "output": "ListEventsResponse({ data: Event[] })",
+    "imports": [
+      "EventFilter",
+      "OAuthScope"
+    ]
   },
   "publishEvent": {
     "usage": "client.events.publishEvent(1, OAuthScope.ChatsRead)",
-    "output": "Event({ id: number, type: EventType })"
+    "output": "Event({ id: number, type: EventType })",
+    "imports": [
+      "OAuthScope"
+    ]
   },
   "createUpload": {
     "usage": "const request: UploadRequest = { file: new Blob([]), contentDisposition: \"example\" }\nclient.uploads.createUpload(request)",
-    "output": null
+    "output": null,
+    "imports": [
+      "UploadRequest"
+    ]
   }
 }

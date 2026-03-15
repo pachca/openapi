@@ -5,7 +5,11 @@
   },
   "ChatOperations_createChat": {
     "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(true),\n\t\tMemberIDs: []int32{int32(1)},\n\t},\n}\nclient.Chats.CreateChat(ctx, request)",
-    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string}"
+    "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string}",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
   },
   "ChatOperations_archiveChat": {
     "usage": "client.Chats.ArchiveChat(ctx, int32(1))",

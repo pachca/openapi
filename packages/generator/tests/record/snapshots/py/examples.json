@@ -1,6 +1,10 @@
 {
   "LinkPreviewOperations_createLinkPreviews": {
     "usage": "request = LinkPreviewsRequest(\n    link_previews={\"key\": LinkPreview(\n        title=\"example\",\n        description=\"example\",\n        image_url=\"example\"\n    )}\n)\nawait client.link_previews.create_link_previews(id=1, request=request)",
-    "output": null
+    "output": null,
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewsRequest"
+    ]
   }
 }

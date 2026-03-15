@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
@@ -795,8 +795,9 @@ function swiftBuildOperationExample(
   ir: IR,
   models: Map<string, IRModel>,
   serviceProp: string,
-): { usage: string; output: string | null } {
+): { usage: string; output: string | null; imports: string[] } {
   const callArgs: { label: string; value: string }[] = [];
+  const imports = new Set<string>();
 
   if (op.externalUrl) {
     callArgs.push({ label: op.externalUrl, value: '"https://example.com"' });
@@ -804,6 +805,7 @@ function swiftBuildOperationExample(
 
   for (const p of op.pathParams) {
     callArgs.push({ label: snakeToCamel(p.sdkName), value: swiftLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   if (op.requestBody) {
@@ -811,13 +813,16 @@ function swiftBuildOperationExample(
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = swiftIdentifier(rb.unwrapField.name);
       callArgs.push({ label: sdkName, value: swiftLiteral(rb.unwrapField.type, ir, models) });
+      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
     } else if (rb.schemaRef) {
       callArgs.push({ label: 'body', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
     }
   }
 
   for (const q of op.queryParams) {
     callArgs.push({ label: snakeToCamel(q.sdkName), value: swiftLiteral(q.type, ir, models) });
+    for (const r of collectTypeRefs(q.type, ir, models)) imports.add(r);
   }
 
   const declarations: string[] = [];
@@ -839,17 +844,18 @@ function swiftBuildOperationExample(
 
   const output = swiftBuildOutputFingerprint(op, ir, models);
 
-  return { usage, output };
+  return { usage, output, imports: [...imports].sort() };
 }
 
 function swiftGenerateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
-  const result: Record<string, { usage: string; output: string | null }> = {};
+  const result: Record<string, { usage: string; output: string | null; imports: string[] }> = {};
 
   for (const svc of ir.services) {
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
-      result[op.operationId] = swiftBuildOperationExample(op, ir, models, serviceProp);
+      const ex = swiftBuildOperationExample(op, ir, models, serviceProp);
+      result[op.operationId] = ex.imports.length > 0 ? ex : { usage: ex.usage, output: ex.output };
     }
   }
 

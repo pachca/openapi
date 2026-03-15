@@ -1,7 +1,11 @@
 {
   "ChatOperations_listChats": {
     "usage": "client.chats.listChats(availability = ChatAvailability.IS_MEMBER, limit = 1, cursor = \"example\", sortField = \"example\", sortOrder = SortOrder.ASC)",
-    "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)"
+    "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
   },
   "ChatOperations_getChat": {
     "usage": "client.chats.getChat(id = 1)",
@@ -9,11 +13,19 @@
   },
   "ChatOperations_createChat": {
     "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(1)\n    )\n)\nclient.chats.createChat(request = request)",
-    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)"
+    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
   },
   "ChatOperations_updateChat": {
     "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"example\", public = true))\nclient.chats.updateChat(id = 1, request = request)",
-    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)"
+    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
   },
   "ChatOperations_archiveChat": {
     "usage": "client.chats.archiveChat(id = 1)",

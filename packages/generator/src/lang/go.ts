@@ -10,7 +10,7 @@ import {
   type IRUnion,
   type IRResponseType,
 } from '../ir.js';
-import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, snakeToPascal, tagToServiceName } from '../naming.js';
 
 function upperFirst(s: string): string {
@@ -928,8 +928,9 @@ function goBuildOperationExample(
   ir: IR,
   models: Map<string, IRModel>,
   serviceField: string,
-): { usage: string; output: string | null } {
+): { usage: string; output: string | null; imports: string[] } {
   const params: { name: string; value: string; isNamed: boolean }[] = [];
+  const imports = new Set<string>();
 
   // ctx is always first
   params.push({ name: 'ctx', value: 'ctx', isNamed: false });
@@ -940,6 +941,7 @@ function goBuildOperationExample(
 
   for (const p of op.pathParams) {
     params.push({ name: snakeToCamel(p.sdkName), value: goLiteral(p.type, ir, models), isNamed: false });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   if (op.requestBody) {
@@ -947,19 +949,23 @@ function goBuildOperationExample(
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = snakeToCamel(rb.unwrapField.name);
       params.push({ name: sdkName, value: goLiteral(rb.unwrapField.type, ir, models), isNamed: false });
+      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
     } else if (rb.schemaRef) {
       params.push({ name: 'request', value: goLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models), isNamed: false });
+      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
     }
   }
 
   if (op.queryParams.length > 0) {
     const pName = `${upperFirst(op.methodName)}Params`;
+    imports.add(pName);
     const hasReq = op.queryParams.some((p) => p.required);
 
     const qEntries = op.queryParams.map((p) => {
       const name = goExportName(p.sdkName);
       const opt = !p.required && (p.type.kind !== 'array' && p.type.kind !== 'record');
       const value = goLiteral(p.type, ir, models);
+      for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
       if (opt) {
         return `${name}: Ptr(${value})`;
       }
@@ -993,17 +999,18 @@ function goBuildOperationExample(
 
   const output = goBuildOutputFingerprint(op, ir, models);
 
-  return { usage, output };
+  return { usage, output, imports: [...imports].sort() };
 }
 
 function generateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
-  const result: Record<string, { usage: string; output: string | null }> = {};
+  const result: Record<string, { usage: string; output: string | null; imports: string[] }> = {};
 
   for (const svc of ir.services) {
     const serviceField = goServiceField(svc.tag);
     for (const op of svc.operations) {
-      result[op.operationId] = goBuildOperationExample(op, ir, models, serviceField);
+      const ex = goBuildOperationExample(op, ir, models, serviceField);
+      result[op.operationId] = ex.imports.length > 0 ? ex : { usage: ex.usage, output: ex.output };
     }
   }
 

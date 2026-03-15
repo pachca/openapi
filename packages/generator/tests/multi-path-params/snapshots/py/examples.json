@@ -5,7 +5,11 @@
   },
   "TaskOperations_updateTask": {
     "usage": "request = TaskUpdateRequest(task=TaskUpdateRequestTask(title=\"example\", is_done=True))\nawait client.tasks.update_task(project_id=1, task_id=1, request=request)",
-    "output": "Task(id: int, title: str, is_done: bool | None)"
+    "output": "Task(id: int, title: str, is_done: bool | None)",
+    "imports": [
+      "TaskUpdateRequest",
+      "TaskUpdateRequestTask"
+    ]
   },
   "TaskOperations_deleteComment": {
     "usage": "await client.tasks.delete_comment(project_id=1, task_id=1, comment_id=1)",

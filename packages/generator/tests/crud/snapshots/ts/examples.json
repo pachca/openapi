@@ -1,7 +1,11 @@
 {
   "ChatOperations_listChats": {
     "usage": "client.chats.listChats({\n  availability: ChatAvailability.IsMember,\n  limit: 1,\n  cursor: \"example\",\n  sortField: \"example\",\n  sortOrder: SortOrder.Asc\n})",
-    "output": "ListChatsResponse({ data: Chat[], meta?: PaginationMeta })"
+    "output": "ListChatsResponse({ data: Chat[], meta?: PaginationMeta })",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
   },
   "ChatOperations_getChat": {
     "usage": "client.chats.getChat(1)",
@@ -9,11 +13,19 @@
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [1]\n  }\n}\nclient.chats.createChat(request)",
-    "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string, memberIds?: number[] })"
+    "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string, memberIds?: number[] })",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
   },
   "ChatOperations_updateChat": {
     "usage": "const request: ChatUpdateRequest = { chat: { name: \"example\", public: true } }\nclient.chats.updateChat(1, request)",
-    "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string, memberIds?: number[] })"
+    "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string, memberIds?: number[] })",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
   },
   "ChatOperations_archiveChat": {
     "usage": "client.chats.archiveChat(1)",

@@ -5,7 +5,11 @@
   },
   "TaskOperations_updateTask": {
     "usage": "val request = TaskUpdateRequest(task = TaskUpdateRequestTask(title = \"example\", isDone = true))\nclient.tasks.updateTask(projectId = 1, taskId = 1, request = request)",
-    "output": "Task(id: Int, title: String, isDone: Boolean?)"
+    "output": "Task(id: Int, title: String, isDone: Boolean?)",
+    "imports": [
+      "TaskUpdateRequest",
+      "TaskUpdateRequestTask"
+    ]
   },
   "TaskOperations_deleteComment": {
     "usage": "client.tasks.deleteComment(projectId = 1, taskId = 1, commentId = 1)",

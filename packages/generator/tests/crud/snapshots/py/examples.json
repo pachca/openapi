@@ -1,7 +1,12 @@
 {
   "ChatOperations_listChats": {
     "usage": "params = ListChatsParams(\n    availability=ChatAvailability.IS_MEMBER,\n    limit=1,\n    cursor=\"example\",\n    sort_field=\"example\",\n    sort_order=SortOrder.ASC\n)\nawait client.chats.list_chats(params=params)",
-    "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)"
+    "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)",
+    "imports": [
+      "ChatAvailability",
+      "ListChatsParams",
+      "SortOrder"
+    ]
   },
   "ChatOperations_getChat": {
     "usage": "await client.chats.get_chat(id=1)",
@@ -9,11 +14,19 @@
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[1]\n    )\n)\nawait client.chats.create_chat(request=request)",
-    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)"
+    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
   },
   "ChatOperations_updateChat": {
     "usage": "request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name=\"example\", public=True))\nawait client.chats.update_chat(id=1, request=request)",
-    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)"
+    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
   },
   "ChatOperations_archiveChat": {
     "usage": "await client.chats.archive_chat(id=1)",

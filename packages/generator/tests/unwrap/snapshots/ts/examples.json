@@ -5,7 +5,11 @@
   },
   "ChatOperations_createChat": {
     "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [1]\n  }\n}\nclient.chats.createChat(request)",
-    "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string })"
+    "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string })",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
   },
   "ChatOperations_archiveChat": {
     "usage": "client.chats.archiveChat(1)",

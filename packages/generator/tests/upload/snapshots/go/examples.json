@@ -1,7 +1,10 @@
 {
   "DirectUploadOperations_uploadFile": {
     "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Common.UploadFile(ctx, \"https://example.com\", request)",
-    "output": null
+    "output": null,
+    "imports": [
+      "FileUploadRequest"
+    ]
   },
   "UploadOperations_getUploadParams": {
     "usage": "client.Common.GetUploadParams(ctx)",

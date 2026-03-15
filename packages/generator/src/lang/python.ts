@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   camelToSnake,
   snakeToUpperSnake,
@@ -986,8 +986,9 @@ function pyBuildOperationExample(
   ir: IR,
   models: Map<string, IRModel>,
   serviceProp: string,
-): { usage: string; output: string | null } {
+): { usage: string; output: string | null; imports: string[] } {
   const params: { name: string; value: string }[] = [];
+  const imports = new Set<string>();
 
   if (op.externalUrl) {
     params.push({ name: camelToSnake(op.externalUrl), value: '"https://example.com"' });
@@ -995,6 +996,7 @@ function pyBuildOperationExample(
 
   for (const p of op.pathParams) {
     params.push({ name: pyParamName(p.sdkName), value: pyLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   if (op.requestBody) {
@@ -1002,8 +1004,10 @@ function pyBuildOperationExample(
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = pyFieldName(rb.unwrapField);
       params.push({ name: sdkName, value: pyLiteral(rb.unwrapField.type, ir, models) });
+      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
     } else if (rb.schemaRef) {
       params.push({ name: 'request', value: pyLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
     }
   }
 
@@ -1011,6 +1015,7 @@ function pyBuildOperationExample(
   const queryEntries: { name: string; value: string }[] = [];
   for (const p of op.queryParams) {
     queryEntries.push({ name: pyParamName(p.sdkName), value: pyLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   const declarations: string[] = [];
@@ -1029,6 +1034,7 @@ function pyBuildOperationExample(
     const multiLine = queryEntries.length > 2;
     const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
     const paramsTypeName = `${pascal}Params`;
+    imports.add(paramsTypeName);
     if (multiLine) {
       const inner = queryEntries.map((e) => `    ${e.name}=${e.value}`).join(',\n');
       declarations.push(`params = ${paramsTypeName}(\n${inner}\n)`);
@@ -1046,17 +1052,18 @@ function pyBuildOperationExample(
 
   const output = pyBuildOutputFingerprint(op, ir, models);
 
-  return { usage, output };
+  return { usage, output, imports: [...imports].sort() };
 }
 
 function generateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
-  const result: Record<string, { usage: string; output: string | null }> = {};
+  const result: Record<string, { usage: string; output: string | null; imports: string[] }> = {};
 
   for (const svc of ir.services) {
     const serviceProp = pyServiceProp(svc.tag);
     for (const op of svc.operations) {
-      result[op.operationId] = pyBuildOperationExample(op, ir, models, serviceProp);
+      const ex = pyBuildOperationExample(op, ir, models, serviceProp);
+      result[op.operationId] = ex.imports.length > 0 ? ex : { usage: ex.usage, output: ex.output };
     }
   }
 

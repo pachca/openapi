@@ -11,7 +11,7 @@ import {
   type IRParam,
   type IRResponseType,
 } from '../ir.js';
-import { buildModelIndex, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
+import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import {
   snakeToCamel,
   snakeToUpperSnake,
@@ -992,8 +992,9 @@ function buildOperationExample(
   ir: IR,
   models: Map<string, IRModel>,
   serviceProp: string,
-): { usage: string; output: string | null } {
+): { usage: string; output: string | null; imports: string[] } {
   const params: { name: string; value: string }[] = [];
+  const imports = new Set<string>();
 
   if (op.externalUrl) {
     params.push({ name: op.externalUrl, value: '"https://example.com"' });
@@ -1001,6 +1002,7 @@ function buildOperationExample(
 
   for (const p of op.pathParams) {
     params.push({ name: p.sdkName, value: ktLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   if (op.requestBody) {
@@ -1008,13 +1010,16 @@ function buildOperationExample(
     if (shouldUnwrapBody(rb) && rb.unwrapField) {
       const sdkName = snakeToCamel(rb.unwrapField.name);
       params.push({ name: sdkName, value: ktLiteral(rb.unwrapField.type, ir, models) });
+      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
     } else if (rb.schemaRef) {
       params.push({ name: 'request', value: ktLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
     }
   }
 
   for (const p of op.queryParams) {
     params.push({ name: p.sdkName, value: ktLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
   }
 
   const declarations: string[] = [];
@@ -1036,17 +1041,18 @@ function buildOperationExample(
 
   const output = buildOutputFingerprint(op, ir, models);
 
-  return { usage, output };
+  return { usage, output, imports: [...imports].sort() };
 }
 
 function generateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
-  const result: Record<string, { usage: string; output: string | null }> = {};
+  const result: Record<string, { usage: string; output: string | null; imports: string[] }> = {};
 
   for (const svc of ir.services) {
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
-      result[op.operationId] = buildOperationExample(op, ir, models, serviceProp);
+      const ex = buildOperationExample(op, ir, models, serviceProp);
+      result[op.operationId] = ex.imports.length > 0 ? ex : { usage: ex.usage, output: ex.output };
     }
   }
 

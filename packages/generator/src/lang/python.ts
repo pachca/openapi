@@ -843,8 +843,13 @@ function pyLiteral(
       }
       return `${ft.ref ?? 'object'}`;
     }
-    case 'model':
+    case 'model': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return pyModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
       return pyModelLiteral(ft.ref ?? 'object', ir, models, visited, indent);
+    }
     case 'array':
       return `[${pyLiteral(ft.items!, ir, models, visited, indent)}]`;
     case 'record':

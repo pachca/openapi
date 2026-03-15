@@ -647,8 +647,13 @@ function swiftLiteral(
       }
       return `${ft.ref ?? 'String'}`;
     }
-    case 'model':
+    case 'model': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return swiftModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
       return swiftModelLiteral(ft.ref ?? 'String', ir, models, visited, indent);
+    }
     case 'array':
       return `[${swiftLiteral(ft.items!, ir, models, visited, indent)}]`;
     case 'record':

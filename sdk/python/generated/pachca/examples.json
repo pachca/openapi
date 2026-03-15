@@ -383,7 +383,7 @@
     "usage": "await client.users.delete_user_status(user_id=123)"
   },
   "FormOperations_openView": {
-    "usage": "request = OpenViewRequest(\n    type=\"modal\",\n    trigger_id=\"example\",\n    private_metadata=\"example\",\n    callback_id=\"example\",\n    view=OpenViewRequestView(\n        title=\"example\",\n        close_text=\"example\",\n        submit_text=\"example\",\n        blocks=[ViewBlockUnion()]\n    )\n)\nawait client.views.open_view(request=request)",
+    "usage": "request = OpenViewRequest(\n    type=\"modal\",\n    trigger_id=\"example\",\n    private_metadata=\"example\",\n    callback_id=\"example\",\n    view=OpenViewRequestView(\n        title=\"example\",\n        close_text=\"example\",\n        submit_text=\"example\",\n        blocks=[ViewBlockHeader(type=\"header\", text=\"example\")]\n    )\n)\nawait client.views.open_view(request=request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

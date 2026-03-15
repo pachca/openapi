@@ -353,7 +353,7 @@
     "usage": "try await client.users.deleteUserStatus(userId: 123)"
   },
   "FormOperations_openView": {
-    "usage": "let body = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"example\",\n    privateMetadata: \"example\",\n    callbackId: \"example\",\n    view: OpenViewRequestView(\n        title: \"example\",\n        closeText: \"example\",\n        submitText: \"example\",\n        blocks: [ViewBlockUnion()]\n    )\n)\ntry await client.views.openView(body: body)",
+    "usage": "let body = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"example\",\n    privateMetadata: \"example\",\n    callbackId: \"example\",\n    view: OpenViewRequestView(\n        title: \"example\",\n        closeText: \"example\",\n        submitText: \"example\",\n        blocks: [ViewBlockHeader(type: \"header\", text: \"example\")]\n    )\n)\ntry await client.views.openView(body: body)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

@@ -844,8 +844,13 @@ function tsLiteral(
       }
       return `${ft.ref ?? 'unknown'}`;
     }
-    case 'model':
+    case 'model': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return tsModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
       return tsModelLiteral(ft.ref ?? 'unknown', ir, models, visited, indent);
+    }
     case 'array':
       return `[${tsLiteral(ft.items!, ir, models, visited, indent)}]`;
     case 'record':

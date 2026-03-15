@@ -785,8 +785,13 @@ function goLiteral(
       }
       return `${ft.ref ?? 'any'}`;
     }
-    case 'model':
+    case 'model': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return goModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
       return goModelLiteral(ft.ref ?? 'any', ir, models, visited, indent);
+    }
     case 'array':
       return `[]${goType(ft.items!)}{${goLiteral(ft.items!, ir, models, visited, indent)}}`;
     case 'record':

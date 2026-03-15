@@ -849,8 +849,13 @@ function ktLiteral(
       }
       return `${ft.ref ?? 'Any'}()`;
     }
-    case 'model':
+    case 'model': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return ktModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
       return ktModelLiteral(ft.ref ?? 'Any', ir, models, visited, indent);
+    }
     case 'array':
       return `listOf(${ktLiteral(ft.items!, ir, models, visited, indent)})`;
     case 'record':

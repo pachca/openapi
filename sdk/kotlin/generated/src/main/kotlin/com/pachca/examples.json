@@ -1,258 +1,363 @@
 {
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
+  },
   "SecurityOperations_getAuditEvents": {
-    "usage": "client.security.getAuditEvents(startTime = \"2024-01-01T00:00:00Z\", endTime = \"2024-01-01T00:00:00Z\", eventKey = AuditEventKey.USER_LOGIN, actorId = \"example\", actorType = \"example\", entityId = \"example\", entityType = \"example\", limit = 1, cursor = \"example\")",
-    "output": "GetAuditEventsResponse(data: List<AuditEvent>, meta: PaginationMeta?)"
+    "usage": "val response = client.security.getAuditEvents(startTime = \"2024-01-01T00:00:00Z\", endTime = \"2024-01-01T00:00:00Z\", eventKey = AuditEventKey.USER_LOGIN, actorId = \"example\", actorType = \"example\", entityId = \"example\", entityType = \"example\", limit = 123, cursor = \"example\")",
+    "output": "GetAuditEventsResponse(data: List<AuditEvent>, meta: PaginationMeta?)",
+    "imports": [
+      "AuditEventKey"
+    ]
   },
   "BotOperations_getWebhookEvents": {
-    "usage": "client.bots.getWebhookEvents(limit = 1, cursor = \"example\")",
+    "usage": "val response = client.bots.getWebhookEvents(limit = 123, cursor = \"example\")",
     "output": "GetWebhookEventsResponse(data: List<WebhookEvent>, meta: PaginationMeta?)"
   },
   "BotOperations_updateBot": {
-    "usage": "val request = BotUpdateRequest(bot = BotUpdateRequestBot(webhook = BotUpdateRequestBotWebhook(outgoingUrl = \"example\")))\nclient.bots.updateBot(id = 1, request = request)",
-    "output": "BotResponse(id: Int, webhook: BotResponseWebhook(outgoingUrl: String))"
+    "usage": "val request = BotUpdateRequest(bot = BotUpdateRequestBot(webhook = BotUpdateRequestBotWebhook(outgoingUrl = \"example\")))\nval response = client.bots.updateBot(id = 123, request = request)",
+    "output": "BotResponse(id: Int, webhook: BotResponseWebhook(outgoingUrl: String))",
+    "imports": [
+      "BotUpdateRequest",
+      "BotUpdateRequestBot",
+      "BotUpdateRequestBotWebhook"
+    ]
   },
   "BotOperations_deleteWebhookEvent": {
-    "usage": "client.bots.deleteWebhookEvent(id = \"example\")",
-    "output": null
+    "usage": "client.bots.deleteWebhookEvent(id = \"example\")"
   },
   "ChatOperations_listChats": {
-    "usage": "client.chats.listChats(sortId = SortOrder.ASC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = \"2024-01-01T00:00:00Z\", lastMessageAtBefore = \"2024-01-01T00:00:00Z\", personal = true, limit = 1, cursor = \"example\")",
-    "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)"
+    "usage": "val response = client.chats.listChats(sortId = SortOrder.ASC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = \"2024-01-01T00:00:00Z\", lastMessageAtBefore = \"2024-01-01T00:00:00Z\", personal = true, limit = 123, cursor = \"example\")",
+    "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
   },
   "ChatOperations_getChat": {
-    "usage": "client.chats.getChat(id = 1)",
+    "usage": "val response = client.chats.getChat(id = 123)",
     "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)"
   },
   "ChatOperations_createChat": {
-    "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        memberIds = listOf(1),\n        groupTagIds = listOf(1),\n        channel = true,\n        public = true\n    )\n)\nclient.chats.createChat(request = request)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)"
+    "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        memberIds = listOf(123),\n        groupTagIds = listOf(123),\n        channel = true,\n        public = true\n    )\n)\nval response = client.chats.createChat(request = request)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
   },
   "ChatOperations_updateChat": {
-    "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"example\", public = true))\nclient.chats.updateChat(id = 1, request = request)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)"
+    "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"example\", public = true))\nval response = client.chats.updateChat(id = 123, request = request)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.chats.archiveChat(id = 1)",
-    "output": null
+    "usage": "client.chats.archiveChat(id = 123)"
   },
   "ChatOperations_unarchiveChat": {
-    "usage": "client.chats.unarchiveChat(id = 1)",
-    "output": null
+    "usage": "client.chats.unarchiveChat(id = 123)"
   },
   "ExportOperations_downloadExport": {
-    "usage": "client.common.downloadExport(id = 1)",
+    "usage": "val response = client.common.downloadExport(id = 123)",
     "output": "String"
   },
   "CommonOperations_listProperties": {
-    "usage": "client.common.listProperties(entityType = SearchEntityType.USER)",
-    "output": "ListPropertiesResponse(data: List<CustomPropertyDefinition>)"
+    "usage": "val response = client.common.listProperties(entityType = SearchEntityType.USER)",
+    "output": "ListPropertiesResponse(data: List<CustomPropertyDefinition>)",
+    "imports": [
+      "SearchEntityType"
+    ]
   },
   "ExportOperations_requestExport": {
-    "usage": "val request = ExportRequest(\n    startAt = \"2024-01-01\",\n    endAt = \"2024-01-01\",\n    webhookUrl = \"example\",\n    chatIds = listOf(1),\n    skipChatsFile = true\n)\nclient.common.requestExport(request = request)",
-    "output": null
+    "usage": "val request = ExportRequest(\n    startAt = \"2024-01-01\",\n    endAt = \"2024-01-01\",\n    webhookUrl = \"example\",\n    chatIds = listOf(123),\n    skipChatsFile = true\n)\nclient.common.requestExport(request = request)",
+    "imports": [
+      "ExportRequest"
+    ]
   },
   "DirectUploadOperations_uploadFile": {
     "usage": "val request = FileUploadRequest(\n    contentDisposition = \"example\",\n    acl = \"example\",\n    policy = \"example\",\n    xAmzCredential = \"example\",\n    xAmzAlgorithm = \"example\",\n    xAmzDate = \"example\",\n    xAmzSignature = \"example\",\n    key = \"example\",\n    file = ByteArray(0)\n)\nclient.common.uploadFile(directUrl = \"https://example.com\", request = request)",
-    "output": null
+    "imports": [
+      "FileUploadRequest"
+    ]
   },
   "UploadOperations_getUploadParams": {
-    "usage": "client.common.getUploadParams()",
+    "usage": "val response = client.common.getUploadParams()",
     "output": "UploadParams(contentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
   },
   "ChatMemberOperations_listMembers": {
-    "usage": "client.members.listMembers(id = 1, role = ChatMemberRoleFilter.ALL, limit = 1, cursor = \"example\")",
-    "output": "ListMembersResponse(data: List<User>, meta: PaginationMeta?)"
+    "usage": "val response = client.members.listMembers(id = 123, role = ChatMemberRoleFilter.ALL, limit = 123, cursor = \"example\")",
+    "output": "ListMembersResponse(data: List<User>, meta: PaginationMeta?)",
+    "imports": [
+      "ChatMemberRoleFilter"
+    ]
   },
   "ChatMemberOperations_addTags": {
-    "usage": "val groupTagIds = listOf(1)\nclient.members.addTags(id = 1, groupTagIds = groupTagIds)",
-    "output": null
+    "usage": "val groupTagIds = listOf(123)\nclient.members.addTags(id = 123, groupTagIds = groupTagIds)"
   },
   "ChatMemberOperations_addMembers": {
-    "usage": "val request = AddMembersRequest(memberIds = listOf(1), silent = true)\nclient.members.addMembers(id = 1, request = request)",
-    "output": null
+    "usage": "val request = AddMembersRequest(memberIds = listOf(123), silent = true)\nclient.members.addMembers(id = 123, request = request)",
+    "imports": [
+      "AddMembersRequest"
+    ]
   },
   "ChatMemberOperations_updateMemberRole": {
-    "usage": "client.members.updateMemberRole(id = 1, userId = 1, role = ChatMemberRole.ADMIN)",
-    "output": null
+    "usage": "client.members.updateMemberRole(id = 123, userId = 123, role = ChatMemberRole.ADMIN)",
+    "imports": [
+      "ChatMemberRole"
+    ]
   },
   "ChatMemberOperations_removeTag": {
-    "usage": "client.members.removeTag(id = 1, tagId = 1)",
-    "output": null
+    "usage": "client.members.removeTag(id = 123, tagId = 123)"
   },
   "ChatMemberOperations_leaveChat": {
-    "usage": "client.members.leaveChat(id = 1)",
-    "output": null
+    "usage": "client.members.leaveChat(id = 123)"
   },
   "ChatMemberOperations_removeMember": {
-    "usage": "client.members.removeMember(id = 1, userId = 1)",
-    "output": null
+    "usage": "client.members.removeMember(id = 123, userId = 123)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "val names = TagNamesFilter()\nclient.groupTags.listTags(names = names, limit = 1, cursor = \"example\")",
-    "output": "ListTagsResponse(data: List<GroupTag>, meta: PaginationMeta?)"
+    "usage": "val names = TagNamesFilter()\nval response = client.groupTags.listTags(names = names, limit = 123, cursor = \"example\")",
+    "output": "ListTagsResponse(data: List<GroupTag>, meta: PaginationMeta?)",
+    "imports": [
+      "TagNamesFilter"
+    ]
   },
   "GroupTagOperations_getTag": {
-    "usage": "client.groupTags.getTag(id = 1)",
+    "usage": "val response = client.groupTags.getTag(id = 123)",
     "output": "GroupTag(id: Int, name: String, usersCount: Int)"
   },
   "GroupTagOperations_getTagUsers": {
-    "usage": "client.groupTags.getTagUsers(id = 1, limit = 1, cursor = \"example\")",
-    "output": "ListMembersResponse(data: List<User>, meta: PaginationMeta?)"
+    "usage": "val response = client.groupTags.getTagUsers(id = 123, limit = 123, cursor = \"example\")",
+    "output": "GetTagUsersResponse(data: List<User>, meta: PaginationMeta?)"
   },
   "GroupTagOperations_createTag": {
-    "usage": "val request = GroupTagRequest(groupTag = GroupTagRequestGroupTag(name = \"example\"))\nclient.groupTags.createTag(request = request)",
-    "output": "GroupTag(id: Int, name: String, usersCount: Int)"
+    "usage": "val request = GroupTagRequest(groupTag = GroupTagRequestGroupTag(name = \"example\"))\nval response = client.groupTags.createTag(request = request)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
   },
   "GroupTagOperations_updateTag": {
-    "usage": "val request = GroupTagRequest(groupTag = GroupTagRequestGroupTag(name = \"example\"))\nclient.groupTags.updateTag(id = 1, request = request)",
-    "output": "GroupTag(id: Int, name: String, usersCount: Int)"
+    "usage": "val request = GroupTagRequest(groupTag = GroupTagRequestGroupTag(name = \"example\"))\nval response = client.groupTags.updateTag(id = 123, request = request)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
   },
   "GroupTagOperations_deleteTag": {
-    "usage": "client.groupTags.deleteTag(id = 1)",
-    "output": null
+    "usage": "client.groupTags.deleteTag(id = 123)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "client.messages.listChatMessages(chatId = 1, sortId = SortOrder.ASC, limit = 1, cursor = \"example\")",
-    "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta?)"
+    "usage": "val response = client.messages.listChatMessages(chatId = 123, sortId = SortOrder.ASC, limit = 123, cursor = \"example\")",
+    "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta?)",
+    "imports": [
+      "SortOrder"
+    ]
   },
   "MessageOperations_getMessage": {
-    "usage": "client.messages.getMessage(id = 1)",
+    "usage": "val response = client.messages.getMessage(id = 123)",
     "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
   },
   "MessageOperations_createMessage": {
-    "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 1,\n        content = \"example\",\n        files = listOf(MessageCreateRequestFile(\n            key = \"example\",\n            name = \"example\",\n            fileType = FileType.FILE,\n            size = 1,\n            width = 1,\n            height = 1\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"example\",\n            url = \"example\",\n            data = \"example\"\n        ))),\n        parentMessageId = 1,\n        displayAvatarUrl = \"example\",\n        displayName = \"example\",\n        skipInviteMentions = true,\n        linkPreview = true\n    )\n)\nclient.messages.createMessage(request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
+    "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 123,\n        content = \"example\",\n        files = listOf(MessageCreateRequestFile(\n            key = \"example\",\n            name = \"example\",\n            fileType = FileType.FILE,\n            size = 123,\n            width = 123,\n            height = 123\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"example\",\n            url = \"example\",\n            data = \"example\"\n        ))),\n        parentMessageId = 123,\n        displayAvatarUrl = \"example\",\n        displayName = \"example\",\n        skipInviteMentions = true,\n        linkPreview = true\n    )\n)\nval response = client.messages.createMessage(request = request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "imports": [
+      "Button",
+      "FileType",
+      "MessageCreateRequest",
+      "MessageCreateRequestFile",
+      "MessageCreateRequestMessage",
+      "MessageEntityType"
+    ]
   },
   "MessageOperations_pinMessage": {
-    "usage": "client.messages.pinMessage(id = 1)",
-    "output": null
+    "usage": "client.messages.pinMessage(id = 123)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "val request = MessageUpdateRequest(\n    message = MessageUpdateRequestMessage(\n        content = \"example\",\n        files = listOf(MessageUpdateRequestFile(\n            key = \"example\",\n            name = \"example\",\n            fileType = \"example\",\n            size = 1,\n            width = 1,\n            height = 1\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"example\",\n            url = \"example\",\n            data = \"example\"\n        ))),\n        displayAvatarUrl = \"example\",\n        displayName = \"example\"\n    )\n)\nclient.messages.updateMessage(id = 1, request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
+    "usage": "val request = MessageUpdateRequest(\n    message = MessageUpdateRequestMessage(\n        content = \"example\",\n        files = listOf(MessageUpdateRequestFile(\n            key = \"example\",\n            name = \"example\",\n            fileType = \"example\",\n            size = 123,\n            width = 123,\n            height = 123\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"example\",\n            url = \"example\",\n            data = \"example\"\n        ))),\n        displayAvatarUrl = \"example\",\n        displayName = \"example\"\n    )\n)\nval response = client.messages.updateMessage(id = 123, request = request)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestFile",
+      "MessageUpdateRequestMessage"
+    ]
   },
   "MessageOperations_deleteMessage": {
-    "usage": "client.messages.deleteMessage(id = 1)",
-    "output": null
+    "usage": "client.messages.deleteMessage(id = 123)"
   },
   "MessageOperations_unpinMessage": {
-    "usage": "client.messages.unpinMessage(id = 1)",
-    "output": null
+    "usage": "client.messages.unpinMessage(id = 123)"
   },
   "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"example\",\n        description = \"example\",\n        imageUrl = \"example\",\n        image = LinkPreviewImage(\n            key = \"example\",\n            name = \"example\",\n            size = 1\n        )\n    ))\n)\nclient.linkPreviews.createLinkPreviews(id = 1, request = request)",
-    "output": null
+    "usage": "val request = LinkPreviewsRequest(\n    linkPreviews = mapOf(\"key\" to LinkPreview(\n        title = \"example\",\n        description = \"example\",\n        imageUrl = \"example\",\n        image = LinkPreviewImage(\n            key = \"example\",\n            name = \"example\",\n            size = 123\n        )\n    ))\n)\nclient.linkPreviews.createLinkPreviews(id = 123, request = request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
   },
   "ReactionOperations_listReactions": {
-    "usage": "client.reactions.listReactions(id = 1, limit = 1, cursor = \"example\")",
+    "usage": "val response = client.reactions.listReactions(id = 123, limit = 123, cursor = \"example\")",
     "output": "ListReactionsResponse(data: List<Reaction>, meta: PaginationMeta?)"
   },
   "ReactionOperations_addReaction": {
-    "usage": "val request = ReactionRequest(code = \"example\", name = \"example\")\nclient.reactions.addReaction(id = 1, request = request)",
-    "output": "Reaction(userId: Int, createdAt: String, code: String, name: String?)"
+    "usage": "val request = ReactionRequest(code = \"example\", name = \"example\")\nval response = client.reactions.addReaction(id = 123, request = request)",
+    "output": "Reaction(userId: Int, createdAt: String, code: String, name: String?)",
+    "imports": [
+      "ReactionRequest"
+    ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "client.reactions.removeReaction(id = 1, code = \"example\", name = \"example\")",
-    "output": null
+    "usage": "client.reactions.removeReaction(id = 123, code = \"example\", name = \"example\")"
   },
   "ReadMemberOperations_listReadMembers": {
-    "usage": "client.readMembers.listReadMembers(id = 1, limit = 1, cursor = \"example\")",
+    "usage": "val response = client.readMembers.listReadMembers(id = 123, limit = 123, cursor = \"example\")",
     "output": "Any"
   },
   "ThreadOperations_getThread": {
-    "usage": "client.threads.getThread(id = 1)",
+    "usage": "val response = client.threads.getThread(id = 123)",
     "output": "Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)"
   },
   "ThreadOperations_createThread": {
-    "usage": "client.threads.createThread(id = 1)",
+    "usage": "val response = client.threads.createThread(id = 123)",
     "output": "Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)"
   },
   "OAuthOperations_getTokenInfo": {
-    "usage": "client.profile.getTokenInfo()",
+    "usage": "val response = client.profile.getTokenInfo()",
     "output": "AccessTokenInfo(id: Long, token: String, name: String?, userId: Long, scopes: List<OAuthScope>, createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?)"
   },
   "ProfileOperations_getProfile": {
-    "usage": "client.profile.getProfile()",
+    "usage": "val response = client.profile.getProfile()",
     "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
   },
   "ProfileOperations_getStatus": {
-    "usage": "client.profile.getStatus()",
+    "usage": "val response = client.profile.getStatus()",
     "output": "Any"
   },
   "ProfileOperations_updateStatus": {
-    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"example\",\n        title = \"example\",\n        expiresAt = \"2024-01-01T00:00:00Z\",\n        isAway = true,\n        awayMessage = \"example\"\n    )\n)\nclient.profile.updateStatus(request = request)",
-    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)"
+    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"example\",\n        title = \"example\",\n        expiresAt = \"2024-01-01T00:00:00Z\",\n        isAway = true,\n        awayMessage = \"example\"\n    )\n)\nval response = client.profile.updateStatus(request = request)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
   },
   "ProfileOperations_deleteStatus": {
-    "usage": "client.profile.deleteStatus()",
-    "output": null
+    "usage": "client.profile.deleteStatus()"
   },
   "SearchOperations_searchChats": {
-    "usage": "client.search.searchChats(query = \"example\", limit = 1, cursor = \"example\", order = SortOrder.ASC, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", active = true, chatSubtype = ChatSubtype.DISCUSSION, personal = true)",
-    "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)"
+    "usage": "val response = client.search.searchChats(query = \"example\", limit = 123, cursor = \"example\", order = SortOrder.ASC, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", active = true, chatSubtype = ChatSubtype.DISCUSSION, personal = true)",
+    "output": "SearchChatsResponse(data: List<Chat>, meta: SearchPaginationMeta)",
+    "imports": [
+      "ChatSubtype",
+      "SortOrder"
+    ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "val chatIds = listOf(1)\nval userIds = listOf(1)\nclient.search.searchMessages(query = \"example\", limit = 1, cursor = \"example\", order = SortOrder.ASC, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", chatIds = chatIds, userIds = userIds, active = true)",
-    "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta?)"
+    "usage": "val chatIds = listOf(123)\nval userIds = listOf(123)\nval response = client.search.searchMessages(query = \"example\", limit = 123, cursor = \"example\", order = SortOrder.ASC, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", chatIds = chatIds, userIds = userIds, active = true)",
+    "output": "SearchMessagesResponse(data: List<Message>, meta: SearchPaginationMeta)",
+    "imports": [
+      "SortOrder"
+    ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "val companyRoles = listOf(UserRole.ADMIN)\nclient.search.searchUsers(query = \"example\", limit = 1, cursor = \"example\", sort = SearchSortOrder.BY_SCORE, order = SortOrder.ASC, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", companyRoles = companyRoles)",
-    "output": "ListMembersResponse(data: List<User>, meta: PaginationMeta?)"
+    "usage": "val companyRoles = listOf(UserRole.ADMIN)\nval response = client.search.searchUsers(query = \"example\", limit = 123, cursor = \"example\", sort = SearchSortOrder.BY_SCORE, order = SortOrder.ASC, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", companyRoles = companyRoles)",
+    "output": "SearchUsersResponse(data: List<User>, meta: SearchPaginationMeta)",
+    "imports": [
+      "SearchSortOrder",
+      "SortOrder",
+      "UserRole"
+    ]
   },
   "TaskOperations_listTasks": {
-    "usage": "client.tasks.listTasks(limit = 1, cursor = \"example\")",
+    "usage": "val response = client.tasks.listTasks(limit = 123, cursor = \"example\")",
     "output": "ListTasksResponse(data: List<Task>, meta: PaginationMeta?)"
   },
   "TaskOperations_getTask": {
-    "usage": "client.tasks.getTask(id = 1)",
+    "usage": "val response = client.tasks.getTask(id = 123)",
     "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)"
   },
   "TaskOperations_createTask": {
-    "usage": "val request = TaskCreateRequest(\n    task = TaskCreateRequestTask(\n        kind = TaskKind.CALL,\n        content = \"example\",\n        dueAt = \"2024-01-01T00:00:00Z\",\n        priority = 1,\n        performerIds = listOf(1),\n        chatId = 1,\n        allDay = true,\n        customProperties = listOf(TaskCreateRequestCustomProperty(id = 1, value = \"example\"))\n    )\n)\nclient.tasks.createTask(request = request)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)"
+    "usage": "val request = TaskCreateRequest(\n    task = TaskCreateRequestTask(\n        kind = TaskKind.CALL,\n        content = \"example\",\n        dueAt = \"2024-01-01T00:00:00Z\",\n        priority = 123,\n        performerIds = listOf(123),\n        chatId = 123,\n        allDay = true,\n        customProperties = listOf(TaskCreateRequestCustomProperty(id = 123, value = \"example\"))\n    )\n)\nval response = client.tasks.createTask(request = request)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
+    "imports": [
+      "TaskCreateRequest",
+      "TaskCreateRequestCustomProperty",
+      "TaskCreateRequestTask",
+      "TaskKind"
+    ]
   },
   "TaskOperations_updateTask": {
-    "usage": "val request = TaskUpdateRequest(\n    task = TaskUpdateRequestTask(\n        kind = TaskKind.CALL,\n        content = \"example\",\n        dueAt = \"2024-01-01T00:00:00Z\",\n        priority = 1,\n        performerIds = listOf(1),\n        status = TaskStatus.DONE,\n        allDay = true,\n        doneAt = \"2024-01-01T00:00:00Z\",\n        customProperties = listOf(TaskUpdateRequestCustomProperty(id = 1, value = \"example\"))\n    )\n)\nclient.tasks.updateTask(id = 1, request = request)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)"
+    "usage": "val request = TaskUpdateRequest(\n    task = TaskUpdateRequestTask(\n        kind = TaskKind.CALL,\n        content = \"example\",\n        dueAt = \"2024-01-01T00:00:00Z\",\n        priority = 123,\n        performerIds = listOf(123),\n        status = TaskStatus.DONE,\n        allDay = true,\n        doneAt = \"2024-01-01T00:00:00Z\",\n        customProperties = listOf(TaskUpdateRequestCustomProperty(id = 123, value = \"example\"))\n    )\n)\nval response = client.tasks.updateTask(id = 123, request = request)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
+    "imports": [
+      "TaskKind",
+      "TaskStatus",
+      "TaskUpdateRequest",
+      "TaskUpdateRequestCustomProperty",
+      "TaskUpdateRequestTask"
+    ]
   },
   "TaskOperations_deleteTask": {
-    "usage": "client.tasks.deleteTask(id = 1)",
-    "output": null
+    "usage": "client.tasks.deleteTask(id = 123)"
   },
   "UserOperations_listUsers": {
-    "usage": "client.users.listUsers(query = \"example\", limit = 1, cursor = \"example\")",
-    "output": "ListMembersResponse(data: List<User>, meta: PaginationMeta?)"
+    "usage": "val response = client.users.listUsers(query = \"example\", limit = 123, cursor = \"example\")",
+    "output": "ListUsersResponse(data: List<User>, meta: PaginationMeta?)"
   },
   "UserOperations_getUser": {
-    "usage": "client.users.getUser(id = 1)",
+    "usage": "val response = client.users.getUser(id = 123)",
     "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
   },
   "UserStatusOperations_getUserStatus": {
-    "usage": "client.users.getUserStatus(userId = 1)",
+    "usage": "val response = client.users.getUserStatus(userId = 123)",
     "output": "Any"
   },
   "UserOperations_createUser": {
-    "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"example\",\n        lastName = \"example\",\n        email = \"example\",\n        phoneNumber = \"example\",\n        nickname = \"example\",\n        department = \"example\",\n        title = \"example\",\n        role = UserRole.ADMIN,\n        suspended = true,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 1, value = \"example\"))\n    ),\n    skipEmailNotify = true\n)\nclient.users.createUser(request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+    "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"example\",\n        lastName = \"example\",\n        email = \"example\",\n        phoneNumber = \"example\",\n        nickname = \"example\",\n        department = \"example\",\n        title = \"example\",\n        role = UserRole.ADMIN,\n        suspended = true,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 123, value = \"example\"))\n    ),\n    skipEmailNotify = true\n)\nval response = client.users.createUser(request = request)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "imports": [
+      "UserCreateRequest",
+      "UserCreateRequestCustomProperty",
+      "UserCreateRequestUser",
+      "UserRole"
+    ]
   },
   "UserOperations_updateUser": {
-    "usage": "val request = UserUpdateRequest(\n    user = UserUpdateRequestUser(\n        firstName = \"example\",\n        lastName = \"example\",\n        email = \"example\",\n        phoneNumber = \"example\",\n        nickname = \"example\",\n        department = \"example\",\n        title = \"example\",\n        role = UserRole.ADMIN,\n        suspended = true,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserUpdateRequestCustomProperty(id = 1, value = \"example\"))\n    )\n)\nclient.users.updateUser(id = 1, request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+    "usage": "val request = UserUpdateRequest(\n    user = UserUpdateRequestUser(\n        firstName = \"example\",\n        lastName = \"example\",\n        email = \"example\",\n        phoneNumber = \"example\",\n        nickname = \"example\",\n        department = \"example\",\n        title = \"example\",\n        role = UserRole.ADMIN,\n        suspended = true,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserUpdateRequestCustomProperty(id = 123, value = \"example\"))\n    )\n)\nval response = client.users.updateUser(id = 123, request = request)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "imports": [
+      "UserRole",
+      "UserUpdateRequest",
+      "UserUpdateRequestCustomProperty",
+      "UserUpdateRequestUser"
+    ]
   },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"example\",\n        title = \"example\",\n        expiresAt = \"2024-01-01T00:00:00Z\",\n        isAway = true,\n        awayMessage = \"example\"\n    )\n)\nclient.users.updateUserStatus(userId = 1, request = request)",
-    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)"
+    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"example\",\n        title = \"example\",\n        expiresAt = \"2024-01-01T00:00:00Z\",\n        isAway = true,\n        awayMessage = \"example\"\n    )\n)\nval response = client.users.updateUserStatus(userId = 123, request = request)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
   },
   "UserOperations_deleteUser": {
-    "usage": "client.users.deleteUser(id = 1)",
-    "output": null
+    "usage": "client.users.deleteUser(id = 123)"
   },
   "UserStatusOperations_deleteUserStatus": {
-    "usage": "client.users.deleteUserStatus(userId = 1)",
-    "output": null
+    "usage": "client.users.deleteUserStatus(userId = 123)"
   },
   "FormOperations_openView": {
-    "usage": "val request = OpenViewRequest(\n    type = \"modal\",\n    triggerId = \"example\",\n    privateMetadata = \"example\",\n    callbackId = \"example\",\n    view = OpenViewRequestView(\n        title = \"example\",\n        closeText = \"example\",\n        submitText = \"example\",\n        blocks = listOf(ViewBlockUnion())\n    )\n)\nclient.views.openView(request = request)",
-    "output": null
+    "usage": "val request = OpenViewRequest(\n    type = \"modal\",\n    triggerId = \"example\",\n    privateMetadata = \"example\",\n    callbackId = \"example\",\n    view = OpenViewRequestView(\n        title = \"example\",\n        closeText = \"example\",\n        submitText = \"example\",\n        blocks = listOf(ViewBlockHeader(type = \"header\", text = \"example\"))\n    )\n)\nclient.views.openView(request = request)",
+    "imports": [
+      "OpenViewRequest",
+      "OpenViewRequestView",
+      "ViewBlockUnion"
+    ]
   }
 }

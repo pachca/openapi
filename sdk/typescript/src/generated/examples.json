@@ -353,7 +353,7 @@
     "usage": "client.users.deleteUserStatus(123)"
   },
   "FormOperations_openView": {
-    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"example\",\n  privateMetadata: \"example\",\n  callbackId: \"example\",\n  view: {\n    title: \"example\",\n    closeText: \"example\",\n    submitText: \"example\",\n    blocks: [{}]\n  }\n}\nclient.views.openView(request)",
+    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"example\",\n  privateMetadata: \"example\",\n  callbackId: \"example\",\n  view: {\n    title: \"example\",\n    closeText: \"example\",\n    submitText: \"example\",\n    blocks: [{ type: \"header\", text: \"example\" }]\n  }\n}\nclient.views.openView(request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

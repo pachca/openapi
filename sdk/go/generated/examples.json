@@ -383,7 +383,7 @@
     "usage": "client.Users.DeleteUserStatus(ctx, int32(123))"
   },
   "FormOperations_openView": {
-    "usage": "request := OpenViewRequest{\n\tType: \"modal\",\n\tTriggerID: \"example\",\n\tPrivateMetadata: Ptr(\"example\"),\n\tCallbackID: Ptr(\"example\"),\n\tView: OpenViewRequestView{\n\t\tTitle: \"example\",\n\t\tCloseText: Ptr(\"example\"),\n\t\tSubmitText: Ptr(\"example\"),\n\t\tBlocks: []ViewBlockUnion{ViewBlockUnion{}},\n\t},\n}\nclient.Views.OpenView(ctx, request)",
+    "usage": "request := OpenViewRequest{\n\tType: \"modal\",\n\tTriggerID: \"example\",\n\tPrivateMetadata: Ptr(\"example\"),\n\tCallbackID: Ptr(\"example\"),\n\tView: OpenViewRequestView{\n\t\tTitle: \"example\",\n\t\tCloseText: Ptr(\"example\"),\n\t\tSubmitText: Ptr(\"example\"),\n\t\tBlocks: []ViewBlockUnion{ViewBlockHeader{\n\t\t\tType: \"header\",\n\t\t\tText: \"example\",\n\t\t}},\n\t},\n}\nclient.Views.OpenView(ctx, request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

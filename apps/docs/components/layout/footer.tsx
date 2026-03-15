@@ -30,7 +30,7 @@ export function Footer({ adjacent, noMargin }: FooterProps) {
             © 2026{' '}
             <a
               href="https://pachca.com"
-              className="font-medium hover:text-primary transition-colors"
+              className="font-medium whitespace-nowrap hover:text-primary transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -38,10 +38,10 @@ export function Footer({ adjacent, noMargin }: FooterProps) {
             </a>
             . Сделано с заботой.
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-6 gap-y-2">
             <a
               href="https://pachca.com/contacts"
-              className="font-medium hover:text-primary transition-colors"
+              className="font-medium whitespace-nowrap hover:text-primary transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -49,7 +49,7 @@ export function Footer({ adjacent, noMargin }: FooterProps) {
             </a>
             <a
               href="https://pachca.com/security/bug-bounty"
-              className="font-medium hover:text-primary transition-colors"
+              className="font-medium whitespace-nowrap hover:text-primary transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -57,7 +57,7 @@ export function Footer({ adjacent, noMargin }: FooterProps) {
             </a>
             <a
               href="https://pachca.com/help-center"
-              className="font-medium hover:text-primary transition-colors"
+              className="font-medium whitespace-nowrap hover:text-primary transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -65,7 +65,7 @@ export function Footer({ adjacent, noMargin }: FooterProps) {
             </a>
             <a
               href="https://pachca.com/glossary"
-              className="font-medium hover:text-primary transition-colors"
+              className="font-medium whitespace-nowrap hover:text-primary transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >

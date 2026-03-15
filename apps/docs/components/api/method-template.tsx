@@ -37,7 +37,7 @@ export function ApiMethodTemplate({
       <div className="grid grid-cols-1 xl:grid-cols-7 flex-1">
         {/* Left Column: Documentation */}
         <div className="flex flex-col xl:col-span-4">
-          <div className="p-8 pt-10 xl:p-10 flex-1">
+          <div className="p-8 pt-8 lg:pt-10 xl:p-10 flex-1">
             <div className="xl:mx-0 prose prose-slate">
               <EndpointHeader
                 title={generateTitle(endpoint)}

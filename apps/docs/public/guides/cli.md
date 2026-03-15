@@ -1,8 +1,9 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.6 · 15 марта 2026
-
+<div className="not-prose my-4 flex [&>a]:flex-1">
+  <Card compact icon="Package" title="@pachca/cli" href="https://www.npmjs.com/package/@pachca/cli">2026.3.6 · 15 марта 2026</Card>
+</div>
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
 

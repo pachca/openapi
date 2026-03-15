@@ -4,6 +4,7 @@ import { SidebarScrollWrapper } from './sidebar-scroll-wrapper';
 import { SidebarNav } from './sidebar-nav';
 import { SearchButton } from './search-button';
 import { MobileSidebar } from './mobile-sidebar';
+import { MobileNavBar } from './mobile-nav-bar';
 import type { NavigationSection } from '@/lib/openapi/types';
 import { useActiveTab } from './use-last-tab';
 
@@ -25,6 +26,7 @@ function SidebarClient({ guideNavigation, apiNavigation }: SidebarClientProps) {
   return (
     <>
       {/* Мобильная версия */}
+      <MobileNavBar guideNavigation={guideNavigation} apiNavigation={apiNavigation} />
       <MobileSidebar guideNavigation={guideNavigation} apiNavigation={apiNavigation} />
 
       {/* Десктопная версия */}

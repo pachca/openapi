@@ -1,0 +1,14 @@
+{
+  "listEvents": {
+    "usage": "val scopes = listOf(OAuthScope.CHATS_READ)\nval filter = EventFilter()\nclient.events.listEvents(isActive = true, scopes = scopes, filter = filter)",
+    "output": "ListEventsResponse(data: List<Event>)"
+  },
+  "publishEvent": {
+    "usage": "client.events.publishEvent(id = 1, scope = OAuthScope.CHATS_READ)",
+    "output": "Event(id: Int, type: EventType)"
+  },
+  "createUpload": {
+    "usage": "val request = UploadRequest(file = ByteArray(0), contentDisposition = \"example\")\nclient.uploads.createUpload(request = request)",
+    "output": null
+  }
+}

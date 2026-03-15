@@ -1,0 +1,6 @@
+{
+  "SearchOperations_searchMessages": {
+    "usage": "val chatIds = listOf(1)\nval userIds = listOf(1)\nclient.search.searchMessages(query = \"example\", chatIds = chatIds, userIds = userIds, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", sort = SearchSort.RELEVANCE, limit = 1, cursor = \"example\")",
+    "output": "SearchMessagesResponse(data: List<MessageSearchResult>, meta: SearchPaginationMeta)"
+  }
+}

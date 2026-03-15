@@ -35,7 +35,7 @@
       "cache": true
     },
     "build": {
-      "dependsOn": ["generate", "generate-llms", "generate-cli"],
+      "dependsOn": ["^build", "generate", "generate-llms", "generate-cli"],
       "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json"],
       "cache": true
     },

@@ -204,13 +204,19 @@ export function Card({ title, icon, href, download, compact, children }: CardPro
     return (
       <CardWrapper
         href={href}
-        className="group no-underline! inline-flex items-center gap-2 px-3 text-[14px] font-medium rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200"
+        className="group no-underline! flex items-center gap-2 px-3 text-[14px] font-medium rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover hover:border-glass-heavy-border transition-all duration-200 min-w-0"
         style={{ height: 'var(--boxed-header-height)' }}
       >
-        {Icon && <Icon className="w-4 h-4 text-text-primary" strokeWidth={2} />}
-        <span className="text-[14px] font-medium text-text-primary">{title}</span>
-        {children && <span className="text-[13px] text-text-tertiary font-normal">{children}</span>}
-        <ArrowUpRight className="ml-auto w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        {Icon && <Icon className="w-4 h-4 shrink-0 text-text-primary" strokeWidth={2} />}
+        <span className="text-[14px] font-medium text-text-primary whitespace-nowrap shrink-0">
+          {title}
+        </span>
+        {children && (
+          <span className="text-[13px] text-text-tertiary font-normal whitespace-nowrap truncate min-w-0">
+            {children}
+          </span>
+        )}
+        <ArrowUpRight className="ml-auto shrink-0 w-3.5 h-3.5 text-text-tertiary transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </CardWrapper>
     );
   }

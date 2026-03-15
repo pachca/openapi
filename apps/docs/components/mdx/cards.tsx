@@ -251,4 +251,8 @@ export function Card({ title, icon, href, download, compact, children }: CardPro
   );
 }
 
+export function CardRow({ children }: { children: React.ReactNode }) {
+  return <div className="not-prose my-4">{children}</div>;
+}
+
 export { GUIDE_ICONS, API_SECTION_META };

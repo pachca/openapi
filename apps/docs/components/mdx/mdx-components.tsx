@@ -6,7 +6,7 @@ import { LimitCard } from '@/components/api/limit-card';
 import { UpdatesList } from '@/components/api/updates-list';
 import { Callout } from '@/components/api/callout';
 import { Steps, Step } from '@/components/mdx/steps';
-import { CardGroup, Card, GUIDE_ICONS, API_SECTION_META } from '@/components/mdx/cards';
+import { CardGroup, CardRow, Card, GUIDE_ICONS, API_SECTION_META } from '@/components/mdx/cards';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
@@ -317,6 +317,7 @@ export const customMdxComponents = {
   Steps,
   Step,
   CardGroup,
+  CardRow,
   Card,
   GuideCards,
   ApiCards,

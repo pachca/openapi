@@ -63,7 +63,9 @@ export function MobileNavBar({ guideNavigation, apiNavigation }: MobileNavBarPro
             )}
           </>
         ) : (
-          <span className="truncate">Главная</span>
+          <>
+            <span className="truncate shrink-0">Главная</span>
+          </>
         )}
       </button>
     </div>

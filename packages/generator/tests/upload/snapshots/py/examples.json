@@ -1,11 +1,9 @@
 {
   "Client_Init": {
-    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")"
   },
   "DirectUploadOperations_uploadFile": {
     "usage": "request = FileUploadRequest(\n    content_disposition=\"example\",\n    acl=\"example\",\n    policy=\"example\",\n    x_amz_credential=\"example\",\n    x_amz_algorithm=\"example\",\n    x_amz_date=\"example\",\n    x_amz_signature=\"example\",\n    key=\"example\",\n    file=b\"\"\n)\nawait client.common.upload_file(direct_url=\"https://example.com\", request=request)",
-    "output": null,
     "imports": [
       "FileUploadRequest"
     ]

@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")"
   },
   "TaskOperations_getTask": {
     "usage": "const response = client.tasks.getTask(123, 123)",
@@ -16,7 +15,6 @@
     ]
   },
   "TaskOperations_deleteComment": {
-    "usage": "client.tasks.deleteComment(123, 123, 123)",
-    "output": null
+    "usage": "client.tasks.deleteComment(123, 123, 123)"
   }
 }

@@ -853,14 +853,16 @@ function swiftGenerateExamples(ir: IR): string {
 
   result['Client_Init'] = {
     usage: 'import PachcaSDK\n\nlet client = PachcaClient(token: "YOUR_TOKEN")',
-    output: null,
   };
 
   for (const svc of ir.services) {
     const serviceProp = tagToProperty(svc.tag);
     for (const op of svc.operations) {
       const ex = swiftBuildOperationExample(op, ir, models, serviceProp);
-      result[op.operationId] = ex.imports.length > 0 ? ex : { usage: ex.usage, output: ex.output };
+      const entry: Record<string, unknown> = { usage: ex.usage };
+      if (ex.output) entry.output = ex.output;
+      if (ex.imports.length > 0) entry.imports = ex.imports;
+      result[op.operationId] = entry;
     }
   }
 

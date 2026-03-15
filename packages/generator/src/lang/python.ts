@@ -1061,14 +1061,16 @@ function generateExamples(ir: IR): string {
 
   result['Client_Init'] = {
     usage: 'from pachca import PachcaClient\n\nclient = PachcaClient("YOUR_TOKEN")',
-    output: null,
   };
 
   for (const svc of ir.services) {
     const serviceProp = pyServiceProp(svc.tag);
     for (const op of svc.operations) {
       const ex = pyBuildOperationExample(op, ir, models, serviceProp);
-      result[op.operationId] = ex.imports.length > 0 ? ex : { usage: ex.usage, output: ex.output };
+      const entry: Record<string, unknown> = { usage: ex.usage };
+      if (ex.output) entry.output = ex.output;
+      if (ex.imports.length > 0) entry.imports = ex.imports;
+      result[op.operationId] = entry;
     }
   }
 

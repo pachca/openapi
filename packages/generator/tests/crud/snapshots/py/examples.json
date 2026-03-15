@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")"
   },
   "ChatOperations_listChats": {
     "usage": "params = ListChatsParams(\n    availability=ChatAvailability.IS_MEMBER,\n    limit=123,\n    cursor=\"example\",\n    sort_field=\"example\",\n    sort_order=SortOrder.ASC\n)\nresponse = await client.chats.list_chats(params=params)",
@@ -33,11 +32,9 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "await client.chats.archive_chat(id=123)",
-    "output": null
+    "usage": "await client.chats.archive_chat(id=123)"
   },
   "ChatOperations_deleteChat": {
-    "usage": "await client.chats.delete_chat(id=123)",
-    "output": null
+    "usage": "await client.chats.delete_chat(id=123)"
   }
 }

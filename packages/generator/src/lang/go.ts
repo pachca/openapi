@@ -1008,14 +1008,16 @@ function generateExamples(ir: IR): string {
 
   result['Client_Init'] = {
     usage: 'import pachca "github.com/pachca/openapi/sdk/go/generated"\n\nclient := pachca.NewPachcaClient("YOUR_TOKEN")',
-    output: null,
   };
 
   for (const svc of ir.services) {
     const serviceField = goServiceField(svc.tag);
     for (const op of svc.operations) {
       const ex = goBuildOperationExample(op, ir, models, serviceField);
-      result[op.operationId] = ex.imports.length > 0 ? ex : { usage: ex.usage, output: ex.output };
+      const entry: Record<string, unknown> = { usage: ex.usage };
+      if (ex.output) entry.output = ex.output;
+      if (ex.imports.length > 0) entry.imports = ex.imports;
+      result[op.operationId] = entry;
     }
   }
 

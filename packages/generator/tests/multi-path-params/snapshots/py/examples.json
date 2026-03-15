@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")"
   },
   "TaskOperations_getTask": {
     "usage": "response = await client.tasks.get_task(project_id=123, task_id=123)",
@@ -16,7 +15,6 @@
     ]
   },
   "TaskOperations_deleteComment": {
-    "usage": "await client.tasks.delete_comment(project_id=123, task_id=123, comment_id=123)",
-    "output": null
+    "usage": "await client.tasks.delete_comment(project_id=123, task_id=123, comment_id=123)"
   }
 }

@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
   },
   "SearchOperations_searchMessages": {
     "usage": "val chatIds = listOf(123)\nval userIds = listOf(123)\nval response = client.search.searchMessages(query = \"example\", chatIds = chatIds, userIds = userIds, createdFrom = \"2024-01-01T00:00:00Z\", createdTo = \"2024-01-01T00:00:00Z\", sort = SearchSort.RELEVANCE, limit = 123, cursor = \"example\")",

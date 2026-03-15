@@ -1,11 +1,9 @@
 {
   "Client_Init": {
-    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")"
   },
   "MemberOperations_addMembers": {
-    "usage": "member_ids = [123]\nawait client.members.add_members(id=123, member_ids=member_ids)",
-    "output": null
+    "usage": "member_ids = [123]\nawait client.members.add_members(id=123, member_ids=member_ids)"
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
@@ -16,7 +14,6 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "await client.chats.archive_chat(id=123)",
-    "output": null
+    "usage": "await client.chats.archive_chat(id=123)"
   }
 }

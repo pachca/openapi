@@ -1,6 +1,5 @@
 {
   "Client_Init": {
-    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
   }
 }

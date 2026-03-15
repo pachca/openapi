@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
   },
   "TaskOperations_getTask": {
     "usage": "response, err := client.Tasks.GetTask(ctx, int32(123), int32(123))",
@@ -16,7 +15,6 @@
     ]
   },
   "TaskOperations_deleteComment": {
-    "usage": "client.Tasks.DeleteComment(ctx, int32(123), int32(123), int32(123))",
-    "output": null
+    "usage": "client.Tasks.DeleteComment(ctx, int32(123), int32(123), int32(123))"
   }
 }

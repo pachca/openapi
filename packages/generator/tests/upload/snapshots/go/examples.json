@@ -1,11 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
   },
   "DirectUploadOperations_uploadFile": {
     "usage": "request := FileUploadRequest{\n\tContentDisposition: \"example\",\n\tACL: \"example\",\n\tPolicy: \"example\",\n\tXAMZCredential: \"example\",\n\tXAMZAlgorithm: \"example\",\n\tXAMZDate: \"example\",\n\tXAMZSignature: \"example\",\n\tKey: \"example\",\n\tFile: bytes.NewReader(nil),\n}\nclient.Common.UploadFile(ctx, \"https://example.com\", request)",
-    "output": null,
     "imports": [
       "FileUploadRequest"
     ]

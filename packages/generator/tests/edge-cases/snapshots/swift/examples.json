@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
   },
   "listEvents": {
     "usage": "let scopes = [.chatsRead]\nlet filter = EventFilter()\nlet response = try await client.events.listEvents(isActive: true, scopes: scopes, filter: filter)",
@@ -20,7 +19,6 @@
   },
   "createUpload": {
     "usage": "let body = UploadRequest(file: Data(), ContentDisposition: \"example\")\ntry await client.uploads.createUpload(body: body)",
-    "output": null,
     "imports": [
       "UploadRequest"
     ]

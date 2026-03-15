@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")"
   },
   "listEvents": {
     "usage": "params = ListEventsParams(\n    is_active=True,\n    scopes=[OAuthScope.CHATS_READ],\n    filter=EventFilter()\n)\nresponse = await client.events.list_events(params=params)",
@@ -21,7 +20,6 @@
   },
   "createUpload": {
     "usage": "request = UploadRequest(file=b\"\", content_disposition=\"example\")\nawait client.uploads.create_upload(request=request)",
-    "output": null,
     "imports": [
       "UploadRequest"
     ]

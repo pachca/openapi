@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
   },
   "ChatOperations_listChats": {
     "usage": "let response = try await client.chats.listChats(availability: .isMember, limit: 123, cursor: \"example\", sortField: \"example\", sortOrder: .asc)",
@@ -32,11 +31,9 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "try await client.chats.archiveChat(id: 123)",
-    "output": null
+    "usage": "try await client.chats.archiveChat(id: 123)"
   },
   "ChatOperations_deleteChat": {
-    "usage": "try await client.chats.deleteChat(id: 123)",
-    "output": null
+    "usage": "try await client.chats.deleteChat(id: 123)"
   }
 }

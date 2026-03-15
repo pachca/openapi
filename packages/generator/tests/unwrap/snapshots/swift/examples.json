@@ -1,11 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
   },
   "MemberOperations_addMembers": {
-    "usage": "let memberIds = [123]\ntry await client.members.addMembers(id: 123, memberIds: memberIds)",
-    "output": null
+    "usage": "let memberIds = [123]\ntry await client.members.addMembers(id: 123, memberIds: memberIds)"
   },
   "ChatOperations_createChat": {
     "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
@@ -16,7 +14,6 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "try await client.chats.archiveChat(id: 123)",
-    "output": null
+    "usage": "try await client.chats.archiveChat(id: 123)"
   }
 }

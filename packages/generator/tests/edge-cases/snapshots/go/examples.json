@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
   },
   "listEvents": {
     "usage": "params := &ListEventsParams{\n\tIsActive: Ptr(true),\n\tScopes: []OAuthScope{OAuthScopeChatsRead},\n\tFilter: Ptr(EventFilter{}),\n}\nresponse, err := client.Events.ListEvents(ctx, params)",
@@ -21,7 +20,6 @@
   },
   "createUpload": {
     "usage": "request := UploadRequest{\n\tFile: bytes.NewReader(nil),\n\tContentDisposition: \"example\",\n}\nclient.Uploads.CreateUpload(ctx, request)",
-    "output": null,
     "imports": [
       "UploadRequest"
     ]

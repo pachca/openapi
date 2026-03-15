@@ -1,7 +1,6 @@
 {
   "Client_Init": {
-    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
-    "output": null
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
   },
   "ChatOperations_listChats": {
     "usage": "params := &ListChatsParams{\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n\tSortField: Ptr(\"example\"),\n\tSortOrder: Ptr(SortOrderAsc),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
@@ -33,11 +32,9 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.Chats.ArchiveChat(ctx, int32(123))",
-    "output": null
+    "usage": "client.Chats.ArchiveChat(ctx, int32(123))"
   },
   "ChatOperations_deleteChat": {
-    "usage": "client.Chats.DeleteChat(ctx, int32(123))",
-    "output": null
+    "usage": "client.Chats.DeleteChat(ctx, int32(123))"
   }
 }

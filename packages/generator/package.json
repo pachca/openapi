@@ -9,9 +9,6 @@
   "exports": {
     ".": {
       "import": "./dist/src/index.js"
-    },
-    "./naming": {
-      "import": "./dist/src/naming.js"
     }
   },
   "files": ["dist"],
@@ -19,7 +16,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun build src/index.ts src/naming.ts bin/generator.ts --outdir dist --target node --format esm --splitting",
+    "build": "bun build src/index.ts bin/generator.ts --outdir dist --target node --format esm --splitting",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

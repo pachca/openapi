@@ -71,6 +71,8 @@ export interface Endpoint {
   responses: Record<string, Response>;
   security?: Record<string, string[]>[];
   requirements?: { scope?: string; plan?: string; auth?: boolean };
+  paginated?: boolean;
+  externalUrl?: string;
 }
 
 // ----- Spec Path -----
@@ -215,6 +217,10 @@ export function parseOpenAPI(): Endpoint[] {
         };
       }
 
+      // Parse x-paginated and x-external-url
+      const paginated = op['x-paginated'] === true ? true : undefined;
+      const externalUrl = typeof op['x-external-url'] === 'string' ? (op['x-external-url'] as string) : undefined;
+
       endpoints.push({
         id: (op.operationId as string) || `${method}_${pathStr}`,
         method: method.toUpperCase() as Endpoint['method'],
@@ -227,6 +233,8 @@ export function parseOpenAPI(): Endpoint[] {
         responses,
         security: op.security as Endpoint['security'],
         requirements,
+        paginated,
+        externalUrl,
       });
     }
   }

@@ -193,41 +193,25 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       relatedEn: ['Get attachments from message', 'Update message attachments'],
       steps: [
         {
-          description: 'Для каждого файла: получи параметры загрузки',
-          descriptionEn: 'For each file: get upload parameters',
-          command: 'pachca common uploads',
-          apiMethod: 'POST',
-          apiPath: '/uploads',
-          notes: 'Получишь `key` (с `${filename}`), `direct_url`, `policy`, подпись',
-          notesEn: 'Returns `key` (with `${filename}`), `direct_url`, `policy`, signature',
-        },
-        {
-          description:
-            'Для каждого файла: подставь имя файла вместо `${filename}` в `key`, затем загрузи файл POST на `direct_url`',
-          descriptionEn:
-            'For each file: replace `${filename}` in `key` with actual filename, then upload file via POST to `direct_url`',
-          notes: 'multipart/form-data, без авторизации — загрузка на S3',
-          notesEn: 'multipart/form-data, no auth — upload to S3',
-        },
-        {
-          description:
-            'Собери массив `files` из всех загруженных файлов (`key`, `name`, `file_type`, `size`)',
-          descriptionEn:
-            'Build `files` array from all uploaded files (`key`, `name`, `file_type`, `size`)',
+          description: 'Загрузи каждый файл — команда вернёт `key`',
+          descriptionEn: 'Upload each file — command returns `key`',
+          command: 'pachca upload report.pdf',
+          notes: 'Команда автоматически получает подпись и загружает файл на S3',
+          notesEn: 'Command automatically gets signature and uploads file to S3',
         },
         {
           description: 'Отправь сообщение со всеми файлами',
           descriptionEn: 'Send message with all files',
           command:
-            'pachca messages create --entity-id=<chat_id> --content="Смотри файл" --files=\'[{"key":"...","name":"report.pdf","file_type":"file","size":12345}]\'',
+            'pachca messages create --entity-id=<chat_id> --content="Смотри файл" --files=\'[{"key":"attaches/files/.../report.pdf","name":"report.pdf","file_type":"file","size":12345}]\'',
           apiMethod: 'POST',
           apiPath: '/messages',
         },
       ],
       notes:
-        'Файлы не передаются inline. Загрузка двухшаговая: сначала POST /uploads (параметры), затем POST на `direct_url` (сам файл на S3). Шаги 1-2 повторяются для каждого файла отдельно, а сообщение отправляется один раз со всеми файлами.',
+        '`pachca upload` автоматически получает подпись (POST /uploads), подставляет имя файла в `key` и загружает на S3. Возвращает готовый `key` для использования в `files`.',
       notesEn:
-        'Files are not sent inline. Upload is two-step: first POST /uploads (parameters), then POST to `direct_url` (file to S3). Steps 1-2 repeat for each file, message is sent once with all files.',
+        '`pachca upload` automatically gets signature (POST /uploads), substitutes filename in `key`, and uploads to S3. Returns ready-to-use `key` for `files`.',
     },
     {
       title: 'Отправить сообщение с кнопками',

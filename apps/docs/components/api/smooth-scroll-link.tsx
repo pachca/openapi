@@ -6,6 +6,7 @@ import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { toSlug } from '@/lib/utils/transliterate';
+import { getScrollOffset } from '@/lib/utils/scroll-offset';
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -22,7 +23,8 @@ export function SmoothScrollLink({ href, children }: SmoothScrollLinkProps) {
     const target = document.getElementById(targetId);
 
     if (target) {
-      const targetScrollTop = target.getBoundingClientRect().top + window.scrollY - 80;
+      const targetScrollTop =
+        target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
       gsap.to(window, {
         duration: 0.4,
         scrollTo: { y: targetScrollTop },
@@ -77,12 +79,25 @@ export function InternalLink({
     );
   }
 
-  // Anchor links - transliterate Cyrillic anchors
+  // Anchor links - scroll to target element
   if (isAnchor && href) {
-    const anchor = href.slice(1);
-    const transliteratedHref = `#${toSlug(decodeURIComponent(anchor))}`;
+    const targetId = toSlug(decodeURIComponent(href.slice(1)));
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      const target = document.getElementById(targetId);
+      if (target) {
+        const targetScrollTop =
+          target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+        gsap.to(window, {
+          duration: 0.4,
+          scrollTo: { y: targetScrollTop },
+          ease: 'power2.out',
+        });
+        window.history.pushState(null, '', `#${targetId}`);
+      }
+    };
     return (
-      <a href={transliteratedHref} className={className}>
+      <a href={`#${targetId}`} onClick={handleClick} className={className}>
         {children}
       </a>
     );

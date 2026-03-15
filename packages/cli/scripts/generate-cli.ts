@@ -61,9 +61,9 @@ function generateCommand(endpoint: Endpoint, examples?: string[]): GeneratedComm
   // Determine body fields (from requestBody)
   const bodyFields = extractBodyFields(endpoint.requestBody);
 
-  // Determine if this is a list command with pagination
-  const isList = action.startsWith('list') || action === 'list';
-  const hasPagination = isList && queryParams.some((p) => p.name === 'limit');
+  // Determine if this endpoint supports pagination (from x-paginated)
+  const hasPagination = !!endpoint.paginated;
+  const isList = hasPagination;
 
   // Determine if this is a redirect command
   const isRedirect = !!endpoint.responses['302'];
@@ -398,6 +398,15 @@ function generateCommandCode(p: CommandGenParams): string {
     }),`);
   }
 
+  // Add external URL flag for endpoints that send requests to a dynamic URL
+  if (p.endpoint.externalUrl) {
+    const externalFlagName = toKebabCase(p.endpoint.externalUrl);
+    queryFlagLines.push(`    '${externalFlagName}': Flags.string({
+      description: 'URL для отправки запроса (получается из ответа POST /uploads)',
+      required: true,
+    }),`);
+  }
+
   // Build flags for body fields
   const bodyFlagLines: string[] = [];
   for (const field of p.bodyFields) {
@@ -552,7 +561,11 @@ function generateCommandCode(p: CommandGenParams): string {
 
   // Build request path with path params
   let apiPath = `'${p.endpoint.path}'`;
-  if (p.pathParams.length > 0) {
+  if (p.endpoint.externalUrl) {
+    // External URL endpoints use a dynamic URL from a flag instead of base URL + path
+    const externalFlagName = toKebabCase(p.endpoint.externalUrl);
+    apiPath = `flags['${externalFlagName}']!`;
+  } else if (p.pathParams.length > 0) {
     apiPath = '`' + p.endpoint.path.replace(/\{(\w+)\}/g, '${args.$1}') + '`';
   }
 
@@ -688,6 +701,9 @@ function generateCommandCode(p: CommandGenParams): string {
       runBodyLines.push(`      },`);
     }
     runBodyLines.push(`      formData,`);
+    if (p.endpoint.externalUrl) {
+      runBodyLines.push(`      noAuth: true,`);
+    }
     runBodyLines.push(`    });`);
   } else if (wrapperEntries.length > 0 || siblingEntries.length > 0) {
     let bodyObj: string;

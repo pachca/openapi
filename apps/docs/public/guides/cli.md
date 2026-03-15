@@ -14,7 +14,7 @@ npm install -g @pachca/cli
 pachca --version
 
 # Или без установки
-npx @pachca/cli users list
+npx @pachca/cli users list --token YOUR_ACCESS_TOKEN
 ```
 
 ## Быстрый старт

@@ -123,7 +123,8 @@ const components = {
     return (
       <h2
         id={generatedId}
-        className="group/heading relative text-2xl font-bold text-text-primary mt-12 mb-6 scroll-mt-20"
+        className="group/heading relative text-2xl font-bold text-text-primary mt-12 mb-6"
+        style={{ scrollMarginTop: 'var(--scroll-offset)' }}
       >
         <HeadingLink id={generatedId} />
         {children}
@@ -135,7 +136,8 @@ const components = {
     return (
       <h3
         id={generatedId}
-        className="group/heading relative text-xl font-bold text-text-primary mt-8 mb-4 scroll-mt-20"
+        className="group/heading relative text-xl font-bold text-text-primary mt-8 mb-4"
+        style={{ scrollMarginTop: 'var(--scroll-offset)' }}
       >
         <HeadingLink id={generatedId} />
         {children}

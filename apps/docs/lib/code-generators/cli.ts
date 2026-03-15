@@ -33,6 +33,7 @@ export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): strin
   // Query parameters as flags
   const queryParams = getQueryParams(endpoint);
   for (const p of queryParams) {
+    if (endpoint.paginated && p.name === 'cursor') continue;
     const schemaType = p.schema?.type;
     // Expand composite params (e.g., sort[{field}]) into separate flags
     if (p['x-param-names'] && p['x-param-names'].length > 0) {
@@ -47,11 +48,17 @@ export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): strin
     }
   }
 
+  // External URL flag (e.g. --direct-url for POST /direct_url)
+  if (endpoint.externalUrl) {
+    const externalFlag = toKebabCase(endpoint.externalUrl);
+    parts.unshift(`--${externalFlag}=$DIRECT_URL`);
+  }
+
   // Add --json for consistent JSON output
   parts.push('--json');
 
-  // Add --token if auth required
-  if (requiresAuth(endpoint)) {
+  // Add --token if auth required (skip for external URL endpoints)
+  if (requiresAuth(endpoint) && !endpoint.externalUrl) {
     parts.push('--token YOUR_ACCESS_TOKEN');
   }
 
@@ -63,6 +70,16 @@ export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): strin
     command += ' \\\n  ' + parts.join(' \\\n  ');
   }
 
+  const lines: string[] = [];
+  if (endpoint.externalUrl) {
+    lines.push('# URL получается из ответа POST /uploads (поле direct_url)');
+  }
+  if (endpoint.paginated) {
+    lines.push('# Добавьте --all для автоматической пагинации');
+  }
+  if (lines.length > 0) {
+    return lines.join('\n') + '\n' + command;
+  }
   return command;
 }
 

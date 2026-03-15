@@ -55,6 +55,7 @@
   --boxed-header-height: 40px;
   --mobile-header-height: 56px;
   --mobile-nav-height: 0px;
+  --scroll-offset: calc(var(--mobile-header-height) + var(--mobile-nav-height) + 24px);
 
   /* Font Families — sans is set by next/font on <html>, mono is for code blocks */
   --font-mono:

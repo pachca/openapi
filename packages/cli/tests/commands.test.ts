@@ -259,13 +259,14 @@ describe('generated commands — functional tests', () => {
   // ----- Multipart (common direct-url) -----
 
   describe('common direct-url', () => {
-    it('--file → FormData with wire name Content-Disposition', async () => {
-      mockFetchForEndpoint('/direct_url', 'POST');
+    it('--file + --direct-url → FormData sent to external URL', async () => {
+      mockFetch({ status: 204, data: null });
       const tmpFile = path.join(tmpDir, 'test.png');
       fs.writeFileSync(tmpFile, 'fake-png-data');
 
       await runCommand([
         'common', 'direct-url',
+        '--direct-url', 'https://s3.example.com/upload',
         '--content-disposition', 'inline',
         '--acl', 'public-read',
         '--policy', 'abc',
@@ -278,7 +279,8 @@ describe('generated commands — functional tests', () => {
       ], { root: CLI_ROOT });
 
       expect(fetchCalls().length).toBeGreaterThan(0);
-      const [, opts] = fetchCalls()[0];
+      const [url, opts] = fetchCalls()[0];
+      expect(String(url)).toContain('https://s3.example.com/upload');
       expect(opts.method).toBe('POST');
       expect(opts.body).toBeInstanceOf(FormData);
       const fd = opts.body as FormData;

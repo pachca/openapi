@@ -712,7 +712,10 @@ export function transform(spec: ParsedAPI): IR {
     if (paramsType) params.push(paramsType);
 
     const responseType = generateResponseType(op, endpoint);
-    if (responseType) responses.push(responseType);
+    if (responseType) {
+      responses.push(responseType);
+      op.successResponse.responseRef = responseType.name;
+    }
   }
 
   // Sort operations within each service by HTTP method priority

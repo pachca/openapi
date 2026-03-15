@@ -871,14 +871,18 @@ function tsModelLiteral(
   visited: Set<string>,
   indent: number = 0,
 ): string {
-  if (visited.has(modelName)) return '{ /* circular */ }';
+  if (visited.has(modelName)) return '{}';
   const model = models.get(modelName);
   if (!model || model.fields.length === 0) return '{}';
 
   const nextVisited = new Set(visited);
   nextVisited.add(modelName);
 
-  const fields = model.fields.filter((f) => f.type.kind !== 'binary' || f.required);
+  const isCyclic = (f: IRField) =>
+    f.type.kind === 'model' && f.type.ref != null && nextVisited.has(f.type.ref);
+  const fields = model.fields.filter(
+    (f) => (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
+  );
   if (fields.length === 0) return '{}';
 
   const multiLine = fields.length > 2;
@@ -940,8 +944,9 @@ function tsModelFingerprint(
   const fields = model.fields.map((f) => {
     const name = fieldSdkName(f);
     const type = tsFingerprint(f.type, ir, models, nextVisited);
-    const opt = (!f.required || f.nullable) ? '?' : '';
-    return `${name}${opt}: ${type}`;
+    const opt = !f.required ? '?' : '';
+    const nul = f.nullable ? ' | null' : '';
+    return `${name}${opt}: ${type}${nul}`;
   });
 
   return `${model.name}({ ${fields.join(', ')} })`;
@@ -956,10 +961,8 @@ function tsBuildOutputFingerprint(
   if (resp.isRedirect) return 'string';
   if (!resp.hasBody) return null;
 
-  if (resp.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+  if (resp.isList && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
     if (rt) {
       const parts: string[] = [];
       parts.push(`data: ${rt.dataRef}[]`);

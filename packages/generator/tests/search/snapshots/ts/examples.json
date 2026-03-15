@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "SearchOperations_searchMessages": {
     "usage": "client.search.searchMessages({\n  query: \"example\",\n  chatIds: [123],\n  userIds: [123],\n  createdFrom: \"2024-01-01T00:00:00Z\",\n  createdTo: \"2024-01-01T00:00:00Z\",\n  sort: SearchSort.Relevance,\n  limit: 123,\n  cursor: \"example\"\n})",
     "output": "SearchMessagesResponse({ data: MessageSearchResult[], meta: SearchPaginationMeta })",

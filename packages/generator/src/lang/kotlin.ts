@@ -1046,7 +1046,12 @@ function buildOperationExample(
 
 function generateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
-  const result: Record<string, { usage: string; output: string | null; imports: string[] }> = {};
+  const result: Record<string, object> = {};
+
+  result['Client_Init'] = {
+    usage: 'import com.pachca.PachcaClient\n\nval client = PachcaClient("YOUR_TOKEN")',
+    output: null,
+  };
 
   for (const svc of ir.services) {
     const serviceProp = tagToProperty(svc.tag);

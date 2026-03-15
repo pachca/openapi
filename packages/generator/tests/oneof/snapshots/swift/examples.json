@@ -1,1 +1,6 @@
-{}
+{
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "output": null
+  }
+}

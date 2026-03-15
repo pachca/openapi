@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "listEvents": {
     "usage": "client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
     "output": "ListEventsResponse({ data: Event[] })",

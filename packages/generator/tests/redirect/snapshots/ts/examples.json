@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "ExportOperations_downloadExport": {
     "usage": "client.common.downloadExport(123)",
     "output": "string"

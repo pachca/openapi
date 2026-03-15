@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "output": null
+  },
   "MemberOperations_addMembers": {
     "usage": "let memberIds = [123]\ntry await client.members.addMembers(id: 123, memberIds: memberIds)",
     "output": null

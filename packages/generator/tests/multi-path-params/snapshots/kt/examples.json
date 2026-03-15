@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "TaskOperations_getTask": {
     "usage": "client.tasks.getTask(projectId = 123, taskId = 123)",
     "output": "Task(id: Int, title: String, isDone: Boolean?)"

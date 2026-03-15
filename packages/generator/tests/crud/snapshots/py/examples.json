@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "ChatOperations_listChats": {
     "usage": "params = ListChatsParams(\n    availability=ChatAvailability.IS_MEMBER,\n    limit=123,\n    cursor=\"example\",\n    sort_field=\"example\",\n    sort_order=SortOrder.ASC\n)\nawait client.chats.list_chats(params=params)",
     "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)",

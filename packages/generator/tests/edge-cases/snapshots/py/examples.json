@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "listEvents": {
     "usage": "params = ListEventsParams(\n    is_active=True,\n    scopes=[OAuthScope.CHATS_READ],\n    filter=EventFilter()\n)\nawait client.events.list_events(params=params)",
     "output": "ListEventsResponse(data: list[Event])",

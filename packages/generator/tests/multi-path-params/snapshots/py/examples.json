@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "TaskOperations_getTask": {
     "usage": "await client.tasks.get_task(project_id=123, task_id=123)",
     "output": "Task(id: int, title: str, is_done: bool | None)"

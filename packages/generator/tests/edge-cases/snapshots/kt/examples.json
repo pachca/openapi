@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "listEvents": {
     "usage": "val scopes = listOf(OAuthScope.CHATS_READ)\nval filter = EventFilter()\nclient.events.listEvents(isActive = true, scopes = scopes, filter = filter)",
     "output": "ListEventsResponse(data: List<Event>)",

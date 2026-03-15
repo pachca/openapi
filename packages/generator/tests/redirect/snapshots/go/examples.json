@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "ExportOperations_downloadExport": {
     "usage": "client.Common.DownloadExport(ctx, int32(123))",
     "output": "string"

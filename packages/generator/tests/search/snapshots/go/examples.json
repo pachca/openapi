@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "SearchOperations_searchMessages": {
     "usage": "params := SearchMessagesParams{\n\tQuery: \"example\",\n\tChatIDs: []int32{int32(123)},\n\tUserIDs: []int32{int32(123)},\n\tCreatedFrom: Ptr(\"2024-01-01T00:00:00Z\"),\n\tCreatedTo: Ptr(\"2024-01-01T00:00:00Z\"),\n\tSort: Ptr(SearchSortRelevance),\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n}\nclient.Search.SearchMessages(ctx, params)",
     "output": "SearchMessagesResponse{Data: []MessageSearchResult, Meta: SearchPaginationMeta}",

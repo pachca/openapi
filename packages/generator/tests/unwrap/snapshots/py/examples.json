@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "MemberOperations_addMembers": {
     "usage": "member_ids = [123]\nawait client.members.add_members(id=123, member_ids=member_ids)",
     "output": null

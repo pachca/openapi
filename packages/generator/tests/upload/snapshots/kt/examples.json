@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "DirectUploadOperations_uploadFile": {
     "usage": "val request = FileUploadRequest(\n    contentDisposition = \"example\",\n    acl = \"example\",\n    policy = \"example\",\n    xAmzCredential = \"example\",\n    xAmzAlgorithm = \"example\",\n    xAmzDate = \"example\",\n    xAmzSignature = \"example\",\n    key = \"example\",\n    file = ByteArray(0)\n)\nclient.common.uploadFile(directUrl = \"https://example.com\", request = request)",
     "output": null,

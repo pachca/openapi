@@ -849,7 +849,12 @@ function swiftBuildOperationExample(
 
 function swiftGenerateExamples(ir: IR): string {
   const models = buildModelIndex(ir);
-  const result: Record<string, { usage: string; output: string | null; imports: string[] }> = {};
+  const result: Record<string, object> = {};
+
+  result['Client_Init'] = {
+    usage: 'import PachcaSDK\n\nlet client = PachcaClient(token: "YOUR_TOKEN")',
+    output: null,
+  };
 
   for (const svc of ir.services) {
     const serviceProp = tagToProperty(svc.tag);

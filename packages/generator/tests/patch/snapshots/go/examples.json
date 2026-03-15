@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "ItemOperations_patchItem": {
     "usage": "request := ItemPatchRequest{\n\tItem: ItemPatchRequestItem{\n\t\tName: Ptr(\"example\"),\n\t\tDescription: Ptr(\"example\"),\n\t\tPriority: Ptr(int32(123)),\n\t},\n}\nclient.Items.PatchItem(ctx, int32(123), request)",
     "output": "Item{ID: int32, Name: string, Description: *string, Priority: *int32}",

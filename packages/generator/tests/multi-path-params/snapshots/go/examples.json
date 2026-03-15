@@ -1,4 +1,8 @@
 {
+  "Client_Init": {
+    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "output": null
+  },
   "TaskOperations_getTask": {
     "usage": "client.Tasks.GetTask(ctx, int32(123), int32(123))",
     "output": "Task{ID: int32, Title: string, IsDone: *bool}"

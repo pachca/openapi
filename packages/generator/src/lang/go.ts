@@ -10,7 +10,7 @@ import {
   type IRUnion,
   type IRResponseType,
 } from '../ir.js';
-import type { GeneratedFile, LanguageGenerator } from './types.js';
+import type { GeneratedFile, GenerateOptions, LanguageGenerator } from './types.js';
 import { snakeToCamel, snakeToPascal, tagToServiceName } from '../naming.js';
 
 function upperFirst(s: string): string {
@@ -757,14 +757,282 @@ function generateUtils(): string {
   ].join('\n');
 }
 
+// ── Examples ──────────────────────────────────────────────────────────
+
+function buildModelIndex(ir: IR): Map<string, IRModel> {
+  const index = new Map<string, IRModel>();
+  for (const m of ir.models) {
+    index.set(m.name, m);
+    for (const inl of m.inlineObjects) {
+      index.set(inl.name, inl);
+    }
+  }
+  return index;
+}
+
+function goLiteral(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+  indent: number = 0,
+): string {
+  switch (ft.kind) {
+    case 'primitive': {
+      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'int64(1)' : 'int32(1)';
+      if (ft.primitive === 'number') return '1.5';
+      if (ft.primitive === 'boolean') return 'true';
+      if (ft.primitive === 'any') return 'map[string]any{}';
+      if (ft.primitive === 'string') {
+        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date') return '"2024-01-01"';
+      }
+      return '"example"';
+    }
+    case 'enum': {
+      const e = ir.enums.find((en) => en.name === ft.ref);
+      if (e && e.members.length > 0) {
+        return `${e.name}${goExportName(e.members[0].value)}`;
+      }
+      return `${ft.ref ?? 'any'}`;
+    }
+    case 'model':
+      return goModelLiteral(ft.ref ?? 'any', ir, models, visited, indent);
+    case 'array':
+      return `[]${goType(ft.items!)}{${goLiteral(ft.items!, ir, models, visited, indent)}}`;
+    case 'record':
+      return `map[string]${goType(ft.valueType!)}{"key": ${goLiteral(ft.valueType!, ir, models, visited, indent)}}`;
+    case 'union': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return goModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
+      return `${ft.ref ?? 'any'}{}`;
+    }
+    case 'literal':
+      return `"${ft.literalValue}"`;
+    case 'binary':
+      return 'bytes.NewReader(nil)';
+  }
+}
+
+function goModelLiteral(
+  modelName: string,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+  indent: number = 0,
+): string {
+  if (visited.has(modelName)) return `${modelName}{}`;
+  const model = models.get(modelName);
+  if (!model || model.fields.length === 0) return `${modelName}{}`;
+
+  const nextVisited = new Set(visited);
+  nextVisited.add(modelName);
+
+  const fields = model.fields.filter((f) => f.type.kind !== 'binary' || f.required);
+  if (fields.length === 0) return `${modelName}{}`;
+
+  const childIndent = indent + 1;
+  const pad = '\t'.repeat(childIndent);
+  const closePad = '\t'.repeat(indent);
+
+  const entries = fields.map((f) => {
+    const name = goExportName(f.name);
+    const opt = isOptionalField(f) &&
+      (f.type.kind === 'primitive' || f.type.kind === 'model' || f.type.kind === 'enum' || f.type.kind === 'union');
+    const value = goLiteral(f.type, ir, models, nextVisited, childIndent);
+    if (opt) {
+      return `${name}: Ptr(${value})`;
+    }
+    return `${name}: ${value}`;
+  });
+
+  return `${modelName}{\n${entries.map((e) => `${pad}${e},`).join('\n')}\n${closePad}}`;
+}
+
+function goFingerprint(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+): string {
+  switch (ft.kind) {
+    case 'primitive':
+      return goType(ft);
+    case 'enum':
+      return ft.ref ?? 'any';
+    case 'model': {
+      const model = models.get(ft.ref!);
+      if (!model || visited.has(ft.ref!)) return ft.ref ?? 'any';
+      return goModelFp(model, ir, models, visited);
+    }
+    case 'array':
+      return `[]${goFingerprint(ft.items!, ir, models, visited)}`;
+    case 'record':
+      return `map[string]${goFingerprint(ft.valueType!, ir, models, visited)}`;
+    case 'union':
+      return ft.ref ?? 'any';
+    case 'literal':
+      return 'string';
+    case 'binary':
+      return 'io.Reader';
+  }
+}
+
+function goModelFp(
+  model: IRModel,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+): string {
+  const nextVisited = new Set(visited);
+  nextVisited.add(model.name);
+
+  const fields = model.fields.map((f) => {
+    const name = goExportName(f.name);
+    const type = goFingerprint(f.type, ir, models, nextVisited);
+    const opt = isOptionalField(f) ? '*' : '';
+    return `${name}: ${opt}${type}`;
+  });
+
+  return `${model.name}{${fields.join(', ')}}`;
+}
+
+function goBuildOutputFingerprint(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+): string | null {
+  const resp = op.successResponse;
+  if (resp.isRedirect) return 'string';
+  if (!resp.hasBody) return null;
+
+  if (resp.isList) {
+    const rt = ir.responses.find(
+      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
+    );
+    if (rt) {
+      const parts: string[] = [];
+      parts.push(`Data: []${rt.dataRef}`);
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '*';
+        parts.push(`Meta: ${opt}${rt.metaRef}`);
+      }
+      return `${rt.name}{${parts.join(', ')}}`;
+    }
+  }
+
+  if (resp.dataRef) {
+    const model = models.get(resp.dataRef);
+    if (model) return goModelFp(model, ir, models, new Set());
+    return resp.dataRef;
+  }
+
+  return 'any';
+}
+
+function goBuildOperationExample(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+  serviceField: string,
+): { usage: string; output: string | null } {
+  const params: { name: string; value: string; isNamed: boolean }[] = [];
+
+  // ctx is always first
+  params.push({ name: 'ctx', value: 'ctx', isNamed: false });
+
+  if (op.externalUrl) {
+    params.push({ name: op.externalUrl, value: '"https://example.com"', isNamed: false });
+  }
+
+  for (const p of op.pathParams) {
+    params.push({ name: snakeToCamel(p.sdkName), value: goLiteral(p.type, ir, models), isNamed: false });
+  }
+
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb) && rb.unwrapField) {
+      const sdkName = snakeToCamel(rb.unwrapField.name);
+      params.push({ name: sdkName, value: goLiteral(rb.unwrapField.type, ir, models), isNamed: false });
+    } else if (rb.schemaRef) {
+      params.push({ name: 'request', value: goLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models), isNamed: false });
+    }
+  }
+
+  if (op.queryParams.length > 0) {
+    const pName = `${upperFirst(op.methodName)}Params`;
+    const hasReq = op.queryParams.some((p) => p.required);
+
+    const qEntries = op.queryParams.map((p) => {
+      const name = goExportName(p.sdkName);
+      const opt = !p.required && (p.type.kind !== 'array' && p.type.kind !== 'record');
+      const value = goLiteral(p.type, ir, models);
+      if (opt) {
+        return `${name}: Ptr(${value})`;
+      }
+      return `${name}: ${value}`;
+    });
+
+    const paramsLiteral = `${hasReq ? '' : '&'}${pName}{\n${qEntries.map((e) => `\t${e},`).join('\n')}\n}`;
+    params.push({ name: 'params', value: paramsLiteral, isNamed: false });
+  }
+
+  const declarations: string[] = [];
+  const callArgs: string[] = [];
+
+  for (const { name, value } of params) {
+    if (name === 'ctx') {
+      callArgs.push('ctx');
+      continue;
+    }
+    if (value.includes('{') || value.includes('[')) {
+      declarations.push(`${name} := ${value}`);
+      callArgs.push(name);
+    } else {
+      callArgs.push(value);
+    }
+  }
+
+  const call = `client.${serviceField}.${goMethodName(op)}(${callArgs.join(', ')})`;
+  const usage = declarations.length > 0
+    ? [...declarations, call].join('\n')
+    : call;
+
+  const output = goBuildOutputFingerprint(op, ir, models);
+
+  return { usage, output };
+}
+
+function generateExamples(ir: IR): string {
+  const models = buildModelIndex(ir);
+  const result: Record<string, { usage: string; output: string | null }> = {};
+
+  for (const svc of ir.services) {
+    const serviceField = goServiceField(svc.tag);
+    for (const op of svc.operations) {
+      result[op.operationId] = goBuildOperationExample(op, ir, models, serviceField);
+    }
+  }
+
+  return JSON.stringify(result, null, 2) + '\n';
+}
+
+// ── Main ─────────────────────────────────────────────────────────────
+
 export class GoGenerator implements LanguageGenerator {
   readonly dirName = 'go';
 
-  generate(ir: IR): GeneratedFile[] {
-    return [
+  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+    const files: GeneratedFile[] = [
       { path: 'types.go', content: generateTypes(ir) },
       { path: 'client.go', content: generateClient(ir) },
       { path: 'utils.go', content: generateUtils() },
     ];
+    if (options?.examples) {
+      files.push({ path: 'examples.json', content: generateExamples(ir) });
+    }
+    return files;
   }
 }

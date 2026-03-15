@@ -1,0 +1,6 @@
+{
+  "ExportOperations_downloadExport": {
+    "usage": "client.Common.DownloadExport(ctx, int32(1))",
+    "output": "string"
+  }
+}

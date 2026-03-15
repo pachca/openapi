@@ -1,0 +1,6 @@
+{
+  "LinkPreviewOperations_createLinkPreviews": {
+    "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"example\",\n\t\tDescription: Ptr(\"example\"),\n\t\tImageURL: Ptr(\"example\"),\n\t}},\n}\nclient.LinkPreviews.CreateLinkPreviews(ctx, int32(1), request)",
+    "output": null
+  }
+}

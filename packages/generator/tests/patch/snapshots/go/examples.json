@@ -1,0 +1,6 @@
+{
+  "ItemOperations_patchItem": {
+    "usage": "request := ItemPatchRequest{\n\tItem: ItemPatchRequestItem{\n\t\tName: Ptr(\"example\"),\n\t\tDescription: Ptr(\"example\"),\n\t\tPriority: Ptr(int32(1)),\n\t},\n}\nclient.Items.PatchItem(ctx, int32(1), request)",
+    "output": "Item{ID: int32, Name: string, Description: *string, Priority: *int32}"
+  }
+}

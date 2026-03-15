@@ -1,0 +1,14 @@
+{
+  "listEvents": {
+    "usage": "params := &ListEventsParams{\n\tIsActive: Ptr(true),\n\tScopes: []OAuthScope{OAuthScopeChatsRead},\n\tFilter: Ptr(EventFilter{}),\n}\nclient.Events.ListEvents(ctx, params)",
+    "output": "ListEventsResponse{Data: []Event}"
+  },
+  "publishEvent": {
+    "usage": "client.Events.PublishEvent(ctx, int32(1), OAuthScopeChatsRead)",
+    "output": "Event{ID: int32, Type: EventType}"
+  },
+  "createUpload": {
+    "usage": "request := UploadRequest{\n\tFile: bytes.NewReader(nil),\n\tContentDisposition: \"example\",\n}\nclient.Uploads.CreateUpload(ctx, request)",
+    "output": null
+  }
+}

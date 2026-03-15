@@ -9,7 +9,7 @@
     ]
   },
   "publishEvent": {
-    "usage": "client.Events.PublishEvent(ctx, int32(1), OAuthScopeChatsRead)",
+    "usage": "client.Events.PublishEvent(ctx, int32(123), OAuthScopeChatsRead)",
     "output": "Event{ID: int32, Type: EventType}",
     "imports": [
       "OAuthScope"

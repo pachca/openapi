@@ -1,10 +1,10 @@
 {
   "MemberOperations_addMembers": {
-    "usage": "let memberIds = [1]\ntry await client.members.addMembers(id: 1, memberIds: memberIds)",
+    "usage": "let memberIds = [123]\ntry await client.members.addMembers(id: 123, memberIds: memberIds)",
     "output": null
   },
   "ChatOperations_createChat": {
-    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [1]\n    )\n)\ntry await client.chats.createChat(body: body)",
+    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [123]\n    )\n)\ntry await client.chats.createChat(body: body)",
     "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String)",
     "imports": [
       "ChatCreateRequest",
@@ -12,7 +12,7 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "try await client.chats.archiveChat(id: 1)",
+    "usage": "try await client.chats.archiveChat(id: 123)",
     "output": null
   }
 }

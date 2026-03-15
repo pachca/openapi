@@ -8,7 +8,7 @@
     ]
   },
   "publishEvent": {
-    "usage": "try await client.events.publishEvent(id: 1, scope: .chatsRead)",
+    "usage": "try await client.events.publishEvent(id: 123, scope: .chatsRead)",
     "output": "Event(id: Int, type: EventType)",
     "imports": [
       "OAuthScope"

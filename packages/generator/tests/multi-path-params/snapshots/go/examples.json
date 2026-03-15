@@ -1,10 +1,10 @@
 {
   "TaskOperations_getTask": {
-    "usage": "client.Tasks.GetTask(ctx, int32(1), int32(1))",
+    "usage": "client.Tasks.GetTask(ctx, int32(123), int32(123))",
     "output": "Task{ID: int32, Title: string, IsDone: *bool}"
   },
   "TaskOperations_updateTask": {
-    "usage": "request := TaskUpdateRequest{\n\tTask: TaskUpdateRequestTask{\n\t\tTitle: Ptr(\"example\"),\n\t\tIsDone: Ptr(true),\n\t},\n}\nclient.Tasks.UpdateTask(ctx, int32(1), int32(1), request)",
+    "usage": "request := TaskUpdateRequest{\n\tTask: TaskUpdateRequestTask{\n\t\tTitle: Ptr(\"example\"),\n\t\tIsDone: Ptr(true),\n\t},\n}\nclient.Tasks.UpdateTask(ctx, int32(123), int32(123), request)",
     "output": "Task{ID: int32, Title: string, IsDone: *bool}",
     "imports": [
       "TaskUpdateRequest",
@@ -12,7 +12,7 @@
     ]
   },
   "TaskOperations_deleteComment": {
-    "usage": "client.Tasks.DeleteComment(ctx, int32(1), int32(1), int32(1))",
+    "usage": "client.Tasks.DeleteComment(ctx, int32(123), int32(123), int32(123))",
     "output": null
   }
 }

@@ -1,10 +1,10 @@
 {
   "MemberOperations_addMembers": {
-    "usage": "member_ids = [1]\nawait client.members.add_members(id=1, member_ids=member_ids)",
+    "usage": "member_ids = [123]\nawait client.members.add_members(id=123, member_ids=member_ids)",
     "output": null
   },
   "ChatOperations_createChat": {
-    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[1]\n    )\n)\nawait client.chats.create_chat(request=request)",
+    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nawait client.chats.create_chat(request=request)",
     "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str)",
     "imports": [
       "ChatCreateRequest",
@@ -12,7 +12,7 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "await client.chats.archive_chat(id=1)",
+    "usage": "await client.chats.archive_chat(id=123)",
     "output": null
   }
 }

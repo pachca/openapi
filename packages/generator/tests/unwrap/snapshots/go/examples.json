@@ -1,10 +1,10 @@
 {
   "MemberOperations_addMembers": {
-    "usage": "memberIds := []int32{int32(1)}\nclient.Members.AddMembers(ctx, int32(1), memberIds)",
+    "usage": "memberIds := []int32{int32(123)}\nclient.Members.AddMembers(ctx, int32(123), memberIds)",
     "output": null
   },
   "ChatOperations_createChat": {
-    "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(true),\n\t\tMemberIDs: []int32{int32(1)},\n\t},\n}\nclient.Chats.CreateChat(ctx, request)",
+    "usage": "request := ChatCreateRequest{\n\tChat: ChatCreateRequestChat{\n\t\tName: \"example\",\n\t\tChannel: Ptr(true),\n\t\tPublic: Ptr(true),\n\t\tMemberIDs: []int32{int32(123)},\n\t},\n}\nclient.Chats.CreateChat(ctx, request)",
     "output": "Chat{ID: int32, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: string}",
     "imports": [
       "ChatCreateRequest",
@@ -12,7 +12,7 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.Chats.ArchiveChat(ctx, int32(1))",
+    "usage": "client.Chats.ArchiveChat(ctx, int32(123))",
     "output": null
   }
 }

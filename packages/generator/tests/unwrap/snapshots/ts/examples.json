@@ -1,10 +1,10 @@
 {
   "MemberOperations_addMembers": {
-    "usage": "const memberIds = [1]\nclient.members.addMembers(1, memberIds)",
+    "usage": "const memberIds = [123]\nclient.members.addMembers(123, memberIds)",
     "output": null
   },
   "ChatOperations_createChat": {
-    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [1]\n  }\n}\nclient.chats.createChat(request)",
+    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    channel: true,\n    public: true,\n    memberIds: [123]\n  }\n}\nclient.chats.createChat(request)",
     "output": "Chat({ id: number, name: string, isChannel: boolean, isPublic: boolean, createdAt: string })",
     "imports": [
       "ChatCreateRequest",
@@ -12,7 +12,7 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.chats.archiveChat(1)",
+    "usage": "client.chats.archiveChat(123)",
     "output": null
   }
 }

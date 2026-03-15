@@ -1,10 +1,10 @@
 {
   "MemberOperations_addMembers": {
-    "usage": "val memberIds = listOf(1)\nclient.members.addMembers(id = 1, memberIds = memberIds)",
+    "usage": "val memberIds = listOf(123)\nclient.members.addMembers(id = 123, memberIds = memberIds)",
     "output": null
   },
   "ChatOperations_createChat": {
-    "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(1)\n    )\n)\nclient.chats.createChat(request = request)",
+    "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(123)\n    )\n)\nclient.chats.createChat(request = request)",
     "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String)",
     "imports": [
       "ChatCreateRequest",
@@ -12,7 +12,7 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.chats.archiveChat(id = 1)",
+    "usage": "client.chats.archiveChat(id = 123)",
     "output": null
   }
 }

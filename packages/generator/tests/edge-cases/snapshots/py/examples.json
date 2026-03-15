@@ -9,7 +9,7 @@
     ]
   },
   "publishEvent": {
-    "usage": "await client.events.publish_event(id=1, scope=OAuthScope.CHATS_READ)",
+    "usage": "await client.events.publish_event(id=123, scope=OAuthScope.CHATS_READ)",
     "output": "Event(id: int, type: EventType)",
     "imports": [
       "OAuthScope"

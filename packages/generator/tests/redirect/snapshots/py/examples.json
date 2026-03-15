@@ -1,6 +1,6 @@
 {
   "ExportOperations_downloadExport": {
-    "usage": "await client.common.download_export(id=1)",
+    "usage": "await client.common.download_export(id=123)",
     "output": "str"
   }
 }

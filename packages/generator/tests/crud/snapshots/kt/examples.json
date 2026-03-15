@@ -1,6 +1,6 @@
 {
   "ChatOperations_listChats": {
-    "usage": "client.chats.listChats(availability = ChatAvailability.IS_MEMBER, limit = 1, cursor = \"example\", sortField = \"example\", sortOrder = SortOrder.ASC)",
+    "usage": "client.chats.listChats(availability = ChatAvailability.IS_MEMBER, limit = 123, cursor = \"example\", sortField = \"example\", sortOrder = SortOrder.ASC)",
     "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)",
     "imports": [
       "ChatAvailability",
@@ -8,11 +8,11 @@
     ]
   },
   "ChatOperations_getChat": {
-    "usage": "client.chats.getChat(id = 1)",
+    "usage": "client.chats.getChat(id = 123)",
     "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)"
   },
   "ChatOperations_createChat": {
-    "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(1)\n    )\n)\nclient.chats.createChat(request = request)",
+    "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(123)\n    )\n)\nclient.chats.createChat(request = request)",
     "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)",
     "imports": [
       "ChatCreateRequest",
@@ -20,7 +20,7 @@
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"example\", public = true))\nclient.chats.updateChat(id = 1, request = request)",
+    "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"example\", public = true))\nclient.chats.updateChat(id = 123, request = request)",
     "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String, memberIds: List<Int>?)",
     "imports": [
       "ChatUpdateRequest",
@@ -28,11 +28,11 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "client.chats.archiveChat(id = 1)",
+    "usage": "client.chats.archiveChat(id = 123)",
     "output": null
   },
   "ChatOperations_deleteChat": {
-    "usage": "client.chats.deleteChat(id = 1)",
+    "usage": "client.chats.deleteChat(id = 123)",
     "output": null
   }
 }

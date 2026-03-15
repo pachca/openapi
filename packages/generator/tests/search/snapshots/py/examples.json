@@ -1,6 +1,6 @@
 {
   "SearchOperations_searchMessages": {
-    "usage": "params = SearchMessagesParams(\n    query=\"example\",\n    chat_ids=[1],\n    user_ids=[1],\n    created_from=\"2024-01-01T00:00:00Z\",\n    created_to=\"2024-01-01T00:00:00Z\",\n    sort=SearchSort.RELEVANCE,\n    limit=1,\n    cursor=\"example\"\n)\nawait client.search.search_messages(params=params)",
+    "usage": "params = SearchMessagesParams(\n    query=\"example\",\n    chat_ids=[123],\n    user_ids=[123],\n    created_from=\"2024-01-01T00:00:00Z\",\n    created_to=\"2024-01-01T00:00:00Z\",\n    sort=SearchSort.RELEVANCE,\n    limit=123,\n    cursor=\"example\"\n)\nawait client.search.search_messages(params=params)",
     "output": "SearchMessagesResponse(data: list[MessageSearchResult], meta: SearchPaginationMeta)",
     "imports": [
       "SearchMessagesParams",

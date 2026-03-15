@@ -828,7 +828,7 @@ function tsLiteral(
 ): string {
   switch (ft.kind) {
     case 'primitive': {
-      if (ft.primitive === 'integer' || ft.primitive === 'number') return ft.primitive === 'integer' ? '1' : '1.5';
+      if (ft.primitive === 'integer' || ft.primitive === 'number') return ft.primitive === 'integer' ? '123' : '1.5';
       if (ft.primitive === 'boolean') return 'true';
       if (ft.primitive === 'any') return '{}';
       if (ft.primitive === 'string') {

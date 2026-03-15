@@ -1,6 +1,6 @@
 {
   "ItemOperations_patchItem": {
-    "usage": "val request = ItemPatchRequest(\n    item = ItemPatchRequestItem(\n        name = \"example\",\n        description = \"example\",\n        priority = 1\n    )\n)\nclient.items.patchItem(id = 1, request = request)",
+    "usage": "val request = ItemPatchRequest(\n    item = ItemPatchRequestItem(\n        name = \"example\",\n        description = \"example\",\n        priority = 123\n    )\n)\nclient.items.patchItem(id = 123, request = request)",
     "output": "Item(id: Int, name: String, description: String?, priority: Int?)",
     "imports": [
       "ItemPatchRequest",

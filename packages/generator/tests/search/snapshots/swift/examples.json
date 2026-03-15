@@ -1,6 +1,6 @@
 {
   "SearchOperations_searchMessages": {
-    "usage": "let chatIds = [1]\nlet userIds = [1]\ntry await client.search.searchMessages(query: \"example\", chatIds: chatIds, userIds: userIds, createdFrom: \"2024-01-01T00:00:00Z\", createdTo: \"2024-01-01T00:00:00Z\", sort: .relevance, limit: 1, cursor: \"example\")",
+    "usage": "let chatIds = [123]\nlet userIds = [123]\ntry await client.search.searchMessages(query: \"example\", chatIds: chatIds, userIds: userIds, createdFrom: \"2024-01-01T00:00:00Z\", createdTo: \"2024-01-01T00:00:00Z\", sort: .relevance, limit: 123, cursor: \"example\")",
     "output": "SearchMessagesResponse(data: [MessageSearchResult], meta: SearchPaginationMeta)",
     "imports": [
       "SearchSort"

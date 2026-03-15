@@ -8,7 +8,7 @@
     ]
   },
   "publishEvent": {
-    "usage": "client.events.publishEvent(1, OAuthScope.ChatsRead)",
+    "usage": "client.events.publishEvent(123, OAuthScope.ChatsRead)",
     "output": "Event({ id: number, type: EventType })",
     "imports": [
       "OAuthScope"

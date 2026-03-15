@@ -826,7 +826,7 @@ function pyLiteral(
 ): string {
   switch (ft.kind) {
     case 'primitive': {
-      if (ft.primitive === 'integer') return '1';
+      if (ft.primitive === 'integer') return '123';
       if (ft.primitive === 'number') return '1.5';
       if (ft.primitive === 'boolean') return 'True';
       if (ft.primitive === 'any') return '{}';

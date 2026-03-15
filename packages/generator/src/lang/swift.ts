@@ -630,7 +630,7 @@ function swiftLiteral(
 ): string {
   switch (ft.kind) {
     case 'primitive': {
-      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'Int64(1)' : '1';
+      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'Int64(123)' : '123';
       if (ft.primitive === 'number') return '1.5';
       if (ft.primitive === 'boolean') return 'true';
       if (ft.primitive === 'any') return 'AnyCodable([:])';

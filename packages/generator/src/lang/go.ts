@@ -768,7 +768,7 @@ function goLiteral(
 ): string {
   switch (ft.kind) {
     case 'primitive': {
-      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'int64(1)' : 'int32(1)';
+      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'int64(123)' : 'int32(123)';
       if (ft.primitive === 'number') return '1.5';
       if (ft.primitive === 'boolean') return 'true';
       if (ft.primitive === 'any') return 'map[string]any{}';

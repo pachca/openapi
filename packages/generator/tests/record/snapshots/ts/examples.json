@@ -1,6 +1,6 @@
 {
   "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"example\",\n    description: \"example\",\n    imageUrl: \"example\"\n  } }\n}\nclient.linkPreviews.createLinkPreviews(1, request)",
+    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"example\",\n    description: \"example\",\n    imageUrl: \"example\"\n  } }\n}\nclient.linkPreviews.createLinkPreviews(123, request)",
     "output": null,
     "imports": [
       "LinkPreview",

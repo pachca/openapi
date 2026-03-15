@@ -68,8 +68,8 @@ export function MobileTableOfContents() {
 
   return (
     <div
-      className="xl:hidden fixed right-6 z-30"
-      style={{ top: 'calc(var(--mobile-header-height) + 12px)' }}
+      className="xl:hidden fixed right-3 z-30"
+      style={{ top: 'calc(var(--mobile-header-height) + var(--mobile-nav-height) + 12px)' }}
     >
       <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
         <DropdownMenu.Trigger asChild>

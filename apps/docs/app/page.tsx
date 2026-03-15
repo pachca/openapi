@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = data.frontmatter.description || extractFirstParagraph(data.content);
 
   return {
-    title: data.frontmatter.title,
+    title: { absolute: 'Пачка для разработчиков' },
     description,
     alternates: {
       canonical: '/',

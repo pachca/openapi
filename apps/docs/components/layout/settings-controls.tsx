@@ -1,6 +1,15 @@
 'use client';
 
-import { Moon, Sun, SunMoon, BookOpenText, BookText, BookMinus, ChevronDown } from 'lucide-react';
+import {
+  Moon,
+  Sun,
+  SunMoon,
+  BookOpenText,
+  BookText,
+  BookMinus,
+  ChevronDown,
+  EllipsisVertical,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import type { SchemaDetail } from './display-settings-context';
@@ -167,5 +176,102 @@ export function SettingsDropdown<T extends string>({
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
     </div>
+  );
+}
+
+function DropdownSection<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: Option<T>[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <>
+      {options.map(({ value: optValue, label, icon: Icon, description }) => (
+        <DropdownMenu.Item
+          key={optValue}
+          onSelect={(e) => e.preventDefault()}
+          onClick={() => onChange(optValue)}
+          className={`flex items-start gap-2 px-2.5 py-1.5 text-[13px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
+            value === optValue
+              ? 'bg-primary/15 text-primary'
+              : 'text-text-primary hover:bg-glass-hover'
+          }`}
+        >
+          <Icon className="w-4 h-4 mt-0.5 shrink-0" />
+          <div className="flex flex-col">
+            <span>{label}</span>
+            {description && (
+              <span
+                className={`text-[11px] font-normal ${value === optValue ? 'text-primary/70' : 'text-text-secondary'}`}
+              >
+                {description}
+              </span>
+            )}
+          </div>
+        </DropdownMenu.Item>
+      ))}
+    </>
+  );
+}
+
+export function CombinedSettingsDropdown({
+  theme,
+  onThemeChange,
+  schemaDetail,
+  onSchemaDetailChange,
+}: {
+  theme: Theme;
+  onThemeChange: (value: Theme) => void;
+  schemaDetail: SchemaDetail;
+  onSchemaDetailChange: (value: SchemaDetail) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <DropdownMenu.Root open={open} onOpenChange={setOpen}>
+      <DropdownMenu.Trigger asChild>
+        <button
+          className="w-9 h-9 flex justify-center items-center rounded-md cursor-pointer text-text-secondary hover:text-text-primary outline-none"
+          aria-label="Настройки"
+        >
+          <EllipsisVertical className="w-5 h-5" />
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="z-50 min-w-[180px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
+          align="end"
+          side="bottom"
+          sideOffset={8}
+        >
+          <div className="flex items-center gap-0.5">
+            {themeOptions.map(({ value: optValue, icon: Icon }) => (
+              <DropdownMenu.Item
+                key={optValue}
+                onSelect={(e) => e.preventDefault()}
+                onClick={() => onThemeChange(optValue)}
+                className={`flex-1 flex justify-center items-center py-2 rounded-md cursor-pointer outline-none transition-colors ${
+                  theme === optValue
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+              </DropdownMenu.Item>
+            ))}
+          </div>
+          <DropdownMenu.Separator className="h-px bg-glass-border my-1.5" />
+          <DropdownSection
+            options={schemaDetailOptions}
+            value={schemaDetail}
+            onChange={onSchemaDetailChange}
+          />
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }

@@ -23,7 +23,7 @@ import {
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
 
-import { CardGroup, Card } from '@/components/mdx/cards';
+import { CardGroup, CardRow, Card } from '@/components/mdx/cards';
 import { Mermaid } from '@/components/mdx/mermaid';
 import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
@@ -204,6 +204,7 @@ const components = {
   Steps,
   Step,
   CardGroup,
+  CardRow,
   Card,
   GuideCards,
   ApiCards,

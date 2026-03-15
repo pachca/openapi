@@ -54,12 +54,17 @@
 
   --boxed-header-height: 40px;
   --mobile-header-height: 56px;
+  --mobile-nav-height: 0px;
 
-  /* Font Families */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif;
+  /* Font Families — sans is set by next/font on <html>, mono is for code blocks */
   --font-mono:
     'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --mobile-nav-height: 41px;
+  }
 }
 
 /* Category badge colors — outside @theme so they're always emitted as CSS vars */
@@ -261,10 +266,6 @@ html.dark {
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible) {
   outline: none;
-}
-
-body {
-  font-family: var(--font-sans);
 }
 
 /* Disable transitions during theme switch */

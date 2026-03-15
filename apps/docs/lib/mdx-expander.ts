@@ -301,6 +301,21 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return md;
   });
 
+  // <CardRow>...</CardRow> -> expand inner content (wrapper for prose context)
+  result = result.replace(/<CardRow>([\s\S]*?)<\/CardRow>/g, (_, inner) => inner.trim() + '\n');
+
+  // Standalone <Card compact ... >children</Card> -> markdown link
+  result = result.replace(
+    /<Card\s+compact\s+([\s\S]*?)>([\s\S]*?)<\/Card>/g,
+    (_, attrs, children) => {
+      const title = attrs.match(/title="([^"]+)"/)?.[1] ?? '';
+      const href = attrs.match(/href="([^"]+)"/)?.[1];
+      const text = children.trim();
+      const titlePart = href ? `[${title}](${href})` : `**${title}**`;
+      return text ? `${titlePart} ${text}\n` : `${titlePart}\n`;
+    }
+  );
+
   // <CardGroup>...<Card>...</Card>...</CardGroup> -> markdown list
   result = result.replace(/<CardGroup[^>]*>([\s\S]*?)<\/CardGroup>/g, (_, inner) => {
     const items: string[] = [];

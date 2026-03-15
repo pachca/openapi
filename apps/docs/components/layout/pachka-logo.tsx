@@ -26,11 +26,11 @@ export function LogoLink() {
   return (
     <Link
       href="/"
-      className="flex items-center gap-2.5 hover:opacity-80 transition-opacity outline-none min-w-0 px-1"
+      className="flex items-center gap-2.5 hover:opacity-80 transition-opacity outline-none min-w-0 shrink-0 px-1"
     >
       <PachkaIcon className="text-text-primary shrink-0" size={28} />
-      <div className="w-px h-[18px] bg-text-tertiary/40 shrink-0" />
-      <span className="text-[14px] font-semibold text-text-primary tracking-tight truncate">
+      <div className="hidden lg:block w-px h-[18px] bg-text-tertiary/40 shrink-0" />
+      <span className="hidden lg:block text-[14px] font-semibold text-text-primary tracking-tight truncate">
         Для разработчиков
       </span>
     </Link>

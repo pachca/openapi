@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import { Sidebar } from '@/components/layout/sidebar-wrapper';
 import { HeaderServer } from '@/components/layout/header-wrapper';
 import { TransitionProvider } from '@/components/layout/transition-provider';
@@ -6,6 +7,11 @@ import { DisplaySettingsProvider } from '@/components/layout/display-settings-co
 import { MobileTableOfContents } from '@/components/layout/mobile-toc';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['cyrillic', 'latin'],
+  display: 'swap',
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -89,7 +95,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className="min-h-screen" suppressHydrationWarning>
+    <html lang="ru" className={`min-h-screen ${inter.className}`} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#36373d" media="(prefers-color-scheme: dark)" />
@@ -138,7 +144,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className="min-h-screen m-0 font-sans text-text-primary antialiased bg-background"
+        className="min-h-screen m-0 text-text-primary antialiased bg-background"
         suppressHydrationWarning
       >
         <Tooltip.Provider delayDuration={0}>
@@ -146,7 +152,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <TransitionProvider />
             <HeaderServer />
             <MobileTableOfContents />
-            <div className="flex min-h-screen pt-[var(--mobile-header-height)]">
+            <div className="flex min-h-screen pt-[calc(var(--mobile-header-height)+var(--mobile-nav-height))]">
               <Sidebar />
               <main className="flex-1 bg-background flex flex-col min-w-0 lg:pl-[300px]">
                 {children}

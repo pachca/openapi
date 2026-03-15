@@ -9,16 +9,6 @@ import { GoGenerator } from './lang/go.js';
 import { KotlinGenerator } from './lang/kotlin.js';
 import { SwiftGenerator } from './lang/swift.js';
 
-// Re-export naming utilities so downstream packages (e.g. @pachca/docs)
-// can import them directly instead of maintaining copies.
-export {
-  snakeToCamel,
-  snakeToPascal,
-  camelToSnake,
-  tagToProperty,
-  operationIdToMethod,
-  refName,
-} from './naming.js';
 
 const generators: Record<string, LanguageGenerator> = {
   typescript: new TypeScriptGenerator(),

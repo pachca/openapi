@@ -1,0 +1,14 @@
+{
+  "TaskOperations_getTask": {
+    "usage": "try await client.tasks.getTask(projectId: 1, taskId: 1)",
+    "output": "Task(id: Int, title: String, isDone: Bool?)"
+  },
+  "TaskOperations_updateTask": {
+    "usage": "let body = TaskUpdateRequest(task: TaskUpdateRequestTask(title: \"example\", isDone: true))\ntry await client.tasks.updateTask(projectId: 1, taskId: 1, body: body)",
+    "output": "Task(id: Int, title: String, isDone: Bool?)"
+  },
+  "TaskOperations_deleteComment": {
+    "usage": "try await client.tasks.deleteComment(projectId: 1, taskId: 1, commentId: 1)",
+    "output": null
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "ChatOperations_listChats": {
+    "usage": "try await client.chats.listChats(availability: .isMember, limit: 1, cursor: \"example\", sortField: \"example\", sortOrder: .asc)",
+    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta?)"
+  },
+  "ChatOperations_getChat": {
+    "usage": "try await client.chats.getChat(id: 1)",
+    "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [1]\n    )\n)\ntry await client.chats.createChat(body: body)",
+    "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)"
+  },
+  "ChatOperations_updateChat": {
+    "usage": "let body = ChatUpdateRequest(chat: ChatUpdateRequestChat(name: \"example\", `public`: true))\ntry await client.chats.updateChat(id: 1, body: body)",
+    "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]?)"
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "try await client.chats.archiveChat(id: 1)",
+    "output": null
+  },
+  "ChatOperations_deleteChat": {
+    "usage": "try await client.chats.deleteChat(id: 1)",
+    "output": null
+  }
+}

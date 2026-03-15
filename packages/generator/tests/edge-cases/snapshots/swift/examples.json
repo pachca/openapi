@@ -1,0 +1,14 @@
+{
+  "listEvents": {
+    "usage": "let filter = EventFilter()\ntry await client.events.listEvents(isActive: true, scopes: [.chatsRead], filter: filter)",
+    "output": "ListEventsResponse(data: [Event])"
+  },
+  "publishEvent": {
+    "usage": "try await client.events.publishEvent(id: 1, scope: .chatsRead)",
+    "output": "Event(id: Int, type: EventType)"
+  },
+  "createUpload": {
+    "usage": "let body = UploadRequest(file: Data(), ContentDisposition: \"example\")\ntry await client.uploads.createUpload(body: body)",
+    "output": null
+  }
+}

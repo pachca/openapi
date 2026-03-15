@@ -1,0 +1,6 @@
+{
+  "SearchOperations_searchMessages": {
+    "usage": "try await client.search.searchMessages(query: \"example\", chatIds: [1], userIds: [1], createdFrom: \"2024-01-01T00:00:00Z\", createdTo: \"2024-01-01T00:00:00Z\", sort: .relevance, limit: 1, cursor: \"example\")",
+    "output": "SearchMessagesResponse(data: [MessageSearchResult], meta: SearchPaginationMeta)"
+  }
+}

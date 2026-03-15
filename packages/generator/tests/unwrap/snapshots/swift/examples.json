@@ -1,0 +1,14 @@
+{
+  "MemberOperations_addMembers": {
+    "usage": "try await client.members.addMembers(id: 1, memberIds: [1])",
+    "output": null
+  },
+  "ChatOperations_createChat": {
+    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        channel: true,\n        `public`: true,\n        memberIds: [1]\n    )\n)\ntry await client.chats.createChat(body: body)",
+    "output": "Chat(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String)"
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "try await client.chats.archiveChat(id: 1)",
+    "output": null
+  }
+}

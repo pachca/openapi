@@ -79,13 +79,13 @@
     "skill": "pachca-messages",
     "steps": [
       {
-        "description": "Для каждого файла: получи параметры загрузки",
-        "command": "pachca common uploads",
-        "notes": "Получишь `key` (с `${filename}`), `direct_url`, `policy`, подпись"
+        "description": "Загрузи каждый файл — команда вернёт `key`",
+        "command": "pachca upload report.pdf",
+        "notes": "Команда автоматически получает подпись и загружает файл на S3"
       },
       {
         "description": "Отправь сообщение со всеми файлами",
-        "command": "pachca messages create --entity-id=<chat_id> --content=\"Смотри файл\" --files='[{\"key\":\"...\",\"name\":\"report.pdf\",\"file_type\":\"file\",\"size\":12345}]'"
+        "command": "pachca messages create --entity-id=<chat_id> --content=\"Смотри файл\" --files='[{\"key\":\"attaches/files/.../report.pdf\",\"name\":\"report.pdf\",\"file_type\":\"file\",\"size\":12345}]'"
       }
     ]
   },

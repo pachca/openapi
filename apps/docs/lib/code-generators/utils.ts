@@ -36,12 +36,13 @@ export function resolveParamName(param: Parameter): string {
   return param['x-param-names']?.[0]?.name || param.name;
 }
 
-export function buildQueryString(endpoint: Endpoint): string {
+export function buildQueryString(endpoint: Endpoint, exclude?: string[]): string {
   const queryParams = getQueryParams(endpoint);
   if (queryParams.length === 0) return '';
 
   const parts: string[] = [];
   for (const p of queryParams) {
+    if (exclude?.includes(p.name)) continue;
     const example = generateParameterExample(p);
     if (Array.isArray(example)) {
       for (const val of example) {

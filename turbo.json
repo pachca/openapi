@@ -31,11 +31,11 @@
         "../../packages/spec/workflows.ts",
         "../../apps/docs/scripts/skills/config.ts"
       ],
-      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "README.md"],
+      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "!src/data/changelog.json", "README.md"],
       "cache": true
     },
     "build": {
-      "dependsOn": ["generate", "generate-llms", "generate-cli"],
+      "dependsOn": ["^build", "generate", "generate-llms", "generate-cli"],
       "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json"],
       "cache": true
     },

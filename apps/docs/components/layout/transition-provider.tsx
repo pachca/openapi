@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { toSlug } from '@/lib/utils/transliterate';
+import { getScrollOffset } from '@/lib/utils/scroll-offset';
 
 // Хранилище позиций скролла по URL
 const scrollPositions = new Map<string, number>();
@@ -93,7 +94,8 @@ export function TransitionProvider() {
           const rawId = decodeURIComponent(hash.slice(1));
           const element = document.getElementById(rawId) || document.getElementById(toSlug(rawId));
           if (element) {
-            element.scrollIntoView({ block: 'start' });
+            const y = element.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+            window.scrollTo(0, y);
           }
         });
       }

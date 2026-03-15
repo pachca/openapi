@@ -5,15 +5,12 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
 import type { Endpoint } from '@/lib/openapi/types';
 import { generateCurl } from '@/lib/code-generators/curl';
-import { generateJavaScript } from '@/lib/code-generators/javascript';
-import { generatePython } from '@/lib/code-generators/python';
-import { generateRuby } from '@/lib/code-generators/ruby';
-import { generatePHP } from '@/lib/code-generators/php';
-import { generateJava } from '@/lib/code-generators/java';
-import { generateNodeJS } from '@/lib/code-generators/nodejs';
-import { generateGo } from '@/lib/code-generators/go';
-import { generateDotNet } from '@/lib/code-generators/dotnet';
 import { generateCLI } from '@/lib/code-generators/cli';
+import { generateTypescriptSdk } from '@/lib/code-generators/typescript-sdk';
+import { generatePythonSdk } from '@/lib/code-generators/python-sdk';
+import { generateGoSdk } from '@/lib/code-generators/go-sdk';
+import { generateKotlinSdk } from '@/lib/code-generators/kotlin-sdk';
+import { generateSwiftSdk } from '@/lib/code-generators/swift-sdk';
 import { generateResponseExample, type ExampleOptions } from '@/lib/openapi/example-generator';
 import { CopyButton } from './copy-button';
 import { CodeBlock } from './code-block';
@@ -29,31 +26,18 @@ interface CodeExamplesProps {
   className?: string;
 }
 
-type Language =
-  | 'cli'
-  | 'curl'
-  | 'javascript'
-  | 'python'
-  | 'ruby'
-  | 'php'
-  | 'java'
-  | 'nodejs'
-  | 'go'
-  | 'dotnet';
+type Language = 'curl' | 'cli' | 'typescript' | 'python' | 'go' | 'kotlin' | 'swift';
 
 const STORAGE_KEY = 'pachca-docs-code-lang';
 
 const languageLabels: Record<Language, string> = {
-  cli: 'CLI',
   curl: 'cURL',
-  javascript: 'JavaScript',
+  cli: 'Pachca CLI',
+  typescript: 'TypeScript',
   python: 'Python',
-  ruby: 'Ruby',
-  php: 'PHP',
-  java: 'Java',
-  nodejs: 'Node.js',
   go: 'Go',
-  dotnet: '.NET',
+  kotlin: 'Kotlin',
+  swift: 'Swift',
 };
 
 export function CodeExamples({
@@ -65,7 +49,7 @@ export function CodeExamples({
   responseMode = 'full',
   className,
 }: CodeExamplesProps) {
-  const [activeTab, setActiveTab] = useState<Language>('cli');
+  const [activeTab, setActiveTab] = useState<Language>('curl');
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -86,14 +70,11 @@ export function CodeExamples({
     const generators: Record<Language, () => string> = {
       curl: () => generateCurl(endpoint, baseUrl, reqOpts),
       cli: () => generateCLI(endpoint, reqOpts),
-      javascript: () => generateJavaScript(endpoint, baseUrl, reqOpts),
-      python: () => generatePython(endpoint, baseUrl, reqOpts),
-      ruby: () => generateRuby(endpoint, baseUrl, reqOpts),
-      php: () => generatePHP(endpoint, baseUrl, reqOpts),
-      java: () => generateJava(endpoint, baseUrl, reqOpts),
-      nodejs: () => generateNodeJS(endpoint, baseUrl, reqOpts),
-      go: () => generateGo(endpoint, baseUrl, reqOpts),
-      dotnet: () => generateDotNet(endpoint, baseUrl, reqOpts),
+      typescript: () => generateTypescriptSdk(endpoint, baseUrl, reqOpts),
+      python: () => generatePythonSdk(endpoint, baseUrl, reqOpts),
+      go: () => generateGoSdk(endpoint, baseUrl, reqOpts),
+      kotlin: () => generateKotlinSdk(endpoint, baseUrl, reqOpts),
+      swift: () => generateSwiftSdk(endpoint, baseUrl, reqOpts),
     };
     return generators[activeTab]();
   }, [activeTab, endpoint, baseUrl, requestMode]);
@@ -209,14 +190,11 @@ function getLanguageForHighlight(lang: Language): string {
   const languageMap: Record<Language, string> = {
     curl: 'bash',
     cli: 'bash',
-    javascript: 'javascript',
+    typescript: 'typescript',
     python: 'python',
-    ruby: 'ruby',
-    php: 'php',
-    java: 'java',
-    nodejs: 'javascript',
     go: 'go',
-    dotnet: 'csharp',
+    kotlin: 'kotlin',
+    swift: 'swift',
   };
   return languageMap[lang];
 }

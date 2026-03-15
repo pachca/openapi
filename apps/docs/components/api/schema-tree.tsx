@@ -149,9 +149,10 @@ function EnumValues({
           <div
             key={i}
             id={enumId}
-            className={`px-3 py-3 flex flex-col gap-2 scroll-mt-20 transition-colors duration-500 ${
+            className={`px-3 py-3 flex flex-col gap-2 transition-colors duration-500 ${
               isLast ? 'rounded-b-lg' : ''
             }`}
+            style={{ scrollMarginTop: 'var(--scroll-offset)' }}
           >
             <div className="flex">
               <CopyableCode
@@ -906,7 +907,7 @@ export function PropertyRow({
   }
 
   return (
-    <div className="py-3 scroll-mt-20" id={paramId}>
+    <div className="py-3" id={paramId} style={{ scrollMarginTop: 'var(--scroll-offset)' }}>
       <div className="flex flex-col min-w-0">
         <SchemaHeader
           name={name}

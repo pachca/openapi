@@ -18,6 +18,10 @@ export default class CommonDirectUrl extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
+    'direct-url': Flags.string({
+      description: 'URL для отправки запроса (получается из ответа POST /uploads)',
+      required: true,
+    }),
     'content-disposition': Flags.string({
       description: "Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)",
     }),
@@ -103,8 +107,9 @@ export default class CommonDirectUrl extends BaseCommand {
 
     const { data } = await this.apiRequest({
       method: 'POST',
-      path: '/direct_url',
+      path: flags['direct-url']!,
       formData,
+      noAuth: true,
     });
 
     const responseBody = data as Record<string, unknown>;

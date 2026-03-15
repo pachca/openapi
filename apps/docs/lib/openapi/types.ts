@@ -44,6 +44,8 @@ export interface Endpoint {
   url?: string; // Generated URL for the docs page
   title?: string; // Human-readable title
   requirements?: EndpointRequirements;
+  externalUrl?: string;
+  paginated?: boolean;
 }
 
 export interface Parameter {

@@ -1,0 +1,14 @@
+{
+  "TaskOperations_getTask": {
+    "usage": "client.tasks.getTask(1, 1)",
+    "output": "Task({ id: number, title: string, isDone?: boolean })"
+  },
+  "TaskOperations_updateTask": {
+    "usage": "const request: TaskUpdateRequest = { task: { title: \"example\", isDone: true } }\nclient.tasks.updateTask(1, 1, request)",
+    "output": "Task({ id: number, title: string, isDone?: boolean })"
+  },
+  "TaskOperations_deleteComment": {
+    "usage": "client.tasks.deleteComment(1, 1, 1)",
+    "output": null
+  }
+}

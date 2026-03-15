@@ -1,0 +1,14 @@
+{
+  "listEvents": {
+    "usage": "client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
+    "output": "ListEventsResponse({ data: Event[] })"
+  },
+  "publishEvent": {
+    "usage": "client.events.publishEvent(1, OAuthScope.ChatsRead)",
+    "output": "Event({ id: number, type: EventType })"
+  },
+  "createUpload": {
+    "usage": "const request: UploadRequest = { file: new Blob([]), contentDisposition: \"example\" }\nclient.uploads.createUpload(request)",
+    "output": null
+  }
+}

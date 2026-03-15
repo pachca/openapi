@@ -1,0 +1,10 @@
+{
+  "DirectUploadOperations_uploadFile": {
+    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  file: new Blob([])\n}\nclient.common.uploadFile(\"https://example.com\", request)",
+    "output": null
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "client.common.getUploadParams()",
+    "output": "UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })"
+  }
+}

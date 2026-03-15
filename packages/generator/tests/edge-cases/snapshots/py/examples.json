@@ -1,0 +1,14 @@
+{
+  "listEvents": {
+    "usage": "params = ListEventsParams(\n    is_active=True,\n    scopes=[OAuthScope.CHATS_READ],\n    filter=EventFilter()\n)\nawait client.events.list_events(params=params)",
+    "output": "ListEventsResponse(data: list[Event])"
+  },
+  "publishEvent": {
+    "usage": "await client.events.publish_event(id=1, scope=OAuthScope.CHATS_READ)",
+    "output": "Event(id: int, type: EventType)"
+  },
+  "createUpload": {
+    "usage": "request = UploadRequest(file=b\"\", content_disposition=\"example\")\nawait client.uploads.create_upload(request=request)",
+    "output": null
+  }
+}

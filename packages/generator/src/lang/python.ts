@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import type { GeneratedFile, LanguageGenerator } from './types.js';
+import type { GeneratedFile, GenerateOptions, LanguageGenerator } from './types.js';
 import {
   camelToSnake,
   snakeToUpperSnake,
@@ -815,10 +815,269 @@ function generateUtils(): string {
   ].join('\n');
 }
 
+// ── Examples ──────────────────────────────────────────────────────────
+
+function buildModelIndex(ir: IR): Map<string, IRModel> {
+  const index = new Map<string, IRModel>();
+  for (const m of ir.models) {
+    index.set(m.name, m);
+    for (const inl of m.inlineObjects) {
+      index.set(inl.name, inl);
+    }
+  }
+  return index;
+}
+
+function pyLiteral(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+  indent: number = 0,
+): string {
+  switch (ft.kind) {
+    case 'primitive': {
+      if (ft.primitive === 'integer') return '1';
+      if (ft.primitive === 'number') return '1.5';
+      if (ft.primitive === 'boolean') return 'True';
+      if (ft.primitive === 'any') return '{}';
+      if (ft.primitive === 'string') {
+        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date') return '"2024-01-01"';
+      }
+      return '"example"';
+    }
+    case 'enum': {
+      const e = ir.enums.find((en) => en.name === ft.ref);
+      if (e && e.members.length > 0) {
+        return `${e.name}.${pyEnumMemberName(e.members[0].value)}`;
+      }
+      return `${ft.ref ?? 'object'}`;
+    }
+    case 'model':
+      return pyModelLiteral(ft.ref ?? 'object', ir, models, visited, indent);
+    case 'array':
+      return `[${pyLiteral(ft.items!, ir, models, visited, indent)}]`;
+    case 'record':
+      return `{"key": ${pyLiteral(ft.valueType!, ir, models, visited, indent)}}`;
+    case 'union': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return pyModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
+      return `${ft.ref ?? 'object'}`;
+    }
+    case 'literal':
+      return `"${ft.literalValue}"`;
+    case 'binary':
+      return 'b""';
+  }
+}
+
+function pyModelLiteral(
+  modelName: string,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+  indent: number = 0,
+): string {
+  if (visited.has(modelName)) return `${modelName}()`;
+  const model = models.get(modelName);
+  if (!model || model.fields.length === 0) return `${modelName}()`;
+
+  const nextVisited = new Set(visited);
+  nextVisited.add(modelName);
+
+  const fields = model.fields.filter((f) => f.type.kind !== 'binary' || f.required);
+  if (fields.length === 0) return `${modelName}()`;
+
+  const multiLine = fields.length > 2;
+  const childIndent = indent + 1;
+  const pad = '    '.repeat(childIndent);
+  const closePad = '    '.repeat(indent);
+
+  const entries = fields.map((f) => {
+    const name = pyFieldName(f);
+    const value = pyLiteral(f.type, ir, models, nextVisited, childIndent);
+    return `${name}=${value}`;
+  });
+
+  const hasMultiLineChild = entries.some((e) => e.includes('\n'));
+  if (multiLine || hasMultiLineChild) {
+    return `${modelName}(\n${entries.map((e) => `${pad}${e}`).join(',\n')}\n${closePad})`;
+  }
+  return `${modelName}(${entries.join(', ')})`;
+}
+
+function pyFingerprint(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+): string {
+  switch (ft.kind) {
+    case 'primitive':
+      return pyType(ft);
+    case 'enum':
+      return ft.ref ?? 'object';
+    case 'model': {
+      const model = models.get(ft.ref!);
+      if (!model || visited.has(ft.ref!)) return ft.ref ?? 'object';
+      return pyModelFingerprint(model, ir, models, visited);
+    }
+    case 'array':
+      return `list[${pyFingerprint(ft.items!, ir, models, visited)}]`;
+    case 'record':
+      return `dict[str, ${pyFingerprint(ft.valueType!, ir, models, visited)}]`;
+    case 'union':
+      return ft.ref ?? 'object';
+    case 'literal':
+      return 'str';
+    case 'binary':
+      return 'bytes';
+  }
+}
+
+function pyModelFingerprint(
+  model: IRModel,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+): string {
+  const nextVisited = new Set(visited);
+  nextVisited.add(model.name);
+
+  const fields = model.fields.map((f) => {
+    const name = pyFieldName(f);
+    const type = pyFingerprint(f.type, ir, models, nextVisited);
+    const opt = (!f.required || f.nullable) ? ' | None' : '';
+    return `${name}: ${type}${opt}`;
+  });
+
+  return `${model.name}(${fields.join(', ')})`;
+}
+
+function pyBuildOutputFingerprint(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+): string | null {
+  const resp = op.successResponse;
+  if (resp.isRedirect) return 'str';
+  if (!resp.hasBody) return null;
+
+  if (resp.isList) {
+    const rt = ir.responses.find(
+      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
+    );
+    if (rt) {
+      const parts: string[] = [];
+      parts.push(`data: list[${rt.dataRef}]`);
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : ' | None';
+        parts.push(`meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  if (resp.dataRef) {
+    const model = models.get(resp.dataRef);
+    if (model) return pyModelFingerprint(model, ir, models, new Set());
+    return resp.dataRef;
+  }
+
+  return 'object';
+}
+
+function pyBuildOperationExample(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+  serviceProp: string,
+): { usage: string; output: string | null } {
+  const params: { name: string; value: string }[] = [];
+
+  if (op.externalUrl) {
+    params.push({ name: camelToSnake(op.externalUrl), value: '"https://example.com"' });
+  }
+
+  for (const p of op.pathParams) {
+    params.push({ name: pyParamName(p.sdkName), value: pyLiteral(p.type, ir, models) });
+  }
+
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb) && rb.unwrapField) {
+      const sdkName = pyFieldName(rb.unwrapField);
+      params.push({ name: sdkName, value: pyLiteral(rb.unwrapField.type, ir, models) });
+    } else if (rb.schemaRef) {
+      params.push({ name: 'request', value: pyLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+    }
+  }
+
+  // Query params become a single params argument
+  const queryEntries: { name: string; value: string }[] = [];
+  for (const p of op.queryParams) {
+    queryEntries.push({ name: pyParamName(p.sdkName), value: pyLiteral(p.type, ir, models) });
+  }
+
+  const declarations: string[] = [];
+  const callArgs: string[] = [];
+
+  for (const { name, value } of params) {
+    if (value.includes('(') || value.includes('{') || value.includes('[')) {
+      declarations.push(`${name} = ${value}`);
+      callArgs.push(`${name}=${name}`);
+    } else {
+      callArgs.push(`${name}=${value}`);
+    }
+  }
+
+  if (queryEntries.length > 0) {
+    const multiLine = queryEntries.length > 2;
+    const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+    const paramsTypeName = `${pascal}Params`;
+    if (multiLine) {
+      const inner = queryEntries.map((e) => `    ${e.name}=${e.value}`).join(',\n');
+      declarations.push(`params = ${paramsTypeName}(\n${inner}\n)`);
+    } else {
+      declarations.push(`params = ${paramsTypeName}(${queryEntries.map((e) => `${e.name}=${e.value}`).join(', ')})`);
+    }
+    callArgs.push('params=params');
+  }
+
+  const method = pyMethodName(op);
+  const call = `await client.${serviceProp}.${method}(${callArgs.join(', ')})`;
+  const usage = declarations.length > 0
+    ? [...declarations, call].join('\n')
+    : call;
+
+  const output = pyBuildOutputFingerprint(op, ir, models);
+
+  return { usage, output };
+}
+
+function generateExamples(ir: IR): string {
+  const models = buildModelIndex(ir);
+  const result: Record<string, { usage: string; output: string | null }> = {};
+
+  for (const svc of ir.services) {
+    const serviceProp = pyServiceProp(svc.tag);
+    for (const op of svc.operations) {
+      result[op.operationId] = pyBuildOperationExample(op, ir, models, serviceProp);
+    }
+  }
+
+  return JSON.stringify(result, null, 2) + '\n';
+}
+
+// ── Main ─────────────────────────────────────────────────────────────
+
 export class PythonGenerator implements LanguageGenerator {
   readonly dirName = 'py';
 
-  generate(ir: IR): GeneratedFile[] {
+  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
     const files: GeneratedFile[] = [];
     files.push({ path: '__init__.py', content: '' });
     files.push({ path: 'models.py', content: generateModels(ir) });
@@ -826,6 +1085,9 @@ export class PythonGenerator implements LanguageGenerator {
     files.push({ path: 'client.py', content: client.content });
     if (client.needUtils) {
       files.push({ path: 'utils.py', content: generateUtils() });
+    }
+    if (options?.examples) {
+      files.push({ path: 'examples.json', content: generateExamples(ir) });
     }
     return files;
   }

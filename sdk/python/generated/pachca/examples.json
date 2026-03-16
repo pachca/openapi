@@ -3,7 +3,7 @@
     "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")"
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "params = GetAuditEventsParams(\n    start_time=\"2024-01-01T00:00:00Z\",\n    end_time=\"2024-01-01T00:00:00Z\",\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"example\",\n    actor_type=\"example\",\n    entity_id=\"example\",\n    entity_type=\"example\",\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.security.get_audit_events(params=params)",
+    "usage": "params = GetAuditEventsParams(\n    start_time=\"2025-05-01T09:11:00Z\",\n    end_time=\"2025-05-02T09:11:00Z\",\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"98765\",\n    actor_type=\"User\",\n    entity_id=\"98765\",\n    entity_type=\"User\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.security.get_audit_events(params=params)",
     "output": "GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta | None)",
     "imports": [
       "AuditEventKey",
@@ -11,14 +11,14 @@
     ]
   },
   "BotOperations_getWebhookEvents": {
-    "usage": "params = GetWebhookEventsParams(limit=123, cursor=\"example\")\nresponse = await client.bots.get_webhook_events(params=params)",
+    "usage": "params = GetWebhookEventsParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.bots.get_webhook_events(params=params)",
     "output": "GetWebhookEventsResponse(data: list[WebhookEvent], meta: PaginationMeta | None)",
     "imports": [
       "GetWebhookEventsParams"
     ]
   },
   "BotOperations_updateBot": {
-    "usage": "request = BotUpdateRequest(bot=BotUpdateRequestBot(webhook=BotUpdateRequestBotWebhook(outgoing_url=\"example\")))\nresponse = await client.bots.update_bot(id=123, request=request)",
+    "usage": "request = BotUpdateRequest(bot=BotUpdateRequestBot(webhook=BotUpdateRequestBotWebhook(outgoing_url=\"https://www.website.com/tasks/new\")))\nresponse = await client.bots.update_bot(id=1738816, request=request)",
     "output": "BotResponse(id: int, webhook: BotResponseWebhook(outgoing_url: str))",
     "imports": [
       "BotUpdateRequest",
@@ -27,10 +27,10 @@
     ]
   },
   "BotOperations_deleteWebhookEvent": {
-    "usage": "await client.bots.delete_webhook_event(id=\"example\")"
+    "usage": "await client.bots.delete_webhook_event(id=\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params = ListChatsParams(\n    sort_id=SortOrder.ASC,\n    availability=ChatAvailability.IS_MEMBER,\n    last_message_at_after=\"2024-01-01T00:00:00Z\",\n    last_message_at_before=\"2024-01-01T00:00:00Z\",\n    personal=True,\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.chats.list_chats(params=params)",
+    "usage": "params = ListChatsParams(\n    sort_id=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    last_message_at_after=\"2025-01-01T00:00:00.000Z\",\n    last_message_at_before=\"2025-02-01T00:00:00.000Z\",\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
     "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)",
     "imports": [
       "ChatAvailability",
@@ -39,11 +39,11 @@
     ]
   },
   "ChatOperations_getChat": {
-    "usage": "response = await client.chats.get_chat(id=123)",
+    "usage": "response = await client.chats.get_chat(id=334)",
     "output": "Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)"
   },
   "ChatOperations_createChat": {
-    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        member_ids=[123],\n        group_tag_ids=[123],\n        channel=True,\n        public=True\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
+    "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"🤿 aqua\",\n        member_ids=[123],\n        group_tag_ids=[123],\n        channel=True,\n        public=False\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
     "output": "Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)",
     "imports": [
       "ChatCreateRequest",
@@ -51,7 +51,7 @@
     ]
   },
   "ChatOperations_updateChat": {
-    "usage": "request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name=\"example\", public=True))\nresponse = await client.chats.update_chat(id=123, request=request)",
+    "usage": "request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name=\"Бассейн\", public=True))\nresponse = await client.chats.update_chat(id=334, request=request)",
     "output": "Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)",
     "imports": [
       "ChatUpdateRequest",
@@ -59,13 +59,13 @@
     ]
   },
   "ChatOperations_archiveChat": {
-    "usage": "await client.chats.archive_chat(id=123)"
+    "usage": "await client.chats.archive_chat(id=334)"
   },
   "ChatOperations_unarchiveChat": {
-    "usage": "await client.chats.unarchive_chat(id=123)"
+    "usage": "await client.chats.unarchive_chat(id=334)"
   },
   "ExportOperations_downloadExport": {
-    "usage": "response = await client.common.download_export(id=123)",
+    "usage": "response = await client.common.download_export(id=22322)",
     "output": "str"
   },
   "CommonOperations_listProperties": {
@@ -77,7 +77,7 @@
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "request = ExportRequest(\n    start_at=\"2024-01-01\",\n    end_at=\"2024-01-01\",\n    webhook_url=\"example\",\n    chat_ids=[123],\n    skip_chats_file=True\n)\nawait client.common.request_export(request=request)",
+    "usage": "request = ExportRequest(\n    start_at=\"2025-03-20\",\n    end_at=\"2025-03-20\",\n    webhook_url=\"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    chat_ids=[123],\n    skip_chats_file=False\n)\nawait client.common.request_export(request=request)",
     "imports": [
       "ExportRequest"
     ]
@@ -93,7 +93,7 @@
     "output": "UploadParams(content_disposition: str, acl: str, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, direct_url: str)"
   },
   "ChatMemberOperations_listMembers": {
-    "usage": "params = ListMembersParams(\n    role=ChatMemberRoleFilter.ALL,\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.members.list_members(id=123, params=params)",
+    "usage": "params = ListMembersParams(\n    role=ChatMemberRoleFilter.ALL,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.members.list_members(id=334, params=params)",
     "output": "ListMembersResponse(data: list[User], meta: PaginationMeta | None)",
     "imports": [
       "ChatMemberRoleFilter",
@@ -101,31 +101,31 @@
     ]
   },
   "ChatMemberOperations_addTags": {
-    "usage": "group_tag_ids = [123]\nawait client.members.add_tags(id=123, group_tag_ids=group_tag_ids)"
+    "usage": "group_tag_ids = [123]\nawait client.members.add_tags(id=334, group_tag_ids=group_tag_ids)"
   },
   "ChatMemberOperations_addMembers": {
-    "usage": "request = AddMembersRequest(member_ids=[123], silent=True)\nawait client.members.add_members(id=123, request=request)",
+    "usage": "request = AddMembersRequest(member_ids=[123], silent=True)\nawait client.members.add_members(id=334, request=request)",
     "imports": [
       "AddMembersRequest"
     ]
   },
   "ChatMemberOperations_updateMemberRole": {
-    "usage": "await client.members.update_member_role(id=123, user_id=123, role=ChatMemberRole.ADMIN)",
+    "usage": "await client.members.update_member_role(id=334, user_id=186, role=ChatMemberRole.ADMIN)",
     "imports": [
       "ChatMemberRole"
     ]
   },
   "ChatMemberOperations_removeTag": {
-    "usage": "await client.members.remove_tag(id=123, tag_id=123)"
+    "usage": "await client.members.remove_tag(id=334, tag_id=86)"
   },
   "ChatMemberOperations_leaveChat": {
-    "usage": "await client.members.leave_chat(id=123)"
+    "usage": "await client.members.leave_chat(id=334)"
   },
   "ChatMemberOperations_removeMember": {
-    "usage": "await client.members.remove_member(id=123, user_id=123)"
+    "usage": "await client.members.remove_member(id=334, user_id=186)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "params = ListTagsParams(\n    names=TagNamesFilter(),\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.group_tags.list_tags(params=params)",
+    "usage": "params = ListTagsParams(\n    names=TagNamesFilter(),\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.group_tags.list_tags(params=params)",
     "output": "ListTagsResponse(data: list[GroupTag], meta: PaginationMeta | None)",
     "imports": [
       "ListTagsParams",
@@ -133,18 +133,18 @@
     ]
   },
   "GroupTagOperations_getTag": {
-    "usage": "response = await client.group_tags.get_tag(id=123)",
+    "usage": "response = await client.group_tags.get_tag(id=9111)",
     "output": "GroupTag(id: int, name: str, users_count: int)"
   },
   "GroupTagOperations_getTagUsers": {
-    "usage": "params = GetTagUsersParams(limit=123, cursor=\"example\")\nresponse = await client.group_tags.get_tag_users(id=123, params=params)",
+    "usage": "params = GetTagUsersParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.group_tags.get_tag_users(id=9111, params=params)",
     "output": "GetTagUsersResponse(data: list[User], meta: PaginationMeta | None)",
     "imports": [
       "GetTagUsersParams"
     ]
   },
   "GroupTagOperations_createTag": {
-    "usage": "request = GroupTagRequest(group_tag=GroupTagRequestGroupTag(name=\"example\"))\nresponse = await client.group_tags.create_tag(request=request)",
+    "usage": "request = GroupTagRequest(group_tag=GroupTagRequestGroupTag(name=\"Новое название тега\"))\nresponse = await client.group_tags.create_tag(request=request)",
     "output": "GroupTag(id: int, name: str, users_count: int)",
     "imports": [
       "GroupTagRequest",
@@ -152,7 +152,7 @@
     ]
   },
   "GroupTagOperations_updateTag": {
-    "usage": "request = GroupTagRequest(group_tag=GroupTagRequestGroupTag(name=\"example\"))\nresponse = await client.group_tags.update_tag(id=123, request=request)",
+    "usage": "request = GroupTagRequest(group_tag=GroupTagRequestGroupTag(name=\"Новое название тега\"))\nresponse = await client.group_tags.update_tag(id=9111, request=request)",
     "output": "GroupTag(id: int, name: str, users_count: int)",
     "imports": [
       "GroupTagRequest",
@@ -160,10 +160,10 @@
     ]
   },
   "GroupTagOperations_deleteTag": {
-    "usage": "await client.group_tags.delete_tag(id=123)"
+    "usage": "await client.group_tags.delete_tag(id=9111)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "params = ListChatMessagesParams(\n    chat_id=123,\n    sort_id=SortOrder.ASC,\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.messages.list_chat_messages(params=params)",
+    "usage": "params = ListChatMessagesParams(\n    chat_id=198,\n    sort_id=SortOrder.DESC,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.messages.list_chat_messages(params=params)",
     "output": "ListChatMessagesResponse(data: list[Message], meta: PaginationMeta | None)",
     "imports": [
       "ListChatMessagesParams",
@@ -171,11 +171,11 @@
     ]
   },
   "MessageOperations_getMessage": {
-    "usage": "response = await client.messages.get_message(id=123)",
+    "usage": "response = await client.messages.get_message(id=194275)",
     "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: str) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)"
   },
   "MessageOperations_createMessage": {
-    "usage": "request = MessageCreateRequest(\n    message=MessageCreateRequestMessage(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=123,\n        content=\"example\",\n        files=[MessageCreateRequestFile(\n            key=\"example\",\n            name=\"example\",\n            file_type=FileType.FILE,\n            size=123,\n            width=123,\n            height=123\n        )],\n        buttons=[[Button(\n            text=\"example\",\n            url=\"example\",\n            data=\"example\"\n        )]],\n        parent_message_id=123,\n        display_avatar_url=\"example\",\n        display_name=\"example\",\n        skip_invite_mentions=True,\n        link_preview=True\n    )\n)\nresponse = await client.messages.create_message(request=request)",
+    "usage": "request = MessageCreateRequest(\n    message=MessageCreateRequestMessage(\n        entity_type=MessageEntityType.DISCUSSION,\n        entity_id=334,\n        content=\"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files=[MessageCreateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=FileType.IMAGE,\n            size=12345,\n            width=800,\n            height=600\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        parent_message_id=194270,\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\",\n        skip_invite_mentions=False,\n        link_preview=False\n    )\n)\nresponse = await client.messages.create_message(request=request)",
     "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: str) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)",
     "imports": [
       "Button",
@@ -187,10 +187,10 @@
     ]
   },
   "MessageOperations_pinMessage": {
-    "usage": "await client.messages.pin_message(id=123)"
+    "usage": "await client.messages.pin_message(id=194275)"
   },
   "MessageOperations_updateMessage": {
-    "usage": "request = MessageUpdateRequest(\n    message=MessageUpdateRequestMessage(\n        content=\"example\",\n        files=[MessageUpdateRequestFile(\n            key=\"example\",\n            name=\"example\",\n            file_type=\"example\",\n            size=123,\n            width=123,\n            height=123\n        )],\n        buttons=[[Button(\n            text=\"example\",\n            url=\"example\",\n            data=\"example\"\n        )]],\n        display_avatar_url=\"example\",\n        display_name=\"example\"\n    )\n)\nresponse = await client.messages.update_message(id=123, request=request)",
+    "usage": "request = MessageUpdateRequest(\n    message=MessageUpdateRequestMessage(\n        content=\"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files=[MessageUpdateRequestFile(\n            key=\"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name=\"logo.png\",\n            file_type=\"image\",\n            size=12345,\n            width=800,\n            height=600\n        )],\n        buttons=[[Button(\n            text=\"Подробнее\",\n            url=\"https://example.com/details\",\n            data=\"awesome\"\n        )]],\n        display_avatar_url=\"https://example.com/avatar.png\",\n        display_name=\"Бот Поддержки\"\n    )\n)\nresponse = await client.messages.update_message(id=194275, request=request)",
     "output": "Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: str) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)",
     "imports": [
       "Button",
@@ -200,13 +200,13 @@
     ]
   },
   "MessageOperations_deleteMessage": {
-    "usage": "await client.messages.delete_message(id=123)"
+    "usage": "await client.messages.delete_message(id=194275)"
   },
   "MessageOperations_unpinMessage": {
-    "usage": "await client.messages.unpin_message(id=123)"
+    "usage": "await client.messages.unpin_message(id=194275)"
   },
   "LinkPreviewOperations_createLinkPreviews": {
-    "usage": "request = LinkPreviewsRequest(\n    link_previews={\"key\": LinkPreview(\n        title=\"example\",\n        description=\"example\",\n        image_url=\"example\",\n        image=LinkPreviewImage(\n            key=\"example\",\n            name=\"example\",\n            size=123\n        )\n    )}\n)\nawait client.link_previews.create_link_previews(id=123, request=request)",
+    "usage": "request = LinkPreviewsRequest(\n    link_previews={\"key\": LinkPreview(\n        title=\"Статья: Отправка файлов\",\n        description=\"Пример отправки файлов на удаленный сервер\",\n        image_url=\"https://website.com/img/landing.png\",\n        image=LinkPreviewImage(\n            key=\"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name=\"files-to-server.jpg\",\n            size=695604\n        )\n    )}\n)\nawait client.link_previews.create_link_previews(id=194275, request=request)",
     "imports": [
       "LinkPreview",
       "LinkPreviewImage",
@@ -214,38 +214,38 @@
     ]
   },
   "ReactionOperations_listReactions": {
-    "usage": "params = ListReactionsParams(limit=123, cursor=\"example\")\nresponse = await client.reactions.list_reactions(id=123, params=params)",
+    "usage": "params = ListReactionsParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.reactions.list_reactions(id=194275, params=params)",
     "output": "ListReactionsResponse(data: list[Reaction], meta: PaginationMeta | None)",
     "imports": [
       "ListReactionsParams"
     ]
   },
   "ReactionOperations_addReaction": {
-    "usage": "request = ReactionRequest(code=\"example\", name=\"example\")\nresponse = await client.reactions.add_reaction(id=123, request=request)",
+    "usage": "request = ReactionRequest(code=\"👍\", name=\":+1:\")\nresponse = await client.reactions.add_reaction(id=7231942, request=request)",
     "output": "Reaction(user_id: int, created_at: str, code: str, name: str | None)",
     "imports": [
       "ReactionRequest"
     ]
   },
   "ReactionOperations_removeReaction": {
-    "usage": "params = RemoveReactionParams(code=\"example\", name=\"example\")\nawait client.reactions.remove_reaction(id=123, params=params)",
+    "usage": "params = RemoveReactionParams(code=\"👍\", name=\":+1:\")\nawait client.reactions.remove_reaction(id=7231942, params=params)",
     "imports": [
       "RemoveReactionParams"
     ]
   },
   "ReadMemberOperations_listReadMembers": {
-    "usage": "params = ListReadMembersParams(limit=123, cursor=\"example\")\nresponse = await client.read_members.list_read_members(id=123, params=params)",
+    "usage": "params = ListReadMembersParams(limit=300, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.read_members.list_read_members(id=194275, params=params)",
     "output": "object",
     "imports": [
       "ListReadMembersParams"
     ]
   },
   "ThreadOperations_getThread": {
-    "usage": "response = await client.threads.get_thread(id=123)",
+    "usage": "response = await client.threads.get_thread(id=265142)",
     "output": "Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: str)"
   },
   "ThreadOperations_createThread": {
-    "usage": "response = await client.threads.create_thread(id=123)",
+    "usage": "response = await client.threads.create_thread(id=154332686)",
     "output": "Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: str)"
   },
   "OAuthOperations_getTokenInfo": {
@@ -261,7 +261,7 @@
     "output": "object"
   },
   "ProfileOperations_updateStatus": {
-    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"example\",\n        title=\"example\",\n        expires_at=\"2024-01-01T00:00:00Z\",\n        is_away=True,\n        away_message=\"example\"\n    )\n)\nresponse = await client.profile.update_status(request=request)",
+    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=\"2024-04-08T10:00:00.000Z\",\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.profile.update_status(request=request)",
     "output": "UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)",
     "imports": [
       "StatusUpdateRequest",
@@ -272,7 +272,7 @@
     "usage": "await client.profile.delete_status()"
   },
   "SearchOperations_searchChats": {
-    "usage": "params = SearchChatsParams(\n    query=\"example\",\n    limit=123,\n    cursor=\"example\",\n    order=SortOrder.ASC,\n    created_from=\"2024-01-01T00:00:00Z\",\n    created_to=\"2024-01-01T00:00:00Z\",\n    active=True,\n    chat_subtype=ChatSubtype.DISCUSSION,\n    personal=True\n)\nresponse = await client.search.search_chats(params=params)",
+    "usage": "params = SearchChatsParams(\n    query=\"Разработка\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    order=SortOrder.DESC,\n    created_from=\"2025-01-01T00:00:00.000Z\",\n    created_to=\"2025-02-01T00:00:00.000Z\",\n    active=True,\n    chat_subtype=ChatSubtype.DISCUSSION,\n    personal=False\n)\nresponse = await client.search.search_chats(params=params)",
     "output": "SearchChatsResponse(data: list[Chat], meta: SearchPaginationMeta)",
     "imports": [
       "ChatSubtype",
@@ -281,7 +281,7 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "params = SearchMessagesParams(\n    query=\"example\",\n    limit=123,\n    cursor=\"example\",\n    order=SortOrder.ASC,\n    created_from=\"2024-01-01T00:00:00Z\",\n    created_to=\"2024-01-01T00:00:00Z\",\n    chat_ids=[123],\n    user_ids=[123],\n    active=True\n)\nresponse = await client.search.search_messages(params=params)",
+    "usage": "params = SearchMessagesParams(\n    query=\"футболки\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    order=SortOrder.DESC,\n    created_from=\"2025-01-01T00:00:00.000Z\",\n    created_to=\"2025-02-01T00:00:00.000Z\",\n    chat_ids=[123],\n    user_ids=[123],\n    active=True\n)\nresponse = await client.search.search_messages(params=params)",
     "output": "SearchMessagesResponse(data: list[Message], meta: SearchPaginationMeta)",
     "imports": [
       "SearchMessagesParams",
@@ -289,7 +289,7 @@
     ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "params = SearchUsersParams(\n    query=\"example\",\n    limit=123,\n    cursor=\"example\",\n    sort=SearchSortOrder.BY_SCORE,\n    order=SortOrder.ASC,\n    created_from=\"2024-01-01T00:00:00Z\",\n    created_to=\"2024-01-01T00:00:00Z\",\n    company_roles=[UserRole.ADMIN]\n)\nresponse = await client.search.search_users(params=params)",
+    "usage": "params = SearchUsersParams(\n    query=\"Олег\",\n    limit=10,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\",\n    sort=SearchSortOrder.BY_SCORE,\n    order=SortOrder.DESC,\n    created_from=\"2025-01-01T00:00:00.000Z\",\n    created_to=\"2025-02-01T00:00:00.000Z\",\n    company_roles=[UserRole.ADMIN]\n)\nresponse = await client.search.search_users(params=params)",
     "output": "SearchUsersResponse(data: list[User], meta: SearchPaginationMeta)",
     "imports": [
       "SearchSortOrder",
@@ -299,18 +299,18 @@
     ]
   },
   "TaskOperations_listTasks": {
-    "usage": "params = ListTasksParams(limit=123, cursor=\"example\")\nresponse = await client.tasks.list_tasks(params=params)",
+    "usage": "params = ListTasksParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.tasks.list_tasks(params=params)",
     "output": "ListTasksResponse(data: list[Task], meta: PaginationMeta | None)",
     "imports": [
       "ListTasksParams"
     ]
   },
   "TaskOperations_getTask": {
-    "usage": "response = await client.tasks.get_task(id=123)",
+    "usage": "response = await client.tasks.get_task(id=22283)",
     "output": "Task(id: int, kind: TaskKind, content: str, due_at: str | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: str, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])"
   },
   "TaskOperations_createTask": {
-    "usage": "request = TaskCreateRequest(\n    task=TaskCreateRequestTask(\n        kind=TaskKind.CALL,\n        content=\"example\",\n        due_at=\"2024-01-01T00:00:00Z\",\n        priority=123,\n        performer_ids=[123],\n        chat_id=123,\n        all_day=True,\n        custom_properties=[TaskCreateRequestCustomProperty(id=123, value=\"example\")]\n    )\n)\nresponse = await client.tasks.create_task(request=request)",
+    "usage": "request = TaskCreateRequest(\n    task=TaskCreateRequestTask(\n        kind=TaskKind.REMINDER,\n        content=\"Забрать со склада 21 заказ\",\n        due_at=\"2020-06-05T12:00:00.000+03:00\",\n        priority=2,\n        performer_ids=[123],\n        chat_id=456,\n        all_day=False,\n        custom_properties=[TaskCreateRequestCustomProperty(id=78, value=\"Синий склад\")]\n    )\n)\nresponse = await client.tasks.create_task(request=request)",
     "output": "Task(id: int, kind: TaskKind, content: str, due_at: str | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: str, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])",
     "imports": [
       "TaskCreateRequest",
@@ -320,7 +320,7 @@
     ]
   },
   "TaskOperations_updateTask": {
-    "usage": "request = TaskUpdateRequest(\n    task=TaskUpdateRequestTask(\n        kind=TaskKind.CALL,\n        content=\"example\",\n        due_at=\"2024-01-01T00:00:00Z\",\n        priority=123,\n        performer_ids=[123],\n        status=TaskStatus.DONE,\n        all_day=True,\n        done_at=\"2024-01-01T00:00:00Z\",\n        custom_properties=[TaskUpdateRequestCustomProperty(id=123, value=\"example\")]\n    )\n)\nresponse = await client.tasks.update_task(id=123, request=request)",
+    "usage": "request = TaskUpdateRequest(\n    task=TaskUpdateRequestTask(\n        kind=TaskKind.REMINDER,\n        content=\"Забрать со склада 21 заказ\",\n        due_at=\"2020-06-05T12:00:00.000+03:00\",\n        priority=2,\n        performer_ids=[123],\n        status=TaskStatus.DONE,\n        all_day=False,\n        done_at=\"2020-06-05T12:00:00.000Z\",\n        custom_properties=[TaskUpdateRequestCustomProperty(id=78, value=\"Синий склад\")]\n    )\n)\nresponse = await client.tasks.update_task(id=22283, request=request)",
     "output": "Task(id: int, kind: TaskKind, content: str, due_at: str | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: str, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])",
     "imports": [
       "TaskKind",
@@ -331,25 +331,25 @@
     ]
   },
   "TaskOperations_deleteTask": {
-    "usage": "await client.tasks.delete_task(id=123)"
+    "usage": "await client.tasks.delete_task(id=22283)"
   },
   "UserOperations_listUsers": {
-    "usage": "params = ListUsersParams(\n    query=\"example\",\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.users.list_users(params=params)",
+    "usage": "params = ListUsersParams(\n    query=\"Олег\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.users.list_users(params=params)",
     "output": "ListUsersResponse(data: list[User], meta: PaginationMeta | None)",
     "imports": [
       "ListUsersParams"
     ]
   },
   "UserOperations_getUser": {
-    "usage": "response = await client.users.get_user(id=123)",
+    "usage": "response = await client.users.get_user(id=12)",
     "output": "User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: str, last_activity_at: str, time_zone: str, image_url: str | None)"
   },
   "UserStatusOperations_getUserStatus": {
-    "usage": "response = await client.users.get_user_status(user_id=123)",
+    "usage": "response = await client.users.get_user_status(user_id=12)",
     "output": "object"
   },
   "UserOperations_createUser": {
-    "usage": "request = UserCreateRequest(\n    user=UserCreateRequestUser(\n        first_name=\"example\",\n        last_name=\"example\",\n        email=\"example\",\n        phone_number=\"example\",\n        nickname=\"example\",\n        department=\"example\",\n        title=\"example\",\n        role=UserRole.ADMIN,\n        suspended=True,\n        list_tags=[\"example\"],\n        custom_properties=[UserCreateRequestCustomProperty(id=123, value=\"example\")]\n    ),\n    skip_email_notify=True\n)\nresponse = await client.users.create_user(request=request)",
+    "usage": "request = UserCreateRequest(\n    user=UserCreateRequestUser(\n        first_name=\"Олег\",\n        last_name=\"Петров\",\n        email=\"olegp@example.com\",\n        phone_number=\"+79001234567\",\n        nickname=\"olegpetrov\",\n        department=\"Продукт\",\n        title=\"CIO\",\n        role=UserRole.USER,\n        suspended=False,\n        list_tags=[\"example\"],\n        custom_properties=[UserCreateRequestCustomProperty(id=1678, value=\"Санкт-Петербург\")]\n    ),\n    skip_email_notify=True\n)\nresponse = await client.users.create_user(request=request)",
     "output": "User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: str, last_activity_at: str, time_zone: str, image_url: str | None)",
     "imports": [
       "UserCreateRequest",
@@ -359,7 +359,7 @@
     ]
   },
   "UserOperations_updateUser": {
-    "usage": "request = UserUpdateRequest(\n    user=UserUpdateRequestUser(\n        first_name=\"example\",\n        last_name=\"example\",\n        email=\"example\",\n        phone_number=\"example\",\n        nickname=\"example\",\n        department=\"example\",\n        title=\"example\",\n        role=UserRole.ADMIN,\n        suspended=True,\n        list_tags=[\"example\"],\n        custom_properties=[UserUpdateRequestCustomProperty(id=123, value=\"example\")]\n    )\n)\nresponse = await client.users.update_user(id=123, request=request)",
+    "usage": "request = UserUpdateRequest(\n    user=UserUpdateRequestUser(\n        first_name=\"Олег\",\n        last_name=\"Петров\",\n        email=\"olegpetrov@example.com\",\n        phone_number=\"+79001234567\",\n        nickname=\"olegpetrov\",\n        department=\"Отдел разработки\",\n        title=\"Старший разработчик\",\n        role=UserRole.USER,\n        suspended=False,\n        list_tags=[\"example\"],\n        custom_properties=[UserUpdateRequestCustomProperty(id=1678, value=\"Санкт-Петербург\")]\n    )\n)\nresponse = await client.users.update_user(id=12, request=request)",
     "output": "User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: str, last_activity_at: str, time_zone: str, image_url: str | None)",
     "imports": [
       "UserRole",
@@ -369,7 +369,7 @@
     ]
   },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"example\",\n        title=\"example\",\n        expires_at=\"2024-01-01T00:00:00Z\",\n        is_away=True,\n        away_message=\"example\"\n    )\n)\nresponse = await client.users.update_user_status(user_id=123, request=request)",
+    "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=\"2024-04-08T10:00:00.000Z\",\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.users.update_user_status(user_id=12, request=request)",
     "output": "UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)",
     "imports": [
       "StatusUpdateRequest",
@@ -377,13 +377,13 @@
     ]
   },
   "UserOperations_deleteUser": {
-    "usage": "await client.users.delete_user(id=123)"
+    "usage": "await client.users.delete_user(id=12)"
   },
   "UserStatusOperations_deleteUserStatus": {
-    "usage": "await client.users.delete_user_status(user_id=123)"
+    "usage": "await client.users.delete_user_status(user_id=12)"
   },
   "FormOperations_openView": {
-    "usage": "request = OpenViewRequest(\n    type=\"modal\",\n    trigger_id=\"example\",\n    private_metadata=\"example\",\n    callback_id=\"example\",\n    view=OpenViewRequestView(\n        title=\"example\",\n        close_text=\"example\",\n        submit_text=\"example\",\n        blocks=[ViewBlockHeader(type=\"header\", text=\"example\")]\n    )\n)\nawait client.views.open_view(request=request)",
+    "usage": "request = OpenViewRequest(\n    type=\"modal\",\n    trigger_id=\"791a056b-006c-49dd-834b-c633fde52fe8\",\n    private_metadata=\"{\\\"timeoff_id\\\":4378}\",\n    callback_id=\"timeoff_reguest_form\",\n    view=OpenViewRequestView(\n        title=\"Уведомление об отпуске\",\n        close_text=\"Закрыть\",\n        submit_text=\"Отправить заявку\",\n        blocks=[ViewBlockHeader(type=\"header\", text=\"Основная информация\")]\n    )\n)\nawait client.views.open_view(request=request)",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

@@ -77,12 +77,12 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
     nearestAlternatives: [
       {
         name: 'pachca-profile',
-        text: 'мой профиль, мой статус',
+        text: 'получить профиль, мой профиль, установить свой статус',
       },
       'pachca-chats',
       {
         name: 'pachca-search',
-        text: 'найди сотрудника по имени, полнотекстовый поиск',
+        text: 'найти сообщение по тексту, полнотекстовый поиск',
       },
     ],
   },
@@ -109,7 +109,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'pachca-users',
       {
         name: 'pachca-search',
-        text: 'full-text search for chats by name with filters',
+        text: 'полнотекстовый поиск чатов по названию',
       },
     ],
     guides: ['export'],
@@ -148,7 +148,7 @@ export const SKILL_TAG_MAP: SkillConfig[] = [
       'pachca-chats',
       'pachca-bots',
       'pachca-forms',
-      { name: 'pachca-search', text: 'find message by text, full-text search' },
+      { name: 'pachca-search', text: 'найти сообщение по тексту, полнотекстовый поиск' },
     ],
   },
   {

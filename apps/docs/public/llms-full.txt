@@ -63,7 +63,7 @@
 | Язык | Пакет | Установка |
 |------|-------|----------|
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
-| Python | `pachca` | `pip install pachca` |
+| Python | `pachca-sdk` | `pip install pachca-sdk` |
 | Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
 | Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.0")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
@@ -4387,12 +4387,12 @@ const allUsers = await pachca.users.listUsersAll();
 
 ## Python
 
-<PackageBadge name="pachca" href="https://pypi.org/project/pachca/" />
+<PackageBadge name="pachca-sdk" href="https://pypi.org/project/pachca-sdk/" />
 
 Установите пакет из PyPI:
 
 ```bash
-pip install pachca
+pip install pachca-sdk
 ```
 
 ```python

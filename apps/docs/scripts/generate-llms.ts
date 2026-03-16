@@ -72,7 +72,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += '| Язык | Пакет | Установка |\n';
   content += '|------|-------|----------|\n';
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
-  content += '| Python | `pachca` | `pip install pachca` |\n';
+  content += '| Python | `pachca-sdk` | `pip install pachca-sdk` |\n';
   content +=
     '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.0")` |\n';
@@ -150,7 +150,7 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content += '| Язык | Пакет | Установка |\n';
   content += '|------|-------|----------|\n';
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
-  content += '| Python | `pachca` | `pip install pachca` |\n';
+  content += '| Python | `pachca-sdk` | `pip install pachca-sdk` |\n';
   content +=
     '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.0")` |\n';

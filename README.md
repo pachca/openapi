@@ -3,7 +3,7 @@
 [![CI](https://github.com/pachca/openapi/actions/workflows/check.yml/badge.svg)](https://github.com/pachca/openapi/actions/workflows/check.yml)
 [![npm](https://img.shields.io/npm/v/@pachca/sdk)](https://www.npmjs.com/package/@pachca/sdk)
 [![npm](https://img.shields.io/npm/v/@pachca/cli)](https://www.npmjs.com/package/@pachca/cli)
-[![PyPI](https://img.shields.io/pypi/v/pachca)](https://pypi.org/project/pachca/)
+[![PyPI](https://img.shields.io/pypi/v/pachca-sdk)](https://pypi.org/project/pachca-sdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec + workflows.ts) генерирует артефакты для всех каналов: web docs, CLI, SDK, agent skills, LLM context.

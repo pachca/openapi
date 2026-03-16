@@ -55,6 +55,7 @@ export interface RequestOptions {
   headers?: Record<string, string>;
   timeout?: number;
   noRetry?: boolean;
+  noAuth?: boolean;
   isRedirect?: boolean;
   formData?: FormData;
 }
@@ -72,7 +73,10 @@ const MAX_RETRIES = 3;
 const DEFAULT_TIMEOUT = 30;
 
 function buildUrl(apiPath: string, query?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(apiPath.startsWith('/') ? `${getBaseUrl()}${apiPath}` : `${getBaseUrl()}/${apiPath}`);
+  const base = apiPath.startsWith('http://') || apiPath.startsWith('https://')
+    ? apiPath
+    : apiPath.startsWith('/') ? `${getBaseUrl()}${apiPath}` : `${getBaseUrl()}/${apiPath}`;
+  const url = new URL(base);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined) {
@@ -127,7 +131,7 @@ export async function request(
   const noRetry = opts.noRetry ?? clientFlags?.['no-retry'] ?? false;
 
   const fetchHeaders: Record<string, string> = {
-    Authorization: `Bearer ${opts.token}`,
+    ...(opts.noAuth ? {} : { Authorization: `Bearer ${opts.token}` }),
     Accept: 'application/json',
     ...opts.headers,
   };

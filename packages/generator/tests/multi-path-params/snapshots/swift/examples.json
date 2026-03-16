@@ -1,0 +1,20 @@
+{
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+  },
+  "TaskOperations_getTask": {
+    "usage": "let response = try await client.tasks.getTask(projectId: 123, taskId: 123)",
+    "output": "Task(id: Int, title: String, isDone: Bool?)"
+  },
+  "TaskOperations_updateTask": {
+    "usage": "let body = TaskUpdateRequest(task: TaskUpdateRequestTask(title: \"example\", isDone: true))\nlet response = try await client.tasks.updateTask(projectId: 123, taskId: 123, body: body)",
+    "output": "Task(id: Int, title: String, isDone: Bool?)",
+    "imports": [
+      "TaskUpdateRequest",
+      "TaskUpdateRequestTask"
+    ]
+  },
+  "TaskOperations_deleteComment": {
+    "usage": "try await client.tasks.deleteComment(projectId: 123, taskId: 123, commentId: 123)"
+  }
+}

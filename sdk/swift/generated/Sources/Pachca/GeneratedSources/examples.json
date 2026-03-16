@@ -1,0 +1,363 @@
+{
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+  },
+  "SecurityOperations_getAuditEvents": {
+    "usage": "let response = try await client.security.getAuditEvents(startTime: \"2024-01-01T00:00:00Z\", endTime: \"2024-01-01T00:00:00Z\", eventKey: .userLogin, actorId: \"example\", actorType: \"example\", entityId: \"example\", entityType: \"example\", limit: 123, cursor: \"example\")",
+    "output": "GetAuditEventsResponse(data: [AuditEvent], meta: PaginationMeta?)",
+    "imports": [
+      "AuditEventKey"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "let response = try await client.bots.getWebhookEvents(limit: 123, cursor: \"example\")",
+    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta?)"
+  },
+  "BotOperations_updateBot": {
+    "usage": "let body = BotUpdateRequest(bot: BotUpdateRequestBot(webhook: BotUpdateRequestBotWebhook(outgoingUrl: \"example\")))\nlet response = try await client.bots.updateBot(id: 123, body: body)",
+    "output": "BotResponse(id: Int, webhook: BotResponseWebhook(outgoingUrl: String))",
+    "imports": [
+      "BotUpdateRequest",
+      "BotUpdateRequestBot",
+      "BotUpdateRequestBotWebhook"
+    ]
+  },
+  "BotOperations_deleteWebhookEvent": {
+    "usage": "try await client.bots.deleteWebhookEvent(id: \"example\")"
+  },
+  "ChatOperations_listChats": {
+    "usage": "let response = try await client.chats.listChats(sortId: .asc, availability: .isMember, lastMessageAtAfter: \"2024-01-01T00:00:00Z\", lastMessageAtBefore: \"2024-01-01T00:00:00Z\", personal: true, limit: 123, cursor: \"example\")",
+    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta?)",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "let response = try await client.chats.getChat(id: 123)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"example\",\n        memberIds: [123],\n        groupTagIds: [123],\n        channel: true,\n        `public`: true\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "let body = ChatUpdateRequest(chat: ChatUpdateRequestChat(name: \"example\", `public`: true))\nlet response = try await client.chats.updateChat(id: 123, body: body)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "try await client.chats.archiveChat(id: 123)"
+  },
+  "ChatOperations_unarchiveChat": {
+    "usage": "try await client.chats.unarchiveChat(id: 123)"
+  },
+  "ExportOperations_downloadExport": {
+    "usage": "let response = try await client.common.downloadExport(id: 123)",
+    "output": "String"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "let response = try await client.common.listProperties(entityType: .User)",
+    "output": "ListPropertiesResponse(data: [CustomPropertyDefinition])",
+    "imports": [
+      "SearchEntityType"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "let body = ExportRequest(\n    startAt: \"2024-01-01\",\n    endAt: \"2024-01-01\",\n    webhookUrl: \"example\",\n    chatIds: [123],\n    skipChatsFile: true\n)\ntry await client.common.requestExport(body: body)",
+    "imports": [
+      "ExportRequest"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "let body = FileUploadRequest(\n    ContentDisposition: \"example\",\n    acl: \"example\",\n    policy: \"example\",\n    xAmzCredential: \"example\",\n    xAmzAlgorithm: \"example\",\n    xAmzDate: \"example\",\n    xAmzSignature: \"example\",\n    key: \"example\",\n    file: Data()\n)\ntry await client.common.uploadFile(directUrl: \"https://example.com\", body: body)",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "let response = try await client.common.getUploadParams()",
+    "output": "UploadParams(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
+  },
+  "ChatMemberOperations_listMembers": {
+    "usage": "let response = try await client.members.listMembers(id: 123, role: .all, limit: 123, cursor: \"example\")",
+    "output": "ListMembersResponse(data: [User], meta: PaginationMeta?)",
+    "imports": [
+      "ChatMemberRoleFilter"
+    ]
+  },
+  "ChatMemberOperations_addTags": {
+    "usage": "let groupTagIds = [123]\ntry await client.members.addTags(id: 123, groupTagIds: groupTagIds)"
+  },
+  "ChatMemberOperations_addMembers": {
+    "usage": "let body = AddMembersRequest(memberIds: [123], silent: true)\ntry await client.members.addMembers(id: 123, body: body)",
+    "imports": [
+      "AddMembersRequest"
+    ]
+  },
+  "ChatMemberOperations_updateMemberRole": {
+    "usage": "try await client.members.updateMemberRole(id: 123, userId: 123, role: .admin)",
+    "imports": [
+      "ChatMemberRole"
+    ]
+  },
+  "ChatMemberOperations_removeTag": {
+    "usage": "try await client.members.removeTag(id: 123, tagId: 123)"
+  },
+  "ChatMemberOperations_leaveChat": {
+    "usage": "try await client.members.leaveChat(id: 123)"
+  },
+  "ChatMemberOperations_removeMember": {
+    "usage": "try await client.members.removeMember(id: 123, userId: 123)"
+  },
+  "GroupTagOperations_listTags": {
+    "usage": "let names = TagNamesFilter()\nlet response = try await client.groupTags.listTags(names: names, limit: 123, cursor: \"example\")",
+    "output": "ListTagsResponse(data: [GroupTag], meta: PaginationMeta?)",
+    "imports": [
+      "TagNamesFilter"
+    ]
+  },
+  "GroupTagOperations_getTag": {
+    "usage": "let response = try await client.groupTags.getTag(id: 123)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)"
+  },
+  "GroupTagOperations_getTagUsers": {
+    "usage": "let response = try await client.groupTags.getTagUsers(id: 123, limit: 123, cursor: \"example\")",
+    "output": "GetTagUsersResponse(data: [User], meta: PaginationMeta?)"
+  },
+  "GroupTagOperations_createTag": {
+    "usage": "let body = GroupTagRequest(groupTag: GroupTagRequestGroupTag(name: \"example\"))\nlet response = try await client.groupTags.createTag(body: body)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_updateTag": {
+    "usage": "let body = GroupTagRequest(groupTag: GroupTagRequestGroupTag(name: \"example\"))\nlet response = try await client.groupTags.updateTag(id: 123, body: body)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_deleteTag": {
+    "usage": "try await client.groupTags.deleteTag(id: 123)"
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "let response = try await client.messages.listChatMessages(chatId: 123, sortId: .asc, limit: 123, cursor: \"example\")",
+    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta?)",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "let response = try await client.messages.getMessage(id: 123)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "let body = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 123,\n        content: \"example\",\n        files: [MessageCreateRequestFile(\n            key: \"example\",\n            name: \"example\",\n            fileType: .file,\n            size: 123,\n            width: 123,\n            height: 123\n        )],\n        buttons: [[Button(\n            text: \"example\",\n            url: \"example\",\n            data: \"example\"\n        )]],\n        parentMessageId: 123,\n        displayAvatarUrl: \"example\",\n        displayName: \"example\",\n        skipInviteMentions: true,\n        linkPreview: true\n    )\n)\nlet response = try await client.messages.createMessage(body: body)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "imports": [
+      "Button",
+      "FileType",
+      "MessageCreateRequest",
+      "MessageCreateRequestFile",
+      "MessageCreateRequestMessage",
+      "MessageEntityType"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "try await client.messages.pinMessage(id: 123)"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "let body = MessageUpdateRequest(\n    message: MessageUpdateRequestMessage(\n        content: \"example\",\n        files: [MessageUpdateRequestFile(\n            key: \"example\",\n            name: \"example\",\n            fileType: \"example\",\n            size: 123,\n            width: 123,\n            height: 123\n        )],\n        buttons: [[Button(\n            text: \"example\",\n            url: \"example\",\n            data: \"example\"\n        )]],\n        displayAvatarUrl: \"example\",\n        displayName: \"example\"\n    )\n)\nlet response = try await client.messages.updateMessage(id: 123, body: body)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestFile",
+      "MessageUpdateRequestMessage"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "try await client.messages.deleteMessage(id: 123)"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "try await client.messages.unpinMessage(id: 123)"
+  },
+  "LinkPreviewOperations_createLinkPreviews": {
+    "usage": "let body = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"example\",\n        description: \"example\",\n        imageUrl: \"example\",\n        image: LinkPreviewImage(\n            key: \"example\",\n            name: \"example\",\n            size: 123\n        )\n    )]\n)\ntry await client.linkPreviews.createLinkPreviews(id: 123, body: body)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "ReactionOperations_listReactions": {
+    "usage": "let response = try await client.reactions.listReactions(id: 123, limit: 123, cursor: \"example\")",
+    "output": "ListReactionsResponse(data: [Reaction], meta: PaginationMeta?)"
+  },
+  "ReactionOperations_addReaction": {
+    "usage": "let body = ReactionRequest(code: \"example\", name: \"example\")\nlet response = try await client.reactions.addReaction(id: 123, body: body)",
+    "output": "Reaction(userId: Int, createdAt: String, code: String, name: String?)",
+    "imports": [
+      "ReactionRequest"
+    ]
+  },
+  "ReactionOperations_removeReaction": {
+    "usage": "try await client.reactions.removeReaction(id: 123, code: \"example\", name: \"example\")"
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "let response = try await client.readMembers.listReadMembers(id: 123, limit: 123, cursor: \"example\")",
+    "output": "String"
+  },
+  "ThreadOperations_getThread": {
+    "usage": "let response = try await client.threads.getThread(id: 123)",
+    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
+  },
+  "ThreadOperations_createThread": {
+    "usage": "let response = try await client.threads.createThread(id: 123)",
+    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
+  },
+  "OAuthOperations_getTokenInfo": {
+    "usage": "let response = try await client.profile.getTokenInfo()",
+    "output": "AccessTokenInfo(id: Int64, token: String, name: String?, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?)"
+  },
+  "ProfileOperations_getProfile": {
+    "usage": "let response = try await client.profile.getProfile()",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+  },
+  "ProfileOperations_getStatus": {
+    "usage": "let response = try await client.profile.getStatus()",
+    "output": "String"
+  },
+  "ProfileOperations_updateStatus": {
+    "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"example\",\n        title: \"example\",\n        expiresAt: \"2024-01-01T00:00:00Z\",\n        isAway: true,\n        awayMessage: \"example\"\n    )\n)\nlet response = try await client.profile.updateStatus(body: body)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "ProfileOperations_deleteStatus": {
+    "usage": "try await client.profile.deleteStatus()"
+  },
+  "SearchOperations_searchChats": {
+    "usage": "let response = try await client.search.searchChats(query: \"example\", limit: 123, cursor: \"example\", order: .asc, createdFrom: \"2024-01-01T00:00:00Z\", createdTo: \"2024-01-01T00:00:00Z\", active: true, chatSubtype: .discussion, personal: true)",
+    "output": "SearchChatsResponse(data: [Chat], meta: SearchPaginationMeta)",
+    "imports": [
+      "ChatSubtype",
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "let chatIds = [123]\nlet userIds = [123]\nlet response = try await client.search.searchMessages(query: \"example\", limit: 123, cursor: \"example\", order: .asc, createdFrom: \"2024-01-01T00:00:00Z\", createdTo: \"2024-01-01T00:00:00Z\", chatIds: chatIds, userIds: userIds, active: true)",
+    "output": "SearchMessagesResponse(data: [Message], meta: SearchPaginationMeta)",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchUsers": {
+    "usage": "let companyRoles = [.admin]\nlet response = try await client.search.searchUsers(query: \"example\", limit: 123, cursor: \"example\", sort: .byScore, order: .asc, createdFrom: \"2024-01-01T00:00:00Z\", createdTo: \"2024-01-01T00:00:00Z\", companyRoles: companyRoles)",
+    "output": "SearchUsersResponse(data: [User], meta: SearchPaginationMeta)",
+    "imports": [
+      "SearchSortOrder",
+      "SortOrder",
+      "UserRole"
+    ]
+  },
+  "TaskOperations_listTasks": {
+    "usage": "let response = try await client.tasks.listTasks(limit: 123, cursor: \"example\")",
+    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta?)"
+  },
+  "TaskOperations_getTask": {
+    "usage": "let response = try await client.tasks.getTask(id: 123)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])"
+  },
+  "TaskOperations_createTask": {
+    "usage": "let body = TaskCreateRequest(\n    task: TaskCreateRequestTask(\n        kind: .call,\n        content: \"example\",\n        dueAt: \"2024-01-01T00:00:00Z\",\n        priority: 123,\n        performerIds: [123],\n        chatId: 123,\n        allDay: true,\n        customProperties: [TaskCreateRequestCustomProperty(id: 123, value: \"example\")]\n    )\n)\nlet response = try await client.tasks.createTask(body: body)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])",
+    "imports": [
+      "TaskCreateRequest",
+      "TaskCreateRequestCustomProperty",
+      "TaskCreateRequestTask",
+      "TaskKind"
+    ]
+  },
+  "TaskOperations_updateTask": {
+    "usage": "let body = TaskUpdateRequest(\n    task: TaskUpdateRequestTask(\n        kind: .call,\n        content: \"example\",\n        dueAt: \"2024-01-01T00:00:00Z\",\n        priority: 123,\n        performerIds: [123],\n        status: .done,\n        allDay: true,\n        doneAt: \"2024-01-01T00:00:00Z\",\n        customProperties: [TaskUpdateRequestCustomProperty(id: 123, value: \"example\")]\n    )\n)\nlet response = try await client.tasks.updateTask(id: 123, body: body)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])",
+    "imports": [
+      "TaskKind",
+      "TaskStatus",
+      "TaskUpdateRequest",
+      "TaskUpdateRequestCustomProperty",
+      "TaskUpdateRequestTask"
+    ]
+  },
+  "TaskOperations_deleteTask": {
+    "usage": "try await client.tasks.deleteTask(id: 123)"
+  },
+  "UserOperations_listUsers": {
+    "usage": "let response = try await client.users.listUsers(query: \"example\", limit: 123, cursor: \"example\")",
+    "output": "ListUsersResponse(data: [User], meta: PaginationMeta?)"
+  },
+  "UserOperations_getUser": {
+    "usage": "let response = try await client.users.getUser(id: 123)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+  },
+  "UserStatusOperations_getUserStatus": {
+    "usage": "let response = try await client.users.getUserStatus(userId: 123)",
+    "output": "String"
+  },
+  "UserOperations_createUser": {
+    "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"example\",\n        lastName: \"example\",\n        email: \"example\",\n        phoneNumber: \"example\",\n        nickname: \"example\",\n        department: \"example\",\n        title: \"example\",\n        role: .admin,\n        suspended: true,\n        listTags: [\"example\"],\n        customProperties: [UserCreateRequestCustomProperty(id: 123, value: \"example\")]\n    ),\n    skipEmailNotify: true\n)\nlet response = try await client.users.createUser(body: body)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "imports": [
+      "UserCreateRequest",
+      "UserCreateRequestCustomProperty",
+      "UserCreateRequestUser",
+      "UserRole"
+    ]
+  },
+  "UserOperations_updateUser": {
+    "usage": "let body = UserUpdateRequest(\n    user: UserUpdateRequestUser(\n        firstName: \"example\",\n        lastName: \"example\",\n        email: \"example\",\n        phoneNumber: \"example\",\n        nickname: \"example\",\n        department: \"example\",\n        title: \"example\",\n        role: .admin,\n        suspended: true,\n        listTags: [\"example\"],\n        customProperties: [UserUpdateRequestCustomProperty(id: 123, value: \"example\")]\n    )\n)\nlet response = try await client.users.updateUser(id: 123, body: body)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "imports": [
+      "UserRole",
+      "UserUpdateRequest",
+      "UserUpdateRequestCustomProperty",
+      "UserUpdateRequestUser"
+    ]
+  },
+  "UserStatusOperations_updateUserStatus": {
+    "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"example\",\n        title: \"example\",\n        expiresAt: \"2024-01-01T00:00:00Z\",\n        isAway: true,\n        awayMessage: \"example\"\n    )\n)\nlet response = try await client.users.updateUserStatus(userId: 123, body: body)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "UserOperations_deleteUser": {
+    "usage": "try await client.users.deleteUser(id: 123)"
+  },
+  "UserStatusOperations_deleteUserStatus": {
+    "usage": "try await client.users.deleteUserStatus(userId: 123)"
+  },
+  "FormOperations_openView": {
+    "usage": "let body = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"example\",\n    privateMetadata: \"example\",\n    callbackId: \"example\",\n    view: OpenViewRequestView(\n        title: \"example\",\n        closeText: \"example\",\n        submitText: \"example\",\n        blocks: [ViewBlockHeader(type: \"header\", text: \"example\")]\n    )\n)\ntry await client.views.openView(body: body)",
+    "imports": [
+      "OpenViewRequest",
+      "OpenViewRequestView",
+      "ViewBlockUnion"
+    ]
+  }
+}

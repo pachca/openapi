@@ -14,7 +14,8 @@
 ## Пример запроса
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/direct_url" \
+# URL получается из ответа POST /uploads (поле direct_url)
+curl "$DIRECT_URL" \
   -F "Content-Disposition=attachment" \
   -F "acl=private" \
   -F "policy=eyJloNBpcmF0aW9u..." \

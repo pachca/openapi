@@ -5,6 +5,7 @@ import { List } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import gsap from 'gsap';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+import { getScrollOffset } from '@/lib/utils/scroll-offset';
 import { usePathname } from 'next/navigation';
 import { useToc } from './use-toc';
 
@@ -53,7 +54,8 @@ export function MobileTableOfContents() {
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
-      const targetScrollTop = element.getBoundingClientRect().top + window.scrollY - 80;
+      const targetScrollTop =
+        element.getBoundingClientRect().top + window.scrollY - getScrollOffset();
       gsap.to(window, {
         duration: 0.2,
         scrollTo: { y: targetScrollTop },

@@ -72,7 +72,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += '| Язык | Пакет | Установка |\n';
   content += '|------|-------|----------|\n';
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
-  content += '| Python | `pachca` | `pip install pachca` |\n';
+  content += '| Python | `pachca-sdk` | `pip install pachca-sdk` |\n';
   content +=
     '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |\n';
@@ -150,7 +150,7 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content += '| Язык | Пакет | Установка |\n';
   content += '|------|-------|----------|\n';
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
-  content += '| Python | `pachca` | `pip install pachca` |\n';
+  content += '| Python | `pachca-sdk` | `pip install pachca-sdk` |\n';
   content +=
     '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |\n';
@@ -466,7 +466,6 @@ function generateScenariosJson() {
   return {
     $schema: 'https://dev.pachca.com/scenarios.schema.json',
     version: '1.0',
-    generated: new Date().toISOString(),
     scenarios,
   };
 }
@@ -634,10 +633,13 @@ async function generateGuideMdFiles() {
 
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
+const UTF8_BOM = '\uFEFF';
+
 function writeFile(filePath: string, content: string) {
   const fullPath = path.join(process.cwd(), filePath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  fs.writeFileSync(fullPath, content, 'utf-8');
+  const data = filePath.endsWith('.txt') ? UTF8_BOM + content : content;
+  fs.writeFileSync(fullPath, data, 'utf-8');
 }
 
 function writeFileFromRoot(filePath: string, content: string) {

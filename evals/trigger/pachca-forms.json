@@ -1,0 +1,16 @@
+[
+  {"query": "Покажи пользователю 42 форму с полями 'Тема' и 'Описание бага'", "should_trigger": true, "note": "core: show form to user"},
+  {"query": "Create an interactive form with a dropdown for priority (Low, Medium, High)", "should_trigger": true, "note": "core: create interactive form (English)"},
+  {"query": "Обработай отправку формы view_submission и сохрани данные", "should_trigger": true, "note": "core: handle form submission"},
+  {"query": "Добавь валидацию: поле 'Email' должно содержать @, иначе показать ошибку", "should_trigger": true, "note": "core: form field validation"},
+  {"query": "Сделай форму-опрос для сотрудников: оценка от 1 до 5 и комментарий", "should_trigger": true, "note": "core: survey form"},
+  {"query": "Открой модальное окно с формой заявки на отпуск при нажатии кнопки", "should_trigger": true, "note": "core: modal dialog / form trigger"},
+  {"query": "Как использовать trigger_id для показа формы после нажатия кнопки?", "should_trigger": true, "note": "core: trigger_id usage"},
+  {"query": "Собери форму заявки на доступ к VPN: ФИО, отдел, обоснование", "should_trigger": true, "note": "core: application form"},
+  {"query": "Отправь сообщение с кнопками 'Согласовать' и 'Отклонить' в чат 120", "should_trigger": false, "note": "boundary: message buttons belong to messages, not forms"},
+  {"query": "Настрой бота для обработки вебхуков из GitHub", "should_trigger": false, "note": "boundary: bots, not forms"},
+  {"query": "Как обработать callback от вебхука?", "should_trigger": false, "note": "boundary: bots/webhooks, not forms"},
+  {"query": "Создай приватный канал 'HR-заявки' для отдела кадров", "should_trigger": false, "note": "boundary: chats, not forms"},
+  {"query": "Найди все сообщения от пользователя Петров за последнюю неделю", "should_trigger": false, "note": "boundary: search, not forms"},
+  {"query": "Удали сообщение 901 из канала", "should_trigger": false, "note": "boundary: messages, not forms"}
+]

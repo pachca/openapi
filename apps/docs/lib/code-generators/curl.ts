@@ -18,7 +18,7 @@ export function generateCurl(
   options?: ExampleOptions
 ): string {
   const method = endpoint.method;
-  const url = resolveUrl(endpoint, baseUrl);
+  const url = endpoint.externalUrl ? '$DIRECT_URL' : resolveUrl(endpoint, baseUrl);
 
   // Determine if -X flag is needed:
   // - GET: omit (curl default)
@@ -27,10 +27,22 @@ export function generateCurl(
   const hasBodyData = endpoint.requestBody != null;
   const needsMethod = method !== 'GET' && !(method === 'POST' && hasBodyData);
 
+  const lines: string[] = [];
+
+  // Add comment for external URL endpoints
+  if (endpoint.externalUrl) {
+    lines.push('# URL получается из ответа POST /uploads (поле direct_url)');
+  }
+
+  // Add comment for paginated endpoints
+  if (endpoint.paginated) {
+    lines.push('# Для получения следующей страницы используйте cursor из meta.paginate.next_page');
+  }
+
   let curl = needsMethod ? `curl -X ${method} "${url}"` : `curl "${url}"`;
 
-  // Add authentication header
-  if (requiresAuth(endpoint)) {
+  // Add authentication header (skip for external URL endpoints)
+  if (requiresAuth(endpoint) && !endpoint.externalUrl) {
     curl += ` \\\n  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"`;
   }
 
@@ -63,10 +75,13 @@ export function generateCurl(
   }
 
   // Add query parameters if any
-  const qs = buildQueryString(endpoint);
+  const qs = buildQueryString(endpoint, endpoint.paginated ? ['cursor'] : undefined);
   if (qs) {
     curl = curl.replace(`"${url}"`, `"${url}?${qs}"`);
   }
 
+  if (lines.length > 0) {
+    return lines.join('\n') + '\n' + curl;
+  }
   return curl;
 }

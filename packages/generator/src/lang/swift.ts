@@ -10,7 +10,7 @@ import {
   type IRService,
   type IRUnion,
 } from '../ir.js';
-import type { GeneratedFile, LanguageGenerator } from './types.js';
+import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
 import { snakeToCamel, tagToProperty, tagToServiceName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
@@ -619,14 +619,275 @@ function generateUtils(ir: IR): string {
   return lines.join('\n');
 }
 
+// ── Examples ──────────────────────────────────────────────────────────
+
+function swiftLiteral(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+  indent: number = 0,
+): string {
+  switch (ft.kind) {
+    case 'primitive': {
+      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'Int64(123)' : '123';
+      if (ft.primitive === 'number') return '1.5';
+      if (ft.primitive === 'boolean') return 'true';
+      if (ft.primitive === 'any') return 'AnyCodable([:])';
+      if (ft.primitive === 'string') {
+        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date') return '"2024-01-01"';
+      }
+      return '"example"';
+    }
+    case 'enum': {
+      const e = ir.enums.find((en) => en.name === ft.ref);
+      if (e && e.members.length > 0) {
+        return `.${swiftIdentifier(e.members[0].value)}`;
+      }
+      return `${ft.ref ?? 'String'}`;
+    }
+    case 'model': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return swiftModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
+      return swiftModelLiteral(ft.ref ?? 'String', ir, models, visited, indent);
+    }
+    case 'array':
+      return `[${swiftLiteral(ft.items!, ir, models, visited, indent)}]`;
+    case 'record':
+      return `["key": ${swiftLiteral(ft.valueType!, ir, models, visited, indent)}]`;
+    case 'union': {
+      const u = ir.unions.find((un) => un.name === ft.ref);
+      if (u && u.memberRefs.length > 0) {
+        return swiftModelLiteral(u.memberRefs[0], ir, models, visited, indent);
+      }
+      return `${ft.ref ?? 'String'}`;
+    }
+    case 'literal':
+      return `"${ft.literalValue}"`;
+    case 'binary':
+      return 'Data()';
+  }
+}
+
+function swiftModelLiteral(
+  modelName: string,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+  indent: number = 0,
+): string {
+  if (visited.has(modelName)) return `${modelName}()`;
+  const model = models.get(modelName);
+  if (!model || model.fields.length === 0) return `${modelName}()`;
+
+  const nextVisited = new Set(visited);
+  nextVisited.add(modelName);
+
+  const isCyclic = (f: IRField) =>
+    f.type.kind === 'model' && f.type.ref != null && nextVisited.has(f.type.ref);
+  const fields = model.fields.filter(
+    (f) => (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
+  );
+  if (fields.length === 0) return `${modelName}()`;
+
+  const multiLine = fields.length > 2;
+  const childIndent = indent + 1;
+  const pad = '    '.repeat(childIndent);
+  const closePad = '    '.repeat(indent);
+
+  const entries = fields.map((f) => {
+    const name = swiftIdentifier(f.name);
+    const value = swiftLiteral(f.type, ir, models, nextVisited, childIndent);
+    return `${name}: ${value}`;
+  });
+
+  const hasMultiLineChild = entries.some((e) => e.includes('\n'));
+  if (multiLine || hasMultiLineChild) {
+    return `${modelName}(\n${entries.map((e) => `${pad}${e}`).join(',\n')}\n${closePad})`;
+  }
+  return `${modelName}(${entries.join(', ')})`;
+}
+
+function swiftFingerprint(
+  ft: IRFieldType,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string> = new Set(),
+): string {
+  switch (ft.kind) {
+    case 'primitive': {
+      if (ft.primitive === 'integer') return ft.format === 'int64' ? 'Int64' : 'Int';
+      if (ft.primitive === 'number') return 'Double';
+      if (ft.primitive === 'boolean') return 'Bool';
+      if (ft.primitive === 'any') return 'AnyCodable';
+      return 'String';
+    }
+    case 'enum':
+      return ft.ref ?? 'String';
+    case 'model': {
+      const model = models.get(ft.ref!);
+      if (!model || visited.has(ft.ref!)) return ft.ref ?? 'String';
+      return swiftModelFp(model, ir, models, visited);
+    }
+    case 'array':
+      return `[${swiftFingerprint(ft.items!, ir, models, visited)}]`;
+    case 'record':
+      return `[String: ${swiftFingerprint(ft.valueType!, ir, models, visited)}]`;
+    case 'union':
+      return ft.ref ?? 'String';
+    case 'literal':
+      return 'String';
+    case 'binary':
+      return 'Data';
+  }
+}
+
+function swiftModelFp(
+  model: IRModel,
+  ir: IR,
+  models: Map<string, IRModel>,
+  visited: Set<string>,
+): string {
+  const nextVisited = new Set(visited);
+  nextVisited.add(model.name);
+
+  const fields = model.fields.map((f) => {
+    const name = swiftIdentifier(f.name);
+    const type = swiftFingerprint(f.type, ir, models, nextVisited);
+    const opt = isOptionalField(f) ? '?' : '';
+    return `${name}: ${type}${opt}`;
+  });
+
+  return `${model.name}(${fields.join(', ')})`;
+}
+
+function swiftBuildOutputFingerprint(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+): string | null {
+  const resp = op.successResponse;
+  if (resp.isRedirect) return 'String';
+  if (!resp.hasBody) return null;
+
+  if (resp.isList && resp.responseRef) {
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
+    if (rt) {
+      const parts: string[] = [];
+      parts.push(`data: [${rt.dataRef}]`);
+      if (rt.metaRef) {
+        const opt = rt.metaIsRequired ? '' : '?';
+        parts.push(`meta: ${rt.metaRef}${opt}`);
+      }
+      return `${rt.name}(${parts.join(', ')})`;
+    }
+  }
+
+  if (resp.dataRef) {
+    const model = models.get(resp.dataRef);
+    if (model) return swiftModelFp(model, ir, models, new Set());
+    return resp.dataRef;
+  }
+
+  return 'String';
+}
+
+function swiftBuildOperationExample(
+  op: IROperation,
+  ir: IR,
+  models: Map<string, IRModel>,
+  serviceProp: string,
+): { usage: string; output: string | null; imports: string[] } {
+  const callArgs: { label: string; value: string }[] = [];
+  const imports = new Set<string>();
+
+  if (op.externalUrl) {
+    callArgs.push({ label: op.externalUrl, value: '"https://example.com"' });
+  }
+
+  for (const p of op.pathParams) {
+    callArgs.push({ label: snakeToCamel(p.sdkName), value: swiftLiteral(p.type, ir, models) });
+    for (const r of collectTypeRefs(p.type, ir, models)) imports.add(r);
+  }
+
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb) && rb.unwrapField) {
+      const sdkName = swiftIdentifier(rb.unwrapField.name);
+      callArgs.push({ label: sdkName, value: swiftLiteral(rb.unwrapField.type, ir, models) });
+      for (const r of collectTypeRefs(rb.unwrapField.type, ir, models)) imports.add(r);
+    } else if (rb.schemaRef) {
+      callArgs.push({ label: 'body', value: swiftLiteral({ kind: 'model', ref: rb.schemaRef }, ir, models) });
+      for (const r of collectTypeRefs({ kind: 'model', ref: rb.schemaRef }, ir, models)) imports.add(r);
+    }
+  }
+
+  for (const q of op.queryParams) {
+    callArgs.push({ label: snakeToCamel(q.sdkName), value: swiftLiteral(q.type, ir, models) });
+    for (const r of collectTypeRefs(q.type, ir, models)) imports.add(r);
+  }
+
+  const declarations: string[] = [];
+  const finalArgs: string[] = [];
+
+  for (const { label, value } of callArgs) {
+    if ((value.includes('(') || value.includes('[')) && !value.startsWith('.') && !value.startsWith('"')) {
+      declarations.push(`let ${label} = ${value}`);
+      finalArgs.push(`${label}: ${label}`);
+    } else {
+      finalArgs.push(`${label}: ${value}`);
+    }
+  }
+
+  const output = swiftBuildOutputFingerprint(op, ir, models);
+  const rawCall = `try await client.${serviceProp}.${op.methodName}(${finalArgs.join(', ')})`;
+  const call = output ? `let response = ${rawCall}` : rawCall;
+  const usage = declarations.length > 0
+    ? [...declarations, call].join('\n')
+    : call;
+
+  return { usage, output, imports: [...imports].sort() };
+}
+
+function swiftGenerateExamples(ir: IR): string {
+  const models = buildModelIndex(ir);
+  const result: Record<string, object> = {};
+
+  result['Client_Init'] = {
+    usage: 'import PachcaSDK\n\nlet client = PachcaClient(token: "YOUR_TOKEN")',
+  };
+
+  for (const svc of ir.services) {
+    const serviceProp = tagToProperty(svc.tag);
+    for (const op of svc.operations) {
+      const ex = swiftBuildOperationExample(op, ir, models, serviceProp);
+      const entry: Record<string, unknown> = { usage: ex.usage };
+      if (ex.output) entry.output = ex.output;
+      if (ex.imports.length > 0) entry.imports = ex.imports;
+      result[op.operationId] = entry;
+    }
+  }
+
+  return JSON.stringify(result, null, 2) + '\n';
+}
+
+// ── Main ─────────────────────────────────────────────────────────────
+
 export class SwiftGenerator implements LanguageGenerator {
   readonly dirName = 'swift';
 
-  generate(ir: IR): GeneratedFile[] {
-    return [
+  generate(ir: IR, options?: GenerateOptions): GeneratedFile[] {
+    const files: GeneratedFile[] = [
       { path: 'Models.swift', content: generateModels(ir) },
       { path: 'Client.swift', content: generateClient(ir) },
       { path: 'Utils.swift', content: generateUtils(ir) },
     ];
+    if (options?.examples) {
+      files.push({ path: 'examples.json', content: swiftGenerateExamples(ir) });
+    }
+    return files;
   }
 }

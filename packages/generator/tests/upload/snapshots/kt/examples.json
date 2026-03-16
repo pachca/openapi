@@ -1,0 +1,15 @@
+{
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "val request = FileUploadRequest(\n    contentDisposition = \"example\",\n    acl = \"example\",\n    policy = \"example\",\n    xAmzCredential = \"example\",\n    xAmzAlgorithm = \"example\",\n    xAmzDate = \"example\",\n    xAmzSignature = \"example\",\n    key = \"example\",\n    file = ByteArray(0)\n)\nclient.common.uploadFile(directUrl = \"https://example.com\", request = request)",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "val response = client.common.getUploadParams()",
+    "output": "UploadParams(contentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
+  }
+}

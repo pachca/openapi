@@ -1,0 +1,9 @@
+{
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
+  },
+  "ExportOperations_downloadExport": {
+    "usage": "val response = client.common.downloadExport(id = 123)",
+    "output": "String"
+  }
+}

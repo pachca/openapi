@@ -1,0 +1,19 @@
+{
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
+  },
+  "MemberOperations_addMembers": {
+    "usage": "val memberIds = listOf(123)\nclient.members.addMembers(id = 123, memberIds = memberIds)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(123)\n    )\n)\nval response = client.chats.createChat(request = request)",
+    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "client.chats.archiveChat(id = 123)"
+  }
+}

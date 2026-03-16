@@ -1,0 +1,20 @@
+{
+  "Client_Init": {
+    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
+  },
+  "TaskOperations_getTask": {
+    "usage": "val response = client.tasks.getTask(projectId = 123, taskId = 123)",
+    "output": "Task(id: Int, title: String, isDone: Boolean?)"
+  },
+  "TaskOperations_updateTask": {
+    "usage": "val request = TaskUpdateRequest(task = TaskUpdateRequestTask(title = \"example\", isDone = true))\nval response = client.tasks.updateTask(projectId = 123, taskId = 123, request = request)",
+    "output": "Task(id: Int, title: String, isDone: Boolean?)",
+    "imports": [
+      "TaskUpdateRequest",
+      "TaskUpdateRequestTask"
+    ]
+  },
+  "TaskOperations_deleteComment": {
+    "usage": "client.tasks.deleteComment(projectId = 123, taskId = 123, commentId = 123)"
+  }
+}

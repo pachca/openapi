@@ -50,6 +50,27 @@ function slugify(title: string): string {
     .slice(0, 60);
 }
 
+function buildFullDescription(config: SkillConfig): string {
+  let desc = config.description;
+  if (config.triggers.length > 0) {
+    desc += ` Use when: ${config.triggers.join(', ')}.`;
+  }
+  if (config.negativeTriggers.length > 0) {
+    const parts: string[] = [...config.negativeTriggers];
+    if (config.nearestAlternatives) {
+      for (const alt of config.nearestAlternatives) {
+        if (typeof alt === 'string') {
+          parts.push(`→ ${alt}`);
+        } else {
+          parts.push(`${alt.text} → ${alt.name}`);
+        }
+      }
+    }
+    desc += ` NOT for: ${config.negativeTriggers.join(', ')}.`;
+  }
+  return desc;
+}
+
 export function generateAllSkills(api: ParsedAPI) {
   cleanOutputDirs();
 
@@ -89,7 +110,7 @@ export function generateAllSkills(api: ParsedAPI) {
     const refWorkflows = workflows.filter((wf) => wf.inline === false);
     for (const wf of refWorkflows) {
       const slug = slugify(wf.titleEn || wf.title);
-      const refMd = renderCLIWorkflow(wf, 'en');
+      const refMd = renderCLIWorkflow(wf, 'ru');
       for (const base of basePaths) {
         results.push({ path: `${base}/references/${slug}.md`, content: refMd });
       }
@@ -252,10 +273,11 @@ function generateSkillMd(ctx: SkillContext): string {
   const lines: string[] = [];
 
   // Frontmatter
+  const fullDescription = buildFullDescription(config);
   lines.push('---');
   lines.push(`name: ${config.name}`);
   lines.push(`description: >`);
-  const descLines = config.description.match(/.{1,80}(\s|$)/g) || [config.description];
+  const descLines = fullDescription.match(/.{1,80}(\s|$)/g) || [fullDescription];
   for (const dl of descLines) {
     lines.push(`  ${dl.trim()}`);
   }
@@ -267,54 +289,54 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push(`# ${config.name}`);
   lines.push('');
 
-  // Quick start (zero-friction)
+  // Quick start
   lines.push('## Quick start');
   lines.push('');
   lines.push(
-    'Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).'
+    'Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).'
   );
   if (config.botOnly) {
-    lines.push('**Bot only** — user token will not work.');
+    lines.push('**Bot token only** — user tokens will not work.');
   }
   lines.push('');
-  lines.push('Run commands with `npx @pachca/cli` and `--token` flag:');
+  lines.push('Run commands via `npx @pachca/cli` with the `--token` flag:');
   lines.push('');
   lines.push('    npx @pachca/cli <command> --token $PACHCA_TOKEN');
   lines.push('');
-  lines.push('Or set `PACHCA_TOKEN` for multiple commands:');
+  lines.push('Or set the `PACHCA_TOKEN` environment variable:');
   lines.push('');
   lines.push('    export PACHCA_TOKEN=<token>');
   lines.push('    npx @pachca/cli <command>');
   lines.push('');
-  lines.push('Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`');
+  lines.push('Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`');
   lines.push('');
   lines.push(
     '> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`'
   );
   lines.push('');
 
-  // Preflight check
+  // Before you start
   lines.push('## Before you start');
   lines.push('');
-  lines.push('1. If user has a saved profile — check status:');
+  lines.push('1. If the user has a saved profile — check:');
   lines.push('');
   lines.push('       npx @pachca/cli auth status');
   lines.push('');
-  lines.push('   If OK — use commands without `--token`.');
+  lines.push('   If OK — run commands without `--token`.');
   lines.push('');
-  lines.push('2. If profile is not configured — ask for token and use `--token` flag:');
+  lines.push('2. If no profile is configured — ask for a token and use `--token`:');
   lines.push('');
   lines.push('       npx @pachca/cli auth status --token $PACHCA_TOKEN');
   lines.push('');
-  lines.push("3. If you don't know command parameters — run `pachca <command> --help`.");
+  lines.push("3. If you don't know the parameters — run `pachca <command> --help`.");
   lines.push('');
 
   // Inline workflows (max 3 steps)
   if (inlineWorkflows.length > 0) {
-    lines.push('## Step-by-step scenarios');
+    lines.push('## Workflows');
     lines.push('');
     for (const wf of inlineWorkflows) {
-      lines.push(renderCLIWorkflow(wf, 'en'));
+      lines.push(renderCLIWorkflow(wf, 'ru'));
     }
   }
 
@@ -331,7 +353,7 @@ function generateSkillMd(ctx: SkillContext): string {
   // Gotchas (including rate limit and errors)
   const gotchas = extractGotchas(endpoints, config);
   if (gotchas.length > 0) {
-    lines.push('## Constraints and gotchas');
+    lines.push('## Limitations');
     lines.push('');
     for (const gotcha of gotchas) {
       lines.push(`- ${gotcha}`);
@@ -352,11 +374,11 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('');
   }
 
-  // Reference links for complex workflows
+  // References to advanced workflows
   if (refWorkflows.length > 0) {
-    lines.push('## Complex scenarios');
+    lines.push('## Advanced workflows');
     lines.push('');
-    lines.push('For complex scenarios read files from references/:');
+    lines.push('For advanced workflows, read the files in references/:');
     for (const wf of refWorkflows) {
       const slug = slugify(wf.titleEn || wf.title);
       const title = wf.titleEn || wf.title;
@@ -371,10 +393,8 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('');
   }
 
-  // Fallback instruction
-  lines.push(
-    "> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions."
-  );
+  // Fallback
+  lines.push('> If unsure how to complete a task, read the corresponding file from references/.');
   lines.push('');
 
   return lines.join('\n');
@@ -439,7 +459,7 @@ function extractGotchas(endpoints: Endpoint[], config: SkillConfig): string[] {
   const seen = new Set<string>();
 
   if (config.name === 'pachca-messages') {
-    gotchas.push('Rate limit: ~50 req/sec, messages ~4 req/sec. On 429 — wait and retry.');
+    gotchas.push('Rate limit: ~50 req/sec, messages ~4 req/sec per chat. On 429 — wait and retry.');
   } else {
     gotchas.push('Rate limit: ~50 req/sec. On 429 — wait and retry.');
   }
@@ -506,14 +526,16 @@ function generateWebhookEventsMd(): string {
 
   lines.push('# Webhook event types');
   lines.push('');
-  lines.push('Outgoing webhooks send JSON to specified URL when events occur.');
-  lines.push('Signature: `Pachca-Signature` (HMAC-SHA256 of request body with Signing secret).');
+  lines.push('Outgoing webhooks send JSON to the specified URL when events occur.');
+  lines.push(
+    'Signature: `Pachca-Signature` (HMAC-SHA256 of the request body with the Signing secret).'
+  );
   lines.push('');
 
   lines.push('## New messages');
   lines.push('');
   lines.push('Sent when a new message appears in a chat where the bot is a member.');
-  lines.push('Can filter by commands (message prefix).');
+  lines.push('Can be filtered by commands (message prefix).');
   lines.push('');
   lines.push('```json');
   lines.push(
@@ -523,7 +545,7 @@ function generateWebhookEventsMd(): string {
         type: 'message',
         webhook_timestamp: 1744618734,
         chat_id: 918264,
-        content: 'Текст сообщения',
+        content: 'Message text',
         user_id: 134412,
         id: 56431,
         created_at: '2025-04-14T08:18:54.000Z',
@@ -550,7 +572,7 @@ function generateWebhookEventsMd(): string {
 
   lines.push('## Button clicks');
   lines.push('');
-  lines.push('Sent when a Data-button in bot message is clicked.');
+  lines.push('Sent when a Data button is clicked in a bot message.');
   lines.push('Contains `trigger_id` for opening forms via `POST /views/open`.');
   lines.push('');
 
@@ -559,17 +581,17 @@ function generateWebhookEventsMd(): string {
   lines.push('Sent when members are added/removed in chats where the bot is a member.');
   lines.push('');
 
-  lines.push('## Space member changes');
+  lines.push('## Workspace member changes');
   lines.push('');
   lines.push(
-    'Global event (does not require bot in chat). Events: invite, confirm, update, suspend, activate, delete.'
+    'Global event (does not require the bot to be in a chat). Events: invite, confirm, update, suspend, activate, delete.'
   );
   lines.push('');
 
   lines.push('## Security');
   lines.push('');
   lines.push('1. Verify signature: `HMAC-SHA256(Signing secret, raw body)` === `Pachca-Signature`');
-  lines.push('2. Check `webhook_timestamp` — must be within 1 minute');
+  lines.push('2. Verify `webhook_timestamp` — must be within 1 minute');
   lines.push('3. Verify sender IP: `37.200.70.177`');
   lines.push('');
   lines.push('```javascript');
@@ -604,7 +626,7 @@ function generateRouterSkillMd(): string {
   lines.push('');
   lines.push('Pachca — corporate messenger with REST API and CLI.');
   lines.push('');
-  lines.push('## Quick start (zero-install)');
+  lines.push('## Quick start');
   lines.push('');
   lines.push('```bash');
   lines.push('npx @pachca/cli <command> --token <TOKEN>');
@@ -618,19 +640,19 @@ function generateRouterSkillMd(): string {
   lines.push('');
   lines.push('## Routing');
   lines.push('');
-  lines.push("Match the user's task to the right skill below, then activate it.");
+  lines.push('Identify the user task and activate the appropriate skill.');
   lines.push('');
-  lines.push('| User task | Skill |');
-  lines.push('|-----------|-------|');
+  lines.push('| Task | Skill |');
+  lines.push('|------|-------|');
   for (const config of SKILL_TAG_MAP) {
     const shortDesc = config.description.split('.')[0];
-    lines.push(`| ${shortDesc} | Use \`${config.name}\` |`);
+    lines.push(`| ${shortDesc} | \`${config.name}\` |`);
   }
   lines.push('');
   lines.push('## CLI commands');
   lines.push('');
   lines.push('Full list: `pachca commands`');
-  lines.push('Complex scenarios: see references/ in each skill');
+  lines.push('Advanced workflows: references/ in each skill');
   lines.push('Help: `pachca <command> --help`');
   lines.push('');
 
@@ -678,7 +700,7 @@ function generateAgentsMd(): string {
   lines.push('');
   lines.push('Pachca — corporate messenger with REST API and CLI.');
   lines.push('');
-  lines.push('## Quick start (zero-install)');
+  lines.push('## Quick start');
   lines.push('');
   lines.push('```bash');
   lines.push('npx @pachca/cli <command> --token <TOKEN>');
@@ -690,24 +712,24 @@ function generateAgentsMd(): string {
   lines.push('npm install -g @pachca/cli && pachca auth login');
   lines.push('```');
   lines.push('');
-  lines.push('## Auth');
+  lines.push('## Authorization');
   lines.push('');
   lines.push(
-    '`--token <TOKEN>` flag or `PACHCA_TOKEN` env var. Get token: Settings → Automations → API (admin) or bot settings (bot).'
+    'Use `--token <TOKEN>` flag or `PACHCA_TOKEN` environment variable. Get token: Settings → Automations → API (admin) or bot settings (bot).'
   );
   lines.push('');
   lines.push('## Routing');
   lines.push('');
-  lines.push("Match the user's task to the right skill:");
+  lines.push('Identify the task and use the appropriate skill:');
   lines.push('');
-  lines.push('| User task | Skill |');
-  lines.push('|-----------|-------|');
+  lines.push('| Task | Skill |');
+  lines.push('|------|-------|');
   for (const config of SKILL_TAG_MAP) {
     const shortDesc = config.description.split('.')[0];
     lines.push(`| ${shortDesc} | \`${config.name}\` |`);
   }
   lines.push('');
-  lines.push('## Top-5 operations');
+  lines.push('## Top 5 operations');
   lines.push('');
   lines.push('```bash');
   for (let i = 0; i < TOP_OPERATIONS.length; i++) {
@@ -729,22 +751,24 @@ function generateAgentsMd(): string {
     );
   }
   lines.push('');
-  lines.push('## Key constraints');
+  lines.push('## Limitations');
   lines.push('');
   lines.push(
     '- Rate limit: ~4 req/sec per chat (messages), ~50 req/sec (other). Respect `Retry-After` on 429.'
   );
   lines.push('- Pagination: cursor-based (`limit` + `cursor`). Check `meta.paginate.next_page`.');
-  lines.push('- Admin operations (user/tag management, message deletion) require admin token.');
+  lines.push(
+    '- Admin operations (managing employees/tags, deleting messages) require an admin token.'
+  );
   lines.push('');
-  lines.push('## Install');
+  lines.push('## Installation');
   lines.push('');
   lines.push('```bash');
   lines.push('npx skills add pachca/openapi');
   lines.push('```');
   lines.push('');
   lines.push(
-    'More: [API docs](https://dev.pachca.com) · [Full reference](https://dev.pachca.com/llms-full.txt) · [OpenAPI spec](https://dev.pachca.com/openapi.yaml) · CLI help: `pachca --help`'
+    'More info: [API Docs](https://dev.pachca.com) · [Full reference](https://dev.pachca.com/llms-full.txt) · [OpenAPI spec](https://dev.pachca.com/openapi.yaml) · CLI help: `pachca --help`'
   );
   lines.push('');
 

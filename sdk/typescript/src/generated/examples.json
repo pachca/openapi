@@ -1,0 +1,363 @@
+{
+  "Client_Init": {
+    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")"
+  },
+  "SecurityOperations_getAuditEvents": {
+    "usage": "const response = client.security.getAuditEvents({\n  startTime: \"2024-01-01T00:00:00Z\",\n  endTime: \"2024-01-01T00:00:00Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"example\",\n  actorType: \"example\",\n  entityId: \"example\",\n  entityType: \"example\",\n  limit: 123,\n  cursor: \"example\"\n})",
+    "output": "GetAuditEventsResponse({ data: AuditEvent[], meta?: PaginationMeta })",
+    "imports": [
+      "AuditEventKey"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "const response = client.bots.getWebhookEvents({ limit: 123, cursor: \"example\" })",
+    "output": "GetWebhookEventsResponse({ data: WebhookEvent[], meta?: PaginationMeta })"
+  },
+  "BotOperations_updateBot": {
+    "usage": "const request: BotUpdateRequest = { bot: { webhook: { outgoingUrl: \"example\" } } }\nconst response = client.bots.updateBot(123, request)",
+    "output": "BotResponse({ id: number, webhook: BotResponseWebhook({ outgoingUrl: string }) })",
+    "imports": [
+      "BotUpdateRequest",
+      "BotUpdateRequestBot",
+      "BotUpdateRequestBotWebhook"
+    ]
+  },
+  "BotOperations_deleteWebhookEvent": {
+    "usage": "client.bots.deleteWebhookEvent(\"example\")"
+  },
+  "ChatOperations_listChats": {
+    "usage": "const response = client.chats.listChats({\n  sortId: SortOrder.Asc,\n  availability: ChatAvailability.IsMember,\n  lastMessageAtAfter: \"2024-01-01T00:00:00Z\",\n  lastMessageAtBefore: \"2024-01-01T00:00:00Z\",\n  personal: true,\n  limit: 123,\n  cursor: \"example\"\n})",
+    "output": "ListChatsResponse({ data: Chat[], meta?: PaginationMeta })",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "const response = client.chats.getChat(123)",
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })"
+  },
+  "ChatOperations_createChat": {
+    "usage": "const request: ChatCreateRequest = {\n  chat: {\n    name: \"example\",\n    memberIds: [123],\n    groupTagIds: [123],\n    channel: true,\n    public: true\n  }\n}\nconst response = client.chats.createChat(request)",
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "const request: ChatUpdateRequest = { chat: { name: \"example\", public: true } }\nconst response = client.chats.updateChat(123, request)",
+    "output": "Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "client.chats.archiveChat(123)"
+  },
+  "ChatOperations_unarchiveChat": {
+    "usage": "client.chats.unarchiveChat(123)"
+  },
+  "ExportOperations_downloadExport": {
+    "usage": "const response = client.common.downloadExport(123)",
+    "output": "string"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "const response = client.common.listProperties({ entityType: SearchEntityType.User })",
+    "output": "ListPropertiesResponse({ data: CustomPropertyDefinition[] })",
+    "imports": [
+      "SearchEntityType"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "const request: ExportRequest = {\n  startAt: \"2024-01-01\",\n  endAt: \"2024-01-01\",\n  webhookUrl: \"example\",\n  chatIds: [123],\n  skipChatsFile: true\n}\nclient.common.requestExport(request)",
+    "imports": [
+      "ExportRequest"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  file: new Blob([])\n}\nclient.common.uploadFile(\"https://example.com\", request)",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "const response = client.common.getUploadParams()",
+    "output": "UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })"
+  },
+  "ChatMemberOperations_listMembers": {
+    "usage": "const response = client.members.listMembers(123, {\n  role: ChatMemberRoleFilter.All,\n  limit: 123,\n  cursor: \"example\"\n})",
+    "output": "ListMembersResponse({ data: User[], meta?: PaginationMeta })",
+    "imports": [
+      "ChatMemberRoleFilter"
+    ]
+  },
+  "ChatMemberOperations_addTags": {
+    "usage": "const groupTagIds = [123]\nclient.members.addTags(123, groupTagIds)"
+  },
+  "ChatMemberOperations_addMembers": {
+    "usage": "const request: AddMembersRequest = { memberIds: [123], silent: true }\nclient.members.addMembers(123, request)",
+    "imports": [
+      "AddMembersRequest"
+    ]
+  },
+  "ChatMemberOperations_updateMemberRole": {
+    "usage": "client.members.updateMemberRole(123, 123, ChatMemberRole.Admin)",
+    "imports": [
+      "ChatMemberRole"
+    ]
+  },
+  "ChatMemberOperations_removeTag": {
+    "usage": "client.members.removeTag(123, 123)"
+  },
+  "ChatMemberOperations_leaveChat": {
+    "usage": "client.members.leaveChat(123)"
+  },
+  "ChatMemberOperations_removeMember": {
+    "usage": "client.members.removeMember(123, 123)"
+  },
+  "GroupTagOperations_listTags": {
+    "usage": "const response = client.groupTags.listTags({\n  names: {},\n  limit: 123,\n  cursor: \"example\"\n})",
+    "output": "ListTagsResponse({ data: GroupTag[], meta?: PaginationMeta })",
+    "imports": [
+      "TagNamesFilter"
+    ]
+  },
+  "GroupTagOperations_getTag": {
+    "usage": "const response = client.groupTags.getTag(123)",
+    "output": "GroupTag({ id: number, name: string, usersCount: number })"
+  },
+  "GroupTagOperations_getTagUsers": {
+    "usage": "const response = client.groupTags.getTagUsers(123, { limit: 123, cursor: \"example\" })",
+    "output": "GetTagUsersResponse({ data: User[], meta?: PaginationMeta })"
+  },
+  "GroupTagOperations_createTag": {
+    "usage": "const request: GroupTagRequest = { groupTag: { name: \"example\" } }\nconst response = client.groupTags.createTag(request)",
+    "output": "GroupTag({ id: number, name: string, usersCount: number })",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_updateTag": {
+    "usage": "const request: GroupTagRequest = { groupTag: { name: \"example\" } }\nconst response = client.groupTags.updateTag(123, request)",
+    "output": "GroupTag({ id: number, name: string, usersCount: number })",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_deleteTag": {
+    "usage": "client.groupTags.deleteTag(123)"
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "const response = client.messages.listChatMessages({\n  chatId: 123,\n  sortId: SortOrder.Asc,\n  limit: 123,\n  cursor: \"example\"\n})",
+    "output": "ListChatMessagesResponse({ data: Message[], meta?: PaginationMeta })",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "const response = client.messages.getMessage(123)",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 123,\n    content: \"example\",\n    files: [{\n      key: \"example\",\n      name: \"example\",\n      fileType: FileType.File,\n      size: 123,\n      width: 123,\n      height: 123\n    }],\n    buttons: [[{\n      text: \"example\",\n      url: \"example\",\n      data: \"example\"\n    }]],\n    parentMessageId: 123,\n    displayAvatarUrl: \"example\",\n    displayName: \"example\",\n    skipInviteMentions: true,\n    linkPreview: true\n  }\n}\nconst response = client.messages.createMessage(request)",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })",
+    "imports": [
+      "Button",
+      "FileType",
+      "MessageCreateRequest",
+      "MessageCreateRequestFile",
+      "MessageCreateRequestMessage",
+      "MessageEntityType"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "client.messages.pinMessage(123)"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "const request: MessageUpdateRequest = {\n  message: {\n    content: \"example\",\n    files: [{\n      key: \"example\",\n      name: \"example\",\n      fileType: \"example\",\n      size: 123,\n      width: 123,\n      height: 123\n    }],\n    buttons: [[{\n      text: \"example\",\n      url: \"example\",\n      data: \"example\"\n    }]],\n    displayAvatarUrl: \"example\",\n    displayName: \"example\"\n  }\n}\nconst response = client.messages.updateMessage(123, request)",
+    "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestFile",
+      "MessageUpdateRequestMessage"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "client.messages.deleteMessage(123)"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "client.messages.unpinMessage(123)"
+  },
+  "LinkPreviewOperations_createLinkPreviews": {
+    "usage": "const request: LinkPreviewsRequest = {\n  linkPreviews: { key: {\n    title: \"example\",\n    description: \"example\",\n    imageUrl: \"example\",\n    image: {\n      key: \"example\",\n      name: \"example\",\n      size: 123\n    }\n  } }\n}\nclient.linkPreviews.createLinkPreviews(123, request)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "ReactionOperations_listReactions": {
+    "usage": "const response = client.reactions.listReactions(123, { limit: 123, cursor: \"example\" })",
+    "output": "ListReactionsResponse({ data: Reaction[], meta?: PaginationMeta })"
+  },
+  "ReactionOperations_addReaction": {
+    "usage": "const request: ReactionRequest = { code: \"example\", name: \"example\" }\nconst response = client.reactions.addReaction(123, request)",
+    "output": "Reaction({ userId: number, createdAt: string, code: string, name?: string })",
+    "imports": [
+      "ReactionRequest"
+    ]
+  },
+  "ReactionOperations_removeReaction": {
+    "usage": "client.reactions.removeReaction(123, { code: \"example\", name: \"example\" })"
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "const response = client.readMembers.listReadMembers(123, { limit: 123, cursor: \"example\" })",
+    "output": "unknown"
+  },
+  "ThreadOperations_getThread": {
+    "usage": "const response = client.threads.getThread(123)",
+    "output": "Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string })"
+  },
+  "ThreadOperations_createThread": {
+    "usage": "const response = client.threads.createThread(123)",
+    "output": "Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string })"
+  },
+  "OAuthOperations_getTokenInfo": {
+    "usage": "const response = client.profile.getTokenInfo()",
+    "output": "AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null })"
+  },
+  "ProfileOperations_getProfile": {
+    "usage": "const response = client.profile.getProfile()",
+    "output": "User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })"
+  },
+  "ProfileOperations_getStatus": {
+    "usage": "const response = client.profile.getStatus()",
+    "output": "unknown"
+  },
+  "ProfileOperations_updateStatus": {
+    "usage": "const request: StatusUpdateRequest = {\n  status: {\n    emoji: \"example\",\n    title: \"example\",\n    expiresAt: \"2024-01-01T00:00:00Z\",\n    isAway: true,\n    awayMessage: \"example\"\n  }\n}\nconst response = client.profile.updateStatus(request)",
+    "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "ProfileOperations_deleteStatus": {
+    "usage": "client.profile.deleteStatus()"
+  },
+  "SearchOperations_searchChats": {
+    "usage": "const response = client.search.searchChats({\n  query: \"example\",\n  limit: 123,\n  cursor: \"example\",\n  order: SortOrder.Asc,\n  createdFrom: \"2024-01-01T00:00:00Z\",\n  createdTo: \"2024-01-01T00:00:00Z\",\n  active: true,\n  chatSubtype: ChatSubtype.Discussion,\n  personal: true\n})",
+    "output": "SearchChatsResponse({ data: Chat[], meta: SearchPaginationMeta })",
+    "imports": [
+      "ChatSubtype",
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "const response = client.search.searchMessages({\n  query: \"example\",\n  limit: 123,\n  cursor: \"example\",\n  order: SortOrder.Asc,\n  createdFrom: \"2024-01-01T00:00:00Z\",\n  createdTo: \"2024-01-01T00:00:00Z\",\n  chatIds: [123],\n  userIds: [123],\n  active: true\n})",
+    "output": "SearchMessagesResponse({ data: Message[], meta: SearchPaginationMeta })",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchUsers": {
+    "usage": "const response = client.search.searchUsers({\n  query: \"example\",\n  limit: 123,\n  cursor: \"example\",\n  sort: SearchSortOrder.ByScore,\n  order: SortOrder.Asc,\n  createdFrom: \"2024-01-01T00:00:00Z\",\n  createdTo: \"2024-01-01T00:00:00Z\",\n  companyRoles: [UserRole.Admin]\n})",
+    "output": "SearchUsersResponse({ data: User[], meta: SearchPaginationMeta })",
+    "imports": [
+      "SearchSortOrder",
+      "SortOrder",
+      "UserRole"
+    ]
+  },
+  "TaskOperations_listTasks": {
+    "usage": "const response = client.tasks.listTasks({ limit: 123, cursor: \"example\" })",
+    "output": "ListTasksResponse({ data: Task[], meta?: PaginationMeta })"
+  },
+  "TaskOperations_getTask": {
+    "usage": "const response = client.tasks.getTask(123)",
+    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })"
+  },
+  "TaskOperations_createTask": {
+    "usage": "const request: TaskCreateRequest = {\n  task: {\n    kind: TaskKind.Call,\n    content: \"example\",\n    dueAt: \"2024-01-01T00:00:00Z\",\n    priority: 123,\n    performerIds: [123],\n    chatId: 123,\n    allDay: true,\n    customProperties: [{ id: 123, value: \"example\" }]\n  }\n}\nconst response = client.tasks.createTask(request)",
+    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })",
+    "imports": [
+      "TaskCreateRequest",
+      "TaskCreateRequestCustomProperty",
+      "TaskCreateRequestTask",
+      "TaskKind"
+    ]
+  },
+  "TaskOperations_updateTask": {
+    "usage": "const request: TaskUpdateRequest = {\n  task: {\n    kind: TaskKind.Call,\n    content: \"example\",\n    dueAt: \"2024-01-01T00:00:00Z\",\n    priority: 123,\n    performerIds: [123],\n    status: TaskStatus.Done,\n    allDay: true,\n    doneAt: \"2024-01-01T00:00:00Z\",\n    customProperties: [{ id: 123, value: \"example\" }]\n  }\n}\nconst response = client.tasks.updateTask(123, request)",
+    "output": "Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })",
+    "imports": [
+      "TaskKind",
+      "TaskStatus",
+      "TaskUpdateRequest",
+      "TaskUpdateRequestCustomProperty",
+      "TaskUpdateRequestTask"
+    ]
+  },
+  "TaskOperations_deleteTask": {
+    "usage": "client.tasks.deleteTask(123)"
+  },
+  "UserOperations_listUsers": {
+    "usage": "const response = client.users.listUsers({\n  query: \"example\",\n  limit: 123,\n  cursor: \"example\"\n})",
+    "output": "ListUsersResponse({ data: User[], meta?: PaginationMeta })"
+  },
+  "UserOperations_getUser": {
+    "usage": "const response = client.users.getUser(123)",
+    "output": "User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })"
+  },
+  "UserStatusOperations_getUserStatus": {
+    "usage": "const response = client.users.getUserStatus(123)",
+    "output": "unknown"
+  },
+  "UserOperations_createUser": {
+    "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"example\",\n    lastName: \"example\",\n    email: \"example\",\n    phoneNumber: \"example\",\n    nickname: \"example\",\n    department: \"example\",\n    title: \"example\",\n    role: UserRole.Admin,\n    suspended: true,\n    listTags: [\"example\"],\n    customProperties: [{ id: 123, value: \"example\" }]\n  },\n  skipEmailNotify: true\n}\nconst response = client.users.createUser(request)",
+    "output": "User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })",
+    "imports": [
+      "UserCreateRequest",
+      "UserCreateRequestCustomProperty",
+      "UserCreateRequestUser",
+      "UserRole"
+    ]
+  },
+  "UserOperations_updateUser": {
+    "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"example\",\n    lastName: \"example\",\n    email: \"example\",\n    phoneNumber: \"example\",\n    nickname: \"example\",\n    department: \"example\",\n    title: \"example\",\n    role: UserRole.Admin,\n    suspended: true,\n    listTags: [\"example\"],\n    customProperties: [{ id: 123, value: \"example\" }]\n  }\n}\nconst response = client.users.updateUser(123, request)",
+    "output": "User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })",
+    "imports": [
+      "UserRole",
+      "UserUpdateRequest",
+      "UserUpdateRequestCustomProperty",
+      "UserUpdateRequestUser"
+    ]
+  },
+  "UserStatusOperations_updateUserStatus": {
+    "usage": "const request: StatusUpdateRequest = {\n  status: {\n    emoji: \"example\",\n    title: \"example\",\n    expiresAt: \"2024-01-01T00:00:00Z\",\n    isAway: true,\n    awayMessage: \"example\"\n  }\n}\nconst response = client.users.updateUserStatus(123, request)",
+    "output": "UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "UserOperations_deleteUser": {
+    "usage": "client.users.deleteUser(123)"
+  },
+  "UserStatusOperations_deleteUserStatus": {
+    "usage": "client.users.deleteUserStatus(123)"
+  },
+  "FormOperations_openView": {
+    "usage": "const request: OpenViewRequest = {\n  type: \"modal\",\n  triggerId: \"example\",\n  privateMetadata: \"example\",\n  callbackId: \"example\",\n  view: {\n    title: \"example\",\n    closeText: \"example\",\n    submitText: \"example\",\n    blocks: [{ type: \"header\", text: \"example\" }]\n  }\n}\nclient.views.openView(request)",
+    "imports": [
+      "OpenViewRequest",
+      "OpenViewRequestView",
+      "ViewBlockUnion"
+    ]
+  }
+}

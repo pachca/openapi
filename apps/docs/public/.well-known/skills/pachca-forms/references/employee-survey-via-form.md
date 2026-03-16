@@ -1,22 +1,22 @@
-### Employee survey via form
+### Опрос сотрудников через форму
 
-1. Send message with "Take survey" button:
+1. Отправь сообщение с кнопкой «Пройти опрос»:
    ```bash
    pachca messages create --entity-id=<chat_id> --content="Пройди опрос" --buttons='[[{"text":"Пройти опрос","data":"survey_start"}]]'
    ```
 
-2. On button click receive webhook with `trigger_id`
+2. При нажатии кнопки получи вебхук с `trigger_id`
 
-3. Open form with survey fields:
+3. Открой форму с полями опроса:
    ```bash
    pachca views open --type=modal --trigger-id=<trigger_id> --title="Опрос" --blocks='[...]'
    ```
 
-4. On submit webhook process answers
+4. При submit-вебхуке обработай ответы
 
-5. Save to database or send summary message to channel
+5. Сохрани в базу или отправь итоговым сообщением в канал
 
-6. Respond HTTP 200 — form will close
+6. Ответь HTTP 200 — форма закроется
 
-> Each user must click button themselves — each has their own `trigger_id`.
+> Каждый пользователь должен нажать кнопку сам — у каждого свой `trigger_id`.
 

@@ -1,27 +1,27 @@
-### Archive and manage chat
+### Архивация и управление чатом
 
-1. Archive chat:
+1. Архивировать чат:
    ```bash
    pachca chats archive <ID>
    ```
 
-2. Unarchive chat:
+2. Разархивировать чат:
    ```bash
    pachca chats unarchive <ID>
    ```
 
-3. Change member role:
+3. Изменить роль участника:
    ```bash
    pachca members update <chat_id> <user_id> --role=admin
    ```
-   > `role`: `"admin"` | `"member"` | `"editor"` (channels only). Creator role cannot be changed.
+   > `role`: `"admin"` | `"member"` | `"editor"` (только каналы). Роль создателя изменить нельзя.
 
-4. Remove member:
+4. Удалить участника:
    ```bash
    pachca members remove <chat_id> <user_id> --force
    ```
 
-5. Leave chat:
+5. Покинуть чат:
    ```bash
    pachca members leave <chat_id> --force
    ```

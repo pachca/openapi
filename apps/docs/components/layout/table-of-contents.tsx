@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+import { getScrollOffset } from '@/lib/utils/scroll-offset';
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -34,7 +35,8 @@ export function TableOfContents() {
     const element = document.getElementById(id);
     if (element) {
       isScrollingRef.current = true;
-      const targetScrollTop = element.getBoundingClientRect().top + window.scrollY - 80;
+      const targetScrollTop =
+        element.getBoundingClientRect().top + window.scrollY - getScrollOffset();
       gsap.to(window, {
         duration: 0.4,
         scrollTo: { y: targetScrollTop },
@@ -124,7 +126,7 @@ export function TableOfContents() {
     if (items.length > 0) setActiveIds(new Set([items[0].id]));
 
     const updateActive = () => {
-      const viewportTop = 80;
+      const viewportTop = getScrollOffset();
       const viewportBottom = window.innerHeight * 0.8;
 
       const visibleIds: string[] = [];

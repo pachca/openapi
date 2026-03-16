@@ -1,20 +1,15 @@
-### Send message with files
+### Отправить сообщение с файлами
 
-1. For each file: get upload parameters:
+1. Загрузи каждый файл — команда вернёт `key`:
    ```bash
-   pachca common uploads
+   pachca upload report.pdf
    ```
-   > Returns `key` (with `${filename}`), `direct_url`, `policy`, signature
+   > Команда автоматически получает подпись и загружает файл на S3
 
-2. For each file: replace `${filename}` in `key` with actual filename, then upload file via POST to `direct_url`
-   > multipart/form-data, no auth — upload to S3
-
-3. Build `files` array from all uploaded files (`key`, `name`, `file_type`, `size`)
-
-4. Send message with all files:
+2. Отправь сообщение со всеми файлами:
    ```bash
-   pachca messages create --entity-id=<chat_id> --content="Смотри файл" --files='[{"key":"...","name":"report.pdf","file_type":"file","size":12345}]'
+   pachca messages create --entity-id=<chat_id> --content="Смотри файл" --files='[{"key":"attaches/files/.../report.pdf","name":"report.pdf","file_type":"file","size":12345}]'
    ```
 
-> Files are not sent inline. Upload is two-step: first POST /uploads (parameters), then POST to `direct_url` (file to S3). Steps 1-2 repeat for each file, message is sent once with all files.
+> `pachca upload` автоматически получает подпись (POST /uploads), подставляет имя файла в `key` и загружает на S3. Возвращает готовый `key` для использования в `files`.
 

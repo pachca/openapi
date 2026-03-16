@@ -1,7 +1,7 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.6 · 15 марта 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.7 · 16 марта 2026
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
@@ -14,7 +14,7 @@ npm install -g @pachca/cli
 pachca --version
 
 # Или без установки
-npx @pachca/cli users list
+npx @pachca/cli users list --token YOUR_ACCESS_TOKEN
 ```
 
 ## Быстрый старт
@@ -280,6 +280,29 @@ pachca users list --all
 ```
 
 При `--all` CLI показывает прогресс загрузки в stderr, а финальный результат выводит в stdout единым массивом.
+
+## Загрузка файлов
+
+Команда `pachca upload` автоматически получает подпись через `POST /uploads` и загружает файл на S3 — не нужно вручную копировать 7 параметров подписи:
+
+```bash
+# Загрузить файл
+pachca upload photo.jpg
+
+# Из stdin
+cat data.csv | pachca upload -
+```
+
+Команда возвращает `key` — используйте его в поле `files[].key` при [создании сообщений](/api/messages/create):
+
+```bash
+# Загрузить файл и отправить в чат
+KEY=$(pachca upload photo.jpg -o json | jq -r '.key')
+pachca messages create --entity-id 123 --content "Фото" --files "[{\"key\":\"$KEY\",\"name\":\"photo.jpg\"}]"
+```
+
+> Для низкоуровневого контроля доступна команда `pachca common direct-url` — она отправляет multipart-запрос на указанный URL с параметрами подписи.
+
 
 ## Сценарии
 

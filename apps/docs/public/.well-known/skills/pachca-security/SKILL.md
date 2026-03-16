@@ -1,8 +1,15 @@
 ---
 name: pachca-security
 description: >
-  Security audit event log. Use when: get audit log, review security events,
-  monitor logins, export logs. Requires "Corporation" plan.
+  Pachca — журнал безопасности: отслеживание входов, действий пользователей,
+  изменений сообщений и нарушений DLP. Требуется тариф «Корпорация». Используй
+  этот скилл, когда пользователь хочет посмотреть события безопасности, журнал
+  аудита, историю входов, подозрительную активность, узнать кто что делал,
+  экспортировать логи безопасности или отслеживать нарушения DLP. НЕ для отправки
+  сообщений или управления сотрудниками. Use when: журнал безопасности, аудит,
+  события безопасности, кто заходил, история входов, подозрительная активность,
+  DLP, экспорт логов, токены API. NOT for: отправить сообщение, управление
+  сотрудниками.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -10,69 +17,69 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
-### Get audit event log
+### Получить журнал аудита событий
 
-1. Get audit log:
+1. Получи журнал аудита:
    ```bash
    pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601>
    ```
-   > `start_time` and `end_time` required (ISO-8601, UTC+0). Filters: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
+   > `start_time` и `end_time` обязательны (ISO-8601, UTC+0). Фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
 
-> Available only to workspace owner.
+> Доступно только владельцу пространства.
 
 
-### Monitor suspicious logins
+### Мониторинг подозрительных входов
 
-1. Get failed 2FA events for period:
+1. Получи события неудачных 2FA за период:
    ```bash
    pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_fail --all
    ```
 
-2. If anomalies found — send notification to admin:
+2. Если найдены аномалии — отправь уведомление администратору:
    ```bash
    pachca messages create --entity-type=user --entity-id=<admin_id> --content="Обнаружены подозрительные входы"
    ```
 
 
-### Export logs for period
+### Экспорт логов за период
 
-1. Get all events for period with pagination:
+1. Получи все события за период с пагинацией:
    ```bash
    pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --all
    ```
 
-2. Collect all events into array → save to file or send to external system
+2. Собери все события в массив → сохрани в файл или отправь во внешнюю систему
 
 
 ## Available event_key values
@@ -91,7 +98,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | Security | `audit_events_accessed`, `dlp_violation_detected` |
 | Search (API) | `search_users_api`, `search_chats_api`, `search_messages_api` |
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `limit`: max 50
@@ -104,4 +111,4 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 |--------|------|-------------|
 | GET | /audit_events | Журнал аудита событий |
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

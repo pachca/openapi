@@ -1,0 +1,7 @@
+{
+  "kotlin": "kotlin/generated/src/main/kotlin/com/pachca/examples.json",
+  "typescript": "typescript/src/generated/examples.json",
+  "python": "python/generated/pachca/examples.json",
+  "go": "go/generated/examples.json",
+  "swift": "swift/generated/Sources/Pachca/GeneratedSources/examples.json"
+}

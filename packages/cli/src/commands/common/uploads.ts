@@ -6,7 +6,6 @@ export default class CommonUploads extends BaseCommand {
   static override description = "Получение подписи, ключа и других параметров";
 
   static override examples = [
-      "Отправить сообщение с файлами:\n  $ pachca common uploads",
       "Изменить вложения сообщения:\n  $ pachca common uploads"
   ];
 

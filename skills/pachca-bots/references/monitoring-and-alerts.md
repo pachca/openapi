@@ -1,13 +1,13 @@
-### Monitoring and alerts
+### Мониторинг и алерты
 
-1. External system detects event (error, deploy, metric threshold)
+1. Внешняя система обнаруживает событие (ошибка, деплой, порог метрики)
 
-2. Makes POST request to bot or directly calls Pachca API
+2. Делает POST запрос к боту или напрямую вызывает Pachca API
 
-3. Send alert with buttons to channel:
+3. Отправь алерт с кнопками в канал:
    ```bash
    pachca messages create --entity-id=<alert_chat_id> --content="Алерт: ..." --buttons='[[{"text":"Взять в работу","data":"take"},{"text":"Игнорировать","data":"ignore"}]]'
    ```
 
-4. On button click — handle callback and update alert status
+4. При нажатии кнопки — обработай callback и обнови статус алерта
 

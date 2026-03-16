@@ -28,7 +28,8 @@
 ## Пример запроса
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработка&limit=10&cursor=eyJpZCI6MTAsImRpciI6ImFzYyJ9&order=desc&created_from=2025-01-01T00:00:00.000Z&created_to=2025-02-01T00:00:00.000Z&active=true&chat_subtype=discussion&personal=false" \
+# Для получения следующей страницы используйте cursor из meta.paginate.next_page
+curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработка&limit=10&order=desc&created_from=2025-01-01T00:00:00.000Z&created_to=2025-02-01T00:00:00.000Z&active=true&chat_subtype=discussion&personal=false" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 

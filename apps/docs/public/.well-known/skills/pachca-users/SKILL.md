@@ -1,9 +1,16 @@
 ---
 name: pachca-users
 description: >
-  Employee and tag (group) management. Create, update, delete, search employees.
-  Onboarding and offboarding. Tag management and employee status. Use when: find
-  employee, create user, onboard/offboard, manage tags, set employee status.
+  Pachca — управление сотрудниками (участниками пространства) и тегами (группами).
+  Используй, когда пользователь хочет вывести список сотрудников, создать,
+  обновить, заблокировать или удалить сотрудника, установить статус другому
+  сотруднику по ID, управлять тегами/группами, назначить теги или провести
+  онбординг/оффбординг. НЕ для своего профиля или своего статуса (используй
+  pachca-profile), НЕ для поиска сотрудника по имени (используй pachca-search).
+  Use when: сотрудник, сотрудники, список сотрудников, создать сотрудника,
+  заблокировать сотрудника, уволить сотрудника, тег, теги, группа сотрудников,
+  добавить в тег, онбординг, оффбординг. NOT for: мой профиль, мой статус, найди
+  сотрудника, найти сотрудника, кастомные поля, дополнительные поля.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -11,147 +18,147 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
-### Get employee by ID
+### Получить сотрудника по ID
 
-1. Get employee info:
+1. Получи информацию о сотруднике:
    ```bash
    pachca users get <ID>
    ```
 
-> Returns all fields including `custom_properties`, `user_status`, `list_tags`.
+> Возвращает все поля, включая `custom_properties`, `user_status`, `list_tags`.
 
 
-### Bulk create employees with tags
+### Массовое создание сотрудников с тегами
 
-1. Create tag (if needed):
+1. Создай тег (если нужен):
    ```bash
    pachca group-tags create --name="Backend"
    ```
 
-2. For each employee: create account with tags:
+2. Для каждого сотрудника: создай аккаунт с тегами:
    ```bash
    pachca users create --first-name="Иван" --last-name="Петров" --email="ivan@example.com" --list-tags='[{"name":"Backend"}]'
    ```
-   > Tags are assigned via `list_tags` field in request body
+   > Теги назначаются через поле `list_tags` в теле запроса
 
-3. Or update existing:
+3. Или обнови существующего:
    ```bash
    pachca users update <ID> --list-tags='[{"name":"Backend"}]'
    ```
 
-> Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint.
+> Создание доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег".
 
 
-### Find employee by name or email
+### Найти сотрудника по имени или email
 
-1. Search by name/email (partial match):
+1. Поиск по имени/email (частичное совпадение):
    ```bash
    pachca users list --query=Иван
    ```
 
-> Cursor-based pagination: `limit` and `cursor` from `meta`. For exact email — iterate pages.
+> Пагинация cursor-based: `limit` и `cursor` из `meta`. Для точного email — перебери страницы.
 
 
-### Onboard new employee
+### Онбординг нового сотрудника
 
-1. Create account:
+1. Создай аккаунт:
    ```bash
    pachca users create --email="new@example.com" --first-name="Иван" --last-name="Петров"
    ```
 
-2. Add to required channels:
+2. Добавь в нужные каналы:
    ```bash
    pachca members add <chat_id> --member-ids='[<user_id>]'
    ```
 
-3. Send welcome message:
+3. Отправь welcome-сообщение:
    ```bash
    pachca messages create --entity-type=user --entity-id=<user_id> --content="Добро пожаловать!"
    ```
 
-> Step 1 requires admin/owner token. Steps 2-3 can be done by bot.
+> Шаг 1 требует токена администратора/владельца. Шаги 2-3 можно делать ботом.
 
 
-### Offboard employee
+### Offboarding сотрудника
 
-1. Suspend access:
+1. Заблокировать доступ:
    ```bash
    pachca users update <ID> --suspended
    ```
 
-2. Optionally: delete account permanently:
+2. Опционально: удалить аккаунт полностью:
    ```bash
    pachca users delete <ID> --force
    ```
 
-> Suspension (`suspended`) preserves data, deletion is irreversible.
+> Приостановка (`suspended`) сохраняет данные, удаление — необратимо.
 
 
-### Get all employees of a tag/department
+### Получить всех сотрудников тега/департамента
 
-1. Find tag by name, take `id`:
+1. Найди тег по названию, возьми `id`:
    ```bash
    pachca group-tags list --names='["Backend"]'
    ```
-   > `names` filter — server-side filtering by tag name
+   > Фильтр `names` — серверная фильтрация по названию тега
 
-2. Get all tag members:
+2. Получи всех участников тега:
    ```bash
    pachca group-tags list-users <tag_id> --all
    ```
 
 
-### Manage employee status
+### Управление статусом сотрудника
 
-1. Get current status:
+1. Получить текущий статус:
    ```bash
    pachca users get-status <user_id>
    ```
 
-2. Set status:
+2. Установить статус:
    ```bash
    pachca users update-status <user_id> --emoji="🏖️" --title="В отпуске" --is-away
    ```
-   > `is_away: true` — away mode. `away_message` — max 1024 chars
+   > `is_away: true` — режим «Нет на месте». `away_message` — макс 1024 символа
 
-3. Delete status:
+3. Удалить статус:
    ```bash
    pachca users remove-status <user_id> --force
    ```
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `user.role`: allowed values — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
@@ -178,4 +185,4 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | PUT | /users/{user_id}/status | Новый статус сотрудника |
 | DELETE | /users/{user_id}/status | Удаление статуса сотрудника |
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

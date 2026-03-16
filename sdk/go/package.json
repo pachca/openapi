@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "setup": "true",
-    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang go && mv go/* generated/ && rmdir go"
+    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang go --examples && mv go/* generated/ && rmdir go"
   },
   "devDependencies": {
     "@pachca/spec": "workspace:*"

@@ -2,12 +2,13 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parseOpenAPI } from '@pachca/openapi-parser';
 import { transform } from './transform.js';
-import type { LanguageGenerator } from './lang/types.js';
+import type { GenerateOptions, LanguageGenerator } from './lang/types.js';
 import { TypeScriptGenerator } from './lang/typescript.js';
 import { PythonGenerator } from './lang/python.js';
 import { GoGenerator } from './lang/go.js';
 import { KotlinGenerator } from './lang/kotlin.js';
 import { SwiftGenerator } from './lang/swift.js';
+
 
 const generators: Record<string, LanguageGenerator> = {
   typescript: new TypeScriptGenerator(),
@@ -19,7 +20,7 @@ const generators: Record<string, LanguageGenerator> = {
 
 export const SUPPORTED_LANGS = Object.keys(generators);
 
-export function generate(specPath: string, outputDir: string, langs: string[]): void {
+export function generate(specPath: string, outputDir: string, langs: string[], options?: GenerateOptions): void {
   // 1. Parse OpenAPI spec
   const spec = parseOpenAPI(specPath);
   console.log(`Parsed ${spec.info.title} v${spec.info.version}`);
@@ -36,7 +37,7 @@ export function generate(specPath: string, outputDir: string, langs: string[]): 
       throw new Error(`Unknown language: ${lang}. Supported: ${SUPPORTED_LANGS.join(', ')}`);
     }
 
-    const files = generator.generate(ir);
+    const files = generator.generate(ir, options);
     const langDir = path.join(outputDir, generator.dirName);
     fs.mkdirSync(langDir, { recursive: true });
 

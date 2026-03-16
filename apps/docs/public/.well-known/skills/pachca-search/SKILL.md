@@ -1,8 +1,15 @@
 ---
 name: pachca-search
 description: >
-  Full-text search across employees, chats, and messages. Use when: find message
-  by text, find chat by name, find employee by name.
+  Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям. Используй этот
+  скилл, когда пользователь хочет найти что-то — найти сотрудника по имени, найти
+  сообщение по тексту, найти чат по названию или узнать где обсуждали тему. Также
+  когда пользователь спрашивает «найди сотрудника», «где обсуждали X», «найди
+  сообщения про Y» или любой запрос с поиском/нахождением контента. НЕ для вывода
+  всех сотрудников, всех чатов или отправки сообщений. Use when: поиск, найти
+  сообщение, найти чат, найти сотрудника, искать, где обсуждали, кто писал,
+  полнотекстовый поиск. NOT for: список сотрудников, список чатов, отправить
+  сообщение.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -10,69 +17,69 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
-### Find message by text
+### Найти сообщение по тексту
 
-1. Full-text search across messages:
+1. Полнотекстовый поиск по сообщениям:
    ```bash
    pachca search list-messages --query="текст"
    ```
-   > `limit` (up to 200), `cursor`. Filters: `chat_ids[]`, `user_ids[]`, `active`, `created_from`/`created_to`
+   > `limit` (до 200), `cursor`. Фильтры: `chat_ids[]`, `user_ids[]`, `active`, `created_from`/`created_to`
 
-> Searches all accessible chats. `root_chat_id` in response — root chat for threads.
+> Поиск по всем доступным чатам. `root_chat_id` в ответе — корневой чат для тредов.
 
 
-### Find chat by name
+### Найти чат по названию
 
-1. Full-text search across chats:
+1. Полнотекстовый поиск по чатам:
    ```bash
    pachca search list-chats --query="название"
    ```
-   > `limit` (up to 100), `cursor`. Filters: `active`, `chat_subtype`, `personal`, `created_from`/`created_to`
+   > `limit` (до 100), `cursor`. Фильтры: `active`, `chat_subtype`, `personal`, `created_from`/`created_to`
 
 
-### Find employee by name
+### Найти сотрудника по имени
 
-1. Full-text search across employees:
+1. Полнотекстовый поиск по сотрудникам:
    ```bash
    pachca search list-users --query="имя"
    ```
-   > `sort=alphabetical` for alphabetical order, `sort=by_score` (default). Filters: `company_roles[]`, `created_from`/`created_to`
+   > `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию). Фильтры: `company_roles[]`, `created_from`/`created_to`
 
-> Searches by name, email, title and other fields. Supports sorting by relevance.
+> Поиск по имени, email, должности и другим полям. Поддерживает сортировку по релевантности.
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `limit`: max — 100 (GET /search/chats), 200 (GET /search/messages), 200 (GET /search/users)
@@ -86,4 +93,4 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | GET | /search/messages | Поиск сообщений |
 | GET | /search/users | Поиск сотрудников |
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

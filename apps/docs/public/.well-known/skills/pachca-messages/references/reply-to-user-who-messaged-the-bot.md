@@ -1,23 +1,23 @@
-### Reply to user who messaged the bot
+### Ответить пользователю, который написал боту
 
-1. Webhook contains `entity_type` that determines context: `"user"` — DM to bot, `"thread"` — message in thread, `"discussion"` — message in channel or conversation
+1. Вебхук содержит `entity_type` — он однозначно определяет контекст: `"user"` — личное сообщение боту, `"thread"` — сообщение в треде, `"discussion"` — сообщение в канале или беседе
 
-2. DM (`entity_type: "user"`): reply with direct message:
+2. DM (`entity_type: "user"`): ответь личным сообщением:
    ```bash
    pachca messages create --entity-type=user --entity-id=<user_id> --content="Ответ"
    ```
 
-3. Thread (`entity_type: "thread"`): reply in the same thread:
+3. Тред (`entity_type: "thread"`): ответь в тот же тред:
    ```bash
    pachca messages create --entity-type=thread --entity-id=<entity_id> --parent-message-id=<id> --content="Ответ"
    ```
-   > No nested threads — reply goes to the same thread
+   > Вложенных тредов нет — ответ идёт в тот же тред
 
-4. Conversation/channel (`entity_type: "discussion"`): inline reply or thread:
+4. Беседа/канал (`entity_type: "discussion"`): inline-ответ или тред:
    ```bash
    pachca messages create --entity-id=<entity_id> --parent-message-id=<id> --content="Ответ"
    ```
-   > `parent_message_id` visually links reply to the message
+   > `parent_message_id` визуально привязывает ответ к сообщению
 
-> If bot was called in a thread — main context is in thread parent message. Webhook has `thread.message_id` — get parent message: `pachca messages get <message_id>`.
+> Если бота вызвали в треде — основной контекст в родительском сообщении треда. В вебхуке есть `thread.message_id` — получи родительское сообщение: `pachca messages get <message_id>`.
 

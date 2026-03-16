@@ -1,0 +1,26 @@
+{
+  "Client_Init": {
+    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")"
+  },
+  "listEvents": {
+    "usage": "const response = client.events.listEvents({\n  isActive: true,\n  scopes: [OAuthScope.ChatsRead],\n  filter: {}\n})",
+    "output": "ListEventsResponse({ data: Event[] })",
+    "imports": [
+      "EventFilter",
+      "OAuthScope"
+    ]
+  },
+  "publishEvent": {
+    "usage": "const response = client.events.publishEvent(123, OAuthScope.ChatsRead)",
+    "output": "Event({ id: number, type: EventType })",
+    "imports": [
+      "OAuthScope"
+    ]
+  },
+  "createUpload": {
+    "usage": "const request: UploadRequest = { file: new Blob([]), contentDisposition: \"example\" }\nclient.uploads.createUpload(request)",
+    "imports": [
+      "UploadRequest"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+[
+  {"query": "Найди сообщения где обсуждали миграцию на PostgreSQL 16", "should_trigger": true, "note": "core: search messages by topic"},
+  {"query": "Поищи чат с названием 'Маркетинг Q1'", "should_trigger": true, "note": "core: search chats by name"},
+  {"query": "Найди сотрудника Елену Смирнову", "should_trigger": true, "note": "core: search employee by name"},
+  {"query": "Search for messages about Black Friday campaign", "should_trigger": true, "note": "core: full-text search (English)"},
+  {"query": "Где обсуждали редизайн главной страницы?", "should_trigger": true, "note": "core: find discussion by topic"},
+  {"query": "Кто писал про утечку памяти в сервисе payments?", "should_trigger": true, "note": "core: search messages to find author"},
+  {"query": "Найди все упоминания 'GDPR' в переписке", "should_trigger": true, "note": "core: full-text search for mentions"},
+  {"query": "Есть ли канал про onboarding новых сотрудников?", "should_trigger": true, "note": "core: search chats by topic"},
+  {"query": "Отправь 'Сборка готова, версия 3.12.1' в канал 250", "should_trigger": false, "note": "boundary: messages, not search"},
+  {"query": "Создай закрытый канал 'Incident Response' для команды SRE", "should_trigger": false, "note": "boundary: chats, not search"},
+  {"query": "Удали сообщение 7712", "should_trigger": false, "note": "boundary: messages, not search"},
+  {"query": "Создай задачу-напоминание: продлить SSL-сертификат до 1 апреля", "should_trigger": false, "note": "boundary: tasks, not search"},
+  {"query": "Покажи мой статус и должность", "should_trigger": false, "note": "boundary: profile, not search"},
+  {"query": "Добавь сотрудников 10, 11, 12 в тег 'Frontend'", "should_trigger": false, "note": "boundary: users, not search"}
+]

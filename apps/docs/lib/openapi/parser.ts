@@ -92,6 +92,11 @@ function parseEndpoint(
     };
   }
 
+  // Parse x-external-url and x-paginated extensions
+  const externalUrl = getString(operation, 'x-external-url');
+  if (externalUrl) endpoint.externalUrl = externalUrl;
+  if (getBoolean(operation, 'x-paginated')) endpoint.paginated = true;
+
   // Parse parameters
   const parameters = getArray(operation, 'parameters');
   if (parameters) {

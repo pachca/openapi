@@ -1,0 +1,21 @@
+[
+  {"query": "Отправь 'Встреча перенесена на 15:00' в канал 3021", "should_trigger": true, "note": "core: send message to chat by id"},
+  {"query": "Reply to thread on message 8844 with 'Fixed in commit abc123'", "should_trigger": true, "note": "core: reply to thread (English)"},
+  {"query": "Прикрепи файл /tmp/quarterly-report.xlsx к сообщению в беседу 150", "should_trigger": true, "note": "core: attach file to message"},
+  {"query": "Поставь реакцию :fire: на сообщение 6672", "should_trigger": true, "note": "core: add reaction to message"},
+  {"query": "Закрепи сообщение 2210 в канале #announcements", "should_trigger": true, "note": "core: pin message"},
+  {"query": "Покажи последние 50 сообщений из чата 400", "should_trigger": true, "note": "core: get message history"},
+  {"query": "Измени текст сообщения 5501 на 'Дедлайн — пятница, 21 марта'", "should_trigger": true, "note": "core: edit existing message"},
+  {"query": "Удали сообщение 4490 из канала", "should_trigger": true, "note": "core: delete message"},
+  {"query": "Напиши Сергею Иванову в личку: 'Проверь PR #287'", "should_trigger": true, "note": "core: send DM to user"},
+  {"query": "Упомяни @Анна Козлова в сообщении: 'Нужен твой ревью'", "should_trigger": true, "note": "core: mention user in message"},
+  {"query": "Отправь в чат 90 сообщение с кнопками 'Approve' и 'Reject'", "should_trigger": true, "note": "core: message with inline buttons"},
+  {"query": "Найди все сообщения про деплой за последнюю неделю", "should_trigger": false, "note": "boundary: search, not messages"},
+  {"query": "Создай канал 'Sprint 42 Retro' и пригласи команду", "should_trigger": false, "note": "boundary: chats, not messages"},
+  {"query": "Добавь пользователя 88 в канал 3021", "should_trigger": false, "note": "boundary: chats (manage members), not messages"},
+  {"query": "Создай задачу: подготовить отчёт к 25 марта", "should_trigger": false, "note": "boundary: tasks, not messages"},
+  {"query": "Покажи мой профиль и email", "should_trigger": false, "note": "boundary: profile, not messages"},
+  {"query": "Настрой входящий вебхук на URL https://hooks.example.com/pachca", "should_trigger": false, "note": "boundary: bots, not messages"},
+  {"query": "Открой форму заявки на командировку для пользователя 55", "should_trigger": false, "note": "boundary: forms, not messages"},
+  {"query": "Покажи журнал безопасности за 10 марта", "should_trigger": false, "note": "boundary: security, not messages"}
+]

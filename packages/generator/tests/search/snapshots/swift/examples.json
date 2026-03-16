@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "let chatIds = [123]\nlet userIds = [123]\nlet response = try await client.search.searchMessages(query: \"example\", chatIds: chatIds, userIds: userIds, createdFrom: \"2024-01-01T00:00:00Z\", createdTo: \"2024-01-01T00:00:00Z\", sort: .relevance, limit: 123, cursor: \"example\")",
+    "output": "SearchMessagesResponse(data: [MessageSearchResult], meta: SearchPaginationMeta)",
+    "imports": [
+      "SearchSort"
+    ]
+  }
+}

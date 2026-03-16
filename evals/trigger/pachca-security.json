@@ -1,0 +1,17 @@
+[
+  {"query": "Покажи журнал аудита за последнюю неделю", "should_trigger": true, "note": "core: get audit log for time range"},
+  {"query": "Какие события безопасности были за вчера?", "should_trigger": true, "note": "core: security events for yesterday"},
+  {"query": "Show login history for the last 24 hours", "should_trigger": true, "note": "core: login history (English)"},
+  {"query": "Были ли подозрительные входы с неудачной 2FA за март?", "should_trigger": true, "note": "core: suspicious login attempts with 2FA failures"},
+  {"query": "Покажи DLP-нарушения за 2026-03-01 — 2026-03-15", "should_trigger": true, "note": "core: DLP violations for date range"},
+  {"query": "Экспортируй лог безопасности с 1 по 10 марта в файл", "should_trigger": true, "note": "core: export security log"},
+  {"query": "Кто заходил в систему вчера после 22:00?", "should_trigger": true, "note": "core: who logged in yesterday evening"},
+  {"query": "Покажи все события удаления сообщений за последний месяц", "should_trigger": true, "note": "core: audit events filtered by message_deleted"},
+  {"query": "Были ли созданы новые токены API на прошлой неделе?", "should_trigger": true, "note": "core: token creation events"},
+  {"query": "Отправь сообщение 'Отчёт готов' в канал 200", "should_trigger": false, "note": "boundary: messages, not security"},
+  {"query": "Покажи всех сотрудников отдела HR", "should_trigger": false, "note": "boundary: users, not security"},
+  {"query": "Создай канал 'Безопасность' и добавь админов", "should_trigger": false, "note": "boundary: chats, not security (despite keyword overlap)"},
+  {"query": "Найди сообщения про инцидент", "should_trigger": false, "note": "boundary: search, not security"},
+  {"query": "Покажи мой профиль", "should_trigger": false, "note": "boundary: profile, not security"},
+  {"query": "Создай напоминание: проверить логи в пятницу", "should_trigger": false, "note": "boundary: tasks, not security (despite keyword overlap)"}
+]

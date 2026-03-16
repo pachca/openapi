@@ -1,0 +1,13 @@
+{
+  "Client_Init": {
+    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+  },
+  "ItemOperations_patchItem": {
+    "usage": "let body = ItemPatchRequest(\n    item: ItemPatchRequestItem(\n        name: \"example\",\n        description: \"example\",\n        priority: 123\n    )\n)\nlet response = try await client.items.patchItem(id: 123, body: body)",
+    "output": "Item(id: Int, name: String, description: String?, priority: Int?)",
+    "imports": [
+      "ItemPatchRequest",
+      "ItemPatchRequestItem"
+    ]
+  }
+}

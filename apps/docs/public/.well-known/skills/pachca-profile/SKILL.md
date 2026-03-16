@@ -1,8 +1,16 @@
 ---
 name: pachca-profile
 description: >
-  User profile, status management, custom fields, token verification. Use when:
-  get own profile, set/reset status, check custom fields, verify token scopes.
+  Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля. Всегда только про
+  себя — без параметров, данные определяются по токену. Используй, когда
+  пользователь хочет получить свой профиль, узнать кто он, установить или убрать
+  свой статус, посмотреть свой email/отдел, проверить свой токен и его скоупы, или
+  узнать какие кастомные/дополнительные поля существуют (custom_properties). Также
+  для запросов «кто я», «мой аккаунт», «мой email». НЕ для управления другими
+  сотрудниками, НЕ для изменения статуса другого сотрудника. Use when: мой
+  профиль, покажи профиль, мой статус, установить статус, убрать статус, кто я,
+  мой email, мои данные, проверить токен, дополнительные поля, кастомные поля. NOT
+  for: сотрудники, список сотрудников, создать сотрудника, статус сотрудника.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -10,91 +18,91 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
-### Get own profile
+### Получить свой профиль
 
-1. Get current user info:
+1. Получи информацию о текущем пользователе:
    ```bash
    pachca profile get
    ```
 
-> Returns `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
+> Возвращает `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
 
 
-### Verify own token
+### Проверить свой токен
 
-1. Get token info: scopes, creation date, lifetime:
+1. Получи информацию о токене: скоупы, дату создания, срок жизни:
    ```bash
    pachca profile get-info
    ```
 
-> Useful for diagnostics: which scopes the token has, when it expires.
+> Полезно для диагностики: какие скоупы доступны токену, когда он истекает.
 
 
-### Set status
+### Установить статус
 
-1. Set status:
+1. Установи статус:
    ```bash
    pachca profile update-status --emoji="🏖️" --title="В отпуске" --is-away --away-message="Я в отпуске до 10 марта" --expires-at="2025-03-10T23:59:59.000Z"
    ```
-   > `is_away: true` — away mode. `expires_at` — auto-reset (ISO-8601, UTC+0). `away_message` — max 1024 chars
+   > `is_away: true` — режим «Нет на месте». `expires_at` — автосброс (ISO-8601, UTC+0). `away_message` — макс 1024 символа
 
 
-### Reset status
+### Сбросить статус
 
-1. Delete status:
+1. Удали статус:
    ```bash
    pachca profile delete-status --force
    ```
 
 
-### Get custom profile fields
+### Получить кастомные поля профиля
 
-1. Get list of additional fields for employees:
+1. Получи список дополнительных полей для сотрудников:
    ```bash
    pachca common custom-properties --entity-type=User
    ```
-   > Add `entity_type=User` to filter
+   > Добавь `entity_type=User` для фильтрации
 
-2. Get profile — `custom_properties` contains field values:
+2. Получи профиль — в `custom_properties` содержатся значения полей:
    ```bash
    pachca profile get
    ```
 
-> Custom fields are configured by workspace admin.
+> Кастомные поля настраиваются администратором пространства.
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `status.away_message`: max 1024 characters
@@ -111,4 +119,4 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | PUT | /profile/status | Новый статус |
 | DELETE | /profile/status | Удаление статуса |
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

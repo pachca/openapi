@@ -24,15 +24,15 @@ Identify the task and use the appropriate skill:
 
 | Task | Skill |
 |------|-------|
-| Pachca user profile, status management, custom fields, and token verification | `pachca-profile` |
-| Pachca employee and tag (group) management | `pachca-users` |
-| Pachca chat, channel, and conversation management | `pachca-chats` |
-| Pachca messaging — send, edit, delete, and manage messages | `pachca-messages` |
-| Pachca bot management, webhooks, and link unfurling | `pachca-bots` |
-| Pachca interactive forms (modals) for bots — input fields, selects, checkboxes, date/time pickers, file uploads | `pachca-forms` |
-| Pachca task and reminder management — create, list, update, complete, and delete tasks | `pachca-tasks` |
-| Pachca full-text search across employees, chats, and messages | `pachca-search` |
-| Pachca security audit log — track login events, user actions, message changes, and DLP violations | `pachca-security` |
+| Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля | `pachca-profile` |
+| Pachca — управление сотрудниками (участниками пространства) и тегами (группами) | `pachca-users` |
+| Pachca — управление чатами, каналами и беседами | `pachca-chats` |
+| Pachca — сообщения: отправка, редактирование, удаление | `pachca-messages` |
+| Pachca — управление ботами, вебхуки и превью ссылок | `pachca-bots` |
+| Pachca — интерактивные формы и модальные окна для ботов | `pachca-forms` |
+| Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление | `pachca-tasks` |
+| Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям | `pachca-search` |
+| Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP | `pachca-security` |
 
 ## Top 5 operations
 
@@ -57,15 +57,15 @@ pachca chats create --name="Project" --member-ids=1,2,3
 
 | Skill | Description | Path |
 |-------|-------------|------|
-| pachca-profile | Pachca user profile, status management, custom fields, and token verification | [skills/pachca-profile/SKILL.md](skills/pachca-profile/SKILL.md) |
-| pachca-users | Pachca employee and tag (group) management | [skills/pachca-users/SKILL.md](skills/pachca-users/SKILL.md) |
-| pachca-chats | Pachca chat, channel, and conversation management | [skills/pachca-chats/SKILL.md](skills/pachca-chats/SKILL.md) |
-| pachca-messages | Pachca messaging — send, edit, delete, and manage messages | [skills/pachca-messages/SKILL.md](skills/pachca-messages/SKILL.md) |
-| pachca-bots | Pachca bot management, webhooks, and link unfurling | [skills/pachca-bots/SKILL.md](skills/pachca-bots/SKILL.md) |
-| pachca-forms | Pachca interactive forms (modals) for bots — input fields, selects, checkboxes, date/time pickers, file uploads | [skills/pachca-forms/SKILL.md](skills/pachca-forms/SKILL.md) |
-| pachca-tasks | Pachca task and reminder management — create, list, update, complete, and delete tasks | [skills/pachca-tasks/SKILL.md](skills/pachca-tasks/SKILL.md) |
-| pachca-search | Pachca full-text search across employees, chats, and messages | [skills/pachca-search/SKILL.md](skills/pachca-search/SKILL.md) |
-| pachca-security | Pachca security audit log — track login events, user actions, message changes, and DLP violations | [skills/pachca-security/SKILL.md](skills/pachca-security/SKILL.md) |
+| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля | [skills/pachca-profile/SKILL.md](skills/pachca-profile/SKILL.md) |
+| pachca-users | Pachca — управление сотрудниками (участниками пространства) и тегами (группами) | [skills/pachca-users/SKILL.md](skills/pachca-users/SKILL.md) |
+| pachca-chats | Pachca — управление чатами, каналами и беседами | [skills/pachca-chats/SKILL.md](skills/pachca-chats/SKILL.md) |
+| pachca-messages | Pachca — сообщения: отправка, редактирование, удаление | [skills/pachca-messages/SKILL.md](skills/pachca-messages/SKILL.md) |
+| pachca-bots | Pachca — управление ботами, вебхуки и превью ссылок | [skills/pachca-bots/SKILL.md](skills/pachca-bots/SKILL.md) |
+| pachca-forms | Pachca — интерактивные формы и модальные окна для ботов | [skills/pachca-forms/SKILL.md](skills/pachca-forms/SKILL.md) |
+| pachca-tasks | Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление | [skills/pachca-tasks/SKILL.md](skills/pachca-tasks/SKILL.md) |
+| pachca-search | Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям | [skills/pachca-search/SKILL.md](skills/pachca-search/SKILL.md) |
+| pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP | [skills/pachca-security/SKILL.md](skills/pachca-security/SKILL.md) |
 
 ## Limitations
 

@@ -1,19 +1,19 @@
-### Handle button click (callback)
+### Обработать нажатие кнопки (callback)
 
-1. Receive webhook with `"event": "message_button_clicked"` — payload: `data`, `user_id`, `message_id`
+1. Получи вебхук с `"event": "message_button_clicked"` — в payload: `data`, `user_id`, `message_id`
 
-2. Perform required action (DB write, API call, etc.)
+2. Выполни нужное действие (запись в БД, запрос к API и т.д.)
 
-3. Reply to user:
+3. Ответь пользователю:
    ```bash
    pachca messages create --entity-type=user --entity-id=<user_id> --content="Принято!"
    ```
 
-4. Optionally: update original message:
+4. Опционально: обнови исходное сообщение:
    ```bash
    pachca messages update <message_id> --buttons='[]' --content="Обработано"
    ```
-   > `"buttons": []` removes buttons
+   > `"buttons": []` убирает кнопки
 
-> Button with `data` sends event to webhook. Button with `url` — opens link (no webhook).
+> Кнопка с `data` отправляет событие на вебхук. Кнопка с `url` — открывает ссылку (вебхука не будет).
 

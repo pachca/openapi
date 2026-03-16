@@ -1,11 +1,11 @@
 ---
 name: pachca
 description: >
-  Pachca — corporate messenger with REST API and CLI. Router: determines the right
-  skill for any Pachca-related task. Use this skill whenever the user mentions
-  Pachca, wants to interact with Pachca API, or needs help with any Pachca
-  operation. This skill routes to the appropriate sub-skill. Do NOT make API calls
-  directly — route to the correct skill.
+  Pachca — корпоративный мессенджер с REST API и CLI. Роутер: определяет нужный
+  скилл для любой задачи, связанной с Pachca. Используй этот скилл, когда
+  пользователь упоминает Pachca, хочет взаимодействовать с API Pachca или
+  нуждается в помощи с любой операцией Pachca. Этот скилл маршрутизирует к нужному
+  под-скиллу. НЕ делай API-вызовы напрямую — направь к нужному скиллу.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -31,15 +31,15 @@ Identify the user task and activate the appropriate skill.
 
 | Task | Skill |
 |------|-------|
-| Pachca user profile, status management, custom fields, and token verification | `pachca-profile` |
-| Pachca employee and tag (group) management | `pachca-users` |
-| Pachca chat, channel, and conversation management | `pachca-chats` |
-| Pachca messaging — send, edit, delete, and manage messages | `pachca-messages` |
-| Pachca bot management, webhooks, and link unfurling | `pachca-bots` |
-| Pachca interactive forms (modals) for bots — input fields, selects, checkboxes, date/time pickers, file uploads | `pachca-forms` |
-| Pachca task and reminder management — create, list, update, complete, and delete tasks | `pachca-tasks` |
-| Pachca full-text search across employees, chats, and messages | `pachca-search` |
-| Pachca security audit log — track login events, user actions, message changes, and DLP violations | `pachca-security` |
+| Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля | `pachca-profile` |
+| Pachca — управление сотрудниками (участниками пространства) и тегами (группами) | `pachca-users` |
+| Pachca — управление чатами, каналами и беседами | `pachca-chats` |
+| Pachca — сообщения: отправка, редактирование, удаление | `pachca-messages` |
+| Pachca — управление ботами, вебхуки и превью ссылок | `pachca-bots` |
+| Pachca — интерактивные формы и модальные окна для ботов | `pachca-forms` |
+| Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление | `pachca-tasks` |
+| Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям | `pachca-search` |
+| Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP | `pachca-security` |
 
 ## CLI commands
 

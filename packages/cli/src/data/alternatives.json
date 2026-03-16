@@ -64,9 +64,9 @@
   "bots:list-events": "История событий",
   "bots:remove-event": "Удаление события",
   "skill:pachca-users": "pachca-users",
-  "skill:pachca-profile": "получить профиль, мой профиль, установить свой статус",
+  "skill:pachca-profile": "мой профиль, мой статус",
   "skill:pachca-chats": "pachca-chats",
-  "skill:pachca-search": "найти сообщение по тексту, полнотекстовый поиск",
+  "skill:pachca-search": "find message by text, full-text search",
   "skill:pachca-messages": "pachca-messages",
   "skill:pachca-bots": "pachca-bots",
   "skill:pachca-forms": "pachca-forms"

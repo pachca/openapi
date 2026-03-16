@@ -251,14 +251,14 @@ npx skills add pachca/openapi
 
 | Skill | Description |
 |-------|-------------|
-| pachca-profile | Pachca user profile, status management, custom fields, and token verification |
-| pachca-users | Pachca employee and tag (group) management |
-| pachca-chats | Pachca chat, channel, and conversation management |
-| pachca-messages | Pachca messaging — send, edit, delete, and manage messages |
-| pachca-bots | Pachca bot management, webhooks, and link unfurling |
-| pachca-forms | Pachca interactive forms (modals) for bots — input fields, selects, checkboxes, date/time pickers, file uploads |
-| pachca-tasks | Pachca task and reminder management — create, list, update, complete, and delete tasks |
-| pachca-search | Pachca full-text search across employees, chats, and messages |
-| pachca-security | Pachca security audit log — track login events, user actions, message changes, and DLP violations |
+| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля |
+| pachca-users | Pachca — управление сотрудниками (участниками пространства) и тегами (группами) |
+| pachca-chats | Pachca — управление чатами, каналами и беседами |
+| pachca-messages | Pachca — сообщения: отправка, редактирование, удаление |
+| pachca-bots | Pachca — управление ботами, вебхуки и превью ссылок |
+| pachca-forms | Pachca — интерактивные формы и модальные окна для ботов |
+| pachca-tasks | Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление |
+| pachca-search | Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям |
+| pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP |
 
 Skills index: `https://dev.pachca.com/.well-known/skills/index.json`

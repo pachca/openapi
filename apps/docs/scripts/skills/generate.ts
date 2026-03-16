@@ -110,7 +110,7 @@ export function generateAllSkills(api: ParsedAPI) {
     const refWorkflows = workflows.filter((wf) => wf.inline === false);
     for (const wf of refWorkflows) {
       const slug = slugify(wf.titleEn || wf.title);
-      const refMd = renderCLIWorkflow(wf, 'en');
+      const refMd = renderCLIWorkflow(wf, 'ru');
       for (const base of basePaths) {
         results.push({ path: `${base}/references/${slug}.md`, content: refMd });
       }
@@ -336,7 +336,7 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('## Workflows');
     lines.push('');
     for (const wf of inlineWorkflows) {
-      lines.push(renderCLIWorkflow(wf, 'en'));
+      lines.push(renderCLIWorkflow(wf, 'ru'));
     }
   }
 

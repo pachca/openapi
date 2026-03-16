@@ -1,18 +1,18 @@
-### Handle incoming webhook event
+### Обработать входящий вебхук-событие
 
-1. Receive POST request on your Webhook URL
+1. Получи POST-запрос на свой Webhook URL
 
-2. Verify signature (Signing secret) for security
+2. Проверь подпись (Signing secret) для безопасности
 
-3. Check `webhook_timestamp` — must be within 1 minute
+3. Проверь `webhook_timestamp` — должен быть в пределах 1 минуты
 
-4. Parse JSON: event type, data
+4. Разбери JSON: тип события, данные
 
-5. For full info request message — especially for attachments (`files[]`):
+5. Для полной информации запроси сообщение — особенно для вложений (`files[]`):
    ```bash
    pachca messages get <message_id>
    ```
-   > Webhook does NOT contain files — `files` is absent
+   > Вебхук НЕ содержит файлов — `files` отсутствует
 
-> Webhook contains minimal data — files (`files`) are absent.
+> Вебхук содержит минимум данных — файлы (`files`) в нём отсутствуют.
 

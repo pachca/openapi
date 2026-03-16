@@ -1,22 +1,22 @@
-### Show interactive form to user
+### Показать интерактивную форму пользователю
 
-1. Prepare form object: `view` with `title`, `blocks`, optionally `callback_id` and `private_metadata`
-   > Block types: `input`, `select`, `radio`, `checkbox`, `date`, `time`, `file_input`, `header`, `plain_text`, `markdown`, `divider`
+1. Подготовь объект формы: `view` с `title`, `blocks`, опционально `callback_id` и `private_metadata`
+   > Типы блоков: `input`, `select`, `radio`, `checkbox`, `date`, `time`, `file_input`, `header`, `plain_text`, `markdown`, `divider`
 
-2. Send message with button:
+2. Отправь сообщение с кнопкой:
    ```bash
    pachca messages create --entity-id=<chat_id> --content="Заполните форму" --buttons='[[{"text":"Открыть форму","data":"open_form"}]]'
    ```
 
-3. On button click — receive webhook event with `trigger_id`
+3. При нажатии кнопки — получи вебхук-событие с `trigger_id`
 
-4. Immediately open form:
+4. Немедленно открой форму:
    ```bash
    pachca views open --type=modal --trigger-id=<trigger_id> --title="Заявка" --blocks='[...]'
    ```
-   > `trigger_id` expires in 3 seconds — prepare form object in advance
+   > `trigger_id` живёт 3 секунды — формируй объект формы заранее
 
-5. On form submission receive webhook — handle per "Handle form submission" scenario
+5. При отправке формы получи вебхук — обработай по сценарию «Обработать отправку формы»
 
-> Forms only work from bot.
+> Формы работают только от бота.
 

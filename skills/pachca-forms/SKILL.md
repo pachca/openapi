@@ -1,15 +1,17 @@
 ---
 name: pachca-forms
 description: >
-  Pachca interactive forms (modals) for bots — input fields, selects, checkboxes,
-  date/time pickers, file uploads. Use this skill whenever the user wants to show
-  a form/modal to a user, handle form submissions (view_submission), validate form
-  data, build surveys or application forms, or create any interactive UI that
-  collects user input. Requires bot token. Also use for anything involving
-  trigger_id, form blocks, or modal dialogs. NOT for inline buttons in messages or
-  webhook configuration. Use when: show form, interactive form, modal dialog,
-  modal, form submit, handle form submission, form validation, view_submission,
-  survey, application form. NOT for: inline buttons, configure bot, webhook.
+  Pachca — интерактивные формы и модальные окна для ботов. Создание форм,
+  модальных окон, опросов, анкет и заявок с полями ввода, выпадающими списками,
+  чекбоксами, выбором даты/времени, загрузкой файлов. Используй, когда
+  пользователь хочет показать форму, открыть модальное окно, создать опрос или
+  анкету, обработать отправку формы (view_submission) или валидацию полей. Также
+  для trigger_id и dropdown/select. Требует токен бота. НЕ для инлайн-кнопок в
+  сообщениях или настройки вебхуков. Use when: показать форму, открыть форму,
+  собрать форму, модальное окно, модалка, отправка формы, обработать форму,
+  валидация формы, валидация поля, view_submission, опрос, анкета, заявка, форма
+  заявки, form, modal, interactive form. NOT for: кнопки в сообщении, настроить
+  бота, вебхук.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 

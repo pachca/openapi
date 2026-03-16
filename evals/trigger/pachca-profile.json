@@ -1,0 +1,18 @@
+[
+  {"query": "Покажи мой профиль", "should_trigger": true, "note": "core: get own profile"},
+  {"query": "Кто я? Покажи информацию о моём аккаунте", "should_trigger": true, "note": "core: who am I query"},
+  {"query": "Check if my token is valid and show scopes", "should_trigger": true, "note": "core: token validation (English)"},
+  {"query": "Установи мне статус 'В отпуске' с эмодзи 🏖️ до 20 марта", "should_trigger": true, "note": "core: set status with emoji and expiry"},
+  {"query": "Обнови мой статус — поставь 'На встрече'", "should_trigger": true, "note": "core: update own status"},
+  {"query": "Убери мой статус, я уже на месте", "should_trigger": true, "note": "core: clear/reset status"},
+  {"query": "Какие кастомные поля есть у сотрудников?", "should_trigger": true, "note": "core: list custom properties for users"},
+  {"query": "Get my profile info — need my user ID", "should_trigger": true, "note": "core: get profile to extract user_id (English)"},
+  {"query": "Проверь токен — какие скоупы у него и когда истекает?", "should_trigger": true, "note": "core: token info with scopes and expiry"},
+  {"query": "Покажи мой email и отдел из профиля", "should_trigger": true, "note": "core: get specific profile fields"},
+  {"query": "Покажи список всех сотрудников компании", "should_trigger": false, "note": "boundary: users, not profile"},
+  {"query": "Создай канал 'Дизайн-команда' и добавь туда 3 человек", "should_trigger": false, "note": "boundary: chats, not profile"},
+  {"query": "Отправь сообщение 'Всем привет' в чат 500", "should_trigger": false, "note": "boundary: messages, not profile"},
+  {"query": "Найди все сообщения про деплой", "should_trigger": false, "note": "boundary: search, not profile"},
+  {"query": "Создай задачу: созвон с клиентом завтра в 10:00", "should_trigger": false, "note": "boundary: tasks, not profile"},
+  {"query": "Установи статус сотруднику 186 — 'Болеет'", "should_trigger": false, "note": "boundary: users (other user's status), not profile"}
+]

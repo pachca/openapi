@@ -1,13 +1,15 @@
 ---
 name: pachca-tasks
 description: >
-  Pachca task and reminder management — create, list, update, complete, and delete
-  tasks. Use this skill whenever the user wants to create a task or reminder, list
-  existing tasks, mark a task as done, update task details, manage custom fields
-  on tasks, or set due dates. Also use for any to-do, reminder, or task tracking
-  needs. NOT for sending messages or managing chats. Use when: create task, list
-  tasks, reminder, update task, mark task as done, delete task, task custom
-  fields. NOT for: send message, manage chat.
+  Pachca — задачи и напоминания: создание, список, обновление, выполнение,
+  удаление. Используй этот скилл, когда пользователь хочет создать задачу или
+  напоминание, вывести список задач, отметить задачу как выполненную, обновить
+  задачу, управлять дополнительными полями задач или установить дедлайн. Также для
+  еженедельных напоминаний и серии напоминаний. НЕ для отправки сообщений или
+  управления чатами. Use when: создать задачу, список задач, напоминание,
+  поставить напоминание, создать напоминание, обновить задачу, выполнить задачу,
+  удалить задачу, дедлайн, кастомные поля задач, еженедельное напоминание, серия
+  напоминаний. NOT for: отправить сообщение, управление чатом.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -46,66 +48,66 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 ## Workflows
 
-### Create reminder
+### Создать напоминание
 
-1. Create task:
+1. Создай задачу:
    ```bash
    pachca tasks create --kind=reminder --content="Позвонить клиенту" --due-at=<дата> --chat-id=<chat_id>
    ```
-   > `chat_id` to link to chat, `custom_properties` for additional fields
+   > `chat_id` для привязки к чату, `custom_properties` для дополнительных полей
 
-> `custom_properties[].value` type is always string. Additional fields: GET /custom_properties?entity_type=Task.
+> Тип `custom_properties[].value` всегда строка. Дополнительные поля: GET /custom_properties?entity_type=Task.
 
 
-### Get list of upcoming tasks
+### Получить список предстоящих задач
 
-1. Get all tasks, filter by `status` on client side:
+1. Получи все задачи, фильтруй по `status` на клиенте:
    ```bash
    pachca tasks list --all
    ```
-   > `status`: `"undone"` — not completed, `"done"` — completed. API-side filtering not supported
+   > `status`: `"undone"` — не выполнена, `"done"` — выполнена. Фильтрация на API не поддерживается
 
 
-### Get task by ID
+### Получить задачу по ID
 
-1. Get task info:
+1. Получи информацию о задаче:
    ```bash
    pachca tasks get <ID>
    ```
 
 
-### Mark task as completed
+### Отметить задачу выполненной
 
-1. Update task status:
+1. Обнови статус задачи:
    ```bash
    pachca tasks update <ID> --status=done
    ```
 
 
-### Update task (reschedule, change assignees)
+### Обновить задачу (перенести срок, сменить ответственных)
 
-1. Update task fields:
+1. Обнови нужные поля задачи:
    ```bash
    pachca tasks update <ID> --due-at=<дата> --priority=2 --performer-ids='[186,187]'
    ```
-   > `performer_ids` replaces entire list. `priority`: 1 (normal), 2 (important), 3 (very important)
+   > `performer_ids` заменяет весь список. `priority`: 1 (обычный), 2 (важно), 3 (очень важно)
 
 
-### Delete task
+### Удалить задачу
 
-1. Delete task:
+1. Удали задачу:
    ```bash
    pachca tasks delete <ID> --force
    ```
 
-> Deletion is irreversible. To just close — use PUT with `"status": "done"`.
+> Удаление необратимо. Чтобы просто закрыть — используй PUT с `"status": "done"`.
 
 
-### Create series of reminders
+### Создать серию напоминаний
 
-1. Prepare list of dates (daily, weekly, etc.)
+1. Подготовь список дат (ежедневно, еженедельно и т.д.)
 
-2. For each date: create task:
+2. Для каждой даты: создай задачу:
    ```bash
    pachca tasks create --kind=reminder --content="Напоминание" --due-at=<дата>
    ```

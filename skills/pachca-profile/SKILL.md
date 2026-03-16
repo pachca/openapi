@@ -1,13 +1,16 @@
 ---
 name: pachca-profile
 description: >
-  Pachca user profile, status management, custom fields, and token verification.
-  Use this skill whenever the user wants to get their profile, check who they are,
-  set or update their status, manage custom fields, or verify API token scopes.
-  Also use for any "who am I" or "my account" queries. NOT for managing other
-  employees or listing users. Use when: get profile, my profile, set status,
-  update status, clear status, custom fields, additional fields, verify token,
-  token scopes. NOT for: manage employees, create user, list employees.
+  Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля. Всегда только про
+  себя — без параметров, данные определяются по токену. Используй, когда
+  пользователь хочет получить свой профиль, узнать кто он, установить или убрать
+  свой статус, посмотреть свой email/отдел, проверить свой токен и его скоупы, или
+  узнать какие кастомные/дополнительные поля существуют (custom_properties). Также
+  для запросов «кто я», «мой аккаунт», «мой email». НЕ для управления другими
+  сотрудниками, НЕ для изменения статуса другого сотрудника. Use when: мой
+  профиль, покажи профиль, мой статус, установить статус, убрать статус, кто я,
+  мой email, мои данные, проверить токен, дополнительные поля, кастомные поля. NOT
+  for: сотрудники, список сотрудников, создать сотрудника, статус сотрудника.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -46,57 +49,57 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 ## Workflows
 
-### Get own profile
+### Получить свой профиль
 
-1. Get current user info:
+1. Получи информацию о текущем пользователе:
    ```bash
    pachca profile get
    ```
 
-> Returns `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
+> Возвращает `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`, `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`, `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
 
 
-### Verify own token
+### Проверить свой токен
 
-1. Get token info: scopes, creation date, lifetime:
+1. Получи информацию о токене: скоупы, дату создания, срок жизни:
    ```bash
    pachca profile get-info
    ```
 
-> Useful for diagnostics: which scopes the token has, when it expires.
+> Полезно для диагностики: какие скоупы доступны токену, когда он истекает.
 
 
-### Set status
+### Установить статус
 
-1. Set status:
+1. Установи статус:
    ```bash
    pachca profile update-status --emoji="🏖️" --title="В отпуске" --is-away --away-message="Я в отпуске до 10 марта" --expires-at="2025-03-10T23:59:59.000Z"
    ```
-   > `is_away: true` — away mode. `expires_at` — auto-reset (ISO-8601, UTC+0). `away_message` — max 1024 chars
+   > `is_away: true` — режим «Нет на месте». `expires_at` — автосброс (ISO-8601, UTC+0). `away_message` — макс 1024 символа
 
 
-### Reset status
+### Сбросить статус
 
-1. Delete status:
+1. Удали статус:
    ```bash
    pachca profile delete-status --force
    ```
 
 
-### Get custom profile fields
+### Получить кастомные поля профиля
 
-1. Get list of additional fields for employees:
+1. Получи список дополнительных полей для сотрудников:
    ```bash
    pachca common custom-properties --entity-type=User
    ```
-   > Add `entity_type=User` to filter
+   > Добавь `entity_type=User` для фильтрации
 
-2. Get profile — `custom_properties` contains field values:
+2. Получи профиль — в `custom_properties` содержатся значения полей:
    ```bash
    pachca profile get
    ```
 
-> Custom fields are configured by workspace admin.
+> Кастомные поля настраиваются администратором пространства.
 
 
 ## Limitations

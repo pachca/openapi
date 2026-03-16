@@ -1,15 +1,14 @@
 ---
 name: pachca-bots
 description: >
-  Pachca bot management, webhooks, and link unfurling. Use this skill whenever the
-  user wants to set up a bot, configure incoming or outgoing webhooks, handle
-  webhook events, verify webhook signatures, process button callbacks, build
-  digest/alert bots, poll message history, or set up link previews (unfurling).
-  Also use for any bot-related automation, event handling, or webhook integration.
-  NOT for sending regular messages, showing interactive forms, or form
-  submissions. Use when: configure bot, webhook, handle event, webhook signature,
-  button click, callback, digest, alert, polling, unfurl, link preview. NOT for:
-  send message, show form, interactive form.
+  Pachca — управление ботами, вебхуки и превью ссылок. Используй этот скилл, когда
+  пользователь хочет настроить бота, создать бота, настроить вебхуки, обработать
+  вебхук, проверить подпись вебхука (X-Signature), обработать callback нажатия
+  кнопки, создать дайджест-бота или настроить превью ссылок. НЕ для отправки
+  обычных сообщений, показа форм или модальных окон. Use when: настроить бота,
+  создать бота, вебхук, обработать вебхук, подпись вебхука, callback, обработать
+  callback, нажатие кнопки, дайджест, оповещение, превью ссылки. NOT for:
+  отправить сообщение, показать форму, модальное окно.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -48,40 +47,40 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 ## Workflows
 
-### Set up bot with outgoing webhook
+### Настроить бота с исходящим вебхуком
 
-1. Create bot in Pachca UI: Automations → Integrations → Webhook
+1. Создай бота в интерфейсе Пачки: Автоматизации → Интеграции → Webhook
 
-2. Get bot `access_token` from "API" tab in bot settings
+2. Получи `access_token` бота во вкладке «API» настроек бота
 
-3. Set Webhook URL for receiving events
+3. Укажи Webhook URL для получения событий
 
-> Bot is created via UI, not API. The only bot endpoint is PUT /bots/{id} (update webhook URL). API is used to send messages on behalf of bot.
+> Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.
 
 
-### Update bot webhook URL
+### Обновить Webhook URL бота
 
-1. Update bot webhook URL:
+1. Обнови webhook URL бота:
    ```bash
    pachca bots update <bot_id> --webhook='{"outgoing_url":"https://example.com/webhook"}'
    ```
-   > Bot `id` (its `user_id`) can be found in "API" tab of bot settings
+   > `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
 
-> Only users with bot edit permissions can update settings.
+> Обновлять настройки может только тот, кому разрешено редактирование бота.
 
 
-### Periodic digest/report
+### Периодический дайджест/отчёт
 
-1. On schedule (cron/scheduler): collect data from your system
+1. По расписанию (cron/scheduler): собери данные из своей системы
 
-2. Compose message text with metrics or summary
+2. Сформируй текст сообщения с нужными метриками или сводкой
 
-3. Send message to channel:
+3. Отправь сообщение в канал:
    ```bash
    pachca messages create --entity-id=<chat_id> --content="Дайджест за сегодня: ..."
    ```
 
-> No built-in scheduler — use cron, celery, sidekiq, etc. on your side.
+> Нет встроенного планировщика — используй cron, celery, sidekiq и т.п. на своей стороне.
 
 
 ## Limitations

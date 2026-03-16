@@ -1,17 +1,17 @@
-### Handle form submission (view_submission)
+### Обработать отправку формы (view_submission)
 
-1. Receive webhook with `"type": "view"`, `"event": "submit"` — contains `callback_id`, `user_id`, `private_metadata` and `data`
-   > Field values: keys match `name` of each block
+1. Получи вебхук с `"type": "view"`, `"event": "submit"` — содержит `callback_id`, `user_id`, `private_metadata` и `data`
+   > Значения полей: ключи совпадают с `name` каждого блока
 
-2. Extract values from `data`
+2. Извлеки значения из `data`
 
-3. If `file_input` exists — download files via `data.field_name[].url` immediately
-   > Links expire in 1 hour
+3. Если есть `file_input` — скачай файлы по `data.field_name[].url` немедленно
+   > Ссылки истекают через 1 час
 
-4. If data is valid → respond HTTP 200 (empty body) — form will close
+4. Если данные валидны → ответь HTTP 200 (пустое тело) — форма закроется
 
-5. If errors exist → respond HTTP 400 with `{"errors": {"field_name": "error text"}}`
-   > User will see errors in form and can fix them
+5. Если есть ошибки → ответь HTTP 400 с `{"errors": {"field_name": "текст ошибки"}}`
+   > Пользователь увидит ошибки в форме и сможет исправить
 
-> Response must be given within 3 seconds. `private_metadata` — context, up to 3000 chars.
+> Ответ должен быть дан в течение 3 секунд. `private_metadata` — контекст, до 3000 символов.
 

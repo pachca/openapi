@@ -1,14 +1,14 @@
 ---
 name: pachca-chats
 description: >
-  Pachca chat, channel, and conversation management. Use this skill whenever the
-  user wants to create, list, archive, or manage channels and group conversations,
-  add or remove members, change member roles, export chat history, or check chat
-  details. Also use for anything about chat settings, member management, or
-  conversation structure. NOT for sending messages or replying to threads. Use
-  when: create channel, create conversation, create chat, add member, remove
-  member, archive chat, member roles, export messages, list chats, active chats,
-  inactive chats. NOT for: send message, reply to thread, upload file.
+  Pachca — управление чатами, каналами и беседами. Используй этот скилл, когда
+  пользователь хочет создать канал, создать беседу, вывести или архивировать чаты,
+  добавить или удалить участников, изменить роли участников, экспортировать
+  историю чата или проверить настройки чата. НЕ для отправки сообщений или ответов
+  в тред. Use when: создать канал, создать беседу, создать чат, добавить
+  участника, удалить участника, архивировать чат, роли участников, экспорт
+  сообщений, список чатов, каналы. NOT for: отправить сообщение, ответить в тред,
+  загрузить файл.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -47,69 +47,69 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 ## Workflows
 
-### Create channel and invite members
+### Создать канал и пригласить участников
 
-1. Create channel with members:
+1. Создай канал с участниками:
    ```bash
    pachca chats create --name="Новый канал" --channel --member-ids='[1,2,3]'
    ```
-   > `"channel": true` for channel, `false` (default) for conversation. Members can be passed immediately: `member_ids` and/or `group_tag_ids`
+   > `"channel": true` для канала, `false` (по умолчанию) для беседы. Участников можно передать сразу: `member_ids` и/или `group_tag_ids`
 
-2. Or add members later:
+2. Или добавь участников позже:
    ```bash
    pachca members add <chat_id> --member-ids='[1,2,3]'
    ```
 
-> `channel` — boolean, not string. `member_ids` and `group_tag_ids` — optional on creation.
+> `channel` — boolean, не строка. `member_ids` и `group_tag_ids` — опциональны при создании.
 
 
-### Rename or update chat
+### Переименовать или обновить чат
 
-1. Update chat:
+1. Обнови чат:
    ```bash
    pachca chats update <ID> --name="Новое название"
    ```
-   > Available fields: `name`, `public`
+   > Доступные поля: `name`, `public`
 
-> To change members use POST/DELETE /chats/{id}/members.
+> Для изменения состава участников используй POST/DELETE /chats/{id}/members.
 
 
-### Create project conversation from template
+### Создать проектную беседу из шаблона
 
-1. Create conversation with members from tag:
+1. Создай беседу с участниками из тега:
    ```bash
    pachca chats create --name="Проект Alpha" --group-tag-ids='[42]' --member-ids='[186,187]'
    ```
 
-2. Send welcome message:
+2. Отправь приветственное сообщение:
    ```bash
    pachca messages create --entity-id=<chat_id> --content="Добро пожаловать в проект!"
    ```
 
-> `group_tag_ids` on creation adds all tag members at once.
+> `group_tag_ids` при создании добавляет всех участников тега сразу.
 
 
-### Find active chats for period
+### Найти активные чаты за период
 
-1. Get chats with activity after specified date:
+1. Получи чаты с активностью после указанной даты:
    ```bash
    pachca chats list --last-message-at-after=<дата> --all
    ```
-   > For range add `--last-message-at-before`. Date in ISO-8601 UTC+0
+   > Для диапазона добавь `--last-message-at-before`. Дата в ISO-8601 UTC+0
 
 
-### Find and archive inactive chats
+### Найти и заархивировать неактивные чаты
 
-1. Get chats with no activity since specified date:
+1. Получи чаты без активности с нужной даты:
    ```bash
    pachca chats list --last-message-at-before=<порог> --all
    ```
 
-2. For each chat: archive:
+2. Для каждого чата: архивируй:
    ```bash
    pachca chats archive <ID>
    ```
-   > Check `"channel": false` — archiving channels may be undesirable
+   > Проверяй `"channel": false` — архивация каналов может быть нежелательной
 
 
 ## Limitations

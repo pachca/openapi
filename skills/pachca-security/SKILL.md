@@ -1,14 +1,15 @@
 ---
 name: pachca-security
 description: >
-  Pachca security audit log — track login events, user actions, message changes,
-  and DLP violations. Requires "Corporation" plan. Use this skill whenever the
-  user wants to view security events, audit logs, login history, suspicious
-  activity, track who did what, export security logs, or monitor for DLP
-  violations. Also use for any compliance, auditing, or security monitoring needs.
-  NOT for sending messages or managing users. Use when: audit, event log,
-  security, DLP, logs, suspicious logins, login history, login monitoring, export
-  logs. NOT for: send message, manage users.
+  Pachca — журнал безопасности: отслеживание входов, действий пользователей,
+  изменений сообщений и нарушений DLP. Требуется тариф «Корпорация». Используй
+  этот скилл, когда пользователь хочет посмотреть события безопасности, журнал
+  аудита, историю входов, подозрительную активность, узнать кто что делал,
+  экспортировать логи безопасности или отслеживать нарушения DLP. НЕ для отправки
+  сообщений или управления сотрудниками. Use when: журнал безопасности, аудит,
+  события безопасности, кто заходил, история входов, подозрительная активность,
+  DLP, экспорт логов, токены API. NOT for: отправить сообщение, управление
+  сотрудниками.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -47,38 +48,38 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 ## Workflows
 
-### Get audit event log
+### Получить журнал аудита событий
 
-1. Get audit log:
+1. Получи журнал аудита:
    ```bash
    pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601>
    ```
-   > `start_time` and `end_time` required (ISO-8601, UTC+0). Filters: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
+   > `start_time` и `end_time` обязательны (ISO-8601, UTC+0). Фильтры: `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`
 
-> Available only to workspace owner.
+> Доступно только владельцу пространства.
 
 
-### Monitor suspicious logins
+### Мониторинг подозрительных входов
 
-1. Get failed 2FA events for period:
+1. Получи события неудачных 2FA за период:
    ```bash
    pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --event-key=user_2fa_fail --all
    ```
 
-2. If anomalies found — send notification to admin:
+2. Если найдены аномалии — отправь уведомление администратору:
    ```bash
    pachca messages create --entity-type=user --entity-id=<admin_id> --content="Обнаружены подозрительные входы"
    ```
 
 
-### Export logs for period
+### Экспорт логов за период
 
-1. Get all events for period with pagination:
+1. Получи все события за период с пагинацией:
    ```bash
    pachca security list --start-time=<ISO-8601> --end-time=<ISO-8601> --all
    ```
 
-2. Collect all events into array → save to file or send to external system
+2. Собери все события в массив → сохрани в файл или отправь во внешнюю систему
 
 
 ## Available event_key values

@@ -1,14 +1,15 @@
 ---
 name: pachca-search
 description: >
-  Pachca full-text search across employees, chats, and messages. Use this skill
-  whenever the user wants to search or find something — search messages by text,
-  find a chat by name, look up employees, or locate discussions about a topic.
-  Also use when the user asks "where was X discussed", "find messages about Y", or
-  any query that involves searching/finding content. NOT for listing all
-  employees, listing all chats, or sending messages. Use when: search messages,
-  find message, full-text search, search, find by text. NOT for: list employees,
-  list chats, send message.
+  Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям. Используй этот
+  скилл, когда пользователь хочет найти что-то — найти сотрудника по имени, найти
+  сообщение по тексту, найти чат по названию или узнать где обсуждали тему. Также
+  когда пользователь спрашивает «найди сотрудника», «где обсуждали X», «найди
+  сообщения про Y» или любой запрос с поиском/нахождением контента. НЕ для вывода
+  всех сотрудников, всех чатов или отправки сообщений. Use when: поиск, найти
+  сообщение, найти чат, найти сотрудника, искать, где обсуждали, кто писал,
+  полнотекстовый поиск. NOT for: список сотрудников, список чатов, отправить
+  сообщение.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -47,35 +48,35 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 ## Workflows
 
-### Find message by text
+### Найти сообщение по тексту
 
-1. Full-text search across messages:
+1. Полнотекстовый поиск по сообщениям:
    ```bash
    pachca search list-messages --query="текст"
    ```
-   > `limit` (up to 200), `cursor`. Filters: `chat_ids[]`, `user_ids[]`, `active`, `created_from`/`created_to`
+   > `limit` (до 200), `cursor`. Фильтры: `chat_ids[]`, `user_ids[]`, `active`, `created_from`/`created_to`
 
-> Searches all accessible chats. `root_chat_id` in response — root chat for threads.
+> Поиск по всем доступным чатам. `root_chat_id` в ответе — корневой чат для тредов.
 
 
-### Find chat by name
+### Найти чат по названию
 
-1. Full-text search across chats:
+1. Полнотекстовый поиск по чатам:
    ```bash
    pachca search list-chats --query="название"
    ```
-   > `limit` (up to 100), `cursor`. Filters: `active`, `chat_subtype`, `personal`, `created_from`/`created_to`
+   > `limit` (до 100), `cursor`. Фильтры: `active`, `chat_subtype`, `personal`, `created_from`/`created_to`
 
 
-### Find employee by name
+### Найти сотрудника по имени
 
-1. Full-text search across employees:
+1. Полнотекстовый поиск по сотрудникам:
    ```bash
    pachca search list-users --query="имя"
    ```
-   > `sort=alphabetical` for alphabetical order, `sort=by_score` (default). Filters: `company_roles[]`, `created_from`/`created_to`
+   > `sort=alphabetical` для алфавитного порядка, `sort=by_score` (по умолчанию). Фильтры: `company_roles[]`, `created_from`/`created_to`
 
-> Searches by name, email, title and other fields. Supports sorting by relevance.
+> Поиск по имени, email, должности и другим полям. Поддерживает сортировку по релевантности.
 
 
 ## Limitations

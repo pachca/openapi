@@ -178,7 +178,7 @@ function extractFields(
       inlineObjects.push(extracted);
       fields.push({
         name: propName,
-        type: { kind: 'model', ref: extractedName },
+        type: { kind: 'model', ref: extractedName, example: propSchema.example },
         required: required.has(propName),
         nullable: !!propSchema.nullable,
         description: propSchema.description,
@@ -243,9 +243,11 @@ function extractFields(
       continue;
     }
 
+    const fieldType = resolveFieldType(propSchema);
+    if (propSchema.example !== undefined) fieldType.example = propSchema.example;
     fields.push({
       name: propName,
-      type: resolveFieldType(propSchema),
+      type: fieldType,
       required: required.has(propName),
       nullable: !!propSchema.nullable,
       description: propSchema.description,
@@ -385,6 +387,8 @@ function transformParam(param: Parameter): IRParam {
   }
 
   let type = resolveFieldType(param.schema);
+  const ex = param.example ?? param.schema.example;
+  if (ex !== undefined) type.example = ex;
   if (isArray && type.kind !== 'array') {
     type = { kind: 'array', items: type };
   }

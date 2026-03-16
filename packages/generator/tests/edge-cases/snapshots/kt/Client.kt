@@ -76,7 +76,7 @@ class PachcaClient(token: String, baseUrl: String) : Closeable {
         install(HttpRequestRetry) {
             retryOnServerErrors(maxRetries = 3)
             retryIf { _, response -> response.status.value == 429 }
-            delayMillis { retry, response ->
+            delayMillis { retry ->
                 val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
                 if (retryAfter != null) retryAfter * 1000L else retry * 1000L
             }

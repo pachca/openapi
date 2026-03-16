@@ -1,3 +1,4 @@
-jdk: 17
+jdk:
+  - openjdk17
 install:
   - cd sdk/kotlin/generated && ./gradlew publishToMavenLocal

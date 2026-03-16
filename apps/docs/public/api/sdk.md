@@ -101,7 +101,7 @@ func main() {
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:1.0.0")
+    implementation("com.pachca:pachca-sdk:1.0.1")
 }
 ```
 
@@ -132,7 +132,7 @@ val allUsers = pachca.users.listUsersAll()
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
 ]
 ```
 

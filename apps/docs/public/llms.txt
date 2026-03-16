@@ -149,7 +149,7 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
 | Python | `pachca` | `pip install pachca` |
 | Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
-| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.0")` |
+| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 
 Конвенции:

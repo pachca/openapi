@@ -1,9 +1,14 @@
 ---
 name: pachca-chats
 description: >
-  Channel and conversation management, chat members. Create, update, archive
-  chats. Add/remove members, roles, message export. Use when: create channel, add
-  member, archive chat, find active/inactive chats, export messages.
+  Pachca chat, channel, and conversation management. Use this skill whenever the
+  user wants to create, list, archive, or manage channels and group conversations,
+  add or remove members, change member roles, export chat history, or check chat
+  details. Also use for anything about chat settings, member management, or
+  conversation structure. NOT for sending messages or replying to threads. Use
+  when: create channel, create conversation, create chat, add member, remove
+  member, archive chat, member roles, export messages, list chats, active chats,
+  inactive chats. NOT for: send message, reply to thread, upload file.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -11,36 +16,36 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
 ### Create channel and invite members
 
@@ -107,7 +112,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
    > Check `"channel": false` — archiving channels may be undesirable
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `role`: allowed values — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
@@ -134,10 +139,10 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | PUT | /chats/{id}/members/{user_id} | Редактирование роли |
 | PUT | /chats/{id}/unarchive | Разархивация чата |
 
-## Complex scenarios
+## Advanced workflows
 
-For complex scenarios read files from references/:
+For advanced workflows, read the files in references/:
   references/archive-and-manage-chat.md — Archive and manage chat
   references/export-chat-history.md — Export chat history
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

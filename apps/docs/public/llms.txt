@@ -1,4 +1,4 @@
-# Пачка API Documentation
+﻿# Пачка API Documentation
 
 > REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.
 
@@ -171,15 +171,15 @@ Swift:      PachcaClient(token: "TOKEN") → try await pachca.messages.createMes
 
 | Скилл | Описание |
 |-------|---------|
-| pachca-profile | User profile, status management, custom fields, token verification |
-| pachca-users | Employee and tag (group) management |
-| pachca-chats | Channel and conversation management, chat members |
-| pachca-messages | Send messages to channels, conversations, and DMs |
-| pachca-bots | Bot management, incoming/outgoing webhooks, link unfurling |
-| pachca-forms | Interactive forms with input fields and buttons for bots |
-| pachca-tasks | Create, get, update, and delete tasks (reminders) |
-| pachca-search | Full-text search across employees, chats, and messages |
-| pachca-security | Security audit event log |
+| pachca-profile | Pachca user profile, status management, custom fields, and token verification |
+| pachca-users | Pachca employee and tag (group) management |
+| pachca-chats | Pachca chat, channel, and conversation management |
+| pachca-messages | Pachca messaging — send, edit, delete, and manage messages |
+| pachca-bots | Pachca bot management, webhooks, and link unfurling |
+| pachca-forms | Pachca interactive forms (modals) for bots — input fields, selects, checkboxes, date/time pickers, file uploads |
+| pachca-tasks | Pachca task and reminder management — create, list, update, complete, and delete tasks |
+| pachca-search | Pachca full-text search across employees, chats, and messages |
+| pachca-security | Pachca security audit log — track login events, user actions, message changes, and DLP violations |
 | pachca | Pachca — corporate messenger with REST API and CLI |
 
 Установка: `npx skills add pachca/openapi`

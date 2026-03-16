@@ -1,8 +1,14 @@
 ---
 name: pachca-security
 description: >
-  Security audit event log. Use when: get audit log, review security events,
-  monitor logins, export logs. Requires "Corporation" plan.
+  Pachca security audit log — track login events, user actions, message changes,
+  and DLP violations. Requires "Corporation" plan. Use this skill whenever the
+  user wants to view security events, audit logs, login history, suspicious
+  activity, track who did what, export security logs, or monitor for DLP
+  violations. Also use for any compliance, auditing, or security monitoring needs.
+  NOT for sending messages or managing users. Use when: audit, event log,
+  security, DLP, logs, suspicious logins, login history, login monitoring, export
+  logs. NOT for: send message, manage users.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -10,36 +16,36 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
 ### Get audit event log
 
@@ -91,7 +97,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | Security | `audit_events_accessed`, `dlp_violation_detected` |
 | Search (API) | `search_users_api`, `search_chats_api`, `search_messages_api` |
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `limit`: max 50
@@ -104,4 +110,4 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 |--------|------|-------------|
 | GET | /audit_events | Журнал аудита событий |
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

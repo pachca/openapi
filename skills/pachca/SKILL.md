@@ -1,10 +1,11 @@
 ---
 name: pachca
 description: >
-  Pachca — corporate messenger with REST API and CLI. Router skill: determines the
-  right skill for the user's task. Use when user mentions Pachca, messenger,
-  channels, messages, bots, tasks. Do NOT make API calls from this skill — route
-  to the appropriate specialized skill.
+  Pachca — corporate messenger with REST API and CLI. Router: determines the right
+  skill for any Pachca-related task. Use this skill whenever the user mentions
+  Pachca, wants to interact with Pachca API, or needs help with any Pachca
+  operation. This skill routes to the appropriate sub-skill. Do NOT make API calls
+  directly — route to the correct skill.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -12,7 +13,7 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 Pachca — corporate messenger with REST API and CLI.
 
-## Quick start (zero-install)
+## Quick start
 
 ```bash
 npx @pachca/cli <command> --token <TOKEN>
@@ -26,22 +27,22 @@ npm install -g @pachca/cli && pachca auth login
 
 ## Routing
 
-Match the user's task to the right skill below, then activate it.
+Identify the user task and activate the appropriate skill.
 
-| User task | Skill |
-|-----------|-------|
-| User profile, status management, custom fields, token verification | Use `pachca-profile` |
-| Employee and tag (group) management | Use `pachca-users` |
-| Channel and conversation management, chat members | Use `pachca-chats` |
-| Send messages to channels, conversations, and DMs | Use `pachca-messages` |
-| Bot management, incoming/outgoing webhooks, link unfurling | Use `pachca-bots` |
-| Interactive forms with input fields and buttons for bots | Use `pachca-forms` |
-| Create, get, update, and delete tasks (reminders) | Use `pachca-tasks` |
-| Full-text search across employees, chats, and messages | Use `pachca-search` |
-| Security audit event log | Use `pachca-security` |
+| Task | Skill |
+|------|-------|
+| Pachca user profile, status management, custom fields, and token verification | `pachca-profile` |
+| Pachca employee and tag (group) management | `pachca-users` |
+| Pachca chat, channel, and conversation management | `pachca-chats` |
+| Pachca messaging — send, edit, delete, and manage messages | `pachca-messages` |
+| Pachca bot management, webhooks, and link unfurling | `pachca-bots` |
+| Pachca interactive forms (modals) for bots — input fields, selects, checkboxes, date/time pickers, file uploads | `pachca-forms` |
+| Pachca task and reminder management — create, list, update, complete, and delete tasks | `pachca-tasks` |
+| Pachca full-text search across employees, chats, and messages | `pachca-search` |
+| Pachca security audit log — track login events, user actions, message changes, and DLP violations | `pachca-security` |
 
 ## CLI commands
 
 Full list: `pachca commands`
-Complex scenarios: see references/ in each skill
+Advanced workflows: references/ in each skill
 Help: `pachca <command> --help`

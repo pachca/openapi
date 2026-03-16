@@ -1,9 +1,15 @@
 ---
 name: pachca-bots
 description: >
-  Bot management, incoming/outgoing webhooks, link unfurling. Use when: set up
-  bot, handle webhook, handle button click, periodic digest, alerts, polling
-  events, unfurl link.
+  Pachca bot management, webhooks, and link unfurling. Use this skill whenever the
+  user wants to set up a bot, configure incoming or outgoing webhooks, handle
+  webhook events, verify webhook signatures, process button callbacks, build
+  digest/alert bots, poll message history, or set up link previews (unfurling).
+  Also use for any bot-related automation, event handling, or webhook integration.
+  NOT for sending regular messages, showing interactive forms, or form
+  submissions. Use when: configure bot, webhook, handle event, webhook signature,
+  button click, callback, digest, alert, polling, unfurl, link preview. NOT for:
+  send message, show form, interactive form.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -11,36 +17,36 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
 ### Set up bot with outgoing webhook
 
@@ -78,7 +84,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 > No built-in scheduler — use cron, celery, sidekiq, etc. on your side.
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `limit`: max 50
@@ -93,9 +99,9 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | GET | /webhooks/events | История событий |
 | DELETE | /webhooks/events/{id} | Удаление события |
 
-## Complex scenarios
+## Advanced workflows
 
-For complex scenarios read files from references/:
+For advanced workflows, read the files in references/:
   references/handle-incoming-webhook-event.md — Handle incoming webhook event
   references/link-unfurling.md — Link unfurling
   references/handle-button-click-callback.md — Handle button click (callback)
@@ -104,4 +110,4 @@ For complex scenarios read files from references/:
 
   references/webhook-events.md — Webhook event types
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

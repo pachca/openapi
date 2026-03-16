@@ -1,8 +1,14 @@
 ---
 name: pachca-search
 description: >
-  Full-text search across employees, chats, and messages. Use when: find message
-  by text, find chat by name, find employee by name.
+  Pachca full-text search across employees, chats, and messages. Use this skill
+  whenever the user wants to search or find something — search messages by text,
+  find a chat by name, look up employees, or locate discussions about a topic.
+  Also use when the user asks "where was X discussed", "find messages about Y", or
+  any query that involves searching/finding content. NOT for listing all
+  employees, listing all chats, or sending messages. Use when: search messages,
+  find message, full-text search, search, find by text. NOT for: list employees,
+  list chats, send message.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -10,36 +16,36 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
 ### Find message by text
 
@@ -72,7 +78,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 > Searches by name, email, title and other fields. Supports sorting by relevance.
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `limit`: max — 100 (GET /search/chats), 200 (GET /search/messages), 200 (GET /search/users)
@@ -86,4 +92,4 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | GET | /search/messages | Поиск сообщений |
 | GET | /search/users | Поиск сотрудников |
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

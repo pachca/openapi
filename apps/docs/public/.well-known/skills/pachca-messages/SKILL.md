@@ -1,9 +1,17 @@
 ---
 name: pachca-messages
 description: >
-  Send messages to channels, conversations, and DMs. Reply to threads, upload
-  files, buttons, reactions, pin, read receipts. Use when: send message, reply to
-  thread, attach file, add reaction, get chat history, pin message.
+  Pachca messaging — send, edit, delete, and manage messages. Use this skill
+  whenever the user wants to send a message to a chat/channel/DM, reply to a
+  thread, attach files, upload files, add reactions, pin messages, get message
+  history, edit or delete messages, check who read a message, or send messages
+  with inline buttons. Also use for any message-related operations including
+  mentions, notifications, and thread subscriptions. NOT for creating channels,
+  managing members, or configuring bots. Use when: send message, reply to thread,
+  attach file, upload file, message attachments, add reaction, message history,
+  pin message, edit message, delete message, subscribe to thread, send
+  notification, mention user, buttons, read receipts, direct message. NOT for:
+  create channel, manage members, configure bot, webhook, form.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -11,36 +19,36 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
 ### Find chat by name and send message
 
@@ -254,13 +262,13 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 > Respect rate limit: ~4 req/sec for messages. Add delays for large lists.
 
 
-## Constraints and gotchas
+## Limitations
 
-- Rate limit: ~50 req/sec, messages ~4 req/sec. On 429 — wait and retry.
+- Rate limit: ~50 req/sec, messages ~4 req/sec per chat. On 429 — wait and retry.
 - `message.entity_type`: allowed values — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
 - `message.display_avatar_url`: max 255 characters
 - `message.display_name`: max 255 characters
-- `limit`: max 50
+- `limit`: max — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
 - Pagination: cursor-based (limit + cursor)
 
 ## Endpoints
@@ -278,13 +286,16 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | POST | /messages/{id}/reactions | Добавление реакции |
 | DELETE | /messages/{id}/reactions | Удаление реакции |
 | GET | /messages/{id}/reactions | Список реакций |
+| GET | /messages/{id}/read_member_ids | Список прочитавших сообщение |
+| POST | /messages/{id}/thread | Новый тред |
+| GET | /threads/{id} | Информация о треде |
 | POST | /uploads | Получение подписи, ключа и других параметров |
 
-## Complex scenarios
+## Advanced workflows
 
-For complex scenarios read files from references/:
+For advanced workflows, read the files in references/:
   references/reply-to-user-who-messaged-the-bot.md — Reply to user who messaged the bot
   references/send-message-with-files.md — Send message with files
   references/mention-user-by-name.md — Mention user by name
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

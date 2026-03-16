@@ -1,8 +1,13 @@
 ---
 name: pachca-profile
 description: >
-  User profile, status management, custom fields, token verification. Use when:
-  get own profile, set/reset status, check custom fields, verify token scopes.
+  Pachca user profile, status management, custom fields, and token verification.
+  Use this skill whenever the user wants to get their profile, check who they are,
+  set or update their status, manage custom fields, or verify API token scopes.
+  Also use for any "who am I" or "my account" queries. NOT for managing other
+  employees or listing users. Use when: get profile, my profile, set status,
+  update status, clear status, custom fields, additional fields, verify token,
+  token scopes. NOT for: manage employees, create user, list employees.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -10,36 +15,36 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
 ### Get own profile
 
@@ -94,7 +99,7 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 > Custom fields are configured by workspace admin.
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `status.away_message`: max 1024 characters
@@ -111,4 +116,4 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | PUT | /profile/status | Новый статус |
 | DELETE | /profile/status | Удаление статуса |
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

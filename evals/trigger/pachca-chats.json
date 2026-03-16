@@ -1,0 +1,18 @@
+[
+  {"query": "Создай канал 'Проект Альфа' и добавь пользователей 10, 11, 12", "should_trigger": true, "note": "core: create channel with members"},
+  {"query": "Create a group chat for the design team with IDs 5, 6, 7", "should_trigger": true, "note": "core: create group chat (English)"},
+  {"query": "Добавь пользователя 42 в канал 300", "should_trigger": true, "note": "core: add member to channel"},
+  {"query": "Удали пользователя 55 из беседы 201", "should_trigger": true, "note": "core: remove member from chat"},
+  {"query": "Заархивируй чат 150 — он больше не нужен", "should_trigger": true, "note": "core: archive chat"},
+  {"query": "Покажи список всех каналов", "should_trigger": true, "note": "core: list chats/channels"},
+  {"query": "Экспортируй историю сообщений из чата 88 за последний месяц", "should_trigger": true, "note": "core: export chat history"},
+  {"query": "Сделай пользователя 42 админом канала 300", "should_trigger": true, "note": "core: change member role"},
+  {"query": "Переименуй чат 120 в 'Архитектура v2'", "should_trigger": true, "note": "core: rename/update chat"},
+  {"query": "Найди неактивные чаты без сообщений с января 2026", "should_trigger": true, "note": "core: find inactive chats by date filter"},
+  {"query": "Отправь сообщение 'Ребята, дедлайн завтра' в канал 300", "should_trigger": false, "note": "boundary: messages, not chats"},
+  {"query": "Ответь в тред на сообщение 999", "should_trigger": false, "note": "boundary: messages (thread), not chats"},
+  {"query": "Найди все сообщения про бюджет", "should_trigger": false, "note": "boundary: search, not chats"},
+  {"query": "Покажи мой профиль", "should_trigger": false, "note": "boundary: profile, not chats"},
+  {"query": "Создай задачу: ревью кода к пятнице", "should_trigger": false, "note": "boundary: tasks, not chats"},
+  {"query": "Покажи список сотрудников отдела разработки", "should_trigger": false, "note": "boundary: users, not chats"}
+]

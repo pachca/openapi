@@ -1,0 +1,17 @@
+[
+  {"query": "Создай бота для канала #devops-alerts с именем 'Deploy Notifier'", "should_trigger": true, "note": "core: create a bot"},
+  {"query": "Настрой входящий вебхук для получения событий из чата 3401", "should_trigger": true, "note": "core: configure incoming webhook"},
+  {"query": "How do I handle incoming webhook events from Pachca?", "should_trigger": true, "note": "core: handle webhook event (English)"},
+  {"query": "Как проверить подпись вебхука X-Signature в заголовке запроса?", "should_trigger": true, "note": "core: verify webhook signature"},
+  {"query": "Обработай callback от нажатия кнопки 'Подтвердить' в сообщении 8821", "should_trigger": true, "note": "core: process button callback"},
+  {"query": "Настрой polling для бота, чтобы получать новые сообщения каждые 5 секунд", "should_trigger": true, "note": "core: set up polling"},
+  {"query": "Сделай link unfurling для ссылок на Jira-тикеты вида https://jira.company.com/browse/PROJ-123", "should_trigger": true, "note": "core: link unfurling"},
+  {"query": "Set up an outgoing webhook that posts to https://my-server.com/api/pachca on new messages", "should_trigger": true, "note": "core: outgoing webhook (English)"},
+  {"query": "Хочу чтобы бот разворачивал ссылки на GitHub PR и показывал превью", "should_trigger": true, "note": "core: link preview / unfurl"},
+  {"query": "Отправь сообщение 'Деплой завершён' в канал 500", "should_trigger": false, "note": "boundary: messages, not bots"},
+  {"query": "Покажи форму с полями Имя и Email пользователю 77", "should_trigger": false, "note": "boundary: forms, not bots"},
+  {"query": "Создай канал 'Release Notes' и добавь туда всех из тега Backend", "should_trigger": false, "note": "boundary: chats, not bots"},
+  {"query": "Найди сообщения где упоминается Jenkins", "should_trigger": false, "note": "boundary: search, not bots"},
+  {"query": "Покажи мой профиль и текущий статус", "should_trigger": false, "note": "boundary: profile, not bots"},
+  {"query": "Получи список всех сотрудников с тегом 'QA'", "should_trigger": false, "note": "boundary: users, not bots"}
+]

@@ -1,0 +1,18 @@
+[
+  {"query": "Покажи список всех сотрудников", "should_trigger": true, "note": "core: list all employees"},
+  {"query": "Найди сотрудника Петрова Ивана", "should_trigger": true, "note": "core: find employee by name"},
+  {"query": "Create a new employee: Мария Сидорова, maria@company.com", "should_trigger": true, "note": "core: create user (English)"},
+  {"query": "Заблокируй сотрудника 186 — он уволился", "should_trigger": true, "note": "core: suspend/offboard user by ID"},
+  {"query": "Создай тег 'Backend-команда' и добавь туда разработчиков", "should_trigger": true, "note": "core: create tag and assign users"},
+  {"query": "Назначь тег 'QA' сотруднику 42", "should_trigger": true, "note": "core: assign tag to user"},
+  {"query": "Онбординг: создай аккаунт для new-hire@company.com, Алексей Козлов, добавь в каналы", "should_trigger": true, "note": "core: full onboarding scenario"},
+  {"query": "Удали аккаунт сотрудника 99 — offboarding", "should_trigger": true, "note": "core: offboarding / delete user"},
+  {"query": "Покажи всех участников тега 'Маркетинг'", "should_trigger": true, "note": "core: list users by tag"},
+  {"query": "Установи статус 'Командировка' сотруднику с ID 205", "should_trigger": true, "note": "core: set status for another user"},
+  {"query": "Покажи мой профиль", "should_trigger": false, "note": "boundary: profile, not users"},
+  {"query": "Отправь 'Добро пожаловать!' в личку пользователю 42", "should_trigger": false, "note": "boundary: messages, not users"},
+  {"query": "Создай канал 'Отдел продаж'", "should_trigger": false, "note": "boundary: chats, not users"},
+  {"query": "Найди сообщения про квартальный отчёт", "should_trigger": false, "note": "boundary: search, not users"},
+  {"query": "Покажи журнал безопасности за вчера", "should_trigger": false, "note": "boundary: security, not users"},
+  {"query": "Создай напоминание позвонить клиенту завтра", "should_trigger": false, "note": "boundary: tasks, not users"}
+]

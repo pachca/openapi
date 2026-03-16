@@ -466,7 +466,6 @@ function generateScenariosJson() {
   return {
     $schema: 'https://dev.pachca.com/scenarios.schema.json',
     version: '1.0',
-    generated: new Date().toISOString(),
     scenarios,
   };
 }
@@ -634,10 +633,13 @@ async function generateGuideMdFiles() {
 
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
+const UTF8_BOM = '\uFEFF';
+
 function writeFile(filePath: string, content: string) {
   const fullPath = path.join(process.cwd(), filePath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  fs.writeFileSync(fullPath, content, 'utf-8');
+  const data = filePath.endsWith('.txt') ? UTF8_BOM + content : content;
+  fs.writeFileSync(fullPath, data, 'utf-8');
 }
 
 function writeFileFromRoot(filePath: string, content: string) {

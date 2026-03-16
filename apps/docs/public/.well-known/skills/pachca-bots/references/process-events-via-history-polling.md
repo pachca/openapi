@@ -1,19 +1,19 @@
-### Process events via history (polling)
+### Обработка событий через историю (polling)
 
-1. In bot settings enable "Save event history". Webhook URL is optional.
+1. В настройках бота включи «Сохранять историю событий». Webhook URL указывать не обязательно.
 
-2. Get accumulated events:
+2. Получи накопленные события:
    ```bash
    pachca bots list-events --all
    ```
 
-3. Process each event (same format as real-time webhook)
+3. Обработай каждое событие (тот же формат, что и в real-time вебхуке)
 
-4. Delete processed event:
+4. Удали обработанное событие:
    ```bash
    pachca bots remove-event <event_id> --force
    ```
-   > Delete to avoid reprocessing
+   > Удаляй, чтобы не обработать повторно
 
-> Polling — alternative to real-time webhook if bot has no public URL.
+> Polling — альтернатива real-time вебхуку, если у бота нет публичного URL.
 

@@ -1,9 +1,14 @@
 ---
 name: pachca-bots
 description: >
-  Bot management, incoming/outgoing webhooks, link unfurling. Use when: set up
-  bot, handle webhook, handle button click, periodic digest, alerts, polling
-  events, unfurl link.
+  Pachca — управление ботами, вебхуки и превью ссылок. Используй этот скилл, когда
+  пользователь хочет настроить бота, создать бота, настроить вебхуки, обработать
+  вебхук, проверить подпись вебхука (X-Signature), обработать callback нажатия
+  кнопки, создать дайджест-бота или настроить превью ссылок. НЕ для отправки
+  обычных сообщений, показа форм или модальных окон. Use when: настроить бота,
+  создать бота, вебхук, обработать вебхук, подпись вебхука, callback, обработать
+  callback, нажатие кнопки, дайджест, оповещение, превью ссылки. NOT for:
+  отправить сообщение, показать форму, модальное окно.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -11,74 +16,74 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
-### Set up bot with outgoing webhook
+### Настроить бота с исходящим вебхуком
 
-1. Create bot in Pachca UI: Automations → Integrations → Webhook
+1. Создай бота в интерфейсе Пачки: Автоматизации → Интеграции → Webhook
 
-2. Get bot `access_token` from "API" tab in bot settings
+2. Получи `access_token` бота во вкладке «API» настроек бота
 
-3. Set Webhook URL for receiving events
+3. Укажи Webhook URL для получения событий
 
-> Bot is created via UI, not API. The only bot endpoint is PUT /bots/{id} (update webhook URL). API is used to send messages on behalf of bot.
+> Бот создаётся через UI, не через API. Единственный эндпоинт для ботов — PUT /bots/{id} (обновление webhook URL). API используется для отправки сообщений от имени бота.
 
 
-### Update bot webhook URL
+### Обновить Webhook URL бота
 
-1. Update bot webhook URL:
+1. Обнови webhook URL бота:
    ```bash
    pachca bots update <bot_id> --webhook='{"outgoing_url":"https://example.com/webhook"}'
    ```
-   > Bot `id` (its `user_id`) can be found in "API" tab of bot settings
+   > `id` бота (его `user_id`) можно узнать во вкладке «API» настроек бота
 
-> Only users with bot edit permissions can update settings.
+> Обновлять настройки может только тот, кому разрешено редактирование бота.
 
 
-### Periodic digest/report
+### Периодический дайджест/отчёт
 
-1. On schedule (cron/scheduler): collect data from your system
+1. По расписанию (cron/scheduler): собери данные из своей системы
 
-2. Compose message text with metrics or summary
+2. Сформируй текст сообщения с нужными метриками или сводкой
 
-3. Send message to channel:
+3. Отправь сообщение в канал:
    ```bash
    pachca messages create --entity-id=<chat_id> --content="Дайджест за сегодня: ..."
    ```
 
-> No built-in scheduler — use cron, celery, sidekiq, etc. on your side.
+> Нет встроенного планировщика — используй cron, celery, sidekiq и т.п. на своей стороне.
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `limit`: max 50
@@ -93,9 +98,9 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | GET | /webhooks/events | История событий |
 | DELETE | /webhooks/events/{id} | Удаление события |
 
-## Complex scenarios
+## Advanced workflows
 
-For complex scenarios read files from references/:
+For advanced workflows, read the files in references/:
   references/handle-incoming-webhook-event.md — Handle incoming webhook event
   references/link-unfurling.md — Link unfurling
   references/handle-button-click-callback.md — Handle button click (callback)
@@ -104,4 +109,4 @@ For complex scenarios read files from references/:
 
   references/webhook-events.md — Webhook event types
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

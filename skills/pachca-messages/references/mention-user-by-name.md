@@ -1,26 +1,26 @@
-### Mention user by name
+### Упомянуть пользователя по имени
 
-1. Determine search query — use last name (more unique). Names are not declined in API, use nominative case
+1. Определи поисковый запрос — используй фамилию (она уникальнее). Имена не склоняются в API, приводи к именительному падежу
 
-2. Search among target chat members:
+2. Ищи среди участников целевого чата:
    ```bash
    pachca members list <chat_id>
    ```
-   > Filter by name on client side
+   > Фильтруй по имени на клиенте
 
-3. If writing to thread: also check parent chat members:
+3. Если пишешь в тред: также проверь участников родительского чата:
    ```bash
    pachca members list <parent_chat_id>
    ```
 
-4. Not found — search entire company:
+4. Не нашёл — ищи по всей компании:
    ```bash
    pachca search list-users --query=<запрос>
    ```
 
-5. One result → use `nickname`. Multiple → ask user to clarify
+5. Один результат → используй `nickname`. Несколько → уточни у пользователя
 
-6. Insert `@nickname` into message text
+6. Вставь `@nickname` в текст сообщения
 
-> Searching among chat members is more precise — user is explicitly linked to context.
+> Поиск среди участников чата точнее — пользователь явно связан с контекстом.
 

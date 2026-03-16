@@ -1,9 +1,14 @@
 ---
 name: pachca-chats
 description: >
-  Channel and conversation management, chat members. Create, update, archive
-  chats. Add/remove members, roles, message export. Use when: create channel, add
-  member, archive chat, find active/inactive chats, export messages.
+  Pachca — управление чатами, каналами и беседами. Используй этот скилл, когда
+  пользователь хочет создать канал, создать беседу, вывести или архивировать чаты,
+  добавить или удалить участников, изменить роли участников, экспортировать
+  историю чата или проверить настройки чата. НЕ для отправки сообщений или ответов
+  в тред. Use when: создать канал, создать беседу, создать чат, добавить
+  участника, удалить участника, архивировать чат, роли участников, экспорт
+  сообщений, список чатов, каналы. NOT for: отправить сообщение, ответить в тред,
+  загрузить файл.
 allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 ---
 
@@ -11,103 +16,103 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 
 ## Quick start
 
-Ask user for Pachca token (bot: Automations → Integrations → API, or user: Automations → API).
+Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 
-Run commands with `npx @pachca/cli` and `--token` flag:
+Run commands via `npx @pachca/cli` with the `--token` flag:
 
     npx @pachca/cli <command> --token $PACHCA_TOKEN
 
-Or set `PACHCA_TOKEN` for multiple commands:
+Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
     npx @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
+Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
 ## Before you start
 
-1. If user has a saved profile — check status:
+1. If the user has a saved profile — check:
 
        npx @pachca/cli auth status
 
-   If OK — use commands without `--token`.
+   If OK — run commands without `--token`.
 
-2. If profile is not configured — ask for token and use `--token` flag:
+2. If no profile is configured — ask for a token and use `--token`:
 
        npx @pachca/cli auth status --token $PACHCA_TOKEN
 
-3. If you don't know command parameters — run `pachca <command> --help`.
+3. If you don't know the parameters — run `pachca <command> --help`.
 
-## Step-by-step scenarios
+## Workflows
 
-### Create channel and invite members
+### Создать канал и пригласить участников
 
-1. Create channel with members:
+1. Создай канал с участниками:
    ```bash
    pachca chats create --name="Новый канал" --channel --member-ids='[1,2,3]'
    ```
-   > `"channel": true` for channel, `false` (default) for conversation. Members can be passed immediately: `member_ids` and/or `group_tag_ids`
+   > `"channel": true` для канала, `false` (по умолчанию) для беседы. Участников можно передать сразу: `member_ids` и/или `group_tag_ids`
 
-2. Or add members later:
+2. Или добавь участников позже:
    ```bash
    pachca members add <chat_id> --member-ids='[1,2,3]'
    ```
 
-> `channel` — boolean, not string. `member_ids` and `group_tag_ids` — optional on creation.
+> `channel` — boolean, не строка. `member_ids` и `group_tag_ids` — опциональны при создании.
 
 
-### Rename or update chat
+### Переименовать или обновить чат
 
-1. Update chat:
+1. Обнови чат:
    ```bash
    pachca chats update <ID> --name="Новое название"
    ```
-   > Available fields: `name`, `public`
+   > Доступные поля: `name`, `public`
 
-> To change members use POST/DELETE /chats/{id}/members.
+> Для изменения состава участников используй POST/DELETE /chats/{id}/members.
 
 
-### Create project conversation from template
+### Создать проектную беседу из шаблона
 
-1. Create conversation with members from tag:
+1. Создай беседу с участниками из тега:
    ```bash
    pachca chats create --name="Проект Alpha" --group-tag-ids='[42]' --member-ids='[186,187]'
    ```
 
-2. Send welcome message:
+2. Отправь приветственное сообщение:
    ```bash
    pachca messages create --entity-id=<chat_id> --content="Добро пожаловать в проект!"
    ```
 
-> `group_tag_ids` on creation adds all tag members at once.
+> `group_tag_ids` при создании добавляет всех участников тега сразу.
 
 
-### Find active chats for period
+### Найти активные чаты за период
 
-1. Get chats with activity after specified date:
+1. Получи чаты с активностью после указанной даты:
    ```bash
    pachca chats list --last-message-at-after=<дата> --all
    ```
-   > For range add `--last-message-at-before`. Date in ISO-8601 UTC+0
+   > Для диапазона добавь `--last-message-at-before`. Дата в ISO-8601 UTC+0
 
 
-### Find and archive inactive chats
+### Найти и заархивировать неактивные чаты
 
-1. Get chats with no activity since specified date:
+1. Получи чаты без активности с нужной даты:
    ```bash
    pachca chats list --last-message-at-before=<порог> --all
    ```
 
-2. For each chat: archive:
+2. Для каждого чата: архивируй:
    ```bash
    pachca chats archive <ID>
    ```
-   > Check `"channel": false` — archiving channels may be undesirable
+   > Проверяй `"channel": false` — архивация каналов может быть нежелательной
 
 
-## Constraints and gotchas
+## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
 - `role`: allowed values — `admin` (Админ), `editor` (Редактор (доступно только для каналов)), `member` (Участник или подписчик)
@@ -134,10 +139,10 @@ Help: `npx @pachca/cli --help` | Scenarios: `npx @pachca/cli guide`
 | PUT | /chats/{id}/members/{user_id} | Редактирование роли |
 | PUT | /chats/{id}/unarchive | Разархивация чата |
 
-## Complex scenarios
+## Advanced workflows
 
-For complex scenarios read files from references/:
+For advanced workflows, read the files in references/:
   references/archive-and-manage-chat.md — Archive and manage chat
   references/export-chat-history.md — Export chat history
 
-> If you don't know how to complete a task — read the corresponding file from references/ for step-by-step instructions.
+> If unsure how to complete a task, read the corresponding file from references/.

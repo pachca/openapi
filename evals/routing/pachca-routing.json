@@ -1,0 +1,687 @@
+[
+  {
+    "query": "Отправь 'Встреча перенесена на 15:00' в канал 3021",
+    "expected_skill": "pachca-messages",
+    "note": "core: send message to chat by id"
+  },
+  {
+    "query": "Ответь в тред на сообщение 8844: 'Исправлено в коммите abc123'",
+    "expected_skill": "pachca-messages",
+    "note": "core: reply to thread"
+  },
+  {
+    "query": "Прикрепи файл /tmp/quarterly-report.xlsx к сообщению в беседу 150",
+    "expected_skill": "pachca-messages",
+    "note": "core: attach file to message"
+  },
+  {
+    "query": "Поставь реакцию :fire: на сообщение 6672",
+    "expected_skill": "pachca-messages",
+    "note": "core: add reaction to message"
+  },
+  {
+    "query": "Закрепи сообщение 2210 в канале #announcements",
+    "expected_skill": "pachca-messages",
+    "note": "core: pin message"
+  },
+  {
+    "query": "Покажи последние 50 сообщений из чата 400",
+    "expected_skill": "pachca-messages",
+    "note": "core: get message history"
+  },
+  {
+    "query": "Измени текст сообщения 5501 на 'Дедлайн — пятница, 21 марта'",
+    "expected_skill": "pachca-messages",
+    "note": "core: edit existing message"
+  },
+  {
+    "query": "Удали сообщение 4490 из канала",
+    "expected_skill": "pachca-messages",
+    "note": "core: delete message"
+  },
+  {
+    "query": "Напиши Сергею Иванову в личку: 'Проверь PR #287'",
+    "expected_skill": "pachca-messages",
+    "note": "core: send DM to user"
+  },
+  {
+    "query": "Упомяни @Анна Козлова в сообщении: 'Нужен твой ревью'",
+    "expected_skill": "pachca-messages",
+    "note": "core: mention user in message"
+  },
+  {
+    "query": "Отправь в чат 90 сообщение с кнопками 'Approve' и 'Reject'",
+    "expected_skill": "pachca-messages",
+    "note": "core: message with inline buttons"
+  },
+  {
+    "query": "Найди все сообщения про деплой за последнюю неделю",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-messages: boundary: search, not messages"
+  },
+  {
+    "query": "Создай канал 'Sprint 42 Retro' и пригласи команду",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-messages: boundary: chats, not messages"
+  },
+  {
+    "query": "Добавь пользователя 88 в канал 3021",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-messages: boundary: chats (manage members), not messages"
+  },
+  {
+    "query": "Создай задачу: подготовить отчёт к 25 марта",
+    "expected_skill": "pachca-tasks",
+    "note": "from pachca-messages: boundary: tasks, not messages"
+  },
+  {
+    "query": "Покажи мой профиль и email",
+    "expected_skill": "pachca-profile",
+    "note": "from pachca-messages: boundary: profile, not messages"
+  },
+  {
+    "query": "Настрой входящий вебхук на URL https://hooks.example.com/pachca",
+    "expected_skill": "pachca-bots",
+    "note": "from pachca-messages: boundary: bots, not messages"
+  },
+  {
+    "query": "Открой форму заявки на командировку для пользователя 55",
+    "expected_skill": "pachca-forms",
+    "note": "from pachca-messages: boundary: forms, not messages"
+  },
+  {
+    "query": "Покажи журнал безопасности за 10 марта",
+    "expected_skill": "pachca-security",
+    "note": "from pachca-messages: boundary: security, not messages"
+  },
+  {
+    "query": "Найди сообщения где обсуждали миграцию на PostgreSQL 16",
+    "expected_skill": "pachca-search",
+    "note": "core: search messages by topic"
+  },
+  {
+    "query": "Поищи чат с названием 'Маркетинг Q1'",
+    "expected_skill": "pachca-search",
+    "note": "core: search chats by name"
+  },
+  {
+    "query": "Найди сотрудника Елену Смирнову",
+    "expected_skill": "pachca-search",
+    "note": "core: find employee by name — search skill has the workflow"
+  },
+  {
+    "query": "Найди сообщения про кампанию Black Friday",
+    "expected_skill": "pachca-search",
+    "note": "core: full-text search"
+  },
+  {
+    "query": "Где обсуждали редизайн главной страницы?",
+    "expected_skill": "pachca-search",
+    "note": "core: find discussion by topic"
+  },
+  {
+    "query": "Кто писал про утечку памяти в сервисе payments?",
+    "expected_skill": "pachca-search",
+    "note": "core: search messages to find author"
+  },
+  {
+    "query": "Найди все упоминания 'GDPR' в переписке",
+    "expected_skill": "pachca-search",
+    "note": "core: full-text search for mentions"
+  },
+  {
+    "query": "Есть ли канал про onboarding новых сотрудников?",
+    "expected_skill": "pachca-search",
+    "note": "core: search chats by topic"
+  },
+  {
+    "query": "Отправь 'Сборка готова, версия 3.12.1' в канал 250",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-search: boundary: messages, not search"
+  },
+  {
+    "query": "Создай закрытый канал 'Incident Response' для команды SRE",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-search: boundary: chats, not search"
+  },
+  {
+    "query": "Удали сообщение 7712",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-search: boundary: messages, not search"
+  },
+  {
+    "query": "Создай задачу-напоминание: продлить SSL-сертификат до 1 апреля",
+    "expected_skill": "pachca-tasks",
+    "note": "from pachca-search: boundary: tasks, not search"
+  },
+  {
+    "query": "Покажи мой статус и должность",
+    "expected_skill": "pachca-profile",
+    "note": "from pachca-search: boundary: profile, not search"
+  },
+  {
+    "query": "Добавь сотрудников 10, 11, 12 в тег 'Frontend'",
+    "expected_skill": "pachca-users",
+    "note": "from pachca-search: boundary: users, not search"
+  },
+  {
+    "query": "Создай канал 'Проект Альфа' и добавь пользователей 10, 11, 12",
+    "expected_skill": "pachca-chats",
+    "note": "core: create channel with members"
+  },
+  {
+    "query": "Создай беседу для дизайн-команды с ID 5, 6, 7",
+    "expected_skill": "pachca-chats",
+    "note": "core: create group chat"
+  },
+  {
+    "query": "Добавь пользователя 42 в канал 300",
+    "expected_skill": "pachca-chats",
+    "note": "core: add member to channel"
+  },
+  {
+    "query": "Удали пользователя 55 из беседы 201",
+    "expected_skill": "pachca-chats",
+    "note": "core: remove member from chat"
+  },
+  {
+    "query": "Заархивируй чат 150 — он больше не нужен",
+    "expected_skill": "pachca-chats",
+    "note": "core: archive chat"
+  },
+  {
+    "query": "Покажи список всех каналов",
+    "expected_skill": "pachca-chats",
+    "note": "core: list chats/channels"
+  },
+  {
+    "query": "Экспортируй историю сообщений из чата 88 за последний месяц",
+    "expected_skill": "pachca-chats",
+    "note": "core: export chat history"
+  },
+  {
+    "query": "Сделай пользователя 42 админом канала 300",
+    "expected_skill": "pachca-chats",
+    "note": "core: change member role"
+  },
+  {
+    "query": "Переименуй чат 120 в 'Архитектура v2'",
+    "expected_skill": "pachca-chats",
+    "note": "core: rename/update chat"
+  },
+  {
+    "query": "Покажи неактивные чаты без сообщений с января 2026",
+    "expected_skill": "pachca-chats",
+    "note": "core: list inactive chats by date filter"
+  },
+  {
+    "query": "Отправь сообщение 'Ребята, дедлайн завтра' в канал 300",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-chats: boundary: messages, not chats"
+  },
+  {
+    "query": "Ответь в тред на сообщение 999",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-chats: boundary: messages (thread), not chats"
+  },
+  {
+    "query": "Найди все сообщения про бюджет",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-chats: boundary: search, not chats"
+  },
+  {
+    "query": "Покажи мой профиль",
+    "expected_skill": "pachca-profile",
+    "note": "from pachca-chats: boundary: profile, not chats"
+  },
+  {
+    "query": "Создай задачу: ревью кода к пятнице",
+    "expected_skill": "pachca-tasks",
+    "note": "from pachca-chats: boundary: tasks, not chats"
+  },
+  {
+    "query": "Покажи список сотрудников отдела разработки",
+    "expected_skill": "pachca-users",
+    "note": "from pachca-chats: boundary: users, not chats"
+  },
+  {
+    "query": "Покажи список всех сотрудников",
+    "expected_skill": "pachca-users",
+    "note": "core: list all employees"
+  },
+  {
+    "query": "Найди сотрудника Петрова Ивана",
+    "expected_skill": "pachca-search",
+    "note": "core: find employee by name — search skill has the workflow"
+  },
+  {
+    "query": "Создай сотрудника: Мария Сидорова, maria@company.com",
+    "expected_skill": "pachca-users",
+    "note": "core: create user"
+  },
+  {
+    "query": "Заблокируй сотрудника 186 — он уволился",
+    "expected_skill": "pachca-users",
+    "note": "core: suspend/offboard user by ID"
+  },
+  {
+    "query": "Создай тег 'Backend-команда' и добавь туда разработчиков",
+    "expected_skill": "pachca-users",
+    "note": "core: create tag and assign users"
+  },
+  {
+    "query": "Назначь тег 'QA' сотруднику 42",
+    "expected_skill": "pachca-users",
+    "note": "core: assign tag to user"
+  },
+  {
+    "query": "Онбординг: создай аккаунт для new-hire@company.com, Алексей Козлов, добавь в каналы",
+    "expected_skill": "pachca-users",
+    "note": "core: full onboarding scenario"
+  },
+  {
+    "query": "Удали аккаунт сотрудника 99 — offboarding",
+    "expected_skill": "pachca-users",
+    "note": "core: offboarding / delete user"
+  },
+  {
+    "query": "Покажи всех участников тега 'Маркетинг'",
+    "expected_skill": "pachca-users",
+    "note": "core: list users by tag"
+  },
+  {
+    "query": "Установи статус 'Командировка' сотруднику с ID 205",
+    "expected_skill": "pachca-users",
+    "note": "boundary: set status for OTHER user — users or profile both valid, haiku prefers users"
+  },
+  {
+    "query": "Отправь 'Добро пожаловать!' в личку пользователю 42",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-users: boundary: messages, not users"
+  },
+  {
+    "query": "Создай канал 'Отдел продаж'",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-users: boundary: chats, not users"
+  },
+  {
+    "query": "Найди сообщения про квартальный отчёт",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-users: boundary: search, not users"
+  },
+  {
+    "query": "Покажи журнал безопасности за вчера",
+    "expected_skill": "pachca-security",
+    "note": "from pachca-users: boundary: security, not users"
+  },
+  {
+    "query": "Создай напоминание позвонить клиенту завтра",
+    "expected_skill": "pachca-tasks",
+    "note": "from pachca-users: boundary: tasks, not users"
+  },
+  {
+    "query": "Кто я? Покажи информацию о моём аккаунте",
+    "expected_skill": "pachca-profile",
+    "note": "core: who am I query"
+  },
+  {
+    "query": "Проверь валидность моего токена и покажи скоупы",
+    "expected_skill": "pachca-profile",
+    "note": "core: token validation"
+  },
+  {
+    "query": "Установи мне статус 'В отпуске' с эмодзи 🏖️ до 20 марта",
+    "expected_skill": "pachca-profile",
+    "note": "core: set status with emoji and expiry"
+  },
+  {
+    "query": "Обнови мой статус — поставь 'На встрече'",
+    "expected_skill": "pachca-profile",
+    "note": "core: update own status"
+  },
+  {
+    "query": "Убери мой статус, я уже на месте",
+    "expected_skill": "pachca-profile",
+    "note": "core: clear/reset status"
+  },
+  {
+    "query": "Какие кастомные поля есть у сотрудников?",
+    "expected_skill": "pachca-profile",
+    "note": "core: list custom properties for users"
+  },
+  {
+    "query": "Покажи информацию о моём профиле — нужен мой user_id",
+    "expected_skill": "pachca-profile",
+    "note": "core: get profile to extract user_id"
+  },
+  {
+    "query": "Проверь токен — какие скоупы у него и когда истекает?",
+    "expected_skill": "pachca-profile",
+    "note": "core: token info with scopes and expiry"
+  },
+  {
+    "query": "Покажи мой email и отдел из профиля",
+    "expected_skill": "pachca-profile",
+    "note": "core: get specific profile fields"
+  },
+  {
+    "query": "Покажи список всех сотрудников компании",
+    "expected_skill": "pachca-users",
+    "note": "from pachca-profile: boundary: users, not profile"
+  },
+  {
+    "query": "Создай канал 'Дизайн-команда' и добавь туда 3 человек",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-profile: boundary: chats, not profile"
+  },
+  {
+    "query": "Отправь сообщение 'Всем привет' в чат 500",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-profile: boundary: messages, not profile"
+  },
+  {
+    "query": "Найди все сообщения про деплой",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-profile: boundary: search, not profile"
+  },
+  {
+    "query": "Создай задачу: созвон с клиентом завтра в 10:00",
+    "expected_skill": "pachca-tasks",
+    "note": "from pachca-profile: boundary: tasks, not profile"
+  },
+  {
+    "query": "Установи статус сотруднику 186 — 'Болеет'",
+    "expected_skill": "pachca-users",
+    "note": "from pachca-profile: boundary: users (other user's status), not profile"
+  },
+  {
+    "query": "Создай задачу: позвонить клиенту Иванову завтра в 14:00",
+    "expected_skill": "pachca-tasks",
+    "note": "core: create task with due date"
+  },
+  {
+    "query": "Покажи все мои задачи",
+    "expected_skill": "pachca-tasks",
+    "note": "core: list tasks"
+  },
+  {
+    "query": "Отметь задачу 77 выполненной",
+    "expected_skill": "pachca-tasks",
+    "note": "core: mark task as done"
+  },
+  {
+    "query": "Обнови задачу 55 — перенеси дедлайн на 20 марта",
+    "expected_skill": "pachca-tasks",
+    "note": "core: update task deadline"
+  },
+  {
+    "query": "Удали задачу 33",
+    "expected_skill": "pachca-tasks",
+    "note": "core: delete task"
+  },
+  {
+    "query": "Поставь напоминание на 2026-03-18 в 09:00 — стендап",
+    "expected_skill": "pachca-tasks",
+    "note": "core: set reminder"
+  },
+  {
+    "query": "Какие кастомные поля есть у задач?",
+    "expected_skill": "pachca-tasks",
+    "note": "core: custom fields on tasks"
+  },
+  {
+    "query": "Создай серию напоминаний на каждый понедельник: еженедельный отчёт",
+    "expected_skill": "pachca-tasks",
+    "note": "core: create recurring reminders"
+  },
+  {
+    "query": "Перенеси задачу 90 на следующую неделю и повысь приоритет до 'очень важно'",
+    "expected_skill": "pachca-tasks",
+    "note": "core: update task priority and due date"
+  },
+  {
+    "query": "Получи информацию о задаче 42",
+    "expected_skill": "pachca-tasks",
+    "note": "core: get task by ID"
+  },
+  {
+    "query": "Отправь сообщение 'Задача выполнена' в чат 100",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-tasks: boundary: messages, not tasks"
+  },
+  {
+    "query": "Создай канал 'Спринт 15'",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-tasks: boundary: chats, not tasks"
+  },
+  {
+    "query": "Покажи мой профиль и статус",
+    "expected_skill": "pachca-profile",
+    "note": "from pachca-tasks: boundary: profile, not tasks"
+  },
+  {
+    "query": "Найди сообщения где упоминается дедлайн",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-tasks: boundary: search, not tasks"
+  },
+  {
+    "query": "Заблокируй сотрудника 186",
+    "expected_skill": "pachca-users",
+    "note": "from pachca-tasks: boundary: users, not tasks"
+  },
+  {
+    "query": "Покажи аудит-лог за последнюю неделю",
+    "expected_skill": "pachca-security",
+    "note": "from pachca-tasks: boundary: security, not tasks"
+  },
+  {
+    "query": "Создай бота для канала #devops-alerts с именем 'Deploy Notifier'",
+    "expected_skill": "pachca-bots",
+    "note": "core: create a bot"
+  },
+  {
+    "query": "Настрой входящий вебхук для получения событий из чата 3401",
+    "expected_skill": "pachca-bots",
+    "note": "core: configure incoming webhook"
+  },
+  {
+    "query": "Как обработать входящие вебхук-события от Pachca?",
+    "expected_skill": "pachca-bots",
+    "note": "core: handle webhook event"
+  },
+  {
+    "query": "Как проверить подпись вебхука X-Signature в заголовке запроса?",
+    "expected_skill": "pachca-bots",
+    "note": "core: verify webhook signature"
+  },
+  {
+    "query": "Обработай callback от нажатия кнопки 'Подтвердить' в сообщении 8821",
+    "expected_skill": "pachca-bots",
+    "note": "core: process button callback"
+  },
+  {
+    "query": "Настрой polling для бота, чтобы получать новые сообщения каждые 5 секунд",
+    "expected_skill": "pachca-bots",
+    "note": "core: set up polling"
+  },
+  {
+    "query": "Сделай link unfurling для ссылок на Jira-тикеты вида https://jira.company.com/browse/PROJ-123",
+    "expected_skill": "pachca-bots",
+    "note": "core: link unfurling"
+  },
+  {
+    "query": "Настрой исходящий вебхук для отправки на https://my-server.com/api/pachca при новых сообщениях",
+    "expected_skill": "pachca-bots",
+    "note": "core: outgoing webhook"
+  },
+  {
+    "query": "Хочу чтобы бот разворачивал ссылки на GitHub PR и показывал превью",
+    "expected_skill": "pachca-bots",
+    "note": "core: link preview / unfurl"
+  },
+  {
+    "query": "Отправь сообщение 'Деплой завершён' в канал 500",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-bots: boundary: messages, not bots"
+  },
+  {
+    "query": "Покажи форму с полями Имя и Email пользователю 77",
+    "expected_skill": "pachca-forms",
+    "note": "from pachca-bots: boundary: forms, not bots"
+  },
+  {
+    "query": "Создай канал 'Release Notes' и добавь туда всех из тега Backend",
+    "expected_skill": "pachca-chats",
+    "note": "boundary: create channel + add from tag — chats/users overlap"
+  },
+  {
+    "query": "Найди сообщения где упоминается Jenkins",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-bots: boundary: search, not bots"
+  },
+  {
+    "query": "Покажи мой профиль и текущий статус",
+    "expected_skill": "pachca-profile",
+    "note": "from pachca-bots: boundary: profile, not bots"
+  },
+  {
+    "query": "Получи список всех сотрудников с тегом 'QA'",
+    "expected_skill": "pachca-users",
+    "note": "from pachca-bots: boundary: users, not bots"
+  },
+  {
+    "query": "Покажи пользователю 42 форму с полями 'Тема' и 'Описание бага'",
+    "expected_skill": "pachca-forms",
+    "note": "core: show form to user"
+  },
+  {
+    "query": "Создай форму с выпадающим списком приоритета (Низкий, Средний, Высокий)",
+    "expected_skill": "pachca-forms",
+    "note": "core: create interactive form"
+  },
+  {
+    "query": "Обработай отправку формы view_submission и сохрани данные",
+    "expected_skill": "pachca-forms",
+    "note": "core: handle form submission"
+  },
+  {
+    "query": "Добавь валидацию: поле 'Email' должно содержать @, иначе показать ошибку",
+    "expected_skill": "pachca-forms",
+    "note": "core: form field validation"
+  },
+  {
+    "query": "Сделай форму-опрос для сотрудников: оценка от 1 до 5 и комментарий",
+    "expected_skill": "pachca-forms",
+    "note": "core: survey form"
+  },
+  {
+    "query": "Открой модальное окно с формой заявки на отпуск при нажатии кнопки",
+    "expected_skill": "pachca-forms",
+    "note": "core: modal dialog / form trigger"
+  },
+  {
+    "query": "Как использовать trigger_id для показа формы после нажатия кнопки?",
+    "expected_skill": "pachca-forms",
+    "note": "core: trigger_id usage"
+  },
+  {
+    "query": "Собери форму заявки на доступ к VPN: ФИО, отдел, обоснование",
+    "expected_skill": "pachca-forms",
+    "note": "core: application form"
+  },
+  {
+    "query": "Настрой бота для обработки вебхуков из GitHub",
+    "expected_skill": "pachca-bots",
+    "note": "from pachca-forms: boundary: bots, not forms"
+  },
+  {
+    "query": "Как обработать callback от вебхука?",
+    "expected_skill": "pachca-bots",
+    "note": "from pachca-forms: boundary: bots/webhooks, not forms"
+  },
+  {
+    "query": "Создай приватный канал 'HR-заявки' для отдела кадров",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-forms: boundary: chats, not forms"
+  },
+  {
+    "query": "Найди все сообщения от пользователя Петров за последнюю неделю",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-forms: boundary: search, not forms"
+  },
+  {
+    "query": "Удали сообщение 901 из канала",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-forms: boundary: messages, not forms"
+  },
+  {
+    "query": "Покажи журнал аудита за последнюю неделю",
+    "expected_skill": "pachca-security",
+    "note": "core: get audit log for time range"
+  },
+  {
+    "query": "Какие события безопасности были за вчера?",
+    "expected_skill": "pachca-security",
+    "note": "core: security events for yesterday"
+  },
+  {
+    "query": "Покажи историю входов за последние 24 часа",
+    "expected_skill": "pachca-security",
+    "note": "core: login history"
+  },
+  {
+    "query": "Были ли подозрительные входы с неудачной 2FA за март?",
+    "expected_skill": "pachca-security",
+    "note": "core: suspicious login attempts with 2FA failures"
+  },
+  {
+    "query": "Покажи DLP-нарушения за 2026-03-01 — 2026-03-15",
+    "expected_skill": "pachca-security",
+    "note": "core: DLP violations for date range"
+  },
+  {
+    "query": "Экспортируй лог безопасности с 1 по 10 марта в файл",
+    "expected_skill": "pachca-security",
+    "note": "core: export security log"
+  },
+  {
+    "query": "Кто заходил в систему вчера после 22:00?",
+    "expected_skill": "pachca-security",
+    "note": "core: who logged in yesterday evening"
+  },
+  {
+    "query": "Покажи все события удаления сообщений за последний месяц",
+    "expected_skill": "pachca-security",
+    "note": "core: audit events filtered by message_deleted"
+  },
+  {
+    "query": "Были ли созданы новые токены API на прошлой неделе?",
+    "expected_skill": "pachca-security",
+    "note": "core: token creation events"
+  },
+  {
+    "query": "Отправь сообщение 'Отчёт готов' в канал 200",
+    "expected_skill": "pachca-messages",
+    "note": "from pachca-security: boundary: messages, not security"
+  },
+  {
+    "query": "Покажи всех сотрудников отдела HR",
+    "expected_skill": "pachca-users",
+    "note": "from pachca-security: boundary: users, not security"
+  },
+  {
+    "query": "Создай канал 'Безопасность' и добавь админов",
+    "expected_skill": "pachca-chats",
+    "note": "from pachca-security: boundary: chats, not security (despite keyword overlap)"
+  },
+  {
+    "query": "Найди сообщения про инцидент",
+    "expected_skill": "pachca-search",
+    "note": "from pachca-security: boundary: search, not security"
+  },
+  {
+    "query": "Создай напоминание: проверить логи в пятницу",
+    "expected_skill": "pachca-tasks",
+    "note": "from pachca-security: boundary: tasks, not security (despite keyword overlap)"
+  }
+]

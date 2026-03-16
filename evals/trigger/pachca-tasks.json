@@ -1,0 +1,18 @@
+[
+  {"query": "Создай задачу: позвонить клиенту Иванову завтра в 14:00", "should_trigger": true, "note": "core: create task with due date"},
+  {"query": "Покажи все мои задачи", "should_trigger": true, "note": "core: list tasks"},
+  {"query": "Отметь задачу 77 выполненной", "should_trigger": true, "note": "core: mark task as done"},
+  {"query": "Update task 55 — move deadline to March 20", "should_trigger": true, "note": "core: update task deadline (English)"},
+  {"query": "Удали задачу 33", "should_trigger": true, "note": "core: delete task"},
+  {"query": "Поставь напоминание на 2026-03-18 в 09:00 — стендап", "should_trigger": true, "note": "core: set reminder"},
+  {"query": "Какие кастомные поля есть у задач?", "should_trigger": true, "note": "core: custom fields on tasks"},
+  {"query": "Создай серию напоминаний на каждый понедельник: еженедельный отчёт", "should_trigger": true, "note": "core: create recurring reminders"},
+  {"query": "Перенеси задачу 90 на следующую неделю и повысь приоритет до 'очень важно'", "should_trigger": true, "note": "core: update task priority and due date"},
+  {"query": "Получи информацию о задаче 42", "should_trigger": true, "note": "core: get task by ID"},
+  {"query": "Отправь сообщение 'Задача выполнена' в чат 100", "should_trigger": false, "note": "boundary: messages, not tasks"},
+  {"query": "Создай канал 'Спринт 15'", "should_trigger": false, "note": "boundary: chats, not tasks"},
+  {"query": "Покажи мой профиль и статус", "should_trigger": false, "note": "boundary: profile, not tasks"},
+  {"query": "Найди сообщения где упоминается дедлайн", "should_trigger": false, "note": "boundary: search, not tasks"},
+  {"query": "Заблокируй сотрудника 186", "should_trigger": false, "note": "boundary: users, not tasks"},
+  {"query": "Покажи аудит-лог за последнюю неделю", "should_trigger": false, "note": "boundary: security, not tasks"}
+]

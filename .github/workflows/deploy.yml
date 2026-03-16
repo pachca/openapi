@@ -32,6 +32,8 @@ jobs:
           tags: |
             registry.primaverahq.com/mp/docs:${{ github.sha }}
             registry.primaverahq.com/mp/docs:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy-site:
     name: Deploy site on server

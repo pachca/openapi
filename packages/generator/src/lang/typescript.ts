@@ -826,6 +826,18 @@ function tsLiteral(
   visited: Set<string> = new Set(),
   indent: number = 0,
 ): string {
+  if (ft.example !== undefined) {
+    if (ft.kind === 'primitive') {
+      if ((ft.primitive === 'integer' || ft.primitive === 'number') && typeof ft.example === 'number') return String(ft.example);
+      if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
+      if (ft.primitive === 'string' && typeof ft.example === 'string') return JSON.stringify(ft.example);
+    }
+    if (ft.kind === 'enum' && typeof ft.example === 'string') {
+      const e = ir.enums.find((en) => en.name === ft.ref);
+      const member = e?.members.find((m) => m.value === ft.example);
+      if (e && member) return `${e.name}.${enumMemberName(member.value)}`;
+    }
+  }
   switch (ft.kind) {
     case 'primitive': {
       if (ft.primitive === 'integer' || ft.primitive === 'number') return ft.primitive === 'integer' ? '123' : '1.5';

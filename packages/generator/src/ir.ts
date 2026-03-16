@@ -26,6 +26,8 @@ export interface IRFieldType {
   members?: IRFieldType[];
   /** For literal: the literal string value */
   literalValue?: string;
+  /** Example value from the OpenAPI spec */
+  example?: unknown;
 }
 
 // ----- Fields -----

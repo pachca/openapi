@@ -42,6 +42,7 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [Пагинация](https://dev.pachca.com/api/pagination.md): Cursor-based pagination в API Пачки
 - [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Трёхшаговый процесс загрузки файлов через presigned URL
 - [Ошибки и лимиты](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP и rate limits
+- [Модели](https://dev.pachca.com/api/models.md): Справочник всех моделей данных Pachca API — объекты, возвращаемые в ответах методов.
 - [SDK](https://dev.pachca.com/api/sdk.md): Клиентские библиотеки для API Пачки на 5 языках
 
 ## Common

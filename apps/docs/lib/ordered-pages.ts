@@ -60,6 +60,13 @@ export function getOrderedPages(): { path: string; title: string; description: s
         title: data.frontmatter.title || item.title,
         description: data.frontmatter.description || '',
       });
+    } else {
+      // Dynamic pages without MDX (e.g. /api/models)
+      pages.push({
+        path: item.path,
+        title: item.title,
+        description: '',
+      });
     }
   }
 

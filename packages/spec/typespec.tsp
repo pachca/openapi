@@ -648,7 +648,7 @@ model CustomProperty {
   value: string;
 }
 
-@doc("Определение дополнительного поля (без значения)")
+@doc("Дополнительное поле")
 model CustomPropertyDefinition {
   @doc("Идентификатор поля")
   @example(1678)
@@ -1325,7 +1325,7 @@ enum OAuthScope {
   search_messages: "search:messages",
 }
 
-@doc("Информация о текущем OAuth токене")
+@doc("Токен доступа")
 model AccessTokenInfo {
   @doc("Идентификатор токена")
   @example(4827)
@@ -2324,7 +2324,7 @@ union ViewBlockUnion {
   ViewBlockFileInput
 }
 
-@doc("Запрос на открытие представления")
+@doc("Представление")
 model OpenViewRequest {
   @doc("Способ открытия представления")
   @extension("x-enum-descriptions", #{
@@ -2383,7 +2383,7 @@ model BotUpdateRequest {
   };
 }
 
-@doc("Ответ с данными бота")
+@doc("Параметры бота")
 model BotResponse {
   @doc("Идентификатор бота")
   @example(1738816)

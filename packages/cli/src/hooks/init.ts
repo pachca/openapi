@@ -1,15 +1,37 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
 import { Hook } from '@oclif/core';
+import semver from 'semver';
+import ansis from 'ansis';
 import {
   getActiveProfile,
   getProfile,
   setProfile,
+  getDefaults,
   resolveToken,
   TokenNotFoundError,
   ProfileNotFoundError,
 } from '../profiles.js';
 import { request } from '../client.js';
 import { outputError } from '../output.js';
-import { defaultOutputFormat } from '../utils.js';
+import { defaultOutputFormat, isInteractive } from '../utils.js';
+
+/**
+ * Resolve output format from argv before flags are parsed by oclif.
+ */
+function resolveOutputFromArgv(): string {
+  if (process.argv.includes('--json')) return 'json';
+  const outputIdx = Math.max(process.argv.indexOf('-o'), process.argv.indexOf('--output'));
+  if (outputIdx !== -1) {
+    const val = process.argv[outputIdx + 1];
+    if (val && ['json', 'yaml', 'csv', 'table'].includes(val)) return val;
+  }
+  const defaults = getDefaults();
+  if (defaults.output) return defaults.output;
+  return defaultOutputFormat();
+}
 
 // Commands that don't require auth
 const SKIP_AUTH = new Set([
@@ -29,12 +51,63 @@ const SKIP_AUTH = new Set([
   'guide',
   'introspect',
   'changelog',
+  'upgrade',
   'help',
 ]);
 
 const hook: Hook<'init'> = async function (opts) {
   const commandId = opts.id;
   if (!commandId) return;
+
+  // Register update banner on process exit (fires even when command fails)
+  if (isInteractive() && !process.env.PACHCA_SKIP_NEW_VERSION_CHECK) {
+    const cacheDir = opts.config.cacheDir;
+    const versionFile = path.join(cacheDir, 'version');
+    const currentVersion = opts.config.version;
+
+    process.on('exit', () => {
+      try {
+        if (fs.existsSync(versionFile)) {
+          const cached = JSON.parse(fs.readFileSync(versionFile, 'utf-8'));
+          const latest = cached.latest;
+          if (latest && semver.valid(latest) && semver.valid(currentVersion) && semver.gt(latest, currentVersion)) {
+            const box = [
+              '',
+              ansis.yellow(`╭${'─'.repeat(37)}╮`),
+              ansis.yellow(`│  Доступна новая версия: ${latest.padEnd(12)}│`),
+              ansis.yellow(`│  pachca upgrade${' '.repeat(21)}│`),
+              ansis.yellow(`╰${'─'.repeat(37)}╯`),
+              '',
+            ].join('\n');
+            process.stderr.write(box);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    });
+
+    // Background refresh if cache is stale (>1h)
+    try {
+      let shouldRefresh = true;
+      if (fs.existsSync(versionFile)) {
+        const stat = fs.statSync(versionFile);
+        shouldRefresh = Date.now() - stat.mtimeMs > 60 * 60 * 1000;
+      }
+      if (shouldRefresh) {
+        if (!fs.existsSync(cacheDir)) {
+          fs.mkdirSync(cacheDir, { recursive: true });
+        }
+        const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'get-version.js');
+        if (fs.existsSync(scriptPath)) {
+          const child = spawn(process.execPath, [scriptPath, versionFile], { detached: true, stdio: 'ignore' });
+          child.unref();
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   // Skip auth for exempt commands
   if (SKIP_AUTH.has(commandId)) return;
@@ -89,7 +162,7 @@ const hook: Hook<'init'> = async function (opts) {
     }
   } catch (error) {
     if (error instanceof TokenNotFoundError) {
-      const format = defaultOutputFormat();
+      const format = resolveOutputFromArgv();
       if (format === 'json' || !process.stderr.isTTY) {
         outputError(
           { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login --token <your-token>' },
@@ -106,7 +179,7 @@ const hook: Hook<'init'> = async function (opts) {
       process.exit(3);
     }
     if (error instanceof ProfileNotFoundError) {
-      const format = defaultOutputFormat();
+      const format = resolveOutputFromArgv();
       outputError(
         { error: `Profile "${error.profileName}" not found`, type: 'PACHCA_USAGE_ERROR', code: null, hint: 'pachca auth list' },
         format as 'json',

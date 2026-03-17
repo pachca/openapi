@@ -316,20 +316,22 @@ export async function expandMdxComponents(content: string): Promise<string> {
     }
   );
 
-  // <CardGroup>...<Card>...</Card>...</CardGroup> -> markdown list
+  // <CardGroup>...<Card>...</Card>...</CardGroup> -> markdown list (only cards with descriptions)
   result = result.replace(/<CardGroup[^>]*>([\s\S]*?)<\/CardGroup>/g, (_, inner) => {
     const items: string[] = [];
-    const cardRegex = /<Card\s+([\s\S]*?)>([\s\S]*?)<\/Card>/g;
+    // Match both <Card ...>...</Card> and self-closing <Card ... />
+    const cardRegex = /<Card\s+([\s\S]*?)(?:>([\s\S]*?)<\/Card>|\/>)/g;
     let cardMatch;
     while ((cardMatch = cardRegex.exec(inner)) !== null) {
       const attrs = cardMatch[1];
-      const content = cardMatch[2].trim();
+      const content = (cardMatch[2] ?? '').trim();
+      if (!content) continue; // Skip navigation-only cards without descriptions
       const title = attrs.match(/title="([^"]+)"/)?.[1] ?? '';
       const href = attrs.match(/href="([^"]+)"/)?.[1];
       const titlePart = href ? `[${title}](${href})` : `**${title}**`;
-      items.push(content ? `- ${titlePart} — ${content}` : `- ${titlePart}`);
+      items.push(`- ${titlePart} — ${content}`);
     }
-    return items.join('\n') + '\n';
+    return items.length > 0 ? items.join('\n') + '\n' : '';
   });
 
   // <Image src="..." alt="..." /> -> ![alt](src)
@@ -518,6 +520,28 @@ export async function expandMdxComponents(content: string): Promise<string> {
     md += '\n';
 
     result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
+  // <ModelSchema name="..." /> -> load and expand schema from OpenAPI
+  if (result.includes('<ModelSchema')) {
+    const modelSchemaRegex = /<ModelSchema\s+name="([^"]+)"[^/]*\/>/g;
+    const modelSchemaMatches = [...result.matchAll(modelSchemaRegex)];
+
+    for (const match of modelSchemaMatches) {
+      const [fullMatch, schemaName] = match;
+      const schema = await getSchemaByName(schemaName);
+
+      if (schema) {
+        let md = '';
+        if (schema.description) {
+          md += schema.description + '\n\n';
+        }
+        md += schemaToMarkdown(schema, 0, schema.required || [], true);
+        result = result.replace(fullMatch, md);
+      } else {
+        result = result.replace(fullMatch, `*Схема ${schemaName} не найдена.*\n`);
+      }
+    }
   }
 
   // Clean up multiple newlines

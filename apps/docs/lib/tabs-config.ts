@@ -110,6 +110,7 @@ export const API_GUIDE_PAGES: SidebarPageItem[] = [
   { title: 'Пагинация', path: '/api/pagination' },
   { title: 'Загрузка файлов', path: '/api/file-uploads' },
   { title: 'Ошибки и лимиты', path: '/api/errors' },
+  { title: 'Модели', path: '/api/models' },
   { title: 'SDK', path: '/api/sdk' },
 ];
 

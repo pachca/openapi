@@ -1,0 +1,160 @@
+---
+title: Модели
+description: Справочник всех моделей данных Pachca API — объекты, возвращаемые в ответах методов.
+hideTableOfContents: true
+---
+
+# Модели
+
+Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
+
+<Info>Методы [Получение подписи](POST /uploads) и [Загрузка файла](POST /direct_url) не возвращают модели данных.</Info>
+
+<CardGroup>
+  <Card title="Дополнительное поле" href="#dopolnitelnoe-pole" methods="GET" />
+  <Card title="Токен доступа" href="#token-dostupa" methods="GET" />
+  <Card title="Статус пользователя" href="#status-polzovatelya" methods="GET PUT DELETE" />
+  <Card title="Сотрудник" href="#sotrudnik" methods="GET POST PUT DELETE" />
+  <Card title="Тег" href="#teg" methods="GET POST PUT DELETE" />
+  <Card title="Чат" href="#chat" methods="GET POST PUT DELETE" />
+  <Card title="Тред" href="#tred" methods="GET POST" />
+  <Card title="Сообщение" href="#soobschenie" methods="GET POST PUT DELETE" />
+  <Card title="Реакция на сообщение" href="#reaktsiya-na-soobschenie" methods="GET POST DELETE" />
+  <Card title="Напоминание" href="#napominanie" methods="GET POST PUT DELETE" />
+  <Card title="Представление" href="#predstavlenie" methods="POST" />
+  <Card title="Параметры бота" href="#parametry-bota" methods="PUT" />
+  <Card title="Событие исходящего вебхука" href="#sobytie-ishodyaschego-vebhuka" methods="GET DELETE" />
+  <Card title="Событие аудита" href="#sobytie-audita" methods="GET" />
+</CardGroup>
+
+## Дополнительное поле
+
+- [Список дополнительных полей](GET /custom_properties)
+
+<ModelSchema name="CustomPropertyDefinition" />
+
+## Токен доступа
+
+- [Информация о токене](GET /oauth/token/info)
+
+<ModelSchema name="AccessTokenInfo" />
+
+## Статус пользователя
+
+- [Статус сотрудника](GET /users/{user_id}/status)
+- [Текущий статус](GET /profile/status)
+- [Новый статус](PUT /profile/status)
+- [Новый статус сотрудника](PUT /users/{user_id}/status)
+- [Удаление статуса](DELETE /profile/status)
+- [Удаление статуса сотрудника](DELETE /users/{user_id}/status)
+
+<ModelSchema name="UserStatus" />
+
+## Сотрудник
+
+- [Информация о профиле](GET /profile)
+- [Информация о сотруднике](GET /users/{id})
+- [Список сотрудников](GET /users)
+- [Список сотрудников тега](GET /group_tags/{id}/users)
+- [Список участников чата](GET /chats/{id}/members)
+- [Поиск сотрудников](GET /search/users)
+- [Создать сотрудника](POST /users)
+- [Редактирование сотрудника](PUT /users/{id})
+- [Удаление сотрудника](DELETE /users/{id})
+
+<ModelSchema name="User" />
+
+## Тег
+
+- [Информация о теге](GET /group_tags/{id})
+- [Список тегов сотрудников](GET /group_tags)
+- [Новый тег](POST /group_tags)
+- [Добавление тегов](POST /chats/{id}/group_tags)
+- [Редактирование тега](PUT /group_tags/{id})
+- [Исключение тега](DELETE /chats/{id}/group_tags/{tag_id})
+- [Удаление тега](DELETE /group_tags/{id})
+
+<ModelSchema name="GroupTag" />
+
+## Чат
+
+- [Информация о чате](GET /chats/{id})
+- [Список чатов](GET /chats)
+- [Поиск чатов](GET /search/chats)
+- [Скачать архив экспорта](GET /chats/exports/{id})
+- [Новый чат](POST /chats)
+- [Добавление пользователей](POST /chats/{id}/members)
+- [Экспорт сообщений](POST /chats/exports)
+- [Обновление чата](PUT /chats/{id})
+- [Архивация чата](PUT /chats/{id}/archive)
+- [Разархивация чата](PUT /chats/{id}/unarchive)
+- [Редактирование роли](PUT /chats/{id}/members/{user_id})
+- [Выход из беседы или канала](DELETE /chats/{id}/leave)
+- [Исключение пользователя](DELETE /chats/{id}/members/{user_id})
+
+<ModelSchema name="Chat" />
+
+## Тред
+
+- [Информация о треде](GET /threads/{id})
+- [Новый тред](POST /messages/{id}/thread)
+
+<ModelSchema name="Thread" />
+
+## Сообщение
+
+- [Информация о сообщении](GET /messages/{id})
+- [Список сообщений чата](GET /messages)
+- [Поиск сообщений](GET /search/messages)
+- [Список прочитавших сообщение](GET /messages/{id}/read_member_ids)
+- [Новое сообщение](POST /messages)
+- [Закрепление сообщения](POST /messages/{id}/pin)
+- [Unfurl (разворачивание ссылок)](POST /messages/{id}/link_previews)
+- [Редактирование сообщения](PUT /messages/{id})
+- [Открепление сообщения](DELETE /messages/{id}/pin)
+- [Удаление сообщения](DELETE /messages/{id})
+
+<ModelSchema name="Message" />
+
+## Реакция на сообщение
+
+- [Список реакций](GET /messages/{id}/reactions)
+- [Добавление реакции](POST /messages/{id}/reactions)
+- [Удаление реакции](DELETE /messages/{id}/reactions)
+
+<ModelSchema name="Reaction" />
+
+## Напоминание
+
+- [Информация о напоминании](GET /tasks/{id})
+- [Список напоминаний](GET /tasks)
+- [Новое напоминание](POST /tasks)
+- [Редактирование напоминания](PUT /tasks/{id})
+- [Удаление напоминания](DELETE /tasks/{id})
+
+<ModelSchema name="Task" />
+
+## Представление
+
+- [Открытие представления](POST /views/open)
+
+<ModelSchema name="OpenViewRequest" />
+
+## Параметры бота
+
+- [Редактирование бота](PUT /bots/{id})
+
+<ModelSchema name="BotResponse" />
+
+## Событие исходящего вебхука
+
+- [История событий](GET /webhooks/events)
+- [Удаление события](DELETE /webhooks/events/{id})
+
+<ModelSchema name="WebhookEvent" />
+
+## Событие аудита
+
+- [Журнал аудита событий](GET /audit_events)
+
+<ModelSchema name="AuditEvent" />

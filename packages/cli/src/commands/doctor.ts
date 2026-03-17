@@ -139,7 +139,7 @@ export default class Doctor extends BaseCommand {
           if (latest && semver.valid(latest) && semver.valid(currentVersion)) {
             if (semver.gt(latest, currentVersion)) {
               checks.push({ name: 'cli_version', status: 'warning', current: currentVersion, latest });
-              this.printCheck('warning', `CLI            v${currentVersion} → доступна v${latest} (npm install -g @pachca/cli)`, format);
+              this.printCheck('warning', `CLI            v${currentVersion} → доступна v${latest} (pachca upgrade)`, format);
             } else {
               checks.push({ name: 'cli_version', status: 'ok', current: currentVersion, latest });
               this.printCheck('ok', `CLI            v${currentVersion} (актуальная версия)`, format);

@@ -1,7 +1,7 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.7 · 16 марта 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.8 · 17 марта 2026
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
@@ -444,6 +444,74 @@ pachca users get 123 || case $? in
   esac
 ```
 
+### Ошибки
+
+При `-o json` (или в пайпе) ошибки выводятся в stderr как JSON. Формат единый для всех типов ошибок:
+
+```json title="API-ошибка (422)"
+{
+  "error": "content: не может быть пустым",
+  "code": 422,
+  "type": "PACHCA_VALIDATION_ERROR",
+  "request_id": "abc123",
+  "field": "content"
+}
+```
+
+```json title="Множественная валидация (422)"
+{
+  "error": "Validation failed",
+  "code": 422,
+  "type": "PACHCA_VALIDATION_ERROR",
+  "request_id": "abc123",
+  "errors": [
+    { "field": "content", "message": "не может быть пустым" },
+    { "field": "entity_id", "message": "обязательное поле" }
+  ]
+}
+```
+
+```json title="Ошибка авторизации"
+{
+  "error": "Token not found",
+  "code": null,
+  "type": "PACHCA_AUTH_ERROR",
+  "hint": "pachca auth login --token <your-token>"
+}
+```
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `error` | `string` | Сообщение об ошибке |
+| `code` | `number \| null` | HTTP-код ответа (`null` для клиентских ошибок) |
+| `type` | `string` | Тип ошибки (см. таблицу ниже) |
+| `request_id` | `string?` | ID запроса к API (для обращения в поддержку) |
+| `hint` | `string?` | Подсказка, как исправить ошибку |
+| `field` | `string?` | Поле, вызвавшее ошибку |
+| `errors` | `array?` | Список ошибок при множественной валидации |
+
+| Тип | Описание |
+|-----|----------|
+| `PACHCA_API_ERROR` | Ошибка API (5xx, неожиданные ответы) |
+| `PACHCA_AUTH_ERROR` | Ошибка аутентификации (401 / 403) |
+| `PACHCA_VALIDATION_ERROR` | Ошибка валидации (422) |
+| `PACHCA_SCOPE_ERROR` | Токен не имеет нужного скоупа |
+| `PACHCA_NETWORK_ERROR` | Сеть недоступна |
+| `PACHCA_TIMEOUT_ERROR` | Таймаут запроса |
+| `PACHCA_USAGE_ERROR` | Неверные флаги или аргументы |
+
+```bash title="Обработка ошибок в скрипте"
+# Получить ошибку как JSON
+ERROR=$(pachca users get 999 -o json 2>&1 >/dev/null)
+TYPE=$(echo "$ERROR" | jq -r '.type')
+
+case "$TYPE" in
+  PACHCA_AUTH_ERROR) echo "Нет доступа" ;;
+  PACHCA_VALIDATION_ERROR) echo "Неверные данные" ;;
+  *) echo "Ошибка: $ERROR" ;;
+esac
+```
+
 ### Переменные окружения
 
 | Переменная | Описание |
@@ -539,6 +607,9 @@ CLI автоматически проверяет наличие новой ве
 
 ```bash
 # Обновить до последней версии
+pachca upgrade
+
+# Или вручную через npm
 npm install -g @pachca/cli
 
 # Посмотреть, что нового

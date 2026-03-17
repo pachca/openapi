@@ -12,6 +12,11 @@
         "type": "-",
         "command": "init hook",
         "description": "Ошибки авторизации теперь выводятся в JSON при -o json (раньше формат игнорировался)"
+      },
+      {
+        "type": "-",
+        "command": "update banner",
+        "description": "Баннер обновления теперь показывается даже при ошибках команд (перенос из postrun в process.on('exit'))"
       }
     ]
   },

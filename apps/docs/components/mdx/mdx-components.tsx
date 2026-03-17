@@ -1,4 +1,5 @@
 import { getSchemaByName, getEndpointByOperation, getBaseUrl } from '@/lib/openapi/parser';
+import { SchemaTable } from '@/components/api/schema-table';
 import { WebhookSchemaSection } from '@/components/api/webhook-schema-section';
 import { CodeExamples } from '@/components/api/code-examples';
 import { ResponseCodesList } from '@/components/api/response-codes-list';
@@ -303,6 +304,29 @@ export async function ApiCodeExample({
   );
 }
 
+// ============================================
+// ModelSchema - displays schema properties table by model name
+// ============================================
+
+interface ModelSchemaProps {
+  /** Name of the schema in OpenAPI spec */
+  name: string;
+}
+
+export async function ModelSchema({ name }: ModelSchemaProps) {
+  const schema = await getSchemaByName(name);
+
+  if (!schema) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+        Schema not found: {name}
+      </div>
+    );
+  }
+
+  return <SchemaTable schema={schema} />;
+}
+
 export const customMdxComponents = {
   SchemaBlock,
   HttpCodes,
@@ -327,6 +351,7 @@ export const customMdxComponents = {
   TreeFile,
   ImageCard,
   ApiCodeExample,
+  ModelSchema,
   AgentSkillsWorkflows,
   CliCommands,
   NpmBadge,

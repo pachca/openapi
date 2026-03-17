@@ -5,6 +5,7 @@ REST API Пачки позволяет автоматизировать рабо
 
 - [Быстрый старт](/guides/quickstart)
 - [Авторизация](/api/authorization)
+- [Модели API](/api/models)
 - [CLI](/guides/cli)
 - [SDK](/api/sdk)
 

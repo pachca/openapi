@@ -8,7 +8,7 @@ import { loadUpdates, isNewUpdate } from './updates-parser';
 
 const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
 
-const TAG_TRANSLATIONS: Record<string, string> = {
+export const TAG_TRANSLATIONS: Record<string, string> = {
   Common: 'Общие методы',
   Profile: 'Профиль и статус',
   Users: 'Сотрудники',

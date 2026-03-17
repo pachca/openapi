@@ -4287,7 +4287,7 @@ components:
           nullable: true
           description: Дата последнего использования токена
           example: '2025-02-24T14:20:00.000Z'
-      description: Информация о текущем OAuth токене
+      description: Токен доступа
     AddMembersRequest:
       type: object
       required:
@@ -4738,7 +4738,7 @@ components:
           required:
             - outgoing_url
           description: Объект параметров вебхука
-      description: Ответ с данными бота
+      description: Параметры бота
     BotUpdateRequest:
       type: object
       required:
@@ -5175,7 +5175,7 @@ components:
             - $ref: '#/components/schemas/CustomPropertyDataType'
           description: Тип поля
           example: string
-      description: Определение дополнительного поля (без значения)
+      description: Дополнительное поле
     ExportRequest:
       type: object
       required:
@@ -6081,7 +6081,7 @@ components:
             - title
             - blocks
           description: Собранный объект представления
-      description: Запрос на открытие представления
+      description: Представление
     PaginationMeta:
       type: object
       properties:

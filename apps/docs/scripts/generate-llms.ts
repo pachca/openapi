@@ -691,7 +691,7 @@ async function main() {
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
   console.log(
-    `\nTotal: ${5 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+    `\nTotal: ${6 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
   );
 }
 

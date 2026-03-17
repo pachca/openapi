@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, ReactNode } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, ReactNode } from 'react';
 
 interface SidebarScrollWrapperProps {
   children: ReactNode;
@@ -10,6 +10,23 @@ export function SidebarScrollWrapper({ children }: SidebarScrollWrapperProps) {
   const [scrolled, setScrolled] = useState(false);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+
+  // Scroll to active item before first paint — no visible jump
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const activeItem = nav.querySelector('[data-active]');
+    if (!activeItem) return;
+
+    const navRect = nav.getBoundingClientRect();
+    const itemRect = activeItem.getBoundingClientRect();
+
+    if (itemRect.top < navRect.top || itemRect.bottom > navRect.bottom) {
+      // Calculate position relative to scroll container
+      const relativeTop = itemRect.top - navRect.top + nav.scrollTop;
+      nav.scrollTop = relativeTop - nav.clientHeight / 2;
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {

@@ -20,6 +20,7 @@ import {
   GuideCards,
   ApiCards,
   ApiCodeExample,
+  ModelSchema,
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
 
@@ -217,6 +218,7 @@ const components = {
   TreeFile,
   ImageCard,
   ApiCodeExample,
+  ModelSchema,
   AgentSkillsWorkflows,
   CliCommands,
   NpmBadge,

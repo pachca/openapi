@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MethodBadge, type HttpMethod } from '@/components/api/method-badge';
 import {
   ArrowUpRight,
   ArrowLeftRight,
@@ -44,6 +45,7 @@ import {
   Blocks,
   Code,
   Package,
+  Database,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -91,6 +93,7 @@ const iconMap: Record<string, LucideIcon> = {
   Blocks,
   Code,
   Package,
+  Database,
 };
 
 /** Icon mapping for guide pages by path */
@@ -154,6 +157,7 @@ interface CardProps {
   href?: string;
   download?: boolean;
   compact?: boolean;
+  methods?: string;
   children?: React.ReactNode;
 }
 
@@ -197,8 +201,9 @@ function CardWrapper({
   );
 }
 
-export function Card({ title, icon, href, download, compact, children }: CardProps) {
+export function Card({ title, icon, href, download, compact, methods, children }: CardProps) {
   const Icon = icon ? iconMap[icon] : null;
+  const methodList = methods ? (methods.split(/[\s,]+/).filter(Boolean) as HttpMethod[]) : null;
 
   if (compact) {
     return (
@@ -246,6 +251,13 @@ export function Card({ title, icon, href, download, compact, children }: CardPro
           {children}
         </span>
       </div>
+      {methodList && (
+        <div className="flex flex-wrap gap-1.5">
+          {methodList.map((m) => (
+            <MethodBadge key={m} method={m} />
+          ))}
+        </div>
+      )}
       {cornerIcon}
     </CardWrapper>
   );

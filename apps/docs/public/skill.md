@@ -238,6 +238,7 @@ Detailed documentation on specific topics is available at:
 - [Пагинация](https://dev.pachca.com/api/pagination) — Cursor-based pagination в API Пачки
 - [Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговый процесс загрузки файлов через presigned URL
 - [Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP и rate limits
+- [Модели](https://dev.pachca.com/api/models) — Справочник всех моделей данных Pachca API — объекты, возвращаемые в ответах методов.
 - [SDK](https://dev.pachca.com/api/sdk) — Клиентские библиотеки для API Пачки на 5 языках
 
 

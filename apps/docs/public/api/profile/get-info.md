@@ -19,7 +19,7 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
 
 **Схема ответа:**
 
-- `data: object` (required) — Информация о текущем OAuth токене
+- `data: object` (required) — Токен доступа
   - `id: integer, int64` (required) — Идентификатор токена
   - `token: string` (required) — Маскированный токен (видны первые 8 и последние 4 символа)
   - `name: string` (required) — Пользовательское имя токена

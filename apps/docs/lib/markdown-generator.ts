@@ -38,7 +38,8 @@ function resolveSchema(schema: Schema): Schema {
 export function schemaToMarkdown(
   schema: Schema,
   depth: number = 0,
-  requiredFields: string[] = []
+  requiredFields: string[] = [],
+  includeExamples: boolean = false
 ): string {
   if (!schema || depth > 5) {
     return '';
@@ -66,7 +67,12 @@ export function schemaToMarkdown(
       }
       content += '\n';
       if (resolvedVariant.properties) {
-        content += schemaToMarkdown(resolvedVariant, depth + 1, resolvedVariant.required || []);
+        content += schemaToMarkdown(
+          resolvedVariant,
+          depth + 1,
+          resolvedVariant.required || [],
+          includeExamples
+        );
       }
     });
     return content;
@@ -140,6 +146,11 @@ export function schemaToMarkdown(
       if (description) {
         content += ` — ${description}`;
       }
+      if (includeExamples && prop.example !== undefined) {
+        const ex =
+          typeof prop.example === 'string' ? `"${prop.example}"` : JSON.stringify(prop.example);
+        content += `. Пример: \`${ex}\``;
+      }
       content += '\n';
 
       // Add enum values with descriptions
@@ -172,20 +183,30 @@ export function schemaToMarkdown(
           }
           content += '\n';
           if (resolvedVariant.properties) {
-            content += schemaToMarkdown(resolvedVariant, depth + 2, resolvedVariant.required || []);
+            content += schemaToMarkdown(
+              resolvedVariant,
+              depth + 2,
+              resolvedVariant.required || [],
+              includeExamples
+            );
           }
         }
       }
       // Handle nested objects
       else if (prop.type === 'object' && prop.properties) {
-        content += schemaToMarkdown(prop, depth + 1, prop.required || []);
+        content += schemaToMarkdown(prop, depth + 1, prop.required || [], includeExamples);
       }
       // Handle Record types (additionalProperties)
       else if (hasAdditionalProperties) {
         const valueSchema = prop.additionalProperties as Schema;
         content += `${indent}  **Структура значений Record:**\n`;
         if (valueSchema.properties) {
-          content += schemaToMarkdown(valueSchema, depth + 1, valueSchema.required || []);
+          content += schemaToMarkdown(
+            valueSchema,
+            depth + 1,
+            valueSchema.required || [],
+            includeExamples
+          );
         } else if (valueSchema.type) {
           content += `${indent}  - Тип значения: \`${valueSchema.type}\`\n`;
           if (valueSchema.description) {
@@ -223,7 +244,7 @@ export function schemaToMarkdown(
             }
           }
         } else if (items.type === 'object' && items.properties) {
-          content += schemaToMarkdown(items, depth + 1, items.required || []);
+          content += schemaToMarkdown(items, depth + 1, items.required || [], includeExamples);
         }
       }
     }

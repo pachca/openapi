@@ -130,7 +130,7 @@ export function SettingsDropdown<T extends string>({
             </button>
           ) : (
             <button
-              className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-md bg-glass backdrop-blur-md border border-glass-border text-text-primary transition-colors cursor-pointer outline-none"
+              className="flex items-center gap-1.5 px-2 py-1.5 w-full rounded-md text-text-primary transition-colors cursor-pointer outline-none"
               aria-label={ariaLabel}
             >
               <CurrentIcon className="w-4 h-4 shrink-0" />

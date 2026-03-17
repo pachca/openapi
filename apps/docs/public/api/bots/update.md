@@ -64,7 +64,7 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 
 **Схема ответа:**
 
-- `data: object` (required) — Ответ с данными бота
+- `data: object` (required) — Параметры бота
   - `id: integer, int32` (required) — Идентификатор бота
   - `webhook: object` (required) — Объект параметров вебхука
     - `outgoing_url: string` (required) — URL исходящего вебхука

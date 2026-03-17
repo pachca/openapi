@@ -154,9 +154,6 @@ function SidebarGroup({
         <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
           <span className="min-w-0 flex items-center gap-1">
             <span className="truncate">{item.title}</span>
-            {item.originalTitle && (
-              <span className="shrink-0 text-text-secondary">({item.originalTitle})</span>
-            )}
           </span>
           <ChevronDown
             className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]:rotate-0 shrink-0"

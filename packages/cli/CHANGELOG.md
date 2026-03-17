@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.3.7  (16 марта 2026)
+
+- **Добавлено** (upload): Загрузка файла одной командой (получает подпись + загружает автоматически)
+- **Изменено** (common direct-url): Обязательный флаг --direct-url вместо хардкод URL, запрос идёт без Authorization
+
 ## 2026.3.6  (15 марта 2026)
 
 - **Изменено** (threads): Топик thread переименован в threads (pachca threads add, pachca threads get)

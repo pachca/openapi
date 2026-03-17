@@ -28,7 +28,7 @@ const hook: Hook<'postrun'> = async function (opts) {
             '',
             ansis.yellow(`╭${'─'.repeat(37)}╮`),
             ansis.yellow(`│  Доступна новая версия: ${latest.padEnd(12)}│`),
-            ansis.yellow(`│  npm install -g @pachca/cli${' '.repeat(9)}│`),
+            ansis.yellow(`│  pachca upgrade${' '.repeat(21)}│`),
             ansis.yellow(`╰${'─'.repeat(37)}╯`),
             '',
           ].join('\n');

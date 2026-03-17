@@ -3,6 +3,7 @@ import {
   getActiveProfile,
   getProfile,
   setProfile,
+  getDefaults,
   resolveToken,
   TokenNotFoundError,
   ProfileNotFoundError,
@@ -10,6 +11,21 @@ import {
 import { request } from '../client.js';
 import { outputError } from '../output.js';
 import { defaultOutputFormat } from '../utils.js';
+
+/**
+ * Resolve output format from argv before flags are parsed by oclif.
+ */
+function resolveOutputFromArgv(): string {
+  if (process.argv.includes('--json')) return 'json';
+  const outputIdx = Math.max(process.argv.indexOf('-o'), process.argv.indexOf('--output'));
+  if (outputIdx !== -1) {
+    const val = process.argv[outputIdx + 1];
+    if (val && ['json', 'yaml', 'csv', 'table'].includes(val)) return val;
+  }
+  const defaults = getDefaults();
+  if (defaults.output) return defaults.output;
+  return defaultOutputFormat();
+}
 
 // Commands that don't require auth
 const SKIP_AUTH = new Set([
@@ -29,6 +45,7 @@ const SKIP_AUTH = new Set([
   'guide',
   'introspect',
   'changelog',
+  'upgrade',
   'help',
 ]);
 
@@ -89,7 +106,7 @@ const hook: Hook<'init'> = async function (opts) {
     }
   } catch (error) {
     if (error instanceof TokenNotFoundError) {
-      const format = defaultOutputFormat();
+      const format = resolveOutputFromArgv();
       if (format === 'json' || !process.stderr.isTTY) {
         outputError(
           { error: 'Token not found', type: 'PACHCA_AUTH_ERROR', code: null, hint: 'pachca auth login --token <your-token>' },
@@ -106,7 +123,7 @@ const hook: Hook<'init'> = async function (opts) {
       process.exit(3);
     }
     if (error instanceof ProfileNotFoundError) {
-      const format = defaultOutputFormat();
+      const format = resolveOutputFromArgv();
       outputError(
         { error: `Profile "${error.profileName}" not found`, type: 'PACHCA_USAGE_ERROR', code: null, hint: 'pachca auth list' },
         format as 'json',

@@ -1,5 +1,21 @@
 [
   {
+    "version": "2026.3.8",
+    "date": "17 марта 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "upgrade",
+        "description": "Команда pachca upgrade — обновление CLI до последней версии"
+      },
+      {
+        "type": "-",
+        "command": "init hook",
+        "description": "Ошибки авторизации теперь выводятся в JSON при -o json (раньше формат игнорировался)"
+      }
+    ]
+  },
+  {
     "version": "2026.3.7",
     "date": "16 марта 2026",
     "changes": [

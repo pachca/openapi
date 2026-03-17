@@ -4,6 +4,42 @@ import * as path from 'node:path';
 import semver from 'semver';
 import { BaseCommand } from '../base-command.js';
 
+interface PackageManager {
+  name: string;
+  cmd: string;
+  args: string[];
+}
+
+/**
+ * Detect how CLI was installed by examining the executable path.
+ */
+function detectPackageManager(binPath: string): PackageManager {
+  const resolved = fs.realpathSync(binPath);
+
+  // Homebrew: /opt/homebrew/... or /usr/local/Cellar/...
+  if (resolved.includes('/homebrew/') || resolved.includes('/Cellar/')) {
+    return { name: 'homebrew', cmd: 'brew', args: ['upgrade', '@pachca/cli'] };
+  }
+
+  // Bun global: ~/.bun/install/global/ or contains /bun/
+  if (resolved.includes('/bun/') || resolved.includes('.bun/')) {
+    return { name: 'bun', cmd: 'bun', args: ['install', '-g', '@pachca/cli@latest'] };
+  }
+
+  // pnpm global: contains /pnpm/
+  if (resolved.includes('/pnpm/')) {
+    return { name: 'pnpm', cmd: 'pnpm', args: ['install', '-g', '@pachca/cli@latest'] };
+  }
+
+  // yarn global: contains /yarn/
+  if (resolved.includes('/yarn/')) {
+    return { name: 'yarn', cmd: 'yarn', args: ['global', 'add', '@pachca/cli@latest'] };
+  }
+
+  // Default: npm
+  return { name: 'npm', cmd: 'npm', args: ['install', '-g', '@pachca/cli@latest'] };
+}
+
 export default class Upgrade extends BaseCommand {
   static override description = 'Обновить CLI до последней версии';
 
@@ -64,26 +100,28 @@ export default class Upgrade extends BaseCommand {
       return;
     }
 
+    const pm = detectPackageManager(process.argv[1] || this.config.binPath || '');
+
     if (format !== 'json' && process.stderr.isTTY) {
-      process.stderr.write(`Обновление ${currentVersion} → ${latest}...\n`);
+      process.stderr.write(`Обновление ${currentVersion} → ${latest} (${pm.name})...\n`);
     }
 
     try {
-      execFileSync('npm', ['install', '-g', '@pachca/cli@latest'], {
+      execFileSync(pm.cmd, pm.args, {
         stdio: format === 'json' ? 'ignore' : 'inherit',
       });
 
       if (format === 'json') {
-        this.output({ upgraded: true, from: currentVersion, to: latest });
+        this.output({ upgraded: true, from: currentVersion, to: latest, package_manager: pm.name });
       } else {
         process.stderr.write(`\n✔ Обновлено до ${latest}\n`);
       }
     } catch {
       if (format === 'json') {
-        this.output({ upgraded: false, current: currentVersion, latest, error: 'npm install failed' });
+        this.output({ upgraded: false, current: currentVersion, latest, package_manager: pm.name, error: `${pm.cmd} failed` });
       } else {
-        process.stderr.write('\n✗ Не удалось обновить. Попробуйте вручную:\n');
-        process.stderr.write('  npm install -g @pachca/cli\n');
+        process.stderr.write(`\n✗ Не удалось обновить через ${pm.name}. Попробуйте вручную:\n`);
+        process.stderr.write(`  ${pm.cmd} ${pm.args.join(' ')}\n`);
       }
       this.exit(1);
     }

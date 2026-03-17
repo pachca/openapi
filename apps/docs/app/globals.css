@@ -365,7 +365,7 @@ a:focus:not(:focus-visible) {
 }
 
 .prose code:not(pre code) {
-  @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-glass-border backdrop-blur-md whitespace-nowrap;
+  @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-glass-border whitespace-nowrap;
 }
 
 .prose table {
@@ -663,6 +663,11 @@ html.dark .code-block-container .shiki span {
 .step-item .heading-link-btn {
   margin-right: 2.8rem;
   top: 0.8em;
+}
+
+.step-item code:not(pre code) {
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 html {

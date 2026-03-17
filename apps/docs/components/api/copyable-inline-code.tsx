@@ -40,7 +40,7 @@ export function CopyableInlineCode({
     <CopiedTooltip open={copied}>
       <code
         onClick={handleCopy}
-        className={`bg-glass backdrop-blur-md border border-glass-border px-1 py-0.5 rounded-md text-[13px] font-mono text-text-primary mx-0.5 cursor-pointer hover:bg-glass-hover transition-colors whitespace-nowrap ${className || ''}`}
+        className={`bg-glass border border-glass-border px-1 py-0.5 rounded-md text-[13px] font-mono text-text-primary mx-0.5 cursor-pointer hover:bg-glass-hover transition-colors whitespace-nowrap ${className || ''}`}
       >
         {children}
       </code>

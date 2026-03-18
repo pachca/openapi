@@ -12,15 +12,15 @@ Kotlin клиент для [Pachca API](https://dev.pachca.com).
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:1.0.0")
+    implementation("com.pachca:pachca-sdk:1.0.1")
 }
 ```
 
 ## Использование
 
 ```kotlin
-import com.pachca.PachcaClient
-import com.pachca.models.*
+import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.*
 
 val pachca = PachcaClient("YOUR_TOKEN")
 
@@ -85,10 +85,29 @@ val allChats = pachca.chats.listChatsAll()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
-## Разработка
+## Загрузка файлов
 
-Генерация SDK:
+Загрузка файла — трёхшаговый процесс:
 
-```bash
-cd sdk/kotlin && bun run generate
+```kotlin
+// 1. Получить параметры загрузки
+val params = pachca.uploads.getUploadParams()
+
+// 2. Загрузить файл на S3
+val file = File("photo.png")
+pachca.uploads.uploadFile(params, file)
+
+// 3. Прикрепить к сообщению (используя key из params)
+```
+
+## Обработка ошибок
+
+```kotlin
+try {
+    val message = pachca.messages.getMessage(999999)
+} catch (e: OAuthError) {
+    println("Ошибка авторизации: ${e.message}")
+} catch (e: ApiError) {
+    println("Ошибка API: ${e.errors}")
+}
 ```

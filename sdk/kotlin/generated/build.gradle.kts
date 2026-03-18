@@ -6,7 +6,8 @@ plugins {
 }
 
 group = "com.pachca"
-version = "1.0.0"
+version = findProperty("version")?.toString()?.removePrefix("v")
+    ?: error("Version not set. Pass -Pversion=<version> or set via JitPack.")
 
 repositories {
     mavenCentral()

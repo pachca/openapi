@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
+    "usage": "val client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "MemberOperations_addMembers": {
     "usage": "val memberIds = listOf(123)\nclient.members.addMembers(id = 123, memberIds = memberIds)"

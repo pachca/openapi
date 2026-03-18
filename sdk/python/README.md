@@ -5,7 +5,7 @@ Python клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-pip install pachca-sdk
+pip install pachca-sdk==1.0.1
 ```
 
 ## Использование
@@ -51,25 +51,6 @@ await client.messages.create_message(MessageCreateRequest(...))
 message = await client.messages.create_message(...)  # Message, не {"data": Message}
 ```
 
-## Ресурсы
-
-| Свойство | Методы |
-|----------|--------|
-| `client.messages` | `create_message`, `get_message`, `update_message`, `delete_message`, `pin_message`, `unpin_message`, `list_chat_messages` |
-| `client.users` | `list_users`, `create_user`, `get_user`, `update_user`, `delete_user`, `get_user_status`, `update_user_status`, `delete_user_status` |
-| `client.chats` | `list_chats`, `create_chat`, `get_chat`, `update_chat`, `archive_chat`, `unarchive_chat` |
-| `client.tasks` | `list_tasks`, `create_task`, `get_task`, `update_task`, `delete_task` |
-| `client.group_tags` | `list_tags`, `create_tag`, `get_tag`, `update_tag`, `delete_tag`, `get_tag_users` |
-| `client.members` | `list_members`, `add_members`, `remove_member`, `update_member_role`, `add_tags`, `remove_tag`, `leave_chat` |
-| `client.reactions` | `list_reactions`, `add_reaction`, `remove_reaction` |
-| `client.thread` | `create_thread`, `get_thread` |
-| `client.search` | `search_users`, `search_chats`, `search_messages` |
-| `client.security` | `get_audit_events` |
-| `client.profile` | `get_profile`, `get_status`, `update_status`, `delete_status`, `get_token_info` |
-| `client.bots` | `update_bot`, `get_webhook_events`, `delete_webhook_event` |
-| `client.views` | `open_view` |
-| `client.common` | `list_properties`, `get_upload_params`, `upload_file`, `request_export`, `download_export` |
-
 ## Пагинация
 
 Для эндпоинтов с курсорной пагинацией SDK генерирует `*_all`-методы, которые автоматически обходят все страницы:
@@ -95,6 +76,21 @@ all_chats = await client.chats.list_chats_all()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Загрузка файлов
+
+Загрузка файла — трёхшаговый процесс:
+
+```python
+# 1. Получить параметры загрузки
+params = await client.common.get_upload_params()
+
+# 2. Загрузить файл на S3
+with open("photo.png", "rb") as f:
+    await client.common.upload_file(params, f, "photo.png")
+
+# 3. Прикрепить к сообщению (используя key из params)
+```
+
 ## Обработка ошибок
 
 ```python
@@ -107,9 +103,3 @@ except OAuthError as e:
 except ApiError as e:
     print(f"Ошибка API: {e.errors}")
 ```
-
-## Пример
-
-См. [examples/main.py](examples/main.py) — 8-шаговый echo bot.
-
-Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).

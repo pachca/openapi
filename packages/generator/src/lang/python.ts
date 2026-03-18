@@ -1065,7 +1065,8 @@ function generateExamples(ir: IR): string {
   const result: Record<string, object> = {};
 
   result['Client_Init'] = {
-    usage: 'from pachca import PachcaClient\n\nclient = PachcaClient("YOUR_TOKEN")',
+    usage: 'client = PachcaClient("YOUR_TOKEN")',
+    imports: ['PachcaClient'],
   };
 
   for (const svc of ir.services) {

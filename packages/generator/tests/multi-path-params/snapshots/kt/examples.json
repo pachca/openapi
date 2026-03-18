@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import com.pachca.PachcaClient\n\nval client = PachcaClient(\"YOUR_TOKEN\")"
+    "usage": "val client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "TaskOperations_getTask": {
     "usage": "val response = client.tasks.getTask(projectId = 123, taskId = 123)",

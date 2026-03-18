@@ -11,14 +11,21 @@ npm install -g @pachca/generator
 ## Использование
 
 ```bash
-npx @pachca/generator --spec openapi.yaml --output ./sdk --lang typescript,python,go,kotlin,swift
+# Генерация из Pachca API (по умолчанию)
+npx @pachca/generator --output ./sdk --lang typescript,python,go,kotlin,swift
+
+# Генерация из локального файла
+npx @pachca/generator --spec openapi.yaml --output ./sdk --lang typescript
+
+# Генерация из URL
+npx @pachca/generator --spec https://example.com/openapi.yaml --output ./sdk --lang go
 ```
 
 ### Параметры
 
 | Флаг | Описание |
 |------|----------|
-| `--spec` | Путь к OpenAPI 3.0 YAML спецификации |
+| `--spec` | Путь или URL к OpenAPI 3.0 YAML спецификации (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
 | `--output` | Директория для сгенерированных файлов |
 | `--lang` | Целевые языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift` |
 

@@ -19,8 +19,8 @@ dependencies {
 ## Использование
 
 ```kotlin
-import com.pachca.PachcaClient
-import com.pachca.models.*
+import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.*
 
 val pachca = PachcaClient("YOUR_TOKEN")
 

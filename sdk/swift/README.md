@@ -84,10 +84,3 @@ let allChats = try await pachca.chats.listChatsAll()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
-## Разработка
-
-Генерация SDK:
-
-```bash
-cd sdk/swift && bun run generate
-```

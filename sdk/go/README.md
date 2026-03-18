@@ -57,27 +57,6 @@ msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{...})
 msg, err := client.Messages.CreateMessage(ctx, ...)  // *Message, не *MessageResponse
 ```
 
-## Сервисы
-
-Методы API сгруппированы по сервисам:
-
-| Сервис | Описание |
-|--------|---------|
-| `client.Messages` | Сообщения, треды, пины |
-| `client.Chats` | Каналы и беседы |
-| `client.ChatMembers` | Участники чатов |
-| `client.Users` | Управление сотрудниками |
-| `client.Tags` | Теги (группы) |
-| `client.Tasks` | Задачи (напоминания) |
-| `client.Search` | Полнотекстовый поиск |
-| `client.Reactions` | Реакции на сообщения |
-| `client.Bots` | Управление ботами |
-| `client.Profile` | Профиль текущего пользователя |
-| `client.Security` | Журнал аудита |
-| `client.Uploads` | Загрузка файлов |
-| `client.Exports` | Экспорт сообщений |
-| `client.Forms` | Интерактивные формы |
-
 ## Пагинация
 
 Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:

@@ -25,7 +25,7 @@ description: Первый запрос к API Пачки за 5 минут
   <Step title="Проверьте токен">
     Получим информацию о своем профиле — простейший запрос [Информация о профиле](GET /profile) без параметров:
 
-    <ApiCodeExample operationId="ProfileOperations_getProfile" title="Получение профиля" show="request" />
+    <ApiCodeExample defaultLang="curl" operationId="ProfileOperations_getProfile" title="Получение профиля" show="request" />
 
     Все запросы отправляются на базовый URL `https://api.pachca.com/api/shared/v1`. Токен передаётся в заголовке `Authorization: Bearer TOKEN`. Ответ содержит данные в объекте `data`, а для списочных методов — ещё и блок `meta` с информацией о [пагинации](/api/pagination).
 
@@ -34,7 +34,7 @@ description: Первый запрос к API Пачки за 5 минут
   <Step title="Отправьте сообщение">
     Теперь отправим сообщение в беседу. Все параметры — в описании метода [Новое сообщение](POST /messages).
 
-    <ApiCodeExample operationId="MessageOperations_createMessage" title="Отправка сообщения" show="request" />
+    <ApiCodeExample defaultLang="curl" operationId="MessageOperations_createMessage" title="Отправка сообщения" show="request" />
 
     Замените `entity_id` на ID вашей беседы или канала — его можно узнать в URL чата в веб-версии Пачки или через метод [Список каналов и бесед](GET /chats). Запросы с телом отправляются в формате JSON с заголовком `Content-Type: application/json`.
   </Step>

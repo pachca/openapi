@@ -19,6 +19,7 @@ interface CodeExamplesProps {
   responseMode?: 'full' | 'minimal';
   sdkExamples?: Record<string, string>;
   langs?: Language[];
+  defaultLang?: Language;
   className?: string;
 }
 
@@ -44,15 +45,17 @@ export function CodeExamples({
   responseMode = 'full',
   sdkExamples,
   langs,
+  defaultLang: defaultLangProp,
   className,
 }: CodeExamplesProps) {
   const allLangs = Object.keys(languageLabels) as Language[];
   const visibleLangs = langs ?? allLangs;
-  const defaultLang = visibleLangs[0];
+  const fallbackLang = visibleLangs[0];
 
-  const [activeTab, setActiveTab] = useState<Language>(defaultLang);
+  const [activeTab, setActiveTab] = useState<Language>(defaultLangProp ?? fallbackLang);
 
   useEffect(() => {
+    if (defaultLangProp) return;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && saved in languageLabels && visibleLangs.includes(saved as Language)) {
       setActiveTab(saved as Language); // eslint-disable-line react-hooks/set-state-in-effect

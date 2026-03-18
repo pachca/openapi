@@ -274,6 +274,7 @@ interface ApiCodeExampleProps {
   responseMode?: 'full' | 'minimal';
   lang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli';
   langs?: Array<'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli'>;
+  defaultLang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli';
   operations?: Array<{ id: string; comment?: string }>;
   showInit?: boolean;
 }
@@ -286,6 +287,7 @@ export async function ApiCodeExample({
   responseMode,
   lang,
   langs,
+  defaultLang,
   operations,
   showInit = true,
 }: ApiCodeExampleProps) {
@@ -385,6 +387,7 @@ export async function ApiCodeExample({
       responseMode={responseMode}
       sdkExamples={sdkEx}
       langs={langs}
+      defaultLang={defaultLang}
       className="my-4"
     />
   );

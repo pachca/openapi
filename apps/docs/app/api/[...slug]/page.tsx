@@ -6,6 +6,7 @@ import {
 } from '@/lib/openapi/mapper';
 import { ApiMethodTemplate } from '@/components/api/method-template';
 import { getAdjacentItems } from '@/lib/navigation';
+import { getSdkExamples } from '@/lib/sdk-examples';
 import { notFound } from 'next/navigation';
 
 export async function generateStaticParams() {
@@ -78,6 +79,7 @@ export default async function ApiMethodPage({ params }: { params: Promise<{ slug
   const api = await parseOpenAPI();
   const baseUrl = api.servers[0]?.url;
 
+  const sdkExamples = getSdkExamples(endpoint.id);
   const tag = endpoint.tags[0] || '';
   const section = resolvedParams.slug[0] || '';
 
@@ -136,6 +138,7 @@ export default async function ApiMethodPage({ params }: { params: Promise<{ slug
         adjacent={adjacent}
         allEndpoints={api.endpoints}
         baseUrl={baseUrl}
+        sdkExamples={sdkExamples}
       />
     </>
   );

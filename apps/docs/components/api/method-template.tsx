@@ -21,6 +21,7 @@ interface ApiMethodTemplateProps {
   };
   allEndpoints: Endpoint[];
   baseUrl?: string;
+  sdkExamples?: Record<string, string>;
 }
 
 export function ApiMethodTemplate({
@@ -28,6 +29,7 @@ export function ApiMethodTemplate({
   adjacent,
   allEndpoints,
   baseUrl,
+  sdkExamples,
 }: ApiMethodTemplateProps) {
   const processedEndpoint = resolveEndpointDescriptionLinks(endpoint, allEndpoints);
   const fullDescription = getDescriptionWithoutTitle(endpoint);
@@ -72,7 +74,7 @@ export function ApiMethodTemplate({
         {/* Right Column: Code Examples (Sticky) */}
         <div className="relative bg-background border-t border-background-border/50 xl:border-t-0 xl:col-span-3">
           <div className="xl:sticky xl:top-[var(--mobile-header-height)] p-8 xl:py-10 xl:pr-10 xl:pl-0 h-fit xl:max-h-[calc(100vh-var(--mobile-header-height))] xl:overflow-y-auto custom-scrollbar">
-            <CodeExamples endpoint={endpoint} baseUrl={baseUrl} />
+            <CodeExamples endpoint={endpoint} baseUrl={baseUrl} sdkExamples={sdkExamples} />
           </div>
         </div>
       </div>

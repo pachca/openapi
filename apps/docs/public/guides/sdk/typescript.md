@@ -1,0 +1,224 @@
+
+# TypeScript
+
+[@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
+
+
+Типизированный клиент для Pachca API. Работает в Node.js 18+ и в любом окружении с поддержкой `fetch`. ES Module с TypeScript-декларациями.
+
+## Быстрый старт
+
+
+  ### Шаг 1. Установка
+
+```bash
+npm install @pachca/sdk
+```
+
+
+  ### Шаг 2. Создание клиента
+
+Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
+
+*Endpoint not found*
+
+
+  ### Шаг 3. Первый запрос
+
+*Endpoint not found*
+
+
+## Инициализация
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+// Стандартное подключение
+const client = new PachcaClient("YOUR_TOKEN")
+
+// С кастомным базовым URL
+const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/api/shared/v1")
+```
+
+| Параметр | Тип | По умолчанию | Описание |
+|----------|-----|-------------|----------|
+| `token` | `string` | — | Bearer-токен для авторизации |
+| `baseUrl` | `string` | `https://api.pachca.com/api/shared/v1` | Базовый URL API |
+
+Клиент не требует явного закрытия — все запросы используют глобальный `fetch`.
+
+## Все методы
+
+<SdkCommands lang="typescript" />
+
+## Запросы
+
+Все методы — асинхронные и возвращают `Promise`.
+
+**GET с параметрами:**
+
+*Endpoint not found*
+
+
+**POST с телом запроса:**
+
+*Endpoint not found*
+
+
+**Простой вызов по ID:**
+
+*Endpoint not found*
+
+
+## Пагинация
+
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `meta.paginate.nextPage` — курсор для следующей страницы.
+
+### Ручная пагинация
+
+```typescript
+let cursor: string | undefined
+
+do {
+  const response = await client.users.listUsers({ limit: 50, cursor })
+  for (const user of response.data) {
+    console.log(user.firstName, user.lastName)
+  }
+  cursor = response.meta?.paginate?.nextPage
+} while (cursor)
+```
+
+### Автопагинация
+
+Для каждого метода с пагинацией есть `*All()` вариант, который автоматически обходит все страницы и возвращает плоский массив:
+
+```typescript
+// Все пользователи одним массивом
+const users = await client.users.listUsersAll()
+console.log(`Всего: ${users.length}`)
+```
+
+Доступные методы автопагинации:
+
+| Метод | Возвращает |
+|-------|-----------|
+| `security.getAuditEventsAll()` | `AuditEvent[]` |
+| `bots.getWebhookEventsAll()` | `WebhookEvent[]` |
+| `chats.listChatsAll()` | `Chat[]` |
+| `groupTags.listTagsAll()` | `GroupTag[]` |
+| `groupTags.getTagUsersAll()` | `User[]` |
+| `members.listMembersAll()` | `User[]` |
+| `messages.listChatMessagesAll()` | `Message[]` |
+| `reactions.listReactionsAll()` | `Reaction[]` |
+| `search.searchChatsAll()` | `Chat[]` |
+| `search.searchMessagesAll()` | `Message[]` |
+| `search.searchUsersAll()` | `User[]` |
+| `tasks.listTasksAll()` | `Task[]` |
+| `users.listUsersAll()` | `User[]` |
+
+## Обработка ошибок
+
+SDK выбрасывает два типа ошибок:
+
+### ApiError
+
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+
+```typescript
+import { PachcaClient, ApiError } from "@pachca/sdk"
+
+try {
+  await client.chats.createChat(request)
+} catch (error) {
+  if (error instanceof ApiError) {
+    for (const e of error.errors) {
+      console.log(e.key, e.message)   // "name", "не может быть пустым"
+      console.log(e.code)             // "blank"
+    }
+  }
+}
+```
+
+Поля `ApiErrorItem`:
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `key` | `string` | Поле, вызвавшее ошибку |
+| `value` | `string \| null` | Переданное значение |
+| `message` | `string` | Текст ошибки |
+| `code` | `ValidationErrorCode` | Код валидации (`blank`, `invalid`, `taken`, ...) |
+| `payload` | `string \| null` | Дополнительные данные |
+
+### OAuthError
+
+Возникает при ошибке авторизации (`401`):
+
+```typescript
+import { OAuthError } from "@pachca/sdk"
+
+try {
+  await client.profile.getProfile()
+} catch (error) {
+  if (error instanceof OAuthError) {
+    console.log(error.message) // "Token not found"
+  }
+}
+```
+
+## Повторные запросы
+
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+
+- До **3 повторов** на каждый запрос
+- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
+- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- Все остальные ошибки возвращаются сразу без retry
+
+## Сериализация
+
+SDK автоматически конвертирует имена полей между camelCase (TypeScript) и snake_case (API):
+
+```typescript
+// Вы пишете:
+{ memberIds: [123], groupTagIds: [456] }
+
+// SDK отправляет:
+{ "member_ids": [123], "group_tag_ids": [456] }
+
+// API возвращает:
+{ "last_message_at": "2025-01-01T00:00:00Z" }
+
+// Вы получаете:
+{ lastMessageAt: "2025-01-01T00:00:00Z" }
+```
+
+## Типы
+
+Все типы экспортируются из пакета:
+
+```typescript
+import {
+  // Модели
+  Chat, Message, User, Task, GroupTag, Thread, Reaction,
+  // Запросы
+  ChatCreateRequest, MessageCreateRequest, TaskCreateRequest,
+  // Параметры
+  ListChatsParams, ListUsersParams, SearchMessagesParams,
+  // Ответы
+  ListChatsResponse, ListMembersResponse,
+  // Перечисления
+  AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
+  ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,
+  MemberEventType, MessageEntityType, OAuthScope, ReactionEventType,
+  SearchEntityType, SearchSortOrder, SortOrder, TaskKind, TaskStatus,
+  UserEventType, UserRole, ValidationErrorCode, WebhookEventType,
+  // Ошибки
+  ApiError, OAuthError,
+} from "@pachca/sdk"
+```
+
+## Примеры
+
+*Endpoint not found*
+
+

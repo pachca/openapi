@@ -55,6 +55,18 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Быстрый старт', path: '/guides/quickstart' },
       { title: 'AI агенты', path: '/guides/ai-agents' },
       { title: 'CLI', path: '/guides/cli' },
+      {
+        title: 'SDK',
+        path: '/guides/sdk/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/sdk/overview' },
+          { title: 'TypeScript', path: '/guides/sdk/typescript' },
+          { title: 'Python', path: '/guides/sdk/python' },
+          { title: 'Go', path: '/guides/sdk/go' },
+          { title: 'Kotlin', path: '/guides/sdk/kotlin' },
+          { title: 'Swift', path: '/guides/sdk/swift' },
+        ],
+      },
       { title: 'Сценарии', path: '/guides/workflows' },
     ],
   },
@@ -111,7 +123,6 @@ export const API_GUIDE_PAGES: SidebarPageItem[] = [
   { title: 'Загрузка файлов', path: '/api/file-uploads' },
   { title: 'Ошибки и лимиты', path: '/api/errors' },
   { title: 'Модели', path: '/api/models' },
-  { title: 'SDK', path: '/api/sdk' },
 ];
 
 /**

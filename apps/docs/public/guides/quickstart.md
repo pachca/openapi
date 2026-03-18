@@ -93,4 +93,4 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 - [Ошибки и лимиты](/api/errors) — коды ошибок и rate limits
 - [Пагинация](/api/pagination) — обход больших списков
 - [Боты](/guides/bots) — создание ботов и автоматизаций
-- [SDK](/api/sdk) — типизированные клиентские библиотеки
+- [SDK](/guides/sdk/overview) — типизированные клиентские библиотеки

@@ -17,7 +17,6 @@ export function useToc() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setToc([]);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIds(new Set());
 
     const container = document.querySelector('.prose');
@@ -34,9 +33,7 @@ export function useToc() {
       };
     });
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToc(items);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (items.length > 0) setActiveIds(new Set([items[0].id]));
 
     const updateActive = () => {

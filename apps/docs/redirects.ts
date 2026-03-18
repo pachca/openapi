@@ -14,6 +14,10 @@ const redirects: Redirect[] = [
   { source: '/guides/forms', destination: '/guides/forms/overview' },
   { source: '/guides/forms.md', destination: '/guides/forms/overview.md' },
 
+  // ===== SDK → Guides =====
+  { source: '/api/sdk', destination: '/guides/sdk/overview' },
+  { source: '/api/sdk.md', destination: '/guides/sdk/overview.md' },
+
   // ===== API → Guides (переезд из /api/ в /guides/) =====
   { source: '/api/quickstart', destination: '/guides/quickstart' },
   { source: '/api/quickstart.md', destination: '/guides/quickstart.md' },

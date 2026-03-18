@@ -108,7 +108,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - name: Set version from tag
         working-directory: sdk/typescript
-        run: npm version ${{ needs.generate.outputs.version }} --no-git-tag-version
+        run: sed -i 's/"version": "0.0.0"/"version": "${{ needs.generate.outputs.version }}"/' package.json
       - name: Build TypeScript SDK
         run: npm run build
         working-directory: sdk/typescript

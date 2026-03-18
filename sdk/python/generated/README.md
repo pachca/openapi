@@ -1,124 +1,105 @@
-# pachca-sdk
-A client library for accessing Pachca API
+# Pachca Python SDK
 
-## Usage
-First, create a client:
+Python клиент для [Pachca API](https://dev.pachca.com).
 
-```python
-from pachca import Client
+## Установка
 
-client = Client(base_url="https://api.example.com")
+```bash
+pip install pachca-sdk==1.0.1
 ```
 
-If the endpoints you're going to hit require authentication, use `AuthenticatedClient` instead:
+## Использование
 
 ```python
-from pachca import AuthenticatedClient
+from pachca import PachcaClient, MessageCreateRequestMessage
 
-client = AuthenticatedClient(base_url="https://api.example.com", token="SuperSecretToken")
-```
+client = PachcaClient("YOUR_TOKEN")
 
-Now call your endpoint and use your models:
-
-```python
-from pachca.models import MyDataModel
-from pachca.api.my_tag import get_my_data_model
-from pachca.types import Response
-
-with client as client:
-    my_data: MyDataModel = get_my_data_model.sync(client=client)
-    # or if you need more info (e.g. status_code)
-    response: Response[MyDataModel] = get_my_data_model.sync_detailed(client=client)
-```
-
-Or do the same thing with an async version:
-
-```python
-from pachca.models import MyDataModel
-from pachca.api.my_tag import get_my_data_model
-from pachca.types import Response
-
-async with client as client:
-    my_data: MyDataModel = await get_my_data_model.asyncio(client=client)
-    response: Response[MyDataModel] = await get_my_data_model.asyncio_detailed(client=client)
-```
-
-By default, when you're calling an HTTPS API it will attempt to verify that SSL is working correctly. Using certificate verification is highly recommended most of the time, but sometimes you may need to authenticate to a server (especially an internal server) using a custom certificate bundle.
-
-```python
-client = AuthenticatedClient(
-    base_url="https://internal_api.example.com", 
-    token="SuperSecretToken",
-    verify_ssl="/path/to/certificate_bundle.pem",
-)
-```
-
-You can also disable certificate validation altogether, but beware that **this is a security risk**.
-
-```python
-client = AuthenticatedClient(
-    base_url="https://internal_api.example.com", 
-    token="SuperSecretToken", 
-    verify_ssl=False
-)
-```
-
-Things to know:
-1. Every path/method combo becomes a Python module with four functions:
-    1. `sync`: Blocking request that returns parsed data (if successful) or `None`
-    1. `sync_detailed`: Blocking request that always returns a `Request`, optionally with `parsed` set if the request was successful.
-    1. `asyncio`: Like `sync` but async instead of blocking
-    1. `asyncio_detailed`: Like `sync_detailed` but async instead of blocking
-
-1. All path/query params, and bodies become method arguments.
-1. If your endpoint had any tags on it, the first tag will be used as a module name for the function (my_tag above)
-1. Any endpoint which did not have a tag will be in `pachca.api.default`
-
-## Advanced customizations
-
-There are more settings on the generated `Client` class which let you control more runtime behavior, check out the docstring on that class for more info. You can also customize the underlying `httpx.Client` or `httpx.AsyncClient` (depending on your use-case):
-
-```python
-from pachca import Client
-
-def log_request(request):
-    print(f"Request event hook: {request.method} {request.url} - Waiting for response")
-
-def log_response(response):
-    request = response.request
-    print(f"Response event hook: {request.method} {request.url} - Status {response.status_code}")
-
-client = Client(
-    base_url="https://api.example.com",
-    httpx_args={"event_hooks": {"request": [log_request], "response": [log_response]}},
+# Создание сообщения
+msg = await client.messages.create_message(
+    MessageCreateRequestMessage(entity_id=334, content="Hello!")
 )
 
-# Or get the underlying httpx client to modify directly with client.get_httpx_client() or client.get_async_httpx_client()
+# Получение сообщения
+fetched = await client.messages.get_message(msg.id)
+
+# Реакция (≤2 полей — передаются как kwargs)
+await client.reactions.add_reaction(msg.id, code="👀")
+
+# Закрепление
+await client.messages.pin_message(msg.id)
+
+# Список сообщений чата (с пагинацией)
+messages = await client.messages.list_chat_messages(chat_id=198)
+print(messages.next_cursor)  # курсор следующей страницы
 ```
 
-You can even set the httpx client directly, but beware that this will override any existing settings (e.g., base_url):
+## Конвенции
+
+- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
 
 ```python
-import httpx
-from pachca import Client
+# ≤2 поля → развёрнуто в аргументы
+await client.reactions.add_reaction(message_id, ReactionRequest(code="👍"))
+await client.messages.pin_message(message_id)
 
-client = Client(
-    base_url="https://api.example.com",
-)
-# Note that base_url needs to be re-set, as would any shared cookies, headers, etc.
-client.set_httpx_client(httpx.Client(base_url="https://api.example.com", proxies="http://localhost:8030"))
+# >2 полей → объект-запрос
+await client.messages.create_message(MessageCreateRequest(...))
+
+# Ответ: API возвращает {"data": ...}, SDK возвращает объект напрямую
+message = await client.messages.create_message(...)  # Message, не {"data": Message}
 ```
 
-## Building / publishing this package
-This project uses [Poetry](https://python-poetry.org/) to manage dependencies  and packaging.  Here are the basics:
-1. Update the metadata in pyproject.toml (e.g. authors, version)
-1. If you're using a private repository, configure it with Poetry
-    1. `poetry config repositories.<your-repository-name> <url-to-your-repository>`
-    1. `poetry config http-basic.<your-repository-name> <username> <password>`
-1. Publish the client with `poetry publish --build -r <your-repository-name>` or, if for public PyPI, just `poetry publish --build`
+## Пагинация
 
-If you want to install this client into another project without publishing it (e.g. for development) then:
-1. If that project **is using Poetry**, you can simply do `poetry add <path-to-this-client>` from that project
-1. If that project is not using Poetry:
-    1. Build a wheel with `poetry build -f wheel`
-    1. Install that wheel from the other project `pip install <path-to-wheel>`
+Для эндпоинтов с курсорной пагинацией SDK генерирует `*_all`-методы, которые автоматически обходят все страницы:
+
+```python
+# Вручную
+chats = []
+cursor = None
+while True:
+    response = await client.chats.list_chats(cursor=cursor)
+    chats.extend(response.data)
+    cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+    if not cursor:
+        break
+
+# Автоматически
+all_chats = await client.chats.list_chats_all()
+```
+
+Доступные методы: `list_chats_all`, `list_users_all`, `list_tasks_all`, `list_tags_all`, `list_members_all`, `list_chat_messages_all`, `list_reactions_all`, `search_chats_all`, `search_messages_all`, `search_users_all` и др.
+
+## Повторные запросы
+
+SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
+
+## Загрузка файлов
+
+Загрузка файла — трёхшаговый процесс:
+
+```python
+# 1. Получить параметры загрузки
+params = await client.common.get_upload_params()
+
+# 2. Загрузить файл на S3
+with open("photo.png", "rb") as f:
+    await client.common.upload_file(params, f, "photo.png")
+
+# 3. Прикрепить к сообщению (используя key из params)
+```
+
+## Обработка ошибок
+
+```python
+from pachca import PachcaClient, ApiError, OAuthError
+
+try:
+    await client.messages.get_message(999999)
+except OAuthError as e:
+    print(f"Ошибка авторизации: {e.message}")
+except ApiError as e:
+    print(f"Ошибка API: {e.errors}")
+```

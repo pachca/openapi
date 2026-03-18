@@ -24,9 +24,13 @@ jobs:
   snapshot-tests:
     name: Snapshot tests
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -43,3 +47,51 @@ jobs:
       - name: Run snapshot tests
         working-directory: packages/generator
         run: bun test
+
+      - name: Check for generator changes
+        if: github.event_name == 'push'
+        id: check
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/generator/ packages/openapi-parser/ | grep -q . && echo true || echo false)
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+
+  publish-generator:
+    if: github.event_name == 'push' && needs.snapshot-tests.outputs.changed == 'true'
+    needs: snapshot-tests
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-generator
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+      - run: bun install --frozen-lockfile
+
+      - name: Build parser
+        working-directory: packages/openapi-parser
+        run: bun run build
+
+      - name: Build generator
+        working-directory: packages/generator
+        run: bun run build
+
+      - name: Publish to npm
+        working-directory: packages/generator
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          if npm view "@pachca/generator@${VERSION}" version 2>/dev/null; then
+            echo "Version ${VERSION} already published, skipping"
+          else
+            npm publish --access public --provenance
+          fi

@@ -85,7 +85,7 @@ jobs:
         if: github.event_name == 'push'
         run: git push && git push --tags --force
 
-  publish-npm:
+  publish-ts:
     if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest
@@ -186,7 +186,7 @@ jobs:
             fi
           }
 
-  publish-pypi:
+  publish-py:
     if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest
@@ -211,7 +211,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
-  publish-jitpack:
+  publish-kt:
     if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest

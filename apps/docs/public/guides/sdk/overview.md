@@ -1,11 +1,20 @@
 
 # SDK
 
-SDK для API Пачки автоматически генерируются из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Они предоставляют типизированные клиенты с автодополнением, актуальными моделями данных и встроенной обработкой ошибок. Исходный код всех SDK доступен в [репозитории на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
+Типизированные клиентские библиотеки для Pachca API — автоматически сгенерированы из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Автодополнение, актуальные модели данных, встроенный retry и обработка ошибок. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
+
+
+## Пример
+
+**Получение профиля**
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/profile" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
 
 ## Возможности
-
-Все SDK реализуют единый набор возможностей:
 
 | Возможность | Описание |
 |-------------|----------|
@@ -15,15 +24,6 @@ SDK для API Пачки автоматически генерируются и
 | **Обработка ошибок** | Типизированные `ApiError` и `OAuthError` |
 | **Сериализация** | Автоматическая конвертация между форматами (snake_case ↔ camelCase) |
 | **Авторизация** | Bearer-токен передаётся один раз при создании клиента |
-
-## Языки
-
-<Card title="TypeScript" icon="FileText" href="/guides/sdk/typescript">npm · async/await · fetch</Card>
-  <Card title="Python" icon="FileText" href="/guides/sdk/python">PyPI · async/await · httpx</Card>
-  <Card title="Go" icon="FileText" href="/guides/sdk/go">go get · sync · net/http</Card>
-  <Card title="Kotlin" icon="FileText" href="/guides/sdk/kotlin">JitPack · coroutines · Ktor</Card>
-  <Card title="Swift" icon="FileText" href="/guides/sdk/swift">SPM · async throws · URLSession</Card>
-
 
 ## Сравнение
 
@@ -35,16 +35,5 @@ SDK для API Пачки автоматически генерируются и
 | **HTTP** | fetch | httpx | net/http | Ktor | URLSession |
 | **Naming** | camelCase | snake_case | PascalCase | camelCase | camelCase |
 | **Cleanup** | — | `await client.close()` | — | `client.close()` | — |
-| **Требования** | Node.js 18+ | Python 3.10+ | Go 1.21+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+ |
+| **Требования** | Node.js 18+ | Python 3.10+ | Go 1.24+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+, iOS 16+ |
 
-## Быстрый старт
-
-Установите SDK для вашего языка и создайте клиент:
-
-*Endpoint not found*
-
-
-*Endpoint not found*
-
-
-Подробные инструкции и примеры — на странице нужного языка.

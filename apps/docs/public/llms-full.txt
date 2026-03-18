@@ -11,12 +11,12 @@
 - [Быстрый старт](#быстрый-старт)
 - [AI агенты](#ai-агенты)
 - [CLI](#cli)
-- [SDK](#sdk)
-- [TypeScript SDK](#typescript-sdk)
-- [Python SDK](#python-sdk)
-- [Go SDK](#go-sdk)
-- [Kotlin SDK](#kotlin-sdk)
-- [Swift SDK](#swift-sdk)
+- [Обзор](#обзор)
+- [TypeScript](#typescript)
+- [Python](#python)
+- [Go](#go)
+- [Kotlin](#kotlin)
+- [Swift](#swift)
 - [Сценарии](#сценарии)
 - [Боты](#боты)
 - [Входящие вебхуки](#входящие-вебхуки)
@@ -1096,11 +1096,20 @@ pachca changelog
 
 # SDK
 
-SDK для API Пачки автоматически генерируются из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Они предоставляют типизированные клиенты с автодополнением, актуальными моделями данных и встроенной обработкой ошибок. Исходный код всех SDK доступен в [репозитории на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
+Типизированные клиентские библиотеки для Pachca API — автоматически сгенерированы из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Автодополнение, актуальные модели данных, встроенный retry и обработка ошибок. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
+
+
+## Пример
+
+**Получение профиля**
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/profile" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
 
 ## Возможности
-
-Все SDK реализуют единый набор возможностей:
 
 | Возможность | Описание |
 |-------------|----------|
@@ -1110,15 +1119,6 @@ SDK для API Пачки автоматически генерируются и
 | **Обработка ошибок** | Типизированные `ApiError` и `OAuthError` |
 | **Сериализация** | Автоматическая конвертация между форматами (snake_case ↔ camelCase) |
 | **Авторизация** | Bearer-токен передаётся один раз при создании клиента |
-
-## Языки
-
-<Card title="TypeScript" icon="FileText" href="/guides/sdk/typescript">npm · async/await · fetch</Card>
-  <Card title="Python" icon="FileText" href="/guides/sdk/python">PyPI · async/await · httpx</Card>
-  <Card title="Go" icon="FileText" href="/guides/sdk/go">go get · sync · net/http</Card>
-  <Card title="Kotlin" icon="FileText" href="/guides/sdk/kotlin">JitPack · coroutines · Ktor</Card>
-  <Card title="Swift" icon="FileText" href="/guides/sdk/swift">SPM · async throws · URLSession</Card>
-
 
 ## Сравнение
 
@@ -1130,24 +1130,13 @@ SDK для API Пачки автоматически генерируются и
 | **HTTP** | fetch | httpx | net/http | Ktor | URLSession |
 | **Naming** | camelCase | snake_case | PascalCase | camelCase | camelCase |
 | **Cleanup** | — | `await client.close()` | — | `client.close()` | — |
-| **Требования** | Node.js 18+ | Python 3.10+ | Go 1.21+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+ |
+| **Требования** | Node.js 18+ | Python 3.10+ | Go 1.24+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+, iOS 16+ |
 
-## Быстрый старт
-
-Установите SDK для вашего языка и создайте клиент:
-
-*Endpoint not found*
-
-
-*Endpoint not found*
-
-
-Подробные инструкции и примеры — на странице нужного языка.
 
 ---
 
 
-# TypeScript SDK
+# TypeScript
 
 [@pachca/sdk](https://www.npmjs.com/package/@pachca/sdk) npm
 
@@ -1168,11 +1157,7 @@ npm install @pachca/sdk
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```typescript
-import { PachcaClient } from "@pachca/sdk"
-
-const client = new PachcaClient("YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -1199,28 +1184,9 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 Клиент не требует явного закрытия — все запросы используют глобальный `fetch`.
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.groupTags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.linkPreviews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.readMembers` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="typescript" />
 
 ## Запросы
 
@@ -1277,6 +1243,7 @@ console.log(`Всего: ${users.length}`)
 | `bots.getWebhookEventsAll()` | `WebhookEvent[]` |
 | `chats.listChatsAll()` | `Chat[]` |
 | `groupTags.listTagsAll()` | `GroupTag[]` |
+| `groupTags.getTagUsersAll()` | `User[]` |
 | `members.listMembersAll()` | `User[]` |
 | `messages.listChatMessagesAll()` | `Message[]` |
 | `reactions.listReactionsAll()` | `Reaction[]` |
@@ -1314,14 +1281,14 @@ try {
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `key` | `string` | Поле, вызвавшее ошибку |
-| `value` | `string` | Переданное значение |
+| `value` | `string \| null` | Переданное значение |
 | `message` | `string` | Текст ошибки |
-| `code` | `string` | Код валидации (`blank`, `invalid`, `taken`, ...) |
-| `payload` | `object` | Дополнительные данные |
+| `code` | `ValidationErrorCode` | Код валидации (`blank`, `invalid`, `taken`, ...) |
+| `payload` | `string \| null` | Дополнительные данные |
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```typescript
 import { OAuthError } from "@pachca/sdk"
@@ -1339,7 +1306,7 @@ try {
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
 - Все остальные ошибки возвращаются сразу без retry
@@ -1377,7 +1344,11 @@ import {
   // Ответы
   ListChatsResponse, ListMembersResponse,
   // Перечисления
-  AuditEventKey, ChatAvailability, SortOrder,
+  AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
+  ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,
+  MemberEventType, MessageEntityType, OAuthScope, ReactionEventType,
+  SearchEntityType, SearchSortOrder, SortOrder, TaskKind, TaskStatus,
+  UserEventType, UserRole, ValidationErrorCode, WebhookEventType,
   // Ошибки
   ApiError, OAuthError,
 } from "@pachca/sdk"
@@ -1388,15 +1359,11 @@ import {
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/typescript)
-- [npm](https://www.npmjs.com/package/@pachca/sdk)
 
 ---
 
 
-# Python SDK
+# Python
 
 [pachca-sdk](https://pypi.org/project/pachca-sdk/) PyPI
 
@@ -1417,11 +1384,7 @@ pip install pachca-sdk
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```python
-from pachca import PachcaClient
-
-client = PachcaClient("YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -1435,7 +1398,7 @@ client = PachcaClient("YOUR_TOKEN")
 ## Инициализация
 
 ```python
-from pachca import PachcaClient
+from pachca.client import PachcaClient
 
 # Стандартное подключение
 client = PachcaClient("YOUR_TOKEN")
@@ -1455,28 +1418,9 @@ client = PachcaClient("YOUR_TOKEN", base_url="https://custom-api.example.com/api
 await client.close()
 ```
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.group_tags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.link_previews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.read_members` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="python" />
 
 ## Запросы
 
@@ -1534,6 +1478,7 @@ print(f"Всего: {len(users)}")
 | `bots.get_webhook_events_all()` | `list[WebhookEvent]` |
 | `chats.list_chats_all()` | `list[Chat]` |
 | `group_tags.list_tags_all()` | `list[GroupTag]` |
+| `group_tags.get_tag_users_all()` | `list[User]` |
 | `members.list_members_all()` | `list[User]` |
 | `messages.list_chat_messages_all()` | `list[Message]` |
 | `reactions.list_reactions_all()` | `list[Reaction]` |
@@ -1574,7 +1519,7 @@ except ApiError as error:
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```python
 from pachca.models import OAuthError
@@ -1590,7 +1535,7 @@ except OAuthError as error:
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
 - Реализовано через `RetryTransport` — обёртку над httpx-транспортом
@@ -1610,7 +1555,11 @@ from pachca.models import (
     # Ответы
     ListChatsResponse, ListMembersResponse,
     # Перечисления
-    AuditEventKey, ChatAvailability, SortOrder,
+    AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
+    ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,
+    MemberEventType, MessageEntityType, OAuthScope, ReactionEventType,
+    SearchEntityType, SearchSortOrder, SortOrder, TaskKind, TaskStatus,
+    UserEventType, UserRole, ValidationErrorCode, WebhookEventType,
     # Ошибки
     ApiError, OAuthError,
 )
@@ -1629,20 +1578,16 @@ from pachca.models import (
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/python)
-- [PyPI](https://pypi.org/project/pachca-sdk/)
 
 ---
 
 
-# Go SDK
+# Go
 
 [github.com/pachca/openapi/sdk/go](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated) pkg.go.dev
 
 
-Типизированный клиент для Pachca API на Go. Синхронный, с контекстами (`context.Context`), автопагинацией и обработкой retry. Требуется Go 1.21+.
+Типизированный клиент для Pachca API на Go. Синхронный, с контекстами (`context.Context`), автопагинацией и обработкой retry. Требуется Go 1.24+.
 
 ## Быстрый старт
 
@@ -1658,11 +1603,7 @@ go get github.com/pachca/openapi/sdk/go/generated
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```go
-import pachca "github.com/pachca/openapi/sdk/go/generated"
-
-client := pachca.NewPachcaClient("YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -1696,28 +1637,9 @@ defer cancel()
 user, err := client.Profile.GetProfile(ctx)
 ```
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.Security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.Bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.Chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.Common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.GroupTags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.LinkPreviews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.Members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.Messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.Profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.Reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.ReadMembers` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.Search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.Tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.Threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.Users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.Views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="go" />
 
 ## Запросы
 
@@ -1796,6 +1718,7 @@ fmt.Printf("Всего: %d\n", len(users))
 | `Bots.GetWebhookEventsAll()` | `[]WebhookEvent` |
 | `Chats.ListChatsAll()` | `[]Chat` |
 | `GroupTags.ListTagsAll()` | `[]GroupTag` |
+| `GroupTags.GetTagUsersAll()` | `[]User` |
 | `Members.ListMembersAll()` | `[]User` |
 | `Messages.ListChatMessagesAll()` | `[]Message` |
 | `Reactions.ListReactionsAll()` | `[]Reaction` |
@@ -1838,7 +1761,7 @@ if err != nil {
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```go
 user, err := client.Profile.GetProfile(ctx)
@@ -1855,7 +1778,7 @@ if err != nil {
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
 - Тело запроса пересоздаётся через `req.GetBody()` при каждой попытке
@@ -1877,26 +1800,27 @@ var req pachca.ChatCreateRequest
 
 // Перечисления
 key := pachca.AuditEventKeyUserLogin
+availability := pachca.ChatAvailabilityIsOpen
+role := pachca.ChatMemberRoleAdmin
+status := pachca.TaskStatusDone
 
 // Ошибки
 var apiErr *pachca.ApiError
 var oauthErr *pachca.OAuthError
 ```
 
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+
 ## Примеры
 
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/go)
-- [pkg.go.dev](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated)
 
 ---
 
 
-# Kotlin SDK
+# Kotlin
 
 [com.pachca:pachca-sdk](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
 
@@ -1921,11 +1845,7 @@ dependencies {
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```kotlin
-import com.pachca.sdk.PachcaClient
-
-val client = PachcaClient("YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -1965,28 +1885,9 @@ client.use { c ->
 client.close()
 ```
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.groupTags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.linkPreviews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.readMembers` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="kotlin" />
 
 ## Запросы
 
@@ -2042,6 +1943,7 @@ println("Всего: ${users.size}")
 | `bots.getWebhookEventsAll()` | `List<WebhookEvent>` |
 | `chats.listChatsAll()` | `List<Chat>` |
 | `groupTags.listTagsAll()` | `List<GroupTag>` |
+| `groupTags.getTagUsersAll()` | `List<User>` |
 | `members.listMembersAll()` | `List<User>` |
 | `messages.listChatMessagesAll()` | `List<Message>` |
 | `reactions.listReactionsAll()` | `List<Reaction>` |
@@ -2084,7 +1986,7 @@ try {
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```kotlin
 import com.pachca.sdk.OAuthError
@@ -2099,12 +2001,40 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` или серверной ошибки (`5xx`):
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — линейный backoff: 1 сек, 2 сек, 3 сек
 - Реализовано через плагин Ktor `HttpRequestRetry`
+
+## Типы
+
+Все типы — `@Serializable` data class'ы:
+
+```kotlin
+import com.pachca.sdk.*
+
+// Модели
+val chat: Chat
+val message: Message
+val user: User
+
+// Запросы
+val req: ChatCreateRequest
+
+// Перечисления
+val key: AuditEventKey = AuditEventKey.USER_LOGIN
+val availability: ChatAvailability = ChatAvailability.IS_OPEN
+val role: ChatMemberRole = ChatMemberRole.ADMIN
+val status: TaskStatus = TaskStatus.DONE
+
+// Ошибки
+val apiError: ApiError
+val oauthError: OAuthError
+```
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Зависимости
 
@@ -2121,14 +2051,11 @@ SDK автоматически повторяет запрос при получ
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/kotlin)
 
 ---
 
 
-# Swift SDK
+# Swift
 
 [PachcaSDK](https://github.com/pachca/openapi/tree/main/sdk/swift) Swift Package
 
@@ -2155,11 +2082,7 @@ dependencies: [
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```swift
-import PachcaSDK
-
-let client = PachcaClient(token: "YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -2186,28 +2109,9 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 
 Клиент — value type (`struct`), использует `URLSession.shared`. Явного закрытия не требует.
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.groupTags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.linkPreviews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.readMembers` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="swift" />
 
 ## Запросы
 
@@ -2263,6 +2167,7 @@ print("Всего: \(users.count)")
 | `bots.getWebhookEventsAll()` | `[WebhookEvent]` |
 | `chats.listChatsAll()` | `[Chat]` |
 | `groupTags.listTagsAll()` | `[GroupTag]` |
+| `groupTags.getTagUsersAll()` | `[User]` |
 | `members.listMembersAll()` | `[User]` |
 | `messages.listChatMessagesAll()` | `[Message]` |
 | `reactions.listReactionsAll()` | `[Reaction]` |
@@ -2303,7 +2208,7 @@ do {
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```swift
 do {
@@ -2318,7 +2223,7 @@ do {
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
 - Ожидание через `Task.sleep(nanoseconds:)` — не блокирует поток
@@ -2337,11 +2242,16 @@ let user: User
 
 // Перечисления
 let key: AuditEventKey = .userLogin
+let availability: ChatAvailability = .isOpen
+let role: ChatMemberRole = .admin
+let status: TaskStatus = .done
 
 // Ошибки
 let apiError: ApiError
 let oauthError: OAuthError
 ```
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Платформы
 
@@ -2356,9 +2266,6 @@ let oauthError: OAuthError
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/swift)
 
 ---
 

@@ -1,5 +1,5 @@
 
-# Python SDK
+# Python
 
 [pachca-sdk](https://pypi.org/project/pachca-sdk/) PyPI
 
@@ -20,11 +20,7 @@ pip install pachca-sdk
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```python
-from pachca import PachcaClient
-
-client = PachcaClient("YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -38,7 +34,7 @@ client = PachcaClient("YOUR_TOKEN")
 ## Инициализация
 
 ```python
-from pachca import PachcaClient
+from pachca.client import PachcaClient
 
 # Стандартное подключение
 client = PachcaClient("YOUR_TOKEN")
@@ -58,28 +54,9 @@ client = PachcaClient("YOUR_TOKEN", base_url="https://custom-api.example.com/api
 await client.close()
 ```
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.group_tags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.link_previews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.read_members` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="python" />
 
 ## Запросы
 
@@ -137,6 +114,7 @@ print(f"Всего: {len(users)}")
 | `bots.get_webhook_events_all()` | `list[WebhookEvent]` |
 | `chats.list_chats_all()` | `list[Chat]` |
 | `group_tags.list_tags_all()` | `list[GroupTag]` |
+| `group_tags.get_tag_users_all()` | `list[User]` |
 | `members.list_members_all()` | `list[User]` |
 | `messages.list_chat_messages_all()` | `list[Message]` |
 | `reactions.list_reactions_all()` | `list[Reaction]` |
@@ -177,7 +155,7 @@ except ApiError as error:
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```python
 from pachca.models import OAuthError
@@ -193,7 +171,7 @@ except OAuthError as error:
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
 - Реализовано через `RetryTransport` — обёртку над httpx-транспортом
@@ -213,7 +191,11 @@ from pachca.models import (
     # Ответы
     ListChatsResponse, ListMembersResponse,
     # Перечисления
-    AuditEventKey, ChatAvailability, SortOrder,
+    AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
+    ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,
+    MemberEventType, MessageEntityType, OAuthScope, ReactionEventType,
+    SearchEntityType, SearchSortOrder, SortOrder, TaskKind, TaskStatus,
+    UserEventType, UserRole, ValidationErrorCode, WebhookEventType,
     # Ошибки
     ApiError, OAuthError,
 )
@@ -232,7 +214,3 @@ from pachca.models import (
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/python)
-- [PyPI](https://pypi.org/project/pachca-sdk/)

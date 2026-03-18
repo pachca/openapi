@@ -1,5 +1,5 @@
 
-# Kotlin SDK
+# Kotlin
 
 [com.pachca:pachca-sdk](https://github.com/pachca/openapi/tree/main/sdk/kotlin) JitPack
 
@@ -24,11 +24,7 @@ dependencies {
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```kotlin
-import com.pachca.sdk.PachcaClient
-
-val client = PachcaClient("YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -68,28 +64,9 @@ client.use { c ->
 client.close()
 ```
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.groupTags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.linkPreviews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.readMembers` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="kotlin" />
 
 ## Запросы
 
@@ -145,6 +122,7 @@ println("Всего: ${users.size}")
 | `bots.getWebhookEventsAll()` | `List<WebhookEvent>` |
 | `chats.listChatsAll()` | `List<Chat>` |
 | `groupTags.listTagsAll()` | `List<GroupTag>` |
+| `groupTags.getTagUsersAll()` | `List<User>` |
 | `members.listMembersAll()` | `List<User>` |
 | `messages.listChatMessagesAll()` | `List<Message>` |
 | `reactions.listReactionsAll()` | `List<Reaction>` |
@@ -187,7 +165,7 @@ try {
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```kotlin
 import com.pachca.sdk.OAuthError
@@ -202,12 +180,40 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` или серверной ошибки (`5xx`):
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — линейный backoff: 1 сек, 2 сек, 3 сек
 - Реализовано через плагин Ktor `HttpRequestRetry`
+
+## Типы
+
+Все типы — `@Serializable` data class'ы:
+
+```kotlin
+import com.pachca.sdk.*
+
+// Модели
+val chat: Chat
+val message: Message
+val user: User
+
+// Запросы
+val req: ChatCreateRequest
+
+// Перечисления
+val key: AuditEventKey = AuditEventKey.USER_LOGIN
+val availability: ChatAvailability = ChatAvailability.IS_OPEN
+val role: ChatMemberRole = ChatMemberRole.ADMIN
+val status: TaskStatus = TaskStatus.DONE
+
+// Ошибки
+val apiError: ApiError
+val oauthError: OAuthError
+```
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Зависимости
 
@@ -224,6 +230,3 @@ SDK автоматически повторяет запрос при получ
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/kotlin)

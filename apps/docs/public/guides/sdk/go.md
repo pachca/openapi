@@ -1,10 +1,10 @@
 
-# Go SDK
+# Go
 
 [github.com/pachca/openapi/sdk/go](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated) pkg.go.dev
 
 
-Типизированный клиент для Pachca API на Go. Синхронный, с контекстами (`context.Context`), автопагинацией и обработкой retry. Требуется Go 1.21+.
+Типизированный клиент для Pachca API на Go. Синхронный, с контекстами (`context.Context`), автопагинацией и обработкой retry. Требуется Go 1.24+.
 
 ## Быстрый старт
 
@@ -20,11 +20,7 @@ go get github.com/pachca/openapi/sdk/go/generated
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```go
-import pachca "github.com/pachca/openapi/sdk/go/generated"
-
-client := pachca.NewPachcaClient("YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -58,28 +54,9 @@ defer cancel()
 user, err := client.Profile.GetProfile(ctx)
 ```
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.Security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.Bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.Chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.Common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.GroupTags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.LinkPreviews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.Members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.Messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.Profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.Reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.ReadMembers` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.Search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.Tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.Threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.Users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.Views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="go" />
 
 ## Запросы
 
@@ -158,6 +135,7 @@ fmt.Printf("Всего: %d\n", len(users))
 | `Bots.GetWebhookEventsAll()` | `[]WebhookEvent` |
 | `Chats.ListChatsAll()` | `[]Chat` |
 | `GroupTags.ListTagsAll()` | `[]GroupTag` |
+| `GroupTags.GetTagUsersAll()` | `[]User` |
 | `Members.ListMembersAll()` | `[]User` |
 | `Messages.ListChatMessagesAll()` | `[]Message` |
 | `Reactions.ListReactionsAll()` | `[]Reaction` |
@@ -200,7 +178,7 @@ if err != nil {
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```go
 user, err := client.Profile.GetProfile(ctx)
@@ -217,7 +195,7 @@ if err != nil {
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
 - Тело запроса пересоздаётся через `req.GetBody()` при каждой попытке
@@ -239,18 +217,19 @@ var req pachca.ChatCreateRequest
 
 // Перечисления
 key := pachca.AuditEventKeyUserLogin
+availability := pachca.ChatAvailabilityIsOpen
+role := pachca.ChatMemberRoleAdmin
+status := pachca.TaskStatusDone
 
 // Ошибки
 var apiErr *pachca.ApiError
 var oauthErr *pachca.OAuthError
 ```
 
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
+
 ## Примеры
 
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/go)
-- [pkg.go.dev](https://pkg.go.dev/github.com/pachca/openapi/sdk/go/generated)

@@ -1,5 +1,5 @@
 
-# Swift SDK
+# Swift
 
 [PachcaSDK](https://github.com/pachca/openapi/tree/main/sdk/swift) Swift Package
 
@@ -26,11 +26,7 @@ dependencies: [
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-```swift
-import PachcaSDK
-
-let client = PachcaClient(token: "YOUR_TOKEN")
-```
+*Endpoint not found*
 
 
   ### Шаг 3. Первый запрос
@@ -57,28 +53,9 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 
 Клиент — value type (`struct`), использует `URLSession.shared`. Явного закрытия не требует.
 
-## Сервисы
+## Все методы
 
-Клиент предоставляет 16 сервисов — по одному на каждую группу API-методов:
-
-| Сервис | Описание | Документация |
-|--------|----------|-------------|
-| `client.security` | Журнал аудита | [/api/security/list](/api/security/list) |
-| `client.bots` | Вебхуки и настройки бота | [/api/bots/list-events](/api/bots/list-events) |
-| `client.chats` | Чаты, каналы, беседы | [/api/chats/list](/api/chats/list) |
-| `client.common` | Кастомные поля, загрузки, экспорт | [/api/common/custom-properties](/api/common/custom-properties) |
-| `client.groupTags` | Теги (группы сотрудников) | [/api/group-tags/list](/api/group-tags/list) |
-| `client.linkPreviews` | Разворачивание ссылок | [/api/link-previews/add](/api/link-previews/add) |
-| `client.members` | Участники чатов | [/api/members/list](/api/members/list) |
-| `client.messages` | Сообщения | [/api/messages/list](/api/messages/list) |
-| `client.profile` | Профиль и статус текущего пользователя | [/api/profile/get](/api/profile/get) |
-| `client.reactions` | Реакции на сообщения | [/api/reactions/list](/api/reactions/list) |
-| `client.readMembers` | Прочитавшие сообщение | [/api/read-member/list-readers](/api/read-member/list-readers) |
-| `client.search` | Поиск по чатам, сообщениям, пользователям | [/api/search/chats](/api/search/chats) |
-| `client.tasks` | Задачи и напоминания | [/api/tasks/list](/api/tasks/list) |
-| `client.threads` | Треды | [/api/threads/get](/api/threads/get) |
-| `client.users` | Сотрудники | [/api/users/list](/api/users/list) |
-| `client.views` | Формы и представления | [/api/views/open](/api/views/open) |
+<SdkCommands lang="swift" />
 
 ## Запросы
 
@@ -134,6 +111,7 @@ print("Всего: \(users.count)")
 | `bots.getWebhookEventsAll()` | `[WebhookEvent]` |
 | `chats.listChatsAll()` | `[Chat]` |
 | `groupTags.listTagsAll()` | `[GroupTag]` |
+| `groupTags.getTagUsersAll()` | `[User]` |
 | `members.listMembersAll()` | `[User]` |
 | `messages.listChatMessagesAll()` | `[Message]` |
 | `reactions.listReactionsAll()` | `[Reaction]` |
@@ -174,7 +152,7 @@ do {
 
 ### OAuthError
 
-Возникает при ошибках авторизации (`401`, `403`):
+Возникает при ошибке авторизации (`401`):
 
 ```swift
 do {
@@ -189,7 +167,7 @@ do {
 
 SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
 
-- До **3 попыток** на каждый запрос
+- До **3 повторов** на каждый запрос
 - Если сервер вернул заголовок `Retry-After` — ждёт указанное время
 - Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
 - Ожидание через `Task.sleep(nanoseconds:)` — не блокирует поток
@@ -208,11 +186,16 @@ let user: User
 
 // Перечисления
 let key: AuditEventKey = .userLogin
+let availability: ChatAvailability = .isOpen
+let role: ChatMemberRole = .admin
+let status: TaskStatus = .done
 
 // Ошибки
 let apiError: ApiError
 let oauthError: OAuthError
 ```
+
+Доступные перечисления: `AuditEventKey`, `ChatAvailability`, `ChatMemberRole`, `ChatMemberRoleFilter`, `ChatSubtype`, `CustomPropertyDataType`, `FileType`, `InviteStatus`, `MemberEventType`, `MessageEntityType`, `OAuthScope`, `ReactionEventType`, `SearchEntityType`, `SearchSortOrder`, `SortOrder`, `TaskKind`, `TaskStatus`, `UserEventType`, `UserRole`, `ValidationErrorCode`, `WebhookEventType`.
 
 ## Платформы
 
@@ -227,6 +210,3 @@ let oauthError: OAuthError
 *Endpoint not found*
 
 
-## Исходный код
-
-- [SDK на GitHub](https://github.com/pachca/openapi/tree/main/sdk/swift)

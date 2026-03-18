@@ -5,7 +5,7 @@ Python клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-pip install pachca-sdk
+pip install pachca-sdk==1.0.1
 ```
 
 ## Использование
@@ -76,6 +76,21 @@ all_chats = await client.chats.list_chats_all()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Загрузка файлов
+
+Загрузка файла — трёхшаговый процесс:
+
+```python
+# 1. Получить параметры загрузки
+params = await client.common.get_upload_params()
+
+# 2. Загрузить файл на S3
+with open("photo.png", "rb") as f:
+    await client.common.upload_file(params, f, "photo.png")
+
+# 3. Прикрепить к сообщению (используя key из params)
+```
+
 ## Обработка ошибок
 
 ```python
@@ -88,9 +103,3 @@ except OAuthError as e:
 except ApiError as e:
     print(f"Ошибка API: {e.errors}")
 ```
-
-## Пример
-
-См. [examples/main.py](examples/main.py) — 8-шаговый echo bot.
-
-Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).

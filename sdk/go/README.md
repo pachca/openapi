@@ -5,7 +5,7 @@ Go клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-go get github.com/pachca/openapi/sdk/go/generated
+go get github.com/pachca/openapi/sdk/go/generated@v1.0.1
 ```
 
 ## Использование
@@ -101,8 +101,18 @@ err = client.Uploads.UploadFile(ctx, params, file, "photo.png")
 // 3. Прикрепить к сообщению (используя key из params)
 ```
 
-## Примеры
+## Обработка ошибок
 
-См. [examples/main.go](examples/main.go) — echo-бот из 8 шагов, демонстрирующий CRUD, реакции, треды, пины.
-
-Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).
+```go
+msg, err := client.Messages.GetMessage(ctx, 999999)
+if err != nil {
+    var apiErr *pachca.APIError
+    if errors.As(err, &apiErr) {
+        fmt.Printf("Ошибка API: %s\n", apiErr.Message)
+    }
+    var oauthErr *pachca.OAuthError
+    if errors.As(err, &oauthErr) {
+        fmt.Printf("Ошибка авторизации: %s\n", oauthErr.Message)
+    }
+}
+```

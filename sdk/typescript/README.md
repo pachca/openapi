@@ -5,7 +5,7 @@
 ## Установка
 
 ```bash
-npm install @pachca/sdk
+npm install @pachca/sdk@1.0.1
 ```
 
 ## Использование
@@ -65,12 +65,33 @@ const allChats = await pachca.chats.listChatsAll();
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
-## Примеры
+## Загрузка файлов
 
-См. [examples/main.ts](examples/main.ts) — echo-бот из 8 шагов, демонстрирующий CRUD, реакции, треды, пины.
+Загрузка файла — трёхшаговый процесс:
 
-```bash
-PACHCA_TOKEN=<token> PACHCA_CHAT_ID=<id> bun run examples/main.ts
+```typescript
+// 1. Получить параметры загрузки
+const params = await pachca.common.getUploadParams();
+
+// 2. Загрузить файл на S3
+const file = fs.readFileSync("photo.png");
+await pachca.common.uploadFile(params, file, "photo.png");
+
+// 3. Прикрепить к сообщению (используя key из params)
 ```
 
-Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).
+## Обработка ошибок
+
+```typescript
+import { PachcaClient, ApiError, OAuthError } from "@pachca/sdk";
+
+try {
+  await pachca.messages.getMessage(999999);
+} catch (e) {
+  if (e instanceof OAuthError) {
+    console.log(`Ошибка авторизации: ${e.message}`);
+  } else if (e instanceof ApiError) {
+    console.log(`Ошибка API: ${e.errors}`);
+  }
+}
+```

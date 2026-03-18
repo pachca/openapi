@@ -61,6 +61,10 @@ jobs:
         id: version
         run: |
           VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
+          if [ -z "$VERSION" ]; then
+            echo "::error::Version not found in typespec.tsp"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit
@@ -81,7 +85,7 @@ jobs:
         if: github.event_name == 'push'
         run: git push && git push --tags --force
 
-  publish-npm:
+  publish-ts:
     if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest
@@ -102,6 +106,10 @@ jobs:
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
+      - name: Set version from tag
+        working-directory: sdk/typescript
+        run: |
+          sed -i 's/"version": "0.0.0"/"version": "${{ needs.generate.outputs.version }}"/' package.json
       - name: Build TypeScript SDK
         run: npm run build
         working-directory: sdk/typescript
@@ -110,7 +118,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=${{ needs.generate.outputs.version }}
           if npm view "@pachca/sdk@${VERSION}" version 2>/dev/null; then
             echo "Version ${VERSION} already published, skipping"
           else
@@ -178,7 +186,7 @@ jobs:
             fi
           }
 
-  publish-pypi:
+  publish-py:
     if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest
@@ -191,6 +199,9 @@ jobs:
           python-version: "3.12"
       - name: Install build tools
         run: pip install build twine
+      - name: Set version from tag
+        working-directory: sdk/python/generated
+        run: sed -i 's/version = "0.0.0"/version = "${{ needs.generate.outputs.version }}"/' pyproject.toml
       - name: Build Python SDK
         run: python -m build
         working-directory: sdk/python/generated
@@ -200,7 +211,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
-  publish-jitpack:
+  publish-kt:
     if: github.event_name == 'push'
     needs: generate
     runs-on: ubuntu-latest

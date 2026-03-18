@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "let response = try await client.security.getAuditEvents(startTime: \"2025-05-01T09:11:00Z\", endTime: \"2025-05-02T09:11:00Z\", eventKey: .userLogin, actorId: \"98765\", actorType: \"User\", entityId: \"98765\", entityType: \"User\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",

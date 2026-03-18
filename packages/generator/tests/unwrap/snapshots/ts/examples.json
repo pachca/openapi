@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")"
+    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "MemberOperations_addMembers": {
     "usage": "const memberIds = [123]\nclient.members.addMembers(123, memberIds)"

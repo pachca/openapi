@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")"
+    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "DirectUploadOperations_uploadFile": {
     "usage": "const request: FileUploadRequest = {\n  contentDisposition: \"example\",\n  acl: \"example\",\n  policy: \"example\",\n  xAmzCredential: \"example\",\n  xAmzAlgorithm: \"example\",\n  xAmzDate: \"example\",\n  xAmzSignature: \"example\",\n  key: \"example\",\n  file: new Blob([])\n}\nclient.common.uploadFile(\"https://example.com\", request)",

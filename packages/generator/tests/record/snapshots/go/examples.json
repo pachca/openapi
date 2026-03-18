@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "LinkPreviewOperations_createLinkPreviews": {
     "usage": "request := LinkPreviewsRequest{\n\tLinkPreviews: map[string]LinkPreview{\"key\": LinkPreview{\n\t\tTitle: \"example\",\n\t\tDescription: Ptr(\"example\"),\n\t\tImageURL: Ptr(\"example\"),\n\t}},\n}\nclient.LinkPreviews.CreateLinkPreviews(ctx, int32(123), request)",

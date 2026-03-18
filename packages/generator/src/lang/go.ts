@@ -1027,7 +1027,8 @@ function generateExamples(ir: IR): string {
   const result: Record<string, object> = {};
 
   result['Client_Init'] = {
-    usage: 'import pachca "github.com/pachca/openapi/sdk/go/generated"\n\nclient := pachca.NewPachcaClient("YOUR_TOKEN")',
+    usage: 'client := pachca.NewPachcaClient("YOUR_TOKEN")',
+    imports: ['PachcaClient'],
   };
 
   for (const svc of ir.services) {

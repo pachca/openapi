@@ -5,7 +5,7 @@ Go клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-go get github.com/pachca/openapi/sdk/go/generated
+go get github.com/pachca/openapi/sdk/go/generated@v1.0.1
 ```
 
 ## Использование
@@ -57,27 +57,6 @@ msg, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{...})
 msg, err := client.Messages.CreateMessage(ctx, ...)  // *Message, не *MessageResponse
 ```
 
-## Сервисы
-
-Методы API сгруппированы по сервисам:
-
-| Сервис | Описание |
-|--------|---------|
-| `client.Messages` | Сообщения, треды, пины |
-| `client.Chats` | Каналы и беседы |
-| `client.ChatMembers` | Участники чатов |
-| `client.Users` | Управление сотрудниками |
-| `client.Tags` | Теги (группы) |
-| `client.Tasks` | Задачи (напоминания) |
-| `client.Search` | Полнотекстовый поиск |
-| `client.Reactions` | Реакции на сообщения |
-| `client.Bots` | Управление ботами |
-| `client.Profile` | Профиль текущего пользователя |
-| `client.Security` | Журнал аудита |
-| `client.Uploads` | Загрузка файлов |
-| `client.Exports` | Экспорт сообщений |
-| `client.Forms` | Интерактивные формы |
-
 ## Пагинация
 
 Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
@@ -122,8 +101,18 @@ err = client.Uploads.UploadFile(ctx, params, file, "photo.png")
 // 3. Прикрепить к сообщению (используя key из params)
 ```
 
-## Примеры
+## Обработка ошибок
 
-См. [examples/main.go](examples/main.go) — echo-бот из 8 шагов, демонстрирующий CRUD, реакции, треды, пины.
-
-Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).
+```go
+msg, err := client.Messages.GetMessage(ctx, 999999)
+if err != nil {
+    var apiErr *pachca.APIError
+    if errors.As(err, &apiErr) {
+        fmt.Printf("Ошибка API: %s\n", apiErr.Message)
+    }
+    var oauthErr *pachca.OAuthError
+    if errors.As(err, &oauthErr) {
+        fmt.Printf("Ошибка авторизации: %s\n", oauthErr.Message)
+    }
+}
+```

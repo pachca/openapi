@@ -872,7 +872,8 @@ function swiftGenerateExamples(ir: IR): string {
   const result: Record<string, object> = {};
 
   result['Client_Init'] = {
-    usage: 'import PachcaSDK\n\nlet client = PachcaClient(token: "YOUR_TOKEN")',
+    usage: 'let client = PachcaClient(token: "YOUR_TOKEN")',
+    imports: ['PachcaClient'],
   };
 
   for (const svc of ir.services) {

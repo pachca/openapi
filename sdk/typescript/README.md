@@ -5,7 +5,7 @@
 ## Установка
 
 ```bash
-npm install @pachca/sdk
+npm install @pachca/sdk@1.0.1
 ```
 
 ## Использование
@@ -41,25 +41,6 @@ await pachca.messages.createMessage({ message: { entity_id: 123, content: "..." 
 const message = await pachca.messages.createMessage(...); // Message, не { data: Message }
 ```
 
-## Сервисы
-
-Методы API сгруппированы по сервисам:
-
-| Сервис | Описание |
-|--------|---------|
-| `pachca.messages` | Сообщения, пины |
-| `pachca.chats` | Каналы и беседы |
-| `pachca.users` | Управление сотрудниками |
-| `pachca.tasks` | Задачи (напоминания) |
-| `pachca.tags` | Теги (группы) |
-| `pachca.members` | Участники чатов |
-| `pachca.reactions` | Реакции на сообщения |
-| `pachca.threads` | Треды |
-| `pachca.profile` | Профиль текущего пользователя |
-| `pachca.bots` | Управление ботами |
-| `pachca.security` | Журнал аудита |
-| `pachca.common` | Поиск, загрузки, формы и др. |
-
 ## Пагинация
 
 Для эндпоинтов с курсорной пагинацией SDK генерирует `*All`-методы, которые автоматически обходят все страницы:
@@ -84,25 +65,33 @@ const allChats = await pachca.chats.listChatsAll();
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
-## Примеры
+## Загрузка файлов
 
-См. [examples/main.ts](examples/main.ts) — echo-бот из 8 шагов, демонстрирующий CRUD, реакции, треды, пины.
+Загрузка файла — трёхшаговый процесс:
 
-```bash
-PACHCA_TOKEN=<token> PACHCA_CHAT_ID=<id> bun run examples/main.ts
+```typescript
+// 1. Получить параметры загрузки
+const params = await pachca.common.getUploadParams();
+
+// 2. Загрузить файл на S3
+const file = fs.readFileSync("photo.png");
+await pachca.common.uploadFile(params, file, "photo.png");
+
+// 3. Прикрепить к сообщению (используя key из params)
 ```
 
-## Разработка
+## Обработка ошибок
 
-Генерация SDK:
+```typescript
+import { PachcaClient, ApiError, OAuthError } from "@pachca/sdk";
 
-```bash
-cd sdk/typescript && bun run generate
+try {
+  await pachca.messages.getMessage(999999);
+} catch (e) {
+  if (e instanceof OAuthError) {
+    console.log(`Ошибка авторизации: ${e.message}`);
+  } else if (e instanceof ApiError) {
+    console.log(`Ошибка API: ${e.errors}`);
+  }
+}
 ```
-
-Это запускает 3-шаговый pipeline:
-1. `strip-operations.ts` — убирает `*Operations_` из operationId
-2. `openapi-ts` — генерирует типы и SDK-функции
-3. `generate-client.ts` — генерирует `PachcaClient` facade из сгенерированного кода
-
-Названия методов и параметров соответствуют [документации API](https://dev.pachca.com).

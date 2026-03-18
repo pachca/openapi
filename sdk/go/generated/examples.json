@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "params := GetAuditEventsParams{\n\tStartTime: \"2025-05-01T09:11:00Z\",\n\tEndTime: \"2025-05-02T09:11:00Z\",\n\tEventKey: Ptr(AuditEventKeyUserLogin),\n\tActorID: Ptr(\"98765\"),\n\tActorType: Ptr(\"User\"),\n\tEntityID: Ptr(\"98765\"),\n\tEntityType: Ptr(\"User\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Security.GetAuditEvents(ctx, params)",

@@ -1,22 +1,28 @@
 # @pachca/generator
 
-OpenAPI → SDK code generator for TypeScript, Python, Go, Kotlin, and Swift.
+Генератор SDK из OpenAPI-спецификации для TypeScript, Python, Go, Kotlin и Swift.
 
-## Usage
+## Установка
+
+```bash
+npm install -g @pachca/generator
+```
+
+## Использование
 
 ```bash
 npx @pachca/generator --spec openapi.yaml --output ./sdk --lang typescript,python,go,kotlin,swift
 ```
 
-### Options
+### Параметры
 
-| Flag | Description |
-|------|-------------|
-| `--spec` | Path to OpenAPI 3.0 YAML spec |
-| `--output` | Output directory for generated files |
-| `--lang` | Comma-separated target languages: `typescript`, `python`, `go`, `kotlin`, `swift` |
+| Флаг | Описание |
+|------|----------|
+| `--spec` | Путь к OpenAPI 3.0 YAML спецификации |
+| `--output` | Директория для сгенерированных файлов |
+| `--lang` | Целевые языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift` |
 
-### Programmatic API
+### Программный API
 
 ```typescript
 import { generate } from '@pachca/generator';
@@ -24,58 +30,58 @@ import { generate } from '@pachca/generator';
 generate('openapi.yaml', './output', ['typescript', 'python']);
 ```
 
-## Architecture
+## Архитектура
 
 ```
-OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Language Generators → Source Files
+OpenAPI YAML → @pachca/openapi-parser → IR (transform.ts) → Генераторы языков → Исходные файлы
 ```
 
-1. **Parser** (`@pachca/openapi-parser`) — reads OpenAPI YAML, resolves `$ref`, extracts endpoints/schemas
-2. **Transform** (`transform.ts`) — converts parsed spec to a language-agnostic Intermediate Representation (IR)
-3. **Generators** (`lang/*.ts`) — emit idiomatic source code for each language from the IR
+1. **Парсер** (`@pachca/openapi-parser`) — читает OpenAPI YAML, разрешает `$ref`, извлекает эндпоинты и схемы
+2. **Трансформер** (`transform.ts`) — преобразует спецификацию в языконезависимое промежуточное представление (IR)
+3. **Генераторы** (`lang/*.ts`) — создают идиоматичный код для каждого языка из IR
 
-## OpenAPI Extensions
+## Расширения OpenAPI
 
-| Extension | Level | Description |
-|-----------|-------|-------------|
-| `x-error: true` | Schema | Marks a schema as an error type (thrown/returned on non-2xx) |
-| `x-external-url: "paramName"` | Operation | Generates a `paramName` parameter for dynamic URLs (e.g., S3 upload) |
-| `x-requirements` | Operation | `auth: false` skips Authorization header; `scope`/`plan` for metadata |
-| `x-paginated: true` | Operation | Generates an `*All` helper that auto-paginates through all pages |
-| `x-enum-descriptions` | Schema | Maps enum values to human-readable descriptions |
-| `x-param-names` | Parameter | Overrides SDK parameter name derivation |
+| Расширение | Уровень | Описание |
+|------------|---------|----------|
+| `x-error: true` | Schema | Помечает схему как тип ошибки (выбрасывается/возвращается при не-2xx) |
+| `x-external-url: "paramName"` | Operation | Генерирует параметр `paramName` для динамических URL (например, загрузка в S3) |
+| `x-requirements` | Operation | `auth: false` пропускает заголовок Authorization; `scope`/`plan` для метаданных |
+| `x-paginated: true` | Operation | Генерирует хелпер `*All` для автоматической пагинации по всем страницам |
+| `x-enum-descriptions` | Schema | Сопоставляет значения enum с человекочитаемыми описаниями |
+| `x-param-names` | Parameter | Переопределяет имя параметра в SDK |
 
-## Generated Features
+## Генерируемые возможности
 
-- **Type-safe clients** with per-operation methods
-- **Cursor-based pagination helpers** (`listChatsAll`, `list_chats_all`, etc.) for `x-paginated` endpoints
-- **Retry with `Retry-After`** on 429 Too Many Requests (up to 3 retries with exponential backoff)
-- **Enum types** with descriptions
-- **Union/discriminated types** (oneOf/anyOf)
-- **Request body unwrapping** for single-field wrappers
-- **Multipart upload support**
-- **`@deprecated` annotations** propagated from the spec
-- **Snake/camel case conversion** for language-idiomatic field names
+- **Типобезопасные клиенты** с методами для каждой операции
+- **Хелперы курсорной пагинации** (`listChatsAll`, `list_chats_all` и т.д.) для эндпоинтов с `x-paginated`
+- **Повторные запросы с `Retry-After`** при 429 Too Many Requests (до 3 попыток с экспоненциальной задержкой)
+- **Типы enum** с описаниями
+- **Union/дискриминированные типы** (oneOf/anyOf)
+- **Разворачивание тела запроса** для обёрток с одним полем
+- **Поддержка multipart-загрузки**
+- **Аннотации `@deprecated`** из спецификации
+- **Конвертация snake/camel case** для идиоматичных имён полей
 
-## Output Structure
+## Структура вывода
 
-| Language | Files |
-|----------|-------|
+| Язык | Файлы |
+|------|-------|
 | TypeScript | `types.ts`, `client.ts`, `utils.ts` |
 | Python | `models.py`, `client.py`, `utils.py`, `__init__.py` |
 | Go | `types.go`, `client.go`, `utils.go` |
 | Kotlin | `Models.kt`, `Client.kt` |
 | Swift | `Models.swift`, `Client.swift`, `Utils.swift` |
 
-## Testing
+## Тестирование
 
 ```bash
 bun test
 ```
 
-Snapshot tests compare generated output against committed fixtures in `tests/*/snapshots/`.
+Snapshot-тесты сравнивают сгенерированный код с зафиксированными образцами в `tests/*/snapshots/`.
 
-To update snapshots after changing generators:
+Для обновления snapshot'ов после изменения генераторов:
 
 ```bash
 bun -e "import { generate } from './src/index.ts'; generate('tests/crud/fixture.yaml', 'tests/crud/snapshots', ['typescript', 'python', 'go', 'kotlin', 'swift']);"

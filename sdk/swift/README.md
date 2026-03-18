@@ -12,7 +12,7 @@ Swift клиент для [Pachca API](https://dev.pachca.com).
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
 ]
 ```
 
@@ -84,10 +84,29 @@ let allChats = try await pachca.chats.listChatsAll()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
-## Разработка
+## Загрузка файлов
 
-Генерация SDK:
+Загрузка файла — трёхшаговый процесс:
 
-```bash
-cd sdk/swift && bun run generate
+```swift
+// 1. Получить параметры загрузки
+let params = try await pachca.uploads.getUploadParams()
+
+// 2. Загрузить файл на S3
+let fileData = try Data(contentsOf: fileURL)
+try await pachca.uploads.uploadFile(params, data: fileData, filename: "photo.png")
+
+// 3. Прикрепить к сообщению (используя key из params)
+```
+
+## Обработка ошибок
+
+```swift
+do {
+    let message = try await pachca.messages.getMessage(999999)
+} catch let error as APIError {
+    print("Ошибка API: \(error.message)")
+} catch let error as OAuthError {
+    print("Ошибка авторизации: \(error.message)")
+}
 ```

@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "listEvents": {
     "usage": "let scopes = [.chatsRead]\nlet filter = EventFilter()\nlet response = try await client.events.listEvents(isActive: true, scopes: scopes, filter: filter)",

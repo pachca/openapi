@@ -46,7 +46,6 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
 
     const activeGroup = allGroups.find((g) => isGroupActive(g, pathname));
     if (activeGroup) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpenGroups((prev) =>
         prev.includes(activeGroup.title) ? prev : [...prev, activeGroup.title]
       );

@@ -2,6 +2,12 @@
 
 Генератор SDK из OpenAPI-спецификации для TypeScript, Python, Go, Kotlin и Swift.
 
+## Установка
+
+```bash
+npm install -g @pachca/generator
+```
+
 ## Использование
 
 ```bash

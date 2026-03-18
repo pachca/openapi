@@ -1,4 +1,5 @@
 import { getSchemaByName, getEndpointByOperation, getBaseUrl } from '@/lib/openapi/parser';
+import { getSdkExamples, getSdkExampleForLang } from '@/lib/sdk-examples';
 import { SchemaTable } from '@/components/api/schema-table';
 import { WebhookSchemaSection } from '@/components/api/webhook-schema-section';
 import { CodeExamples } from '@/components/api/code-examples';
@@ -13,6 +14,7 @@ import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
+import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
 import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
@@ -241,24 +243,39 @@ export async function ApiCards() {
 /**
  * Usage in .mdx files:
  *
+ * Multi-language mode (dropdown + header):
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="Custom title" />
  * <ApiCodeExample operationId="SecurityOperations_getAuditEvents" title="With filters" params={{ event_key: "user_login", limit: 50 }} />
- * <ApiCodeExample operationId="MessageOperations_createMessage" requestMode="required" responseMode="minimal" />
+ * <ApiCodeExample operationId="MessageOperations_createMessage" responseMode="minimal" />
+ *
+ * Single-language mode (no dropdown, no header, inline copy button):
+ * <ApiCodeExample lang="typescript" operationId="ChatOperations_createChat" />
+ * <ApiCodeExample lang="python" showInit={false} operationId="ChatOperations_getChat" />
+ * <ApiCodeExample lang="go" operations={[
+ *   { id: "ChatOperations_createChat", comment: "Создание чата" },
+ *   { id: "ProfileOperations_getProfile", comment: "Получение профиля" }
+ * ]} />
  *
  * operationId = {InterfaceName}_{methodName} from TypeSpec (see openapi.yaml)
- * params — override query parameter values; only specified + required params are included
- * requestMode — "full" (default): all fields; "required": only required fields in request body
+ * params — override query parameter values; only specified + required params are included (curl/cli only)
  * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
+ * lang — single language: no dropdown/header, renders as simple code block
+ * langs — filter languages in multi-language dropdown (e.g. ["typescript", "python", "go", "kotlin", "swift"])
+ * operations — multiple operations in one block (single-language mode only)
+ * showInit — whether to include Client_Init (default: true)
  */
 
 interface ApiCodeExampleProps {
-  operationId: string;
+  operationId?: string;
   title?: string;
   show?: 'request' | 'response' | 'both';
   params?: Record<string, unknown>;
-  requestMode?: 'full' | 'required';
   responseMode?: 'full' | 'minimal';
+  lang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli';
+  langs?: Array<'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli'>;
+  operations?: Array<{ id: string; comment?: string }>;
+  showInit?: boolean;
 }
 
 export async function ApiCodeExample({
@@ -266,9 +283,75 @@ export async function ApiCodeExample({
   title,
   show = 'request',
   params,
-  requestMode,
   responseMode,
+  lang,
+  langs,
+  operations,
+  showInit = true,
 }: ApiCodeExampleProps) {
+  // Single-language mode: render as simple code block
+  if (lang) {
+    const { GuideCodeBlock } = await import('@/components/api/guide-code-block');
+
+    // CLI / cURL: generate from endpoint
+    if (lang === 'cli' || lang === 'curl') {
+      if (!operationId) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            operationId is required for lang=&quot;{lang}&quot;
+          </div>
+        );
+      }
+      const endpoint = await getEndpointByOperation(operationId);
+      if (!endpoint) {
+        return (
+          <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+            Endpoint not found: {operationId}
+          </div>
+        );
+      }
+      let finalEndpoint = endpoint;
+      if (params) {
+        const paramNames = Object.keys(params);
+        finalEndpoint = {
+          ...endpoint,
+          parameters: endpoint.parameters
+            .filter((p) => p.in !== 'query' || p.required || paramNames.includes(p.name))
+            .map((p) => (paramNames.includes(p.name) ? { ...p, example: params[p.name] } : p)),
+        };
+      }
+      const { generateCurl } = await import('@/lib/code-generators/curl');
+      const { generateCLI } = await import('@/lib/code-generators/cli');
+      const baseUrl = await getBaseUrl();
+      const code =
+        lang === 'curl' ? generateCurl(finalEndpoint, baseUrl) : generateCLI(finalEndpoint);
+      return <GuideCodeBlock language="bash" code={code} />;
+    }
+
+    // SDK languages: load from examples.json
+    const ops = operations ?? (operationId ? [{ id: operationId }] : []);
+    const code = getSdkExampleForLang(lang, ops, showInit);
+
+    if (!code) {
+      return (
+        <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+          SDK example not found: {lang} / {operationId ?? ops.map((o) => o.id).join(', ')}
+        </div>
+      );
+    }
+
+    return <GuideCodeBlock language={lang} code={code} />;
+  }
+
+  // Multi-language mode: render CodeExamples with dropdown
+  if (!operationId) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+        operationId is required in multi-language mode
+      </div>
+    );
+  }
+
   const endpoint = await getEndpointByOperation(operationId);
   const baseUrl = await getBaseUrl();
 
@@ -291,14 +374,17 @@ export async function ApiCodeExample({
     };
   }
 
+  const sdkEx = getSdkExamples(operationId);
+
   return (
     <CodeExamples
       endpoint={finalEndpoint}
       baseUrl={baseUrl}
       show={show}
       title={title}
-      requestMode={requestMode}
       responseMode={responseMode}
+      sdkExamples={sdkEx}
+      langs={langs}
       className="my-4"
     />
   );
@@ -354,6 +440,7 @@ export const customMdxComponents = {
   ModelSchema,
   AgentSkillsWorkflows,
   CliCommands,
+  SdkCommands,
   NpmBadge,
   PackageBadge,
   HomeHero,

@@ -1,0 +1,230 @@
+---
+title: Python
+description: Асинхронный типизированный клиент для Pachca API на Python с httpx
+---
+
+# Python
+
+<CardRow>
+  <Card compact icon="Package" title="pachca-sdk" href="https://pypi.org/project/pachca-sdk/">PyPI</Card>
+</CardRow>
+
+Асинхронный типизированный клиент для Pachca API. Построен на httpx с поддержкой type hints и dataclass-моделей. Требуется Python 3.10+.
+
+## Быстрый старт
+
+<Steps>
+  <Step title="Установка">
+
+```bash
+pip install pachca-sdk
+```
+
+  </Step>
+  <Step title="Создание клиента">
+
+Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
+
+<ApiCodeExample lang="python" operations={[]} />
+
+  </Step>
+  <Step title="Первый запрос">
+
+<ApiCodeExample lang="python" showInit={false} operations={[
+  { id: "ProfileOperations_getProfile", comment: "Получение профиля" }
+]} />
+
+<Info>Все методы SDK асинхронные — вызывайте их через `await` внутри `async def`.</Info>
+
+  </Step>
+</Steps>
+
+## Инициализация
+
+```python
+from pachca.client import PachcaClient
+
+# Стандартное подключение
+client = PachcaClient("YOUR_TOKEN")
+
+# С кастомным базовым URL
+client = PachcaClient("YOUR_TOKEN", base_url="https://custom-api.example.com/api/shared/v1")
+```
+
+| Параметр | Тип | По умолчанию | Описание |
+|----------|-----|-------------|----------|
+| `token` | `str` | — | Bearer-токен для авторизации |
+| `base_url` | `str` | `https://api.pachca.com/api/shared/v1` | Базовый URL API |
+
+Клиент использует `httpx.AsyncClient` — после завершения работы закройте его:
+
+```python
+await client.close()
+```
+
+## Все методы
+
+<SdkCommands lang="python" />
+
+## Запросы
+
+Все методы — асинхронные (`async def`) и возвращают корутины.
+
+**GET с параметрами:**
+
+<ApiCodeExample lang="python" showInit={false} operations={[
+  { id: "ChatOperations_listChats", comment: "Список чатов" }
+]} />
+
+**POST с телом запроса:**
+
+<ApiCodeExample lang="python" showInit={false} operations={[
+  { id: "ChatOperations_createChat", comment: "Создание чата" }
+]} />
+
+**Простой вызов по ID:**
+
+<ApiCodeExample lang="python" showInit={false} operations={[
+  { id: "ChatOperations_getChat", comment: "Получение чата" }
+]} />
+
+## Пагинация
+
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta.paginate.next_page` — курсор для следующей страницы.
+
+### Ручная пагинация
+
+```python
+from pachca.models import ListUsersParams
+
+cursor = None
+while True:
+    response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
+    for user in response.data:
+        print(user.first_name, user.last_name)
+    if not response.meta or not response.meta.paginate or not response.meta.paginate.next_page:
+        break
+    cursor = response.meta.paginate.next_page
+```
+
+### Автопагинация
+
+Для каждого метода с пагинацией есть `*_all()` вариант:
+
+```python
+# Все пользователи одним списком
+users = await client.users.list_users_all()
+print(f"Всего: {len(users)}")
+```
+
+Доступные методы автопагинации:
+
+| Метод | Возвращает |
+|-------|-----------|
+| `security.get_audit_events_all()` | `list[AuditEvent]` |
+| `bots.get_webhook_events_all()` | `list[WebhookEvent]` |
+| `chats.list_chats_all()` | `list[Chat]` |
+| `group_tags.list_tags_all()` | `list[GroupTag]` |
+| `group_tags.get_tag_users_all()` | `list[User]` |
+| `members.list_members_all()` | `list[User]` |
+| `messages.list_chat_messages_all()` | `list[Message]` |
+| `reactions.list_reactions_all()` | `list[Reaction]` |
+| `search.search_chats_all()` | `list[Chat]` |
+| `search.search_messages_all()` | `list[Message]` |
+| `search.search_users_all()` | `list[User]` |
+| `tasks.list_tasks_all()` | `list[Task]` |
+| `users.list_users_all()` | `list[User]` |
+
+## Обработка ошибок
+
+SDK выбрасывает два типа исключений:
+
+### ApiError
+
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+
+```python
+from pachca.models import ApiError
+
+try:
+    await client.chats.create_chat(request)
+except ApiError as error:
+    for e in error.errors:
+        print(e.key, e.message)   # "name", "не может быть пустым"
+        print(e.code)             # ValidationErrorCode.BLANK
+```
+
+Поля `ApiErrorItem`:
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `key` | `str` | Поле, вызвавшее ошибку |
+| `value` | `str \| None` | Переданное значение |
+| `message` | `str` | Текст ошибки |
+| `code` | `ValidationErrorCode` | Код валидации |
+| `payload` | `str \| None` | Дополнительные данные |
+
+### OAuthError
+
+Возникает при ошибке авторизации (`401`):
+
+```python
+from pachca.models import OAuthError
+
+try:
+    await client.profile.get_profile()
+except OAuthError as error:
+    print(error.error)              # "Token not found"
+    print(error.error_description)  # описание ошибки
+```
+
+## Повторные запросы
+
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+
+- До **3 повторов** на каждый запрос
+- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
+- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- Реализовано через `RetryTransport` — обёртку над httpx-транспортом
+
+## Типы
+
+Все модели — Python dataclass'ы с type hints:
+
+```python
+from pachca.models import (
+    # Модели
+    Chat, Message, User, Task, GroupTag, Thread, Reaction,
+    # Запросы
+    ChatCreateRequest, MessageCreateRequest, TaskCreateRequest,
+    # Параметры
+    ListChatsParams, ListUsersParams, SearchMessagesParams,
+    # Ответы
+    ListChatsResponse, ListMembersResponse,
+    # Перечисления
+    AuditEventKey, ChatAvailability, ChatMemberRole, ChatMemberRoleFilter,
+    ChatSubtype, CustomPropertyDataType, FileType, InviteStatus,
+    MemberEventType, MessageEntityType, OAuthScope, ReactionEventType,
+    SearchEntityType, SearchSortOrder, SortOrder, TaskKind, TaskStatus,
+    UserEventType, UserRole, ValidationErrorCode, WebhookEventType,
+    # Ошибки
+    ApiError, OAuthError,
+)
+```
+
+## Зависимости
+
+| Пакет | Версия | Назначение |
+|-------|--------|-----------|
+| `httpx` | >=0.23.0 | Асинхронный HTTP-клиент |
+| `attrs` | >=22.2.0 | Dataclass'ы |
+| `python-dateutil` | ^2.8.0 | Парсинг дат |
+
+## Примеры
+
+<ApiCodeExample lang="python" operations={[
+  { id: "MessageOperations_createMessage", comment: "Отправка сообщения" },
+  { id: "UserOperations_listUsers", comment: "Список сотрудников" },
+  { id: "TaskOperations_createTask", comment: "Создание задачи" }
+]} />
+

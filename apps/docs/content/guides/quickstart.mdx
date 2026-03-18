@@ -34,7 +34,7 @@ description: Первый запрос к API Пачки за 5 минут
   <Step title="Отправьте сообщение">
     Теперь отправим сообщение в беседу. Все параметры — в описании метода [Новое сообщение](POST /messages).
 
-    <ApiCodeExample operationId="MessageOperations_createMessage" title="Отправка сообщения" show="request" requestMode="required" />
+    <ApiCodeExample operationId="MessageOperations_createMessage" title="Отправка сообщения" show="request" />
 
     Замените `entity_id` на ID вашей беседы или канала — его можно узнать в URL чата в веб-версии Пачки или через метод [Список каналов и бесед](GET /chats). Запросы с телом отправляются в формате JSON с заголовком `Content-Type: application/json`.
   </Step>
@@ -47,4 +47,4 @@ description: Первый запрос к API Пачки за 5 минут
 - [Ошибки и лимиты](/api/errors) — коды ошибок и rate limits
 - [Пагинация](/api/pagination) — обход больших списков
 - [Боты](/guides/bots) — создание ботов и автоматизаций
-- [SDK](/api/sdk) — типизированные клиентские библиотеки
+- [SDK](/guides/sdk/overview) — типизированные клиентские библиотеки

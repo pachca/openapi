@@ -6,11 +6,6 @@ import { ChevronDown } from 'lucide-react';
 import type { Endpoint } from '@/lib/openapi/types';
 import { generateCurl } from '@/lib/code-generators/curl';
 import { generateCLI } from '@/lib/code-generators/cli';
-import { generateTypescriptSdk } from '@/lib/code-generators/typescript-sdk';
-import { generatePythonSdk } from '@/lib/code-generators/python-sdk';
-import { generateGoSdk } from '@/lib/code-generators/go-sdk';
-import { generateKotlinSdk } from '@/lib/code-generators/kotlin-sdk';
-import { generateSwiftSdk } from '@/lib/code-generators/swift-sdk';
 import { generateResponseExample, type ExampleOptions } from '@/lib/openapi/example-generator';
 import { CopyButton } from './copy-button';
 import { CodeBlock } from './code-block';
@@ -21,8 +16,9 @@ interface CodeExamplesProps {
   baseUrl?: string;
   title?: string;
   show?: 'request' | 'response' | 'both';
-  requestMode?: 'full' | 'required';
   responseMode?: 'full' | 'minimal';
+  sdkExamples?: Record<string, string>;
+  langs?: Language[];
   className?: string;
 }
 
@@ -31,8 +27,8 @@ type Language = 'curl' | 'cli' | 'typescript' | 'python' | 'go' | 'kotlin' | 'sw
 const STORAGE_KEY = 'pachca-docs-code-lang';
 
 const languageLabels: Record<Language, string> = {
-  curl: 'cURL',
   cli: 'Pachca CLI',
+  curl: 'cURL',
   typescript: 'TypeScript',
   python: 'Python',
   go: 'Go',
@@ -45,19 +41,23 @@ export function CodeExamples({
   baseUrl,
   title,
   show = 'both',
-  requestMode = 'full',
   responseMode = 'full',
+  sdkExamples,
+  langs,
   className,
 }: CodeExamplesProps) {
-  const [activeTab, setActiveTab] = useState<Language>('curl');
+  const allLangs = Object.keys(languageLabels) as Language[];
+  const visibleLangs = langs ?? allLangs;
+  const defaultLang = visibleLangs[0];
+
+  const [activeTab, setActiveTab] = useState<Language>(defaultLang);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && saved in languageLabels) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActiveTab(saved as Language);
+    if (saved && saved in languageLabels && visibleLangs.includes(saved as Language)) {
+      setActiveTab(saved as Language); // eslint-disable-line react-hooks/set-state-in-effect
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTabChange = (lang: Language) => {
     setActiveTab(lang);
@@ -65,21 +65,15 @@ export function CodeExamples({
   };
 
   const code = useMemo(() => {
-    const reqOpts: ExampleOptions | undefined =
-      requestMode === 'required' ? { requiredOnly: true } : undefined;
-    const generators: Record<Language, () => string> = {
-      curl: () => generateCurl(endpoint, baseUrl, reqOpts),
-      cli: () => generateCLI(endpoint, reqOpts),
-      typescript: () => generateTypescriptSdk(endpoint, baseUrl, reqOpts),
-      python: () => generatePythonSdk(endpoint, baseUrl, reqOpts),
-      go: () => generateGoSdk(endpoint, baseUrl, reqOpts),
-      kotlin: () => generateKotlinSdk(endpoint, baseUrl, reqOpts),
-      swift: () => generateSwiftSdk(endpoint, baseUrl, reqOpts),
-    };
-    return generators[activeTab]();
-  }, [activeTab, endpoint, baseUrl, requestMode]);
+    if (activeTab === 'curl') return generateCurl(endpoint, baseUrl);
+    if (activeTab === 'cli') return generateCLI(endpoint);
+    return sdkExamples?.[activeTab] || '';
+  }, [activeTab, endpoint, baseUrl, sdkExamples]);
 
-  const languages = languageLabels;
+  const languages = Object.fromEntries(visibleLangs.map((l) => [l, languageLabels[l]])) as Record<
+    Language,
+    string
+  >;
 
   const successCodes = ['200', '201', '204'];
   const successCode = successCodes.find((code) => endpoint.responses[code]) || '200';

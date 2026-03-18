@@ -30,6 +30,7 @@ import { Tree, TreeFolder, TreeFile } from '@/components/mdx/tree';
 import { ImageCard } from '@/components/mdx/image-card';
 import { AgentSkillsWorkflows } from '@/components/mdx/agent-skills-workflows';
 import { CliCommands } from '@/components/mdx/cli-commands';
+import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
 import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
@@ -221,6 +222,7 @@ const components = {
   ModelSchema,
   AgentSkillsWorkflows,
   CliCommands,
+  SdkCommands,
   NpmBadge,
   PackageBadge,
   HomeHero,

@@ -13,19 +13,8 @@ SDK для API Пачки автоматически генерируются и
 npm install @pachca/sdk
 ```
 
-```typescript
-import { PachcaClient } from "@pachca/sdk";
+*Endpoint not found*
 
-const pachca = new PachcaClient("ваш_токен");
-
-// Отправка сообщения
-const message = await pachca.messages.createMessage({
-  message: { entityId: 12345, content: "Привет из TypeScript SDK!" },
-});
-
-// Список всех пользователей (автопагинация)
-const allUsers = await pachca.users.listUsersAll();
-```
 
 ## Python
 
@@ -37,22 +26,8 @@ const allUsers = await pachca.users.listUsersAll();
 pip install pachca-sdk
 ```
 
-```python
-from pachca.client import PachcaClient
-from pachca.models import MessageCreateRequest, MessageCreateRequestMessage
+*Endpoint not found*
 
-client = PachcaClient("ваш_токен")
-
-# Отправка сообщения
-msg = await client.messages.create_message(
-    MessageCreateRequest(
-        message=MessageCreateRequestMessage(entity_id=12345, content="Привет из Python SDK!")
-    )
-)
-
-# Список всех пользователей (автопагинация)
-all_users = await client.users.list_users_all()
-```
 
 ## Go
 
@@ -64,33 +39,8 @@ all_users = await client.users.list_users_all()
 go get github.com/pachca/openapi/sdk/go/generated
 ```
 
-```go
-package main
+*Endpoint not found*
 
-import (
-    "context"
-    "fmt"
-    "log"
-
-    pachca "github.com/pachca/openapi/sdk/go/generated"
-)
-
-func main() {
-    client := pachca.NewPachcaClient("ваш_токен")
-
-    // Отправка сообщения
-    msg, err := client.Messages.CreateMessage(context.Background(), pachca.MessageCreateRequest{
-        Message: pachca.MessageCreateRequestMessage{
-            EntityID: 12345,
-            Content:  "Привет из Go SDK!",
-        },
-    })
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Printf("Сообщение: %d\n", msg.ID)
-}
-```
 
 ## Kotlin
 
@@ -105,23 +55,8 @@ dependencies {
 }
 ```
 
-```kotlin
-import com.pachca.sdk.PachcaClient
-import com.pachca.sdk.*
+*Endpoint not found*
 
-val pachca = PachcaClient("ваш_токен")
-
-// Отправка сообщения
-val message = pachca.messages.createMessage(MessageCreateRequest(
-    message = MessageCreateRequestMessage(
-        entityId = 12345,
-        content = "Привет из Kotlin SDK!"
-    )
-))
-
-// Список всех пользователей (автопагинация)
-val allUsers = pachca.users.listUsersAll()
-```
 
 ## Swift
 
@@ -136,19 +71,5 @@ dependencies: [
 ]
 ```
 
-```swift
-import PachcaSDK
+*Endpoint not found*
 
-let pachca = PachcaClient(token: "ваш_токен")
-
-// Отправка сообщения
-let message = try await pachca.messages.createMessage(request: MessageCreateRequest(
-    message: MessageCreateRequestMessage(
-        entityId: 12345,
-        content: "Привет из Swift SDK!"
-    )
-))
-
-// Список всех пользователей (автопагинация)
-let allUsers = try await pachca.users.listUsersAll()
-```

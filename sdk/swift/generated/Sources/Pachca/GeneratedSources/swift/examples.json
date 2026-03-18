@@ -1,0 +1,366 @@
+{
+  "Client_Init": {
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "SecurityOperations_getAuditEvents": {
+    "usage": "let response = try await client.security.getAuditEvents(startTime: \"2025-05-01T09:11:00Z\", endTime: \"2025-05-02T09:11:00Z\", eventKey: .userLogin, actorId: \"98765\", actorType: \"User\", entityId: \"98765\", entityType: \"User\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "GetAuditEventsResponse(data: [AuditEvent], meta: PaginationMeta?)",
+    "imports": [
+      "AuditEventKey"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta?)"
+  },
+  "BotOperations_updateBot": {
+    "usage": "let body = BotUpdateRequest(bot: BotUpdateRequestBot(webhook: BotUpdateRequestBotWebhook(outgoingUrl: \"https://www.website.com/tasks/new\")))\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
+    "output": "BotResponse(id: Int, webhook: BotResponseWebhook(outgoingUrl: String))",
+    "imports": [
+      "BotUpdateRequest",
+      "BotUpdateRequestBot",
+      "BotUpdateRequestBotWebhook"
+    ]
+  },
+  "BotOperations_deleteWebhookEvent": {
+    "usage": "try await client.bots.deleteWebhookEvent(id: \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
+  },
+  "ChatOperations_listChats": {
+    "usage": "let response = try await client.chats.listChats(sortId: .desc, availability: .isMember, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta?)",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "let response = try await client.chats.getChat(id: 334)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "let body = ChatCreateRequest(\n    chat: ChatCreateRequestChat(\n        name: \"🤿 aqua\",\n        memberIds: [123],\n        groupTagIds: [123],\n        channel: true,\n        `public`: false\n    )\n)\nlet response = try await client.chats.createChat(body: body)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "let body = ChatUpdateRequest(chat: ChatUpdateRequestChat(name: \"Бассейн\", `public`: true))\nlet response = try await client.chats.updateChat(id: 334, body: body)",
+    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "try await client.chats.archiveChat(id: 334)"
+  },
+  "ChatOperations_unarchiveChat": {
+    "usage": "try await client.chats.unarchiveChat(id: 334)"
+  },
+  "ExportOperations_downloadExport": {
+    "usage": "let response = try await client.common.downloadExport(id: 22322)",
+    "output": "String"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "let response = try await client.common.listProperties(entityType: .User)",
+    "output": "ListPropertiesResponse(data: [CustomPropertyDefinition])",
+    "imports": [
+      "SearchEntityType"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "let body = ExportRequest(\n    startAt: \"2025-03-20\",\n    endAt: \"2025-03-20\",\n    webhookUrl: \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    chatIds: [123],\n    skipChatsFile: false\n)\ntry await client.common.requestExport(body: body)",
+    "imports": [
+      "ExportRequest"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "let body = FileUploadRequest(\n    ContentDisposition: \"example\",\n    acl: \"example\",\n    policy: \"example\",\n    xAmzCredential: \"example\",\n    xAmzAlgorithm: \"example\",\n    xAmzDate: \"example\",\n    xAmzSignature: \"example\",\n    key: \"example\",\n    file: Data()\n)\ntry await client.common.uploadFile(directUrl: \"https://example.com\", body: body)",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "let response = try await client.common.getUploadParams()",
+    "output": "UploadParams(ContentDisposition: String, acl: String, policy: String, xAmzCredential: String, xAmzAlgorithm: String, xAmzDate: String, xAmzSignature: String, key: String, directUrl: String)"
+  },
+  "ChatMemberOperations_listMembers": {
+    "usage": "let response = try await client.members.listMembers(id: 334, role: .all, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListMembersResponse(data: [User], meta: PaginationMeta?)",
+    "imports": [
+      "ChatMemberRoleFilter"
+    ]
+  },
+  "ChatMemberOperations_addTags": {
+    "usage": "let groupTagIds = [123]\ntry await client.members.addTags(id: 334, groupTagIds: groupTagIds)"
+  },
+  "ChatMemberOperations_addMembers": {
+    "usage": "let body = AddMembersRequest(memberIds: [123], silent: true)\ntry await client.members.addMembers(id: 334, body: body)",
+    "imports": [
+      "AddMembersRequest"
+    ]
+  },
+  "ChatMemberOperations_updateMemberRole": {
+    "usage": "try await client.members.updateMemberRole(id: 334, userId: 186, role: .admin)",
+    "imports": [
+      "ChatMemberRole"
+    ]
+  },
+  "ChatMemberOperations_removeTag": {
+    "usage": "try await client.members.removeTag(id: 334, tagId: 86)"
+  },
+  "ChatMemberOperations_leaveChat": {
+    "usage": "try await client.members.leaveChat(id: 334)"
+  },
+  "ChatMemberOperations_removeMember": {
+    "usage": "try await client.members.removeMember(id: 334, userId: 186)"
+  },
+  "GroupTagOperations_listTags": {
+    "usage": "let names = TagNamesFilter()\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListTagsResponse(data: [GroupTag], meta: PaginationMeta?)",
+    "imports": [
+      "TagNamesFilter"
+    ]
+  },
+  "GroupTagOperations_getTag": {
+    "usage": "let response = try await client.groupTags.getTag(id: 9111)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)"
+  },
+  "GroupTagOperations_getTagUsers": {
+    "usage": "let response = try await client.groupTags.getTagUsers(id: 9111, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "GetTagUsersResponse(data: [User], meta: PaginationMeta?)"
+  },
+  "GroupTagOperations_createTag": {
+    "usage": "let body = GroupTagRequest(groupTag: GroupTagRequestGroupTag(name: \"Новое название тега\"))\nlet response = try await client.groupTags.createTag(body: body)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_updateTag": {
+    "usage": "let body = GroupTagRequest(groupTag: GroupTagRequestGroupTag(name: \"Новое название тега\"))\nlet response = try await client.groupTags.updateTag(id: 9111, body: body)",
+    "output": "GroupTag(id: Int, name: String, usersCount: Int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_deleteTag": {
+    "usage": "try await client.groupTags.deleteTag(id: 9111)"
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sortId: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta?)",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "let response = try await client.messages.getMessage(id: 194275)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "let body = MessageCreateRequest(\n    message: MessageCreateRequestMessage(\n        entityType: .discussion,\n        entityId: 334,\n        content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files: [MessageCreateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: .image,\n            size: 12345,\n            width: 800,\n            height: 600\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        parentMessageId: 194270,\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\",\n        skipInviteMentions: false,\n        linkPreview: false\n    )\n)\nlet response = try await client.messages.createMessage(body: body)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "imports": [
+      "Button",
+      "FileType",
+      "MessageCreateRequest",
+      "MessageCreateRequestFile",
+      "MessageCreateRequestMessage",
+      "MessageEntityType"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "try await client.messages.pinMessage(id: 194275)"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "let body = MessageUpdateRequest(\n    message: MessageUpdateRequestMessage(\n        content: \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files: [MessageUpdateRequestFile(\n            key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name: \"logo.png\",\n            fileType: \"image\",\n            size: 12345,\n            width: 800,\n            height: 600\n        )],\n        buttons: [[Button(\n            text: \"Подробнее\",\n            url: \"https://example.com/details\",\n            data: \"awesome\"\n        )]],\n        displayAvatarUrl: \"https://example.com/avatar.png\",\n        displayName: \"Бот Поддержки\"\n    )\n)\nlet response = try await client.messages.updateMessage(id: 194275, body: body)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestFile",
+      "MessageUpdateRequestMessage"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "try await client.messages.deleteMessage(id: 194275)"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "try await client.messages.unpinMessage(id: 194275)"
+  },
+  "LinkPreviewOperations_createLinkPreviews": {
+    "usage": "let body = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"Статья: Отправка файлов\",\n        description: \"Пример отправки файлов на удаленный сервер\",\n        imageUrl: \"https://website.com/img/landing.png\",\n        image: LinkPreviewImage(\n            key: \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            name: \"files-to-server.jpg\",\n            size: 695604\n        )\n    )]\n)\ntry await client.linkPreviews.createLinkPreviews(id: 194275, body: body)",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "ReactionOperations_listReactions": {
+    "usage": "let response = try await client.reactions.listReactions(id: 194275, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListReactionsResponse(data: [Reaction], meta: PaginationMeta?)"
+  },
+  "ReactionOperations_addReaction": {
+    "usage": "let body = ReactionRequest(code: \"👍\", name: \":+1:\")\nlet response = try await client.reactions.addReaction(id: 7231942, body: body)",
+    "output": "Reaction(userId: Int, createdAt: String, code: String, name: String?)",
+    "imports": [
+      "ReactionRequest"
+    ]
+  },
+  "ReactionOperations_removeReaction": {
+    "usage": "try await client.reactions.removeReaction(id: 7231942, code: \"👍\", name: \":+1:\")"
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "let response = try await client.readMembers.listReadMembers(id: 194275, limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "String"
+  },
+  "ThreadOperations_getThread": {
+    "usage": "let response = try await client.threads.getThread(id: 265142)",
+    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
+  },
+  "ThreadOperations_createThread": {
+    "usage": "let response = try await client.threads.createThread(id: 154332686)",
+    "output": "Thread(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String)"
+  },
+  "OAuthOperations_getTokenInfo": {
+    "usage": "let response = try await client.profile.getTokenInfo()",
+    "output": "AccessTokenInfo(id: Int64, token: String, name: String?, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?)"
+  },
+  "ProfileOperations_getProfile": {
+    "usage": "let response = try await client.profile.getProfile()",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+  },
+  "ProfileOperations_getStatus": {
+    "usage": "let response = try await client.profile.getStatus()",
+    "output": "String"
+  },
+  "ProfileOperations_updateStatus": {
+    "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"🎮\",\n        title: \"Очень занят\",\n        expiresAt: \"2024-04-08T10:00:00.000Z\",\n        isAway: true,\n        awayMessage: \"Вернусь после 15:00\"\n    )\n)\nlet response = try await client.profile.updateStatus(body: body)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "ProfileOperations_deleteStatus": {
+    "usage": "try await client.profile.deleteStatus()"
+  },
+  "SearchOperations_searchChats": {
+    "usage": "let response = try await client.search.searchChats(query: \"Разработка\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order: .desc, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", active: true, chatSubtype: .discussion, personal: false)",
+    "output": "SearchChatsResponse(data: [Chat], meta: SearchPaginationMeta)",
+    "imports": [
+      "ChatSubtype",
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "let chatIds = [123]\nlet userIds = [123]\nlet response = try await client.search.searchMessages(query: \"футболки\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order: .desc, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", chatIds: chatIds, userIds: userIds, active: true)",
+    "output": "SearchMessagesResponse(data: [Message], meta: SearchPaginationMeta)",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchUsers": {
+    "usage": "let companyRoles = [.admin]\nlet response = try await client.search.searchUsers(query: \"Олег\", limit: 10, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", sort: .byScore, order: .desc, createdFrom: \"2025-01-01T00:00:00.000Z\", createdTo: \"2025-02-01T00:00:00.000Z\", companyRoles: companyRoles)",
+    "output": "SearchUsersResponse(data: [User], meta: SearchPaginationMeta)",
+    "imports": [
+      "SearchSortOrder",
+      "SortOrder",
+      "UserRole"
+    ]
+  },
+  "TaskOperations_listTasks": {
+    "usage": "let response = try await client.tasks.listTasks(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta?)"
+  },
+  "TaskOperations_getTask": {
+    "usage": "let response = try await client.tasks.getTask(id: 22283)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])"
+  },
+  "TaskOperations_createTask": {
+    "usage": "let body = TaskCreateRequest(\n    task: TaskCreateRequestTask(\n        kind: .reminder,\n        content: \"Забрать со склада 21 заказ\",\n        dueAt: \"2020-06-05T12:00:00.000+03:00\",\n        priority: 2,\n        performerIds: [123],\n        chatId: 456,\n        allDay: false,\n        customProperties: [TaskCreateRequestCustomProperty(id: 78, value: \"Синий склад\")]\n    )\n)\nlet response = try await client.tasks.createTask(body: body)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])",
+    "imports": [
+      "TaskCreateRequest",
+      "TaskCreateRequestCustomProperty",
+      "TaskCreateRequestTask",
+      "TaskKind"
+    ]
+  },
+  "TaskOperations_updateTask": {
+    "usage": "let body = TaskUpdateRequest(\n    task: TaskUpdateRequestTask(\n        kind: .reminder,\n        content: \"Забрать со склада 21 заказ\",\n        dueAt: \"2020-06-05T12:00:00.000+03:00\",\n        priority: 2,\n        performerIds: [123],\n        status: .done,\n        allDay: false,\n        doneAt: \"2020-06-05T12:00:00.000Z\",\n        customProperties: [TaskUpdateRequestCustomProperty(id: 78, value: \"Синий склад\")]\n    )\n)\nlet response = try await client.tasks.updateTask(id: 22283, body: body)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)])",
+    "imports": [
+      "TaskKind",
+      "TaskStatus",
+      "TaskUpdateRequest",
+      "TaskUpdateRequestCustomProperty",
+      "TaskUpdateRequestTask"
+    ]
+  },
+  "TaskOperations_deleteTask": {
+    "usage": "try await client.tasks.deleteTask(id: 22283)"
+  },
+  "UserOperations_listUsers": {
+    "usage": "let response = try await client.users.listUsers(query: \"Олег\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListUsersResponse(data: [User], meta: PaginationMeta?)"
+  },
+  "UserOperations_getUser": {
+    "usage": "let response = try await client.users.getUser(id: 12)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+  },
+  "UserStatusOperations_getUserStatus": {
+    "usage": "let response = try await client.users.getUserStatus(userId: 12)",
+    "output": "String"
+  },
+  "UserOperations_createUser": {
+    "usage": "let body = UserCreateRequest(\n    user: UserCreateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegp@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Продукт\",\n        title: \"CIO\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        customProperties: [UserCreateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    ),\n    skipEmailNotify: true\n)\nlet response = try await client.users.createUser(body: body)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "imports": [
+      "UserCreateRequest",
+      "UserCreateRequestCustomProperty",
+      "UserCreateRequestUser",
+      "UserRole"
+    ]
+  },
+  "UserOperations_updateUser": {
+    "usage": "let body = UserUpdateRequest(\n    user: UserUpdateRequestUser(\n        firstName: \"Олег\",\n        lastName: \"Петров\",\n        email: \"olegpetrov@example.com\",\n        phoneNumber: \"+79001234567\",\n        nickname: \"olegpetrov\",\n        department: \"Отдел разработки\",\n        title: \"Старший разработчик\",\n        role: .user,\n        suspended: false,\n        listTags: [\"example\"],\n        customProperties: [UserUpdateRequestCustomProperty(id: 1678, value: \"Санкт-Петербург\")]\n    )\n)\nlet response = try await client.users.updateUser(id: 12, body: body)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "imports": [
+      "UserRole",
+      "UserUpdateRequest",
+      "UserUpdateRequestCustomProperty",
+      "UserUpdateRequestUser"
+    ]
+  },
+  "UserStatusOperations_updateUserStatus": {
+    "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"🎮\",\n        title: \"Очень занят\",\n        expiresAt: \"2024-04-08T10:00:00.000Z\",\n        isAway: true,\n        awayMessage: \"Вернусь после 15:00\"\n    )\n)\nlet response = try await client.users.updateUserStatus(userId: 12, body: body)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "UserOperations_deleteUser": {
+    "usage": "try await client.users.deleteUser(id: 12)"
+  },
+  "UserStatusOperations_deleteUserStatus": {
+    "usage": "try await client.users.deleteUserStatus(userId: 12)"
+  },
+  "FormOperations_openView": {
+    "usage": "let body = OpenViewRequest(\n    type: \"modal\",\n    triggerId: \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    privateMetadata: \"{\\\"timeoff_id\\\":4378}\",\n    callbackId: \"timeoff_reguest_form\",\n    view: OpenViewRequestView(\n        title: \"Уведомление об отпуске\",\n        closeText: \"Закрыть\",\n        submitText: \"Отправить заявку\",\n        blocks: [ViewBlockHeader(type: \"header\", text: \"Основная информация\")]\n    )\n)\ntry await client.views.openView(body: body)",
+    "imports": [
+      "OpenViewRequest",
+      "OpenViewRequestView",
+      "ViewBlockUnion"
+    ]
+  }
+}

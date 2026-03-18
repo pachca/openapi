@@ -7,7 +7,7 @@ REST API Пачки позволяет автоматизировать рабо
 - [Авторизация](/api/authorization)
 - [Модели API](/api/models)
 - [CLI](/guides/cli)
-- [SDK](/api/sdk)
+- [SDK](/guides/sdk/overview)
 
 **Отправка сообщения**
 

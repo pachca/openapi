@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "LinkPreviewOperations_createLinkPreviews": {
     "usage": "let body = LinkPreviewsRequest(\n    linkPreviews: [\"key\": LinkPreview(\n        title: \"example\",\n        description: \"example\",\n        imageUrl: \"example\"\n    )]\n)\ntry await client.linkPreviews.createLinkPreviews(id: 123, body: body)",

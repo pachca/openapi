@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import { PachcaClient } from \"@pachca/sdk\"\n\nconst client = new PachcaClient(\"YOUR_TOKEN\")"
+    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "ChatOperations_listChats": {
     "usage": "const response = client.chats.listChats({\n  availability: ChatAvailability.IsMember,\n  limit: 123,\n  cursor: \"example\",\n  sortField: \"example\",\n  sortOrder: SortOrder.Asc\n})",

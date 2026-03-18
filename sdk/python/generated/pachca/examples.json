@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "from pachca import PachcaClient\n\nclient = PachcaClient(\"YOUR_TOKEN\")"
+    "usage": "client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "params = GetAuditEventsParams(\n    start_time=\"2024-01-01T00:00:00Z\",\n    end_time=\"2024-01-01T00:00:00Z\",\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"example\",\n    actor_type=\"example\",\n    entity_id=\"example\",\n    entity_type=\"example\",\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.security.get_audit_events(params=params)",

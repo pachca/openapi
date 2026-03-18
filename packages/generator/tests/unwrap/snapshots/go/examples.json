@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import pachca \"github.com/pachca/openapi/sdk/go/generated\"\n\nclient := pachca.NewPachcaClient(\"YOUR_TOKEN\")"
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "MemberOperations_addMembers": {
     "usage": "memberIds := []int32{int32(123)}\nclient.Members.AddMembers(ctx, int32(123), memberIds)"

@@ -1,6 +1,9 @@
 {
   "Client_Init": {
-    "usage": "import PachcaSDK\n\nlet client = PachcaClient(token: \"YOUR_TOKEN\")"
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
   },
   "ChatOperations_listChats": {
     "usage": "let response = try await client.chats.listChats(availability: .isMember, limit: 123, cursor: \"example\", sortField: \"example\", sortOrder: .asc)",

@@ -3,13 +3,21 @@
  * Used when generating raw .md files from .mdx sources
  */
 
-import { getSchemaByName, getEndpointByOperation, getBaseUrl } from './openapi/parser';
+import {
+  getSchemaByName,
+  getEndpointByOperation,
+  getBaseUrl,
+  parseOpenAPI,
+} from './openapi/parser';
 import { generateCurl } from './code-generators/curl';
+import { groupEndpointsByTag, generateUrlFromOperation, generateTitle } from './openapi/mapper';
 import { schemaToMarkdown } from './markdown-generator';
+import { getSdkExampleForLang } from './sdk-examples';
 import type { Schema } from './openapi/types';
 import { HTTP_CODES } from './schemas/guide-schemas';
 import { getOrderedPages } from './ordered-pages';
 import { generateNavigation } from './navigation';
+import { sortTagsByOrder } from './guides-config';
 import { WORKFLOWS } from '@pachca/spec/workflows';
 import { SKILL_TAG_MAP } from '../scripts/skills/config';
 
@@ -423,17 +431,115 @@ export async function expandMdxComponents(content: string): Promise<string> {
     result = result.replace(/<ApiCards\s*\/>/g, apiCardsMarkdown);
   }
 
+  // <SdkCommands lang="python" /> -> markdown table of SDK methods
+  if (result.includes('<SdkCommands')) {
+    const sdkCmdRegex = /<SdkCommands\s+lang="([^"]+)"\s*\/>/g;
+    const sdkCmdMatches = [...result.matchAll(sdkCmdRegex)];
+
+    for (const match of sdkCmdMatches) {
+      const [fullMatch, lang] = match;
+      const api = await parseOpenAPI();
+      const grouped = groupEndpointsByTag(api.endpoints);
+      const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
+
+      const METHOD_ORDER: Record<string, number> = {
+        POST: 0,
+        GET: 1,
+        PUT: 2,
+        PATCH: 3,
+        DELETE: 4,
+      };
+
+      const tagToProperty = (tag: string): string => {
+        const words = tag.split(/\s+/);
+        return words
+          .map((w, i) =>
+            i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+          )
+          .join('');
+      };
+
+      const operationToMethod = (opId: string): string => {
+        const parts = opId.split('_');
+        return parts.length > 1 ? parts.slice(1).join('_') : parts[0];
+      };
+
+      const camelToSnake = (str: string): string =>
+        str
+          .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+          .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+          .toLowerCase();
+
+      const formatCall = (tag: string, opId: string): string => {
+        const service = tagToProperty(tag);
+        const method = operationToMethod(opId);
+        switch (lang) {
+          case 'python':
+            return `client.${camelToSnake(service)}.${camelToSnake(method)}()`;
+          case 'go':
+            return `client.${service.charAt(0).toUpperCase() + service.slice(1)}.${method.charAt(0).toUpperCase() + method.slice(1)}()`;
+          default:
+            return `client.${service}.${method}()`;
+        }
+      };
+
+      let md = '| Метод | Метод API |\n';
+      md += '|-------|----------|\n';
+      for (const tag of sortedTags) {
+        const endpoints = grouped.get(tag)!;
+        endpoints.sort((a, b) => (METHOD_ORDER[a.method] ?? 99) - (METHOD_ORDER[b.method] ?? 99));
+        for (const ep of endpoints) {
+          const call = formatCall(tag, ep.id);
+          const href = generateUrlFromOperation(ep);
+          const epTitle = generateTitle(ep);
+          md += `| \`${call}\` | [${epTitle}](${href}) |\n`;
+        }
+      }
+      md += '\n';
+      result = result.replace(fullMatch, md);
+    }
+  }
+
   // <ApiCodeExample operationId="..." title="..." params={{ ... }} />
+  // <ApiCodeExample lang="python" operations={[...]} showInit={false} />
   if (result.includes('<ApiCodeExample')) {
     const apiCodeRegex = /<ApiCodeExample\s+([\s\S]*?)\/>/g;
     const apiCodeMatches = [...result.matchAll(apiCodeRegex)];
 
+    const SDK_LANGS = ['typescript', 'python', 'go', 'kotlin', 'swift'];
+
     for (const match of apiCodeMatches) {
       const [fullMatch, attrs] = match;
+      const lang = attrs.match(/lang="([^"]+)"/)?.[1];
       const operationId = attrs.match(/operationId="([^"]+)"/)?.[1];
       const title = attrs.match(/title="([^"]+)"/)?.[1];
       const paramsMatch = attrs.match(/params=\{\{([^}]*)\}\}/);
 
+      // SDK language mode: generate from examples.json
+      if (lang && SDK_LANGS.includes(lang)) {
+        const ops: Array<{ id: string; comment?: string }> = [];
+        const opRegex = /id:\s*"([^"]+)"(?:,\s*comment:\s*"([^"]*)")?/g;
+        let opMatch;
+        while ((opMatch = opRegex.exec(attrs)) !== null) {
+          ops.push({ id: opMatch[1], comment: opMatch[2] });
+        }
+        if (operationId) ops.push({ id: operationId });
+
+        const showInit = !attrs.includes('showInit={false}');
+        const code = getSdkExampleForLang(lang, ops, showInit);
+
+        if (code) {
+          let md = '';
+          if (title) md += `**${title}**\n\n`;
+          md += `\`\`\`${lang}\n${code}\n\`\`\`\n`;
+          result = result.replace(fullMatch, md);
+        } else {
+          result = result.replace(fullMatch, '');
+        }
+        continue;
+      }
+
+      // curl/cli mode: generate from endpoint
       if (!operationId) {
         result = result.replace(fullMatch, '*Endpoint not found*\n');
         continue;
@@ -468,7 +574,13 @@ export async function expandMdxComponents(content: string): Promise<string> {
       let md = '';
       if (title) md += `**${title}**\n\n`;
 
-      md += '```bash\n' + generateCurl(finalEndpoint, baseUrl) + '\n```\n';
+      // If lang is specified (curl/cli), use that; otherwise default to curl
+      if (lang === 'cli') {
+        const { generateCLI } = await import('./code-generators/cli');
+        md += '```bash\n' + generateCLI(finalEndpoint) + '\n```\n';
+      } else {
+        md += '```bash\n' + generateCurl(finalEndpoint, baseUrl) + '\n```\n';
+      }
 
       result = result.replace(fullMatch, md);
     }

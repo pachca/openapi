@@ -20,12 +20,20 @@ pip install pachca-sdk
 
 Получите API-токен в интерфейсе Пачки: **Настройки → Автоматизации → API** (подробнее — [Авторизация](/api/authorization)).
 
-*Endpoint not found*
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+```
 
 
   ### Шаг 3. Первый запрос
 
-*Endpoint not found*
+```python
+# Получение профиля
+response = await client.profile.get_profile()
+# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: str, last_activity_at: str, time_zone: str, image_url: str | None)
+```
 
 
 > Все методы SDK асинхронные — вызывайте их через `await` внутри `async def`.
@@ -56,7 +64,73 @@ await client.close()
 
 ## Все методы
 
-<SdkCommands lang="python" />
+| Метод | Метод API |
+|-------|----------|
+| `client.common.request_export()` | [Экспорт сообщений](/api/common/request-export) |
+| `client.common.upload_file()` | [Загрузка файла](/api/common/direct-url) |
+| `client.common.get_upload_params()` | [Получение подписи, ключа и других параметров](/api/common/uploads) |
+| `client.common.download_export()` | [Скачать архив экспорта](/api/common/get-exports) |
+| `client.common.list_properties()` | [Список дополнительных полей](/api/common/custom-properties) |
+| `client.profile.get_token_info()` | [Информация о токене](/api/profile/get-info) |
+| `client.profile.get_profile()` | [Информация о профиле](/api/profile/get) |
+| `client.profile.get_status()` | [Текущий статус](/api/profile/get-status) |
+| `client.profile.update_status()` | [Новый статус](/api/profile/update-status) |
+| `client.profile.delete_status()` | [Удаление статуса](/api/profile/delete-status) |
+| `client.users.create_user()` | [Создать сотрудника](/api/users/create) |
+| `client.users.list_users()` | [Список сотрудников](/api/users/list) |
+| `client.users.get_user()` | [Информация о сотруднике](/api/users/get) |
+| `client.users.get_user_status()` | [Статус сотрудника](/api/users/get-status) |
+| `client.users.update_user()` | [Редактирование сотрудника](/api/users/update) |
+| `client.users.update_user_status()` | [Новый статус сотрудника](/api/users/update-status) |
+| `client.users.delete_user()` | [Удаление сотрудника](/api/users/delete) |
+| `client.users.delete_user_status()` | [Удаление статуса сотрудника](/api/users/remove-status) |
+| `client.group_tags.create_tag()` | [Новый тег](/api/group-tags/create) |
+| `client.group_tags.list_tags()` | [Список тегов сотрудников](/api/group-tags/list) |
+| `client.group_tags.get_tag()` | [Информация о теге](/api/group-tags/get) |
+| `client.group_tags.get_tag_users()` | [Список сотрудников тега](/api/group-tags/list-users) |
+| `client.group_tags.update_tag()` | [Редактирование тега](/api/group-tags/update) |
+| `client.group_tags.delete_tag()` | [Удаление тега](/api/group-tags/delete) |
+| `client.chats.create_chat()` | [Новый чат](/api/chats/create) |
+| `client.chats.list_chats()` | [Список чатов](/api/chats/list) |
+| `client.chats.get_chat()` | [Информация о чате](/api/chats/get) |
+| `client.chats.update_chat()` | [Обновление чата](/api/chats/update) |
+| `client.chats.archive_chat()` | [Архивация чата](/api/chats/archive) |
+| `client.chats.unarchive_chat()` | [Разархивация чата](/api/chats/unarchive) |
+| `client.members.add_tags()` | [Добавление тегов](/api/members/add-group-tags) |
+| `client.members.add_members()` | [Добавление пользователей](/api/members/add) |
+| `client.members.list_members()` | [Список участников чата](/api/members/list) |
+| `client.members.update_member_role()` | [Редактирование роли](/api/members/update) |
+| `client.members.remove_tag()` | [Исключение тега](/api/members/remove-group-tag) |
+| `client.members.leave_chat()` | [Выход из беседы или канала](/api/members/leave) |
+| `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
+| `client.threads.create_thread()` | [Новый тред](/api/threads/add) |
+| `client.threads.get_thread()` | [Информация о треде](/api/threads/get) |
+| `client.messages.create_message()` | [Новое сообщение](/api/messages/create) |
+| `client.messages.pin_message()` | [Закрепление сообщения](/api/messages/pin) |
+| `client.messages.list_chat_messages()` | [Список сообщений чата](/api/messages/list) |
+| `client.messages.get_message()` | [Информация о сообщении](/api/messages/get) |
+| `client.messages.update_message()` | [Редактирование сообщения](/api/messages/update) |
+| `client.messages.delete_message()` | [Удаление сообщения](/api/messages/delete) |
+| `client.messages.unpin_message()` | [Открепление сообщения](/api/messages/unpin) |
+| `client.read_members.list_read_members()` | [Список прочитавших сообщение](/api/read-member/list-readers) |
+| `client.reactions.add_reaction()` | [Добавление реакции](/api/reactions/add) |
+| `client.reactions.list_reactions()` | [Список реакций](/api/reactions/list) |
+| `client.reactions.remove_reaction()` | [Удаление реакции](/api/reactions/remove) |
+| `client.link_previews.create_link_previews()` | [Unfurl (разворачивание ссылок)](/api/link-previews/add) |
+| `client.search.search_chats()` | [Поиск чатов](/api/search/list-chats) |
+| `client.search.search_messages()` | [Поиск сообщений](/api/search/list-messages) |
+| `client.search.search_users()` | [Поиск сотрудников](/api/search/list-users) |
+| `client.tasks.create_task()` | [Новое напоминание](/api/tasks/create) |
+| `client.tasks.list_tasks()` | [Список напоминаний](/api/tasks/list) |
+| `client.tasks.get_task()` | [Информация о напоминании](/api/tasks/get) |
+| `client.tasks.update_task()` | [Редактирование напоминания](/api/tasks/update) |
+| `client.tasks.delete_task()` | [Удаление напоминания](/api/tasks/delete) |
+| `client.views.open_view()` | [Открытие представления](/api/views/open) |
+| `client.bots.get_webhook_events()` | [История событий](/api/bots/list-events) |
+| `client.bots.update_bot()` | [Редактирование бота](/api/bots/update) |
+| `client.bots.delete_webhook_event()` | [Удаление события](/api/bots/remove-event) |
+| `client.security.get_audit_events()` | [Журнал аудита событий](/api/security/list) |
+
 
 ## Запросы
 
@@ -64,17 +138,51 @@ await client.close()
 
 **GET с параметрами:**
 
-*Endpoint not found*
+```python
+from pachca.models import ChatAvailability, ListChatsParams, SortOrder
+
+# Список чатов
+params = ListChatsParams(
+    sort_id=SortOrder.DESC,
+    availability=ChatAvailability.IS_MEMBER,
+    last_message_at_after="2025-01-01T00:00:00.000Z",
+    last_message_at_before="2025-02-01T00:00:00.000Z",
+    personal=False,
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.chats.list_chats(params=params)
+# → ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)
+```
 
 
 **POST с телом запроса:**
 
-*Endpoint not found*
+```python
+from pachca.models import ChatCreateRequest, ChatCreateRequestChat
+
+# Создание чата
+request = ChatCreateRequest(
+    chat=ChatCreateRequestChat(
+        name="🤿 aqua",
+        member_ids=[123],
+        group_tag_ids=[123],
+        channel=True,
+        public=False
+    )
+)
+response = await client.chats.create_chat(request=request)
+# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+```
 
 
 **Простой вызов по ID:**
 
-*Endpoint not found*
+```python
+# Получение чата
+response = await client.chats.get_chat(id=334)
+# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+```
 
 
 ## Пагинация
@@ -211,6 +319,65 @@ from pachca.models import (
 
 ## Примеры
 
-*Endpoint not found*
+```python
+from pachca.client import PachcaClient
+from pachca.models import Button, FileType, ListUsersParams, MessageCreateRequest, MessageCreateRequestFile, MessageCreateRequestMessage, MessageEntityType, TaskCreateRequest, TaskCreateRequestCustomProperty, TaskCreateRequestTask, TaskKind
+
+client = PachcaClient("YOUR_TOKEN")
+
+# Отправка сообщения
+request = MessageCreateRequest(
+    message=MessageCreateRequestMessage(
+        entity_type=MessageEntityType.DISCUSSION,
+        entity_id=334,
+        content="Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+        files=[MessageCreateRequestFile(
+            key="attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+            name="logo.png",
+            file_type=FileType.IMAGE,
+            size=12345,
+            width=800,
+            height=600
+        )],
+        buttons=[[Button(
+            text="Подробнее",
+            url="https://example.com/details",
+            data="awesome"
+        )]],
+        parent_message_id=194270,
+        display_avatar_url="https://example.com/avatar.png",
+        display_name="Бот Поддержки",
+        skip_invite_mentions=False,
+        link_preview=False
+    )
+)
+response = await client.messages.create_message(request=request)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: str) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)
+
+# Список сотрудников
+params = ListUsersParams(
+    query="Олег",
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.users.list_users(params=params)
+# → ListUsersResponse(data: list[User], meta: PaginationMeta | None)
+
+# Создание задачи
+request = TaskCreateRequest(
+    task=TaskCreateRequestTask(
+        kind=TaskKind.REMINDER,
+        content="Забрать со склада 21 заказ",
+        due_at="2020-06-05T12:00:00.000+03:00",
+        priority=2,
+        performer_ids=[123],
+        chat_id=456,
+        all_day=False,
+        custom_properties=[TaskCreateRequestCustomProperty(id=78, value="Синий склад")]
+    )
+)
+response = await client.tasks.create_task(request=request)
+# → Task(id: int, kind: TaskKind, content: str, due_at: str | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: str, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+```
 
 

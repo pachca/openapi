@@ -15,6 +15,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pachca/openapi"
+  },
   "scripts": {
     "build": "bun build src/index.ts bin/generator.ts --outdir dist --target node --format esm --splitting --packages=bundle",
     "test": "vitest run",

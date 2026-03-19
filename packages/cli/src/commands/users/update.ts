@@ -65,8 +65,6 @@ export default class UsersUpdate extends BaseCommand {
     const { args, flags } = await this.parse(UsersUpdate);
     this.parsedFlags = flags;
 
-    this.checkScope("users:update");
-
     const body: Record<string, unknown> = { user: {
       first_name: flags['first-name'],
       last_name: flags['last-name'],

@@ -36,8 +36,6 @@ export default class BotsListEvents extends BaseCommand {
     const { args, flags } = await this.parse(BotsListEvents);
     this.parsedFlags = flags;
 
-    this.checkScope("webhooks:events:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

@@ -585,7 +585,7 @@ class MessagesService internal constructor(
     suspend fun pinMessage(id: Int) {
         val response = client.post("$baseUrl/messages/$id/pin")
         when (response.status.value) {
-            201 -> return
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }

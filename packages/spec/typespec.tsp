@@ -968,7 +968,15 @@ model Message {
   buttons: Button[][] | null;
   
   @doc("Тред сообщения")
-  thread: Thread | null;
+  thread: {
+    @doc("Идентификатор треда")
+    @example(265142)
+    id: int64;
+
+    @doc("Идентификатор чата треда")
+    @example(2637266155)
+    chat_id: int64;
+  } | null;
   
   @doc("Информация о пересланном сообщении")
   forwarding: Forwarding | null;
@@ -1178,6 +1186,56 @@ model PaginatedDataResponse<T> {
   search_users: "Поиск сотрудников",
   search_chats: "Поиск чатов",
   search_messages: "Поиск сообщений",
+})
+@extension("x-scope-roles", #{
+  chats_read: #["owner", "admin", "user", "bot"],
+  chats_create: #["owner", "admin", "user", "bot"],
+  chats_update: #["owner", "admin", "user", "bot"],
+  chats_archive: #["owner", "admin", "user", "bot"],
+  chats_leave: #["owner", "admin", "user", "bot"],
+  chat_members_read: #["owner", "admin", "user", "bot"],
+  chat_members_write: #["owner", "admin", "user", "bot"],
+  chat_exports_read: #["owner"],
+  chat_exports_write: #["owner"],
+  messages_read: #["owner", "admin", "user", "bot"],
+  messages_create: #["owner", "admin", "user", "bot"],
+  messages_update: #["owner", "admin", "user", "bot"],
+  messages_delete: #["owner", "admin", "user", "bot"],
+  reactions_read: #["owner", "admin", "user", "bot"],
+  reactions_write: #["owner", "admin", "user", "bot"],
+  pins_write: #["owner", "admin", "user", "bot"],
+  threads_read: #["owner", "admin", "user", "bot"],
+  threads_create: #["owner", "admin", "user", "bot"],
+  link_previews_write: #["owner", "admin", "user", "bot"],
+  views_write: #["owner", "admin", "user", "bot"],
+  users_read: #["owner", "admin", "user", "bot"],
+  users_create: #["owner", "admin"],
+  users_update: #["owner", "admin"],
+  users_delete: #["owner", "admin"],
+  group_tags_read: #["owner", "admin"],
+  group_tags_write: #["owner", "admin"],
+  bots_write: #["owner", "admin", "user", "bot"],
+  profile_read: #["owner", "admin", "user", "bot"],
+  profile_status_read: #["owner", "admin", "user", "bot"],
+  profile_status_write: #["owner", "admin", "user", "bot"],
+  user_status_read: #["owner", "admin"],
+  user_status_write: #["owner", "admin"],
+  custom_properties_read: #["owner", "admin", "user", "bot"],
+  audit_events_read: #["owner"],
+  tasks_read: #["owner", "admin", "user", "bot"],
+  tasks_create: #["owner", "admin", "user", "bot"],
+  tasks_update: #["owner", "admin", "user", "bot"],
+  tasks_delete: #["owner", "admin", "user", "bot"],
+  files_read: #["owner", "admin", "user", "bot"],
+  files_write: #["owner", "admin", "user", "bot"],
+  uploads_write: #["owner", "admin", "user", "bot"],
+  webhooks_read: #["owner", "admin", "user", "bot"],
+  webhooks_write: #["owner", "admin", "user", "bot"],
+  webhooks_events_read: #["owner", "admin", "user", "bot"],
+  webhooks_events_delete: #["owner", "admin", "user", "bot"],
+  search_users: #["owner", "admin", "user", "bot"],
+  search_chats: #["owner", "admin", "user", "bot"],
+  search_messages: #["owner", "admin", "user", "bot"],
 })
 enum OAuthScope {
   @doc("Просмотр чатов и списка чатов")
@@ -1393,9 +1451,9 @@ model ApiErrorItem {
   @example(ValidationErrorCode.blank)
   code: ValidationErrorCode;
   
-  @doc("Дополнительные данные об ошибке")
+  @doc("Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`")
   @example(null)
-  payload: string | null;
+  payload: Record<unknown> | null;
 }
 
 @extension("x-error", true)
@@ -4370,7 +4428,7 @@ interface MessageOperations {
     @extension("example", 194275)
     @path id: int32
   ): {
-    @statusCode _: 201;
+    @statusCode _: 204;
 
   } | {
     @statusCode _: 401;

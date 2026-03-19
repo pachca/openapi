@@ -55,8 +55,6 @@ export default class MessagesUpdate extends BaseCommand {
       flags['content'] = Buffer.concat(chunks).toString('utf-8').trimEnd();
     }
 
-    this.checkScope("messages:update");
-
     const body: Record<string, unknown> = { message: {
       content: flags['content'],
       files: flags['files'] ? this.parseJSON(flags['files'], 'files') : undefined,

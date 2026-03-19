@@ -30,8 +30,6 @@ export default class ChatsArchive extends BaseCommand {
     const { args, flags } = await this.parse(ChatsArchive);
     this.parsedFlags = flags;
 
-    this.checkScope("chats:archive");
-
     const { data } = await this.apiRequest({
       method: 'PUT',
       path: `/chats/${args.id}/archive`,

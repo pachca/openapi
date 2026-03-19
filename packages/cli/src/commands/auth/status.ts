@@ -44,20 +44,10 @@ export default class AuthStatus extends BaseCommand {
         type: profile!.type,
         user: profile!.user,
         email: profile!.email || null,
-        scopes: profile!.scopes || [],
       });
     } else {
       const emailStr = profile!.email ? ` (${profile!.email})` : '';
       process.stderr.write(`  Подключён как: ${profile!.user}${emailStr}  [${profile!.type}, profile: ${profileName}]\n`);
-      if (profile!.scopes?.length) {
-        process.stderr.write(`  Скоупы:\n`);
-        // Print scopes in rows of 3
-        const scopes = profile!.scopes;
-        for (let i = 0; i < scopes.length; i += 3) {
-          const row = scopes.slice(i, i + 3).map((s) => s.padEnd(20)).join(' ');
-          process.stderr.write(`    ${row}\n`);
-        }
-      }
     }
   }
 }

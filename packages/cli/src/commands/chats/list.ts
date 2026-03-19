@@ -57,8 +57,6 @@ export default class ChatsList extends BaseCommand {
     const { args, flags } = await this.parse(ChatsList);
     this.parsedFlags = flags;
 
-    this.checkScope("chats:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

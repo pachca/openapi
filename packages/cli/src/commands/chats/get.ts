@@ -30,8 +30,6 @@ export default class ChatsGet extends BaseCommand {
     const { args, flags } = await this.parse(ChatsGet);
     this.parsedFlags = flags;
 
-    this.checkScope("chats:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/chats/${args.id}`,

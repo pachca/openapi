@@ -1,5 +1,14 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import gsap from 'gsap';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { MethodBadge, type HttpMethod } from '@/components/api/method-badge';
+import { toSlug } from '@/lib/utils/transliterate';
+import { getScrollOffset } from '@/lib/utils/scroll-offset';
+
+gsap.registerPlugin(ScrollToPlugin);
 import {
   ArrowUpRight,
   ArrowLeftRight,
@@ -145,7 +154,7 @@ const columnClasses = {
 
 export function CardGroup({ children, columns = 3 }: CardGroupProps) {
   return (
-    <div className={`card-group grid ${columnClasses[columns]} gap-3 my-8 not-prose`}>
+    <div className={`card-group grid ${columnClasses[columns]} gap-3 mt-6 mb-4 not-prose`}>
       {children}
     </div>
   );
@@ -174,6 +183,8 @@ function CardWrapper({
   style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   if (!href)
     return (
       <div className={className} style={style}>
@@ -194,8 +205,34 @@ function CardWrapper({
         {children}
       </a>
     );
+
+  // Handle anchor links with smooth scrolling
+  const hashIndex = href.indexOf('#');
+  const hasAnchor = hashIndex !== -1;
+  const hrefPath = hasAnchor ? href.slice(0, hashIndex) : href;
+  const isSamePage = hasAnchor && (hrefPath === '' || hrefPath === pathname);
+
+  const handleClick = isSamePage
+    ? (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        const anchor = href.slice(hashIndex + 1);
+        const targetId = toSlug(decodeURIComponent(anchor));
+        const target = document.getElementById(targetId);
+        if (target) {
+          const targetScrollTop =
+            target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+          gsap.to(window, {
+            duration: 0.4,
+            scrollTo: { y: targetScrollTop },
+            ease: 'power2.out',
+          });
+          window.history.pushState(null, '', `#${targetId}`);
+        }
+      }
+    : undefined;
+
   return (
-    <Link href={href} className={className} style={style}>
+    <Link href={href} className={className} style={style} onClick={handleClick}>
       {children}
     </Link>
   );

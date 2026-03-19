@@ -41,8 +41,6 @@ export default class UsersList extends BaseCommand {
     const { args, flags } = await this.parse(UsersList);
     this.parsedFlags = flags;
 
-    this.checkScope("users:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

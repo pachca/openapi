@@ -19,17 +19,15 @@ function setEnv(key: string, value: string | undefined) {
   else process.env[key] = value;
 }
 
-function setupProfile(name = 'test', opts: { scopes?: string[]; type?: string; user?: string; email?: string } = {}) {
+function setupProfile(name = 'test', opts: { type?: string; user?: string; email?: string } = {}) {
   const configDir = path.join(tmpDir, 'pachca');
   fs.mkdirSync(configDir, { recursive: true });
-  const scopes = opts.scopes ?? ['users:read', 'messages:create'];
   const type = opts.type ?? 'user';
   const user = opts.user ?? 'Test User';
   const email = opts.email ?? 'test@test.com';
-  const scopesStr = scopes.map((s) => `"${s}"`).join(', ');
   fs.writeFileSync(
     path.join(configDir, 'config.toml'),
-    `active_profile = "${name}"\n\n[profiles.${name}]\ntype = "${type}"\ntoken = "test-token"\nuser = "${user}"\nemail = "${email}"\nscopes = [${scopesStr}]\n`,
+    `active_profile = "${name}"\n\n[profiles.${name}]\ntype = "${type}"\ntoken = "test-token"\nuser = "${user}"\nemail = "${email}"\n`,
   );
 }
 
@@ -46,13 +44,11 @@ function setupMultiProfiles() {
       'token = "token-default"',
       'user = "Default User"',
       'email = "default@test.com"',
-      'scopes = ["users:read"]',
       '',
       '[profiles.bot]',
       'type = "bot"',
       'token = "token-bot"',
       'user = "Bot User"',
-      'scopes = ["messages:create"]',
     ].join('\n') + '\n',
   );
 }
@@ -111,8 +107,6 @@ describe('manual commands — functional tests', () => {
       const content = fs.readFileSync(configPath, 'utf-8');
       expect(content).toContain('my-token');
       expect(content).toContain('Ivan Petrov');
-      expect(content).toContain('users:read');
-      expect(content).toContain('messages:create');
     });
 
     it('--token invalid → 401 error', async () => {
@@ -241,24 +235,6 @@ describe('manual commands — functional tests', () => {
     it('empty → empty array in JSON', async () => {
       const { stdout } = await runCommand(['auth', 'list', '--json'], { root: CLI_ROOT });
       expect(JSON.parse(stdout)).toEqual([]);
-    });
-  });
-
-  describe('auth refresh', () => {
-    it('refreshes scopes', async () => {
-      setupProfile('test', { scopes: ['users:read'] });
-      const tokenInfo = mockEntity('/oauth/token/info', 'GET', { scopes: ['users:read', 'users:create'] });
-      mockFetch({ data: { data: tokenInfo } });
-      const { stdout } = await runCommand(['auth', 'refresh', '--json'], { root: CLI_ROOT });
-      const parsed = JSON.parse(stdout);
-      expect(parsed.scopes_before).toEqual(['users:read']);
-      expect(parsed.scopes_after).toContain('users:create');
-      expect(parsed.added).toContain('users:create');
-    });
-
-    it('no profile → error', async () => {
-      const { stderr, error } = await runCommand(['auth', 'refresh'], { root: CLI_ROOT });
-      expect(error).toBeTruthy();
     });
   });
 
@@ -426,7 +402,9 @@ describe('manual commands — functional tests', () => {
     });
 
     it('--available → filter by scopes', async () => {
-      setupProfile('test', { scopes: ['users:read'] });
+      setupProfile('test');
+      // commands --available now calls GET /oauth/token/info to get scopes
+      mockFetch({ data: { data: { scopes: ['users:read'] } } });
       const { stdout } = await runCommand(['commands', '--available', '--json'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
       expect(Array.isArray(parsed)).toBe(true);
@@ -436,8 +414,6 @@ describe('manual commands — functional tests', () => {
       // Commands with other scopes should be filtered out
       const messagesCreate = parsed.find((c: { scope: string }) => c.scope === 'messages:create');
       expect(messagesCreate).toBeUndefined();
-      // No 'available' column — filtered entries don't need it
-      if (usersRead) expect(usersRead.available).toBeUndefined();
     });
   });
 

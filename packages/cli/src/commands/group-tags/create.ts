@@ -53,8 +53,6 @@ export default class GroupTagsCreate extends BaseCommand {
       }
     }
 
-    this.checkScope("group_tags:write");
-
     const body: Record<string, unknown> = { group_tag: {
       name: flags['name'],
     } };

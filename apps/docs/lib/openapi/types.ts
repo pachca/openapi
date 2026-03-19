@@ -26,6 +26,7 @@ export interface Tag {
 
 export interface EndpointRequirements {
   scope?: string;
+  scopeRoles?: string[];
   plan?: string;
   auth?: boolean;
 }
@@ -102,6 +103,7 @@ export interface Schema {
   required?: string[];
   enum?: unknown[];
   'x-enum-descriptions'?: Record<string, string>;
+  'x-scope-roles'?: Record<string, string[]>;
   'x-record-key-example'?: string;
   default?: unknown;
   example?: unknown;

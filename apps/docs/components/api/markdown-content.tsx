@@ -21,6 +21,7 @@ import {
   ApiCards,
   ApiCodeExample,
   ModelSchema,
+  ScopeRoles,
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
 
@@ -34,6 +35,7 @@ import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
 import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
+import { Tabs, Tab } from '@/components/mdx/tabs';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 import { HeadingLink } from './heading-link';
@@ -220,6 +222,7 @@ const components = {
   ImageCard,
   ApiCodeExample,
   ModelSchema,
+  ScopeRoles,
   AgentSkillsWorkflows,
   CliCommands,
   SdkCommands,
@@ -228,6 +231,8 @@ const components = {
   HomeHero,
   HomeHeroContent,
   HomeHeroCode,
+  Tabs,
+  Tab,
 };
 
 interface MarkdownContentProps {

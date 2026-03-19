@@ -163,8 +163,8 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 
 Коллекция содержит все методы API с примерами запросов и настроенной авторизацией. Совместима с:
 
-- **Postman** *File → Import*
-- **Bruno** (open-source альтернатива) *File → Import → Postman Collection*
+- **Postman** — *File > Import*
+- **Bruno** (open-source альтернатива) — *File > Import > Postman Collection*
 
 ```plaintext title="Коллекция Postman/Bruno"
 https://dev.pachca.com/pachca.postman_collection.json

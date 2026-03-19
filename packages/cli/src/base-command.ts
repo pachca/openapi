@@ -4,8 +4,6 @@ import {
   TokenNotFoundError,
   ProfileNotFoundError,
   getDefaults,
-  getActiveProfile,
-  invalidateScopes,
 } from './profiles.js';
 import { ApiError, getExitCode, formatDryRun, request, type RequestOptions, type ClientFlags, type ErrorType } from './client.js';
 import { outputData, outputError, outputSuccess, type OutputFormat, type OutputOptions } from './output.js';
@@ -188,41 +186,6 @@ export abstract class BaseCommand extends Command {
   }
 
   /**
-   * Check if the current profile has the required scope.
-   * Exits with error if scope is missing.
-   */
-  protected checkScope(requiredScope: string): void {
-    const { profileName, profile } = this.resolveAuth();
-    if (!profile || !profile.scopes || profile.scopes.length === 0) return;
-
-    if (!profile.scopes.includes(requiredScope)) {
-      const format = this.getOutputFormat();
-      if (format === 'json' || !process.stderr.isTTY) {
-        outputError(
-          {
-            error: 'Insufficient scope',
-            code: null,
-            type: 'PACHCA_SCOPE_ERROR',
-            profile: profileName,
-            required_scope: requiredScope,
-            current_scopes: profile.scopes,
-          },
-          format,
-        );
-      } else {
-        process.stderr.write(`✗ Токен профиля ${profileName} не имеет скоупа ${requiredScope}\n\n`);
-        process.stderr.write(`  Текущие скоупы: ${profile.scopes.join(', ')}\n`);
-        process.stderr.write(`  Требуется:      ${requiredScope}\n\n`);
-        process.stderr.write(`  Используйте другой профиль:\n`);
-        process.stderr.write(`    pachca auth switch <profile>\n`);
-        process.stderr.write(`  Или проверьте актуальные скоупы:\n`);
-        process.stderr.write(`    pachca auth refresh ${profileName}\n`);
-      }
-      this.exit(3);
-    }
-  }
-
-  /**
    * Make an authenticated API request.
    */
   protected async apiRequest(opts: Omit<RequestOptions, 'token'>): Promise<{ data: unknown; status: number; headers: Headers }> {
@@ -273,16 +236,6 @@ export abstract class BaseCommand extends Command {
    */
   protected override async catch(err: Error & { exitCode?: number }): Promise<void> {
     if (err instanceof ApiError) {
-      // Invalidate cached scopes on 403 insufficient_scope
-      if (err.details.code === 403 && err.details.type === 'PACHCA_AUTH_ERROR' && err.details.message === 'insufficient_scope') {
-        const profileName = this.parsedFlags?.profile || process.env.PACHCA_PROFILE || getActiveProfile();
-        if (profileName) {
-          invalidateScopes(profileName);
-        }
-        err.details.hint = profileName
-          ? `pachca auth refresh ${profileName}`
-          : 'pachca auth refresh';
-      }
       outputError(err.details, this.getOutputFormat());
       this.exit(getExitCode(err));
     }

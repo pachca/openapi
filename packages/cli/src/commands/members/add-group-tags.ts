@@ -50,8 +50,6 @@ export default class MembersAddGroupTags extends BaseCommand {
       }
     }
 
-    this.checkScope("chat_members:write");
-
     const body: Record<string, unknown> = {
       group_tag_ids: flags['group-tag-ids'] ? this.parseJSON(flags['group-tag-ids'], 'group-tag-ids') : undefined,
     };

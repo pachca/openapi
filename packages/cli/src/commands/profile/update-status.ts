@@ -75,8 +75,6 @@ export default class ProfileUpdateStatus extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    this.checkScope("profile_status:write");
-
     const body: Record<string, unknown> = { status: {
       emoji: flags['emoji'],
       title: flags['title'],

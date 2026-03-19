@@ -49,8 +49,6 @@ export default class UsersDelete extends BaseCommand {
       }
     }
 
-    this.checkScope("users:delete");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/users/${args.id}`,

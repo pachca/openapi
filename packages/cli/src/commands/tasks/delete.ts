@@ -49,8 +49,6 @@ export default class TasksDelete extends BaseCommand {
       }
     }
 
-    this.checkScope("tasks:delete");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/tasks/${args.id}`,

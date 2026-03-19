@@ -26,8 +26,6 @@ export default class GroupTagsGet extends BaseCommand {
     const { args, flags } = await this.parse(GroupTagsGet);
     this.parsedFlags = flags;
 
-    this.checkScope("group_tags:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/group_tags/${args.id}`,

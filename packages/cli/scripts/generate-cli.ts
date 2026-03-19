@@ -553,12 +553,6 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`    }`);
   }
 
-  // Scope check before HTTP
-  if (p.scope) {
-    runBodyLines.push('');
-    runBodyLines.push(`    this.checkScope(${JSON.stringify(p.scope)});`);
-  }
-
   // Build request path with path params
   let apiPath = `'${p.endpoint.path}'`;
   if (p.endpoint.externalUrl) {

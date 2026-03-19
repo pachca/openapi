@@ -26,7 +26,6 @@ export default class AuthList extends BaseCommand {
       type: profile.type,
       user: profile.user,
       email: profile.email || null,
-      scopes_count: profile.scopes?.length ?? 0,
       active: name === activeProfile,
     }));
 

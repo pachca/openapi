@@ -89,8 +89,6 @@ export default class UsersCreate extends BaseCommand {
       }
     }
 
-    this.checkScope("users:create");
-
     const body: Record<string, unknown> = {
       user: {
       first_name: flags['first-name'],

@@ -60,6 +60,23 @@ export async function parseOpenAPI(): Promise<ParsedAPI> {
     }
   }
 
+  // Enrich endpoint requirements with scope roles from OAuthScope schema
+  const rawOAuthScope = parsed.schemas['OAuthScope'] as unknown as Record<string, unknown>;
+  if (rawOAuthScope) {
+    const rawRoles = getRecord(rawOAuthScope, 'x-scope-roles') as
+      | Record<string, string[]>
+      | undefined;
+    const enumValues = getArray(rawOAuthScope, 'enum') as string[] | undefined;
+    const allScopeRoles = normalizeScopeRoles(rawRoles, enumValues);
+    if (allScopeRoles) {
+      for (const ep of parsed.endpoints) {
+        if (ep.requirements?.scope && allScopeRoles[ep.requirements.scope]) {
+          ep.requirements.scopeRoles = allScopeRoles[ep.requirements.scope];
+        }
+      }
+    }
+  }
+
   cachedAPI = parsed;
   return parsed;
 }
@@ -276,6 +293,23 @@ function normalizeEnumDescriptions(
   return normalized;
 }
 
+/** Normalize x-scope-roles keys (underscored member names → colon enum values). */
+function normalizeScopeRoles(
+  roles: Record<string, string[]> | undefined,
+  enumValues: string[] | undefined
+): Record<string, string[]> | undefined {
+  if (!roles || !enumValues) return roles;
+  const keys = Object.keys(roles);
+  if (keys.length > 0 && enumValues.includes(keys[0])) return roles;
+  const normalized: Record<string, string[]> = {};
+  const valueByUnderscore = new Map(enumValues.map((v) => [v.replace(/:/g, '_'), v]));
+  for (const [key, roleList] of Object.entries(roles)) {
+    const enumValue = valueByUnderscore.get(key);
+    normalized[enumValue ?? key] = roleList;
+  }
+  return normalized;
+}
+
 function parseSchema(schema: Record<string, unknown>, openapi: OpenAPIData, depth = 0): Schema {
   // Защита от бесконечной рекурсии
   if (!schema || depth > 20) {
@@ -305,6 +339,10 @@ function parseSchema(schema: Record<string, unknown>, openapi: OpenAPIData, dept
     enum: getArray(schema, 'enum'),
     'x-enum-descriptions': normalizeEnumDescriptions(
       getRecord(schema, 'x-enum-descriptions') as Record<string, string> | undefined,
+      getArray(schema, 'enum') as string[] | undefined
+    ),
+    'x-scope-roles': normalizeScopeRoles(
+      getRecord(schema, 'x-scope-roles') as Record<string, string[]> | undefined,
       getArray(schema, 'enum') as string[] | undefined
     ),
     default: schema.default,

@@ -59,8 +59,6 @@ export default class ReactionsAdd extends BaseCommand {
       }
     }
 
-    this.checkScope("reactions:write");
-
     const body: Record<string, unknown> = {
       code: flags['code'],
       name: flags['name'],

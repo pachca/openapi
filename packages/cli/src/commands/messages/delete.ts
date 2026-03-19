@@ -49,8 +49,6 @@ export default class MessagesDelete extends BaseCommand {
       }
     }
 
-    this.checkScope("messages:delete");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/messages/${args.id}`,

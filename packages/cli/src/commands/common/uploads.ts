@@ -27,8 +27,6 @@ export default class CommonUploads extends BaseCommand {
     const { args, flags } = await this.parse(CommonUploads);
     this.parsedFlags = flags;
 
-    this.checkScope("uploads:write");
-
     const { data } = await this.apiRequest({
       method: 'POST',
       path: '/uploads',

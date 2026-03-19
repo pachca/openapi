@@ -67,8 +67,6 @@ export default class MessagesList extends BaseCommand {
       }
     }
 
-    this.checkScope("messages:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

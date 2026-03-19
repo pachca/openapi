@@ -201,11 +201,8 @@
   - `height: integer, int32` — Высота изображения в пикселях. Пример: `1080`
 - `buttons: array of array` (required) — Массив строк, каждая из которых представлена массивом кнопок
 - `thread: object` (required) — Тред сообщения
-  - `id: integer, int64` (required) — Идентификатор созданного треда (используется для отправки [новых комментариев](POST /messages) в тред). Пример: `265142`
-  - `chat_id: integer, int64` (required) — Идентификатор чата треда (используется для отправки [новых комментариев](POST /messages) в тред и получения [списка комментариев](GET /messages)). Пример: `2637266155`
-  - `message_id: integer, int64` (required) — Идентификатор сообщения, к которому был создан тред. Пример: `154332686`
-  - `message_chat_id: integer, int64` (required) — Идентификатор чата сообщения. Пример: `2637266154`
-  - `updated_at: date-time` (required) — Дата и время обновления треда (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2023-02-01T19:20:47.204Z"`
+  - `id: integer, int64` (required) — Идентификатор треда. Пример: `265142`
+  - `chat_id: integer, int64` (required) — Идентификатор чата треда. Пример: `2637266155`
 - `forwarding: object` (required) — Информация о пересланном сообщении
   - `original_message_id: integer, int32` (required) — Идентификатор оригинального сообщения. Пример: `194275`
   - `original_chat_id: integer, int32` (required) — Идентификатор чата, в котором находится оригинальное сообщение. Пример: `334`

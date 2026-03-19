@@ -40,8 +40,6 @@ export default class GroupTagsList extends BaseCommand {
     const { args, flags } = await this.parse(GroupTagsList);
     this.parsedFlags = flags;
 
-    this.checkScope("group_tags:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

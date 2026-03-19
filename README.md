@@ -3,6 +3,7 @@
 [![CI](https://github.com/pachca/openapi/actions/workflows/check.yml/badge.svg)](https://github.com/pachca/openapi/actions/workflows/check.yml)
 [![npm](https://img.shields.io/npm/v/@pachca/sdk)](https://www.npmjs.com/package/@pachca/sdk)
 [![npm](https://img.shields.io/npm/v/@pachca/cli)](https://www.npmjs.com/package/@pachca/cli)
+[![npm](https://img.shields.io/npm/v/@pachca/generator)](https://www.npmjs.com/package/@pachca/generator)
 [![PyPI](https://img.shields.io/pypi/v/pachca-sdk)](https://pypi.org/project/pachca-sdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -113,6 +114,24 @@ await pachca.reactions.addReaction(messageId, { code: "👍" }); // ≤2 пол�
 ```
 
 SDK генерируются из `openapi.yaml` и публикуются автоматически при пуше в `main`: генерация → коммит `chore: regenerate SDK v{VERSION}` → теги → npm, PyPI, JitPack. Swift и Go — через Git-теги.
+
+### Генератор
+
+Вместо готового SDK можно сгенерировать типизированный клиент прямо в своём проекте:
+
+```bash
+npx @pachca/generator --output ./generated --lang typescript
+npx @pachca/generator --output ./generated --lang typescript,python,go
+```
+
+| Параметр | Описание |
+|----------|----------|
+| `--spec <path\|url>` | Путь или URL к OpenAPI 3.0 YAML (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
+| `--output <dir>` | Директория для сгенерированного кода |
+| `--lang <langs>` | Языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift` |
+| `--examples` | Генерировать `examples.json` с примерами вызовов |
+
+**Документация**: https://dev.pachca.com/guides/sdk/overview
 
 ## Тестирование
 

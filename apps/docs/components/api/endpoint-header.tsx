@@ -1,11 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 import { MarkdownActions } from './markdown-actions';
 import { MethodBadge } from './method-badge';
 import { CopyButton } from './copy-button';
 import type { EndpointRequirements } from '@/lib/openapi/types';
+
+const ROLES = ['owner', 'admin', 'user', 'bot'] as const;
+const ROLE_LABELS: Record<string, string> = {
+  owner: 'Владелец',
+  admin: 'Администратор',
+  user: 'Сотрудник',
+  bot: 'Бот',
+};
 
 const planNames: Record<string, string> = {
   corporation: 'Корпорация',
@@ -60,12 +69,57 @@ export function EndpointHeader({
                   </Link>
                 )}
                 {requirements.scope && (
-                  <Link
-                    href="/api/authorization#skoupy"
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
-                  >
-                    {requirements.scope}
-                  </Link>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <Link
+                        href="/api/authorization#skoupy"
+                        className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-method-get/10 ![color:var(--color-method-get)] ![text-decoration:none] hover:opacity-80 transition-opacity"
+                      >
+                        {requirements.scope}
+                        {requirements.scopeRoles && (
+                          <span className="flex gap-0.5">
+                            {ROLES.map((r) => (
+                              <span
+                                key={r}
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  requirements.scopeRoles!.includes(r)
+                                    ? 'bg-method-get/50'
+                                    : 'bg-method-get/15'
+                                }`}
+                              />
+                            ))}
+                          </span>
+                        )}
+                      </Link>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content
+                        side="top"
+                        align="center"
+                        sideOffset={4}
+                        className="z-50 animate-tooltip bg-text-primary text-[12px] font-semibold rounded-md px-2.5 py-1.5 shadow-xl whitespace-nowrap flex items-center gap-1.5"
+                      >
+                        {requirements.scopeRoles ? (
+                          ROLES.map((r, i) => (
+                            <span
+                              key={r}
+                              className={
+                                requirements.scopeRoles!.includes(r)
+                                  ? 'text-background'
+                                  : 'text-background/40'
+                              }
+                            >
+                              {i > 0 && <span className="text-background/20 mr-1.5">·</span>}
+                              {ROLE_LABELS[r]}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-background">Все роли</span>
+                        )}
+                        <Tooltip.Arrow className="fill-text-primary" width={8} height={4} />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
                 )}
                 {requirements.plan && (
                   <Link

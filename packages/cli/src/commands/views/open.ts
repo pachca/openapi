@@ -101,8 +101,6 @@ export default class ViewsOpen extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    this.checkScope("views:write");
-
     const body: Record<string, unknown> = {
       view: {
       title: flags['title'],

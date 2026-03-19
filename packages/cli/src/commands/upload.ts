@@ -40,7 +40,6 @@ export default class Upload extends BaseCommand {
     const { args, flags } = await this.parse(Upload);
     this.parsedFlags = flags;
 
-    this.checkScope('uploads:write');
 
     // Step 1: Get upload params
     const { data: uploadData } = await this.apiRequest({

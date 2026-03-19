@@ -730,7 +730,7 @@ class MessagesService {
       headers: this.headers,
     });
     switch (response.status) {
-      case 201:
+      case 204:
         return;
       case 401:
         throw new OAuthError(((await response.json()) as any).error);

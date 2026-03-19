@@ -67,8 +67,6 @@ export default class CommonRequestExport extends BaseCommand {
       }
     }
 
-    this.checkScope("chat_exports:write");
-
     const body: Record<string, unknown> = {
       start_at: flags['start-at'],
       end_at: flags['end-at'],

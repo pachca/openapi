@@ -62,8 +62,6 @@ export default class SearchListChats extends BaseCommand {
     const { args, flags } = await this.parse(SearchListChats);
     this.parsedFlags = flags;
 
-    this.checkScope("search:chats");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

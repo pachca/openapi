@@ -483,9 +483,9 @@ public struct ApiErrorItem: Codable {
     public let value: String?
     public let message: String
     public let code: ValidationErrorCode
-    public let payload: String?
+    public let payload: [String: String]?
 
-    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: String? = nil) {
+    public init(key: String, value: String? = nil, message: String, code: ValidationErrorCode, payload: [String: String]? = nil) {
         self.key = key
         self.value = value
         self.message = message
@@ -1253,6 +1253,21 @@ public struct LinkSharedWebhookPayload: Codable {
     }
 }
 
+public struct MessageThread: Codable {
+    public let id: Int64
+    public let chatId: Int64
+
+    public init(id: Int64, chatId: Int64) {
+        self.id = id
+        self.chatId = chatId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case chatId = "chat_id"
+    }
+}
+
 public struct Message: Codable {
     public let id: Int
     public let entityType: MessageEntityType
@@ -1265,7 +1280,7 @@ public struct Message: Codable {
     public let url: String
     public let files: [File]
     public let buttons: [[Button]]?
-    public let thread: Thread?
+    public let thread: MessageThread?
     public let forwarding: Forwarding?
     public let parentMessageId: Int?
     public let displayAvatarUrl: String?
@@ -1273,7 +1288,7 @@ public struct Message: Codable {
     public let changedAt: String?
     public let deletedAt: String?
 
-    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: Date, url: String, files: [File], buttons: [[Button]]? = nil, thread: Thread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil) {
+    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: Date, url: String, files: [File], buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil) {
         self.id = id
         self.entityType = entityType
         self.entityId = entityId

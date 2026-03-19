@@ -36,8 +36,6 @@ export default class ChatsUpdate extends BaseCommand {
     const { args, flags } = await this.parse(ChatsUpdate);
     this.parsedFlags = flags;
 
-    this.checkScope("chats:update");
-
     const body: Record<string, unknown> = { chat: {
       name: flags['name'],
       public: flags['public'],

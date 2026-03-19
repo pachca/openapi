@@ -1,18 +1,43 @@
 
-# SDK
+# SDK и генератор
 
-Типизированные клиентские библиотеки для Pachca API — автоматически сгенерированы из [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml). Автодополнение, актуальные модели данных, встроенный retry и обработка ошибок. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
+Два способа работать с Pachca API типизированно:
+
+- **Готовые SDK** — установите пакет и пишите код с автодополнением
+- **Генератор** — сгенерируйте клиент прямо в своём проекте
+
+Оба варианта автоматически генерируются из одной [OpenAPI-спецификации](https://dev.pachca.com/openapi.yaml): типизированные методы, retry, пагинация, обработка ошибок.
+
+## Готовые SDK
 
 
-## Пример
+Автоматически обновляются при каждом изменении спецификации. Версия пакета меняется редко — только при значительных изменениях генератора. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/sdk).
 
-**Получение профиля**
+## Генератор
+
+[@pachca/generator](https://www.npmjs.com/package/@pachca/generator) npm
+
+
+Генерирует типы и клиент из OpenAPI-спецификации прямо в вашем проекте. Сгенерированный код можно закоммитить в репозиторий и добавить генерацию в CI как проверку совместимости с актуальным API. [Исходный код на GitHub](https://github.com/pachca/openapi/tree/main/packages/generator).
 
 ```bash
-curl "https://api.pachca.com/api/shared/v1/profile" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+# Генерация из Pachca API (спецификация загружается автоматически)
+npx @pachca/generator --output ./generated --lang typescript
+
+# Несколько языков
+npx @pachca/generator --output ./generated --lang typescript,python,go
+
+# Из локального файла или произвольного URL
+npx @pachca/generator --spec openapi.yaml --output ./generated --lang typescript
+npx @pachca/generator --spec https://example.com/openapi.yaml --output ./generated --lang go
 ```
 
+| Параметр | Описание |
+|----------|----------|
+| `--spec <path\|url>` | Путь или URL к OpenAPI 3.0 YAML (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
+| `--output <dir>` | Директория для сгенерированного кода |
+| `--lang <langs>` | Языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift` |
+| `--examples` | Генерировать `examples.json` с примерами вызовов |
 
 ## Возможности
 
@@ -25,7 +50,17 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 | **Сериализация** | Автоматическая конвертация между форматами (snake_case ↔ camelCase) |
 | **Авторизация** | Bearer-токен передаётся один раз при создании клиента |
 
-## Сравнение
+## Пример
+
+**Получение профиля**
+
+```bash
+curl "https://api.pachca.com/api/shared/v1/profile" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+
+## Сравнение языков
 
 | | TypeScript | Python | Go | Kotlin | Swift |
 |---|---|---|---|---|---|

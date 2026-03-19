@@ -187,7 +187,6 @@ describe('contract tests', () => {
       if (endpoint.requirements?.scope) {
         it(`scope = "${endpoint.requirements.scope}"`, () => {
           expect(cmd.content).toContain(`static scope = "${endpoint.requirements!.scope}"`);
-          expect(cmd.content).toContain(`this.checkScope("${endpoint.requirements!.scope}")`);
         });
       }
 

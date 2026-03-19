@@ -828,7 +828,7 @@ class MessagesService:
             f"/messages/{id}/pin",
         )
         match response.status_code:
-            case 201:
+            case 204:
                 return
             case 401:
                 raise deserialize(OAuthError, response.json())

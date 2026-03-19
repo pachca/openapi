@@ -19,20 +19,12 @@ function setEnv(key: string, value: string | undefined) {
   else process.env[key] = value;
 }
 
-// All scopes needed for tests
-const ALL_SCOPES = [
-  'users:read', 'users:create', 'users:update', 'users:delete',
-  'chats:read', 'messages:create', 'search:messages',
-  'uploads:write',
-];
-
-function setupProfile(scopes = ALL_SCOPES) {
+function setupProfile() {
   const configDir = path.join(tmpDir, 'pachca');
   fs.mkdirSync(configDir, { recursive: true });
-  const scopesStr = scopes.map((s) => `"${s}"`).join(', ');
   fs.writeFileSync(
     path.join(configDir, 'config.toml'),
-    `active_profile = "test"\n\n[profiles.test]\ntype = "user"\ntoken = "test-token"\nuser = "Test User"\nscopes = [${scopesStr}]\n`,
+    `active_profile = "test"\n\n[profiles.test]\ntype = "user"\ntoken = "test-token"\nuser = "Test User"\n`,
   );
 }
 
@@ -365,18 +357,6 @@ describe('generated commands — functional tests', () => {
       const { stdout } = await runCommand(['common', 'uploads'], { root: CLI_ROOT });
       const parsed = JSON.parse(stdout);
       expect(parsed.key).toBeDefined();
-    });
-  });
-
-  // ----- Scope check -----
-
-  describe('scope check', () => {
-    it('missing scope → PACHCA_SCOPE_ERROR', async () => {
-      setupProfile(['users:read']);
-      mockFetch({ data: {} });
-      const { stderr, error } = await runCommand(['users', 'create', '--email', 'test@test.com'], { root: CLI_ROOT });
-      expect(error).toBeTruthy();
-      expect(stderr).toContain('PACHCA_SCOPE_ERROR');
     });
   });
 

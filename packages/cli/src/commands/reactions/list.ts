@@ -40,8 +40,6 @@ export default class ReactionsList extends BaseCommand {
     const { args, flags } = await this.parse(ReactionsList);
     this.parsedFlags = flags;
 
-    this.checkScope("reactions:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

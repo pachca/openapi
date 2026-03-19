@@ -32,8 +32,6 @@ export default class TasksGet extends BaseCommand {
     const { args, flags } = await this.parse(TasksGet);
     this.parsedFlags = flags;
 
-    this.checkScope("tasks:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/tasks/${args.id}`,

@@ -38,8 +38,6 @@ export default class ReadMemberListReaders extends BaseCommand {
     const { args, flags } = await this.parse(ReadMemberListReaders);
     this.parsedFlags = flags;
 
-    this.checkScope("messages:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

@@ -57,13 +57,13 @@ export function ScopeRolesTable({ schema }: ScopeRolesTableProps) {
   return (
     <div className="not-prose">
       {/* Tabs */}
-      <div className="mb-6 overflow-x-auto scrollbar-none">
-        <div className="flex gap-6 border-b border-glass-border">
+      <div className="mb-6 border-b border-glass-border">
+        <div className="flex gap-6 overflow-x-auto scrollbar-none -mb-px">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveRole(tab.key)}
-              className={`flex items-baseline gap-1.5 h-9 text-[14px] font-medium whitespace-nowrap transition-colors cursor-pointer select-none border-b -mb-px ${
+              className={`flex items-baseline gap-1.5 h-9 text-[14px] font-medium whitespace-nowrap transition-colors cursor-pointer select-none border-b ${
                 activeRole === tab.key
                   ? 'border-primary text-primary'
                   : 'border-transparent text-text-secondary hover:text-text-primary'

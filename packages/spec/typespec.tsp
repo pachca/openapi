@@ -11,7 +11,7 @@ using OpenAPI;
   title: "Pachca API",
 })
 @info(#{
-  version: "1.0.1",
+  version: "1.0.2",
 })
 @server("https://api.pachca.com/api/shared/v1", "Production server")
 @useAuth(BearerAuth)

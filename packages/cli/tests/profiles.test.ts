@@ -186,57 +186,13 @@ describe('profiles', () => {
       type: 'bot',
       token: 'bot-token',
       user: 'Bot',
-      scopes: ['messages:write'],
-      scopes_refreshed_at: '2026-03-01T00:00:00Z',
     });
     setActiveProfile('test');
 
     const result = resolveToken({});
     expect(result.profile).toBeDefined();
     expect(result.profile!.type).toBe('bot');
-    expect(result.profile!.scopes).toEqual(['messages:write']);
-    expect(result.profile!.scopes_refreshed_at).toBe('2026-03-01T00:00:00Z');
-  });
-
-  it('should invalidate scopes for a profile', async () => {
-    const { setProfile, getProfile, invalidateScopes } = await import('../src/profiles.js');
-    setProfile('bot1', {
-      type: 'bot',
-      token: 'bot-token',
-      user: 'Bot',
-      scopes: ['messages:write', 'chats:read'],
-      scopes_refreshed_at: '2026-03-01T00:00:00Z',
-    });
-
-    invalidateScopes('bot1');
-
-    const profile = getProfile('bot1');
-    expect(profile).toBeDefined();
-    expect(profile!.scopes).toEqual([]);
-    expect(profile!.scopes_refreshed_at).toBeUndefined();
-    // Token should still be preserved
-    expect(profile!.token).toBe('bot-token');
-  });
-
-  it('should not throw when invalidating scopes for nonexistent profile', async () => {
-    const { invalidateScopes } = await import('../src/profiles.js');
-    expect(() => invalidateScopes('nonexistent')).not.toThrow();
-  });
-
-  it('should store bot profile with scopes_refreshed_at', async () => {
-    const { setProfile, getProfile } = await import('../src/profiles.js');
-    const now = new Date().toISOString();
-    setProfile('bot', {
-      type: 'bot',
-      token: 'bot-token',
-      user: 'Support Bot',
-      scopes: ['messages:write'],
-      scopes_refreshed_at: now,
-    });
-
-    const profile = getProfile('bot');
-    expect(profile!.type).toBe('bot');
-    expect(profile!.scopes_refreshed_at).toBe(now);
+    expect(result.token).toBe('bot-token');
   });
 
   it('should create config with 600 permissions on unix', async () => {

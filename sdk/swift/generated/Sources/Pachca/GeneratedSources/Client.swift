@@ -750,7 +750,7 @@ public struct MessagesService {
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
-        case 201:
+        case 204:
             return
         case 401:
             throw try deserialize(OAuthError.self, from: data)

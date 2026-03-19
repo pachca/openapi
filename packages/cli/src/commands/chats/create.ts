@@ -68,8 +68,6 @@ export default class ChatsCreate extends BaseCommand {
       }
     }
 
-    this.checkScope("chats:create");
-
     const body: Record<string, unknown> = { chat: {
       name: flags['name'],
       member_ids: flags['member-ids'] ? this.parseJSON(flags['member-ids'], 'member-ids') : undefined,

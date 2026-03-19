@@ -329,7 +329,7 @@ type ApiErrorItem struct {
 	Message string              `json:"message"`
 	Code    ValidationErrorCode `json:"code"`
 	Value   *string             `json:"value"`
-	Payload *string             `json:"payload"`
+	Payload map[string]string   `json:"payload"`
 }
 
 type AuditDetailsChatId struct {
@@ -602,6 +602,11 @@ type LinkSharedWebhookPayload struct {
 	WebhookTimestamp int32         `json:"webhook_timestamp"`
 }
 
+type MessageThread struct {
+	ID     int64 `json:"id"`
+	ChatID int64 `json:"chat_id"`
+}
+
 type Message struct {
 	ID               int32             `json:"id"`
 	EntityType       MessageEntityType `json:"entity_type"`
@@ -614,7 +619,7 @@ type Message struct {
 	URL              string            `json:"url"`
 	Files            []File            `json:"files"`
 	Buttons          [][]Button        `json:"buttons"`
-	Thread           *Thread           `json:"thread"`
+	Thread           *MessageThread    `json:"thread"`
 	Forwarding       *Forwarding       `json:"forwarding"`
 	ParentMessageID  *int32            `json:"parent_message_id"`
 	DisplayAvatarURL *string           `json:"display_avatar_url"`

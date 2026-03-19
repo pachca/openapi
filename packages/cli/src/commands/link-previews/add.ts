@@ -54,8 +54,6 @@ export default class LinkPreviewsAdd extends BaseCommand {
       }
     }
 
-    this.checkScope("link_previews:write");
-
     const body: Record<string, unknown> = {
       link_previews: flags['link-previews'] ? this.parseJSON(flags['link-previews'], 'link-previews') : undefined,
     };

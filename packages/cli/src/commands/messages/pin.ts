@@ -30,8 +30,6 @@ export default class MessagesPin extends BaseCommand {
     const { args, flags } = await this.parse(MessagesPin);
     this.parsedFlags = flags;
 
-    this.checkScope("pins:write");
-
     const { data } = await this.apiRequest({
       method: 'POST',
       path: `/messages/${args.id}/pin`,

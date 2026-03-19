@@ -32,8 +32,6 @@ export default class UsersGet extends BaseCommand {
     const { args, flags } = await this.parse(UsersGet);
     this.parsedFlags = flags;
 
-    this.checkScope("users:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/users/${args.id}`,

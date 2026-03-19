@@ -634,6 +634,38 @@ export async function expandMdxComponents(content: string): Promise<string> {
     result = result.replace(/<CliCommands\s*\/>/g, md);
   }
 
+  // <ScopeRoles /> -> OAuth scopes table with roles
+  if (result.includes('<ScopeRoles')) {
+    const oauthScope = await getSchemaByName('OAuthScope');
+    if (oauthScope) {
+      const enumValues = (oauthScope.enum as string[]) || [];
+      const descriptions = (oauthScope['x-enum-descriptions'] as Record<string, string>) || {};
+      const scopeRoles = (oauthScope['x-scope-roles'] as Record<string, string[]>) || {};
+
+      const ROLE_LABELS: Record<string, string> = {
+        owner: 'Владелец',
+        admin: 'Администратор',
+        user: 'Сотрудник',
+        bot: 'Бот',
+      };
+      const ALL_ROLES = ['owner', 'admin', 'user', 'bot'];
+
+      let md = '| Скоуп | Описание | Роли |\n';
+      md += '|-------|----------|------|\n';
+      for (const scope of enumValues) {
+        const desc = descriptions[scope] || '';
+        const roles = scopeRoles[scope] || [];
+        const rolesStr =
+          roles.length === ALL_ROLES.length
+            ? 'Все'
+            : roles.map((r) => ROLE_LABELS[r] || r).join(', ');
+        md += `| \`${scope}\` | ${desc} | ${rolesStr} |\n`;
+      }
+      md += '\n';
+      result = result.replace(/<ScopeRoles\s*\/>/g, md);
+    }
+  }
+
   // <ModelSchema name="..." /> -> load and expand schema from OpenAPI
   if (result.includes('<ModelSchema')) {
     const modelSchemaRegex = /<ModelSchema\s+name="([^"]+)"[^/]*\/>/g;

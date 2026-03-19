@@ -316,7 +316,7 @@ class ApiErrorItem:
     message: str
     code: ValidationErrorCode
     value: str | None = None
-    payload: str | None = None
+    payload: dict[str, str] | None = None
 
 
 @dataclass
@@ -633,6 +633,12 @@ class LinkSharedWebhookPayload:
 
 
 @dataclass
+class MessageThread:
+    id: int
+    chat_id: int
+
+
+@dataclass
 class Message:
     id: int
     entity_type: MessageEntityType
@@ -645,7 +651,7 @@ class Message:
     url: str
     files: list[File]
     buttons: list[list[Button]] | None = None
-    thread: Thread | None = None
+    thread: MessageThread | None = None
     forwarding: Forwarding | None = None
     parent_message_id: int | None = None
     display_avatar_url: str | None = None

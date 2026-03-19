@@ -8,8 +8,6 @@ export interface Profile {
   token: string;
   user: string;
   email?: string | null;
-  scopes: string[];
-  scopes_refreshed_at?: string;
 }
 
 export interface ConfigDefaults {
@@ -217,15 +215,6 @@ export function getConfigFilePermissions(): string | null {
   if (process.platform === 'win32') return null;
   const stat = fs.statSync(configPath);
   return (stat.mode & 0o777).toString(8);
-}
-
-export function invalidateScopes(profileName: string): void {
-  const config = readConfig();
-  if (config.profiles?.[profileName]) {
-    config.profiles[profileName].scopes = [];
-    config.profiles[profileName].scopes_refreshed_at = undefined;
-    writeConfig(config);
-  }
 }
 
 export class TokenNotFoundError extends Error {

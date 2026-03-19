@@ -32,8 +32,6 @@ export default class UsersGetStatus extends BaseCommand {
     const { args, flags } = await this.parse(UsersGetStatus);
     this.parsedFlags = flags;
 
-    this.checkScope("user_status:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/users/${args.user_id}/status`,

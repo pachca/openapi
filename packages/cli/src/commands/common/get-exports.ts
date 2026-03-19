@@ -34,8 +34,6 @@ export default class CommonGetExports extends BaseCommand {
     const { args, flags } = await this.parse(CommonGetExports);
     this.parsedFlags = flags;
 
-    this.checkScope("chat_exports:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/chats/exports/${args.id}`,

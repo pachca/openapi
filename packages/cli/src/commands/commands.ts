@@ -52,23 +52,17 @@ export default class Commands extends BaseCommand {
       return;
     }
 
-    // --available: check token scopes
+    // --available: check token scopes via API
     let tokenScopes: string[] = [];
     try {
-      const { token, profile } = resolveToken({ token: flags.token, profile: flags.profile });
+      const { token } = resolveToken({ token: flags.token, profile: flags.profile });
 
-      // Use cached scopes if available
-      if (profile?.scopes) {
-        tokenScopes = profile.scopes;
-      } else {
-        // Fetch from API
-        const response = await request(
-          { method: 'GET', path: '/oauth/token/info', token },
-          { quiet: true },
-        );
-        const wrapper = response.data as { data: { scopes: string[] } };
-        tokenScopes = wrapper.data.scopes || [];
-      }
+      const response = await request(
+        { method: 'GET', path: '/oauth/token/info', token },
+        { quiet: true },
+      );
+      const wrapper = response.data as { data: { scopes: string[] } };
+      tokenScopes = wrapper.data.scopes || [];
     } catch (error) {
       if (error instanceof TokenNotFoundError) {
         process.stderr.write('⚠ Нет активного токена — показаны все команды\n');

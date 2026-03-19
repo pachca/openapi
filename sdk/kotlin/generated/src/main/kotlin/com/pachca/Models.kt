@@ -802,7 +802,7 @@ data class ApiErrorItem(
     val value: String? = null,
     val message: String,
     val code: ValidationErrorCode,
-    val payload: String? = null,
+    val payload: Map<String, String>? = null,
 )
 
 @Serializable
@@ -989,6 +989,12 @@ data class LinkPreviewsRequest(
 )
 
 @Serializable
+data class MessageThread(
+    val id: Long,
+    @SerialName("chat_id") val chatId: Long,
+)
+
+@Serializable
 data class Message(
     val id: Int,
     @SerialName("entity_type") val entityType: MessageEntityType,
@@ -1001,7 +1007,7 @@ data class Message(
     val url: String,
     val files: List<File>,
     val buttons: List<List<Button>>? = null,
-    val thread: Thread? = null,
+    val thread: MessageThread? = null,
     val forwarding: Forwarding? = null,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
     @SerialName("display_avatar_url") val displayAvatarUrl: String? = null,

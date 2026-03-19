@@ -62,7 +62,7 @@ export default class AuthLogin extends BaseCommand {
     }
 
     // Validate token via GET /oauth/token/info
-    let tokenInfo: { user_id: number; scopes: string[]; user_name?: string; user_email?: string; bot?: boolean };
+    let tokenInfo: { user_id: number; user_name?: string; user_email?: string; bot?: boolean };
     try {
       const response = await request(
         { method: 'GET', path: '/oauth/token/info', token },
@@ -125,8 +125,6 @@ export default class AuthLogin extends BaseCommand {
       // profile:read scope not available — use user_id from token info
     }
 
-    // Determine scopes
-    const scopes = tokenInfo.scopes || [];
     const profileType: 'user' | 'bot' = isBot ? 'bot' : 'user';
 
     // Save profile
@@ -135,8 +133,6 @@ export default class AuthLogin extends BaseCommand {
       token,
       user: isBot ? `${userName} (бот)` : userName,
       email: userEmail,
-      scopes,
-      ...(isBot ? { scopes_refreshed_at: new Date().toISOString() } : {}),
     };
 
     setProfile(profileName, profile);
@@ -153,17 +149,12 @@ export default class AuthLogin extends BaseCommand {
         type: profileType,
         user: profile.user,
         email: userEmail,
-        scopes,
       });
     } else if (!flags.quiet) {
       const typeLabel = profileType === 'bot' ? 'bot' : 'user';
       const emailStr = userEmail ? ` (${userEmail})` : '';
       process.stderr.write(`✔ Подключён как: ${profile.user}${emailStr}  [${typeLabel}]\n`);
-      process.stderr.write(`  Скоупы (${scopes.length}): ${scopes.join(' ')}\n`);
       process.stderr.write(`  Профиль сохранён [${profileName}]\n`);
-      if (isBot) {
-        process.stderr.write(`  ℹ Скоупы бота обновляются автоматически раз в сутки (синхронно при запуске команды)\n`);
-      }
     }
   }
 }

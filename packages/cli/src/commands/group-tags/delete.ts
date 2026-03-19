@@ -43,8 +43,6 @@ export default class GroupTagsDelete extends BaseCommand {
       }
     }
 
-    this.checkScope("group_tags:write");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/group_tags/${args.id}`,

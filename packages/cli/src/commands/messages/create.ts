@@ -104,8 +104,6 @@ export default class MessagesCreate extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    this.checkScope("messages:create");
-
     const body: Record<string, unknown> = { message: {
       entity_type: flags['entity-type'],
       entity_id: flags['entity-id'],

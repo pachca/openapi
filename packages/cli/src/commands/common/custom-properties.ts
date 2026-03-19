@@ -53,8 +53,6 @@ export default class CommonCustomProperties extends BaseCommand {
       }
     }
 
-    this.checkScope("custom_properties:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: '/custom_properties',

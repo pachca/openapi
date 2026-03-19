@@ -460,7 +460,7 @@ export interface ApiErrorItem {
   value: string | null;
   message: string;
   code: ValidationErrorCode;
-  payload: string | null;
+  payload: Record<string, string> | null;
 }
 
 export interface AuditDetailsChatId {
@@ -735,7 +735,10 @@ export interface Message {
   url: string;
   files: File[];
   buttons: Button[][] | null;
-  thread: Thread | null;
+  thread: {
+    id: number;
+    chatId: number;
+  } | null;
   forwarding: Forwarding | null;
   parentMessageId: number | null;
   displayAvatarUrl: string | null;

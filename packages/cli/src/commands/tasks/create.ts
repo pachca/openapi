@@ -85,8 +85,6 @@ export default class TasksCreate extends BaseCommand {
       }
     }
 
-    this.checkScope("tasks:create");
-
     const body: Record<string, unknown> = { task: {
       kind: flags['kind'],
       content: flags['content'],

@@ -1277,7 +1277,7 @@ func (s *MessagesService) PinMessage(ctx context.Context, id int32) error {
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case http.StatusCreated:
+	case http.StatusNoContent:
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError

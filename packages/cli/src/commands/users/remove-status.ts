@@ -49,8 +49,6 @@ export default class UsersRemoveStatus extends BaseCommand {
       }
     }
 
-    this.checkScope("user_status:write");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/users/${args.user_id}/status`,

@@ -85,8 +85,6 @@ export default class SecurityList extends BaseCommand {
       }
     }
 
-    this.checkScope("audit_events:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

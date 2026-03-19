@@ -48,8 +48,6 @@ export default class MessagesUnpin extends BaseCommand {
       }
     }
 
-    this.checkScope("pins:write");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/messages/${args.id}/pin`,

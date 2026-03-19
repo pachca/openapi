@@ -59,8 +59,6 @@ export default class MembersUpdate extends BaseCommand {
       }
     }
 
-    this.checkScope("chat_members:write");
-
     const body: Record<string, unknown> = {
       role: flags['role'],
     };

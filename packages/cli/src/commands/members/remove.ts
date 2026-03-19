@@ -52,8 +52,6 @@ export default class MembersRemove extends BaseCommand {
       }
     }
 
-    this.checkScope("chat_members:write");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/chats/${args.id}/members/${args.user_id}`,

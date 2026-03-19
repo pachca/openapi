@@ -38,8 +38,6 @@ export default class TasksList extends BaseCommand {
     const { args, flags } = await this.parse(TasksList);
     this.parsedFlags = flags;
 
-    this.checkScope("tasks:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

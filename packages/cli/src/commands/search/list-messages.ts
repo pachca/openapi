@@ -59,8 +59,6 @@ export default class SearchListMessages extends BaseCommand {
     const { args, flags } = await this.parse(SearchListMessages);
     this.parsedFlags = flags;
 
-    this.checkScope("search:messages");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

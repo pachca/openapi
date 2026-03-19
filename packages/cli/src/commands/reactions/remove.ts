@@ -76,8 +76,6 @@ export default class ReactionsRemove extends BaseCommand {
       }
     }
 
-    this.checkScope("reactions:write");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/messages/${args.id}/reactions`,

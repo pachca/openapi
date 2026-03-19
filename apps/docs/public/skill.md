@@ -218,7 +218,7 @@ Detailed documentation on specific topics is available at:
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [CLI](https://dev.pachca.com/guides/cli) — Управление Пачкой из терминала — все API-методы одной командой
-- [Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные клиентские библиотеки для Pachca API
+- [Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные клиентские библиотеки и генератор для Pachca API
 - [TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript с автодополнением и автопагинацией
 - [Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python с httpx
 - [Go](https://dev.pachca.com/guides/sdk/go) — Типизированный клиент для Pachca API на Go с контекстами и автопагинацией

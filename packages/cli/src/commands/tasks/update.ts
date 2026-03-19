@@ -68,8 +68,6 @@ export default class TasksUpdate extends BaseCommand {
       flags['content'] = Buffer.concat(chunks).toString('utf-8').trimEnd();
     }
 
-    this.checkScope("tasks:update");
-
     const body: Record<string, unknown> = { task: {
       kind: flags['kind'],
       content: flags['content'],

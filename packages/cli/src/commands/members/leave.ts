@@ -47,8 +47,6 @@ export default class MembersLeave extends BaseCommand {
       }
     }
 
-    this.checkScope("chats:leave");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/chats/${args.id}/leave`,

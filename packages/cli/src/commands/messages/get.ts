@@ -32,8 +32,6 @@ export default class MessagesGet extends BaseCommand {
     const { args, flags } = await this.parse(MessagesGet);
     this.parsedFlags = flags;
 
-    this.checkScope("messages:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/messages/${args.id}`,

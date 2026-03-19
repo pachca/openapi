@@ -26,8 +26,6 @@ export default class ThreadsGet extends BaseCommand {
     const { args, flags } = await this.parse(ThreadsGet);
     this.parsedFlags = flags;
 
-    this.checkScope("threads:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: `/threads/${args.id}`,

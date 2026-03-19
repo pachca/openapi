@@ -44,8 +44,6 @@ export default class MembersList extends BaseCommand {
     const { args, flags } = await this.parse(MembersList);
     this.parsedFlags = flags;
 
-    this.checkScope("chat_members:read");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

@@ -45,8 +45,6 @@ export default class ProfileDeleteStatus extends BaseCommand {
       }
     }
 
-    this.checkScope("profile_status:write");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: '/profile/status',

@@ -28,8 +28,6 @@ export default class ProfileGetStatus extends BaseCommand {
     const { args, flags } = await this.parse(ProfileGetStatus);
     this.parsedFlags = flags;
 
-    this.checkScope("profile_status:read");
-
     const { data } = await this.apiRequest({
       method: 'GET',
       path: '/profile/status',

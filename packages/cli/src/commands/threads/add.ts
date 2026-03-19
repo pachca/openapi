@@ -31,8 +31,6 @@ export default class ThreadsAdd extends BaseCommand {
     const { args, flags } = await this.parse(ThreadsAdd);
     this.parsedFlags = flags;
 
-    this.checkScope("threads:create");
-
     const { data } = await this.apiRequest({
       method: 'POST',
       path: `/messages/${args.id}/thread`,

@@ -7,14 +7,11 @@ import semver from 'semver';
 import ansis from 'ansis';
 import {
   getActiveProfile,
-  getProfile,
-  setProfile,
   getDefaults,
   resolveToken,
   TokenNotFoundError,
   ProfileNotFoundError,
 } from '../profiles.js';
-import { request } from '../client.js';
 import { outputError } from '../output.js';
 import { defaultOutputFormat, isInteractive } from '../utils.js';
 
@@ -140,26 +137,6 @@ const hook: Hook<'init'> = async function (opts) {
   try {
     const { profileName, profile } = resolveToken({ token: argvToken, profile: argvProfile });
 
-    // Refresh bot scopes if stale (>24h)
-    if (profileName && profile?.type === 'bot' && profile.scopes_refreshed_at) {
-      const refreshedAt = new Date(profile.scopes_refreshed_at).getTime();
-      const now = Date.now();
-      const twentyFourHours = 24 * 60 * 60 * 1000;
-      if (now - refreshedAt > twentyFourHours) {
-        try {
-          const response = await request(
-            { method: 'GET', path: '/oauth/token/info', token: profile.token },
-            { quiet: true },
-          );
-          const wrapper = response.data as { data: { scopes: string[] } };
-          profile.scopes = wrapper.data.scopes || [];
-          profile.scopes_refreshed_at = new Date().toISOString();
-          setProfile(profileName, profile);
-        } catch {
-          // Silently ignore refresh errors — use cached scopes
-        }
-      }
-    }
   } catch (error) {
     if (error instanceof TokenNotFoundError) {
       const format = resolveOutputFromArgv();

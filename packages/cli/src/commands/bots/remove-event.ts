@@ -47,8 +47,6 @@ export default class BotsRemoveEvent extends BaseCommand {
       }
     }
 
-    this.checkScope("webhooks:events:delete");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/webhooks/events/${args.id}`,

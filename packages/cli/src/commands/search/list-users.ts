@@ -58,8 +58,6 @@ export default class SearchListUsers extends BaseCommand {
     const { args, flags } = await this.parse(SearchListUsers);
     this.parsedFlags = flags;
 
-    this.checkScope("search:users");
-
     if (flags.all) {
       // Auto-pagination
       const allData: unknown[] = [];

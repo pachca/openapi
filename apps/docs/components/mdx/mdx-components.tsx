@@ -18,6 +18,8 @@ import { SdkCommands } from '@/components/mdx/sdk-commands';
 import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
 import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
+import { Tabs, Tab } from '@/components/mdx/tabs';
+import { ScopeRolesTable } from '@/components/api/scope-roles-table';
 import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
 import type { Schema } from '@/lib/openapi/types';
@@ -416,6 +418,24 @@ export async function ModelSchema({ name }: ModelSchemaProps) {
   return <SchemaTable schema={schema} />;
 }
 
+// ============================================
+// ScopeRoles - displays OAuth scopes with role tabs
+// ============================================
+
+export async function ScopeRoles() {
+  const schema = await getSchemaByName('OAuthScope');
+
+  if (!schema) {
+    return (
+      <div className="my-4 p-4 border border-red-300 bg-red-50 rounded-xl text-red-700">
+        Schema not found: OAuthScope
+      </div>
+    );
+  }
+
+  return <ScopeRolesTable schema={schema} />;
+}
+
 export const customMdxComponents = {
   SchemaBlock,
   HttpCodes,
@@ -441,6 +461,9 @@ export const customMdxComponents = {
   ImageCard,
   ApiCodeExample,
   ModelSchema,
+  ScopeRoles,
+  Tabs,
+  Tab,
   AgentSkillsWorkflows,
   CliCommands,
   SdkCommands,

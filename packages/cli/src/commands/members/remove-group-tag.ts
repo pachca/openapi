@@ -47,8 +47,6 @@ export default class MembersRemoveGroupTag extends BaseCommand {
       }
     }
 
-    this.checkScope("chat_members:write");
-
     const { data } = await this.apiRequest({
       method: 'DELETE',
       path: `/chats/${args.id}/group_tags/${args.tag_id}`,

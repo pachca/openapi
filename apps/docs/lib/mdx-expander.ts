@@ -227,7 +227,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
     if (apiError) {
       errorSchemaMarkdown += formatSchemaWithTitle(
         apiError,
-        'ApiError (400, 403, 404, 409, 410, 422)'
+        'ApiError (400, 402, 403, 404, 409, 410, 422)'
       );
       errorSchemaMarkdown += '\n';
     }

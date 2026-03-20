@@ -27,8 +27,13 @@ export default class MessagesList extends BaseCommand {
     'chat-id': Flags.integer({
       description: "Идентификатор чата (беседа, канал, диалог или чат треда)",
     }),
-    'sort-id': Flags.string({
-      description: "Идентификатор сообщения",
+    sort: Flags.string({
+      description: "Поле сортировки (id — идентификатор сообщения)",
+      options: ["id"],
+    }),
+    order: Flags.string({
+      description: "Порядок сортировки",
+      options: ["asc","desc"],
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',
@@ -77,7 +82,7 @@ export default class MessagesList extends BaseCommand {
       while (pages < 500) {
         const query: Record<string, string | number | boolean | undefined> = {
         'chat_id': flags['chat-id'],
-        'sort[id]': flags['sort-id'],
+        ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
         limit: flags.limit,
           cursor: nextCursor,
         };
@@ -117,7 +122,7 @@ export default class MessagesList extends BaseCommand {
       path: '/messages',
       query: {
       'chat_id': flags['chat-id'],
-      'sort[id]': flags['sort-id'],
+      ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
       limit: flags.limit,
       cursor: flags.cursor,
       },

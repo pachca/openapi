@@ -55,33 +55,37 @@ type SecurityService struct {
 	client  *http.Client
 }
 
-func (s *SecurityService) GetAuditEvents(ctx context.Context, params GetAuditEventsParams) (*GetAuditEventsResponse, error) {
+func (s *SecurityService) GetAuditEvents(ctx context.Context, params *GetAuditEventsParams) (*GetAuditEventsResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/audit_events", s.baseURL))
 	if err != nil {
 		return nil, err
 	}
 	q := u.Query()
-	q.Set("start_time", params.StartTime.Format(time.RFC3339))
-	q.Set("end_time", params.EndTime.Format(time.RFC3339))
-	if params.EventKey != nil {
+	if params != nil && params.StartTime != nil {
+		q.Set("start_time", params.StartTime.Format(time.RFC3339))
+	}
+	if params != nil && params.EndTime != nil {
+		q.Set("end_time", params.EndTime.Format(time.RFC3339))
+	}
+	if params != nil && params.EventKey != nil {
 		q.Set("event_key", string(*params.EventKey))
 	}
-	if params.ActorID != nil {
+	if params != nil && params.ActorID != nil {
 		q.Set("actor_id", fmt.Sprintf("%v", *params.ActorID))
 	}
-	if params.ActorType != nil {
+	if params != nil && params.ActorType != nil {
 		q.Set("actor_type", fmt.Sprintf("%v", *params.ActorType))
 	}
-	if params.EntityID != nil {
+	if params != nil && params.EntityID != nil {
 		q.Set("entity_id", fmt.Sprintf("%v", *params.EntityID))
 	}
-	if params.EntityType != nil {
+	if params != nil && params.EntityType != nil {
 		q.Set("entity_type", fmt.Sprintf("%v", *params.EntityType))
 	}
-	if params.Limit != nil {
+	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
 	}
-	if params.Cursor != nil {
+	if params != nil && params.Cursor != nil {
 		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
 	}
 	u.RawQuery = q.Encode()
@@ -120,7 +124,7 @@ func (s *SecurityService) GetAuditEventsAll(ctx context.Context, params *GetAudi
 	var cursor *string
 	for {
 		params.Cursor = cursor
-		result, err := s.GetAuditEvents(ctx, *params)
+		result, err := s.GetAuditEvents(ctx, params)
 		if err != nil {
 			return nil, err
 		}

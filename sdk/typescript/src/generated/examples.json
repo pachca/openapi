@@ -166,7 +166,7 @@
     "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })"
   },
   "MessageOperations_createMessage": {
-    "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    parentMessageId: 194270,\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\",\n    skipInviteMentions: false,\n    linkPreview: false\n  }\n}\nconst response = client.messages.createMessage(request)",
+    "usage": "const request: MessageCreateRequest = {\n  message: {\n    entityType: MessageEntityType.Discussion,\n    entityId: 334,\n    content: \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n    files: [{\n      key: \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n      name: \"logo.png\",\n      fileType: FileType.Image,\n      size: 12345,\n      width: 800,\n      height: 600\n    }],\n    buttons: [[{\n      text: \"Подробнее\",\n      url: \"https://example.com/details\",\n      data: \"awesome\"\n    }]],\n    parentMessageId: 194270,\n    displayAvatarUrl: \"https://example.com/avatar.png\",\n    displayName: \"Бот Поддержки\",\n    skipInviteMentions: false\n  },\n  linkPreview: false\n}\nconst response = client.messages.createMessage(request)",
     "output": "Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })",
     "imports": [
       "Button",
@@ -210,7 +210,7 @@
   },
   "ReactionOperations_addReaction": {
     "usage": "const request: ReactionRequest = { code: \"👍\", name: \":+1:\" }\nconst response = client.reactions.addReaction(7231942, request)",
-    "output": "Reaction({ userId: number, createdAt: string, code: string, name?: string })",
+    "output": "Reaction({ userId: number, createdAt: string, code: string, name: string | null })",
     "imports": [
       "ReactionRequest"
     ]
@@ -322,20 +322,20 @@
     "output": "unknown"
   },
   "UserOperations_createUser": {
-    "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegp@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Продукт\",\n    title: \"CIO\",\n    role: UserRole.User,\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  },\n  skipEmailNotify: true\n}\nconst response = client.users.createUser(request)",
+    "usage": "const request: UserCreateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegp@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Продукт\",\n    title: \"CIO\",\n    role: UserRoleInput.User,\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  },\n  skipEmailNotify: true\n}\nconst response = client.users.createUser(request)",
     "output": "User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
       "UserCreateRequestUser",
-      "UserRole"
+      "UserRoleInput"
     ]
   },
   "UserOperations_updateUser": {
-    "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegpetrov@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    role: UserRole.User,\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = client.users.updateUser(12, request)",
+    "usage": "const request: UserUpdateRequest = {\n  user: {\n    firstName: \"Олег\",\n    lastName: \"Петров\",\n    email: \"olegpetrov@example.com\",\n    phoneNumber: \"+79001234567\",\n    nickname: \"olegpetrov\",\n    department: \"Отдел разработки\",\n    title: \"Старший разработчик\",\n    role: UserRoleInput.User,\n    suspended: false,\n    listTags: [\"example\"],\n    customProperties: [{ id: 1678, value: \"Санкт-Петербург\" }]\n  }\n}\nconst response = client.users.updateUser(12, request)",
     "output": "User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })",
     "imports": [
-      "UserRole",
+      "UserRoleInput",
       "UserUpdateRequest",
       "UserUpdateRequestCustomProperty",
       "UserUpdateRequestUser"

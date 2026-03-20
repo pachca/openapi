@@ -347,9 +347,9 @@ request = MessageCreateRequest(
         parent_message_id=194270,
         display_avatar_url="https://example.com/avatar.png",
         display_name="Бот Поддержки",
-        skip_invite_mentions=False,
-        link_preview=False
-    )
+        skip_invite_mentions=False
+    ),
+    link_preview=False
 )
 response = await client.messages.create_message(request=request)
 # → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)

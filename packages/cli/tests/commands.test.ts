@@ -363,9 +363,9 @@ describe('generated commands — functional tests', () => {
   // ----- Composite query params (chats list) -----
 
   describe('chats list', () => {
-    it('--sort-last-message-at desc → query sort[last_message_at]=desc', async () => {
+    it('--sort last-message-at --order desc → query sort[last_message_at]=desc', async () => {
       mockFetchForEndpoint('/chats', 'GET');
-      const { stdout, stderr, error } = await runCommand(['chats', 'list', '--sort-last-message-at', 'desc'], { root: CLI_ROOT });
+      const { stdout, stderr, error } = await runCommand(['chats', 'list', '--sort', 'last-message-at', '--order', 'desc'], { root: CLI_ROOT });
       expect(error).toBeUndefined();
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;

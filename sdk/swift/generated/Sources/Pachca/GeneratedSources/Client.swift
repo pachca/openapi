@@ -11,11 +11,11 @@ public struct SecurityService {
         self.session = session
     }
 
-    public func getAuditEvents(startTime: Date, endTime: Date, eventKey: AuditEventKey? = nil, actorId: String? = nil, actorType: String? = nil, entityId: String? = nil, entityType: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> GetAuditEventsResponse {
+    public func getAuditEvents(startTime: String? = nil, endTime: String? = nil, eventKey: AuditEventKey? = nil, actorId: String? = nil, actorType: String? = nil, entityId: String? = nil, entityType: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> GetAuditEventsResponse {
         var components = URLComponents(string: "\(baseURL)/audit_events")!
         var queryItems: [URLQueryItem] = []
-        queryItems.append(URLQueryItem(name: "start_time", value: ISO8601DateFormatter().string(from: startTime)))
-        queryItems.append(URLQueryItem(name: "end_time", value: ISO8601DateFormatter().string(from: endTime)))
+        if let startTime { queryItems.append(URLQueryItem(name: "start_time", value: startTime)) }
+        if let endTime { queryItems.append(URLQueryItem(name: "end_time", value: endTime)) }
         if let eventKey { queryItems.append(URLQueryItem(name: "event_key", value: eventKey.rawValue)) }
         if let actorId { queryItems.append(URLQueryItem(name: "actor_id", value: String(actorId))) }
         if let actorType { queryItems.append(URLQueryItem(name: "actor_type", value: String(actorType))) }
@@ -38,7 +38,7 @@ public struct SecurityService {
         }
     }
 
-    public func getAuditEventsAll(startTime: Date, endTime: Date, eventKey: AuditEventKey? = nil, actorId: String? = nil, actorType: String? = nil, entityId: String? = nil, entityType: String? = nil, limit: Int? = nil) async throws -> [AuditEvent] {
+    public func getAuditEventsAll(startTime: String? = nil, endTime: String? = nil, eventKey: AuditEventKey? = nil, actorId: String? = nil, actorType: String? = nil, entityId: String? = nil, entityType: String? = nil, limit: Int? = nil) async throws -> [AuditEvent] {
         var items: [AuditEvent] = []
         var cursor: String? = nil
         repeat {

@@ -78,25 +78,27 @@ class SecurityService:
 
     async def get_audit_events(
         self,
-        params: GetAuditEventsParams,
+        params: GetAuditEventsParams | None = None,
     ) -> GetAuditEventsResponse:
-        query: list[tuple[str, str]] = []
-        query.append(("start_time", params.start_time))
-        query.append(("end_time", params.end_time))
+        query: dict[str, str] = {}
+        if params is not None and params.start_time is not None:
+            query["start_time"] = params.start_time
+        if params is not None and params.end_time is not None:
+            query["end_time"] = params.end_time
         if params is not None and params.event_key is not None:
-            query.append(("event_key", params.event_key))
+            query["event_key"] = params.event_key
         if params is not None and params.actor_id is not None:
-            query.append(("actor_id", params.actor_id))
+            query["actor_id"] = params.actor_id
         if params is not None and params.actor_type is not None:
-            query.append(("actor_type", params.actor_type))
+            query["actor_type"] = params.actor_type
         if params is not None and params.entity_id is not None:
-            query.append(("entity_id", params.entity_id))
+            query["entity_id"] = params.entity_id
         if params is not None and params.entity_type is not None:
-            query.append(("entity_type", params.entity_type))
+            query["entity_type"] = params.entity_type
         if params is not None and params.limit is not None:
-            query.append(("limit", str(params.limit)))
+            query["limit"] = str(params.limit)
         if params is not None and params.cursor is not None:
-            query.append(("cursor", params.cursor))
+            query["cursor"] = params.cursor
         response = await self._client.get(
             "/audit_events",
             params=query,
@@ -112,7 +114,7 @@ class SecurityService:
 
     async def get_audit_events_all(
         self,
-        params: GetAuditEventsParams,
+        params: GetAuditEventsParams | None = None,
     ) -> list[AuditEvent]:
         items: list[AuditEvent] = []
         cursor: str | None = None

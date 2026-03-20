@@ -111,7 +111,7 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
 
 **anyOf** - один из вариантов:
 
-- **ApiError**: Ошибка API (используется для 400, 403, 404, 409, 410, 422)
+- **ApiError**: Ошибка API (используется для 400, 402, 403, 404, 409, 410, 422)
   - `errors: array of object` (required) — Массив ошибок
     - `key: string` (required) — Ключ поля с ошибкой
     - `value: string` (required) — Значение поля, которое вызвало ошибку

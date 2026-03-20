@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Pachca API
-  version: 1.0.2
+  version: 1.0.3
 tags:
   - name: Common
   - name: Profile
@@ -30,7 +30,7 @@ paths:
       parameters:
         - name: start_time
           in: query
-          required: true
+          required: false
           description: Начальная метка времени (включительно)
           schema:
             type: string
@@ -40,7 +40,7 @@ paths:
           explode: false
         - name: end_time
           in: query
-          required: true
+          required: false
           description: Конечная метка времени (исключительно)
           schema:
             type: string
@@ -143,6 +143,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -207,6 +213,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -272,6 +284,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -406,6 +424,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -566,6 +590,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -625,6 +655,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1245,6 +1281,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1316,6 +1358,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1408,6 +1456,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1463,6 +1517,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1522,6 +1582,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1577,6 +1643,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1661,6 +1733,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1721,6 +1799,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1826,6 +1910,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1887,6 +1977,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -1946,6 +2042,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -2003,6 +2105,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -2119,12 +2227,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
-        '409':
-          description: The request conflicts with the current state of the server.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
       tags:
         - Messages
       x-requirements:
@@ -2478,6 +2582,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3216,6 +3326,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3302,6 +3418,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3351,6 +3473,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3410,6 +3538,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3465,6 +3599,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3519,6 +3659,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3558,6 +3704,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3603,6 +3755,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3692,6 +3850,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3747,6 +3911,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3806,6 +3976,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -3861,6 +4037,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -4067,6 +4249,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -4158,6 +4346,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -4204,6 +4398,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '403':
           description: Access is forbidden.
           content:
@@ -4332,7 +4532,7 @@ components:
           items:
             $ref: '#/components/schemas/ApiErrorItem'
           description: Массив ошибок
-      description: Ошибка API (используется для 400, 403, 404, 409, 410, 422)
+      description: Ошибка API (используется для 400, 402, 403, 404, 409, 410, 422)
       x-error: true
     ApiErrorItem:
       type: object
@@ -5745,15 +5945,15 @@ components:
               description: Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.
               example: false
               default: false
-            link_preview:
-              type: boolean
-              description: Отображение предпросмотра первой найденной ссылки в тексте сообщения
-              example: false
-              default: false
           required:
             - entity_id
             - content
           description: Собранный объект параметров создаваемого сообщения
+        link_preview:
+          type: boolean
+          description: Отображение предпросмотра первой найденной ссылки в тексте сообщения
+          example: false
+          default: false
       description: Запрос на создание сообщения
     MessageEntityType:
       type: string
@@ -6331,6 +6531,7 @@ components:
         - user_id
         - created_at
         - code
+        - name
       properties:
         user_id:
           type: integer
@@ -6348,6 +6549,7 @@ components:
           example: 👍
         name:
           type: string
+          nullable: true
           description: Название emoji реакции
           example: ':+1::skin-tone-1:'
       description: Реакция на сообщение
@@ -7012,7 +7214,7 @@ components:
               example: CIO
             role:
               allOf:
-                - $ref: '#/components/schemas/UserRole'
+                - $ref: '#/components/schemas/UserRoleInput'
               description: Уровень доступа
               example: user
             suspended:
@@ -7082,6 +7284,17 @@ components:
         user: Сотрудник
         multi_guest: Мульти-гость
         guest: Гость
+    UserRoleInput:
+      type: string
+      enum:
+        - admin
+        - user
+        - multi_guest
+      description: Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API.
+      x-enum-descriptions:
+        admin: Администратор
+        user: Сотрудник
+        multi_guest: Мульти-гость
     UserStatus:
       type: object
       required:
@@ -7159,7 +7372,7 @@ components:
               example: Старший разработчик
             role:
               allOf:
-                - $ref: '#/components/schemas/UserRole'
+                - $ref: '#/components/schemas/UserRoleInput'
               description: Уровень доступа
               example: user
             suspended:

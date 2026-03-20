@@ -42,7 +42,19 @@ for (const { file, from, to } of SOURCE_PATCHES) {
   }
 }
 
-// 2. Generate CHANGELOG.md from changelog.json
+// 2. Sort main manifest commands alphabetically for deterministic output
+const mainManifestPath = 'oclif.manifest.json';
+if (existsSync(mainManifestPath)) {
+  const manifest = JSON.parse(readFileSync(mainManifestPath, 'utf8'));
+  if (manifest.commands) {
+    manifest.commands = Object.fromEntries(
+      Object.entries(manifest.commands).sort(([a], [b]) => a.localeCompare(b)),
+    );
+  }
+  writeFileSync(mainManifestPath, JSON.stringify(manifest));
+}
+
+// 3. Generate CHANGELOG.md from changelog.json
 const changelogPath = 'src/data/changelog.json';
 if (existsSync(changelogPath)) {
   const TYPE_LABELS = { '+': 'Добавлено', '~': 'Изменено', '-': 'Удалено' };

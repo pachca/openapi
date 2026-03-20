@@ -11,7 +11,7 @@ using OpenAPI;
   title: "Pachca API",
 })
 @info(#{
-  version: "1.0.2",
+  version: "1.0.3",
 })
 @server("https://api.pachca.com/api/shared/v1", "Production server")
 @useAuth(BearerAuth)
@@ -82,6 +82,23 @@ enum UserRole {
 
   @doc("Гость")
   guest: "guest",
+}
+
+@doc("Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API.")
+@extension("x-enum-descriptions", #{
+  admin: "Администратор",
+  user: "Сотрудник",
+  multi_guest: "Мульти-гость",
+})
+enum UserRoleInput {
+  @doc("Администратор")
+  admin: "admin",
+
+  @doc("Сотрудник")
+  user: "user",
+
+  @doc("Мульти-гость")
+  multi_guest: "multi_guest",
 }
 
 @doc("Статус приглашения пользователя")
@@ -1033,7 +1050,7 @@ model Reaction {
   
   @doc("Название emoji реакции")
   @example(":+1::skin-tone-1:")
-  name?: string;
+  name: string | null;
 }
 
 @doc("Напоминание")
@@ -1427,7 +1444,7 @@ model AccessTokenInfo {
 // ============================================================================
 
 @extension("x-error", true)
-@doc("Ошибка API (используется для 400, 403, 404, 409, 410, 422)")
+@doc("Ошибка API (используется для 400, 402, 403, 404, 409, 410, 422)")
 model ApiError {
   @doc("Массив ошибок")
   errors: ApiErrorItem[];
@@ -1545,8 +1562,8 @@ model UserCreateRequest {
     title?: string;
 
     @doc("Уровень доступа")
-    @example(UserRole.user)
-    role?: UserRole;
+    @example(UserRoleInput.user)
+    role?: UserRoleInput;
 
     @doc("Деактивация пользователя")
     @example(false)
@@ -1606,13 +1623,13 @@ model UserUpdateRequest {
     title?: string;
     
     @doc("Уровень доступа")
-    @example(UserRole.user)
-    role?: UserRole;
-    
+    @example(UserRoleInput.user)
+    role?: UserRoleInput;
+
     @doc("Деактивация пользователя")
     @example(false)
     suspended?: boolean;
-    
+
     @doc("Массив тегов, привязываемых к сотруднику")
     @example(#["Product"])
     list_tags?: string[];
@@ -1794,11 +1811,11 @@ model MessageCreateRequest {
     @doc("Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.")
     @example(false)
     skip_invite_mentions?: boolean = false;
-    
-    @doc("Отображение предпросмотра первой найденной ссылки в тексте сообщения")
-    @example(false)
-    link_preview?: boolean = false;
   };
+
+  @doc("Отображение предпросмотра первой найденной ссылки в тексте сообщения")
+  @example(false)
+  link_preview?: boolean = false;
 }
 
 @doc("Запрос на редактирование сообщения")
@@ -2980,6 +2997,9 @@ interface CommonOperations {
   } | {
     @statusCode _: 400;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 }
 
@@ -3006,6 +3026,9 @@ interface UploadOperations {
   } | {
     @statusCode _: 403;
     @body body: OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 }
 
@@ -3257,8 +3280,11 @@ interface UserOperations {
   } | {
     @statusCode _: 400;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "users:read",
   })
@@ -3297,8 +3323,11 @@ interface UserOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "users:read",
   })
@@ -3327,8 +3356,11 @@ interface UserOperations {
   } | {
     @statusCode _: 404;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "users:update",
   })
@@ -3363,8 +3395,11 @@ interface UserOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "users:delete",
   })
@@ -3392,6 +3427,9 @@ interface UserOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -3527,8 +3565,11 @@ interface GroupTagOperations {
   } | {
     @statusCode _: 400;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "group_tags:read",
   })
@@ -3557,8 +3598,11 @@ interface GroupTagOperations {
   } | {
     @statusCode _: 404;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "group_tags:read",
   })
@@ -3598,8 +3642,11 @@ interface GroupTagOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "group_tags:read",
   })
@@ -3642,8 +3689,11 @@ interface GroupTagOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "group_tags:write",
   })
@@ -3678,8 +3728,11 @@ interface GroupTagOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "group_tags:write",
   })
@@ -3707,6 +3760,9 @@ interface GroupTagOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -3746,8 +3802,11 @@ interface ChatOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "chats:read",
   })
@@ -3776,8 +3835,11 @@ interface ChatOperations {
   } | {
     @statusCode _: 404;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "chats:read",
   })
@@ -3832,8 +3894,11 @@ interface ChatOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "chats:update",
   })
@@ -3868,8 +3933,11 @@ interface ChatOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "chats:archive",
   })
@@ -4273,6 +4341,9 @@ interface ThreadOperations {
   } | {
     @statusCode _: 404;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 }
 
@@ -4311,8 +4382,11 @@ interface MessageOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "messages:read",
   })
@@ -4340,8 +4414,11 @@ interface MessageOperations {
   } | {
     @statusCode _: 404;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "messages:update",
   })
@@ -4376,8 +4453,11 @@ interface MessageOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "messages:delete",
   })
@@ -4408,8 +4488,11 @@ interface MessageOperations {
   } | {
     @statusCode _: 404;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "pins:write",
   })
@@ -4440,10 +4523,9 @@ interface MessageOperations {
     @statusCode _: 404;
     @body body: ApiError;
   } | {
-    @statusCode _: 409;
-    @body body: ApiError;
+    @statusCode _: 422;
   };
-  
+
   @extension("x-requirements", #{
     scope: "pins:write",
   })
@@ -4528,6 +4610,9 @@ interface ChatMessageOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 }
 
@@ -4578,6 +4663,9 @@ interface ReadMemberOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -4982,6 +5070,9 @@ interface TaskOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -5016,6 +5107,9 @@ interface TaskOperations {
   } | {
     @statusCode _: 400;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -5045,6 +5139,9 @@ interface TaskOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 
@@ -5082,6 +5179,9 @@ interface TaskOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 
   @extension("x-requirements", #{
@@ -5111,6 +5211,9 @@ interface TaskOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -5151,6 +5254,9 @@ interface FormOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 410;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -5198,8 +5304,11 @@ interface BotOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "webhooks:events:read",
   })
@@ -5241,8 +5350,11 @@ interface BotOperations {
   } | {
     @statusCode _: 422;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
-  
+
   @extension("x-requirements", #{
     scope: "webhooks:events:delete",
   })
@@ -5274,6 +5386,9 @@ interface BotOperations {
   } | {
     @statusCode _: 404;
     @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
   };
 }
 
@@ -5298,11 +5413,11 @@ interface SecurityOperations {
   getAuditEvents(
     @doc("Начальная метка времени (включительно)")
     @extension("example", "2025-05-01T09:11:00Z")
-    @query start_time: utcDateTime,
-    
+    @query start_time?: utcDateTime,
+
     @doc("Конечная метка времени (исключительно)")
     @extension("example", "2025-05-02T09:11:00Z")
-    @query end_time: utcDateTime,
+    @query end_time?: utcDateTime,
     
     @doc("Фильтр по конкретному типу события")
     @extension("example", "user_login")
@@ -5347,6 +5462,9 @@ interface SecurityOperations {
     @body body: ApiError;
   } | {
     @statusCode _: 422;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }

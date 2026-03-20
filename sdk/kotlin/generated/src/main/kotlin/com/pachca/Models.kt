@@ -365,6 +365,17 @@ enum class UserRole(val value: String) {
     @SerialName("guest") GUEST("guest"),
 }
 
+/** Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API. */
+@Serializable
+enum class UserRoleInput(val value: String) {
+    /** Администратор */
+    @SerialName("admin") ADMIN("admin"),
+    /** Сотрудник */
+    @SerialName("user") USER("user"),
+    /** Мульти-гость */
+    @SerialName("multi_guest") MULTI_GUEST("multi_guest"),
+}
+
 /** Коды ошибок валидации */
 @Serializable
 enum class ValidationErrorCode(val value: String) {
@@ -1037,12 +1048,12 @@ data class MessageCreateRequestMessage(
     @SerialName("display_avatar_url") val displayAvatarUrl: String? = null,
     @SerialName("display_name") val displayName: String? = null,
     @SerialName("skip_invite_mentions") val skipInviteMentions: Boolean? = false,
-    @SerialName("link_preview") val linkPreview: Boolean? = false,
 )
 
 @Serializable
 data class MessageCreateRequest(
     val message: MessageCreateRequestMessage,
+    @SerialName("link_preview") val linkPreview: Boolean? = false,
 )
 
 @Serializable
@@ -1273,7 +1284,7 @@ data class UserCreateRequestUser(
     val nickname: String? = null,
     val department: String? = null,
     val title: String? = null,
-    val role: UserRole? = null,
+    val role: UserRoleInput? = null,
     val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
     @SerialName("custom_properties") val customProperties: List<UserCreateRequestCustomProperty>? = null,
@@ -1314,7 +1325,7 @@ data class UserUpdateRequestUser(
     val nickname: String? = null,
     val department: String? = null,
     val title: String? = null,
-    val role: UserRole? = null,
+    val role: UserRoleInput? = null,
     val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
     @SerialName("custom_properties") val customProperties: List<UserUpdateRequestCustomProperty>? = null,

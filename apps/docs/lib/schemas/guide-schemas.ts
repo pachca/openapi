@@ -130,7 +130,7 @@ export const HTTP_CODES = [
   {
     code: '402',
     message: 'Payment Required',
-    description: 'Параметры действительны, но запрос не выполнен',
+    description: 'Действие недоступно на текущем тарифном плане',
   },
   {
     code: '403',

@@ -236,6 +236,14 @@ const (
 	UserRoleGuest      UserRole = "guest" // Гость
 )
 
+type UserRoleInput string
+
+const (
+	UserRoleInputAdmin      UserRoleInput = "admin" // Администратор
+	UserRoleInputUser       UserRoleInput = "user" // Сотрудник
+	UserRoleInputMultiGuest UserRoleInput = "multi_guest" // Мульти-гость
+)
+
 type ValidationErrorCode string
 
 const (
@@ -647,11 +655,11 @@ type MessageCreateRequestMessage struct {
 	DisplayAvatarURL   *string                    `json:"display_avatar_url,omitempty"`
 	DisplayName        *string                    `json:"display_name,omitempty"`
 	SkipInviteMentions *bool                      `json:"skip_invite_mentions,omitempty"`
-	LinkPreview        *bool                      `json:"link_preview,omitempty"`
 }
 
 type MessageCreateRequest struct {
-	Message MessageCreateRequestMessage `json:"message"`
+	Message     MessageCreateRequestMessage `json:"message"`
+	LinkPreview *bool                       `json:"link_preview,omitempty"`
 }
 
 type MessageUpdateRequestFile struct {
@@ -730,7 +738,7 @@ type Reaction struct {
 	UserID    int32     `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 	Code      string    `json:"code"`
-	Name      *string   `json:"name,omitempty"`
+	Name      *string   `json:"name"`
 }
 
 type ReactionRequest struct {
@@ -889,7 +897,7 @@ type UserCreateRequestUser struct {
 	Nickname         *string                           `json:"nickname,omitempty"`
 	Department       *string                           `json:"department,omitempty"`
 	Title            *string                           `json:"title,omitempty"`
-	Role             *UserRole                         `json:"role,omitempty"`
+	Role             *UserRoleInput                    `json:"role,omitempty"`
 	Suspended        *bool                             `json:"suspended,omitempty"`
 	ListTags         []string                          `json:"list_tags,omitempty"`
 	CustomProperties []UserCreateRequestCustomProperty `json:"custom_properties,omitempty"`
@@ -925,7 +933,7 @@ type UserUpdateRequestUser struct {
 	Nickname         *string                           `json:"nickname,omitempty"`
 	Department       *string                           `json:"department,omitempty"`
 	Title            *string                           `json:"title,omitempty"`
-	Role             *UserRole                         `json:"role,omitempty"`
+	Role             *UserRoleInput                    `json:"role,omitempty"`
 	Suspended        *bool                             `json:"suspended,omitempty"`
 	ListTags         []string                          `json:"list_tags,omitempty"`
 	CustomProperties []UserUpdateRequestCustomProperty `json:"custom_properties,omitempty"`
@@ -1336,8 +1344,8 @@ func (u WebhookPayloadUnion) MarshalJSON() ([]byte, error) {
 }
 
 type GetAuditEventsParams struct {
-	StartTime  time.Time
-	EndTime    time.Time
+	StartTime  *time.Time
+	EndTime    *time.Time
 	EventKey   *AuditEventKey
 	ActorID    *string
 	ActorType  *string

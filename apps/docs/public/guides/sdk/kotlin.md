@@ -365,9 +365,9 @@ val request = MessageCreateRequest(
         parentMessageId = 194270,
         displayAvatarUrl = "https://example.com/avatar.png",
         displayName = "Бот Поддержки",
-        skipInviteMentions = false,
-        linkPreview = false
-    )
+        skipInviteMentions = false
+    ),
+    linkPreview = false
 )
 val response = client.messages.createMessage(request = request)
 // → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)

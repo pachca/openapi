@@ -323,6 +323,15 @@ public enum UserRole: String, Codable, CaseIterable {
     case guest
 }
 
+public enum UserRoleInput: String, Codable, CaseIterable {
+    /// Администратор
+    case admin
+    /// Сотрудник
+    case user
+    /// Мульти-гость
+    case multiGuest = "multi_guest"
+}
+
 public enum ValidationErrorCode: String, Codable, CaseIterable {
     /// Обязательное поле (не может быть пустым)
     case blank
@@ -1368,9 +1377,8 @@ public struct MessageCreateRequestMessage: Codable {
     public let displayAvatarUrl: String?
     public let displayName: String?
     public let skipInviteMentions: Bool?
-    public let linkPreview: Bool?
 
-    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil, linkPreview: Bool? = nil) {
+    public init(entityType: MessageEntityType? = nil, entityId: Int, content: String, files: [MessageCreateRequestFile]? = nil, buttons: [[Button]]? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, skipInviteMentions: Bool? = nil) {
         self.entityType = entityType
         self.entityId = entityId
         self.content = content
@@ -1380,7 +1388,6 @@ public struct MessageCreateRequestMessage: Codable {
         self.displayAvatarUrl = displayAvatarUrl
         self.displayName = displayName
         self.skipInviteMentions = skipInviteMentions
-        self.linkPreview = linkPreview
     }
 
     enum CodingKeys: String, CodingKey {
@@ -1393,15 +1400,21 @@ public struct MessageCreateRequestMessage: Codable {
         case displayAvatarUrl = "display_avatar_url"
         case displayName = "display_name"
         case skipInviteMentions = "skip_invite_mentions"
-        case linkPreview = "link_preview"
     }
 }
 
 public struct MessageCreateRequest: Codable {
     public let message: MessageCreateRequestMessage
+    public let linkPreview: Bool?
 
-    public init(message: MessageCreateRequestMessage) {
+    public init(message: MessageCreateRequestMessage, linkPreview: Bool? = nil) {
         self.message = message
+        self.linkPreview = linkPreview
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case message
+        case linkPreview = "link_preview"
     }
 }
 
@@ -2018,12 +2031,12 @@ public struct UserCreateRequestUser: Codable {
     public let nickname: String?
     public let department: String?
     public let title: String?
-    public let role: UserRole?
+    public let role: UserRoleInput?
     public let suspended: Bool?
     public let listTags: [String]?
     public let customProperties: [UserCreateRequestCustomProperty]?
 
-    public init(firstName: String? = nil, lastName: String? = nil, email: String, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRole? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserCreateRequestCustomProperty]? = nil) {
+    public init(firstName: String? = nil, lastName: String? = nil, email: String, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRoleInput? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserCreateRequestCustomProperty]? = nil) {
         self.firstName = firstName
         self.lastName = lastName
         self.email = email
@@ -2117,12 +2130,12 @@ public struct UserUpdateRequestUser: Codable {
     public let nickname: String?
     public let department: String?
     public let title: String?
-    public let role: UserRole?
+    public let role: UserRoleInput?
     public let suspended: Bool?
     public let listTags: [String]?
     public let customProperties: [UserUpdateRequestCustomProperty]?
 
-    public init(firstName: String? = nil, lastName: String? = nil, email: String? = nil, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRole? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserUpdateRequestCustomProperty]? = nil) {
+    public init(firstName: String? = nil, lastName: String? = nil, email: String? = nil, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRoleInput? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserUpdateRequestCustomProperty]? = nil) {
         self.firstName = firstName
         self.lastName = lastName
         self.email = email

@@ -156,15 +156,17 @@ describe('generate-cli', () => {
       expect(content).not.toMatch(/'xAmz\w+':\s*Flags/);
     });
 
-    it('should convert composite param names with underscores (sort flags)', () => {
+    it('should generate --sort and --order flags for composite sort params', () => {
       const content = fs.readFileSync(
         path.join(COMMANDS_DIR, 'chats', 'list.ts'),
         'utf-8',
       );
-      // sort[last_message_at] → sort-last-message-at (not sort-last_message_at)
-      expect(content).toContain("'sort-last-message-at'");
-      // Flag declaration must be kebab-case (wire name in query object keeps underscores)
-      expect(content).not.toMatch(/'sort-last_message_at':\s*Flags/);
+      // sort[{field}] with x-param-names → --sort with options + --order with asc/desc
+      expect(content).toContain('sort: Flags.string(');
+      expect(content).toContain('order: Flags.string(');
+      expect(content).toContain('"last-message-at"');
+      expect(content).not.toMatch(/'sort-id':\s*Flags/);
+      expect(content).not.toMatch(/'sort-last-message-at':\s*Flags/);
     });
   });
 

@@ -353,9 +353,9 @@ const request: MessageCreateRequest = {
     parentMessageId: 194270,
     displayAvatarUrl: "https://example.com/avatar.png",
     displayName: "Бот Поддержки",
-    skipInviteMentions: false,
-    linkPreview: false
-  }
+    skipInviteMentions: false
+  },
+  linkPreview: false
 }
 const response = client.messages.createMessage(request)
 // → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })

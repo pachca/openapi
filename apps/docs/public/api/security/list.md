@@ -14,8 +14,8 @@
 
 ### Query параметры
 
-- `start_time: date-time` (required) — Начальная метка времени (включительно)
-- `end_time: date-time` (required) — Конечная метка времени (исключительно)
+- `start_time: date-time` — Начальная метка времени (включительно)
+- `end_time: date-time` — Конечная метка времени (исключительно)
 - `event_key: string` — Фильтр по конкретному типу события
   Значения: `user_login`, `user_logout`, `user_2fa_fail`, `user_2fa_success`, `user_created`, `user_deleted`, `user_role_changed`, `user_updated`, `tag_created`, `tag_deleted`, `user_added_to_tag`, `user_removed_from_tag`, `chat_created`, `chat_renamed`, `chat_permission_changed`, `user_chat_join`, `user_chat_leave`, `tag_added_to_chat`, `tag_removed_from_chat`, `message_updated`, `message_deleted`, `message_created`, `reaction_created`, `reaction_deleted`, `thread_created`, `access_token_created`, `access_token_updated`, `access_token_destroy`, `kms_encrypt`, `kms_decrypt`, `audit_events_accessed`, `dlp_violation_detected`, `search_users_api`, `search_chats_api`, `search_messages_api`
 - `actor_id: string` — Идентификатор пользователя, выполнившего действие
@@ -172,6 +172,36 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 {
   "error": "invalid_token",
   "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:**
+
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой
+  - `value: string` (required) — Значение поля, которое вызвало ошибку
+  - `message: string` (required) — Сообщение об ошибке
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+    **Структура значений Record:**
+    - Тип значения: `any`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 

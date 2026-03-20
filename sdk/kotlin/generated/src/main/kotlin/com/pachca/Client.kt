@@ -19,8 +19,8 @@ class SecurityService internal constructor(
     private val client: HttpClient,
 ) {
     suspend fun getAuditEvents(
-        startTime: String,
-        endTime: String,
+        startTime: String? = null,
+        endTime: String? = null,
         eventKey: AuditEventKey? = null,
         actorId: String? = null,
         actorType: String? = null,
@@ -30,8 +30,8 @@ class SecurityService internal constructor(
         cursor: String? = null,
     ): GetAuditEventsResponse {
         val response = client.get("$baseUrl/audit_events") {
-            parameter("start_time", startTime)
-            parameter("end_time", endTime)
+            startTime?.let { parameter("start_time", it) }
+            endTime?.let { parameter("end_time", it) }
             eventKey?.let { parameter("event_key", it.value) }
             actorId?.let { parameter("actor_id", it) }
             actorType?.let { parameter("actor_type", it) }
@@ -48,8 +48,8 @@ class SecurityService internal constructor(
     }
 
     suspend fun getAuditEventsAll(
-        startTime: String,
-        endTime: String,
+        startTime: String? = null,
+        endTime: String? = null,
         eventKey: AuditEventKey? = null,
         actorId: String? = null,
         actorType: String? = null,

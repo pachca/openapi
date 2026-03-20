@@ -38,7 +38,7 @@
   - `display_avatar_url: string` (max length: 255) — Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.
   - `display_name: string` (max length: 255) — Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота.
   - `skip_invite_mentions: boolean` (default: false) — Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред.
-  - `link_preview: boolean` (default: false) — Отображение предпросмотра первой найденной ссылки в тексте сообщения
+- `link_preview: boolean` (default: false) — Отображение предпросмотра первой найденной ссылки в тексте сообщения
 
 ### Пример
 
@@ -73,9 +73,9 @@
     "parent_message_id": 194270,
     "display_avatar_url": "https://example.com/avatar.png",
     "display_name": "Бот Поддержки",
-    "skip_invite_mentions": false,
-    "link_preview": false
-  }
+    "skip_invite_mentions": false
+  },
+  "link_preview": false
 }
 ```
 
@@ -115,9 +115,9 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
     "parent_message_id": 194270,
     "display_avatar_url": "https://example.com/avatar.png",
     "display_name": "Бот Поддержки",
-    "skip_invite_mentions": false,
-    "link_preview": false
-  }
+    "skip_invite_mentions": false
+  },
+  "link_preview": false
 }'
 ```
 
@@ -264,6 +264,36 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 {
   "error": "invalid_token",
   "error_description": "Access token is missing"
+}
+```
+
+### 402: Client error
+
+**Схема ответа при ошибке:**
+
+- `errors: array of object` (required) — Массив ошибок
+  - `key: string` (required) — Ключ поля с ошибкой
+  - `value: string` (required) — Значение поля, которое вызвало ошибку
+  - `message: string` (required) — Сообщение об ошибке
+  - `code: string` (required) — Код ошибки
+    Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+    **Структура значений Record:**
+    - Тип значения: `any`
+
+**Пример ответа:**
+
+```json
+{
+  "errors": [
+    {
+      "key": "field.name",
+      "value": "invalid_value",
+      "message": "Поле не может быть пустым",
+      "code": "blank",
+      "payload": null
+    }
+  ]
 }
 ```
 

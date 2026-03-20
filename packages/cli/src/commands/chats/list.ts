@@ -22,11 +22,13 @@ export default class ChatsList extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    'sort-id': Flags.string({
-      description: "Идентификатор чата",
+    sort: Flags.string({
+      description: "Поле сортировки (id — идентификатор чата, last-message-at — дата и время создания последнего сообщения)",
+      options: ["id","last-message-at"],
     }),
-    'sort-last-message-at': Flags.string({
-      description: "Дата и время создания последнего сообщения",
+    order: Flags.string({
+      description: "Порядок сортировки",
+      options: ["asc","desc"],
     }),
     'availability': Flags.string({
       description: "Параметр, который отвечает за доступность и выборку чатов для пользователя",
@@ -66,8 +68,7 @@ export default class ChatsList extends BaseCommand {
 
       while (pages < 500) {
         const query: Record<string, string | number | boolean | undefined> = {
-        'sort[id]': flags['sort-id'],
-        'sort[last_message_at]': flags['sort-last-message-at'],
+        ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
         availability: flags['availability'],
         'last_message_at_after': flags['last-message-at-after'],
         'last_message_at_before': flags['last-message-at-before'],
@@ -110,8 +111,7 @@ export default class ChatsList extends BaseCommand {
       method: 'GET',
       path: '/chats',
       query: {
-      'sort[id]': flags['sort-id'],
-      'sort[last_message_at]': flags['sort-last-message-at'],
+      ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
       availability: flags['availability'],
       'last_message_at_after': flags['last-message-at-after'],
       'last_message_at_before': flags['last-message-at-before'],

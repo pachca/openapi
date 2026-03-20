@@ -104,7 +104,8 @@ export default class MessagesCreate extends BaseCommand {
       this.validationError(validationErrors);
     }
 
-    const body: Record<string, unknown> = { message: {
+    const body: Record<string, unknown> = {
+      message: {
       entity_type: flags['entity-type'],
       entity_id: flags['entity-id'],
       content: flags['content'],
@@ -114,11 +115,13 @@ export default class MessagesCreate extends BaseCommand {
       display_avatar_url: flags['display-avatar-url'],
       display_name: flags['display-name'],
       skip_invite_mentions: flags['skip-invite-mentions'],
+      },
       link_preview: flags['link-preview'],
-    } };
+    };
     // Clean undefined fields
     const inner = body['message'] as Record<string, unknown>;
     for (const [k, v] of Object.entries(inner)) { if (v === undefined) delete inner[k]; }
+    for (const [k, v] of Object.entries(body)) { if (k !== 'message' && v === undefined) delete body[k]; }
 
     const { data } = await this.apiRequest({
       method: 'POST',

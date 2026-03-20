@@ -232,6 +232,14 @@ class UserRole(StrEnum):
     GUEST = "guest"  # Гость
 
 
+class UserRoleInput(StrEnum):
+    """Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API."""
+
+    ADMIN = "admin"  # Администратор
+    USER = "user"  # Сотрудник
+    MULTI_GUEST = "multi_guest"  # Мульти-гость
+
+
 class ValidationErrorCode(StrEnum):
     """Коды ошибок валидации"""
 
@@ -681,12 +689,12 @@ class MessageCreateRequestMessage:
     display_avatar_url: str | None = None
     display_name: str | None = None
     skip_invite_mentions: bool | None = False
-    link_preview: bool | None = False
 
 
 @dataclass
 class MessageCreateRequest:
     message: MessageCreateRequestMessage
+    link_preview: bool | None = False
 
 
 @dataclass
@@ -948,7 +956,7 @@ class UserCreateRequestUser:
     nickname: str | None = None
     department: str | None = None
     title: str | None = None
-    role: UserRole | None = None
+    role: UserRoleInput | None = None
     suspended: bool | None = None
     list_tags: list[str] | None = None
     custom_properties: list[UserCreateRequestCustomProperty] | None = None
@@ -989,7 +997,7 @@ class UserUpdateRequestUser:
     nickname: str | None = None
     department: str | None = None
     title: str | None = None
-    role: UserRole | None = None
+    role: UserRoleInput | None = None
     suspended: bool | None = None
     list_tags: list[str] | None = None
     custom_properties: list[UserUpdateRequestCustomProperty] | None = None
@@ -1154,8 +1162,8 @@ WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, Butto
 
 @dataclass
 class GetAuditEventsParams:
-    start_time: str
-    end_time: str
+    start_time: str | None = None
+    end_time: str | None = None
     event_key: AuditEventKey | None = None
     actor_id: str | None = None
     actor_type: str | None = None

@@ -363,12 +363,22 @@ function generateCommandCode(p: CommandGenParams): string {
 
     // Handle x-param-names (composite params like sort[{field}])
     if (param['x-param-names']) {
-      for (const sub of param['x-param-names']) {
-        const flagName = toKebabCase(sub.name.replace(/[\[\]]/g, '-').replace(/-+/g, '-').replace(/-$/, ''));
-        queryFlagLines.push(`    '${flagName}': Flags.string({
-      description: ${JSON.stringify(sub.description || sub.name)},
+      const subs = param['x-param-names'] as { name: string; description?: string }[];
+      const fields = subs.map((s) => {
+        const field = s.name.replace(/.*\[/, '').replace(']', '');
+        return { field, kebab: toKebabCase(field), description: s.description || field };
+      });
+      const sortOptions = fields.map((f) => f.kebab);
+      const sortDescParts = fields.map((f) => `${f.kebab} — ${f.description.toLowerCase()}`);
+      const enumValues = param.schema?.enum || (param.schema?.allOf?.[0] as Schema | undefined)?.enum || [];
+      queryFlagLines.push(`    sort: Flags.string({
+      description: ${JSON.stringify(`Поле сортировки (${sortDescParts.join(', ')})`)},
+      options: ${JSON.stringify(sortOptions)},
     }),`);
-      }
+      queryFlagLines.push(`    order: Flags.string({
+      description: "Порядок сортировки",
+      options: ${JSON.stringify(enumValues.length > 0 ? enumValues : ['asc', 'desc'])},
+    }),`);
       continue;
     }
 
@@ -568,10 +578,8 @@ function generateCommandCode(p: CommandGenParams): string {
   for (const param of p.queryParams) {
     if (p.hasPagination && (param.name === 'cursor' || param.name === 'limit')) continue;
     if (param['x-param-names']) {
-      for (const sub of param['x-param-names']) {
-        const flagName = toKebabCase(sub.name.replace(/[\[\]]/g, '-').replace(/-+/g, '-').replace(/-$/, ''));
-        queryEntries.push(`      '${sub.name}': flags['${flagName}'],`);
-      }
+      // Map --sort <field> --order <dir> → sort[<field>]=<dir>
+      queryEntries.push(`      ...(flags.sort ? { [\`sort[\${flags.sort.replace(/-/g, '_')}]\`]: flags.order || 'desc' } : {}),`);
       continue;
     }
     const flagName = toKebabCase(param.name);

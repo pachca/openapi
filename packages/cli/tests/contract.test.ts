@@ -142,12 +142,10 @@ describe('contract tests', () => {
         if (hasPagination && (param.name === 'limit' || param.name === 'cursor')) continue;
 
         if (param['x-param-names']) {
-          for (const sub of param['x-param-names']) {
-            const flagName = compositeParamFlagName(sub.name);
-            it(`composite query ${sub.name} → --${flagName}`, () => {
-              expect(hasFlag(cmd.content, flagName)).toBe(true);
-            });
-          }
+          it(`composite sort params → --sort and --order flags`, () => {
+            expect(hasFlag(cmd.content, 'sort')).toBe(true);
+            expect(hasFlag(cmd.content, 'order')).toBe(true);
+          });
         } else {
           const kebabName = toKebabCase(param.name);
           it(`query ${param.name} → --${kebabName}`, () => {

@@ -64,7 +64,7 @@ curl "https://api.pachca.com/api/shared/v1/messages/7231942/reactions" \
 - `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил реакцию
 - `created_at: date-time` (required) — Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
 - `code: string` (required) — Emoji символ реакции
-- `name: string` — Название emoji реакции
+- `name: string` (required) — Название emoji реакции
 
 **Пример ответа:**
 

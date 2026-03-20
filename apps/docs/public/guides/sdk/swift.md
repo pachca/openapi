@@ -337,9 +337,9 @@ let body = MessageCreateRequest(
         parentMessageId: 194270,
         displayAvatarUrl: "https://example.com/avatar.png",
         displayName: "Бот Поддержки",
-        skipInviteMentions: false,
-        linkPreview: false
-    )
+        skipInviteMentions: false
+    ),
+    linkPreview: false
 )
 let response = try await client.messages.createMessage(body: body)
 // → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)], buttons: [[Button(text: String, url: String?, data: String?)]]?, thread: MessageThread(id: Int64, chatId: Int64)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)

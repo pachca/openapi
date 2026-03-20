@@ -66,10 +66,10 @@ class SecurityService {
     private headers: Record<string, string>,
   ) {}
 
-  async getAuditEvents(params: GetAuditEventsParams): Promise<GetAuditEventsResponse> {
+  async getAuditEvents(params?: GetAuditEventsParams): Promise<GetAuditEventsResponse> {
     const query = new URLSearchParams();
-    query.set("start_time", params.startTime);
-    query.set("end_time", params.endTime);
+    if (params?.startTime !== undefined) query.set("start_time", params.startTime);
+    if (params?.endTime !== undefined) query.set("end_time", params.endTime);
     if (params?.eventKey !== undefined) query.set("event_key", params.eventKey);
     if (params?.actorId !== undefined) query.set("actor_id", params.actorId);
     if (params?.actorType !== undefined) query.set("actor_type", params.actorType);
@@ -77,7 +77,8 @@ class SecurityService {
     if (params?.entityType !== undefined) query.set("entity_type", params.entityType);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
-    const response = await fetchWithRetry(`${this.baseUrl}/audit_events?${query}`, {
+    const url = `${this.baseUrl}/audit_events${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
       headers: this.headers,
     });
     const body = await response.json();
@@ -91,7 +92,7 @@ class SecurityService {
     }
   }
 
-  async getAuditEventsAll(params: Omit<GetAuditEventsParams, 'cursor'>): Promise<AuditEvent[]> {
+  async getAuditEventsAll(params?: Omit<GetAuditEventsParams, 'cursor'>): Promise<AuditEvent[]> {
     const items: AuditEvent[] = [];
     let cursor: string | undefined;
     do {

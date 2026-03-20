@@ -370,8 +370,8 @@ request := MessageCreateRequest{
 		DisplayAvatarURL: Ptr("https://example.com/avatar.png"),
 		DisplayName: Ptr("Бот Поддержки"),
 		SkipInviteMentions: Ptr(false),
-		LinkPreview: Ptr(false),
 	},
+	LinkPreview: Ptr(false),
 }
 response, err := client.Messages.CreateMessage(ctx, request)
 // → Message{ID: int32, EntityType: MessageEntityType, EntityID: int32, ChatID: int32, RootChatID: int32, Content: string, UserID: int32, CreatedAt: string, URL: string, Files: []File{ID: int32, Key: string, Name: string, FileType: FileType, URL: string, Width: *int32, Height: *int32}, Buttons: *[][]Button{Text: string, URL: *string, Data: *string}, Thread: *MessageThread{ID: int64, ChatID: int64}, Forwarding: *Forwarding{OriginalMessageID: int32, OriginalChatID: int32, AuthorID: int32, OriginalCreatedAt: string, OriginalThreadID: *int32, OriginalThreadMessageID: *int32, OriginalThreadParentChatID: *int32}, ParentMessageID: *int32, DisplayAvatarURL: *string, DisplayName: *string, ChangedAt: *string, DeletedAt: *string}

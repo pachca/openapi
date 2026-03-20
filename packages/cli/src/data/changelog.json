@@ -1,5 +1,26 @@
 [
   {
+    "version": "2026.3.10",
+    "date": "21 марта 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "messages create",
+        "description": "Поле link_preview перемещено на верхний уровень тела запроса (раньше было внутри message)"
+      },
+      {
+        "type": "~",
+        "command": "security list",
+        "description": "Параметры start-time и end-time стали необязательными"
+      },
+      {
+        "type": "~",
+        "command": "chats list, messages list",
+        "description": "Сортировка через --sort и --order вместо --sort-id и --sort-last-message-at"
+      }
+    ]
+  },
+  {
     "version": "2026.3.9",
     "date": "19 марта 2026",
     "changes": [

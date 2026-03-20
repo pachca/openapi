@@ -340,6 +340,16 @@ export enum UserRole {
   Guest = "guest",
 }
 
+/** Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API. */
+export enum UserRoleInput {
+  /** Администратор */
+  Admin = "admin",
+  /** Сотрудник */
+  User = "user",
+  /** Мульти-гость */
+  MultiGuest = "multi_guest",
+}
+
 /** Коды ошибок валидации */
 export enum ValidationErrorCode {
   /** Обязательное поле (не может быть пустым) */
@@ -769,9 +779,9 @@ export interface MessageCreateRequest {
     displayName?: string;
     /** @default false */
     skipInviteMentions?: boolean;
-    /** @default false */
-    linkPreview?: boolean;
   };
+  /** @default false */
+  linkPreview?: boolean;
 }
 
 export interface MessageUpdateRequestFile {
@@ -842,7 +852,7 @@ export interface Reaction {
   userId: number;
   createdAt: string;
   code: string;
-  name?: string;
+  name: string | null;
 }
 
 export interface ReactionRequest {
@@ -995,7 +1005,7 @@ export interface UserCreateRequest {
     nickname?: string;
     department?: string;
     title?: string;
-    role?: UserRole;
+    role?: UserRoleInput;
     suspended?: boolean;
     listTags?: string[];
     customProperties?: UserCreateRequestCustomProperty[];
@@ -1027,7 +1037,7 @@ export interface UserUpdateRequest {
     nickname?: string;
     department?: string;
     title?: string;
-    role?: UserRole;
+    role?: UserRoleInput;
     suspended?: boolean;
     listTags?: string[];
     customProperties?: UserUpdateRequestCustomProperty[];
@@ -1168,8 +1178,8 @@ export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMar
 export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload;
 
 export interface GetAuditEventsParams {
-  startTime: string;
-  endTime: string;
+  startTime?: string;
+  endTime?: string;
   eventKey?: AuditEventKey;
   actorId?: string;
   actorType?: string;

@@ -60,11 +60,19 @@ jobs:
         if: github.event_name == 'push'
         id: version
         run: |
-          VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
-          if [ -z "$VERSION" ]; then
+          SPEC_VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
+          if [ -z "$SPEC_VERSION" ]; then
             echo "::error::Version not found in typespec.tsp"
             exit 1
           fi
+          BASE=$(echo "$SPEC_VERSION" | cut -d. -f1-2)
+          LAST_PATCH=$(git tag -l "v${BASE}.*" | sed 's/.*\.//' | sort -n | tail -1)
+          if [ -z "$LAST_PATCH" ]; then
+            PATCH=0
+          else
+            PATCH=$((LAST_PATCH + 1))
+          fi
+          VERSION="${BASE}.${PATCH}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit

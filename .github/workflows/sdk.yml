@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate:
+  generate-and-build:
+    name: Generate and build
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -52,6 +53,24 @@ jobs:
         run: npm run build
         working-directory: sdk/typescript
 
+      - name: Compile Go SDK
+        working-directory: sdk/go/generated
+        run: go build ./...
+
+      - name: Compile Kotlin SDK
+        working-directory: sdk/kotlin/generated
+        run: ./gradlew compileKotlin -Pversion=0.0.0
+
+      - name: Check Python SDK
+        working-directory: sdk/python/generated
+        run: python3 -m py_compile $(find pachca -name '*.py')
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+      - name: Compile Swift SDK
+        working-directory: sdk/swift
+        run: swift build
+
       - name: Copy Swift Package.swift to root
         if: github.event_name == 'push'
         run: cp sdk/swift/Package.swift Package.swift
@@ -60,11 +79,19 @@ jobs:
         if: github.event_name == 'push'
         id: version
         run: |
-          VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
-          if [ -z "$VERSION" ]; then
+          SPEC_VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
+          if [ -z "$SPEC_VERSION" ]; then
             echo "::error::Version not found in typespec.tsp"
             exit 1
           fi
+          BASE=$(echo "$SPEC_VERSION" | cut -d. -f1-2)
+          LAST_PATCH=$(git tag -l "v${BASE}.*" | sed 's/.*\.//' | sort -n | tail -1)
+          if [ -z "$LAST_PATCH" ]; then
+            PATCH=0
+          else
+            PATCH=$((LAST_PATCH + 1))
+          fi
+          VERSION="${BASE}.${PATCH}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit
@@ -87,7 +114,7 @@ jobs:
 
   publish-ts:
     if: github.event_name == 'push'
-    needs: generate
+    needs: generate-and-build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -95,7 +122,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v${{ needs.generate.outputs.version }}
+          ref: v${{ needs.generate-and-build.outputs.version }}
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
@@ -109,7 +136,7 @@ jobs:
       - name: Set version from tag
         working-directory: sdk/typescript
         run: |
-          sed -i 's/"version": "0.0.0"/"version": "${{ needs.generate.outputs.version }}"/' package.json
+          sed -i 's/"version": "0.0.0"/"version": "${{ needs.generate-and-build.outputs.version }}"/' package.json
       - name: Build TypeScript SDK
         run: npm run build
         working-directory: sdk/typescript
@@ -118,7 +145,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          VERSION=${{ needs.generate.outputs.version }}
+          VERSION=${{ needs.generate-and-build.outputs.version }}
           if npm view "@pachca/sdk@${VERSION}" version 2>/dev/null; then
             echo "Version ${VERSION} already published, skipping"
           else
@@ -126,8 +153,8 @@ jobs:
           fi
 
   publish-cli:
-    if: github.event_name == 'push' && needs.generate.outputs.cli_changed == 'true'
-    needs: generate
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.cli_changed == 'true'
+    needs: generate-and-build
     runs-on: ubuntu-latest
     concurrency:
       group: publish-cli
@@ -188,12 +215,12 @@ jobs:
 
   publish-py:
     if: github.event_name == 'push'
-    needs: generate
+    needs: generate-and-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v${{ needs.generate.outputs.version }}
+          ref: v${{ needs.generate-and-build.outputs.version }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -201,7 +228,7 @@ jobs:
         run: pip install build twine
       - name: Set version from tag
         working-directory: sdk/python/generated
-        run: sed -i 's/version = "0.0.0"/version = "${{ needs.generate.outputs.version }}"/' pyproject.toml
+        run: sed -i 's/version = "0.0.0"/version = "${{ needs.generate-and-build.outputs.version }}"/' pyproject.toml
       - name: Build Python SDK
         run: python -m build
         working-directory: sdk/python/generated
@@ -213,9 +240,9 @@ jobs:
 
   publish-kt:
     if: github.event_name == 'push'
-    needs: generate
+    needs: generate-and-build
     runs-on: ubuntu-latest
     steps:
       - uses: badasintended/autojitpack@v1
         with:
-          version: v${{ needs.generate.outputs.version }}
+          version: v${{ needs.generate-and-build.outputs.version }}

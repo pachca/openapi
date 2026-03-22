@@ -52,6 +52,24 @@ jobs:
         run: npm run build
         working-directory: sdk/typescript
 
+      - name: Compile Go SDK
+        working-directory: sdk/go/generated
+        run: go build ./...
+
+      - name: Compile Kotlin SDK
+        working-directory: sdk/kotlin/generated
+        run: ./gradlew compileKotlin -Pversion=0.0.0
+
+      - name: Check Python SDK
+        working-directory: sdk/python/generated
+        run: python3 -m py_compile $(find pachca -name '*.py')
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+      - name: Compile Swift SDK
+        working-directory: sdk/swift
+        run: swift build
+
       - name: Copy Swift Package.swift to root
         if: github.event_name == 'push'
         run: cp sdk/swift/Package.swift Package.swift

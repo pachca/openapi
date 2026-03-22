@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 let pachcaDecoder: JSONDecoder = {
     let decoder = JSONDecoder()

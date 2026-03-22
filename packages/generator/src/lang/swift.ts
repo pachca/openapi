@@ -192,10 +192,17 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push('}');
 }
 
+const FOUNDATION_IMPORTS = [
+  'import Foundation',
+  '#if canImport(FoundationNetworking)',
+  'import FoundationNetworking',
+  '#endif',
+];
+
 function generateModels(ir: IR): string {
   const lines: string[] = [];
   const wrappers = new Set<string>();
-  lines.push('import Foundation');
+  lines.push(...FOUNDATION_IMPORTS);
   lines.push('');
 
   for (const e of ir.enums) {
@@ -455,7 +462,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
 function generateClient(ir: IR): string {
   const lines: string[] = [];
-  lines.push('import Foundation');
+  lines.push(...FOUNDATION_IMPORTS);
   lines.push('');
   for (const s of ir.services) {
     const cls = tagToServiceName(s.tag);
@@ -515,7 +522,7 @@ function generateClient(ir: IR): string {
 
 function generateUtils(ir: IR): string {
   const lines = [
-    'import Foundation',
+    ...FOUNDATION_IMPORTS,
     '',
     'let pachcaDecoder: JSONDecoder = {',
     '    let decoder = JSONDecoder()',

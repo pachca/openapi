@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public enum AuditEventKey: String, Codable, CaseIterable {
     /// Пользователь успешно вошел в систему

@@ -36,6 +36,8 @@ import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
 import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
 import { Tabs, Tab } from '@/components/mdx/tabs';
+import { WebhookPlayground } from '@/components/mdx/webhook-playground';
+import { MessagePlayground } from '@/components/mdx/message-playground';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 import { HeadingLink } from './heading-link';
@@ -233,6 +235,8 @@ const components = {
   HomeHeroCode,
   Tabs,
   Tab,
+  WebhookPlayground,
+  MessagePlayground,
 };
 
 interface MarkdownContentProps {

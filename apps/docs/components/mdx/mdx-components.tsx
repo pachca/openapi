@@ -19,6 +19,8 @@ import { NpmBadge } from '@/components/mdx/npm-badge';
 import { PackageBadge } from '@/components/mdx/package-badge';
 import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-hero';
 import { Tabs, Tab } from '@/components/mdx/tabs';
+import { WebhookPlayground } from '@/components/mdx/webhook-playground';
+import { MessagePlayground } from '@/components/mdx/message-playground';
 import { ScopeRolesTable } from '@/components/api/scope-roles-table';
 import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
@@ -467,6 +469,8 @@ export const customMdxComponents = {
   ScopeRoles,
   Tabs,
   Tab,
+  WebhookPlayground,
+  MessagePlayground,
   AgentSkillsWorkflows,
   CliCommands,
   SdkCommands,

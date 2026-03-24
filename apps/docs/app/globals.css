@@ -685,3 +685,30 @@ main {
   max-height: 20rem; /* 320px, same as max-h-80 */
   overflow-y: auto;
 }
+
+/* Webhook Playground — message preview styles */
+.wp-message strong {
+  font-weight: 600;
+}
+
+.wp-message em {
+  font-style: italic;
+}
+
+.wp-message del {
+  text-decoration: line-through;
+}
+
+.wp-message .wp-link {
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.wp-message .wp-inline-code {
+  @apply bg-glass text-text-primary px-1 py-0.5 rounded text-[13px] font-mono;
+}
+
+.wp-message .wp-code-block {
+  @apply bg-glass rounded-lg p-3 text-[13px] font-mono my-2 whitespace-pre-wrap;
+}

@@ -688,6 +688,9 @@ export async function expandMdxComponents(content: string): Promise<string> {
     }
   }
 
+  // Interactive playground components — remove (no markdown representation)
+  result = result.replace(/<(?:WebhookPlayground|MessagePlayground)\s*\/>\n?/g, '');
+
   // Clean up multiple newlines
   result = result.replace(/\n{4,}/g, '\n\n\n');
 

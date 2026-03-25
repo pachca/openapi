@@ -38,6 +38,7 @@ import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-h
 import { Tabs, Tab } from '@/components/mdx/tabs';
 import { WebhookPlayground } from '@/components/mdx/webhook-playground';
 import { MessagePlayground } from '@/components/mdx/message-playground';
+import { FormPlayground } from '@/components/mdx/form-playground';
 import { CopyableInlineCode } from './copyable-inline-code';
 import { EndpointLink } from './endpoint-link';
 import { HeadingLink } from './heading-link';
@@ -237,6 +238,7 @@ const components = {
   Tab,
   WebhookPlayground,
   MessagePlayground,
+  FormPlayground,
 };
 
 interface MarkdownContentProps {

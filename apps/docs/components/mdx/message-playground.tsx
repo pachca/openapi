@@ -152,6 +152,19 @@ export function MessagePlayground({ buttonText = 'Попробовать' }: Mes
                 <textarea
                   value={jsonInput}
                   onChange={(e) => setJsonInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                      const t = e.currentTarget;
+                      const s = t.selectionStart;
+                      const end = t.selectionEnd;
+                      const v = t.value.substring(0, s) + '  ' + t.value.substring(end);
+                      setJsonInput(v);
+                      requestAnimationFrame(() => {
+                        t.selectionStart = t.selectionEnd = s + 2;
+                      });
+                    }
+                  }}
                   spellCheck={false}
                   className="custom-scrollbar w-full flex-1 resize-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-text-primary outline-none"
                   placeholder='{ "message": { "entity_id": 334, "content": "Текст" } }'

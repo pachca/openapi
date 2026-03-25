@@ -235,6 +235,19 @@ export function WebhookPlayground({ buttonText = 'Попробовать шаб�
                   <textarea
                     value={jsonInput}
                     onChange={(e) => setJsonInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const t = e.currentTarget;
+                        const s = t.selectionStart;
+                        const end = t.selectionEnd;
+                        const v = t.value.substring(0, s) + '  ' + t.value.substring(end);
+                        setJsonInput(v);
+                        requestAnimationFrame(() => {
+                          t.selectionStart = t.selectionEnd = s + 2;
+                        });
+                      }
+                    }}
                     spellCheck={false}
                     className="flex-1 w-full resize-none px-4 py-3 font-mono text-[13px] leading-relaxed text-text-primary bg-transparent outline-none custom-scrollbar"
                     placeholder='{ "message": "Текст сообщения" }'
@@ -249,6 +262,19 @@ export function WebhookPlayground({ buttonText = 'Попробовать шаб�
                   <textarea
                     value={template}
                     onChange={(e) => setTemplate(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const t = e.currentTarget;
+                        const s = t.selectionStart;
+                        const end = t.selectionEnd;
+                        const v = t.value.substring(0, s) + '  ' + t.value.substring(end);
+                        setTemplate(v);
+                        requestAnimationFrame(() => {
+                          t.selectionStart = t.selectionEnd = s + 2;
+                        });
+                      }
+                    }}
                     spellCheck={false}
                     className="flex-1 w-full resize-none px-4 py-3 font-mono text-[13px] leading-relaxed text-text-primary bg-transparent outline-none custom-scrollbar"
                     placeholder="Оставьте пустым, чтобы использовать поле message из JSON"

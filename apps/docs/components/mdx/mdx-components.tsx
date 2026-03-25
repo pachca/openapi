@@ -21,6 +21,7 @@ import { HomeHero, HomeHeroContent, HomeHeroCode } from '@/components/mdx/home-h
 import { Tabs, Tab } from '@/components/mdx/tabs';
 import { WebhookPlayground } from '@/components/mdx/webhook-playground';
 import { MessagePlayground } from '@/components/mdx/message-playground';
+import { FormPlayground } from '@/components/mdx/form-playground';
 import { ScopeRolesTable } from '@/components/api/scope-roles-table';
 import { getOrderedPages } from '@/lib/ordered-pages';
 import { generateNavigation } from '@/lib/navigation';
@@ -471,6 +472,7 @@ export const customMdxComponents = {
   Tab,
   WebhookPlayground,
   MessagePlayground,
+  FormPlayground,
   AgentSkillsWorkflows,
   CliCommands,
   SdkCommands,

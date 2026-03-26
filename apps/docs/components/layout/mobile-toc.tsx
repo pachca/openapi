@@ -70,8 +70,8 @@ export function MobileTableOfContents() {
 
   return (
     <div
-      className="xl:hidden fixed right-3 z-30"
-      style={{ top: 'calc(var(--mobile-header-height) + var(--mobile-nav-height) + 12px)' }}
+      className="xl:hidden fixed right-4 z-30"
+      style={{ top: 'calc(var(--mobile-header-height) + var(--mobile-nav-height) + 16px)' }}
     >
       <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
         <DropdownMenu.Trigger asChild>
@@ -89,6 +89,7 @@ export function MobileTableOfContents() {
             align="end"
             side="bottom"
             sideOffset={8}
+            collisionPadding={16}
             onCloseAutoFocus={(e) => e.preventDefault()}
           >
             {toc.map((item) => (

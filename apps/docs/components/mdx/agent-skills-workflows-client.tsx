@@ -258,7 +258,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                 align="end"
                 side="bottom"
                 sideOffset={6}
-                avoidCollisions={false}
+                collisionPadding={16}
               >
                 <DropdownMenu.Item
                   onClick={() => setActiveCategory(null)}

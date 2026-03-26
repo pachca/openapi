@@ -128,6 +128,7 @@ export function ScopeRolesTable({ schema }: ScopeRolesTableProps) {
                           side="top"
                           align="end"
                           sideOffset={4}
+                          collisionPadding={8}
                           className="z-50 animate-tooltip bg-text-primary text-[12px] font-semibold rounded-md px-2.5 py-1.5 shadow-xl whitespace-nowrap flex items-center gap-1.5"
                         >
                           {ROLES.map((r, i) => (

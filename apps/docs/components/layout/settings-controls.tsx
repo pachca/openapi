@@ -148,6 +148,7 @@ export function SettingsDropdown<T extends string>({
             align="end"
             side={compact ? 'bottom' : 'top'}
             sideOffset={8}
+            collisionPadding={16}
           >
             {options.map(({ value: optValue, label, icon: Icon, description }) => (
               <DropdownMenu.Item
@@ -247,6 +248,7 @@ export function CombinedSettingsDropdown({
           align="end"
           side="bottom"
           sideOffset={8}
+          collisionPadding={16}
         >
           <div className="flex items-center gap-0.5">
             {themeOptions.map(({ value: optValue, icon: Icon }) => (

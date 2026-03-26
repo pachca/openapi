@@ -129,6 +129,7 @@ function EngineDropdown({
         <DropdownMenu.Content
           className="mt-2 z-[10000] min-w-[140px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
           align="start"
+          collisionPadding={16}
         >
           {(Object.keys(ENGINE_LABELS) as TemplateEngine[]).map((key) => (
             <DropdownMenu.Item

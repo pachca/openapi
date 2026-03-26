@@ -120,6 +120,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
                 <DropdownMenu.Content
                   className="z-50 min-w-[220px] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
                   align="start"
+                  collisionPadding={16}
                 >
                   <DropdownMenu.Item
                     onClick={handleCopyMarkdown}

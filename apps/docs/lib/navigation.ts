@@ -5,27 +5,11 @@ import { GUIDE_SECTIONS, API_GUIDE_PAGES, SIDEBAR_FOOTER, type TabId } from './t
 import { getGuideData } from './content-loader';
 import { sortTagsByOrder } from './guides-config';
 import { loadUpdates, isNewUpdate } from './updates-parser';
+import { TAG_TRANSLATIONS } from './tag-translations';
+
+export { TAG_TRANSLATIONS };
 
 const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
-
-export const TAG_TRANSLATIONS: Record<string, string> = {
-  Common: 'Общие методы',
-  Profile: 'Профиль и статус',
-  Users: 'Сотрудники',
-  'Group tags': 'Теги',
-  Chats: 'Чаты',
-  Members: 'Участники чатов',
-  Threads: 'Треды',
-  Messages: 'Сообщения',
-  'Read members': 'Прочтение сообщения',
-  Reactions: 'Реакции на сообщения',
-  'Link Previews': 'Ссылки',
-  Tasks: 'Напоминания',
-  Views: 'Формы',
-  Bots: 'Боты и Webhook',
-  Security: 'Безопасность',
-  Search: 'Поиск',
-};
 
 /**
  * Footer section shared across all sidebar tabs (updates + status).

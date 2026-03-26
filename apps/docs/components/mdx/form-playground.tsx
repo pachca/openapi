@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
@@ -451,9 +451,10 @@ function PreviewSelect({ block }: { block: ViewBlock }) {
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="z-[10000] min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-hidden rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown"
+            className="z-[10000] max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
             sideOffset={4}
             align="start"
+            collisionPadding={16}
           >
             {options.map((opt, i) => (
               <DropdownMenu.Item
@@ -562,7 +563,7 @@ function PreviewCheckbox({ block }: { block: ViewBlock }) {
             >
               <div className="inline-flex h-5 w-5 items-center justify-center">
                 <span
-                  className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-sm border-2 transition-colors ${
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
                     isChecked ? 'border-primary bg-primary' : 'border-glass-heavy-border'
                   }`}
                 >
@@ -886,9 +887,9 @@ function PreviewTime({ block }: { block: ViewBlock }) {
     <div>
       <FieldLabel label={String(block.label || '')} required={!!block.required} />
       <Popover.Root open={listOpen} onOpenChange={setListOpen}>
-        <Popover.Trigger asChild>
+        <Popover.Anchor asChild>
           <div
-            className="flex h-9 w-full cursor-text items-center gap-2 rounded-lg border border-glass-border bg-glass px-3 transition-colors focus-within:border-primary hover:border-text-tertiary"
+            className="flex h-9 w-full cursor-text items-center gap-2 rounded-lg border border-glass-border bg-glass px-3 transition-colors focus-within:border-primary hover:not-focus-within:border-text-tertiary"
             onClick={() => {
               inputRef.current?.focus();
               setListOpen(true);
@@ -919,12 +920,13 @@ function PreviewTime({ block }: { block: ViewBlock }) {
               </span>
             )}
           </div>
-        </Popover.Trigger>
+        </Popover.Anchor>
         <Popover.Portal>
           <Popover.Content
-            className="z-[10000] max-h-[240px] min-w-[var(--radix-popover-trigger-width)] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
+            className="z-[10000] max-h-[var(--radix-popover-content-available-height)] min-w-[var(--radix-popover-trigger-width)] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
             sideOffset={4}
             align="start"
+            collisionPadding={16}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             {TIME_OPTIONS.map((t) => (
@@ -1079,10 +1081,10 @@ function SettingsToggle({
       <div
         role="switch"
         aria-checked={checked}
-        className={`relative h-[18px] w-8 shrink-0 rounded-full transition-colors ${checked ? 'bg-primary' : 'bg-glass-heavy-border'}`}
+        className={`relative h-4 w-7 shrink-0 rounded-full transition-colors ${checked ? 'bg-primary' : 'bg-glass-heavy-border'}`}
       >
         <span
-          className={`absolute top-[2px] h-[14px] w-[14px] rounded-full bg-white shadow-sm transition-transform ${checked ? 'left-[16px]' : 'left-[2px]'}`}
+          className={`absolute top-[2px] h-3 w-3 rounded-full bg-white transition-transform ${checked ? 'left-[16px]' : 'left-[2px]'}`}
         />
       </div>
       <span className="text-[13px] text-text-primary">{label}</span>
@@ -1105,8 +1107,8 @@ function OptionsEditor({
 }: {
   options: OptionItem[];
   onChange: (opts: OptionItem[]) => void;
-  /** 'selected' for select/radio (single), 'checked' for checkbox (multi) */
-  preselect?: 'selected' | 'checked';
+  /** 'select' = checkmark, 'radio' = dot-in-circle, 'checked' = checkbox (multi) */
+  preselect?: 'select' | 'radio' | 'checked';
 }) {
   const update = (index: number, field: string, val: string) => {
     onChange(
@@ -1123,7 +1125,7 @@ function OptionsEditor({
 
   const togglePreselect = (index: number) => {
     if (!preselect) return;
-    if (preselect === 'selected') {
+    if (preselect === 'select' || preselect === 'radio') {
       // Single select — only one can be selected
       onChange(
         options.map((o, i) => {
@@ -1171,7 +1173,9 @@ function OptionsEditor({
                     onClick={() => togglePreselect(i)}
                     className="mt-1 cursor-pointer rounded p-0.5 text-text-tertiary transition-colors"
                   >
-                    {preselect === 'selected' ? (
+                    {preselect === 'select' ? (
+                      <Check className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
+                    ) : preselect === 'radio' ? (
                       <CircleDot className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
                     ) : (
                       <CheckSquare className={`h-3.5 w-3.5 ${opt.checked ? 'text-primary' : ''}`} />
@@ -1183,9 +1187,10 @@ function OptionsEditor({
                     side="top"
                     align="center"
                     sideOffset={2}
+                    collisionPadding={8}
                     className="z-[10002] pointer-events-none animate-tooltip rounded-md bg-text-primary px-2.5 py-1.5 text-[12px] font-semibold text-background shadow-xl whitespace-nowrap"
                   >
-                    {preselect === 'selected' ? 'Выбрано по умолчанию' : 'Отмечено по умолчанию'}
+                    {preselect === 'checked' ? 'Отмечено по умолчанию' : 'Выбрано по умолчанию'}
                     <Tooltip.Arrow className="fill-text-primary" width={8} height={4} />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -1368,6 +1373,17 @@ function BlockSettingsContent({
       );
 
     case 'select':
+      return (
+        <div className="flex flex-col gap-3 p-3">
+          {commonFields}
+          <OptionsEditor
+            options={(block.options as OptionItem[]) || []}
+            onChange={(opts) => set('options', opts)}
+            preselect="select"
+          />
+        </div>
+      );
+
     case 'radio':
       return (
         <div className="flex flex-col gap-3 p-3">
@@ -1375,7 +1391,7 @@ function BlockSettingsContent({
           <OptionsEditor
             options={(block.options as OptionItem[]) || []}
             onChange={(opts) => set('options', opts)}
-            preselect="selected"
+            preselect="radio"
           />
         </div>
       );
@@ -1526,35 +1542,232 @@ function FormPreview({
   const [hoverTitle, setHoverTitle] = useState(false);
   const [hoverFooter, setHoverFooter] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const blockRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const prevRects = useRef<Map<string, DOMRect>>(new Map());
+  const draggedId = useRef<string | null>(null);
+  const lastSwapTime = useRef(0);
+  const swapLock = useRef<'up' | 'down' | null>(null);
+
+  const touchDrag = useRef<{
+    startY: number;
+    index: number;
+    active: boolean;
+    timer: ReturnType<typeof setTimeout> | null;
+  } | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const autoScroll = useRef<{ speed: number; raf: number | null }>({ speed: 0, raf: null });
+
+  const startAutoScroll = (speed: number) => {
+    autoScroll.current.speed = speed;
+    if (autoScroll.current.raf) return;
+    const tick = () => {
+      if (scrollRef.current) scrollRef.current.scrollTop += autoScroll.current.speed;
+      autoScroll.current.raf = requestAnimationFrame(tick);
+    };
+    autoScroll.current.raf = requestAnimationFrame(tick);
+  };
+
+  const stopAutoScroll = () => {
+    if (autoScroll.current.raf) {
+      cancelAnimationFrame(autoScroll.current.raf);
+      autoScroll.current.raf = null;
+    }
+    autoScroll.current.speed = 0;
+  };
+
+  /** Snapshot block positions, swap, and update dragIndex (shared by mouse & touch). */
+  /* eslint-disable react-hooks/purity -- only called from event handlers, not render */
+  const swapBlocks = (fromIndex: number, targetIndex: number) => {
+    if (Date.now() - lastSwapTime.current < 150) return;
+    lastSwapTime.current = Date.now();
+
+    blockRefs.current.forEach((el) => {
+      el.style.transition = 'none';
+      el.style.transform = '';
+    });
+    void document.body.offsetHeight;
+    const rects = new Map<string, DOMRect>();
+    blockRefs.current.forEach((el, id) => {
+      rects.set(id, el.getBoundingClientRect());
+    });
+    prevRects.current = rects;
+
+    onMoveBlock(fromIndex, targetIndex);
+    setDragIndex(targetIndex);
+    if (touchDrag.current) touchDrag.current.index = targetIndex;
+  };
+  /* eslint-enable react-hooks/purity */
+
+  /** Check edges and start/stop auto-scroll (shared by mouse & touch). */
+  const updateAutoScroll = (clientY: number) => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const cr = container.getBoundingClientRect();
+    const edge = 50;
+    const distTop = clientY - cr.top;
+    const distBottom = cr.bottom - clientY;
+    if (distTop < edge) {
+      startAutoScroll(-Math.round(8 * (1 - distTop / edge)));
+    } else if (distBottom < edge) {
+      startAutoScroll(Math.round(8 * (1 - distBottom / edge)));
+    } else {
+      stopAutoScroll();
+    }
+  };
+
+  const cleanupDrag = () => {
+    setDragIndex(null);
+    draggedId.current = null;
+    touchDrag.current = null;
+    swapLock.current = null;
+    stopAutoScroll();
+    if (scrollRef.current) scrollRef.current.style.overflowY = '';
+    blockRefs.current.forEach((el) => {
+      el.style.transition = '';
+      el.style.transform = '';
+    });
+  };
+
+  // ── Mouse (HTML5 Drag) ──
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDragIndex(index);
+    draggedId.current = formState.blocks[index]?._id ?? null;
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragEnd = () => {
-    setDragIndex(null);
-  };
+  const handleDragEnd = () => cleanupDrag();
 
   const handleDragOverBlock = (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (dragIndex === null || dragIndex === targetIndex) return;
 
-    // Only swap when cursor crosses the midpoint of the target block
+    updateAutoScroll(e.clientY);
+
     const rect = e.currentTarget.getBoundingClientRect();
     const midY = rect.top + rect.height / 2;
     if (dragIndex < targetIndex && e.clientY < midY) return;
     if (dragIndex > targetIndex && e.clientY > midY) return;
 
-    onMoveBlock(dragIndex, targetIndex);
-    setDragIndex(targetIndex);
+    swapBlocks(dragIndex, targetIndex);
+  };
+
+  // ── Touch (long-press to drag) ──
+
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    if (settingsOpen !== null) return;
+    if ((e.target as HTMLElement).closest('.block-actions-btn')) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    const timer = setTimeout(() => {
+      if (!touchDrag.current) return;
+      touchDrag.current.active = true;
+      swapLock.current = null;
+      setDragIndex(index);
+      draggedId.current = formState.blocks[index]?._id ?? null;
+      if (scrollRef.current) scrollRef.current.style.overflowY = 'hidden';
+    }, 300);
+
+    touchDrag.current = { startY: touch.clientY, index, active: false, timer };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchDrag.current) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    // Before long-press fires: cancel on movement > 5px (user is scrolling)
+    if (!touchDrag.current.active) {
+      if (Math.abs(touch.clientY - touchDrag.current.startY) > 5) {
+        clearTimeout(touchDrag.current.timer!);
+        touchDrag.current = null;
+      }
+      return;
+    }
+
+    e.preventDefault();
+    updateAutoScroll(touch.clientY);
+
+    const curIdx = touchDrag.current.index;
+    const curBlock = formState.blocks[curIdx];
+    if (!curBlock) return;
+    const curEl = blockRefs.current.get(curBlock._id);
+    if (!curEl) return;
+    const curRect = curEl.getBoundingClientRect();
+    const curMid = curRect.top + curRect.height / 2;
+
+    // Clear swap lock when finger returns to current block area
+    if (touch.clientY >= curRect.top && touch.clientY <= curRect.bottom) {
+      swapLock.current = null;
+    }
+
+    // Swap down (finger below center of current block)
+    if (
+      touch.clientY > curMid &&
+      curIdx + 1 < formState.blocks.length &&
+      swapLock.current !== 'up'
+    ) {
+      swapBlocks(curIdx, curIdx + 1);
+      swapLock.current = 'down';
+    }
+    // Swap up (finger above center of current block)
+    else if (touch.clientY < curMid && curIdx - 1 >= 0 && swapLock.current !== 'down') {
+      swapBlocks(curIdx, curIdx - 1);
+      swapLock.current = 'up';
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchDrag.current) return;
+    clearTimeout(touchDrag.current.timer!);
+    if (touchDrag.current.active) cleanupDrag();
+    else touchDrag.current = null;
   };
 
   const isDragging = dragIndex !== null;
 
+  // FLIP animation: smoothly animate blocks to new positions after reorder
+  useLayoutEffect(() => {
+    const prev = prevRects.current;
+    if (prev.size === 0) return;
+    prevRects.current = new Map();
+
+    const moving: { el: HTMLElement; dy: number }[] = [];
+    blockRefs.current.forEach((el, id) => {
+      if (id === draggedId.current) return;
+      const oldRect = prev.get(id);
+      if (!oldRect) return;
+      const newRect = el.getBoundingClientRect();
+      const dy = oldRect.top - newRect.top;
+      if (Math.abs(dy) > 1) moving.push({ el, dy });
+    });
+
+    if (moving.length === 0) return;
+
+    for (const { el, dy } of moving) {
+      el.style.transform = `translateY(${dy}px)`;
+    }
+    void document.body.offsetHeight;
+    for (const { el } of moving) {
+      el.style.transition = 'transform 200ms ease';
+      el.style.transform = '';
+      el.addEventListener(
+        'transitionend',
+        () => {
+          el.style.transition = '';
+        },
+        { once: true }
+      );
+    }
+  });
+
   return (
-    <div className="flex h-full items-start justify-center overflow-y-auto p-6 custom-scrollbar">
+    <div
+      ref={scrollRef}
+      className="flex h-full items-start justify-center overflow-y-auto p-6 custom-scrollbar"
+    >
       <div className="w-full max-w-[420px]">
         {/* Modal frame */}
         <div className="overflow-hidden rounded-xl border border-glass-heavy-border bg-glass-heavy">
@@ -1564,54 +1777,57 @@ function FormPreview({
             onMouseEnter={() => setHoverTitle(true)}
             onMouseLeave={() => setHoverTitle(false)}
           >
-            <h3 className="text-[16px] font-semibold text-text-primary">
+            <h3 className="text-[17px] font-semibold text-text-primary">
               {formState.title || 'Без заголовка'}
             </h3>
             <div className="flex h-6 w-6 items-center justify-center rounded-md text-text-tertiary">
               <X className="h-4 w-4" />
             </div>
-            {(hoverTitle || settingsOpen === 'title') && (
-              <div className="absolute right-5 top-3 flex items-center gap-0.5 rounded-md border border-glass-border bg-glass-heavy p-0.5">
-                <Popover.Root
-                  open={settingsOpen === 'title'}
-                  onOpenChange={(open) => setSettingsOpen(open ? 'title' : null)}
-                >
-                  <Popover.Trigger asChild>
-                    <button
-                      className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-glass-hover"
-                      title="Настройки"
-                    >
-                      <Settings className="h-4 w-4" />
-                    </button>
-                  </Popover.Trigger>
-                  <Popover.Portal>
-                    <Popover.Content
-                      className="z-[10001] w-[260px] rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown"
-                      sideOffset={8}
-                      align="end"
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      <div className="flex flex-col gap-3 p-3">
-                        <SettingsField label="Заголовок">
-                          <input
-                            type="text"
-                            value={formState.title}
-                            onChange={(e) => onUpdateForm({ title: e.target.value })}
-                            className={sInputCls}
-                          />
-                        </SettingsField>
-                      </div>
-                    </Popover.Content>
-                  </Popover.Portal>
-                </Popover.Root>
-              </div>
-            )}
+            <div
+              className={`block-actions-btn absolute right-5 top-3 items-center gap-0.5 rounded-md border border-glass-border bg-glass-heavy p-0.5 ${hoverTitle || settingsOpen === 'title' ? 'flex' : 'hidden'}`}
+            >
+              <Popover.Root
+                open={settingsOpen === 'title'}
+                onOpenChange={(open) => setSettingsOpen(open ? 'title' : null)}
+              >
+                <Popover.Trigger asChild>
+                  <button
+                    className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-glass-hover"
+                    title="Настройки"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </button>
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Content
+                    className="z-[10001] w-[260px] rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown"
+                    sideOffset={8}
+                    align="end"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    <div className="flex flex-col gap-3 p-3">
+                      <SettingsField label="Заголовок">
+                        <input
+                          type="text"
+                          value={formState.title}
+                          onChange={(e) => onUpdateForm({ title: e.target.value })}
+                          className={sInputCls}
+                        />
+                      </SettingsField>
+                    </div>
+                  </Popover.Content>
+                </Popover.Portal>
+              </Popover.Root>
+            </div>
           </div>
 
           {/* Modal body — blocks */}
           <div
             className="flex flex-col gap-4 px-5 pb-4 pt-4"
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (dragIndex !== null) updateAutoScroll(e.clientY);
+            }}
           >
             {formState.blocks.length === 0 && (
               <p className="py-6 text-center text-[13px] text-text-tertiary">
@@ -1622,6 +1838,10 @@ function FormPreview({
             {formState.blocks.map((block, i) => (
               <div
                 key={block._id}
+                ref={(el) => {
+                  if (el) blockRefs.current.set(block._id, el);
+                  else blockRefs.current.delete(block._id);
+                }}
                 className={`group/block relative rounded-lg transition-all ${
                   isDragging && dragIndex === i
                     ? 'opacity-30'
@@ -1635,47 +1855,54 @@ function FormPreview({
                 onDragStart={(e) => handleDragStart(e, i)}
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => handleDragOverBlock(e, i)}
+                onTouchStart={(e) => handleTouchStart(e, i)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onContextMenu={(e) => {
+                  if (touchDrag.current) e.preventDefault();
+                }}
               >
                 <PreviewBlock block={block} />
-                {(hoveredBlock === i || settingsOpen === i) && !isDragging && (
-                  <div className="absolute right-0 -top-1 flex items-center gap-0.5 rounded-md border border-glass-border bg-glass-heavy p-0.5">
-                    {block.type !== 'divider' && (
-                      <Popover.Root
-                        open={settingsOpen === i}
-                        onOpenChange={(open) => setSettingsOpen(open ? i : null)}
-                      >
-                        <Popover.Trigger asChild>
-                          <button
-                            className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-glass-hover"
-                            title="Настройки"
-                          >
-                            <Settings className="h-4 w-4" />
-                          </button>
-                        </Popover.Trigger>
-                        <Popover.Portal>
-                          <Popover.Content
-                            className="z-[10001] max-h-[480px] w-[300px] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
-                            sideOffset={8}
-                            align="end"
-                            onOpenAutoFocus={(e) => e.preventDefault()}
-                          >
-                            <BlockSettingsContent
-                              block={block}
-                              onUpdate={(updated) => onUpdateBlock(i, updated)}
-                            />
-                          </Popover.Content>
-                        </Popover.Portal>
-                      </Popover.Root>
-                    )}
-                    <button
-                      onClick={() => onRemoveBlock(i)}
-                      className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-accent-red/10 hover:text-accent-red"
-                      title="Удалить"
+                <div
+                  className={`block-actions-btn absolute right-0 -top-1 items-center gap-0.5 rounded-md border border-glass-border bg-glass-heavy p-0.5 ${(hoveredBlock === i || settingsOpen === i) && !isDragging ? 'flex' : 'hidden'}`}
+                >
+                  {block.type !== 'divider' && (
+                    <Popover.Root
+                      open={settingsOpen === i}
+                      onOpenChange={(open) => setSettingsOpen(open ? i : null)}
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
+                      <Popover.Trigger asChild>
+                        <button
+                          className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-glass-hover"
+                          title="Настройки"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </button>
+                      </Popover.Trigger>
+                      <Popover.Portal>
+                        <Popover.Content
+                          className="z-[10001] max-h-[var(--radix-popover-content-available-height)] w-[300px] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
+                          sideOffset={8}
+                          align="end"
+                          collisionPadding={16}
+                          onOpenAutoFocus={(e) => e.preventDefault()}
+                        >
+                          <BlockSettingsContent
+                            block={block}
+                            onUpdate={(updated) => onUpdateBlock(i, updated)}
+                          />
+                        </Popover.Content>
+                      </Popover.Portal>
+                    </Popover.Root>
+                  )}
+                  <button
+                    onClick={() => onRemoveBlock(i)}
+                    className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-accent-red/10 hover:text-accent-red"
+                    title="Удалить"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1692,50 +1919,50 @@ function FormPreview({
             <button className="cursor-default rounded-lg bg-primary px-4 py-1.5 text-[14px] font-medium text-white transition-colors">
               {formState.submit_text || 'Отправить'}
             </button>
-            {(hoverFooter === 'footer' || settingsOpen === 'footer') && (
-              <div className="absolute right-5 -top-4 flex items-center gap-0.5 rounded-md border border-glass-border bg-glass-heavy p-0.5">
-                <Popover.Root
-                  open={settingsOpen === 'footer'}
-                  onOpenChange={(open) => setSettingsOpen(open ? 'footer' : null)}
-                >
-                  <Popover.Trigger asChild>
-                    <button
-                      className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-glass-hover"
-                      title="Настройки"
-                    >
-                      <Settings className="h-4 w-4" />
-                    </button>
-                  </Popover.Trigger>
-                  <Popover.Portal>
-                    <Popover.Content
-                      className="z-[10001] w-[260px] rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown"
-                      sideOffset={8}
-                      align="end"
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      <div className="flex flex-col gap-3 p-3">
-                        <SettingsField label="Кнопка отправки">
-                          <input
-                            type="text"
-                            value={formState.submit_text}
-                            onChange={(e) => onUpdateForm({ submit_text: e.target.value })}
-                            className={sInputCls}
-                          />
-                        </SettingsField>
-                        <SettingsField label="Кнопка отмены">
-                          <input
-                            type="text"
-                            value={formState.close_text}
-                            onChange={(e) => onUpdateForm({ close_text: e.target.value })}
-                            className={sInputCls}
-                          />
-                        </SettingsField>
-                      </div>
-                    </Popover.Content>
-                  </Popover.Portal>
-                </Popover.Root>
-              </div>
-            )}
+            <div
+              className={`block-actions-btn absolute right-5 -top-4 items-center gap-0.5 rounded-md border border-glass-border bg-glass-heavy p-0.5 ${hoverFooter === 'footer' || settingsOpen === 'footer' ? 'flex' : 'hidden'}`}
+            >
+              <Popover.Root
+                open={settingsOpen === 'footer'}
+                onOpenChange={(open) => setSettingsOpen(open ? 'footer' : null)}
+              >
+                <Popover.Trigger asChild>
+                  <button
+                    className="cursor-pointer rounded p-0.5 text-text-primary transition-colors hover:bg-glass-hover"
+                    title="Настройки"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </button>
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Content
+                    className="z-[10001] w-[260px] rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown"
+                    sideOffset={8}
+                    align="end"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    <div className="flex flex-col gap-3 p-3">
+                      <SettingsField label="Кнопка отправки">
+                        <input
+                          type="text"
+                          value={formState.submit_text}
+                          onChange={(e) => onUpdateForm({ submit_text: e.target.value })}
+                          className={sInputCls}
+                        />
+                      </SettingsField>
+                      <SettingsField label="Кнопка отмены">
+                        <input
+                          type="text"
+                          value={formState.close_text}
+                          onChange={(e) => onUpdateForm({ close_text: e.target.value })}
+                          className={sInputCls}
+                        />
+                      </SettingsField>
+                    </div>
+                  </Popover.Content>
+                </Popover.Portal>
+              </Popover.Root>
+            </div>
           </div>
         </div>
       </div>
@@ -1869,9 +2096,8 @@ export function FormPlayground({ buttonText = 'Конструктор форм' 
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[oklch(0%_0_0/0.6)] px-4 pt-[60px] pb-[60px]">
           <div className="flex h-[calc(100vh-120px)] w-full max-w-[1400px] flex-col overflow-hidden rounded-xl border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl">
             {/* Header */}
-            {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-glass-heavy-border px-4 py-3">
-              <h2 className="hidden text-[16px] font-semibold text-text-primary lg:block">
+              <h2 className="hidden text-[17px] font-semibold text-text-primary lg:block">
                 Конструктор форм
               </h2>
               {/* Mobile view toggle — pill style like header tabs */}
@@ -1963,6 +2189,7 @@ export function FormPlayground({ buttonText = 'Конструктор форм' 
                               side="top"
                               align="center"
                               sideOffset={2}
+                              collisionPadding={8}
                               className="z-[10000] pointer-events-none animate-tooltip rounded-md bg-text-primary px-2.5 py-1.5 text-[12px] font-semibold text-background shadow-xl whitespace-nowrap"
                             >
                               Скопировано

@@ -7,6 +7,7 @@ import { ChevronDown, Filter, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { CopyableInlineCode } from '@/components/api/copyable-inline-code';
 import { GuideCodeBlock } from '@/components/api/guide-code-block';
+import { TAG_TRANSLATIONS } from '@/lib/tag-translations';
 import type { WorkflowCardData, StepSegment } from './agent-skills-workflows';
 
 const METHOD_COLORS: Record<string, string> = {
@@ -19,9 +20,9 @@ const METHOD_COLORS: Record<string, string> = {
 
 const CATEGORY_COLORS: Record<string, string> = {
   Messages: 'cat-messaging',
-  Thread: 'cat-messaging',
+  Threads: 'cat-messaging',
   Reactions: 'cat-messaging',
-  'Read member': 'cat-messaging',
+  'Read members': 'cat-messaging',
   Chats: 'cat-chats',
   Members: 'cat-chats',
   Users: 'cat-people',
@@ -33,24 +34,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   Tasks: 'cat-tasks',
   Search: 'cat-search',
   Security: 'cat-security',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  Messages: 'Сообщения',
-  Thread: 'Треды',
-  Reactions: 'Реакции на сообщения',
-  'Read member': 'Прочтение сообщения',
-  Chats: 'Чаты',
-  Members: 'Участники чатов',
-  Users: 'Сотрудники',
-  'Group tags': 'Теги',
-  Profile: 'Профиль и статус',
-  Bots: 'Боты и Webhook',
-  'Link Previews': 'Ссылки',
-  Views: 'Формы',
-  Tasks: 'Напоминания',
-  Search: 'Поиск',
-  Security: 'Безопасность',
 };
 
 /* ── Helpers ── */
@@ -135,7 +118,7 @@ function CategoryBadge({ category }: { category: string }) {
   if (!colorVar) {
     return (
       <span className="px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-glass text-text-secondary">
-        {CATEGORY_LABELS[category] ?? category}
+        {TAG_TRANSLATIONS[category] ?? category}
       </span>
     );
   }
@@ -147,7 +130,7 @@ function CategoryBadge({ category }: { category: string }) {
         color: `var(--color-${colorVar})`,
       }}
     >
-      {CATEGORY_LABELS[category] ?? category}
+      {TAG_TRANSLATIONS[category] ?? category}
     </span>
   );
 }
@@ -261,7 +244,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
             <DropdownMenu.Trigger asChild>
               <button className="flex items-center gap-1.5 px-3 h-9 rounded-md border border-glass-border bg-glass text-[13px] font-medium text-text-primary transition-all outline-none focus:outline-none focus:ring-0 select-none cursor-pointer group whitespace-nowrap shrink-0">
                 <Filter className="w-4 h-4 shrink-0 text-text-primary" />
-                {activeCategory ? (CATEGORY_LABELS[activeCategory] ?? activeCategory) : 'Все'}
+                {activeCategory ? (TAG_TRANSLATIONS[activeCategory] ?? activeCategory) : 'Все'}
                 <ChevronDown
                   className="w-3.5 h-3.5 shrink-0 text-text-secondary group-hover:text-text-primary transition-colors"
                   strokeWidth={2.5}
@@ -297,7 +280,7 @@ export function AgentSkillsWorkflowsClient({ workflows }: Props) {
                         : 'text-text-primary hover:bg-glass-hover'
                     }`}
                   >
-                    <span>{CATEGORY_LABELS[cat] ?? cat}</span>
+                    <span>{TAG_TRANSLATIONS[cat] ?? cat}</span>
                     <span
                       className={`text-[12px] ml-3 ${activeCategory === cat ? 'text-primary/70' : 'text-text-tertiary'}`}
                     >

@@ -60,13 +60,13 @@ n8n автоматически выполняет каждое действие 
 
   ### Шаг 2. Установка расширения Пачки
 
-Расширение доступно на [GitHub](https://github.com/doesntneedname/n8n-nodes-pachca) и [npmjs](https://www.npmjs.com/package/n8n-nodes-pachca).
+Расширение доступно на [GitHub](https://github.com/pachca/n8n-nodes-pachca) и [npmjs](https://www.npmjs.com/package/n8n-nodes-pachca).
 
     Три способа установки:
 
     1. Зайти в **Settings** > **Community nodes** и добавить `n8n-nodes-pachca` (рекомендуется)
     2. Выполнить команду `npm i n8n-nodes-pachca` в директории n8n
-    3. Следовать README-инструкции на [GitHub](https://github.com/doesntneedname/n8n-nodes-pachca)
+    3. Следовать README-инструкции на [GitHub](https://github.com/pachca/n8n-nodes-pachca)
 
     ![Установка расширения Пачки через Community nodes](/images/n8n/community-nodes.avif)
 

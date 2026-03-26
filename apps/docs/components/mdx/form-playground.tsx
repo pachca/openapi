@@ -1187,6 +1187,7 @@ function OptionsEditor({
                     side="top"
                     align="center"
                     sideOffset={2}
+                    collisionPadding={8}
                     className="z-[10002] pointer-events-none animate-tooltip rounded-md bg-text-primary px-2.5 py-1.5 text-[12px] font-semibold text-background shadow-xl whitespace-nowrap"
                   >
                     {preselect === 'checked' ? 'Отмечено по умолчанию' : 'Выбрано по умолчанию'}
@@ -2188,6 +2189,7 @@ export function FormPlayground({ buttonText = 'Конструктор форм' 
                               side="top"
                               align="center"
                               sideOffset={2}
+                              collisionPadding={8}
                               className="z-[10000] pointer-events-none animate-tooltip rounded-md bg-text-primary px-2.5 py-1.5 text-[12px] font-semibold text-background shadow-xl whitespace-nowrap"
                             >
                               Скопировано

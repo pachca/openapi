@@ -9,7 +9,6 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -24,21 +23,21 @@ public sealed class CommonService
         _client = client;
     }
 
-    public async Task UploadFileAsync(
+    public async System.Threading.Tasks.Task UploadFileAsync(
         string directUrl,
         FileUploadRequest request,
         CancellationToken cancellationToken = default)
     {
         var url = directUrl;
         using var content = new MultipartFormDataContent();
-        content.Add(new StringContent(request.ContentDisposition.ToString()!), "content-disposition");
-        content.Add(new StringContent(request.Acl.ToString()!), "acl");
-        content.Add(new StringContent(request.Policy.ToString()!), "policy");
-        content.Add(new StringContent(request.XAmzCredential.ToString()!), "x-amz-credential");
-        content.Add(new StringContent(request.XAmzAlgorithm.ToString()!), "x-amz-algorithm");
-        content.Add(new StringContent(request.XAmzDate.ToString()!), "x-amz-date");
-        content.Add(new StringContent(request.XAmzSignature.ToString()!), "x-amz-signature");
-        content.Add(new StringContent(request.Key.ToString()!), "key");
+        content.Add(new StringContent($"{request.ContentDisposition}"), "content-disposition");
+        content.Add(new StringContent($"{request.Acl}"), "acl");
+        content.Add(new StringContent($"{request.Policy}"), "policy");
+        content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
+        content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
+        content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
+        content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
+        content.Add(new StringContent($"{request.Key}"), "key");
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;
@@ -56,7 +55,7 @@ public sealed class CommonService
         }
     }
 
-    public async Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/uploads";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);

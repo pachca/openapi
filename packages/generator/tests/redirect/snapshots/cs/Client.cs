@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -23,7 +22,7 @@ public sealed class CommonService
         _client = client;
     }
 
-    public async Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/exports/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);

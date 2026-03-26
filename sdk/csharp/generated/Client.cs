@@ -9,7 +9,6 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -24,7 +23,7 @@ public sealed class SecurityService
         _client = client;
     }
 
-    public async Task<GetAuditEventsResponse> GetAuditEventsAsync(
+    public async System.Threading.Tasks.Task<GetAuditEventsResponse> GetAuditEventsAsync(
         DateTimeOffset? startTime = null,
         DateTimeOffset? endTime = null,
         AuditEventKey? eventKey = null,
@@ -70,7 +69,7 @@ public sealed class SecurityService
         }
     }
 
-    public async Task<List<AuditEvent>> GetAuditEventsAllAsync(
+    public async System.Threading.Tasks.Task<List<AuditEvent>> GetAuditEventsAllAsync(
         DateTimeOffset? startTime = null,
         DateTimeOffset? endTime = null,
         AuditEventKey? eventKey = null,
@@ -104,7 +103,7 @@ public sealed class BotsService
         _client = client;
     }
 
-    public async Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
+    public async System.Threading.Tasks.Task<GetWebhookEventsResponse> GetWebhookEventsAsync(
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
@@ -129,7 +128,7 @@ public sealed class BotsService
         }
     }
 
-    public async Task<List<WebhookEvent>> GetWebhookEventsAllAsync(
+    public async System.Threading.Tasks.Task<List<WebhookEvent>> GetWebhookEventsAllAsync(
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -144,7 +143,7 @@ public sealed class BotsService
         return items;
     }
 
-    public async Task<BotResponse> UpdateBotAsync(
+    public async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(
         int id,
         BotUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -165,7 +164,7 @@ public sealed class BotsService
         }
     }
 
-    public async Task DeleteWebhookEventAsync(string id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteWebhookEventAsync(string id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/webhooks/events/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -194,7 +193,7 @@ public sealed class ChatsService
         _client = client;
     }
 
-    public async Task<ListChatsResponse> ListChatsAsync(
+    public async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
         SortOrder? sortId = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
@@ -234,7 +233,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task<List<Chat>> ListChatsAllAsync(
+    public async System.Threading.Tasks.Task<List<Chat>> ListChatsAllAsync(
         SortOrder? sortId = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
@@ -254,7 +253,7 @@ public sealed class ChatsService
         return items;
     }
 
-    public async Task<Chat> GetChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Chat> GetChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -271,7 +270,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -289,7 +288,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task<Chat> UpdateChatAsync(
+    public async System.Threading.Tasks.Task<Chat> UpdateChatAsync(
         int id,
         ChatUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -310,7 +309,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/archive";
         using var request = new HttpRequestMessage(HttpMethod.Put, url);
@@ -327,7 +326,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task UnarchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task UnarchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/unarchive";
         using var request = new HttpRequestMessage(HttpMethod.Put, url);
@@ -356,7 +355,7 @@ public sealed class CommonService
         _client = client;
     }
 
-    public async Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -374,7 +373,7 @@ public sealed class CommonService
         }
     }
 
-    public async Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<ListPropertiesResponse> ListPropertiesAsync(SearchEntityType entityType, CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
         queryParts.Add($"entity_type={Uri.EscapeDataString(PachcaUtils.EnumToApiString(entityType))}");
@@ -393,7 +392,7 @@ public sealed class CommonService
         }
     }
 
-    public async Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task RequestExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/exports";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -411,21 +410,21 @@ public sealed class CommonService
         }
     }
 
-    public async Task UploadFileAsync(
+    public async System.Threading.Tasks.Task UploadFileAsync(
         string directUrl,
         FileUploadRequest request,
         CancellationToken cancellationToken = default)
     {
         var url = directUrl;
         using var content = new MultipartFormDataContent();
-        content.Add(new StringContent(request.ContentDisposition.ToString()!), "Content-Disposition");
-        content.Add(new StringContent(request.Acl.ToString()!), "acl");
-        content.Add(new StringContent(request.Policy.ToString()!), "policy");
-        content.Add(new StringContent(request.XAmzCredential.ToString()!), "x-amz-credential");
-        content.Add(new StringContent(request.XAmzAlgorithm.ToString()!), "x-amz-algorithm");
-        content.Add(new StringContent(request.XAmzDate.ToString()!), "x-amz-date");
-        content.Add(new StringContent(request.XAmzSignature.ToString()!), "x-amz-signature");
-        content.Add(new StringContent(request.Key.ToString()!), "key");
+        content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
+        content.Add(new StringContent($"{request.Acl}"), "acl");
+        content.Add(new StringContent($"{request.Policy}"), "policy");
+        content.Add(new StringContent($"{request.XAmzCredential}"), "x-amz-credential");
+        content.Add(new StringContent($"{request.XAmzAlgorithm}"), "x-amz-algorithm");
+        content.Add(new StringContent($"{request.XAmzDate}"), "x-amz-date");
+        content.Add(new StringContent($"{request.XAmzSignature}"), "x-amz-signature");
+        content.Add(new StringContent($"{request.Key}"), "key");
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;
@@ -441,7 +440,7 @@ public sealed class CommonService
         }
     }
 
-    public async Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/uploads";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -470,7 +469,7 @@ public sealed class MembersService
         _client = client;
     }
 
-    public async Task<ListMembersResponse> ListMembersAsync(
+    public async System.Threading.Tasks.Task<ListMembersResponse> ListMembersAsync(
         int id,
         ChatMemberRoleFilter? role = null,
         int? limit = null,
@@ -499,7 +498,7 @@ public sealed class MembersService
         }
     }
 
-    public async Task<List<User>> ListMembersAllAsync(
+    public async System.Threading.Tasks.Task<List<User>> ListMembersAllAsync(
         int id,
         ChatMemberRoleFilter? role = null,
         int? limit = null,
@@ -516,7 +515,7 @@ public sealed class MembersService
         return items;
     }
 
-    public async Task AddTagsAsync(
+    public async System.Threading.Tasks.Task AddTagsAsync(
         int id,
         List<int> groupTagIds,
         CancellationToken cancellationToken = default)
@@ -538,7 +537,7 @@ public sealed class MembersService
         }
     }
 
-    public async Task AddMembersAsync(
+    public async System.Threading.Tasks.Task AddMembersAsync(
         int id,
         AddMembersRequest request,
         CancellationToken cancellationToken = default)
@@ -559,7 +558,7 @@ public sealed class MembersService
         }
     }
 
-    public async Task UpdateMemberRoleAsync(
+    public async System.Threading.Tasks.Task UpdateMemberRoleAsync(
         int id,
         int userId,
         ChatMemberRole role,
@@ -582,7 +581,7 @@ public sealed class MembersService
         }
     }
 
-    public async Task RemoveTagAsync(
+    public async System.Threading.Tasks.Task RemoveTagAsync(
         int id,
         int tagId,
         CancellationToken cancellationToken = default)
@@ -602,7 +601,7 @@ public sealed class MembersService
         }
     }
 
-    public async Task LeaveChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task LeaveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/leave";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -619,7 +618,7 @@ public sealed class MembersService
         }
     }
 
-    public async Task RemoveMemberAsync(
+    public async System.Threading.Tasks.Task RemoveMemberAsync(
         int id,
         int userId,
         CancellationToken cancellationToken = default)
@@ -651,7 +650,7 @@ public sealed class GroupTagsService
         _client = client;
     }
 
-    public async Task<ListTagsResponse> ListTagsAsync(
+    public async System.Threading.Tasks.Task<ListTagsResponse> ListTagsAsync(
         TagNamesFilter? names = null,
         int? limit = null,
         string? cursor = null,
@@ -679,7 +678,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async Task<List<GroupTag>> ListTagsAllAsync(
+    public async System.Threading.Tasks.Task<List<GroupTag>> ListTagsAllAsync(
         TagNamesFilter? names = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
@@ -695,7 +694,7 @@ public sealed class GroupTagsService
         return items;
     }
 
-    public async Task<GroupTag> GetTagAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<GroupTag> GetTagAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/group_tags/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -712,7 +711,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async Task<ListMembersResponse> GetTagUsersAsync(
+    public async System.Threading.Tasks.Task<ListMembersResponse> GetTagUsersAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -738,7 +737,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async Task<List<User>> GetTagUsersAllAsync(
+    public async System.Threading.Tasks.Task<List<User>> GetTagUsersAllAsync(
         int id,
         int? limit = null,
         CancellationToken cancellationToken = default)
@@ -754,7 +753,7 @@ public sealed class GroupTagsService
         return items;
     }
 
-    public async Task<GroupTag> CreateTagAsync(GroupTagRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<GroupTag> CreateTagAsync(GroupTagRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/group_tags";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -772,7 +771,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async Task<GroupTag> UpdateTagAsync(
+    public async System.Threading.Tasks.Task<GroupTag> UpdateTagAsync(
         int id,
         GroupTagRequest request,
         CancellationToken cancellationToken = default)
@@ -793,7 +792,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async Task DeleteTagAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteTagAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/group_tags/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -822,7 +821,7 @@ public sealed class MessagesService
         _client = client;
     }
 
-    public async Task<ListChatMessagesResponse> ListChatMessagesAsync(
+    public async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
         int chatId,
         SortOrder? sortId = null,
         int? limit = null,
@@ -852,7 +851,7 @@ public sealed class MessagesService
         }
     }
 
-    public async Task<List<Message>> ListChatMessagesAllAsync(
+    public async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
         int chatId,
         SortOrder? sortId = null,
         int? limit = null,
@@ -869,7 +868,7 @@ public sealed class MessagesService
         return items;
     }
 
-    public async Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Message> GetMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -886,7 +885,7 @@ public sealed class MessagesService
         }
     }
 
-    public async Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Message> CreateMessageAsync(MessageCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -904,7 +903,7 @@ public sealed class MessagesService
         }
     }
 
-    public async Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task PinMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/pin";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -921,7 +920,7 @@ public sealed class MessagesService
         }
     }
 
-    public async Task<Message> UpdateMessageAsync(
+    public async System.Threading.Tasks.Task<Message> UpdateMessageAsync(
         int id,
         MessageUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -942,7 +941,7 @@ public sealed class MessagesService
         }
     }
 
-    public async Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -959,7 +958,7 @@ public sealed class MessagesService
         }
     }
 
-    public async Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task UnpinMessageAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/pin";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -988,7 +987,7 @@ public sealed class LinkPreviewsService
         _client = client;
     }
 
-    public async Task CreateLinkPreviewsAsync(
+    public async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
         int id,
         LinkPreviewsRequest request,
         CancellationToken cancellationToken = default)
@@ -1021,7 +1020,7 @@ public sealed class ReactionsService
         _client = client;
     }
 
-    public async Task<ListReactionsResponse> ListReactionsAsync(
+    public async System.Threading.Tasks.Task<ListReactionsResponse> ListReactionsAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -1047,7 +1046,7 @@ public sealed class ReactionsService
         }
     }
 
-    public async Task<List<Reaction>> ListReactionsAllAsync(
+    public async System.Threading.Tasks.Task<List<Reaction>> ListReactionsAllAsync(
         int id,
         int? limit = null,
         CancellationToken cancellationToken = default)
@@ -1063,7 +1062,7 @@ public sealed class ReactionsService
         return items;
     }
 
-    public async Task<Reaction> AddReactionAsync(
+    public async System.Threading.Tasks.Task<Reaction> AddReactionAsync(
         int id,
         ReactionRequest request,
         CancellationToken cancellationToken = default)
@@ -1084,7 +1083,7 @@ public sealed class ReactionsService
         }
     }
 
-    public async Task RemoveReactionAsync(
+    public async System.Threading.Tasks.Task RemoveReactionAsync(
         int id,
         string code,
         string? name = null,
@@ -1121,7 +1120,7 @@ public sealed class ReadMembersService
         _client = client;
     }
 
-    public async Task<object> ListReadMembersAsync(
+    public async System.Threading.Tasks.Task<object> ListReadMembersAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -1159,7 +1158,7 @@ public sealed class ThreadsService
         _client = client;
     }
 
-    public async Task<Pachca.Sdk.Thread> GetThreadAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Pachca.Sdk.Thread> GetThreadAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/threads/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1176,7 +1175,7 @@ public sealed class ThreadsService
         }
     }
 
-    public async Task<Pachca.Sdk.Thread> CreateThreadAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Pachca.Sdk.Thread> CreateThreadAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/messages/{id}/thread";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1205,7 +1204,7 @@ public sealed class ProfileService
         _client = client;
     }
 
-    public async Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<AccessTokenInfo> GetTokenInfoAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/oauth/token/info";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1222,7 +1221,7 @@ public sealed class ProfileService
         }
     }
 
-    public async Task<User> GetProfileAsync(CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<User> GetProfileAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1239,7 +1238,7 @@ public sealed class ProfileService
         }
     }
 
-    public async Task<object> GetStatusAsync(CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<object> GetStatusAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1256,7 +1255,7 @@ public sealed class ProfileService
         }
     }
 
-    public async Task<UserStatus> UpdateStatusAsync(StatusUpdateRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<UserStatus> UpdateStatusAsync(StatusUpdateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
@@ -1274,7 +1273,7 @@ public sealed class ProfileService
         }
     }
 
-    public async Task DeleteStatusAsync(CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteStatusAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1303,7 +1302,7 @@ public sealed class SearchService
         _client = client;
     }
 
-    public async Task<ListChatsResponse> SearchChatsAsync(
+    public async System.Threading.Tasks.Task<ListChatsResponse> SearchChatsAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1349,7 +1348,7 @@ public sealed class SearchService
         }
     }
 
-    public async Task<List<Chat>> SearchChatsAllAsync(
+    public async System.Threading.Tasks.Task<List<Chat>> SearchChatsAllAsync(
         string? query = null,
         int? limit = null,
         SortOrder? order = null,
@@ -1371,7 +1370,7 @@ public sealed class SearchService
         return items;
     }
 
-    public async Task<ListChatMessagesResponse> SearchMessagesAsync(
+    public async System.Threading.Tasks.Task<ListChatMessagesResponse> SearchMessagesAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1417,7 +1416,7 @@ public sealed class SearchService
         }
     }
 
-    public async Task<List<Message>> SearchMessagesAllAsync(
+    public async System.Threading.Tasks.Task<List<Message>> SearchMessagesAllAsync(
         string? query = null,
         int? limit = null,
         SortOrder? order = null,
@@ -1439,7 +1438,7 @@ public sealed class SearchService
         return items;
     }
 
-    public async Task<ListMembersResponse> SearchUsersAsync(
+    public async System.Threading.Tasks.Task<ListMembersResponse> SearchUsersAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1482,7 +1481,7 @@ public sealed class SearchService
         }
     }
 
-    public async Task<List<User>> SearchUsersAllAsync(
+    public async System.Threading.Tasks.Task<List<User>> SearchUsersAllAsync(
         string? query = null,
         int? limit = null,
         SearchSortOrder? sort = null,
@@ -1515,7 +1514,7 @@ public sealed class TasksService
         _client = client;
     }
 
-    public async Task<ListTasksResponse> ListTasksAsync(
+    public async System.Threading.Tasks.Task<ListTasksResponse> ListTasksAsync(
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
@@ -1540,7 +1539,7 @@ public sealed class TasksService
         }
     }
 
-    public async Task<List<Pachca.Sdk.Task>> ListTasksAllAsync(
+    public async System.Threading.Tasks.Task<List<Pachca.Sdk.Task>> ListTasksAllAsync(
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -1555,7 +1554,7 @@ public sealed class TasksService
         return items;
     }
 
-    public async Task<Pachca.Sdk.Task> GetTaskAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/tasks/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1572,7 +1571,7 @@ public sealed class TasksService
         }
     }
 
-    public async Task<Pachca.Sdk.Task> CreateTaskAsync(TaskCreateRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> CreateTaskAsync(TaskCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/tasks";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1590,7 +1589,7 @@ public sealed class TasksService
         }
     }
 
-    public async Task<Pachca.Sdk.Task> UpdateTaskAsync(
+    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
         int id,
         TaskUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -1611,7 +1610,7 @@ public sealed class TasksService
         }
     }
 
-    public async Task DeleteTaskAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteTaskAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/tasks/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1640,7 +1639,7 @@ public sealed class UsersService
         _client = client;
     }
 
-    public async Task<ListMembersResponse> ListUsersAsync(
+    public async System.Threading.Tasks.Task<ListMembersResponse> ListUsersAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1668,7 +1667,7 @@ public sealed class UsersService
         }
     }
 
-    public async Task<List<User>> ListUsersAllAsync(
+    public async System.Threading.Tasks.Task<List<User>> ListUsersAllAsync(
         string? query = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
@@ -1684,7 +1683,7 @@ public sealed class UsersService
         return items;
     }
 
-    public async Task<User> GetUserAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<User> GetUserAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1701,7 +1700,7 @@ public sealed class UsersService
         }
     }
 
-    public async Task<object> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<object> GetUserStatusAsync(int userId, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{userId}/status";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -1718,7 +1717,7 @@ public sealed class UsersService
         }
     }
 
-    public async Task<User> CreateUserAsync(UserCreateRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<User> CreateUserAsync(UserCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -1736,7 +1735,7 @@ public sealed class UsersService
         }
     }
 
-    public async Task<User> UpdateUserAsync(
+    public async System.Threading.Tasks.Task<User> UpdateUserAsync(
         int id,
         UserUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -1757,7 +1756,7 @@ public sealed class UsersService
         }
     }
 
-    public async Task<UserStatus> UpdateUserStatusAsync(
+    public async System.Threading.Tasks.Task<UserStatus> UpdateUserStatusAsync(
         int userId,
         StatusUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -1778,7 +1777,7 @@ public sealed class UsersService
         }
     }
 
-    public async Task DeleteUserAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteUserAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1795,7 +1794,7 @@ public sealed class UsersService
         }
     }
 
-    public async Task DeleteUserStatusAsync(int userId, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteUserStatusAsync(int userId, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{userId}/status";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
@@ -1824,7 +1823,7 @@ public sealed class ViewsService
         _client = client;
     }
 
-    public async Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task OpenViewAsync(OpenViewRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/views/open";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);

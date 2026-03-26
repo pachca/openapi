@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -23,7 +22,7 @@ public sealed class SearchService
         _client = client;
     }
 
-    public async Task<SearchMessagesResponse> SearchMessagesAsync(
+    public async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
         string query,
         List<int>? chatIds = null,
         List<int>? userIds = null,
@@ -67,7 +66,7 @@ public sealed class SearchService
         }
     }
 
-    public async Task<List<MessageSearchResult>> SearchMessagesAllAsync(
+    public async System.Threading.Tasks.Task<List<MessageSearchResult>> SearchMessagesAllAsync(
         string query,
         List<int>? chatIds = null,
         List<int>? userIds = null,

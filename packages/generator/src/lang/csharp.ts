@@ -57,7 +57,10 @@ function csType(ft: IRFieldType): string {
       if (ft.primitive === 'number') return 'double';
       if (ft.primitive === 'boolean') return 'bool';
       if (ft.primitive === 'any') return 'object';
-      if (ft.primitive === 'string' && ft.format === 'date-time') return 'DateTimeOffset';
+      if (ft.primitive === 'string') {
+        if (ft.format === 'date-time') return 'DateTimeOffset';
+        if (ft.format === 'date') return 'DateOnly';
+      }
       return 'string';
     case 'enum':
     case 'model':
@@ -78,8 +81,8 @@ function csType(ft: IRFieldType): string {
 /** Whether a type is a C# value type (needs ? for nullable) */
 function isValueType(ft: IRFieldType): boolean {
   if (ft.kind === 'primitive') {
-    return ft.primitive === 'integer' || ft.primitive === 'number' || ft.primitive === 'boolean'
-      || (ft.primitive === 'string' && ft.format === 'date-time');
+    if (ft.primitive === 'integer' || ft.primitive === 'number' || ft.primitive === 'boolean') return true;
+    if (ft.primitive === 'string' && (ft.format === 'date-time' || ft.format === 'date')) return true;
   }
   if (ft.kind === 'enum') return true;
   return false;
@@ -101,13 +104,6 @@ function paramSdkName(name: string): string {
   const camel = snakeToCamel(name);
   if (CSHARP_KEYWORDS.has(camel)) return `@${camel}`;
   return camel;
-}
-
-function needsJsonPropertyName(field: IRField): boolean {
-  if (field.type.kind === 'binary') return false;
-  return field.name !== fieldSdkName(field).replace(/^@/, '').charAt(0).toLowerCase()
-    + fieldSdkName(field).replace(/^@/, '').slice(1)
-    || true; // Always emit [JsonPropertyName] for clarity in C#
 }
 
 function csDefaultValue(
@@ -368,8 +364,7 @@ function emitModel(
     } else {
       lines.push(`    [JsonPropertyName("${f.name}")]`);
       if (isOpt) {
-        const nullSuffix = isValueType(f.type) ? '?' : '?';
-        lines.push(`    public ${typeName}${nullSuffix} ${sdkName} { get; set; }`);
+        lines.push(`    public ${typeName}? ${sdkName} { get; set; }`);
       } else {
         if (f.defaultValue !== undefined) {
           const renderedDefault = csDefaultValue(f.defaultValue, f.type);
@@ -532,7 +527,8 @@ function generateClient(ir: IR): string {
   lines.push('using System.Text;');
   lines.push('using System.Text.Json;');
   lines.push('using System.Threading;');
-  lines.push('using System.Threading.Tasks;');
+  // Note: System.Threading.Tasks is NOT imported to avoid conflict with Pachca.Sdk.Task model
+  // Async methods use fully qualified System.Threading.Tasks.Task<T> instead
   lines.push('');
   lines.push('namespace Pachca.Sdk;');
 
@@ -596,15 +592,14 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     if (p.required) {
       params.push(`${typeName} ${paramSdkName(p.sdkName)}`);
     } else {
-      const nullSuffix = isValueType(p.type) ? '?' : '?';
-      params.push(`${typeName}${nullSuffix} ${paramSdkName(p.sdkName)} = null`);
+      params.push(`${typeName}? ${paramSdkName(p.sdkName)} = null`);
     }
   }
   params.push('CancellationToken cancellationToken = default');
 
   const methodName = `${snakeToPascal(op.methodName)}AllAsync`;
 
-  lines.push(`${indent}public async Task<List<${itemType}>> ${methodName}(`);
+  lines.push(`${indent}public async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
   for (let i = 0; i < params.length; i++) {
     const comma = i < params.length - 1 ? ',' : ')';
     lines.push(`${indent2}${params[i]}${comma}`);
@@ -658,7 +653,9 @@ function emitOperation(
   const indent2 = '        ';
 
   const returnType = getReturnType(op, ir);
-  const taskType = returnType ? `Task<${returnType}>` : 'Task';
+  const taskType = returnType
+    ? `System.Threading.Tasks.Task<${returnType}>`
+    : 'System.Threading.Tasks.Task';
   const params = buildMethodParams(op, ir);
   const methodName = `${snakeToPascal(op.methodName)}Async`;
 
@@ -730,8 +727,7 @@ function buildMethodParams(
     if (p.required) {
       params.push(`${typeName} ${paramSdkName(p.sdkName)}`);
     } else {
-      const nullSuffix = isValueType(p.type) ? '?' : '?';
-      params.push(`${typeName}${nullSuffix} ${paramSdkName(p.sdkName)} = null`);
+      params.push(`${typeName}? ${paramSdkName(p.sdkName)} = null`);
     }
   }
 
@@ -866,9 +862,9 @@ function emitMultipartBody(
     const isOptional = !f.required || f.nullable;
     if (isOptional) {
       lines.push(`${indent2}if (request.${sdkName} != null)`);
-      lines.push(`${indent2}    content.Add(new StringContent(request.${sdkName}.ToString()!), "${f.name}");`);
+      lines.push(`${indent2}    content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
     } else {
-      lines.push(`${indent2}content.Add(new StringContent(request.${sdkName}.ToString()!), "${f.name}");`);
+      lines.push(`${indent2}content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
     }
   }
 

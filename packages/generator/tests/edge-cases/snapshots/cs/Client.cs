@@ -9,7 +9,6 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -24,7 +23,7 @@ public sealed class EventsService
         _client = client;
     }
 
-    public async Task<ListEventsResponse> ListEventsAsync(
+    public async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
         bool? isActive = null,
         List<OAuthScope>? scopes = null,
         EventFilter? filter = null,
@@ -50,7 +49,7 @@ public sealed class EventsService
         }
     }
 
-    public async Task<Event> PublishEventAsync(
+    public async System.Threading.Tasks.Task<Event> PublishEventAsync(
         int id,
         OAuthScope scope,
         CancellationToken cancellationToken = default)
@@ -82,11 +81,11 @@ public sealed class UploadsService
         _client = client;
     }
 
-    public async Task CreateUploadAsync(UploadRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task CreateUploadAsync(UploadRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/uploads";
         using var content = new MultipartFormDataContent();
-        content.Add(new StringContent(request.ContentDisposition.ToString()!), "Content-Disposition");
+        content.Add(new StringContent($"{request.ContentDisposition}"), "Content-Disposition");
         content.Add(new ByteArrayContent(request.File), "file", "file");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = content;

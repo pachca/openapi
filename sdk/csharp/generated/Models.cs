@@ -1570,7 +1570,7 @@ public class ViewBlockDate : ViewBlockUnion
     [JsonPropertyName("label")]
     public string Label { get; set; } = default!;
     [JsonPropertyName("initial_date")]
-    public string? InitialDate { get; set; }
+    public DateOnly? InitialDate { get; set; }
     [JsonPropertyName("required")]
     public bool? Required { get; set; }
     [JsonPropertyName("hint")]
@@ -1941,9 +1941,9 @@ public class CustomPropertyDefinition
 public class ExportRequest
 {
     [JsonPropertyName("start_at")]
-    public string StartAt { get; set; } = default!;
+    public DateOnly StartAt { get; set; } = default!;
     [JsonPropertyName("end_at")]
-    public string EndAt { get; set; } = default!;
+    public DateOnly EndAt { get; set; } = default!;
     [JsonPropertyName("webhook_url")]
     public string WebhookUrl { get; set; } = default!;
     [JsonPropertyName("chat_ids")]

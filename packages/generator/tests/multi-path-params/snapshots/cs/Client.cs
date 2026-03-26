@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -23,7 +22,7 @@ public sealed class TasksService
         _client = client;
     }
 
-    public async Task<Pachca.Sdk.Task> GetTaskAsync(
+    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(
         int projectId,
         int taskId,
         CancellationToken cancellationToken = default)
@@ -41,7 +40,7 @@ public sealed class TasksService
         }
     }
 
-    public async Task<Pachca.Sdk.Task> UpdateTaskAsync(
+    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
         int projectId,
         int taskId,
         TaskUpdateRequest request,
@@ -61,7 +60,7 @@ public sealed class TasksService
         }
     }
 
-    public async Task DeleteCommentAsync(
+    public async System.Threading.Tasks.Task DeleteCommentAsync(
         int projectId,
         int taskId,
         int commentId,

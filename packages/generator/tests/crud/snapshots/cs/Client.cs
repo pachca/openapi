@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -23,7 +22,7 @@ public sealed class ChatsService
         _client = client;
     }
 
-    public async Task<ListChatsResponse> ListChatsAsync(
+    public async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
         ChatAvailability? availability = null,
         int? limit = null,
         string? cursor = null,
@@ -57,7 +56,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task<List<Chat>> ListChatsAllAsync(
+    public async System.Threading.Tasks.Task<List<Chat>> ListChatsAllAsync(
         ChatAvailability? availability = null,
         int? limit = null,
         string? sortField = null,
@@ -75,7 +74,7 @@ public sealed class ChatsService
         return items;
     }
 
-    public async Task<Chat> GetChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Chat> GetChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -92,7 +91,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -110,7 +109,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task<Chat> UpdateChatAsync(
+    public async System.Threading.Tasks.Task<Chat> UpdateChatAsync(
         int id,
         ChatUpdateRequest request,
         CancellationToken cancellationToken = default)
@@ -131,7 +130,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/archive";
         using var request = new HttpRequestMessage(HttpMethod.Put, url);
@@ -148,7 +147,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task DeleteChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task DeleteChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);

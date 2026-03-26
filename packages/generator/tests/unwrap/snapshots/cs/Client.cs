@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -23,7 +22,7 @@ public sealed class MembersService
         _client = client;
     }
 
-    public async Task AddMembersAsync(
+    public async System.Threading.Tasks.Task AddMembersAsync(
         int id,
         List<int> memberIds,
         CancellationToken cancellationToken = default)
@@ -57,7 +56,7 @@ public sealed class ChatsService
         _client = client;
     }
 
-    public async Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -75,7 +74,7 @@ public sealed class ChatsService
         }
     }
 
-    public async Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    public async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/archive";
         using var request = new HttpRequestMessage(HttpMethod.Put, url);

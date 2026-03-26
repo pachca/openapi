@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Pachca.Sdk;
 
@@ -23,7 +22,7 @@ public sealed class ItemsService
         _client = client;
     }
 
-    public async Task<Item> PatchItemAsync(
+    public async System.Threading.Tasks.Task<Item> PatchItemAsync(
         int id,
         ItemPatchRequest request,
         CancellationToken cancellationToken = default)

@@ -71,7 +71,7 @@ public class User
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
     [JsonPropertyName("birthday")]
-    public string? Birthday { get; set; }
+    public DateOnly? Birthday { get; set; }
     [JsonPropertyName("tag_ids")]
     public List<int> TagIds { get; set; } = default!;
     [JsonPropertyName("custom_properties")]

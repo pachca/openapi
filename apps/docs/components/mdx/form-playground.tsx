@@ -451,9 +451,10 @@ function PreviewSelect({ block }: { block: ViewBlock }) {
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className="z-[10000] min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-hidden rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown"
+            className="z-[10000] max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
             sideOffset={4}
             align="start"
+            collisionPadding={16}
           >
             {options.map((opt, i) => (
               <DropdownMenu.Item
@@ -922,9 +923,10 @@ function PreviewTime({ block }: { block: ViewBlock }) {
         </Popover.Anchor>
         <Popover.Portal>
           <Popover.Content
-            className="z-[10000] max-h-[240px] min-w-[var(--radix-popover-trigger-width)] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
+            className="z-[10000] max-h-[var(--radix-popover-content-available-height)] min-w-[var(--radix-popover-trigger-width)] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy p-1 shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
             sideOffset={4}
             align="start"
+            collisionPadding={16}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             {TIME_OPTIONS.map((t) => (
@@ -1878,9 +1880,10 @@ function FormPreview({
                       </Popover.Trigger>
                       <Popover.Portal>
                         <Popover.Content
-                          className="z-[10001] max-h-[480px] w-[300px] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
+                          className="z-[10001] max-h-[var(--radix-popover-content-available-height)] w-[300px] overflow-y-auto rounded-lg border border-glass-heavy-border bg-glass-heavy shadow-xl backdrop-blur-xl animate-dropdown custom-scrollbar"
                           sideOffset={8}
                           align="end"
+                          collisionPadding={16}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                         >
                           <BlockSettingsContent

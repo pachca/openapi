@@ -1,0 +1,23 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "TaskOperations_getTask": {
+    "usage": "var response = await client.Tasks.GetTaskAsync(123, 123);",
+    "output": "Task(Id: int, Title: string, IsDone: bool?)"
+  },
+  "TaskOperations_updateTask": {
+    "usage": "var request = new TaskUpdateRequest { Task = new TaskUpdateRequestTask { Title = \"example\", IsDone = true } };\nvar response = await client.Tasks.UpdateTaskAsync(123, 123, request);",
+    "output": "Task(Id: int, Title: string, IsDone: bool?)",
+    "imports": [
+      "TaskUpdateRequest",
+      "TaskUpdateRequestTask"
+    ]
+  },
+  "TaskOperations_deleteComment": {
+    "usage": "await client.Tasks.DeleteCommentAsync(123, 123, 123);"
+  }
+}

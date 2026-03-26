@@ -1,0 +1,13 @@
+{
+  "name": "@pachca/csharp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "setup": "true",
+    "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang csharp --examples && mv cs/* generated/ && rmdir cs",
+    "build": "dotnet build generated/Pachca.csproj"
+  },
+  "devDependencies": {
+    "@pachca/spec": "workspace:*"
+  }
+}

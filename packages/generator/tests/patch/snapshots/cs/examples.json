@@ -1,0 +1,16 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ItemOperations_patchItem": {
+    "usage": "var request = new ItemPatchRequest\n{\n    Item = new ItemPatchRequestItem\n    {\n        Name = \"example\",\n        Description = \"example\",\n        Priority = 123\n    }\n};\nvar response = await client.Items.PatchItemAsync(123, request);",
+    "output": "Item(Id: int, Name: string, Description: string?, Priority: int?)",
+    "imports": [
+      "ItemPatchRequest",
+      "ItemPatchRequestItem"
+    ]
+  }
+}

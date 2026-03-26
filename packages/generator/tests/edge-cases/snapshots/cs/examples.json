@@ -1,0 +1,29 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "listEvents": {
+    "usage": "var scopes = new List<OAuthScope> { OAuthScope.ChatsRead };\nvar filter = new EventFilter();\nvar response = await client.Events.ListEventsAsync(true, scopes, filter);",
+    "output": "ListEventsResponse(Data: List<Event>)",
+    "imports": [
+      "EventFilter",
+      "OAuthScope"
+    ]
+  },
+  "publishEvent": {
+    "usage": "var response = await client.Events.PublishEventAsync(123, OAuthScope.ChatsRead);",
+    "output": "Event(Id: int, Type: EventType)",
+    "imports": [
+      "OAuthScope"
+    ]
+  },
+  "createUpload": {
+    "usage": "var request = new UploadRequest { File = Array.Empty<byte>(), ContentDisposition = \"example\" };\nawait client.Uploads.CreateUploadAsync(request);",
+    "imports": [
+      "UploadRequest"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ExportOperations_downloadExport": {
+    "usage": "var response = await client.Common.DownloadExportAsync(123);",
+    "output": "string"
+  }
+}

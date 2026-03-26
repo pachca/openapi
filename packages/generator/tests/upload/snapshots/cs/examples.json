@@ -1,0 +1,18 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "var request = new FileUploadRequest\n{\n    ContentDisposition = \"example\",\n    Acl = \"example\",\n    Policy = \"example\",\n    XAmzCredential = \"example\",\n    XAmzAlgorithm = \"example\",\n    XAmzDate = \"example\",\n    XAmzSignature = \"example\",\n    Key = \"example\",\n    File = Array.Empty<byte>()\n};\nawait client.Common.UploadFileAsync(\"https://example.com\", request);",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "var response = await client.Common.GetUploadParamsAsync();",
+    "output": "UploadParams(ContentDisposition: string, Acl: string, Policy: string, XAmzCredential: string, XAmzAlgorithm: string, XAmzDate: string, XAmzSignature: string, Key: string, DirectUrl: string)"
+  }
+}

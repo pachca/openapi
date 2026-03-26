@@ -3,5 +3,6 @@
   "typescript": "typescript/src/generated/examples.json",
   "python": "python/generated/pachca/examples.json",
   "go": "go/generated/examples.json",
-  "swift": "swift/generated/examples.json"
+  "swift": "swift/generated/examples.json",
+  "csharp": "csharp/generated/examples.json"
 }

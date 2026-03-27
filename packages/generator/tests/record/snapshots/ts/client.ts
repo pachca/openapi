@@ -15,7 +15,7 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
     super();
   }
 
-  override async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -32,25 +32,17 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl?: string;
-  linkPreviews?: LinkPreviewsService;
-}
-
 export class PachcaClient {
   readonly linkPreviews: LinkPreviewsService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.linkPreviews = options.linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, headers);
+    this.linkPreviews = new LinkPreviewsServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
-      linkPreviews: options.linkPreviews ?? new LinkPreviewsService(),
-    });
+  static stub(linkPreviews: LinkPreviewsService = new LinkPreviewsService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.linkPreviews = linkPreviews;
+    return client;
   }
 }

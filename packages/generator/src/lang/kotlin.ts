@@ -428,13 +428,13 @@ function emitService(
   const serviceName = tagToServiceName(svc.tag);
   const implName = serviceToImplName(serviceName);
 
-  lines.push(`open class ${serviceName} {`);
+  lines.push(`interface ${serviceName} {`);
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
-    emitThrowingOperation(lines, svc.operations[i], ir);
+    emitInterfaceOperation(lines, svc.operations[i], ir);
     if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
       lines.push('');
-      emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+      emitInterfacePaginationMethod(lines, svc.operations[i], ir);
     }
   }
   lines.push('}');
@@ -442,7 +442,7 @@ function emitService(
   lines.push(`class ${implName} internal constructor(`);
   lines.push('    private val baseUrl: String,');
   lines.push('    private val client: HttpClient,');
-  lines.push(`) : ${serviceName}() {`);
+  lines.push(`) : ${serviceName} {`);
 
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
@@ -456,7 +456,7 @@ function emitService(
   lines.push('}');
 }
 
-function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+function emitInterfaceOperation(lines: string[], op: IROperation, ir: IR): void {
   const indent = '    ';
   const indent2 = '        ';
   const returnType = getReturnType(op, ir);
@@ -465,21 +465,20 @@ function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
 
   if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
   if (params.length === 0) {
-    lines.push(`${indent}open suspend fun ${op.methodName}()${returnSuffix} {`);
+    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} =`);
   } else if (params.length === 1) {
-    lines.push(`${indent}open suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`);
+    lines.push(`${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} =`);
   } else if (params.length <= 2) {
-    lines.push(`${indent}open suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`);
+    lines.push(`${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} =`);
   } else {
-    lines.push(`${indent}open suspend fun ${op.methodName}(`);
+    lines.push(`${indent}suspend fun ${op.methodName}(`);
     for (const p of params) lines.push(`${indent2}${p},`);
-    lines.push(`${indent})${returnSuffix} {`);
+    lines.push(`${indent})${returnSuffix} =`);
   }
   lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
-  lines.push(`${indent}}`);
 }
 
-function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+function emitInterfacePaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   const indent = '    ';
   const indent2 = '        ';
   const itemType = op.successResponse.dataRef ?? 'Any';
@@ -493,14 +492,13 @@ function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR):
   }
 
   if (params.length <= 2) {
-    lines.push(`${indent}open suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> {`);
+    lines.push(`${indent}suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> =`);
   } else {
-    lines.push(`${indent}open suspend fun ${op.methodName}All(`);
+    lines.push(`${indent}suspend fun ${op.methodName}All(`);
     for (const p of params) lines.push(`${indent2}${p},`);
-    lines.push(`${indent}): List<${itemType}> {`);
+    lines.push(`${indent}): List<${itemType}> =`);
   }
   lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
-  lines.push(`${indent}}`);
 }
 
 function stripKotlinDefaultValue(param: string): string {
@@ -931,7 +929,7 @@ function emitPachcaClient(
   for (let i = 0; i < serviceEntries.length; i++) {
     const s = serviceEntries[i];
     const suffix = i < serviceEntries.length - 1 ? ',' : '';
-    lines.push(`            ${s.propName}: ${s.className} = ${s.className}()${suffix}`);
+    lines.push(`            ${s.propName}: ${s.className} = object : ${s.className} {}${suffix}`);
   }
   lines.push('        ): PachcaClient = PachcaClient(');
   lines.push('            client = null,');

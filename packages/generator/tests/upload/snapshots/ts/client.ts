@@ -19,7 +19,7 @@ export class CommonServiceImpl extends CommonService {
     super();
   }
 
-  override async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     const form = new FormData();
     form.set("content-disposition", request.contentDisposition);
     form.set("acl", request.acl);
@@ -44,7 +44,7 @@ export class CommonServiceImpl extends CommonService {
     }
   }
 
-  override async getUploadParams(): Promise<UploadParams> {
+  async getUploadParams(): Promise<UploadParams> {
     const response = await fetchWithRetry(`${this.baseUrl}/uploads`, {
       method: "POST",
       headers: this.headers,
@@ -61,25 +61,17 @@ export class CommonServiceImpl extends CommonService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl?: string;
-  common?: CommonService;
-}
-
 export class PachcaClient {
   readonly common: CommonService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.common = options.common ?? new CommonServiceImpl(baseUrl, headers);
+    this.common = new CommonServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
-      common: options.common ?? new CommonService(),
-    });
+  static stub(common: CommonService = new CommonService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.common = common;
+    return client;
   }
 }

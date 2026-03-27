@@ -15,7 +15,7 @@ export class ItemsServiceImpl extends ItemsService {
     super();
   }
 
-  override async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
+  async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
     const response = await fetchWithRetry(`${this.baseUrl}/items/${id}`, {
       method: "PATCH",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -31,25 +31,17 @@ export class ItemsServiceImpl extends ItemsService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl?: string;
-  items?: ItemsService;
-}
-
 export class PachcaClient {
   readonly items: ItemsService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const baseUrl = options.baseUrl ?? "https://api.example.com/v1";
+  constructor(token: string, baseUrl: string = "https://api.example.com/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.items = options.items ?? new ItemsServiceImpl(baseUrl, headers);
+    this.items = new ItemsServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.example.com/v1",
-      items: options.items ?? new ItemsService(),
-    });
+  static stub(items: ItemsService = new ItemsService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.items = items;
+    return client;
   }
 }

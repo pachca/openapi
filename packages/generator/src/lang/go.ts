@@ -787,7 +787,13 @@ function generateClient(ir: IR): string {
   lines.push('\t\t\t\t\tdelay = time.Duration(secs) * time.Second');
   lines.push('\t\t\t\t}');
   lines.push('\t\t\t}');
-  lines.push('\t\t\ttime.Sleep(delay)');
+  lines.push('\t\t\ttime.Sleep(addJitter(delay))');
+  lines.push('\t\t\tcontinue');
+  lines.push('\t\t}');
+  lines.push('\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {');
+  lines.push('\t\t\tresp.Body.Close()');
+  lines.push('\t\t\tdelay := time.Duration(attempt+1) * time.Second');
+  lines.push('\t\t\ttime.Sleep(addJitter(delay))');
   lines.push('\t\t\tcontinue');
   lines.push('\t\t}');
   lines.push('\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {');

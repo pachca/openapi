@@ -20,7 +20,7 @@ export class MembersServiceImpl extends MembersService {
     super();
   }
 
-  override async addMembers(id: number, memberIds: number[]): Promise<void> {
+  async addMembers(id: number, memberIds: number[]): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -55,7 +55,7 @@ export class ChatsServiceImpl extends ChatsService {
     super();
   }
 
-  override async createChat(request: ChatCreateRequest): Promise<Chat> {
+  async createChat(request: ChatCreateRequest): Promise<Chat> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -72,7 +72,7 @@ export class ChatsServiceImpl extends ChatsService {
     }
   }
 
-  override async archiveChat(id: number): Promise<void> {
+  async archiveChat(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/archive`, {
       method: "PUT",
       headers: this.headers,
@@ -88,29 +88,20 @@ export class ChatsServiceImpl extends ChatsService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl?: string;
-  chats?: ChatsService;
-  members?: MembersService;
-}
-
 export class PachcaClient {
   readonly chats: ChatsService;
   readonly members: MembersService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.chats = options.chats ?? new ChatsServiceImpl(baseUrl, headers);
-    this.members = options.members ?? new MembersServiceImpl(baseUrl, headers);
+    this.chats = new ChatsServiceImpl(baseUrl, headers);
+    this.members = new MembersServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
-      chats: options.chats ?? new ChatsService(),
-      members: options.members ?? new MembersService(),
-    });
+  static stub(chats: ChatsService = new ChatsService(), members: MembersService = new MembersService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.chats = chats;
+    client.members = members;
+    return client;
   }
 }

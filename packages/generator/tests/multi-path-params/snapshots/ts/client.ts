@@ -23,7 +23,7 @@ export class TasksServiceImpl extends TasksService {
     super();
   }
 
-  override async getTask(projectId: number, taskId: number): Promise<Task> {
+  async getTask(projectId: number, taskId: number): Promise<Task> {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}`, {
       headers: this.headers,
     });
@@ -36,7 +36,7 @@ export class TasksServiceImpl extends TasksService {
     }
   }
 
-  override async updateTask(projectId: number, taskId: number, request: TaskUpdateRequest): Promise<Task> {
+  async updateTask(projectId: number, taskId: number, request: TaskUpdateRequest): Promise<Task> {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -51,7 +51,7 @@ export class TasksServiceImpl extends TasksService {
     }
   }
 
-  override async deleteComment(projectId: number, taskId: number, commentId: number): Promise<void> {
+  async deleteComment(projectId: number, taskId: number, commentId: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}/comments/${commentId}`, {
       method: "DELETE",
       headers: this.headers,
@@ -65,25 +65,17 @@ export class TasksServiceImpl extends TasksService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl?: string;
-  tasks?: TasksService;
-}
-
 export class PachcaClient {
   readonly tasks: TasksService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const baseUrl = options.baseUrl ?? "https://api.example.com/v1";
+  constructor(token: string, baseUrl: string = "https://api.example.com/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.tasks = options.tasks ?? new TasksServiceImpl(baseUrl, headers);
+    this.tasks = new TasksServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.example.com/v1",
-      tasks: options.tasks ?? new TasksService(),
-    });
+  static stub(tasks: TasksService = new TasksService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.tasks = tasks;
+    return client;
   }
 }

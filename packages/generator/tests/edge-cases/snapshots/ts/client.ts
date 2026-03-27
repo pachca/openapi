@@ -25,7 +25,7 @@ export class EventsServiceImpl extends EventsService {
     super();
   }
 
-  override async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
+  async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
     const query = new URLSearchParams();
     if (params?.isActive !== undefined) query.set("is_active", String(params.isActive));
     if (params?.scopes !== undefined) {
@@ -45,7 +45,7 @@ export class EventsServiceImpl extends EventsService {
     }
   }
 
-  override async publishEvent(id: number, scope: OAuthScope): Promise<Event> {
+  async publishEvent(id: number, scope: OAuthScope): Promise<Event> {
     const response = await fetchWithRetry(`${this.baseUrl}/events/${id}/publish`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -75,7 +75,7 @@ export class UploadsServiceImpl extends UploadsService {
     super();
   }
 
-  override async createUpload(request: UploadRequest): Promise<void> {
+  async createUpload(request: UploadRequest): Promise<void> {
     const form = new FormData();
     form.set("Content-Disposition", request.contentDisposition);
     form.set("file", request.file, "upload");
@@ -93,29 +93,20 @@ export class UploadsServiceImpl extends UploadsService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl: string;
-  events?: EventsService;
-  uploads?: UploadsService;
-}
-
 export class PachcaClient {
   readonly events: EventsService;
   readonly uploads: UploadsService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const { baseUrl } = options;
+  constructor(token: string, baseUrl: string) {
     const headers = { Authorization: `Bearer ${token}` };
-    this.events = options.events ?? new EventsServiceImpl(baseUrl, headers);
-    this.uploads = options.uploads ?? new UploadsServiceImpl(baseUrl, headers);
+    this.events = new EventsServiceImpl(baseUrl, headers);
+    this.uploads = new UploadsServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "",
-      events: options.events ?? new EventsService(),
-      uploads: options.uploads ?? new UploadsService(),
-    });
+  static stub(events: EventsService = new EventsService(), uploads: UploadsService = new UploadsService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.events = events;
+    client.uploads = uploads;
+    return client;
   }
 }

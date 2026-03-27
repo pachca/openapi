@@ -15,7 +15,7 @@ export class CommonServiceImpl extends CommonService {
     super();
   }
 
-  override async downloadExport(id: number): Promise<string> {
+  async downloadExport(id: number): Promise<string> {
     const response = await fetchWithRetry(`${this.baseUrl}/exports/${id}`, {
       headers: this.headers,
       redirect: "manual",
@@ -36,25 +36,17 @@ export class CommonServiceImpl extends CommonService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl?: string;
-  common?: CommonService;
-}
-
 export class PachcaClient {
   readonly common: CommonService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.common = options.common ?? new CommonServiceImpl(baseUrl, headers);
+    this.common = new CommonServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
-      common: options.common ?? new CommonService(),
-    });
+  static stub(common: CommonService = new CommonService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.common = common;
+    return client;
   }
 }

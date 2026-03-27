@@ -465,35 +465,25 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     const serviceEntries = ir.services
       .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
       .sort((a, b) => a.prop.localeCompare(b.prop));
-    lines.push('export interface PachcaClientOptions {');
-    lines.push('  token: string;');
-    lines.push(`  baseUrl${ir.baseUrl ? '?' : ''}: string;`);
-    for (const s of serviceEntries) lines.push(`  ${s.prop}?: ${s.cls};`);
-    lines.push('}');
-    lines.push('');
     lines.push('export class PachcaClient {');
     for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
     lines.push('');
-    lines.push('  constructor(options: PachcaClientOptions) {');
-    lines.push('    const { token } = options;');
-    if (ir.baseUrl) {
-      lines.push(`    const baseUrl = options.baseUrl ?? ${JSON.stringify(ir.baseUrl)};`);
-    } else {
-      lines.push('    const { baseUrl } = options;');
-    }
+    const defaultUrl = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+    lines.push(`  constructor(token: string, baseUrl: string${defaultUrl}) {`);
     lines.push('    const headers = { Authorization: `Bearer ${token}` };');
     for (const s of serviceEntries) {
-      lines.push(`    this.${s.prop} = options.${s.prop} ?? new ${serviceToImplName(s.cls)}(baseUrl, headers);`);
+      lines.push(`    this.${s.prop} = new ${serviceToImplName(s.cls)}(baseUrl, headers);`);
     }
     lines.push('  }');
     lines.push('');
-    lines.push('  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {');
-    const defaultBaseUrl = ir.baseUrl ? JSON.stringify(ir.baseUrl) : '""';
-    lines.push(`    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? ${defaultBaseUrl},`);
+    // Static stub() factory method
+    const stubArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} = new ${s.cls}()`);
+    lines.push(`  static stub(${stubArgs.join(', ')}): PachcaClient {`);
+    lines.push('    const client = Object.create(PachcaClient.prototype);');
     for (const s of serviceEntries) {
-      lines.push(`      ${s.prop}: options.${s.prop} ?? new ${s.cls}(),`);
+      lines.push(`    client.${s.prop} = ${s.prop};`);
     }
-    lines.push('    });');
+    lines.push('    return client;');
     lines.push('  }');
     lines.push('}');
   }
@@ -567,7 +557,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const ret = responseTypeName(op, ir);
   const path = escapeTemplatePath(op.path, op);
   if (op.deprecated) lines.push('  /** @deprecated */');
-  lines.push(`  override async ${op.methodName}(${args}): Promise<${ret}> {`);
+  lines.push(`  async ${op.methodName}(${args}): Promise<${ret}> {`);
 
   if (op.requestBody?.contentType === 'multipart') {
     lines.push('    const form = new FormData();');
@@ -708,7 +698,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     args.push(hasRequired ? `params: Omit<${paramsType}, 'cursor'>` : `params?: Omit<${paramsType}, 'cursor'>`);
   }
 
-  lines.push(`  override async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
+  lines.push(`  async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
   lines.push(`    const items: ${itemType}[] = [];`);
   lines.push('    let cursor: string | undefined;');
   lines.push('    do {');
@@ -882,7 +872,12 @@ function generateUtils(ir: IR): string {
     '    if (response.status === 429 && attempt < MAX_RETRIES) {',
     '      const retryAfter = response.headers.get("retry-after");',
     '      const delay = retryAfter ? Number(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);',
-    '      await new Promise((r) => setTimeout(r, delay));',
+    '      await new Promise((r) => setTimeout(r, addJitter(delay)));',
+    '      continue;',
+    '    }',
+    '    if (RETRYABLE_5XX.has(response.status) && attempt < MAX_RETRIES) {',
+    '      const delay = 1000 * (attempt + 1);',
+    '      await new Promise((r) => setTimeout(r, addJitter(delay)));',
     '      continue;',
     '    }',
     '    if (RETRYABLE_5XX.has(response.status) && attempt < MAX_RETRIES) {',
@@ -1160,7 +1155,7 @@ function generateExamples(ir: IR): string {
   const result: Record<string, object> = {};
 
   result['Client_Init'] = {
-    usage: 'const client = new PachcaClient({ token: "YOUR_TOKEN" })',
+    usage: 'const client = new PachcaClient("YOUR_TOKEN")',
     imports: ['PachcaClient'],
   };
 

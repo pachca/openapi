@@ -24,7 +24,7 @@ export class SearchServiceImpl extends SearchService {
     super();
   }
 
-  override async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
+  async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
     query.set("query", params.query);
     if (params?.chatIds !== undefined) {
@@ -52,7 +52,7 @@ export class SearchServiceImpl extends SearchService {
     }
   }
 
-  override async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageSearchResult[]> {
+  async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageSearchResult[]> {
     const items: MessageSearchResult[] = [];
     let cursor: string | undefined;
     do {
@@ -65,25 +65,17 @@ export class SearchServiceImpl extends SearchService {
   }
 }
 
-export interface PachcaClientOptions {
-  token: string;
-  baseUrl?: string;
-  search?: SearchService;
-}
-
 export class PachcaClient {
   readonly search: SearchService;
 
-  constructor(options: PachcaClientOptions) {
-    const { token } = options;
-    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.search = options.search ?? new SearchServiceImpl(baseUrl, headers);
+    this.search = new SearchServiceImpl(baseUrl, headers);
   }
 
-  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
-    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
-      search: options.search ?? new SearchService(),
-    });
+  static stub(search: SearchService = new SearchService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.search = search;
+    return client;
   }
 }

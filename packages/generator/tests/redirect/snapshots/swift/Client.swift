@@ -3,18 +3,31 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct CommonService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class CommonService {
+    public init() {}
+
+    open func downloadExport(id: Int) async throws -> String {
+        throw pachcaNotImplemented("Common.downloadExport")
+    }
+}
+
+public final class CommonServiceImpl: CommonService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
     }
 
-    public func downloadExport(id: Int) async throws -> String {
+    public override func downloadExport(id: Int) async throws -> String {
         var request = URLRequest(url: URL(string: "\(baseURL)/exports/\(id)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let delegate = RedirectPreventer()
@@ -46,11 +59,17 @@ private final class RedirectPreventer: NSObject, URLSessionTaskDelegate {
     }
 }
 
+public struct PachcaServices {
+    public var common: CommonService? = nil
+
+    public init() {}
+}
+
 public struct PachcaClient {
     public let common: CommonService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.common = CommonService(baseURL: baseURL, headers: headers)
+        self.common = services.common ?? CommonServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

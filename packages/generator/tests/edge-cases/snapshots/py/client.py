@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import httpx
 
 from .models import (
@@ -13,6 +15,21 @@ from .models import (
 from .utils import deserialize, RetryTransport
 
 class EventsService:
+    async def list_events(
+        self,
+        params: ListEventsParams | None = None,
+    ) -> ListEventsResponse:
+        raise NotImplementedError("Events.listEvents is not implemented")
+
+    async def publish_event(
+        self,
+        id: int,
+        scope: OAuthScope,
+    ) -> Event:
+        raise NotImplementedError("Events.publishEvent is not implemented")
+
+
+class EventsServiceImpl(EventsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -61,6 +78,14 @@ class EventsService:
 
 
 class UploadsService:
+    async def create_upload(
+        self,
+        request: UploadRequest,
+    ) -> None:
+        raise NotImplementedError("Uploads.createUpload is not implemented")
+
+
+class UploadsServiceImpl(UploadsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -84,15 +109,22 @@ class UploadsService:
                 )
 
 
+@dataclass
+class PachcaServices:
+    events: EventsService | None = None
+    uploads: UploadsService | None = None
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str) -> None:
+    def __init__(self, token: str, base_url: str, services: PachcaServices | None = None) -> None:
+        services = services or PachcaServices()
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.events = EventsService(self._client)
-        self.uploads = UploadsService(self._client)
+        self.events: EventsService = services.events or EventsServiceImpl(self._client)
+        self.uploads: UploadsService = services.uploads or UploadsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

@@ -11,18 +11,30 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class MembersService
+public abstract class MembersService
+{
+
+    public virtual async System.Threading.Tasks.Task AddMembersAsync(
+        int id,
+        List<int> memberIds,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Members.addMembers is not implemented");
+    }
+}
+
+public sealed class MembersServiceImpl : MembersService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal MembersService(string baseUrl, HttpClient client)
+    internal MembersServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task AddMembersAsync(
+    public override async System.Threading.Tasks.Task AddMembersAsync(
         int id,
         List<int> memberIds,
         CancellationToken cancellationToken = default)
@@ -45,18 +57,32 @@ public sealed class MembersService
     }
 }
 
-public sealed class ChatsService
+public abstract class ChatsService
+{
+
+    public virtual async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.createChat is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Chats.archiveChat is not implemented");
+    }
+}
+
+public sealed class ChatsServiceImpl : ChatsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ChatsService(string baseUrl, HttpClient client)
+    internal ChatsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Chat> CreateChatAsync(ChatCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -74,7 +100,7 @@ public sealed class ChatsService
         }
     }
 
-    public async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task ArchiveChatAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/chats/{id}/archive";
         using var request = new HttpRequestMessage(HttpMethod.Put, url);
@@ -96,17 +122,24 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
+    public sealed class Services
+    {
+        public ChatsService? Chats { get; init; }
+        public MembersService? Members { get; init; }
+    }
+
     public ChatsService Chats { get; }
     public MembersService Members { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1")
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", Services? services = null)
     {
+        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Chats = new ChatsService(baseUrl, _client);
-        Members = new MembersService(baseUrl, _client);
+        Chats = services.Chats ?? new ChatsServiceImpl(baseUrl, _client);
+        Members = services.Members ?? new MembersServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

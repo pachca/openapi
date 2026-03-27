@@ -6,13 +6,19 @@ import {
 } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-class MembersService {
+export abstract class MembersService {
+  async addMembers(id: number, memberIds: number[]): Promise<void> {
+    throw new Error("Members.addMembers is not implemented");
+  }
+}
+
+export class MembersServiceImpl extends MembersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
   ) {}
 
-  async addMembers(id: number, memberIds: number[]): Promise<void> {
+  override async addMembers(id: number, memberIds: number[]): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -29,13 +35,23 @@ class MembersService {
   }
 }
 
-class ChatsService {
+export abstract class ChatsService {
+  async createChat(request: ChatCreateRequest): Promise<Chat> {
+    throw new Error("Chats.createChat is not implemented");
+  }
+
+  async archiveChat(id: number): Promise<void> {
+    throw new Error("Chats.archiveChat is not implemented");
+  }
+}
+
+export class ChatsServiceImpl extends ChatsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
   ) {}
 
-  async createChat(request: ChatCreateRequest): Promise<Chat> {
+  override async createChat(request: ChatCreateRequest): Promise<Chat> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -52,7 +68,7 @@ class ChatsService {
     }
   }
 
-  async archiveChat(id: number): Promise<void> {
+  override async archiveChat(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/archive`, {
       method: "PUT",
       headers: this.headers,
@@ -68,13 +84,18 @@ class ChatsService {
   }
 }
 
+export interface PachcaServices {
+  chats?: ChatsService;
+  members?: MembersService;
+}
+
 export class PachcaClient {
   readonly chats: ChatsService;
   readonly members: MembersService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
     const headers = { Authorization: `Bearer ${token}` };
-    this.chats = new ChatsService(baseUrl, headers);
-    this.members = new MembersService(baseUrl, headers);
+    this.chats = services.chats ?? new ChatsServiceImpl(baseUrl, headers);
+    this.members = services.members ?? new MembersServiceImpl(baseUrl, headers);
   }
 }

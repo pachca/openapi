@@ -62,12 +62,27 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type EventsService struct {
+type EventsService interface {
+	ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error)
+	PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error)
+}
+
+type EventsServiceStub struct{}
+
+func (s *EventsServiceStub) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
+	return nil, fmt.Errorf("Events.listEvents is not implemented")
+}
+
+func (s *EventsServiceStub) PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error) {
+	return nil, fmt.Errorf("Events.publishEvent is not implemented")
+}
+
+type EventsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *EventsService) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
+func (s *EventsServiceImpl) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/events", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -106,7 +121,7 @@ func (s *EventsService) ListEvents(ctx context.Context, params *ListEventsParams
 	}
 }
 
-func (s *EventsService) PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error) {
+func (s *EventsServiceImpl) PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error) {
 	body, err := json.Marshal(map[string]any{"scope": scope})
 	if err != nil {
 		return nil, err
@@ -135,12 +150,22 @@ func (s *EventsService) PublishEvent(ctx context.Context, id int32, scope OAuthS
 	}
 }
 
-type UploadsService struct {
+type UploadsService interface {
+	CreateUpload(ctx context.Context, request UploadRequest) error
+}
+
+type UploadsServiceStub struct{}
+
+func (s *UploadsServiceStub) CreateUpload(ctx context.Context, request UploadRequest) error {
+	return fmt.Errorf("Uploads.createUpload is not implemented")
+}
+
+type UploadsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *UploadsService) CreateUpload(ctx context.Context, request UploadRequest) error {
+func (s *UploadsServiceImpl) CreateUpload(ctx context.Context, request UploadRequest) error {
 	pr, pw := io.Pipe()
 	writer := multipart.NewWriter(pw)
 	go func() {
@@ -176,18 +201,40 @@ func (s *UploadsService) CreateUpload(ctx context.Context, request UploadRequest
 }
 
 type PachcaClient struct {
-	Events  *EventsService
-	Uploads *UploadsService
+	Events  EventsService
+	Uploads UploadsService
 }
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := ""
-	if len(baseURL) > 0 { url = baseURL[0] }
+type clientConfig struct {
+	baseURL string
+	events EventsService
+	uploads UploadsService
+}
+
+type ClientOption func(*clientConfig)
+
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithEvents(service EventsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.events = service }
+}
+
+func WithUploads(service UploadsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.uploads = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Events : &EventsService{baseURL: url, client: client},
-		Uploads: &UploadsService{baseURL: url, client: client},
+		Events : func() EventsService { if cfg.events != nil { return cfg.events }; return &EventsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Uploads: func() UploadsService { if cfg.uploads != nil { return cfg.uploads }; return &UploadsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

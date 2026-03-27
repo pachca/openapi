@@ -11,7 +11,7 @@ import {
   type IRUnion,
 } from '../ir.js';
 import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
-import { snakeToCamel, tagToProperty, tagToServiceName } from '../naming.js';
+import { snakeToCamel, tagToProperty, tagToServiceName, serviceToImplName } from '../naming.js';
 
 const SWIFT_KEYWORDS = new Set([
   'as', 'break', 'case', 'catch', 'class', 'continue', 'default', 'defer', 'do', 'else',
@@ -254,7 +254,7 @@ function opReturn(op: IROperation, ir: IR): string {
   return op.successResponse.dataRef ?? 'String';
 }
 
-function emitOperation(lines: string[], op: IROperation, ir: IR): void {
+function emitOperation(lines: string[], op: IROperation, ir: IR, fnPrefix = 'public func'): void {
   const args: string[] = [];
   if (op.externalUrl) {
     args.push(`${op.externalUrl}: String`);
@@ -275,7 +275,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   }
 
   if (op.deprecated) lines.push('    @available(*, deprecated)');
-  lines.push(`    public func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
+  lines.push(`    ${fnPrefix} ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
   if (op.queryParams.length > 0) {
     let swiftUrlBase = op.externalUrl ? `\\(${op.externalUrl})` : `\\(baseURL)${op.path}`;
     for (const p of op.pathParams) {
@@ -427,7 +427,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   lines.push('    }');
 }
 
-function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix = 'public func'): void {
   const itemType = op.successResponse.dataRef ?? 'Any';
 
   // Build params minus cursor
@@ -440,7 +440,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
   }
 
-  lines.push(`    public func ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
+  lines.push(`    ${fnPrefix} ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
   lines.push(`        var items: [${itemType}] = []`);
   lines.push('        var cursor: String? = nil');
   lines.push('        repeat {');
@@ -472,13 +472,68 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('    }');
 }
 
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) args.push(`${swiftIdentifier(rb.unwrapField!.name)}: ${swiftType(rb.unwrapField!.type)}`);
+    else if (rb.schemaRef) args.push(`request body: ${rb.schemaRef}`);
+  }
+  for (const q of op.queryParams) {
+    const t = swiftType(q.type, { nullable: !q.required });
+    args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
+  }
+  if (op.deprecated) lines.push('    @available(*, deprecated)');
+  lines.push(`    open func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
+  lines.push(`        throw pachcaNotImplemented(${JSON.stringify(`${op.tag}.${op.methodName}`)})`);
+  lines.push('    }');
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
+  const itemType = op.successResponse.dataRef ?? 'Any';
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)}: ${swiftType(p.type)}`);
+  for (const q of op.queryParams) {
+    if (q.name === 'cursor') continue;
+    const t = swiftType(q.type, { nullable: !q.required });
+    args.push(`${snakeToCamel(q.sdkName)}: ${t}${q.required ? '' : ' = nil'}`);
+  }
+  lines.push(`    open func ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
+  lines.push(`        throw pachcaNotImplemented(${JSON.stringify(`${op.tag}.${op.methodName}All`)})`);
+  lines.push('    }');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push(...FOUNDATION_IMPORTS);
   lines.push('');
+  const hasServices = ir.services.length > 0;
+  if (hasServices) {
+    lines.push('private func pachcaNotImplemented(_ method: String) -> Error {');
+    lines.push('    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])');
+    lines.push('}');
+    lines.push('');
+  }
   for (const s of ir.services) {
     const cls = tagToServiceName(s.tag);
-    lines.push(`public struct ${cls} {`);
+    const implName = serviceToImplName(cls);
+    lines.push(`open class ${cls} {`);
+    lines.push('    public init() {}');
+    lines.push('');
+    for (let i = 0; i < s.operations.length; i++) {
+      emitThrowingOperation(lines, s.operations[i], ir);
+      if (s.operations[i].isPaginated && s.operations[i].successResponse.dataRef) {
+        lines.push('');
+        emitThrowingPaginationMethod(lines, s.operations[i]);
+      }
+      if (i < s.operations.length - 1) lines.push('');
+    }
+    lines.push('}');
+    lines.push('');
+    lines.push(`public final class ${implName}: ${cls} {`);
     lines.push('    let baseURL: String');
     lines.push('    let headers: [String: String]');
     lines.push('    let session: URLSession');
@@ -487,13 +542,14 @@ function generateClient(ir: IR): string {
     lines.push('        self.baseURL = baseURL');
     lines.push('        self.headers = headers');
     lines.push('        self.session = session');
+    lines.push('        super.init()');
     lines.push('    }');
     lines.push('');
     for (let i = 0; i < s.operations.length; i++) {
-      emitOperation(lines, s.operations[i], ir);
+      emitOperation(lines, s.operations[i], ir, 'public override func');
       if (s.operations[i].isPaginated && s.operations[i].successResponse.dataRef) {
         lines.push('');
-        emitPaginationMethod(lines, s.operations[i], ir);
+        emitPaginationMethod(lines, s.operations[i], ir, 'public override func');
       }
       if (i < s.operations.length - 1) lines.push('');
     }
@@ -516,16 +572,28 @@ function generateClient(ir: IR): string {
     lines.push('');
   }
 
-  lines.push('public struct PachcaClient {');
   const svcs = ir.services
     .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.prop.localeCompare(b.prop));
+  if (hasServices) {
+    lines.push('public struct PachcaServices {');
+    for (const s of svcs) lines.push(`    public var ${s.prop}: ${s.cls}? = nil`);
+    lines.push('');
+    lines.push('    public init() {}');
+    lines.push('}');
+    lines.push('');
+  }
+  lines.push('public struct PachcaClient {');
   for (const s of svcs) lines.push(`    public let ${s.prop}: ${s.cls}`);
   lines.push('');
   const swiftDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`    public init(token: String, baseURL: String${swiftDefault}) {`);
+  if (hasServices) lines.push(`    public init(token: String, baseURL: String${swiftDefault}, services: PachcaServices = PachcaServices()) {`);
+  else lines.push(`    public init(token: String, baseURL: String${swiftDefault}) {`);
   lines.push('        let headers = ["Authorization": "Bearer \\(token)"]');
-  for (const s of svcs) lines.push(`        self.${s.prop} = ${s.cls}(baseURL: baseURL, headers: headers)`);
+  for (const s of svcs) {
+    if (hasServices) lines.push(`        self.${s.prop} = services.${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)`);
+    else lines.push(`        self.${s.prop} = ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)`);
+  }
   lines.push('    }');
   lines.push('}');
   lines.push('');

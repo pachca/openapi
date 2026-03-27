@@ -3,18 +3,31 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct ItemsService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class ItemsService {
+    public init() {}
+
+    open func patchItem(id: Int, request body: ItemPatchRequest) async throws -> Item {
+        throw pachcaNotImplemented("Items.patchItem")
+    }
+}
+
+public final class ItemsServiceImpl: ItemsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
     }
 
-    public func patchItem(id: Int, request body: ItemPatchRequest) async throws -> Item {
+    public override func patchItem(id: Int, request body: ItemPatchRequest) async throws -> Item {
         var request = URLRequest(url: URL(string: "\(baseURL)/items/\(id)")!)
         request.httpMethod = "PATCH"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -31,11 +44,17 @@ public struct ItemsService {
     }
 }
 
+public struct PachcaServices {
+    public var items: ItemsService? = nil
+
+    public init() {}
+}
+
 public struct PachcaClient {
     public let items: ItemsService
 
-    public init(token: String, baseURL: String = "https://api.example.com/v1") {
+    public init(token: String, baseURL: String = "https://api.example.com/v1", services: PachcaServices = PachcaServices()) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.items = ItemsService(baseURL: baseURL, headers: headers)
+        self.items = services.items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

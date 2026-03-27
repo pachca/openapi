@@ -1,13 +1,27 @@
 import { Task, TaskUpdateRequest } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-class TasksService {
+export abstract class TasksService {
+  async getTask(projectId: number, taskId: number): Promise<Task> {
+    throw new Error("Tasks.getTask is not implemented");
+  }
+
+  async updateTask(projectId: number, taskId: number, request: TaskUpdateRequest): Promise<Task> {
+    throw new Error("Tasks.updateTask is not implemented");
+  }
+
+  async deleteComment(projectId: number, taskId: number, commentId: number): Promise<void> {
+    throw new Error("Tasks.deleteComment is not implemented");
+  }
+}
+
+export class TasksServiceImpl extends TasksService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
   ) {}
 
-  async getTask(projectId: number, taskId: number): Promise<Task> {
+  override async getTask(projectId: number, taskId: number): Promise<Task> {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}`, {
       headers: this.headers,
     });
@@ -20,7 +34,7 @@ class TasksService {
     }
   }
 
-  async updateTask(projectId: number, taskId: number, request: TaskUpdateRequest): Promise<Task> {
+  override async updateTask(projectId: number, taskId: number, request: TaskUpdateRequest): Promise<Task> {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -35,7 +49,7 @@ class TasksService {
     }
   }
 
-  async deleteComment(projectId: number, taskId: number, commentId: number): Promise<void> {
+  override async deleteComment(projectId: number, taskId: number, commentId: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}/comments/${commentId}`, {
       method: "DELETE",
       headers: this.headers,
@@ -49,11 +63,15 @@ class TasksService {
   }
 }
 
+export interface PachcaServices {
+  tasks?: TasksService;
+}
+
 export class PachcaClient {
   readonly tasks: TasksService;
 
-  constructor(token: string, baseUrl: string = "https://api.example.com/v1") {
+  constructor(token: string, baseUrl: string = "https://api.example.com/v1", services: PachcaServices = {}) {
     const headers = { Authorization: `Bearer ${token}` };
-    this.tasks = new TasksService(baseUrl, headers);
+    this.tasks = services.tasks ?? new TasksServiceImpl(baseUrl, headers);
   }
 }

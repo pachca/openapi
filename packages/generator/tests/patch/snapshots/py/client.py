@@ -1,11 +1,22 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import httpx
 
 from .models import ItemPatchRequest, Item, ApiError
 from .utils import deserialize, serialize, RetryTransport
 
 class ItemsService:
+    async def patch_item(
+        self,
+        id: int,
+        request: ItemPatchRequest,
+    ) -> Item:
+        raise NotImplementedError("Items.patchItem is not implemented")
+
+
+class ItemsServiceImpl(ItemsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -26,14 +37,20 @@ class ItemsService:
                 raise deserialize(ApiError, body)
 
 
+@dataclass
+class PachcaServices:
+    items: ItemsService | None = None
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.example.com/v1") -> None:
+    def __init__(self, token: str, base_url: str = "https://api.example.com/v1", services: PachcaServices | None = None) -> None:
+        services = services or PachcaServices()
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.items = ItemsService(self._client)
+        self.items: ItemsService = services.items or ItemsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

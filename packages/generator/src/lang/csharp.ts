@@ -18,6 +18,7 @@ import {
   snakeToUpperSnake,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const CSHARP_KEYWORDS = new Set([
@@ -561,13 +562,26 @@ function emitService(
   globalHasApiError: boolean,
 ): void {
   const serviceName = tagToServiceName(svc.tag);
+  const implName = serviceToImplName(serviceName);
 
-  lines.push(`public sealed class ${serviceName}`);
+  lines.push(`public abstract class ${serviceName}`);
+  lines.push('{');
+  for (let i = 0; i < svc.operations.length; i++) {
+    lines.push('');
+    emitThrowingOperation(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`public sealed class ${implName} : ${serviceName}`);
   lines.push('{');
   lines.push('    private readonly string _baseUrl;');
   lines.push('    private readonly HttpClient _client;');
   lines.push('');
-  lines.push(`    internal ${serviceName}(string baseUrl, HttpClient client)`);
+  lines.push(`    internal ${implName}(string baseUrl, HttpClient client)`);
   lines.push('    {');
   lines.push('        _baseUrl = baseUrl;');
   lines.push('        _client = client;');
@@ -585,7 +599,7 @@ function emitService(
   lines.push('}');
 }
 
-function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier = 'public override'): void {
   const indent = '    ';
   const indent2 = '        ';
   const itemType = csClientTypeRef(op.successResponse.dataRef ?? 'object');
@@ -607,7 +621,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   const methodName = `${snakeToPascal(op.methodName)}AllAsync`;
 
-  lines.push(`${indent}public async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
+  lines.push(`${indent}${modifier} async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
   for (let i = 0; i < params.length; i++) {
     const comma = i < params.length - 1 ? ',' : ')';
     lines.push(`${indent2}${params[i]}${comma}`);
@@ -659,6 +673,7 @@ function emitOperation(
   op: IROperation,
   ir: IR,
   globalHasApiError: boolean,
+  modifier = 'public override',
 ): void {
   const indent = '    ';
   const indent2 = '        ';
@@ -673,11 +688,11 @@ function emitOperation(
   if (op.deprecated) lines.push(`${indent}[Obsolete("This method is deprecated")]`);
 
   if (params.length === 0) {
-    lines.push(`${indent}public async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
   } else if (params.length === 1) {
-    lines.push(`${indent}public async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
   } else {
-    lines.push(`${indent}public async ${taskType} ${methodName}(`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(`);
     for (const p of params) {
       lines.push(`${indent2}${p},`);
     }
@@ -687,6 +702,52 @@ function emitOperation(
 
   emitMethodBody(lines, op, ir, globalHasApiError);
 
+  lines.push(`${indent}}`);
+}
+
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const returnType = getReturnType(op, ir);
+  const taskType = returnType ? `System.Threading.Tasks.Task<${returnType}>` : 'System.Threading.Tasks.Task';
+  const params = buildMethodParams(op, ir);
+  const methodName = `${snakeToPascal(op.methodName)}Async`;
+  const indent = '    ';
+  const indent2 = '        ';
+  if (op.deprecated) lines.push(`${indent}[Obsolete("This method is deprecated")]`);
+  if (params.length === 0) {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
+  } else if (params.length === 1) {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
+  } else {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent2}CancellationToken cancellationToken = default)`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent2}throw new NotImplementedException(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)});`);
+  lines.push(`${indent}}`);
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const itemType = csClientTypeRef(op.successResponse.dataRef ?? 'object');
+  const params: string[] = [];
+  if (op.externalUrl) params.push(`string ${paramSdkName(op.externalUrl)}`);
+  for (const p of op.pathParams) params.push(`${csType(p.type)} ${paramSdkName(p.sdkName)}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') continue;
+    const typeName = csType(p.type);
+    params.push(p.required ? `${typeName} ${paramSdkName(p.sdkName)}` : `${typeName}? ${paramSdkName(p.sdkName)} = null`);
+  }
+  params.push('CancellationToken cancellationToken = default');
+  const methodName = `${snakeToPascal(op.methodName)}AllAsync`;
+  lines.push(`${indent}public virtual async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
+  for (let i = 0; i < params.length; i++) {
+    const comma = i < params.length - 1 ? ',' : ')';
+    lines.push(`${indent2}${params[i]}${comma}`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent2}throw new NotImplementedException(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)});`);
   lines.push(`${indent}}`);
 }
 
@@ -957,6 +1018,8 @@ function emitPachcaClient(
   lines.push('{');
   lines.push('    private readonly HttpClient _client;');
   lines.push('');
+  lines.push('    public sealed class Services');
+  lines.push('    {');
 
   // Service properties
   const serviceEntries = ir.services
@@ -967,12 +1030,18 @@ function emitPachcaClient(
     .sort((a, b) => a.propName.localeCompare(b.propName));
 
   for (const s of serviceEntries) {
+    lines.push(`        public ${s.className}? ${s.propName} { get; init; }`);
+  }
+  lines.push('    }');
+  lines.push('');
+  for (const s of serviceEntries) {
     lines.push(`    public ${s.className} ${s.propName} { get; }`);
   }
 
   lines.push('');
-  lines.push(`    public PachcaClient(string token, string baseUrl${csDefault})`);
+  lines.push(`    public PachcaClient(string token, string baseUrl${csDefault}, Services? services = null)`);
   lines.push('    {');
+  lines.push('        services ??= new Services();');
 
   if (hasRedirect) {
     lines.push('        var handler = new SocketsHttpHandler');
@@ -989,7 +1058,7 @@ function emitPachcaClient(
   lines.push('');
 
   for (const s of serviceEntries) {
-    lines.push(`        ${s.propName} = new ${s.className}(baseUrl, _client);`);
+    lines.push(`        ${s.propName} = services.${s.propName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
   }
 
   lines.push('    }');

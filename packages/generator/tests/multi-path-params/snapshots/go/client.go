@@ -59,12 +59,32 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type TasksService struct {
+type TasksService interface {
+	GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error)
+	UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error)
+	DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error
+}
+
+type TasksServiceStub struct{}
+
+func (s *TasksServiceStub) GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error) {
+	return nil, fmt.Errorf("Tasks.getTask is not implemented")
+}
+
+func (s *TasksServiceStub) UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error) {
+	return nil, fmt.Errorf("Tasks.updateTask is not implemented")
+}
+
+func (s *TasksServiceStub) DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error {
+	return fmt.Errorf("Tasks.deleteComment is not implemented")
+}
+
+type TasksServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *TasksService) GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error) {
+func (s *TasksServiceImpl) GetTask(ctx context.Context, projectId int32, taskId int32) (*Task, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/projects/%v/tasks/%v", s.baseURL, projectId, taskId), nil)
 	if err != nil {
 		return nil, err
@@ -88,7 +108,7 @@ func (s *TasksService) GetTask(ctx context.Context, projectId int32, taskId int3
 	}
 }
 
-func (s *TasksService) UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error) {
+func (s *TasksServiceImpl) UpdateTask(ctx context.Context, projectId int32, taskId int32, request TaskUpdateRequest) (*Task, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -117,7 +137,7 @@ func (s *TasksService) UpdateTask(ctx context.Context, projectId int32, taskId i
 	}
 }
 
-func (s *TasksService) DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error {
+func (s *TasksServiceImpl) DeleteComment(ctx context.Context, projectId int32, taskId int32, commentId int32) error {
 	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/projects/%v/tasks/%v/comments/%v", s.baseURL, projectId, taskId, commentId), nil)
 	if err != nil {
 		return err
@@ -136,18 +156,35 @@ func (s *TasksService) DeleteComment(ctx context.Context, projectId int32, taskI
 }
 
 type PachcaClient struct {
-	Tasks *TasksService
+	Tasks TasksService
 }
+
+type clientConfig struct {
+	baseURL string
+	tasks TasksService
+}
+
+type ClientOption func(*clientConfig)
 
 const DefaultBaseURL = "https://api.example.com/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithTasks(service TasksService) ClientOption {
+	return func(cfg *clientConfig) { cfg.tasks = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Tasks: &TasksService{baseURL: url, client: client},
+		Tasks: func() TasksService { if cfg.tasks != nil { return cfg.tasks }; return &TasksServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

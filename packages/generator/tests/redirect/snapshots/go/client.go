@@ -59,12 +59,22 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type CommonService struct {
+type CommonService interface {
+	DownloadExport(ctx context.Context, id int32) (string, error)
+}
+
+type CommonServiceStub struct{}
+
+func (s *CommonServiceStub) DownloadExport(ctx context.Context, id int32) (string, error) {
+	return "", fmt.Errorf("Common.downloadExport is not implemented")
+}
+
+type CommonServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, error) {
+func (s *CommonServiceImpl) DownloadExport(ctx context.Context, id int32) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/exports/%v", s.baseURL, id), nil)
 	if err != nil {
 		return "", err
@@ -97,14 +107,31 @@ func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, e
 }
 
 type PachcaClient struct {
-	Common *CommonService
+	Common CommonService
 }
+
+type clientConfig struct {
+	baseURL string
+	common CommonService
+}
+
+type ClientOption func(*clientConfig)
 
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithCommon(service CommonService) ClientOption {
+	return func(cfg *clientConfig) { cfg.common = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -112,6 +139,6 @@ func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
 		},
 	}
 	return &PachcaClient{
-		Common: &CommonService{baseURL: url, client: client},
+		Common: func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

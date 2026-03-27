@@ -11,18 +11,30 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class LinkPreviewsService
+public abstract class LinkPreviewsService
+{
+
+    public virtual async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+        int id,
+        LinkPreviewsRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Link Previews.createLinkPreviews is not implemented");
+    }
+}
+
+public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal LinkPreviewsService(string baseUrl, HttpClient client)
+    internal LinkPreviewsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
+    public override async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
         int id,
         LinkPreviewsRequest request,
         CancellationToken cancellationToken = default)
@@ -48,15 +60,21 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
+    public sealed class Services
+    {
+        public LinkPreviewsService? LinkPreviews { get; init; }
+    }
+
     public LinkPreviewsService LinkPreviews { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1")
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", Services? services = null)
     {
+        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        LinkPreviews = new LinkPreviewsService(baseUrl, _client);
+        LinkPreviews = services.LinkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

@@ -11,18 +11,30 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class ItemsService
+public abstract class ItemsService
+{
+
+    public virtual async System.Threading.Tasks.Task<Item> PatchItemAsync(
+        int id,
+        ItemPatchRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Items.patchItem is not implemented");
+    }
+}
+
+public sealed class ItemsServiceImpl : ItemsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ItemsService(string baseUrl, HttpClient client)
+    internal ItemsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<Item> PatchItemAsync(
+    public override async System.Threading.Tasks.Task<Item> PatchItemAsync(
         int id,
         ItemPatchRequest request,
         CancellationToken cancellationToken = default)
@@ -46,15 +58,21 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
+    public sealed class Services
+    {
+        public ItemsService? Items { get; init; }
+    }
+
     public ItemsService Items { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.example.com/v1")
+    public PachcaClient(string token, string baseUrl = "https://api.example.com/v1", Services? services = null)
     {
+        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Items = new ItemsService(baseUrl, _client);
+        Items = services.Items ?? new ItemsServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

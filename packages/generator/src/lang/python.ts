@@ -15,6 +15,7 @@ import {
   camelToSnake,
   snakeToUpperSnake,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const PYTHON_KEYWORDS = new Set([
@@ -654,6 +655,59 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('        return items');
 }
 
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
+  for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
+
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      args.push(`${pyFieldName(f)}: ${pyType(f.type)}`);
+    } else if (rb.schemaRef) {
+      args.push(`request: ${rb.schemaRef}`);
+    }
+  }
+
+  if (op.queryParams.length > 0) {
+    const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+    const hasRequired = op.queryParams.some((p) => p.required);
+    args.push(hasRequired ? `params: ${pascal}Params` : `params: ${pascal}Params | None = None`);
+  }
+
+  if (op.deprecated) lines.push('    # Deprecated');
+  lines.push(`    async def ${pyMethodName(op)}(`);
+  if (args.length === 0) {
+    lines.push(`        self) -> ${opReturnType(op, ir)}:`);
+  } else {
+    lines.push('        self,');
+    for (const a of args) lines.push(`        ${a},`);
+    lines.push(`    ) -> ${opReturnType(op, ir)}:`);
+  }
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
+  const itemType = op.successResponse.dataRef ?? 'object';
+  const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+  const paramsType = op.queryParams.length > 0 ? `${pascal}Params` : null;
+
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
+  for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
+  if (paramsType) {
+    const hasRequired = op.queryParams.some((p) => p.required && p.name !== 'cursor');
+    args.push(hasRequired ? `params: ${paramsType}` : `params: ${paramsType} | None = None`);
+  }
+
+  lines.push(`    async def ${pyMethodName(op)}_all(`);
+  lines.push('        self,');
+  for (const a of args) lines.push(`        ${a},`);
+  lines.push(`    ) -> list[${itemType}]:`);
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
+}
+
 function generateClient(ir: IR): { content: string; needUtils: boolean } {
   const lines: string[] = [];
   const needToDict = needsAsdict(ir);
@@ -662,6 +716,8 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
 
   if (ir.services.length > 0) {
     lines.push('from __future__ import annotations');
+    lines.push('');
+    lines.push('from dataclasses import dataclass');
     lines.push('');
     lines.push('import httpx');
     lines.push('');
@@ -689,7 +745,20 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
 
   lines.push('');
   for (const svc of ir.services) {
-    lines.push(`class ${tagToServiceName(svc.tag)}:`);
+    const serviceName = tagToServiceName(svc.tag);
+    const implName = serviceToImplName(serviceName);
+    lines.push(`class ${serviceName}:`);
+    for (let i = 0; i < svc.operations.length; i++) {
+      emitThrowingOperation(lines, svc.operations[i], ir);
+      if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+        lines.push('');
+        emitThrowingPaginationMethod(lines, svc.operations[i]);
+      }
+      if (i < svc.operations.length - 1) lines.push('');
+    }
+    lines.push('');
+    lines.push('');
+    lines.push(`class ${implName}(${serviceName}):`);
     lines.push('    def __init__(self, client: httpx.AsyncClient) -> None:');
     lines.push('        self._client = client');
     lines.push('');
@@ -705,19 +774,28 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     lines.push('');
   }
 
+  lines.push('@dataclass');
+  lines.push('class PachcaServices:');
+  const serviceEntries = ir.services
+    .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
+    .sort((a, b) => a.prop.localeCompare(b.prop));
+  for (const s of serviceEntries) {
+    lines.push(`    ${s.prop}: ${s.cls} | None = None`);
+  }
+  lines.push('');
+  lines.push('');
+
   lines.push('class PachcaClient:');
   const pyDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`    def __init__(self, token: str, base_url: str${pyDefault}) -> None:`);
+  lines.push(`    def __init__(self, token: str, base_url: str${pyDefault}, services: PachcaServices | None = None) -> None:`);
+  lines.push('        services = services or PachcaServices()');
   lines.push('        self._client = httpx.AsyncClient(');
   lines.push('            base_url=base_url,');
   lines.push('            headers={"Authorization": f"Bearer {token}"},');
   lines.push('            transport=RetryTransport(httpx.AsyncHTTPTransport()),');
   lines.push('        )');
-  const services = ir.services
-    .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
-    .sort((a, b) => a.prop.localeCompare(b.prop));
-  for (const s of services) {
-    lines.push(`        self.${s.prop} = ${s.cls}(self._client)`);
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop}: ${s.cls} = services.${s.prop} or ${serviceToImplName(s.cls)}(self._client)`);
   }
   lines.push('');
   lines.push('    async def close(self) -> None:');

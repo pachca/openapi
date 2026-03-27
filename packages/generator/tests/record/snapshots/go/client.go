@@ -59,12 +59,22 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type LinkPreviewsService struct {
+type LinkPreviewsService interface {
+	CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error
+}
+
+type LinkPreviewsServiceStub struct{}
+
+func (s *LinkPreviewsServiceStub) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+	return fmt.Errorf("Link Previews.createLinkPreviews is not implemented")
+}
+
+type LinkPreviewsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *LinkPreviewsService) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
+func (s *LinkPreviewsServiceImpl) CreateLinkPreviews(ctx context.Context, id int32, request LinkPreviewsRequest) error {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return err
@@ -98,18 +108,35 @@ func (s *LinkPreviewsService) CreateLinkPreviews(ctx context.Context, id int32, 
 }
 
 type PachcaClient struct {
-	LinkPreviews *LinkPreviewsService
+	LinkPreviews LinkPreviewsService
 }
+
+type clientConfig struct {
+	baseURL string
+	linkPreviews LinkPreviewsService
+}
+
+type ClientOption func(*clientConfig)
 
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithLinkPreviews(service LinkPreviewsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.linkPreviews = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		LinkPreviews: &LinkPreviewsService{baseURL: url, client: client},
+		LinkPreviews: func() LinkPreviewsService { if cfg.linkPreviews != nil { return cfg.linkPreviews }; return &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

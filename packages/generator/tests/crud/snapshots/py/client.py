@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import httpx
 
 from .models import (
@@ -16,6 +18,51 @@ from .models import (
 from .utils import deserialize, serialize, RetryTransport
 
 class ChatsService:
+    async def list_chats(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> ListChatsResponse:
+        raise NotImplementedError("Chats.listChats is not implemented")
+
+    async def list_chats_all(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> list[Chat]:
+        raise NotImplementedError("Chats.listChatsAll is not implemented")
+
+    async def get_chat(
+        self,
+        id: int,
+    ) -> Chat:
+        raise NotImplementedError("Chats.getChat is not implemented")
+
+    async def create_chat(
+        self,
+        request: ChatCreateRequest,
+    ) -> Chat:
+        raise NotImplementedError("Chats.createChat is not implemented")
+
+    async def update_chat(
+        self,
+        id: int,
+        request: ChatUpdateRequest,
+    ) -> Chat:
+        raise NotImplementedError("Chats.updateChat is not implemented")
+
+    async def archive_chat(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Chats.archiveChat is not implemented")
+
+    async def delete_chat(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Chats.deleteChat is not implemented")
+
+
+class ChatsServiceImpl(ChatsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -148,14 +195,20 @@ class ChatsService:
                 raise deserialize(ApiError, response.json())
 
 
+@dataclass
+class PachcaServices:
+    chats: ChatsService | None = None
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
+    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", services: PachcaServices | None = None) -> None:
+        services = services or PachcaServices()
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.chats = ChatsService(self._client)
+        self.chats: ChatsService = services.chats or ChatsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

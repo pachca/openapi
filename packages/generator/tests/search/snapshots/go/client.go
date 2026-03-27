@@ -59,12 +59,27 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type SearchService struct {
+type SearchService interface {
+	SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error)
+	SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageSearchResult, error)
+}
+
+type SearchServiceStub struct{}
+
+func (s *SearchServiceStub) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
+	return nil, fmt.Errorf("Search.searchMessages is not implemented")
+}
+
+func (s *SearchServiceStub) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageSearchResult, error) {
+	return nil, fmt.Errorf("Search.searchMessagesAll is not implemented")
+}
+
+type SearchServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
+func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -120,7 +135,7 @@ func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessage
 	}
 }
 
-func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageSearchResult, error) {
+func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageSearchResult, error) {
 	if params == nil {
 		params = &SearchMessagesParams{}
 	}
@@ -142,18 +157,35 @@ func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMes
 }
 
 type PachcaClient struct {
-	Search *SearchService
+	Search SearchService
 }
+
+type clientConfig struct {
+	baseURL string
+	search SearchService
+}
+
+type ClientOption func(*clientConfig)
 
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithSearch(service SearchService) ClientOption {
+	return func(cfg *clientConfig) { cfg.search = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Search: &SearchService{baseURL: url, client: client},
+		Search: func() SearchService { if cfg.search != nil { return cfg.search }; return &SearchServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

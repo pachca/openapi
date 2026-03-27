@@ -6,13 +6,23 @@ import {
 } from "./types";
 import { deserialize, fetchWithRetry } from "./utils";
 
-class SearchService {
+export abstract class SearchService {
+  async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
+    throw new Error("Search.searchMessages is not implemented");
+  }
+
+  async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageSearchResult[]> {
+    throw new Error("Search.searchMessagesAll is not implemented");
+  }
+}
+
+export class SearchServiceImpl extends SearchService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
   ) {}
 
-  async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
+  override async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
     query.set("query", params.query);
     if (params?.chatIds !== undefined) {
@@ -40,7 +50,7 @@ class SearchService {
     }
   }
 
-  async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageSearchResult[]> {
+  override async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageSearchResult[]> {
     const items: MessageSearchResult[] = [];
     let cursor: string | undefined;
     do {
@@ -53,11 +63,15 @@ class SearchService {
   }
 }
 
+export interface PachcaServices {
+  search?: SearchService;
+}
+
 export class PachcaClient {
   readonly search: SearchService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
     const headers = { Authorization: `Bearer ${token}` };
-    this.search = new SearchService(baseUrl, headers);
+    this.search = services.search ?? new SearchServiceImpl(baseUrl, headers);
   }
 }

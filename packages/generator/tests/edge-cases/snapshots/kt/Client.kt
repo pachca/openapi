@@ -14,11 +14,25 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class EventsService internal constructor(
+abstract class EventsService {
+    open suspend fun listEvents(
+        isActive: Boolean? = null,
+        scopes: List<OAuthScope>? = null,
+        filter: EventFilter? = null,
+    ): ListEventsResponse {
+        throw NotImplementedError("Events.listEvents is not implemented")
+    }
+
+    open suspend fun publishEvent(id: Int, scope: OAuthScope): Event {
+        throw NotImplementedError("Events.publishEvent is not implemented")
+    }
+}
+
+class EventsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun listEvents(
+) : EventsService() {
+    override suspend fun listEvents(
         isActive: Boolean? = null,
         scopes: List<OAuthScope>? = null,
         filter: EventFilter? = null,
@@ -34,7 +48,7 @@ class EventsService internal constructor(
         }
     }
 
-    suspend fun publishEvent(id: Int, scope: OAuthScope): Event {
+    override suspend fun publishEvent(id: Int, scope: OAuthScope): Event {
         val response = client.put("$baseUrl/events/$id/publish") {
             contentType(ContentType.Application.Json)
             setBody(PublishEventRequest(scope = scope))
@@ -46,11 +60,17 @@ class EventsService internal constructor(
     }
 }
 
-class UploadsService internal constructor(
+abstract class UploadsService {
+    open suspend fun createUpload(request: UploadRequest) {
+        throw NotImplementedError("Uploads.createUpload is not implemented")
+    }
+}
+
+class UploadsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun createUpload(request: UploadRequest) {
+) : UploadsService() {
+    override suspend fun createUpload(request: UploadRequest) {
         val response = client.submitFormWithBinaryData(
             "$baseUrl/uploads",
             formData {
@@ -67,7 +87,12 @@ class UploadsService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String) : Closeable {
+data class PachcaServices(
+    val events: EventsService? = null,
+    val uploads: UploadsService? = null
+)
+
+class PachcaClient(token: String, baseUrl: String, services: PachcaServices = PachcaServices()) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -94,8 +119,8 @@ class PachcaClient(token: String, baseUrl: String) : Closeable {
         }
     }
 
-    val events = EventsService(baseUrl, client)
-    val uploads = UploadsService(baseUrl, client)
+    val events: EventsService = services.events ?: EventsServiceImpl(baseUrl, client)
+    val uploads: UploadsService = services.uploads ?: UploadsServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

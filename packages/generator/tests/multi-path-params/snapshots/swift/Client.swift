@@ -3,18 +3,39 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct TasksService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class TasksService {
+    public init() {}
+
+    open func getTask(projectId: Int, taskId: Int) async throws -> Task {
+        throw pachcaNotImplemented("Tasks.getTask")
+    }
+
+    open func updateTask(projectId: Int, taskId: Int, request body: TaskUpdateRequest) async throws -> Task {
+        throw pachcaNotImplemented("Tasks.updateTask")
+    }
+
+    open func deleteComment(projectId: Int, taskId: Int, commentId: Int) async throws -> Void {
+        throw pachcaNotImplemented("Tasks.deleteComment")
+    }
+}
+
+public final class TasksServiceImpl: TasksService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
     }
 
-    public func getTask(projectId: Int, taskId: Int) async throws -> Task {
+    public override func getTask(projectId: Int, taskId: Int) async throws -> Task {
         var request = URLRequest(url: URL(string: "\(baseURL)/projects/\(projectId)/tasks/\(taskId)")!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
@@ -27,7 +48,7 @@ public struct TasksService {
         }
     }
 
-    public func updateTask(projectId: Int, taskId: Int, request body: TaskUpdateRequest) async throws -> Task {
+    public override func updateTask(projectId: Int, taskId: Int, request body: TaskUpdateRequest) async throws -> Task {
         var request = URLRequest(url: URL(string: "\(baseURL)/projects/\(projectId)/tasks/\(taskId)")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -43,7 +64,7 @@ public struct TasksService {
         }
     }
 
-    public func deleteComment(projectId: Int, taskId: Int, commentId: Int) async throws -> Void {
+    public override func deleteComment(projectId: Int, taskId: Int, commentId: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/projects/\(projectId)/tasks/\(taskId)/comments/\(commentId)")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -58,11 +79,17 @@ public struct TasksService {
     }
 }
 
+public struct PachcaServices {
+    public var tasks: TasksService? = nil
+
+    public init() {}
+}
+
 public struct PachcaClient {
     public let tasks: TasksService
 
-    public init(token: String, baseURL: String = "https://api.example.com/v1") {
+    public init(token: String, baseURL: String = "https://api.example.com/v1", services: PachcaServices = PachcaServices()) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.tasks = TasksService(baseURL: baseURL, headers: headers)
+        self.tasks = services.tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

@@ -3,18 +3,35 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct SearchService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class SearchService {
+    public init() {}
+
+    open func searchMessages(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
+        throw pachcaNotImplemented("Search.searchMessages")
+    }
+
+    open func searchMessagesAll(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil) async throws -> [MessageSearchResult] {
+        throw pachcaNotImplemented("Search.searchMessagesAll")
+    }
+}
+
+public final class SearchServiceImpl: SearchService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
     }
 
-    public func searchMessages(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
+    public override func searchMessages(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
         var components = URLComponents(string: "\(baseURL)/search/messages")!
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "query", value: String(query)))
@@ -40,7 +57,7 @@ public struct SearchService {
         }
     }
 
-    public func searchMessagesAll(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil) async throws -> [MessageSearchResult] {
+    public override func searchMessagesAll(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil) async throws -> [MessageSearchResult] {
         var items: [MessageSearchResult] = []
         var cursor: String? = nil
         repeat {
@@ -53,11 +70,17 @@ public struct SearchService {
     }
 }
 
+public struct PachcaServices {
+    public var search: SearchService? = nil
+
+    public init() {}
+}
+
 public struct PachcaClient {
     public let search: SearchService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.search = SearchService(baseURL: baseURL, headers: headers)
+        self.search = services.search ?? SearchServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

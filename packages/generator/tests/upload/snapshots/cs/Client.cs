@@ -12,18 +12,35 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class CommonService
+public abstract class CommonService
+{
+
+    public virtual async System.Threading.Tasks.Task UploadFileAsync(
+        string directUrl,
+        FileUploadRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.uploadFile is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Common.getUploadParams is not implemented");
+    }
+}
+
+public sealed class CommonServiceImpl : CommonService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal CommonService(string baseUrl, HttpClient client)
+    internal CommonServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task UploadFileAsync(
+    public override async System.Threading.Tasks.Task UploadFileAsync(
         string directUrl,
         FileUploadRequest request,
         CancellationToken cancellationToken = default)
@@ -55,7 +72,7 @@ public sealed class CommonService
         }
     }
 
-    public async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<UploadParams> GetUploadParamsAsync(CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/uploads";
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -77,15 +94,21 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
+    public sealed class Services
+    {
+        public CommonService? Common { get; init; }
+    }
+
     public CommonService Common { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1")
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", Services? services = null)
     {
+        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Common = new CommonService(baseUrl, _client);
+        Common = services.Common ?? new CommonServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

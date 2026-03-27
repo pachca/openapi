@@ -14,11 +14,38 @@ import kotlinx.serialization.json.Json
 import java.io.Closeable
 import java.time.OffsetDateTime
 
-class SearchService internal constructor(
+abstract class SearchService {
+    open suspend fun searchMessages(
+        query: String,
+        chatIds: List<Int>? = null,
+        userIds: List<Int>? = null,
+        createdFrom: String? = null,
+        createdTo: String? = null,
+        sort: SearchSort? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): SearchMessagesResponse {
+        throw NotImplementedError("Search.searchMessages is not implemented")
+    }
+
+    open suspend fun searchMessagesAll(
+        query: String,
+        chatIds: List<Int>? = null,
+        userIds: List<Int>? = null,
+        createdFrom: String? = null,
+        createdTo: String? = null,
+        sort: SearchSort? = null,
+        limit: Int? = null,
+    ): List<MessageSearchResult> {
+        throw NotImplementedError("Search.searchMessagesAll is not implemented")
+    }
+}
+
+class SearchServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun searchMessages(
+) : SearchService() {
+    override suspend fun searchMessages(
         query: String,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
@@ -45,7 +72,7 @@ class SearchService internal constructor(
         }
     }
 
-    suspend fun searchMessagesAll(
+    override suspend fun searchMessagesAll(
         query: String,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
@@ -75,7 +102,11 @@ class SearchService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
+data class PachcaServices(
+    val search: SearchService? = null
+)
+
+class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -102,7 +133,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val search = SearchService(baseUrl, client)
+    val search: SearchService = services.search ?: SearchServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

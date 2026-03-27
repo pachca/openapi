@@ -11,18 +11,48 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class TasksService
+public abstract class TasksService
+{
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(
+        int projectId,
+        int taskId,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.getTask is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
+        int projectId,
+        int taskId,
+        TaskUpdateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.updateTask is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task DeleteCommentAsync(
+        int projectId,
+        int taskId,
+        int commentId,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Tasks.deleteComment is not implemented");
+    }
+}
+
+public sealed class TasksServiceImpl : TasksService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal TasksService(string baseUrl, HttpClient client)
+    internal TasksServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Task> GetTaskAsync(
         int projectId,
         int taskId,
         CancellationToken cancellationToken = default)
@@ -40,7 +70,7 @@ public sealed class TasksService
         }
     }
 
-    public async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
+    public override async System.Threading.Tasks.Task<Pachca.Sdk.Task> UpdateTaskAsync(
         int projectId,
         int taskId,
         TaskUpdateRequest request,
@@ -60,7 +90,7 @@ public sealed class TasksService
         }
     }
 
-    public async System.Threading.Tasks.Task DeleteCommentAsync(
+    public override async System.Threading.Tasks.Task DeleteCommentAsync(
         int projectId,
         int taskId,
         int commentId,
@@ -84,15 +114,21 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
+    public sealed class Services
+    {
+        public TasksService? Tasks { get; init; }
+    }
+
     public TasksService Tasks { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.example.com/v1")
+    public PachcaClient(string token, string baseUrl = "https://api.example.com/v1", Services? services = null)
     {
+        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Tasks = new TasksService(baseUrl, _client);
+        Tasks = services.Tasks ?? new TasksServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

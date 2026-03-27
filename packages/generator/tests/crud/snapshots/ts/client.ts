@@ -9,13 +9,43 @@ import {
 } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-class ChatsService {
+export abstract class ChatsService {
+  async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
+    throw new Error("Chats.listChats is not implemented");
+  }
+
+  async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
+    throw new Error("Chats.listChatsAll is not implemented");
+  }
+
+  async getChat(id: number): Promise<Chat> {
+    throw new Error("Chats.getChat is not implemented");
+  }
+
+  async createChat(request: ChatCreateRequest): Promise<Chat> {
+    throw new Error("Chats.createChat is not implemented");
+  }
+
+  async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
+    throw new Error("Chats.updateChat is not implemented");
+  }
+
+  async archiveChat(id: number): Promise<void> {
+    throw new Error("Chats.archiveChat is not implemented");
+  }
+
+  async deleteChat(id: number): Promise<void> {
+    throw new Error("Chats.deleteChat is not implemented");
+  }
+}
+
+export class ChatsServiceImpl extends ChatsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
   ) {}
 
-  async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
+  override async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     const query = new URLSearchParams();
     if (params?.availability !== undefined) query.set("availability", params.availability);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -37,7 +67,7 @@ class ChatsService {
     }
   }
 
-  async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
+  override async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
     const items: Chat[] = [];
     let cursor: string | undefined;
     do {
@@ -49,7 +79,7 @@ class ChatsService {
     return items;
   }
 
-  async getChat(id: number): Promise<Chat> {
+  override async getChat(id: number): Promise<Chat> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       headers: this.headers,
     });
@@ -64,7 +94,7 @@ class ChatsService {
     }
   }
 
-  async createChat(request: ChatCreateRequest): Promise<Chat> {
+  override async createChat(request: ChatCreateRequest): Promise<Chat> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -81,7 +111,7 @@ class ChatsService {
     }
   }
 
-  async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
+  override async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -98,7 +128,7 @@ class ChatsService {
     }
   }
 
-  async archiveChat(id: number): Promise<void> {
+  override async archiveChat(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/archive`, {
       method: "PUT",
       headers: this.headers,
@@ -113,7 +143,7 @@ class ChatsService {
     }
   }
 
-  async deleteChat(id: number): Promise<void> {
+  override async deleteChat(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       method: "DELETE",
       headers: this.headers,
@@ -129,11 +159,15 @@ class ChatsService {
   }
 }
 
+export interface PachcaServices {
+  chats?: ChatsService;
+}
+
 export class PachcaClient {
   readonly chats: ChatsService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
+  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
     const headers = { Authorization: `Bearer ${token}` };
-    this.chats = new ChatsService(baseUrl, headers);
+    this.chats = services.chats ?? new ChatsServiceImpl(baseUrl, headers);
   }
 }

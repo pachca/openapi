@@ -59,12 +59,22 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type MembersService struct {
+type MembersService interface {
+	AddMembers(ctx context.Context, id int32, memberIds []int32) error
+}
+
+type MembersServiceStub struct{}
+
+func (s *MembersServiceStub) AddMembers(ctx context.Context, id int32, memberIds []int32) error {
+	return fmt.Errorf("Members.addMembers is not implemented")
+}
+
+type MembersServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *MembersService) AddMembers(ctx context.Context, id int32, memberIds []int32) error {
+func (s *MembersServiceImpl) AddMembers(ctx context.Context, id int32, memberIds []int32) error {
 	body, err := json.Marshal(map[string]any{"member_ids": memberIds})
 	if err != nil {
 		return err
@@ -97,12 +107,27 @@ func (s *MembersService) AddMembers(ctx context.Context, id int32, memberIds []i
 	}
 }
 
-type ChatsService struct {
+type ChatsService interface {
+	CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error)
+	ArchiveChat(ctx context.Context, id int32) error
+}
+
+type ChatsServiceStub struct{}
+
+func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+	return nil, fmt.Errorf("Chats.createChat is not implemented")
+}
+
+func (s *ChatsServiceStub) ArchiveChat(ctx context.Context, id int32) error {
+	return fmt.Errorf("Chats.archiveChat is not implemented")
+}
+
+type ChatsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *ChatsService) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -141,7 +166,7 @@ func (s *ChatsService) CreateChat(ctx context.Context, request ChatCreateRequest
 	}
 }
 
-func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
+func (s *ChatsServiceImpl) ArchiveChat(ctx context.Context, id int32) error {
 	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/chats/%v/archive", s.baseURL, id), nil)
 	if err != nil {
 		return err
@@ -170,20 +195,42 @@ func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
 }
 
 type PachcaClient struct {
-	Chats   *ChatsService
-	Members *MembersService
+	Chats   ChatsService
+	Members MembersService
 }
+
+type clientConfig struct {
+	baseURL string
+	chats ChatsService
+	members MembersService
+}
+
+type ClientOption func(*clientConfig)
 
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithChats(service ChatsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.chats = service }
+}
+
+func WithMembers(service MembersService) ClientOption {
+	return func(cfg *clientConfig) { cfg.members = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Chats  : &ChatsService{baseURL: url, client: client},
-		Members: &MembersService{baseURL: url, client: client},
+		Chats  : func() ChatsService { if cfg.chats != nil { return cfg.chats }; return &ChatsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Members: func() MembersService { if cfg.members != nil { return cfg.members }; return &MembersServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

@@ -18,6 +18,7 @@ import {
   kebabToCamel,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 function fieldSdkName(field: IRField): string {
@@ -461,17 +462,21 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   }
 
   if (hasServices) {
-    lines.push('export class PachcaClient {');
+    lines.push('export interface PachcaServices {');
     const serviceEntries = ir.services
       .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
       .sort((a, b) => a.prop.localeCompare(b.prop));
+    for (const s of serviceEntries) lines.push(`  ${s.prop}?: ${s.cls};`);
+    lines.push('}');
+    lines.push('');
+    lines.push('export class PachcaClient {');
     for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
     lines.push('');
     const defaultUrl = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-    lines.push(`  constructor(token: string, baseUrl: string${defaultUrl}) {`);
+    lines.push(`  constructor(token: string, baseUrl: string${defaultUrl}, services: PachcaServices = {}) {`);
     lines.push('    const headers = { Authorization: `Bearer ${token}` };');
     for (const s of serviceEntries) {
-      lines.push(`    this.${s.prop} = new ${s.cls}(baseUrl, headers);`);
+      lines.push(`    this.${s.prop} = services.${s.prop} ?? new ${serviceToImplName(s.cls)}(baseUrl, headers);`);
     }
     lines.push('  }');
     lines.push('}');
@@ -484,11 +489,25 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
 
 function emitService(lines: string[], svc: IRService, ir: IR): void {
   const serviceName = tagToServiceName(svc.tag);
-  lines.push(`class ${serviceName} {`);
+  const implName = serviceToImplName(serviceName);
+  lines.push(`export abstract class ${serviceName} {`);
+  for (let i = 0; i < svc.operations.length; i++) {
+    emitThrowingMethod(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+    if (i < svc.operations.length - 1) lines.push('');
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`export class ${implName} extends ${serviceName} {`);
   lines.push('  constructor(');
   lines.push('    private baseUrl: string,');
   lines.push('    private headers: Record<string, string>,');
-  lines.push('  ) {}');
+  lines.push('  ) {');
+  lines.push('    super();');
+  lines.push('  }');
   lines.push('');
   for (let i = 0; i < svc.operations.length; i++) {
     emitOperation(lines, svc.operations[i], ir);
@@ -501,12 +520,38 @@ function emitService(lines: string[], svc: IRService, ir: IR): void {
   lines.push('}');
 }
 
+function emitThrowingMethod(lines: string[], op: IROperation, ir: IR): void {
+  const args = methodArgs(op);
+  const ret = responseTypeName(op, ir);
+  if (op.deprecated) lines.push('  /** @deprecated */');
+  lines.push(`  async ${op.methodName}(${args}): Promise<${ret}> {`);
+  lines.push(`    throw new Error(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)});`);
+  lines.push('  }');
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const itemType = op.successResponse.dataRef ?? 'unknown';
+  const paramsType = op.queryParams.length > 0 ? irParamTypeName(op) : null;
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: string`);
+  for (const p of op.pathParams) {
+    args.push(`${p.sdkName}: ${tsType(p.type, { allModels: new Map(), inlineAsObject: new Set() })}`);
+  }
+  if (paramsType) {
+    const hasRequired = op.queryParams.some((q) => q.required && q.name !== 'cursor');
+    args.push(hasRequired ? `params: Omit<${paramsType}, 'cursor'>` : `params?: Omit<${paramsType}, 'cursor'>`);
+  }
+  lines.push(`  async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
+  lines.push(`    throw new Error(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)});`);
+  lines.push('  }');
+}
+
 function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   const args = methodArgs(op);
   const ret = responseTypeName(op, ir);
   const path = escapeTemplatePath(op.path, op);
   if (op.deprecated) lines.push('  /** @deprecated */');
-  lines.push(`  async ${op.methodName}(${args}): Promise<${ret}> {`);
+  lines.push(`  override async ${op.methodName}(${args}): Promise<${ret}> {`);
 
   if (op.requestBody?.contentType === 'multipart') {
     lines.push('    const form = new FormData();');
@@ -647,7 +692,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     args.push(hasRequired ? `params: Omit<${paramsType}, 'cursor'>` : `params?: Omit<${paramsType}, 'cursor'>`);
   }
 
-  lines.push(`  async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
+  lines.push(`  override async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
   lines.push(`    const items: ${itemType}[] = [];`);
   lines.push('    let cursor: string | undefined;');
   lines.push('    do {');

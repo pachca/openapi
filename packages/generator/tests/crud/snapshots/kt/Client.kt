@@ -13,11 +13,52 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class ChatsService internal constructor(
+abstract class ChatsService {
+    open suspend fun listChats(
+        availability: ChatAvailability? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+        sortField: String? = null,
+        sortOrder: SortOrder? = null,
+    ): ListChatsResponse {
+        throw NotImplementedError("Chats.listChats is not implemented")
+    }
+
+    open suspend fun listChatsAll(
+        availability: ChatAvailability? = null,
+        limit: Int? = null,
+        sortField: String? = null,
+        sortOrder: SortOrder? = null,
+    ): List<Chat> {
+        throw NotImplementedError("Chats.listChatsAll is not implemented")
+    }
+
+    open suspend fun getChat(id: Int): Chat {
+        throw NotImplementedError("Chats.getChat is not implemented")
+    }
+
+    open suspend fun createChat(request: ChatCreateRequest): Chat {
+        throw NotImplementedError("Chats.createChat is not implemented")
+    }
+
+    open suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
+        throw NotImplementedError("Chats.updateChat is not implemented")
+    }
+
+    open suspend fun archiveChat(id: Int) {
+        throw NotImplementedError("Chats.archiveChat is not implemented")
+    }
+
+    open suspend fun deleteChat(id: Int) {
+        throw NotImplementedError("Chats.deleteChat is not implemented")
+    }
+}
+
+class ChatsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun listChats(
+) : ChatsService() {
+    override suspend fun listChats(
         availability: ChatAvailability? = null,
         limit: Int? = null,
         cursor: String? = null,
@@ -38,7 +79,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun listChatsAll(
+    override suspend fun listChatsAll(
         availability: ChatAvailability? = null,
         limit: Int? = null,
         sortField: String? = null,
@@ -61,7 +102,7 @@ class ChatsService internal constructor(
         return items
     }
 
-    suspend fun getChat(id: Int): Chat {
+    override suspend fun getChat(id: Int): Chat {
         val response = client.get("$baseUrl/chats/$id")
         return when (response.status.value) {
             200 -> response.body<ChatDataWrapper>().data
@@ -70,7 +111,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun createChat(request: ChatCreateRequest): Chat {
+    override suspend fun createChat(request: ChatCreateRequest): Chat {
         val response = client.post("$baseUrl/chats") {
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -82,7 +123,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
+    override suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
         val response = client.put("$baseUrl/chats/$id") {
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -94,7 +135,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun archiveChat(id: Int) {
+    override suspend fun archiveChat(id: Int) {
         val response = client.put("$baseUrl/chats/$id/archive")
         when (response.status.value) {
             204 -> return
@@ -103,7 +144,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun deleteChat(id: Int) {
+    override suspend fun deleteChat(id: Int) {
         val response = client.delete("$baseUrl/chats/$id")
         when (response.status.value) {
             204 -> return
@@ -113,7 +154,11 @@ class ChatsService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
+data class PachcaServices(
+    val chats: ChatsService? = null
+)
+
+class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -140,7 +185,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val chats = ChatsService(baseUrl, client)
+    val chats: ChatsService = services.chats ?: ChatsServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

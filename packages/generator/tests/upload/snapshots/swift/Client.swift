@@ -3,18 +3,35 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct CommonService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class CommonService {
+    public init() {}
+
+    open func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
+        throw pachcaNotImplemented("Common.uploadFile")
+    }
+
+    open func getUploadParams() async throws -> UploadParams {
+        throw pachcaNotImplemented("Common.getUploadParams")
+    }
+}
+
+public final class CommonServiceImpl: CommonService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
     }
 
-    public func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
+    public override func uploadFile(directUrl: String, request body: FileUploadRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(directUrl)")!)
         request.httpMethod = "POST"
         let boundary = UUID().uuidString
@@ -52,7 +69,7 @@ public struct CommonService {
         }
     }
 
-    public func getUploadParams() async throws -> UploadParams {
+    public override func getUploadParams() async throws -> UploadParams {
         var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -69,11 +86,17 @@ public struct CommonService {
     }
 }
 
+public struct PachcaServices {
+    public var common: CommonService? = nil
+
+    public init() {}
+}
+
 public struct PachcaClient {
     public let common: CommonService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.common = CommonService(baseURL: baseURL, headers: headers)
+        self.common = services.common ?? CommonServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

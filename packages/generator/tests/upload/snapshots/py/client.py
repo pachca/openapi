@@ -1,11 +1,26 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import httpx
 
 from .models import FileUploadRequest, OAuthError, UploadParams
 from .utils import deserialize, RetryTransport
 
 class CommonService:
+    async def upload_file(
+        self,
+        direct_url: str,
+        request: FileUploadRequest,
+    ) -> None:
+        raise NotImplementedError("Common.uploadFile is not implemented")
+
+    async def get_upload_params(
+        self) -> UploadParams:
+        raise NotImplementedError("Common.getUploadParams is not implemented")
+
+
+class CommonServiceImpl(CommonService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -56,14 +71,20 @@ class CommonService:
                 )
 
 
+@dataclass
+class PachcaServices:
+    common: CommonService | None = None
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
+    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", services: PachcaServices | None = None) -> None:
+        services = services or PachcaServices()
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.common = CommonService(self._client)
+        self.common: CommonService = services.common or CommonServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

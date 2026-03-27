@@ -13,11 +13,17 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class CommonService internal constructor(
+abstract class CommonService {
+    open suspend fun downloadExport(id: Int): String {
+        throw NotImplementedError("Common.downloadExport is not implemented")
+    }
+}
+
+class CommonServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun downloadExport(id: Int): String {
+) : CommonService() {
+    override suspend fun downloadExport(id: Int): String {
         val response = client.get("$baseUrl/exports/$id")
         return when (response.status.value) {
             302 -> response.headers[HttpHeaders.Location]
@@ -28,7 +34,11 @@ class CommonService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
+data class PachcaServices(
+    val common: CommonService? = null
+)
+
+class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         followRedirects = false
@@ -56,7 +66,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val common = CommonService(baseUrl, client)
+    val common: CommonService = services.common ?: CommonServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

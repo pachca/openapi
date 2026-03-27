@@ -17,6 +17,7 @@ import {
   snakeToUpperSnake,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const KOTLIN_KEYWORDS = new Set([
@@ -425,11 +426,23 @@ function emitService(
   globalHasApiError: boolean,
 ): void {
   const serviceName = tagToServiceName(svc.tag);
+  const implName = serviceToImplName(serviceName);
 
-  lines.push(`class ${serviceName} internal constructor(`);
+  lines.push(`abstract class ${serviceName} {`);
+  for (let i = 0; i < svc.operations.length; i++) {
+    if (i > 0) lines.push('');
+    emitThrowingOperation(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`class ${implName} internal constructor(`);
   lines.push('    private val baseUrl: String,');
   lines.push('    private val client: HttpClient,');
-  lines.push(') {');
+  lines.push(`) : ${serviceName}() {`);
 
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
@@ -441,6 +454,58 @@ function emitService(
   }
 
   lines.push('}');
+}
+
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const returnType = getReturnType(op, ir);
+  const returnSuffix = returnType ? `: ${returnType}` : '';
+  const params = buildMethodParams(op, ir);
+
+  if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
+  if (params.length === 0) {
+    lines.push(`${indent}open suspend fun ${op.methodName}()${returnSuffix} {`);
+  } else if (params.length === 1) {
+    lines.push(`${indent}open suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`);
+  } else if (params.length <= 2) {
+    lines.push(`${indent}open suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`);
+  } else {
+    lines.push(`${indent}open suspend fun ${op.methodName}(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent})${returnSuffix} {`);
+  }
+  lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+  lines.push(`${indent}}`);
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const itemType = op.successResponse.dataRef ?? 'Any';
+  const params: string[] = [];
+  if (op.externalUrl) params.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) params.push(`${p.sdkName}: ${ktType(p.type)}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') continue;
+    const typeName = ktType(p.type);
+    params.push(p.required ? `${p.sdkName}: ${typeName}` : `${p.sdkName}: ${typeName}? = null`);
+  }
+
+  if (params.length <= 2) {
+    lines.push(`${indent}open suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> {`);
+  } else {
+    lines.push(`${indent}open suspend fun ${op.methodName}All(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent}): List<${itemType}> {`);
+  }
+  lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
+  lines.push(`${indent}}`);
+}
+
+function stripKotlinDefaultValue(param: string): string {
+  const index = param.indexOf(' = ');
+  return index === -1 ? param : param.slice(0, index);
 }
 
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
@@ -457,12 +522,13 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     const typeName = ktType(p.type);
     params.push(p.required ? `${p.sdkName}: ${typeName}` : `${p.sdkName}: ${typeName}? = null`);
   }
+  const overrideParams = params.map(stripKotlinDefaultValue);
 
-  if (params.length <= 2) {
-    lines.push(`${indent}suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> {`);
+  if (overrideParams.length <= 2) {
+    lines.push(`${indent}override suspend fun ${op.methodName}All(${overrideParams.join(', ')}): List<${itemType}> {`);
   } else {
-    lines.push(`${indent}suspend fun ${op.methodName}All(`);
-    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent}override suspend fun ${op.methodName}All(`);
+    for (const p of overrideParams) lines.push(`${indent2}${p},`);
     lines.push(`${indent}): List<${itemType}> {`);
   }
 
@@ -507,21 +573,21 @@ function emitOperation(
 
   const returnType = getReturnType(op, ir);
   const returnSuffix = returnType ? `: ${returnType}` : '';
-  const params = buildMethodParams(op, ir);
+  const params = buildMethodParams(op, ir).map(stripKotlinDefaultValue);
 
   if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
   if (params.length === 0) {
-    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
+    lines.push(`${indent}override suspend fun ${op.methodName}()${returnSuffix} {`);
   } else if (params.length === 1) {
     lines.push(
-      `${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`,
+      `${indent}override suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`,
     );
   } else if (params.length <= 2) {
     lines.push(
-      `${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`,
+      `${indent}override suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`,
     );
   } else {
-    lines.push(`${indent}suspend fun ${op.methodName}(`);
+    lines.push(`${indent}override suspend fun ${op.methodName}(`);
     for (const p of params) {
       lines.push(`${indent2}${p},`);
     }
@@ -818,7 +884,21 @@ function emitPachcaClient(
   hasRedirect: boolean,
 ): void {
   const ktDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`class PachcaClient(token: String, baseUrl: String${ktDefault}) : Closeable {`);
+  const serviceEntries = ir.services
+    .map((svc) => ({
+      propName: tagToProperty(svc.tag),
+      className: tagToServiceName(svc.tag),
+    }))
+    .sort((a, b) => a.propName.localeCompare(b.propName));
+
+  lines.push('data class PachcaServices(');
+  for (const [index, s] of serviceEntries.entries()) {
+    const suffix = index < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`    val ${s.propName}: ${s.className}? = null${suffix}`);
+  }
+  lines.push(')');
+  lines.push('');
+  lines.push(`class PachcaClient(token: String, baseUrl: String${ktDefault}, services: PachcaServices = PachcaServices()) : Closeable {`);
   lines.push('    private val client = HttpClient {');
   lines.push('        expectSuccess = false');
   if (hasRedirect) {
@@ -849,15 +929,8 @@ function emitPachcaClient(
   lines.push('    }');
   lines.push('');
 
-  const serviceEntries = ir.services
-    .map((svc) => ({
-      propName: tagToProperty(svc.tag),
-      className: tagToServiceName(svc.tag),
-    }))
-    .sort((a, b) => a.propName.localeCompare(b.propName));
-
   for (const s of serviceEntries) {
-    lines.push(`    val ${s.propName} = ${s.className}(baseUrl, client)`);
+    lines.push(`    val ${s.propName}: ${s.className} = services.${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)`);
   }
 
   lines.push('');

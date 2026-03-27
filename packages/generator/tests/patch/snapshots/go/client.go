@@ -59,12 +59,22 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type ItemsService struct {
+type ItemsService interface {
+	PatchItem(ctx context.Context, id int32, request ItemPatchRequest) (*Item, error)
+}
+
+type ItemsServiceStub struct{}
+
+func (s *ItemsServiceStub) PatchItem(ctx context.Context, id int32, request ItemPatchRequest) (*Item, error) {
+	return nil, fmt.Errorf("Items.patchItem is not implemented")
+}
+
+type ItemsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *ItemsService) PatchItem(ctx context.Context, id int32, request ItemPatchRequest) (*Item, error) {
+func (s *ItemsServiceImpl) PatchItem(ctx context.Context, id int32, request ItemPatchRequest) (*Item, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -98,18 +108,35 @@ func (s *ItemsService) PatchItem(ctx context.Context, id int32, request ItemPatc
 }
 
 type PachcaClient struct {
-	Items *ItemsService
+	Items ItemsService
 }
+
+type clientConfig struct {
+	baseURL string
+	items ItemsService
+}
+
+type ClientOption func(*clientConfig)
 
 const DefaultBaseURL = "https://api.example.com/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithItems(service ItemsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.items = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Items: &ItemsService{baseURL: url, client: client},
+		Items: func() ItemsService { if cfg.items != nil { return cfg.items }; return &ItemsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

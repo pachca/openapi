@@ -13,11 +13,33 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class TasksService internal constructor(
+abstract class TasksService {
+    open suspend fun getTask(projectId: Int, taskId: Int): Task {
+        throw NotImplementedError("Tasks.getTask is not implemented")
+    }
+
+    open suspend fun updateTask(
+        projectId: Int,
+        taskId: Int,
+        request: TaskUpdateRequest,
+    ): Task {
+        throw NotImplementedError("Tasks.updateTask is not implemented")
+    }
+
+    open suspend fun deleteComment(
+        projectId: Int,
+        taskId: Int,
+        commentId: Int,
+    ) {
+        throw NotImplementedError("Tasks.deleteComment is not implemented")
+    }
+}
+
+class TasksServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun getTask(projectId: Int, taskId: Int): Task {
+) : TasksService() {
+    override suspend fun getTask(projectId: Int, taskId: Int): Task {
         val response = client.get("$baseUrl/projects/$projectId/tasks/$taskId")
         return when (response.status.value) {
             200 -> response.body<TaskDataWrapper>().data
@@ -25,7 +47,7 @@ class TasksService internal constructor(
         }
     }
 
-    suspend fun updateTask(
+    override suspend fun updateTask(
         projectId: Int,
         taskId: Int,
         request: TaskUpdateRequest,
@@ -40,7 +62,7 @@ class TasksService internal constructor(
         }
     }
 
-    suspend fun deleteComment(
+    override suspend fun deleteComment(
         projectId: Int,
         taskId: Int,
         commentId: Int,
@@ -53,7 +75,11 @@ class TasksService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.example.com/v1") : Closeable {
+data class PachcaServices(
+    val tasks: TasksService? = null
+)
+
+class PachcaClient(token: String, baseUrl: String = "https://api.example.com/v1", services: PachcaServices = PachcaServices()) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -80,7 +106,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.example.com/v1"
         }
     }
 
-    val tasks = TasksService(baseUrl, client)
+    val tasks: TasksService = services.tasks ?: TasksServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

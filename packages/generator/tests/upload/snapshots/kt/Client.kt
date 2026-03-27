@@ -14,11 +14,21 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class CommonService internal constructor(
+abstract class CommonService {
+    open suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
+        throw NotImplementedError("Common.uploadFile is not implemented")
+    }
+
+    open suspend fun getUploadParams(): UploadParams {
+        throw NotImplementedError("Common.getUploadParams is not implemented")
+    }
+}
+
+class CommonServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) {
-    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
+) : CommonService() {
+    override suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         val response = client.submitFormWithBinaryData(
             directUrl,
             formData {
@@ -44,7 +54,7 @@ class CommonService internal constructor(
         }
     }
 
-    suspend fun getUploadParams(): UploadParams {
+    override suspend fun getUploadParams(): UploadParams {
         val response = client.post("$baseUrl/uploads")
         return when (response.status.value) {
             201 -> response.body<UploadParamsDataWrapper>().data
@@ -54,7 +64,11 @@ class CommonService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
+data class PachcaServices(
+    val common: CommonService? = null
+)
+
+class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -81,7 +95,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val common = CommonService(baseUrl, client)
+    val common: CommonService = services.common ?: CommonServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

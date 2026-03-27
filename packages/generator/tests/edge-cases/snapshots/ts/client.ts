@@ -7,13 +7,23 @@ import {
 } from "./types";
 import { deserialize, fetchWithRetry } from "./utils";
 
-class EventsService {
+export abstract class EventsService {
+  async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
+    throw new Error("Events.listEvents is not implemented");
+  }
+
+  async publishEvent(id: number, scope: OAuthScope): Promise<Event> {
+    throw new Error("Events.publishEvent is not implemented");
+  }
+}
+
+export class EventsServiceImpl extends EventsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
   ) {}
 
-  async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
+  override async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
     const query = new URLSearchParams();
     if (params?.isActive !== undefined) query.set("is_active", String(params.isActive));
     if (params?.scopes !== undefined) {
@@ -33,7 +43,7 @@ class EventsService {
     }
   }
 
-  async publishEvent(id: number, scope: OAuthScope): Promise<Event> {
+  override async publishEvent(id: number, scope: OAuthScope): Promise<Event> {
     const response = await fetchWithRetry(`${this.baseUrl}/events/${id}/publish`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
@@ -49,13 +59,19 @@ class EventsService {
   }
 }
 
-class UploadsService {
+export abstract class UploadsService {
+  async createUpload(request: UploadRequest): Promise<void> {
+    throw new Error("Uploads.createUpload is not implemented");
+  }
+}
+
+export class UploadsServiceImpl extends UploadsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
   ) {}
 
-  async createUpload(request: UploadRequest): Promise<void> {
+  override async createUpload(request: UploadRequest): Promise<void> {
     const form = new FormData();
     form.set("Content-Disposition", request.contentDisposition);
     form.set("file", request.file, "upload");
@@ -73,13 +89,18 @@ class UploadsService {
   }
 }
 
+export interface PachcaServices {
+  events?: EventsService;
+  uploads?: UploadsService;
+}
+
 export class PachcaClient {
   readonly events: EventsService;
   readonly uploads: UploadsService;
 
-  constructor(token: string, baseUrl: string) {
+  constructor(token: string, baseUrl: string, services: PachcaServices = {}) {
     const headers = { Authorization: `Bearer ${token}` };
-    this.events = new EventsService(baseUrl, headers);
-    this.uploads = new UploadsService(baseUrl, headers);
+    this.events = services.events ?? new EventsServiceImpl(baseUrl, headers);
+    this.uploads = services.uploads ?? new UploadsServiceImpl(baseUrl, headers);
   }
 }

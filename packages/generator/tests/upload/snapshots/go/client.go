@@ -60,12 +60,27 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 	}
 }
 
-type CommonService struct {
+type CommonService interface {
+	UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error
+	GetUploadParams(ctx context.Context) (*UploadParams, error)
+}
+
+type CommonServiceStub struct{}
+
+func (s *CommonServiceStub) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
+	return fmt.Errorf("Common.uploadFile is not implemented")
+}
+
+func (s *CommonServiceStub) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+	return nil, fmt.Errorf("Common.getUploadParams is not implemented")
+}
+
+type CommonServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *CommonService) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
+func (s *CommonServiceImpl) UploadFile(ctx context.Context, directUrl string, request FileUploadRequest) error {
 	pr, pw := io.Pipe()
 	writer := multipart.NewWriter(pw)
 	go func() {
@@ -113,7 +128,7 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 	}
 }
 
-func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, error) {
+func (s *CommonServiceImpl) GetUploadParams(ctx context.Context) (*UploadParams, error) {
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/uploads", s.baseURL), nil)
 	if err != nil {
 		return nil, err
@@ -144,18 +159,35 @@ func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, err
 }
 
 type PachcaClient struct {
-	Common *CommonService
+	Common CommonService
 }
+
+type clientConfig struct {
+	baseURL string
+	common CommonService
+}
+
+type ClientOption func(*clientConfig)
 
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithCommon(service CommonService) ClientOption {
+	return func(cfg *clientConfig) { cfg.common = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Common: &CommonService{baseURL: url, client: client},
+		Common: func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 	}
 }

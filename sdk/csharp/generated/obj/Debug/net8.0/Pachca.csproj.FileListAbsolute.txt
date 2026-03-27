@@ -1,0 +1,14 @@
+/home/runner/work/openapi/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.deps.json
+/home/runner/work/openapi/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.dll
+/home/runner/work/openapi/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.pdb
+/home/runner/work/openapi/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.xml
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.GeneratedMSBuildEditorConfig.editorconfig
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.AssemblyInfoInputs.cache
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.AssemblyInfo.cs
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.csproj.CoreCompileInputs.cache
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.sourcelink.json
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.dll
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/refint/Pachca.dll
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.xml
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.pdb
+/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/ref/Pachca.dll

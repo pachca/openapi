@@ -1,0 +1,599 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Pachca</name>
+    </assembly>
+    <members>
+        <member name="T:Pachca.Sdk.AuditEventKey">
+            <summary>Тип аудит-события</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserLogin">
+            <summary>Пользователь успешно вошел в систему</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserLogout">
+            <summary>Пользователь вышел из системы</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.User2faFail">
+            <summary>Неудачная попытка двухфакторной аутентификации</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.User2faSuccess">
+            <summary>Успешная двухфакторная аутентификация</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserCreated">
+            <summary>Создана новая учетная запись пользователя</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserDeleted">
+            <summary>Учетная запись пользователя удалена</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserRoleChanged">
+            <summary>Роль пользователя была изменена</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserUpdated">
+            <summary>Данные пользователя обновлены</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.TagCreated">
+            <summary>Создан новый тег</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.TagDeleted">
+            <summary>Тег удален</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserAddedToTag">
+            <summary>Пользователь добавлен в тег</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserRemovedFromTag">
+            <summary>Пользователь удален из тега</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.ChatCreated">
+            <summary>Создан новый чат</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.ChatRenamed">
+            <summary>Чат переименован</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.ChatPermissionChanged">
+            <summary>Изменены права доступа к чату</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserChatJoin">
+            <summary>Пользователь присоединился к чату</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.UserChatLeave">
+            <summary>Пользователь покинул чат</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.TagAddedToChat">
+            <summary>Тег добавлен в чат</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.TagRemovedFromChat">
+            <summary>Тег удален из чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.MessageUpdated">
+            <summary>Сообщение отредактировано</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.MessageDeleted">
+            <summary>Сообщение удалено</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.MessageCreated">
+            <summary>Сообщение создано</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.ReactionCreated">
+            <summary>Реакция добавлена</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.ReactionDeleted">
+            <summary>Реакция удалена</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.ThreadCreated">
+            <summary>Тред создан</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.AccessTokenCreated">
+            <summary>Создан новый токен доступа</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.AccessTokenUpdated">
+            <summary>Токен доступа обновлен</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.AccessTokenDestroy">
+            <summary>Токен доступа удален</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.KmsEncrypt">
+            <summary>Данные зашифрованы</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.KmsDecrypt">
+            <summary>Данные расшифрованы</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.AuditEventsAccessed">
+            <summary>Доступ к журналам аудита получен</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.DlpViolationDetected">
+            <summary>Срабатывание правила DLP-системы</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.SearchUsersApi">
+            <summary>Поиск сотрудников через API</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.SearchChatsApi">
+            <summary>Поиск чатов через API</summary>
+        </member>
+        <member name="F:Pachca.Sdk.AuditEventKey.SearchMessagesApi">
+            <summary>Поиск сообщений через API</summary>
+        </member>
+        <member name="T:Pachca.Sdk.ChatAvailability">
+            <summary>Доступность чатов для пользователя</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatAvailability.IsMember">
+            <summary>Чаты, где пользователь является участником</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatAvailability.Public">
+            <summary>Все открытые чаты компании, вне зависимости от участия в них пользователя</summary>
+        </member>
+        <member name="T:Pachca.Sdk.ChatMemberRole">
+            <summary>Роль участника чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRole.Admin">
+            <summary>Админ</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRole.Editor">
+            <summary>Редактор (доступно только для каналов)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRole.Member">
+            <summary>Участник или подписчик</summary>
+        </member>
+        <member name="T:Pachca.Sdk.ChatMemberRoleFilter">
+            <summary>Роль участника чата (с фильтром все)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRoleFilter.All">
+            <summary>Любая роль</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRoleFilter.Owner">
+            <summary>Создатель</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRoleFilter.Admin">
+            <summary>Админ</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRoleFilter.Editor">
+            <summary>Редактор</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatMemberRoleFilter.Member">
+            <summary>Участник/подписчик</summary>
+        </member>
+        <member name="T:Pachca.Sdk.ChatSubtype">
+            <summary>Тип чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatSubtype.Discussion">
+            <summary>Канал или беседа</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ChatSubtype.Thread">
+            <summary>Тред</summary>
+        </member>
+        <member name="T:Pachca.Sdk.CustomPropertyDataType">
+            <summary>Тип данных дополнительного поля</summary>
+        </member>
+        <member name="F:Pachca.Sdk.CustomPropertyDataType.String">
+            <summary>Строковое значение</summary>
+        </member>
+        <member name="F:Pachca.Sdk.CustomPropertyDataType.Number">
+            <summary>Числовое значение</summary>
+        </member>
+        <member name="F:Pachca.Sdk.CustomPropertyDataType.Date">
+            <summary>Дата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.CustomPropertyDataType.Link">
+            <summary>Ссылка</summary>
+        </member>
+        <member name="T:Pachca.Sdk.FileType">
+            <summary>Тип файла</summary>
+        </member>
+        <member name="F:Pachca.Sdk.FileType.File">
+            <summary>Обычный файл</summary>
+        </member>
+        <member name="F:Pachca.Sdk.FileType.Image">
+            <summary>Изображение</summary>
+        </member>
+        <member name="T:Pachca.Sdk.InviteStatus">
+            <summary>Статус приглашения пользователя</summary>
+        </member>
+        <member name="F:Pachca.Sdk.InviteStatus.Confirmed">
+            <summary>Принято</summary>
+        </member>
+        <member name="F:Pachca.Sdk.InviteStatus.Sent">
+            <summary>Отправлено</summary>
+        </member>
+        <member name="T:Pachca.Sdk.MemberEventType">
+            <summary>Тип события webhook для участников</summary>
+        </member>
+        <member name="F:Pachca.Sdk.MemberEventType.Add">
+            <summary>Добавление</summary>
+        </member>
+        <member name="F:Pachca.Sdk.MemberEventType.Remove">
+            <summary>Удаление</summary>
+        </member>
+        <member name="T:Pachca.Sdk.MessageEntityType">
+            <summary>Тип сущности для сообщений</summary>
+        </member>
+        <member name="F:Pachca.Sdk.MessageEntityType.Discussion">
+            <summary>Беседа или канал</summary>
+        </member>
+        <member name="F:Pachca.Sdk.MessageEntityType.Thread">
+            <summary>Тред</summary>
+        </member>
+        <member name="F:Pachca.Sdk.MessageEntityType.User">
+            <summary>Пользователь</summary>
+        </member>
+        <member name="T:Pachca.Sdk.OAuthScope">
+            <summary>Скоуп доступа OAuth токена</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatsRead">
+            <summary>Просмотр чатов и списка чатов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatsCreate">
+            <summary>Создание новых чатов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatsUpdate">
+            <summary>Изменение настроек чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatsArchive">
+            <summary>Архивация и разархивация чатов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatsLeave">
+            <summary>Выход из чатов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatMembersRead">
+            <summary>Просмотр участников чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatMembersWrite">
+            <summary>Добавление, изменение и удаление участников чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatExportsRead">
+            <summary>Скачивание экспортов чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ChatExportsWrite">
+            <summary>Создание экспортов чата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.MessagesRead">
+            <summary>Просмотр сообщений в чатах</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.MessagesCreate">
+            <summary>Отправка сообщений</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.MessagesUpdate">
+            <summary>Редактирование сообщений</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.MessagesDelete">
+            <summary>Удаление сообщений</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ReactionsRead">
+            <summary>Просмотр реакций на сообщения</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ReactionsWrite">
+            <summary>Добавление и удаление реакций</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.PinsWrite">
+            <summary>Закрепление и открепление сообщений</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ThreadsRead">
+            <summary>Просмотр тредов (комментариев)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ThreadsCreate">
+            <summary>Создание тредов (комментариев)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.LinkPreviewsWrite">
+            <summary>Unfurl (разворачивание ссылок)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.UsersRead">
+            <summary>Просмотр информации о сотрудниках и списка сотрудников</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.UsersCreate">
+            <summary>Создание новых сотрудников</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.UsersUpdate">
+            <summary>Редактирование данных сотрудника</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.UsersDelete">
+            <summary>Удаление сотрудников</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.GroupTagsRead">
+            <summary>Просмотр тегов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.GroupTagsWrite">
+            <summary>Создание, редактирование и удаление тегов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.BotsWrite">
+            <summary>Изменение настроек бота</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ProfileRead">
+            <summary>Просмотр информации о своем профиле</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ProfileStatusRead">
+            <summary>Просмотр статуса профиля</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ProfileStatusWrite">
+            <summary>Изменение и удаление статуса профиля</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.UserStatusRead">
+            <summary>Просмотр статуса сотрудника</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.UserStatusWrite">
+            <summary>Изменение и удаление статуса сотрудника</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.CustomPropertiesRead">
+            <summary>Просмотр дополнительных полей</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.AuditEventsRead">
+            <summary>Просмотр журнала аудита</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.TasksRead">
+            <summary>Просмотр задач</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.TasksCreate">
+            <summary>Создание задач</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.TasksUpdate">
+            <summary>Изменение задачи</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.TasksDelete">
+            <summary>Удаление задачи</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.FilesRead">
+            <summary>Скачивание файлов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.FilesWrite">
+            <summary>Загрузка файлов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.UploadsWrite">
+            <summary>Получение данных для загрузки файлов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.ViewsWrite">
+            <summary>Открытие форм (представлений)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.WebhooksRead">
+            <summary>Просмотр вебхуков</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.WebhooksWrite">
+            <summary>Создание и управление вебхуками</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.WebhooksEventsRead">
+            <summary>Просмотр лога вебхуков</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.WebhooksEventsDelete">
+            <summary>Удаление записи в логе вебхука</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.SearchUsers">
+            <summary>Поиск сотрудников</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.SearchChats">
+            <summary>Поиск чатов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.OAuthScope.SearchMessages">
+            <summary>Поиск сообщений</summary>
+        </member>
+        <member name="T:Pachca.Sdk.ReactionEventType">
+            <summary>Тип события webhook для реакций</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ReactionEventType.New">
+            <summary>Создание</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ReactionEventType.Delete">
+            <summary>Удаление</summary>
+        </member>
+        <member name="T:Pachca.Sdk.SearchEntityType">
+            <summary>Тип сущности для поиска</summary>
+        </member>
+        <member name="F:Pachca.Sdk.SearchEntityType.User">
+            <summary>Пользователь</summary>
+        </member>
+        <member name="F:Pachca.Sdk.SearchEntityType.Task">
+            <summary>Задача</summary>
+        </member>
+        <member name="T:Pachca.Sdk.SearchSortOrder">
+            <summary>Сортировка результатов поиска</summary>
+        </member>
+        <member name="F:Pachca.Sdk.SearchSortOrder.ByScore">
+            <summary>По релевантности</summary>
+        </member>
+        <member name="F:Pachca.Sdk.SearchSortOrder.Alphabetical">
+            <summary>По алфавиту</summary>
+        </member>
+        <member name="T:Pachca.Sdk.SortOrder">
+            <summary>Порядок сортировки</summary>
+        </member>
+        <member name="F:Pachca.Sdk.SortOrder.Asc">
+            <summary>По возрастанию</summary>
+        </member>
+        <member name="F:Pachca.Sdk.SortOrder.Desc">
+            <summary>По убыванию</summary>
+        </member>
+        <member name="T:Pachca.Sdk.TaskKind">
+            <summary>Тип задачи</summary>
+        </member>
+        <member name="F:Pachca.Sdk.TaskKind.Call">
+            <summary>Позвонить контакту</summary>
+        </member>
+        <member name="F:Pachca.Sdk.TaskKind.Meeting">
+            <summary>Встреча</summary>
+        </member>
+        <member name="F:Pachca.Sdk.TaskKind.Reminder">
+            <summary>Простое напоминание</summary>
+        </member>
+        <member name="F:Pachca.Sdk.TaskKind.Event">
+            <summary>Событие</summary>
+        </member>
+        <member name="F:Pachca.Sdk.TaskKind.Email">
+            <summary>Написать письмо</summary>
+        </member>
+        <member name="T:Pachca.Sdk.TaskStatus">
+            <summary>Статус напоминания</summary>
+        </member>
+        <member name="F:Pachca.Sdk.TaskStatus.Done">
+            <summary>Выполнено</summary>
+        </member>
+        <member name="F:Pachca.Sdk.TaskStatus.Undone">
+            <summary>Активно</summary>
+        </member>
+        <member name="T:Pachca.Sdk.UserEventType">
+            <summary>Тип события webhook для пользователей</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserEventType.Invite">
+            <summary>Приглашение</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserEventType.Confirm">
+            <summary>Подтверждение</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserEventType.Update">
+            <summary>Обновление</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserEventType.Suspend">
+            <summary>Приостановка</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserEventType.Activate">
+            <summary>Активация</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserEventType.Delete">
+            <summary>Удаление</summary>
+        </member>
+        <member name="T:Pachca.Sdk.UserRole">
+            <summary>Роль пользователя в системе</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserRole.Admin">
+            <summary>Администратор</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserRole.User">
+            <summary>Сотрудник</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserRole.MultiGuest">
+            <summary>Мульти-гость</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserRole.Guest">
+            <summary>Гость</summary>
+        </member>
+        <member name="T:Pachca.Sdk.UserRoleInput">
+            <summary>Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API.</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserRoleInput.Admin">
+            <summary>Администратор</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserRoleInput.User">
+            <summary>Сотрудник</summary>
+        </member>
+        <member name="F:Pachca.Sdk.UserRoleInput.MultiGuest">
+            <summary>Мульти-гость</summary>
+        </member>
+        <member name="T:Pachca.Sdk.ValidationErrorCode">
+            <summary>Коды ошибок валидации</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Blank">
+            <summary>Обязательное поле (не может быть пустым)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.TooLong">
+            <summary>Слишком длинное значение (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Invalid">
+            <summary>Поле не соответствует правилам (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Inclusion">
+            <summary>Поле имеет непредусмотренное значение</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Exclusion">
+            <summary>Поле имеет недопустимое значение</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Taken">
+            <summary>Название для этого поля уже существует</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.WrongEmoji">
+            <summary>Emoji статуса не может содержать значения отличные от Emoji символа</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.NotFound">
+            <summary>Объект не найден</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.AlreadyExists">
+            <summary>Объект уже существует (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.PersonalChat">
+            <summary>Ошибка личного чата (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.DisplayedError">
+            <summary>Отображаемая ошибка (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.NotAuthorized">
+            <summary>Действие запрещено</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.InvalidDateRange">
+            <summary>Выбран слишком большой диапазон дат</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.InvalidWebhookUrl">
+            <summary>Некорректный URL вебхука</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.RateLimit">
+            <summary>Достигнут лимит запросов</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.LicensesLimit">
+            <summary>Превышен лимит активных сотрудников (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.UserLimit">
+            <summary>Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.UniqueLimit">
+            <summary>Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.GeneralLimit">
+            <summary>Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Unhandled">
+            <summary>Ошибка выполнения запроса (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.TriggerNotFound">
+            <summary>Не удалось найти идентификатор события</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.TriggerExpired">
+            <summary>Время жизни идентификатора события истекло</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Required">
+            <summary>Обязательный параметр не передан</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.In">
+            <summary>Недопустимое значение (не входит в список допустимых)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.NotApplicable">
+            <summary>Значение неприменимо в данном контексте (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.SelfUpdate">
+            <summary>Нельзя изменить свои собственные данные</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.OwnerProtected">
+            <summary>Нельзя изменить данные владельца</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.AlreadyAssigned">
+            <summary>Значение уже назначено</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.Forbidden">
+            <summary>Недостаточно прав для выполнения действия (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.PermissionDenied">
+            <summary>Доступ запрещён (недостаточно прав)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.AccessDenied">
+            <summary>Доступ запрещён</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.WrongParams">
+            <summary>Некорректные параметры запроса (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.PaymentRequired">
+            <summary>Требуется оплата</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.MinLength">
+            <summary>Значение слишком короткое (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.MaxLength">
+            <summary>Значение слишком длинное (пояснения вы получите в поле message)</summary>
+        </member>
+        <member name="F:Pachca.Sdk.ValidationErrorCode.UseOfSystemWords">
+            <summary>Использовано зарезервированное системное слово (here, all)</summary>
+        </member>
+        <member name="T:Pachca.Sdk.WebhookEventType">
+            <summary>Тип события webhook</summary>
+        </member>
+        <member name="F:Pachca.Sdk.WebhookEventType.New">
+            <summary>Создание</summary>
+        </member>
+        <member name="F:Pachca.Sdk.WebhookEventType.Update">
+            <summary>Обновление</summary>
+        </member>
+        <member name="F:Pachca.Sdk.WebhookEventType.Delete">
+            <summary>Удаление</summary>
+        </member>
+    </members>
+</doc>

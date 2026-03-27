@@ -729,7 +729,7 @@ public sealed class GroupTagsService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<GetTagUsersResponse>(json);
+                return PachcaUtils.Deserialize<ListMembersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1340,7 +1340,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<SearchChatsResponse>(json);
+                return PachcaUtils.Deserialize<ListChatsResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1408,7 +1408,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<SearchMessagesResponse>(json);
+                return PachcaUtils.Deserialize<ListChatMessagesResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1473,7 +1473,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<SearchUsersResponse>(json);
+                return PachcaUtils.Deserialize<ListMembersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1659,7 +1659,7 @@ public sealed class UsersService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListUsersResponse>(json);
+                return PachcaUtils.Deserialize<ListMembersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:

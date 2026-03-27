@@ -445,7 +445,7 @@ internal static class PachcaUtils
             {
                 var delay = response.Headers.RetryAfter?.Delta
                     ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;
             }
@@ -453,7 +453,7 @@ internal static class PachcaUtils
             if ((int)response.StatusCode >= 500 && attempt < MaxRetries)
             {
                 var delay = TimeSpan.FromSeconds(attempt + 1);
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;
             }
@@ -818,7 +818,7 @@ function emitMethodBody(
   lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(_client, ${reqVar}, cancellationToken).ConfigureAwait(false);`);
   lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
 
-  emitResponseHandling(lines, op, globalHasApiError);
+  emitResponseHandling(lines, op, ir, globalHasApiError);
 }
 
 function httpMethodName(method: string): string {
@@ -881,12 +881,13 @@ function emitMultipartBody(
   lines.push(`${indent2}using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);`);
   lines.push(`${indent2}var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);`);
 
-  emitResponseHandling(lines, op, globalHasApiError);
+  emitResponseHandling(lines, op, ir, globalHasApiError);
 }
 
 function emitResponseHandling(
   lines: string[],
   op: IROperation,
+  ir: IR,
   globalHasApiError: boolean,
 ): void {
   const indent2 = '        ';
@@ -905,7 +906,11 @@ function emitResponseHandling(
     lines.push(`${indent2}        return;`);
   } else if (resp.isList) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);
-    const rt = resp.responseRef ?? resp.dataRef ?? 'object';
+    // Use same lookup as getReturnType for consistency
+    const foundResp = ir.responses.find(
+      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
+    );
+    const rt = foundResp?.name ?? 'object';
     lines.push(`${indent2}        return PachcaUtils.Deserialize<${rt}>(json);`);
   } else if (resp.isUnwrap && resp.dataRef) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);

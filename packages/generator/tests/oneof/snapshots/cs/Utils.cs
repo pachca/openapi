@@ -44,7 +44,7 @@ internal static class PachcaUtils
             {
                 var delay = response.Headers.RetryAfter?.Delta
                     ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;
             }
@@ -52,7 +52,7 @@ internal static class PachcaUtils
             if ((int)response.StatusCode >= 500 && attempt < MaxRetries)
             {
                 var delay = TimeSpan.FromSeconds(attempt + 1);
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;
             }

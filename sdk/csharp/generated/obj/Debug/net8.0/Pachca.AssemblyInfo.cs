@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Official Pachca API SDK for .NET")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.0+c55e13a6c8bb7d0503d99a6d91c253675aa40c93")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.0+63c81f1ef97ffdf701404195e2e23ef10c4df682")]
 [assembly: System.Reflection.AssemblyProductAttribute("Pachca")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Pachca")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.0.0.0")]

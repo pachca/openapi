@@ -2796,6 +2796,73 @@ model ButtonWebhookPayload {
   webhook_timestamp: int32;
 }
 
+@doc("Файл, загруженный пользователем в форме и переданный в исходящем вебхуке")
+model ViewSubmitWebhookFile {
+  @doc("Название файла с расширением")
+  @example("request.png")
+  name: string;
+
+  @doc("Размер файла в байтах")
+  @example(19153)
+  size: int32;
+
+  @doc("Временная прямая ссылка на скачивание файла")
+  @example("https://files.example.com/request.png")
+  url: string;
+}
+
+@doc("Структура исходящего вебхука о заполнении формы")
+model ViewSubmitWebhookPayload {
+  @doc("Тип объекта")
+  @example("view")
+  @extension("x-enum-descriptions", #{
+    view: "Для представлений всегда view"
+  })
+  type: "view";
+
+  @doc("Тип события")
+  @example("submit")
+  @extension("x-enum-descriptions", #{
+    submit: "Отправка формы"
+  })
+  event: "submit";
+
+  @doc("Строка, заданная при открытии представления")
+  @example("{\"timeoff_id\":4378}")
+  private_metadata?: string;
+
+  @doc("Идентификатор представления, заданный при открытии формы")
+  @example("timeoff_reguest_form")
+  callback_id?: string;
+
+  @doc("Идентификатор пользователя, который заполнил форму")
+  @example(1235523)
+  user_id: int32;
+
+  @doc("JSON карта заполненных полей представления, где каждый ключ совпадает со значением `name` соответствующего блока. Значением может быть строка, массив строк, массив загруженных файлов или null.")
+  @example(#{
+    date_start: "2025-07-01",
+    date_end: "2025-07-14",
+    request_doc: #[
+      #{
+        name: "request.png",
+        size: 19153,
+        url: "https://files.example.com/request.png"
+      }
+    ],
+    accessibility: "phone_only",
+    info: "Поеду в сибирь на свадьбу лучшего друга",
+    newsletters: #["new_tasks", "project_updates"],
+    team: "success",
+    time: "22:00"
+  })
+  data: Record<string | string[] | ViewSubmitWebhookFile[] | null>;
+
+  @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
+  @example(1755075544)
+  webhook_timestamp: int32;
+}
+
 @doc("Структура исходящего вебхука об участниках чата")
 model ChatMemberWebhookPayload {
   @doc("Тип объекта")
@@ -2912,6 +2979,7 @@ union WebhookPayloadUnion {
   MessageWebhookPayload,
   ReactionWebhookPayload,
   ButtonWebhookPayload,
+  ViewSubmitWebhookPayload,
   ChatMemberWebhookPayload,
   CompanyMemberWebhookPayload,
   LinkSharedWebhookPayload,

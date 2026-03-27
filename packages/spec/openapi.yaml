@@ -7962,6 +7962,98 @@ components:
         - $ref: '#/components/schemas/ViewBlockTime'
         - $ref: '#/components/schemas/ViewBlockFileInput'
       description: Union-тип для всех возможных блоков представления
+    ViewSubmitWebhookFile:
+      type: object
+      required:
+        - name
+        - size
+        - url
+      properties:
+        name:
+          type: string
+          description: Название файла с расширением
+          example: request.png
+        size:
+          type: integer
+          format: int32
+          description: Размер файла в байтах
+          example: 19153
+        url:
+          type: string
+          description: Временная прямая ссылка на скачивание файла
+          example: https://files.example.com/request.png
+      description: Файл, загруженный пользователем в форме и переданный в исходящем вебхуке
+    ViewSubmitWebhookPayload:
+      type: object
+      required:
+        - type
+        - event
+        - user_id
+        - data
+        - webhook_timestamp
+      properties:
+        type:
+          type: string
+          enum:
+            - view
+          description: Тип объекта
+          example: view
+          x-enum-descriptions:
+            view: Для представлений всегда view
+        event:
+          type: string
+          enum:
+            - submit
+          description: Тип события
+          example: submit
+          x-enum-descriptions:
+            submit: Отправка формы
+        private_metadata:
+          type: string
+          description: Строка, заданная при открытии представления
+          example: '{"timeoff_id":4378}'
+        callback_id:
+          type: string
+          description: Идентификатор представления, заданный при открытии формы
+          example: timeoff_reguest_form
+        user_id:
+          type: integer
+          format: int32
+          description: Идентификатор пользователя, который заполнил форму
+          example: 1235523
+        data:
+          type: object
+          additionalProperties:
+            anyOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+              - type: array
+                items:
+                  $ref: '#/components/schemas/ViewSubmitWebhookFile'
+            nullable: true
+          description: JSON карта заполненных полей представления, где каждый ключ совпадает со значением `name` соответствующего блока. Значением может быть строка, массив строк, массив загруженных файлов или null.
+          example:
+            date_start: '2025-07-01'
+            date_end: '2025-07-14'
+            request_doc:
+              - name: request.png
+                size: 19153
+                url: https://files.example.com/request.png
+            accessibility: phone_only
+            info: Поеду в сибирь на свадьбу лучшего друга
+            newsletters:
+              - new_tasks
+              - project_updates
+            team: success
+            time: '22:00'
+        webhook_timestamp:
+          type: integer
+          format: int32
+          description: Дата и время отправки вебхука (UTC+0) в формате UNIX
+          example: 1755075544
+      description: Структура исходящего вебхука о заполнении формы
     WebhookEvent:
       type: object
       required:
@@ -8036,6 +8128,7 @@ components:
         - $ref: '#/components/schemas/MessageWebhookPayload'
         - $ref: '#/components/schemas/ReactionWebhookPayload'
         - $ref: '#/components/schemas/ButtonWebhookPayload'
+        - $ref: '#/components/schemas/ViewSubmitWebhookPayload'
         - $ref: '#/components/schemas/ChatMemberWebhookPayload'
         - $ref: '#/components/schemas/CompanyMemberWebhookPayload'
         - $ref: '#/components/schemas/LinkSharedWebhookPayload'

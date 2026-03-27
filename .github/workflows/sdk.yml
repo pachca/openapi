@@ -33,6 +33,16 @@ jobs:
       - name: Generate SDKs
         run: npx turbo run generate
 
+      - name: Check for SDK changes
+        id: sdk_changes
+        run: |
+          echo "ts_changed=$(git diff --name-only -- sdk/typescript/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "go_changed=$(git diff --name-only -- sdk/go/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "kotlin_changed=$(git diff --name-only -- sdk/kotlin/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "python_changed=$(git diff --name-only -- sdk/python/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "csharp_changed=$(git diff --name-only -- sdk/csharp/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "swift_changed=$(git diff --name-only -- sdk/swift/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
+
       - name: Check for CLI changes
         if: github.event_name == 'push'
         id: cli_check
@@ -50,32 +60,40 @@ jobs:
           echo "changed=$CHANGED" >> $GITHUB_OUTPUT
 
       - name: Build TypeScript SDK
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.ts_changed == 'true'
         run: npm run build
         working-directory: sdk/typescript
 
       - name: Compile Go SDK
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.go_changed == 'true'
         working-directory: sdk/go/generated
         run: go build ./...
 
       - name: Compile Kotlin SDK
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.kotlin_changed == 'true'
         working-directory: sdk/kotlin/generated
         run: ./gradlew compileKotlin -Pversion=0.0.0
 
       - name: Check Python SDK
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.python_changed == 'true'
         working-directory: sdk/python/generated
         run: python3 -m py_compile $(find pachca -name '*.py')
 
       - name: Setup .NET
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.csharp_changed == 'true'
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
       - name: Compile C# SDK
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.csharp_changed == 'true'
         working-directory: sdk/csharp/generated
         run: dotnet build
 
       - name: Setup Swift
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.swift_changed == 'true'
         uses: swift-actions/setup-swift@v2
       - name: Compile Swift SDK
+        if: github.event_name == 'push' || steps.sdk_changes.outputs.swift_changed == 'true'
         working-directory: sdk/swift
         run: swift build
 

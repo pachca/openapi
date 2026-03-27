@@ -462,21 +462,28 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   }
 
   if (hasServices) {
-    lines.push('export interface PachcaServices {');
     const serviceEntries = ir.services
       .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
       .sort((a, b) => a.prop.localeCompare(b.prop));
+    lines.push('export interface PachcaClientOptions {');
+    lines.push('  token: string;');
+    lines.push(`  baseUrl${ir.baseUrl ? '?' : ''}: string;`);
     for (const s of serviceEntries) lines.push(`  ${s.prop}?: ${s.cls};`);
     lines.push('}');
     lines.push('');
     lines.push('export class PachcaClient {');
     for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
     lines.push('');
-    const defaultUrl = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-    lines.push(`  constructor(token: string, baseUrl: string${defaultUrl}, services: PachcaServices = {}) {`);
+    lines.push('  constructor(options: PachcaClientOptions) {');
+    lines.push('    const { token } = options;');
+    if (ir.baseUrl) {
+      lines.push(`    const baseUrl = options.baseUrl ?? ${JSON.stringify(ir.baseUrl)};`);
+    } else {
+      lines.push('    const { baseUrl } = options;');
+    }
     lines.push('    const headers = { Authorization: `Bearer ${token}` };');
     for (const s of serviceEntries) {
-      lines.push(`    this.${s.prop} = services.${s.prop} ?? new ${serviceToImplName(s.cls)}(baseUrl, headers);`);
+      lines.push(`    this.${s.prop} = options.${s.prop} ?? new ${serviceToImplName(s.cls)}(baseUrl, headers);`);
     }
     lines.push('  }');
     lines.push('}');
@@ -490,7 +497,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
 function emitService(lines: string[], svc: IRService, ir: IR): void {
   const serviceName = tagToServiceName(svc.tag);
   const implName = serviceToImplName(serviceName);
-  lines.push(`export abstract class ${serviceName} {`);
+  lines.push(`export class ${serviceName} {`);
   for (let i = 0; i < svc.operations.length; i++) {
     emitThrowingMethod(lines, svc.operations[i], ir);
     if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
@@ -1144,7 +1151,7 @@ function generateExamples(ir: IR): string {
   const result: Record<string, object> = {};
 
   result['Client_Init'] = {
-    usage: 'const client = new PachcaClient("YOUR_TOKEN")',
+    usage: 'const client = new PachcaClient({ token: "YOUR_TOKEN" })',
     imports: ['PachcaClient'],
   };
 

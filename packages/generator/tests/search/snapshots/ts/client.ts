@@ -6,7 +6,7 @@ import {
 } from "./types";
 import { deserialize, fetchWithRetry } from "./utils";
 
-export abstract class SearchService {
+export class SearchService {
   async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
     throw new Error("Search.searchMessages is not implemented");
   }
@@ -20,7 +20,9 @@ export class SearchServiceImpl extends SearchService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
@@ -63,15 +65,19 @@ export class SearchServiceImpl extends SearchService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   search?: SearchService;
 }
 
 export class PachcaClient {
   readonly search: SearchService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.search = services.search ?? new SearchServiceImpl(baseUrl, headers);
+    this.search = options.search ?? new SearchServiceImpl(baseUrl, headers);
   }
 }

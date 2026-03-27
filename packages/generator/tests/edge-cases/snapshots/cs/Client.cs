@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public abstract class EventsService
+public class EventsService
 {
 
     public virtual async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
@@ -92,7 +92,7 @@ public sealed class EventsServiceImpl : EventsService
     }
 }
 
-public abstract class UploadsService
+public class UploadsService
 {
 
     public virtual async System.Threading.Tasks.Task CreateUploadAsync(UploadRequest request, CancellationToken cancellationToken = default)
@@ -136,24 +136,17 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
-    public sealed class Services
-    {
-        public EventsService? Events { get; init; }
-        public UploadsService? Uploads { get; init; }
-    }
-
     public EventsService Events { get; }
     public UploadsService Uploads { get; }
 
-    public PachcaClient(string token, string baseUrl, Services? services = null)
+    public PachcaClient(string token, string baseUrl, EventsService? events = null, UploadsService? uploads = null)
     {
-        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Events = services.Events ?? new EventsServiceImpl(baseUrl, _client);
-        Uploads = services.Uploads ?? new UploadsServiceImpl(baseUrl, _client);
+        Events = events ?? new EventsServiceImpl(baseUrl, _client);
+        Uploads = uploads ?? new UploadsServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

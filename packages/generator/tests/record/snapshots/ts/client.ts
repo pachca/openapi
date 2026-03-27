@@ -1,7 +1,7 @@
 import { LinkPreviewsRequest, OAuthError, ApiError } from "./types";
 import { serialize, fetchWithRetry } from "./utils";
 
-export abstract class LinkPreviewsService {
+export class LinkPreviewsService {
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
     throw new Error("Link Previews.createLinkPreviews is not implemented");
   }
@@ -11,7 +11,9 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
@@ -30,15 +32,19 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   linkPreviews?: LinkPreviewsService;
 }
 
 export class PachcaClient {
   readonly linkPreviews: LinkPreviewsService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.linkPreviews = services.linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, headers);
+    this.linkPreviews = options.linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, headers);
   }
 }

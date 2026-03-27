@@ -13,7 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-abstract class LinkPreviewsService {
+open class LinkPreviewsService {
     open suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
         throw NotImplementedError("Link Previews.createLinkPreviews is not implemented")
     }
@@ -36,11 +36,11 @@ class LinkPreviewsServiceImpl internal constructor(
     }
 }
 
-data class PachcaServices(
-    val linkPreviews: LinkPreviewsService? = null
-)
-
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
+class PachcaClient(
+    token: String,
+    baseUrl: String = "https://api.pachca.com/api/shared/v1",
+    linkPreviews: LinkPreviewsService? = null
+) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -67,7 +67,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val linkPreviews: LinkPreviewsService = services.linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client)
+    val linkPreviews: LinkPreviewsService = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

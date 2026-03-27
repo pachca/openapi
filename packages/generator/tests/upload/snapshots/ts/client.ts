@@ -1,7 +1,7 @@
 import { FileUploadRequest, OAuthError, UploadParams } from "./types";
 import { deserialize, fetchWithRetry } from "./utils";
 
-export abstract class CommonService {
+export class CommonService {
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     throw new Error("Common.uploadFile is not implemented");
   }
@@ -15,7 +15,9 @@ export class CommonServiceImpl extends CommonService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
     const form = new FormData();
@@ -59,15 +61,19 @@ export class CommonServiceImpl extends CommonService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   common?: CommonService;
 }
 
 export class PachcaClient {
   readonly common: CommonService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.common = services.common ?? new CommonServiceImpl(baseUrl, headers);
+    this.common = options.common ?? new CommonServiceImpl(baseUrl, headers);
   }
 }

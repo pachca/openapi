@@ -13,7 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-abstract class MembersService {
+open class MembersService {
     open suspend fun addMembers(id: Int, memberIds: List<Int>) {
         throw NotImplementedError("Members.addMembers is not implemented")
     }
@@ -36,7 +36,7 @@ class MembersServiceImpl internal constructor(
     }
 }
 
-abstract class ChatsService {
+open class ChatsService {
     open suspend fun createChat(request: ChatCreateRequest): Chat {
         throw NotImplementedError("Chats.createChat is not implemented")
     }
@@ -72,12 +72,12 @@ class ChatsServiceImpl internal constructor(
     }
 }
 
-data class PachcaServices(
-    val chats: ChatsService? = null,
-    val members: MembersService? = null
-)
-
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
+class PachcaClient(
+    token: String,
+    baseUrl: String = "https://api.pachca.com/api/shared/v1",
+    chats: ChatsService? = null,
+    members: MembersService? = null
+) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -104,8 +104,8 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val chats: ChatsService = services.chats ?: ChatsServiceImpl(baseUrl, client)
-    val members: MembersService = services.members ?: MembersServiceImpl(baseUrl, client)
+    val chats: ChatsService = chats ?: ChatsServiceImpl(baseUrl, client)
+    val members: MembersService = members ?: MembersServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

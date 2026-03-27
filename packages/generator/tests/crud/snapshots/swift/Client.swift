@@ -45,10 +45,10 @@ public final class ChatsServiceImpl: ChatsService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func listChats(availability: ChatAvailability? = nil, limit: Int? = nil, cursor: String? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> ListChatsResponse {
@@ -170,17 +170,11 @@ public final class ChatsServiceImpl: ChatsService {
     }
 }
 
-public struct PachcaServices {
-    public var chats: ChatsService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let chats: ChatsService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", chats: ChatsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.chats = services.chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers)
+        self.chats = chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

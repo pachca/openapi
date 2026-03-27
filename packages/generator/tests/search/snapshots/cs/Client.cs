@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public abstract class SearchService
+public class SearchService
 {
 
     public virtual async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
@@ -124,21 +124,15 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
-    public sealed class Services
-    {
-        public SearchService? Search { get; init; }
-    }
-
     public SearchService Search { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", Services? services = null)
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", SearchService? search = null)
     {
-        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Search = services.Search ?? new SearchServiceImpl(baseUrl, _client);
+        Search = search ?? new SearchServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

@@ -9,7 +9,7 @@ import {
 } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-export abstract class ChatsService {
+export class ChatsService {
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     throw new Error("Chats.listChats is not implemented");
   }
@@ -43,7 +43,9 @@ export class ChatsServiceImpl extends ChatsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     const query = new URLSearchParams();
@@ -159,15 +161,19 @@ export class ChatsServiceImpl extends ChatsService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   chats?: ChatsService;
 }
 
 export class PachcaClient {
   readonly chats: ChatsService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.chats = services.chats ?? new ChatsServiceImpl(baseUrl, headers);
+    this.chats = options.chats ?? new ChatsServiceImpl(baseUrl, headers);
   }
 }

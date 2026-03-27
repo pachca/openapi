@@ -195,20 +195,14 @@ class ChatsServiceImpl(ChatsService):
                 raise deserialize(ApiError, response.json())
 
 
-@dataclass
-class PachcaServices:
-    chats: ChatsService | None = None
-
-
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", services: PachcaServices | None = None) -> None:
-        services = services or PachcaServices()
+    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", chats: ChatsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.chats: ChatsService = services.chats or ChatsServiceImpl(self._client)
+        self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

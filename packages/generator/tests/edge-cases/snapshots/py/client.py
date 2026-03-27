@@ -109,22 +109,15 @@ class UploadsServiceImpl(UploadsService):
                 )
 
 
-@dataclass
-class PachcaServices:
-    events: EventsService | None = None
-    uploads: UploadsService | None = None
-
-
 class PachcaClient:
-    def __init__(self, token: str, base_url: str, services: PachcaServices | None = None) -> None:
-        services = services or PachcaServices()
+    def __init__(self, token: str, base_url: str, events: EventsService | None = None, uploads: UploadsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.events: EventsService = services.events or EventsServiceImpl(self._client)
-        self.uploads: UploadsService = services.uploads or UploadsServiceImpl(self._client)
+        self.events: EventsService = events or EventsServiceImpl(self._client)
+        self.uploads: UploadsService = uploads or UploadsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

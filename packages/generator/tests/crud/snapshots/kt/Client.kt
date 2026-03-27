@@ -13,7 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-abstract class ChatsService {
+open class ChatsService {
     open suspend fun listChats(
         availability: ChatAvailability? = null,
         limit: Int? = null,
@@ -59,11 +59,11 @@ class ChatsServiceImpl internal constructor(
     private val client: HttpClient,
 ) : ChatsService() {
     override suspend fun listChats(
-        availability: ChatAvailability? = null,
-        limit: Int? = null,
-        cursor: String? = null,
-        sortField: String? = null,
-        sortOrder: SortOrder? = null,
+        availability: ChatAvailability?,
+        limit: Int?,
+        cursor: String?,
+        sortField: String?,
+        sortOrder: SortOrder?,
     ): ListChatsResponse {
         val response = client.get("$baseUrl/chats") {
             availability?.let { parameter("availability", it.value) }
@@ -80,10 +80,10 @@ class ChatsServiceImpl internal constructor(
     }
 
     override suspend fun listChatsAll(
-        availability: ChatAvailability? = null,
-        limit: Int? = null,
-        sortField: String? = null,
-        sortOrder: SortOrder? = null,
+        availability: ChatAvailability?,
+        limit: Int?,
+        sortField: String?,
+        sortOrder: SortOrder?,
     ): List<Chat> {
         val items = mutableListOf<Chat>()
         var cursor: String? = null
@@ -154,11 +154,11 @@ class ChatsServiceImpl internal constructor(
     }
 }
 
-data class PachcaServices(
-    val chats: ChatsService? = null
-)
-
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
+class PachcaClient(
+    token: String,
+    baseUrl: String = "https://api.pachca.com/api/shared/v1",
+    chats: ChatsService? = null
+) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -185,7 +185,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val chats: ChatsService = services.chats ?: ChatsServiceImpl(baseUrl, client)
+    val chats: ChatsService = chats ?: ChatsServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

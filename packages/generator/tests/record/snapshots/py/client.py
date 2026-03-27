@@ -38,20 +38,14 @@ class LinkPreviewsServiceImpl(LinkPreviewsService):
                 raise deserialize(ApiError, response.json())
 
 
-@dataclass
-class PachcaServices:
-    link_previews: LinkPreviewsService | None = None
-
-
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", services: PachcaServices | None = None) -> None:
-        services = services or PachcaServices()
+    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", link_previews: LinkPreviewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.link_previews: LinkPreviewsService = services.link_previews or LinkPreviewsServiceImpl(self._client)
+        self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

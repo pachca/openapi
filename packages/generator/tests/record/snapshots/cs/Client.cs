@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public abstract class LinkPreviewsService
+public class LinkPreviewsService
 {
 
     public virtual async System.Threading.Tasks.Task CreateLinkPreviewsAsync(
@@ -60,21 +60,15 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
-    public sealed class Services
-    {
-        public LinkPreviewsService? LinkPreviews { get; init; }
-    }
-
     public LinkPreviewsService LinkPreviews { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", Services? services = null)
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", LinkPreviewsService? linkPreviews = null)
     {
-        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        LinkPreviews = services.LinkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
+        LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

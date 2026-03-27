@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public abstract class ChatsService
+public class ChatsService
 {
 
     public virtual async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
@@ -223,21 +223,15 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
-    public sealed class Services
-    {
-        public ChatsService? Chats { get; init; }
-    }
-
     public ChatsService Chats { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", Services? services = null)
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", ChatsService? chats = null)
     {
-        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Chats = services.Chats ?? new ChatsServiceImpl(baseUrl, _client);
+        Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

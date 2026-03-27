@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public abstract class ItemsService
+public class ItemsService
 {
 
     public virtual async System.Threading.Tasks.Task<Item> PatchItemAsync(
@@ -58,21 +58,15 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
-    public sealed class Services
-    {
-        public ItemsService? Items { get; init; }
-    }
-
     public ItemsService Items { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.example.com/v1", Services? services = null)
+    public PachcaClient(string token, string baseUrl = "https://api.example.com/v1", ItemsService? items = null)
     {
-        services ??= new Services();
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Items = services.Items ?? new ItemsServiceImpl(baseUrl, _client);
+        Items = items ?? new ItemsServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

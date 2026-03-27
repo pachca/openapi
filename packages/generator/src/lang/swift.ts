@@ -575,24 +575,16 @@ function generateClient(ir: IR): string {
   const svcs = ir.services
     .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.prop.localeCompare(b.prop));
-  if (hasServices) {
-    lines.push('public struct PachcaServices {');
-    for (const s of svcs) lines.push(`    public var ${s.prop}: ${s.cls}? = nil`);
-    lines.push('');
-    lines.push('    public init() {}');
-    lines.push('}');
-    lines.push('');
-  }
   lines.push('public struct PachcaClient {');
   for (const s of svcs) lines.push(`    public let ${s.prop}: ${s.cls}`);
   lines.push('');
   const swiftDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  if (hasServices) lines.push(`    public init(token: String, baseURL: String${swiftDefault}, services: PachcaServices = PachcaServices()) {`);
-  else lines.push(`    public init(token: String, baseURL: String${swiftDefault}) {`);
+  const initArgs = [`token: String`, `baseURL: String${swiftDefault}`];
+  for (const s of svcs) initArgs.push(`${s.prop}: ${s.cls}? = nil`);
+  lines.push(`    public init(${initArgs.join(', ')}) {`);
   lines.push('        let headers = ["Authorization": "Bearer \\(token)"]');
   for (const s of svcs) {
-    if (hasServices) lines.push(`        self.${s.prop} = services.${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)`);
-    else lines.push(`        self.${s.prop} = ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)`);
+    lines.push(`        self.${s.prop} = ${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)`);
   }
   lines.push('    }');
   lines.push('}');

@@ -14,7 +14,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-abstract class CommonService {
+open class CommonService {
     open suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         throw NotImplementedError("Common.uploadFile is not implemented")
     }
@@ -64,11 +64,11 @@ class CommonServiceImpl internal constructor(
     }
 }
 
-data class PachcaServices(
-    val common: CommonService? = null
-)
-
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
+class PachcaClient(
+    token: String,
+    baseUrl: String = "https://api.pachca.com/api/shared/v1",
+    common: CommonService? = null
+) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -95,7 +95,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/
         }
     }
 
-    val common: CommonService = services.common ?: CommonServiceImpl(baseUrl, client)
+    val common: CommonService = common ?: CommonServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

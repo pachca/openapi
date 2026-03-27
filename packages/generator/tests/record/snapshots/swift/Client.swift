@@ -21,10 +21,10 @@ public final class LinkPreviewsServiceImpl: LinkPreviewsService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
@@ -46,17 +46,11 @@ public final class LinkPreviewsServiceImpl: LinkPreviewsService {
     }
 }
 
-public struct PachcaServices {
-    public var linkPreviews: LinkPreviewsService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let linkPreviews: LinkPreviewsService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", linkPreviews: LinkPreviewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.linkPreviews = services.linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers)
+        self.linkPreviews = linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

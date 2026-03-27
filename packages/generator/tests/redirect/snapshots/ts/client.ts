@@ -1,7 +1,7 @@
 import { OAuthError, ApiError } from "./types";
 import { fetchWithRetry } from "./utils";
 
-export abstract class CommonService {
+export class CommonService {
   async downloadExport(id: number): Promise<string> {
     throw new Error("Common.downloadExport is not implemented");
   }
@@ -11,7 +11,9 @@ export class CommonServiceImpl extends CommonService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async downloadExport(id: number): Promise<string> {
     const response = await fetchWithRetry(`${this.baseUrl}/exports/${id}`, {
@@ -34,15 +36,19 @@ export class CommonServiceImpl extends CommonService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   common?: CommonService;
 }
 
 export class PachcaClient {
   readonly common: CommonService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.common = services.common ?? new CommonServiceImpl(baseUrl, headers);
+    this.common = options.common ?? new CommonServiceImpl(baseUrl, headers);
   }
 }

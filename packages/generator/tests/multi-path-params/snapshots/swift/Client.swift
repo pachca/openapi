@@ -29,10 +29,10 @@ public final class TasksServiceImpl: TasksService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func getTask(projectId: Int, taskId: Int) async throws -> Task {
@@ -79,17 +79,11 @@ public final class TasksServiceImpl: TasksService {
     }
 }
 
-public struct PachcaServices {
-    public var tasks: TasksService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let tasks: TasksService
 
-    public init(token: String, baseURL: String = "https://api.example.com/v1", services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String = "https://api.example.com/v1", tasks: TasksService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.tasks = services.tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers)
+        self.tasks = tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

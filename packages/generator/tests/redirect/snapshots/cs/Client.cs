@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public abstract class CommonService
+public class CommonService
 {
 
     public virtual async System.Threading.Tasks.Task<string> DownloadExportAsync(int id, CancellationToken cancellationToken = default)
@@ -54,16 +54,10 @@ public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient _client;
 
-    public sealed class Services
-    {
-        public CommonService? Common { get; init; }
-    }
-
     public CommonService Common { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", Services? services = null)
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", CommonService? common = null)
     {
-        services ??= new Services();
         var handler = new SocketsHttpHandler
         {
             AllowAutoRedirect = false,
@@ -72,7 +66,7 @@ public sealed class PachcaClient : IDisposable
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Common = services.Common ?? new CommonServiceImpl(baseUrl, _client);
+        Common = common ?? new CommonServiceImpl(baseUrl, _client);
     }
 
     public void Dispose()

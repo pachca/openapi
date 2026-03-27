@@ -21,10 +21,10 @@ public final class MembersServiceImpl: MembersService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func addMembers(id: Int, memberIds: [Int]) async throws -> Void {
@@ -64,10 +64,10 @@ public final class ChatsServiceImpl: ChatsService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func createChat(request body: ChatCreateRequest) async throws -> Chat {
@@ -105,20 +105,13 @@ public final class ChatsServiceImpl: ChatsService {
     }
 }
 
-public struct PachcaServices {
-    public var chats: ChatsService? = nil
-    public var members: MembersService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let chats: ChatsService
     public let members: MembersService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", chats: ChatsService? = nil, members: MembersService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.chats = services.chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers)
-        self.members = services.members ?? MembersServiceImpl(baseURL: baseURL, headers: headers)
+        self.chats = chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers)
+        self.members = members ?? MembersServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

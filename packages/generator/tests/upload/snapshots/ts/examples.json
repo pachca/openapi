@@ -1,6 +1,6 @@
 {
   "Client_Init": {
-    "usage": "const client = new PachcaClient(\"YOUR_TOKEN\")",
+    "usage": "const client = new PachcaClient({ token: \"YOUR_TOKEN\" })",
     "imports": [
       "PachcaClient"
     ]

@@ -1,7 +1,7 @@
 import { Task, TaskUpdateRequest } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-export abstract class TasksService {
+export class TasksService {
   async getTask(projectId: number, taskId: number): Promise<Task> {
     throw new Error("Tasks.getTask is not implemented");
   }
@@ -19,7 +19,9 @@ export class TasksServiceImpl extends TasksService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async getTask(projectId: number, taskId: number): Promise<Task> {
     const response = await fetchWithRetry(`${this.baseUrl}/projects/${projectId}/tasks/${taskId}`, {
@@ -63,15 +65,19 @@ export class TasksServiceImpl extends TasksService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   tasks?: TasksService;
 }
 
 export class PachcaClient {
   readonly tasks: TasksService;
 
-  constructor(token: string, baseUrl: string = "https://api.example.com/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.example.com/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.tasks = services.tasks ?? new TasksServiceImpl(baseUrl, headers);
+    this.tasks = options.tasks ?? new TasksServiceImpl(baseUrl, headers);
   }
 }

@@ -13,7 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-abstract class ItemsService {
+open class ItemsService {
     open suspend fun patchItem(id: Int, request: ItemPatchRequest): Item {
         throw NotImplementedError("Items.patchItem is not implemented")
     }
@@ -35,11 +35,11 @@ class ItemsServiceImpl internal constructor(
     }
 }
 
-data class PachcaServices(
-    val items: ItemsService? = null
-)
-
-class PachcaClient(token: String, baseUrl: String = "https://api.example.com/v1", services: PachcaServices = PachcaServices()) : Closeable {
+class PachcaClient(
+    token: String,
+    baseUrl: String = "https://api.example.com/v1",
+    items: ItemsService? = null
+) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -66,7 +66,7 @@ class PachcaClient(token: String, baseUrl: String = "https://api.example.com/v1"
         }
     }
 
-    val items: ItemsService = services.items ?: ItemsServiceImpl(baseUrl, client)
+    val items: ItemsService = items ?: ItemsServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

@@ -7,7 +7,7 @@ import {
 } from "./types";
 import { deserialize, fetchWithRetry } from "./utils";
 
-export abstract class EventsService {
+export class EventsService {
   async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
     throw new Error("Events.listEvents is not implemented");
   }
@@ -21,7 +21,9 @@ export class EventsServiceImpl extends EventsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
     const query = new URLSearchParams();
@@ -59,7 +61,7 @@ export class EventsServiceImpl extends EventsService {
   }
 }
 
-export abstract class UploadsService {
+export class UploadsService {
   async createUpload(request: UploadRequest): Promise<void> {
     throw new Error("Uploads.createUpload is not implemented");
   }
@@ -69,7 +71,9 @@ export class UploadsServiceImpl extends UploadsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async createUpload(request: UploadRequest): Promise<void> {
     const form = new FormData();
@@ -89,7 +93,9 @@ export class UploadsServiceImpl extends UploadsService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl: string;
   events?: EventsService;
   uploads?: UploadsService;
 }
@@ -98,9 +104,11 @@ export class PachcaClient {
   readonly events: EventsService;
   readonly uploads: UploadsService;
 
-  constructor(token: string, baseUrl: string, services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const { baseUrl } = options;
     const headers = { Authorization: `Bearer ${token}` };
-    this.events = services.events ?? new EventsServiceImpl(baseUrl, headers);
-    this.uploads = services.uploads ?? new UploadsServiceImpl(baseUrl, headers);
+    this.events = options.events ?? new EventsServiceImpl(baseUrl, headers);
+    this.uploads = options.uploads ?? new UploadsServiceImpl(baseUrl, headers);
   }
 }

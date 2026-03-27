@@ -2181,50 +2181,29 @@ class ViewsServiceImpl(ViewsService):
                 raise deserialize(ApiError, response.json())
 
 
-@dataclass
-class PachcaServices:
-    bots: BotsService | None = None
-    chats: ChatsService | None = None
-    common: CommonService | None = None
-    group_tags: GroupTagsService | None = None
-    link_previews: LinkPreviewsService | None = None
-    members: MembersService | None = None
-    messages: MessagesService | None = None
-    profile: ProfileService | None = None
-    reactions: ReactionsService | None = None
-    read_members: ReadMembersService | None = None
-    search: SearchService | None = None
-    security: SecurityService | None = None
-    tasks: TasksService | None = None
-    threads: ThreadsService | None = None
-    users: UsersService | None = None
-    views: ViewsService | None = None
-
-
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", services: PachcaServices | None = None) -> None:
-        services = services or PachcaServices()
+    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.bots: BotsService = services.bots or BotsServiceImpl(self._client)
-        self.chats: ChatsService = services.chats or ChatsServiceImpl(self._client)
-        self.common: CommonService = services.common or CommonServiceImpl(self._client)
-        self.group_tags: GroupTagsService = services.group_tags or GroupTagsServiceImpl(self._client)
-        self.link_previews: LinkPreviewsService = services.link_previews or LinkPreviewsServiceImpl(self._client)
-        self.members: MembersService = services.members or MembersServiceImpl(self._client)
-        self.messages: MessagesService = services.messages or MessagesServiceImpl(self._client)
-        self.profile: ProfileService = services.profile or ProfileServiceImpl(self._client)
-        self.reactions: ReactionsService = services.reactions or ReactionsServiceImpl(self._client)
-        self.read_members: ReadMembersService = services.read_members or ReadMembersServiceImpl(self._client)
-        self.search: SearchService = services.search or SearchServiceImpl(self._client)
-        self.security: SecurityService = services.security or SecurityServiceImpl(self._client)
-        self.tasks: TasksService = services.tasks or TasksServiceImpl(self._client)
-        self.threads: ThreadsService = services.threads or ThreadsServiceImpl(self._client)
-        self.users: UsersService = services.users or UsersServiceImpl(self._client)
-        self.views: ViewsService = services.views or ViewsServiceImpl(self._client)
+        self.bots: BotsService = bots or BotsServiceImpl(self._client)
+        self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
+        self.common: CommonService = common or CommonServiceImpl(self._client)
+        self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(self._client)
+        self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(self._client)
+        self.members: MembersService = members or MembersServiceImpl(self._client)
+        self.messages: MessagesService = messages or MessagesServiceImpl(self._client)
+        self.profile: ProfileService = profile or ProfileServiceImpl(self._client)
+        self.reactions: ReactionsService = reactions or ReactionsServiceImpl(self._client)
+        self.read_members: ReadMembersService = read_members or ReadMembersServiceImpl(self._client)
+        self.search: SearchService = search or SearchServiceImpl(self._client)
+        self.security: SecurityService = security or SecurityServiceImpl(self._client)
+        self.tasks: TasksService = tasks or TasksServiceImpl(self._client)
+        self.threads: ThreadsService = threads or ThreadsServiceImpl(self._client)
+        self.users: UsersService = users or UsersServiceImpl(self._client)
+        self.views: ViewsService = views or ViewsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

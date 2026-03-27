@@ -25,10 +25,10 @@ public final class EventsServiceImpl: EventsService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func listEvents(isActive: Bool? = nil, scopes: [OAuthScope]? = nil, filter: EventFilter? = nil) async throws -> ListEventsResponse {
@@ -81,10 +81,10 @@ public final class UploadsServiceImpl: UploadsService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func createUpload(request body: UploadRequest) async throws -> Void {
@@ -118,20 +118,13 @@ public final class UploadsServiceImpl: UploadsService {
     }
 }
 
-public struct PachcaServices {
-    public var events: EventsService? = nil
-    public var uploads: UploadsService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let events: EventsService
     public let uploads: UploadsService
 
-    public init(token: String, baseURL: String, services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String, events: EventsService? = nil, uploads: UploadsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.events = services.events ?? EventsServiceImpl(baseURL: baseURL, headers: headers)
-        self.uploads = services.uploads ?? UploadsServiceImpl(baseURL: baseURL, headers: headers)
+        self.events = events ?? EventsServiceImpl(baseURL: baseURL, headers: headers)
+        self.uploads = uploads ?? UploadsServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

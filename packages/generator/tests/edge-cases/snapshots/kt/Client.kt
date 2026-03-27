@@ -14,7 +14,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-abstract class EventsService {
+open class EventsService {
     open suspend fun listEvents(
         isActive: Boolean? = null,
         scopes: List<OAuthScope>? = null,
@@ -33,9 +33,9 @@ class EventsServiceImpl internal constructor(
     private val client: HttpClient,
 ) : EventsService() {
     override suspend fun listEvents(
-        isActive: Boolean? = null,
-        scopes: List<OAuthScope>? = null,
-        filter: EventFilter? = null,
+        isActive: Boolean?,
+        scopes: List<OAuthScope>?,
+        filter: EventFilter?,
     ): ListEventsResponse {
         val response = client.get("$baseUrl/events") {
             isActive?.let { parameter("is_active", it) }
@@ -60,7 +60,7 @@ class EventsServiceImpl internal constructor(
     }
 }
 
-abstract class UploadsService {
+open class UploadsService {
     open suspend fun createUpload(request: UploadRequest) {
         throw NotImplementedError("Uploads.createUpload is not implemented")
     }
@@ -87,12 +87,12 @@ class UploadsServiceImpl internal constructor(
     }
 }
 
-data class PachcaServices(
-    val events: EventsService? = null,
-    val uploads: UploadsService? = null
-)
-
-class PachcaClient(token: String, baseUrl: String, services: PachcaServices = PachcaServices()) : Closeable {
+class PachcaClient(
+    token: String,
+    baseUrl: String,
+    events: EventsService? = null,
+    uploads: UploadsService? = null
+) : Closeable {
     private val client = HttpClient {
         expectSuccess = false
         install(ContentNegotiation) {
@@ -119,8 +119,8 @@ class PachcaClient(token: String, baseUrl: String, services: PachcaServices = Pa
         }
     }
 
-    val events: EventsService = services.events ?: EventsServiceImpl(baseUrl, client)
-    val uploads: UploadsService = services.uploads ?: UploadsServiceImpl(baseUrl, client)
+    val events: EventsService = events ?: EventsServiceImpl(baseUrl, client)
+    val uploads: UploadsService = uploads ?: UploadsServiceImpl(baseUrl, client)
 
     override fun close() {
         client.close()

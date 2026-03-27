@@ -1,7 +1,7 @@
 import { ItemPatchRequest, Item, ApiError } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-export abstract class ItemsService {
+export class ItemsService {
   async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
     throw new Error("Items.patchItem is not implemented");
   }
@@ -11,7 +11,9 @@ export class ItemsServiceImpl extends ItemsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
     const response = await fetchWithRetry(`${this.baseUrl}/items/${id}`, {
@@ -29,15 +31,19 @@ export class ItemsServiceImpl extends ItemsService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   items?: ItemsService;
 }
 
 export class PachcaClient {
   readonly items: ItemsService;
 
-  constructor(token: string, baseUrl: string = "https://api.example.com/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.example.com/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.items = services.items ?? new ItemsServiceImpl(baseUrl, headers);
+    this.items = options.items ?? new ItemsServiceImpl(baseUrl, headers);
   }
 }

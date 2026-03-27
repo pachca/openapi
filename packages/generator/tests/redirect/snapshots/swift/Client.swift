@@ -21,10 +21,10 @@ public final class CommonServiceImpl: CommonService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func downloadExport(id: Int) async throws -> String {
@@ -59,17 +59,11 @@ private final class RedirectPreventer: NSObject, URLSessionTaskDelegate {
     }
 }
 
-public struct PachcaServices {
-    public var common: CommonService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let common: CommonService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", common: CommonService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.common = services.common ?? CommonServiceImpl(baseURL: baseURL, headers: headers)
+        self.common = common ?? CommonServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

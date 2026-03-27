@@ -37,20 +37,14 @@ class ItemsServiceImpl(ItemsService):
                 raise deserialize(ApiError, body)
 
 
-@dataclass
-class PachcaServices:
-    items: ItemsService | None = None
-
-
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.example.com/v1", services: PachcaServices | None = None) -> None:
-        services = services or PachcaServices()
+    def __init__(self, token: str, base_url: str = "https://api.example.com/v1", items: ItemsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.items: ItemsService = services.items or ItemsServiceImpl(self._client)
+        self.items: ItemsService = items or ItemsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()

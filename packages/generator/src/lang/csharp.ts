@@ -564,7 +564,7 @@ function emitService(
   const serviceName = tagToServiceName(svc.tag);
   const implName = serviceToImplName(serviceName);
 
-  lines.push(`public abstract class ${serviceName}`);
+  lines.push(`public class ${serviceName}`);
   lines.push('{');
   for (let i = 0; i < svc.operations.length; i++) {
     lines.push('');
@@ -1018,30 +1018,24 @@ function emitPachcaClient(
   lines.push('{');
   lines.push('    private readonly HttpClient _client;');
   lines.push('');
-  lines.push('    public sealed class Services');
-  lines.push('    {');
-
-  // Service properties
   const serviceEntries = ir.services
     .map((svc) => ({
       propName: snakeToPascal(tagToProperty(svc.tag)),
+      paramName: tagToProperty(svc.tag),
       className: tagToServiceName(svc.tag),
     }))
     .sort((a, b) => a.propName.localeCompare(b.propName));
-
-  for (const s of serviceEntries) {
-    lines.push(`        public ${s.className}? ${s.propName} { get; init; }`);
-  }
-  lines.push('    }');
-  lines.push('');
   for (const s of serviceEntries) {
     lines.push(`    public ${s.className} ${s.propName} { get; }`);
   }
 
   lines.push('');
-  lines.push(`    public PachcaClient(string token, string baseUrl${csDefault}, Services? services = null)`);
+  const constructorParams = ['string token', `string baseUrl${csDefault}`];
+  for (const s of serviceEntries) {
+    constructorParams.push(`${s.className}? ${s.paramName} = null`);
+  }
+  lines.push(`    public PachcaClient(${constructorParams.join(', ')})`);
   lines.push('    {');
-  lines.push('        services ??= new Services();');
 
   if (hasRedirect) {
     lines.push('        var handler = new SocketsHttpHandler');
@@ -1058,7 +1052,7 @@ function emitPachcaClient(
   lines.push('');
 
   for (const s of serviceEntries) {
-    lines.push(`        ${s.propName} = services.${s.propName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
+    lines.push(`        ${s.propName} = ${s.paramName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
   }
 
   lines.push('    }');

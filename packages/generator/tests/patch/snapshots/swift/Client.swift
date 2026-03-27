@@ -21,10 +21,10 @@ public final class ItemsServiceImpl: ItemsService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func patchItem(id: Int, request body: ItemPatchRequest) async throws -> Item {
@@ -44,17 +44,11 @@ public final class ItemsServiceImpl: ItemsService {
     }
 }
 
-public struct PachcaServices {
-    public var items: ItemsService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let items: ItemsService
 
-    public init(token: String, baseURL: String = "https://api.example.com/v1", services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String = "https://api.example.com/v1", items: ItemsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.items = services.items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers)
+        self.items = items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

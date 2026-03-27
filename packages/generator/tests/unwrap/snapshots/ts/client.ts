@@ -6,7 +6,7 @@ import {
 } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-export abstract class MembersService {
+export class MembersService {
   async addMembers(id: number, memberIds: number[]): Promise<void> {
     throw new Error("Members.addMembers is not implemented");
   }
@@ -16,7 +16,9 @@ export class MembersServiceImpl extends MembersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async addMembers(id: number, memberIds: number[]): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members`, {
@@ -35,7 +37,7 @@ export class MembersServiceImpl extends MembersService {
   }
 }
 
-export abstract class ChatsService {
+export class ChatsService {
   async createChat(request: ChatCreateRequest): Promise<Chat> {
     throw new Error("Chats.createChat is not implemented");
   }
@@ -49,7 +51,9 @@ export class ChatsServiceImpl extends ChatsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   override async createChat(request: ChatCreateRequest): Promise<Chat> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
@@ -84,7 +88,9 @@ export class ChatsServiceImpl extends ChatsService {
   }
 }
 
-export interface PachcaServices {
+export interface PachcaClientOptions {
+  token: string;
+  baseUrl?: string;
   chats?: ChatsService;
   members?: MembersService;
 }
@@ -93,9 +99,11 @@ export class PachcaClient {
   readonly chats: ChatsService;
   readonly members: MembersService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1", services: PachcaServices = {}) {
+  constructor(options: PachcaClientOptions) {
+    const { token } = options;
+    const baseUrl = options.baseUrl ?? "https://api.pachca.com/api/shared/v1";
     const headers = { Authorization: `Bearer ${token}` };
-    this.chats = services.chats ?? new ChatsServiceImpl(baseUrl, headers);
-    this.members = services.members ?? new MembersServiceImpl(baseUrl, headers);
+    this.chats = options.chats ?? new ChatsServiceImpl(baseUrl, headers);
+    this.members = options.members ?? new MembersServiceImpl(baseUrl, headers);
   }
 }

@@ -25,10 +25,10 @@ public final class SearchServiceImpl: SearchService {
     let session: URLSession
 
     init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
-        super.init()
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
     public override func searchMessages(query: String, chatIds: [Int]? = nil, userIds: [Int]? = nil, createdFrom: String? = nil, createdTo: String? = nil, sort: SearchSort? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
@@ -70,17 +70,11 @@ public final class SearchServiceImpl: SearchService {
     }
 }
 
-public struct PachcaServices {
-    public var search: SearchService? = nil
-
-    public init() {}
-}
-
 public struct PachcaClient {
     public let search: SearchService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) {
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", search: SearchService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.search = services.search ?? SearchServiceImpl(baseURL: baseURL, headers: headers)
+        self.search = search ?? SearchServiceImpl(baseURL: baseURL, headers: headers)
     }
 }

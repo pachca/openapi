@@ -774,28 +774,21 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     lines.push('');
   }
 
-  lines.push('@dataclass');
-  lines.push('class PachcaServices:');
   const serviceEntries = ir.services
     .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.prop.localeCompare(b.prop));
-  for (const s of serviceEntries) {
-    lines.push(`    ${s.prop}: ${s.cls} | None = None`);
-  }
-  lines.push('');
-  lines.push('');
-
   lines.push('class PachcaClient:');
   const pyDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`    def __init__(self, token: str, base_url: str${pyDefault}, services: PachcaServices | None = None) -> None:`);
-  lines.push('        services = services or PachcaServices()');
+  const constructorArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} | None = None`);
+  const signature = ['self', `token: str`, `base_url: str${pyDefault}`, ...constructorArgs].join(', ');
+  lines.push(`    def __init__(${signature}) -> None:`);
   lines.push('        self._client = httpx.AsyncClient(');
   lines.push('            base_url=base_url,');
   lines.push('            headers={"Authorization": f"Bearer {token}"},');
   lines.push('            transport=RetryTransport(httpx.AsyncHTTPTransport()),');
   lines.push('        )');
   for (const s of serviceEntries) {
-    lines.push(`        self.${s.prop}: ${s.cls} = services.${s.prop} or ${serviceToImplName(s.cls)}(self._client)`);
+    lines.push(`        self.${s.prop}: ${s.cls} = ${s.prop} or ${serviceToImplName(s.cls)}(self._client)`);
   }
   lines.push('');
   lines.push('    async def close(self) -> None:');

@@ -428,7 +428,7 @@ function emitService(
   const serviceName = tagToServiceName(svc.tag);
   const implName = serviceToImplName(serviceName);
 
-  lines.push(`abstract class ${serviceName} {`);
+  lines.push(`open class ${serviceName} {`);
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
     emitThrowingOperation(lines, svc.operations[i], ir);
@@ -891,14 +891,15 @@ function emitPachcaClient(
     }))
     .sort((a, b) => a.propName.localeCompare(b.propName));
 
-  lines.push('data class PachcaServices(');
-  for (const [index, s] of serviceEntries.entries()) {
-    const suffix = index < serviceEntries.length - 1 ? ',' : '';
-    lines.push(`    val ${s.propName}: ${s.className}? = null${suffix}`);
+  const constructorArgs = serviceEntries.map((s) => `    ${s.propName}: ${s.className}? = null`);
+  lines.push(`class PachcaClient(`);
+  lines.push('    token: String,');
+  lines.push(`    baseUrl: String${ktDefault}${constructorArgs.length > 0 ? ',' : ''}`);
+  for (let i = 0; i < constructorArgs.length; i++) {
+    const suffix = i < constructorArgs.length - 1 ? ',' : '';
+    lines.push(`${constructorArgs[i]}${suffix}`);
   }
-  lines.push(')');
-  lines.push('');
-  lines.push(`class PachcaClient(token: String, baseUrl: String${ktDefault}, services: PachcaServices = PachcaServices()) : Closeable {`);
+  lines.push(') : Closeable {');
   lines.push('    private val client = HttpClient {');
   lines.push('        expectSuccess = false');
   if (hasRedirect) {
@@ -930,7 +931,7 @@ function emitPachcaClient(
   lines.push('');
 
   for (const s of serviceEntries) {
-    lines.push(`    val ${s.propName}: ${s.className} = services.${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)`);
+    lines.push(`    val ${s.propName}: ${s.className} = ${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)`);
   }
 
   lines.push('');

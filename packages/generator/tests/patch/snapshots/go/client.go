@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,6 +22,12 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 const maxRetries = 3
+
+var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
+
+func jitter(d time.Duration) time.Duration {
+	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
+}
 
 func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
 	for attempt := 0; ; attempt++ {
@@ -39,6 +46,12 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 					delay = time.Duration(secs) * time.Second
 				}
 			}
+			time.Sleep(delay)
+			continue
+		}
+		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
+			resp.Body.Close()
+			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
 			time.Sleep(delay)
 			continue
 		}

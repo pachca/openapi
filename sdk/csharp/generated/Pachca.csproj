@@ -6,8 +6,28 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <RootNamespace>Pachca.Sdk</RootNamespace>
+
+    <!-- NuGet package metadata -->
     <PackageId>Pachca.Sdk</PackageId>
-    <Description>Pachca API SDK for .NET</Description>
+    <Version>0.0.0</Version>
+    <Authors>Pachca</Authors>
+    <Description>Official Pachca API SDK for .NET</Description>
+    <PackageProjectUrl>https://github.com/pachca/openapi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/pachca/openapi</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>pachca;api;sdk;messenger;chat</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Build settings -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>

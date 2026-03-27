@@ -987,25 +987,6 @@ function emitPachcaClient(
   lines.push('}');
 }
 
-// ── .csproj ──────────────────────────────────────────────────────────
-
-function generateCsproj(): string {
-  return `<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>12</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <RootNamespace>Pachca.Sdk</RootNamespace>
-    <PackageId>Pachca.Sdk</PackageId>
-    <Description>Pachca API SDK for .NET</Description>
-  </PropertyGroup>
-
-</Project>
-`;
-}
-
 // ── Examples ─────────────────────────────────────────────────────────
 
 function csLiteral(
@@ -1283,7 +1264,6 @@ export class CSharpGenerator implements LanguageGenerator {
       { path: 'Models.cs', content: generateModels(ir) },
       { path: 'Client.cs', content: generateClient(ir) },
       { path: 'Utils.cs', content: generateUtils() },
-      { path: 'Pachca.csproj', content: generateCsproj() },
     ];
 
     if (options?.examples) {

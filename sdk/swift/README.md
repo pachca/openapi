@@ -111,3 +111,31 @@ do {
     print("Ошибка авторизации: \(error.message)")
 }
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `PachcaClient.stub()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения выбрасывают `NSError` с описанием `"Service.method is not implemented"`:
+
+```swift
+import XCTest
+import PachcaSDK
+
+// Мок-сервис
+class MockMessagesService: MessagesService {
+    override func getMessage(_ id: Int64) async throws -> Message {
+        return Message(id: id, content: "Test message", entityId: 123)
+    }
+}
+
+// Тест
+final class MessagesTests: XCTestCase {
+    func testGetMessage() async throws {
+        let client = PachcaClient.stub(messages: MockMessagesService())
+
+        let message = try await client.messages.getMessage(1)
+        XCTAssertEqual(message.content, "Test message")
+    }
+}
+```

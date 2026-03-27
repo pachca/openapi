@@ -122,3 +122,26 @@ catch (ApiError e)
 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 var users = await client.Users.ListUsersAsync(cancellationToken: cts.Token);
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `PachcaClient.Stub()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения выбрасывают `NotImplementedException("Service.method is not implemented")`:
+
+```csharp
+using Moq;
+using Pachca.Sdk;
+
+// Мок-сервис
+var mockMessages = new Mock<MessagesService>();
+mockMessages
+    .Setup(m => m.GetMessageAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+    .ReturnsAsync(new Message { Id = 1, Content = "Test message", EntityId = 123 });
+
+// Тест
+var client = PachcaClient.Stub(messages: mockMessages.Object);
+
+var message = await client.Messages.GetMessageAsync(1);
+Assert.Equal("Test message", message.Content);
+```

@@ -115,3 +115,42 @@ if err != nil {
     }
 }
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `NewStubPachcaClient()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения возвращают `error` с сообщением `"Service.method is not implemented"`:
+
+```go
+import (
+    "context"
+    "testing"
+
+    pachca "github.com/pachca/openapi/sdk/go/generated"
+)
+
+// Мок-сервис
+type mockMessagesService struct {
+    pachca.MessagesService
+}
+
+func (m *mockMessagesService) GetMessage(ctx context.Context, id int64) (*pachca.Message, error) {
+    return &pachca.Message{ID: id, Content: "Test message", EntityID: 123}, nil
+}
+
+// Тест
+func TestGetMessage(t *testing.T) {
+    client := pachca.NewStubPachcaClient(
+        pachca.WithStubMessages(&mockMessagesService{}),
+    )
+
+    msg, err := client.Messages.GetMessage(context.Background(), 1)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if msg.Content != "Test message" {
+        t.Errorf("expected 'Test message', got %q", msg.Content)
+    }
+}
+```

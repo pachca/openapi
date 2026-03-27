@@ -112,3 +112,29 @@ try {
     println("Ошибка API: ${e.errors}")
 }
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `PachcaClient.stub()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения выбрасывают `NotImplementedError("Service.method is not implemented")`:
+
+```kotlin
+import com.pachca.sdk.*
+import io.mockk.coEvery
+import io.mockk.mockk
+
+// Мок-сервис
+val mockMessages = mockk<MessagesService>()
+coEvery { mockMessages.getMessage(any()) } returns Message(
+    id = 1,
+    content = "Test message",
+    entityId = 123
+)
+
+// Тест
+val client = PachcaClient.stub(messages = mockMessages)
+
+val message = client.messages.getMessage(1)
+assertEquals("Test message", message.content)
+```

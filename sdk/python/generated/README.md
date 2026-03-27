@@ -103,3 +103,28 @@ except OAuthError as e:
 except ApiError as e:
     print(f"Ошибка API: {e.errors}")
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `PachcaClient.stub()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения выбрасывают `NotImplementedError("Service.method is not implemented")`:
+
+```python
+from unittest.mock import AsyncMock
+from pachca import PachcaClient, MessagesService, Message
+
+# Мок-сервис
+mock_messages = MessagesService()
+mock_messages.get_message = AsyncMock(return_value=Message(
+    id=1,
+    content="Test message",
+    entity_id=123
+))
+
+# Тест
+client = PachcaClient.stub(messages=mock_messages)
+
+message = await client.messages.get_message(1)
+assert message.content == "Test message"
+```

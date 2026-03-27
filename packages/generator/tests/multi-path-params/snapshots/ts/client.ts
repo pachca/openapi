@@ -80,4 +80,10 @@ export class PachcaClient {
     const headers = { Authorization: `Bearer ${token}` };
     this.tasks = options.tasks ?? new TasksServiceImpl(baseUrl, headers);
   }
+
+  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
+    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.example.com/v1",
+      tasks: options.tasks ?? new TasksService(),
+    });
+  }
 }

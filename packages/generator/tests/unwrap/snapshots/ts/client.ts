@@ -106,4 +106,11 @@ export class PachcaClient {
     this.chats = options.chats ?? new ChatsServiceImpl(baseUrl, headers);
     this.members = options.members ?? new MembersServiceImpl(baseUrl, headers);
   }
+
+  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
+    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
+      chats: options.chats ?? new ChatsService(),
+      members: options.members ?? new MembersService(),
+    });
+  }
 }

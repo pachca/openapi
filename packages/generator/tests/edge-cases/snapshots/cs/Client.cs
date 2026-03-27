@@ -134,10 +134,16 @@ public sealed class UploadsServiceImpl : UploadsService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public EventsService Events { get; }
     public UploadsService Uploads { get; }
+
+    private PachcaClient(EventsService events, UploadsService uploads)
+    {
+        Events = events;
+        Uploads = uploads;
+    }
 
     public PachcaClient(string token, string baseUrl, EventsService? events = null, UploadsService? uploads = null)
     {
@@ -149,9 +155,14 @@ public sealed class PachcaClient : IDisposable
         Uploads = uploads ?? new UploadsServiceImpl(baseUrl, _client);
     }
 
+    public static PachcaClient Stub(EventsService? events = null, UploadsService? uploads = null)
+    {
+        return new PachcaClient(events ?? new EventsService(), uploads ?? new UploadsService());
+    }
+
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

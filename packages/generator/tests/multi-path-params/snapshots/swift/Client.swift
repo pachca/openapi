@@ -82,8 +82,20 @@ public final class TasksServiceImpl: TasksService {
 public struct PachcaClient {
     public let tasks: TasksService
 
+    private init(tasks: TasksService) {
+        self.tasks = tasks
+    }
+
     public init(token: String, baseURL: String = "https://api.example.com/v1", tasks: TasksService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.tasks = tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers)
+        self.init(
+            tasks: tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public static func stub(tasks: TasksService = TasksService()) -> PachcaClient {
+        PachcaClient(
+            tasks: tasks
+        )
     }
 }

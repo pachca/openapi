@@ -122,9 +122,14 @@ public sealed class SearchServiceImpl : SearchService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public SearchService Search { get; }
+
+    private PachcaClient(SearchService search)
+    {
+        Search = search;
+    }
 
     public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", SearchService? search = null)
     {
@@ -135,9 +140,14 @@ public sealed class PachcaClient : IDisposable
         Search = search ?? new SearchServiceImpl(baseUrl, _client);
     }
 
+    public static PachcaClient Stub(SearchService? search = null)
+    {
+        return new PachcaClient(search ?? new SearchService());
+    }
+
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

@@ -793,6 +793,22 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   lines.push('');
   lines.push('    async def close(self) -> None:');
   lines.push('        await self._client.aclose()');
+  lines.push('');
+
+  // stub classmethod
+  lines.push('    @classmethod');
+  lines.push('    def stub(');
+  lines.push('        cls,');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.prop}: ${s.cls} | None = None,`);
+  }
+  lines.push('    ) -> "PachcaClient":');
+  lines.push('        self = cls.__new__(cls)');
+  lines.push('        self._client = None');
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop} = ${s.prop} or ${s.cls}()`);
+  }
+  lines.push('        return self');
 
   while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
   lines.push('');

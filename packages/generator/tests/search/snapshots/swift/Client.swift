@@ -73,8 +73,20 @@ public final class SearchServiceImpl: SearchService {
 public struct PachcaClient {
     public let search: SearchService
 
+    private init(search: SearchService) {
+        self.search = search
+    }
+
     public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", search: SearchService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.search = search ?? SearchServiceImpl(baseURL: baseURL, headers: headers)
+        self.init(
+            search: search ?? SearchServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public static func stub(search: SearchService = SearchService()) -> PachcaClient {
+        PachcaClient(
+            search: search
+        )
     }
 }

@@ -56,9 +56,14 @@ public sealed class ItemsServiceImpl : ItemsService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public ItemsService Items { get; }
+
+    private PachcaClient(ItemsService items)
+    {
+        Items = items;
+    }
 
     public PachcaClient(string token, string baseUrl = "https://api.example.com/v1", ItemsService? items = null)
     {
@@ -69,9 +74,14 @@ public sealed class PachcaClient : IDisposable
         Items = items ?? new ItemsServiceImpl(baseUrl, _client);
     }
 
+    public static PachcaClient Stub(ItemsService? items = null)
+    {
+        return new PachcaClient(items ?? new ItemsService());
+    }
+
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

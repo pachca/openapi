@@ -122,9 +122,23 @@ public struct PachcaClient {
     public let events: EventsService
     public let uploads: UploadsService
 
+    private init(events: EventsService, uploads: UploadsService) {
+        self.events = events
+        self.uploads = uploads
+    }
+
     public init(token: String, baseURL: String, events: EventsService? = nil, uploads: UploadsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.events = events ?? EventsServiceImpl(baseURL: baseURL, headers: headers)
-        self.uploads = uploads ?? UploadsServiceImpl(baseURL: baseURL, headers: headers)
+        self.init(
+            events: events ?? EventsServiceImpl(baseURL: baseURL, headers: headers),
+            uploads: uploads ?? UploadsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public static func stub(events: EventsService = EventsService(), uploads: UploadsService = UploadsService()) -> PachcaClient {
+        PachcaClient(
+            events: events,
+            uploads: uploads
+        )
     }
 }

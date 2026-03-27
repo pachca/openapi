@@ -167,6 +167,12 @@ type clientConfig struct {
 
 type ClientOption func(*clientConfig)
 
+type stubClientConfig struct {
+	search SearchService
+}
+
+type StubClientOption func(*stubClientConfig)
+
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
 func WithBaseURL(baseURL string) ClientOption {
@@ -175,6 +181,10 @@ func WithBaseURL(baseURL string) ClientOption {
 
 func WithSearch(service SearchService) ClientOption {
 	return func(cfg *clientConfig) { cfg.search = service }
+}
+
+func WithStubSearch(service SearchService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.search = service }
 }
 
 func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
@@ -187,5 +197,15 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	}
 	return &PachcaClient{
 		Search: func() SearchService { if cfg.search != nil { return cfg.search }; return &SearchServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return &PachcaClient{
+		Search: func() SearchService { if cfg.search != nil { return cfg.search }; return &SearchServiceStub{} }(),
 	}
 }

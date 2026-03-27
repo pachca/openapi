@@ -58,9 +58,14 @@ public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public LinkPreviewsService LinkPreviews { get; }
+
+    private PachcaClient(LinkPreviewsService linkPreviews)
+    {
+        LinkPreviews = linkPreviews;
+    }
 
     public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", LinkPreviewsService? linkPreviews = null)
     {
@@ -71,9 +76,14 @@ public sealed class PachcaClient : IDisposable
         LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
     }
 
+    public static PachcaClient Stub(LinkPreviewsService? linkPreviews = null)
+    {
+        return new PachcaClient(linkPreviews ?? new LinkPreviewsService());
+    }
+
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

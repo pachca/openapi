@@ -47,8 +47,20 @@ public final class ItemsServiceImpl: ItemsService {
 public struct PachcaClient {
     public let items: ItemsService
 
+    private init(items: ItemsService) {
+        self.items = items
+    }
+
     public init(token: String, baseURL: String = "https://api.example.com/v1", items: ItemsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.items = items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers)
+        self.init(
+            items: items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public static func stub(items: ItemsService = ItemsService()) -> PachcaClient {
+        PachcaClient(
+            items: items
+        )
     }
 }

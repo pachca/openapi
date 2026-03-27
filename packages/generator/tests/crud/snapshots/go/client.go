@@ -358,6 +358,12 @@ type clientConfig struct {
 
 type ClientOption func(*clientConfig)
 
+type stubClientConfig struct {
+	chats ChatsService
+}
+
+type StubClientOption func(*stubClientConfig)
+
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
 func WithBaseURL(baseURL string) ClientOption {
@@ -366,6 +372,10 @@ func WithBaseURL(baseURL string) ClientOption {
 
 func WithChats(service ChatsService) ClientOption {
 	return func(cfg *clientConfig) { cfg.chats = service }
+}
+
+func WithStubChats(service ChatsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.chats = service }
 }
 
 func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
@@ -378,5 +388,15 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	}
 	return &PachcaClient{
 		Chats: func() ChatsService { if cfg.chats != nil { return cfg.chats }; return &ChatsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return &PachcaClient{
+		Chats: func() ChatsService { if cfg.chats != nil { return cfg.chats }; return &ChatsServiceStub{} }(),
 	}
 }

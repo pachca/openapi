@@ -486,6 +486,15 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
       lines.push(`    this.${s.prop} = options.${s.prop} ?? new ${serviceToImplName(s.cls)}(baseUrl, headers);`);
     }
     lines.push('  }');
+    lines.push('');
+    lines.push('  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {');
+    const defaultBaseUrl = ir.baseUrl ? JSON.stringify(ir.baseUrl) : '""';
+    lines.push(`    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? ${defaultBaseUrl},`);
+    for (const s of serviceEntries) {
+      lines.push(`      ${s.prop}: options.${s.prop} ?? new ${s.cls}(),`);
+    }
+    lines.push('    });');
+    lines.push('  }');
     lines.push('}');
   }
 

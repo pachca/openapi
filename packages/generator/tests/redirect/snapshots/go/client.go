@@ -117,6 +117,12 @@ type clientConfig struct {
 
 type ClientOption func(*clientConfig)
 
+type stubClientConfig struct {
+	common CommonService
+}
+
+type StubClientOption func(*stubClientConfig)
+
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
 func WithBaseURL(baseURL string) ClientOption {
@@ -125,6 +131,10 @@ func WithBaseURL(baseURL string) ClientOption {
 
 func WithCommon(service CommonService) ClientOption {
 	return func(cfg *clientConfig) { cfg.common = service }
+}
+
+func WithStubCommon(service CommonService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.common = service }
 }
 
 func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
@@ -140,5 +150,15 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	}
 	return &PachcaClient{
 		Common: func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return &PachcaClient{
+		Common: func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceStub{} }(),
 	}
 }

@@ -46,4 +46,10 @@ export class PachcaClient {
     const headers = { Authorization: `Bearer ${token}` };
     this.items = options.items ?? new ItemsServiceImpl(baseUrl, headers);
   }
+
+  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
+    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.example.com/v1",
+      items: options.items ?? new ItemsService(),
+    });
+  }
 }

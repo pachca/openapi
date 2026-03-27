@@ -51,4 +51,10 @@ export class PachcaClient {
     const headers = { Authorization: `Bearer ${token}` };
     this.common = options.common ?? new CommonServiceImpl(baseUrl, headers);
   }
+
+  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
+    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
+      common: options.common ?? new CommonService(),
+    });
+  }
 }

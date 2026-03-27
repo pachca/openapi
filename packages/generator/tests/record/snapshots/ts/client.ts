@@ -47,4 +47,10 @@ export class PachcaClient {
     const headers = { Authorization: `Bearer ${token}` };
     this.linkPreviews = options.linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, headers);
   }
+
+  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
+    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
+      linkPreviews: options.linkPreviews ?? new LinkPreviewsService(),
+    });
+  }
 }

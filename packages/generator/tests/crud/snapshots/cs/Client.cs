@@ -221,9 +221,14 @@ public sealed class ChatsServiceImpl : ChatsService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public ChatsService Chats { get; }
+
+    private PachcaClient(ChatsService chats)
+    {
+        Chats = chats;
+    }
 
     public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", ChatsService? chats = null)
     {
@@ -234,9 +239,14 @@ public sealed class PachcaClient : IDisposable
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
     }
 
+    public static PachcaClient Stub(ChatsService? chats = null)
+    {
+        return new PachcaClient(chats ?? new ChatsService());
+    }
+
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

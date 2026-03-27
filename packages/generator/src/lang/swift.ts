@@ -578,14 +578,42 @@ function generateClient(ir: IR): string {
   lines.push('public struct PachcaClient {');
   for (const s of svcs) lines.push(`    public let ${s.prop}: ${s.cls}`);
   lines.push('');
+
+  // Private init taking only services (for stub)
+  const privateInitArgs = svcs.map((s) => `${s.prop}: ${s.cls}`);
+  lines.push(`    private init(${privateInitArgs.join(', ')}) {`);
+  for (const s of svcs) {
+    lines.push(`        self.${s.prop} = ${s.prop}`);
+  }
+  lines.push('    }');
+  lines.push('');
+
+  // Public init with token/baseURL delegating to private init
   const swiftDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
   const initArgs = [`token: String`, `baseURL: String${swiftDefault}`];
   for (const s of svcs) initArgs.push(`${s.prop}: ${s.cls}? = nil`);
   lines.push(`    public init(${initArgs.join(', ')}) {`);
   lines.push('        let headers = ["Authorization": "Bearer \\(token)"]');
-  for (const s of svcs) {
-    lines.push(`        self.${s.prop} = ${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)`);
+  lines.push('        self.init(');
+  for (let i = 0; i < svcs.length; i++) {
+    const s = svcs[i];
+    const suffix = i < svcs.length - 1 ? ',' : '';
+    lines.push(`            ${s.prop}: ${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)${suffix}`);
   }
+  lines.push('        )');
+  lines.push('    }');
+  lines.push('');
+
+  // Static stub() factory
+  const stubArgs = svcs.map((s) => `${s.prop}: ${s.cls} = ${s.cls}()`);
+  lines.push(`    public static func stub(${stubArgs.join(', ')}) -> PachcaClient {`);
+  lines.push('        PachcaClient(');
+  for (let i = 0; i < svcs.length; i++) {
+    const s = svcs[i];
+    const suffix = i < svcs.length - 1 ? ',' : '';
+    lines.push(`            ${s.prop}: ${s.prop}${suffix}`);
+  }
+  lines.push('        )');
   lines.push('    }');
   lines.push('}');
   lines.push('');

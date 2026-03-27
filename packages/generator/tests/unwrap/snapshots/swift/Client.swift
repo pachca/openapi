@@ -109,9 +109,23 @@ public struct PachcaClient {
     public let chats: ChatsService
     public let members: MembersService
 
+    private init(chats: ChatsService, members: MembersService) {
+        self.chats = chats
+        self.members = members
+    }
+
     public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", chats: ChatsService? = nil, members: MembersService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.chats = chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers)
-        self.members = members ?? MembersServiceImpl(baseURL: baseURL, headers: headers)
+        self.init(
+            chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers),
+            members: members ?? MembersServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public static func stub(chats: ChatsService = ChatsService(), members: MembersService = MembersService()) -> PachcaClient {
+        PachcaClient(
+            chats: chats,
+            members: members
+        )
     }
 }

@@ -89,8 +89,20 @@ public final class CommonServiceImpl: CommonService {
 public struct PachcaClient {
     public let common: CommonService
 
+    private init(common: CommonService) {
+        self.common = common
+    }
+
     public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", common: CommonService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.common = common ?? CommonServiceImpl(baseURL: baseURL, headers: headers)
+        self.init(
+            common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public static func stub(common: CommonService = CommonService()) -> PachcaClient {
+        PachcaClient(
+            common: common
+        )
     }
 }

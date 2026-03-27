@@ -121,3 +121,15 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def stub(
+        cls,
+        events: EventsService | None = None,
+        uploads: UploadsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.events = events or EventsService()
+        self.uploads = uploads or UploadsService()
+        return self

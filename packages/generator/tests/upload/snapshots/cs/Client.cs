@@ -92,9 +92,14 @@ public sealed class CommonServiceImpl : CommonService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public CommonService Common { get; }
+
+    private PachcaClient(CommonService common)
+    {
+        Common = common;
+    }
 
     public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", CommonService? common = null)
     {
@@ -105,9 +110,14 @@ public sealed class PachcaClient : IDisposable
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
     }
 
+    public static PachcaClient Stub(CommonService? common = null)
+    {
+        return new PachcaClient(common ?? new CommonService());
+    }
+
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

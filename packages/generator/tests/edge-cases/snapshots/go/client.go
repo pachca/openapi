@@ -213,6 +213,13 @@ type clientConfig struct {
 
 type ClientOption func(*clientConfig)
 
+type stubClientConfig struct {
+	events EventsService
+	uploads UploadsService
+}
+
+type StubClientOption func(*stubClientConfig)
+
 func WithBaseURL(baseURL string) ClientOption {
 	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
 }
@@ -223,6 +230,14 @@ func WithEvents(service EventsService) ClientOption {
 
 func WithUploads(service UploadsService) ClientOption {
 	return func(cfg *clientConfig) { cfg.uploads = service }
+}
+
+func WithStubEvents(service EventsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.events = service }
+}
+
+func WithStubUploads(service UploadsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.uploads = service }
 }
 
 func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
@@ -236,5 +251,16 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	return &PachcaClient{
 		Events : func() EventsService { if cfg.events != nil { return cfg.events }; return &EventsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
 		Uploads: func() UploadsService { if cfg.uploads != nil { return cfg.uploads }; return &UploadsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return &PachcaClient{
+		Events : func() EventsService { if cfg.events != nil { return cfg.events }; return &EventsServiceStub{} }(),
+		Uploads: func() UploadsService { if cfg.uploads != nil { return cfg.uploads }; return &UploadsServiceStub{} }(),
 	}
 }

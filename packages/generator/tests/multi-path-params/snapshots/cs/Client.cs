@@ -112,9 +112,14 @@ public sealed class TasksServiceImpl : TasksService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public TasksService Tasks { get; }
+
+    private PachcaClient(TasksService tasks)
+    {
+        Tasks = tasks;
+    }
 
     public PachcaClient(string token, string baseUrl = "https://api.example.com/v1", TasksService? tasks = null)
     {
@@ -125,9 +130,14 @@ public sealed class PachcaClient : IDisposable
         Tasks = tasks ?? new TasksServiceImpl(baseUrl, _client);
     }
 
+    public static PachcaClient Stub(TasksService? tasks = null)
+    {
+        return new PachcaClient(tasks ?? new TasksService());
+    }
+
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

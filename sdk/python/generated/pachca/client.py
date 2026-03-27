@@ -2207,3 +2207,43 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def stub(
+        cls,
+        bots: BotsService | None = None,
+        chats: ChatsService | None = None,
+        common: CommonService | None = None,
+        group_tags: GroupTagsService | None = None,
+        link_previews: LinkPreviewsService | None = None,
+        members: MembersService | None = None,
+        messages: MessagesService | None = None,
+        profile: ProfileService | None = None,
+        reactions: ReactionsService | None = None,
+        read_members: ReadMembersService | None = None,
+        search: SearchService | None = None,
+        security: SecurityService | None = None,
+        tasks: TasksService | None = None,
+        threads: ThreadsService | None = None,
+        users: UsersService | None = None,
+        views: ViewsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.bots = bots or BotsService()
+        self.chats = chats or ChatsService()
+        self.common = common or CommonService()
+        self.group_tags = group_tags or GroupTagsService()
+        self.link_previews = link_previews or LinkPreviewsService()
+        self.members = members or MembersService()
+        self.messages = messages or MessagesService()
+        self.profile = profile or ProfileService()
+        self.reactions = reactions or ReactionsService()
+        self.read_members = read_members or ReadMembersService()
+        self.search = search or SearchService()
+        self.security = security or SecurityService()
+        self.tasks = tasks or TasksService()
+        self.threads = threads or ThreadsService()
+        self.users = users or UsersService()
+        self.views = views or ViewsService()
+        return self

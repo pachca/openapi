@@ -101,3 +101,13 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def stub(
+        cls,
+        tasks: TasksService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.tasks = tasks or TasksService()
+        return self

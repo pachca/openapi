@@ -1555,4 +1555,25 @@ export class PachcaClient {
     this.users = new UsersService(baseUrl, headers);
     this.views = new ViewsService(baseUrl, headers);
   }
+
+  static stub(options: Partial<PachcaClientOptions> = {}): PachcaClient {
+    return new PachcaClient({ token: options.token ?? "", baseUrl: options.baseUrl ?? "https://api.pachca.com/api/shared/v1",
+      bots: options.bots ?? new BotsService(),
+      chats: options.chats ?? new ChatsService(),
+      common: options.common ?? new CommonService(),
+      groupTags: options.groupTags ?? new GroupTagsService(),
+      linkPreviews: options.linkPreviews ?? new LinkPreviewsService(),
+      members: options.members ?? new MembersService(),
+      messages: options.messages ?? new MessagesService(),
+      profile: options.profile ?? new ProfileService(),
+      reactions: options.reactions ?? new ReactionsService(),
+      readMembers: options.readMembers ?? new ReadMembersService(),
+      search: options.search ?? new SearchService(),
+      security: options.security ?? new SecurityService(),
+      tasks: options.tasks ?? new TasksService(),
+      threads: options.threads ?? new ThreadsService(),
+      users: options.users ?? new UsersService(),
+      views: options.views ?? new ViewsService(),
+    });
+  }
 }

@@ -839,6 +839,15 @@ function generateClient(ir: IR): string {
   lines.push('');
   lines.push('type ClientOption func(*clientConfig)');
   lines.push('');
+
+  // stubClientConfig struct
+  lines.push('type stubClientConfig struct {');
+  for (const f of fields) lines.push(`\t${f.f.charAt(0).toLowerCase() + f.f.slice(1)} ${f.cls}`);
+  lines.push('}');
+  lines.push('');
+  lines.push('type StubClientOption func(*stubClientConfig)');
+  lines.push('');
+
   if (ir.baseUrl) {
     lines.push(`const DefaultBaseURL = ${JSON.stringify(ir.baseUrl)}`);
     lines.push('');
@@ -853,6 +862,15 @@ function generateClient(ir: IR): string {
     lines.push('}');
     lines.push('');
   }
+
+  // WithStub* option functions
+  for (const f of fields) {
+    lines.push(`func WithStub${f.f}(service ${f.cls}) StubClientOption {`);
+    lines.push(`\treturn func(cfg *stubClientConfig) { cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)} = service }`);
+    lines.push('}');
+    lines.push('');
+  }
+
   lines.push('func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {');
   if (ir.baseUrl) {
     lines.push(`\tcfg := clientConfig{baseURL: DefaultBaseURL}`);
@@ -876,6 +894,22 @@ function generateClient(ir: IR): string {
     const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
     const impl = `&${serviceToImplName(f.cls)}{baseURL: cfg.baseURL, client: client}`;
     lines.push(`\t\t${f.f.padEnd(maxField)}: func() ${f.cls} { if ${cfgField} != nil { return ${cfgField} }; return ${impl} }(),`);
+  }
+  lines.push('\t}');
+  lines.push('}');
+  lines.push('');
+
+  // NewStubPachcaClient function
+  lines.push('func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {');
+  lines.push('\tcfg := stubClientConfig{}');
+  lines.push('\tfor _, opt := range opts {');
+  lines.push('\t\topt(&cfg)');
+  lines.push('\t}');
+  lines.push('\treturn &PachcaClient{');
+  for (const f of fields) {
+    const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
+    const stub = `&${serviceToStubName(f.cls)}{}`;
+    lines.push(`\t\t${f.f.padEnd(maxField)}: func() ${f.cls} { if ${cfgField} != nil { return ${cfgField} }; return ${stub} }(),`);
   }
   lines.push('\t}');
   lines.push('}');

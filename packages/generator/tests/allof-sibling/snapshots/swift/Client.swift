@@ -5,7 +5,17 @@ import FoundationNetworking
 
 public struct PachcaClient {
 
+    private init() {
+    }
+
     public init(token: String, baseURL: String) {
         let headers = ["Authorization": "Bearer \(token)"]
+        self.init(
+        )
+    }
+
+    public static func stub() -> PachcaClient {
+        PachcaClient(
+        )
     }
 }

@@ -1016,7 +1016,7 @@ function emitPachcaClient(
 
   lines.push('public sealed class PachcaClient : IDisposable');
   lines.push('{');
-  lines.push('    private readonly HttpClient _client;');
+  lines.push('    private readonly HttpClient? _client;');
   lines.push('');
   const serviceEntries = ir.services
     .map((svc) => ({
@@ -1029,6 +1029,17 @@ function emitPachcaClient(
     lines.push(`    public ${s.className} ${s.propName} { get; }`);
   }
 
+  // Private constructor taking only services
+  lines.push('');
+  const privateParams = serviceEntries.map((s) => `${s.className} ${s.paramName}`);
+  lines.push(`    private PachcaClient(${privateParams.join(', ')})`);
+  lines.push('    {');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.propName} = ${s.paramName};`);
+  }
+  lines.push('    }');
+
+  // Public constructor with token, baseUrl, and optional service overrides
   lines.push('');
   const constructorParams = ['string token', `string baseUrl${csDefault}`];
   for (const s of serviceEntries) {
@@ -1056,10 +1067,20 @@ function emitPachcaClient(
   }
 
   lines.push('    }');
+
+  // Static Stub() factory method
+  lines.push('');
+  const stubParams = serviceEntries.map((s) => `${s.className}? ${s.paramName} = null`);
+  lines.push(`    public static PachcaClient Stub(${stubParams.join(', ')})`);
+  lines.push('    {');
+  const stubArgs = serviceEntries.map((s) => `${s.paramName} ?? new ${s.className}()`);
+  lines.push(`        return new PachcaClient(${stubArgs.join(', ')});`);
+  lines.push('    }');
+
   lines.push('');
   lines.push('    public void Dispose()');
   lines.push('    {');
-  lines.push('        _client.Dispose();');
+  lines.push('        _client?.Dispose();');
   lines.push('        GC.SuppressFinalize(this);');
   lines.push('    }');
   lines.push('}');

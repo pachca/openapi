@@ -8,6 +8,7 @@ import { PythonGenerator } from './lang/python.js';
 import { GoGenerator } from './lang/go.js';
 import { KotlinGenerator } from './lang/kotlin.js';
 import { SwiftGenerator } from './lang/swift.js';
+import { CSharpGenerator } from './lang/csharp.js';
 
 
 const generators: Record<string, LanguageGenerator> = {
@@ -16,6 +17,7 @@ const generators: Record<string, LanguageGenerator> = {
   go: new GoGenerator(),
   kotlin: new KotlinGenerator(),
   swift: new SwiftGenerator(),
+  csharp: new CSharpGenerator(),
 };
 
 export const SUPPORTED_LANGS = Object.keys(generators);

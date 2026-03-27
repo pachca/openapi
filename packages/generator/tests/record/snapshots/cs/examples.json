@@ -1,0 +1,15 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "LinkPreviewOperations_createLinkPreviews": {
+    "usage": "var request = new LinkPreviewsRequest\n{\n    LinkPreviews = new Dictionary<string, LinkPreview> { [\"key\"] = new LinkPreview\n    {\n        Title = \"example\",\n        Description = \"example\",\n        ImageUrl = \"example\"\n    } }\n};\nawait client.LinkPreviews.CreateLinkPreviewsAsync(123, request);",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewsRequest"
+    ]
+  }
+}

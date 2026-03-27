@@ -1,0 +1,366 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "SecurityOperations_getAuditEvents": {
+    "usage": "var response = await client.Security.GetAuditEventsAsync(\"2025-05-01T09:11:00Z\", \"2025-05-02T09:11:00Z\", AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "GetAuditEventsResponse(Data: List<AuditEvent>, Meta: PaginationMeta?)",
+    "imports": [
+      "AuditEventKey"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta?)"
+  },
+  "BotOperations_updateBot": {
+    "usage": "var request = new BotUpdateRequest { Bot = new BotUpdateRequestBot { Webhook = new BotUpdateRequestBotWebhook { OutgoingUrl = \"https://www.website.com/tasks/new\" } } };\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
+    "output": "BotResponse(Id: int, Webhook: BotResponseWebhook(OutgoingUrl: string))",
+    "imports": [
+      "BotUpdateRequest",
+      "BotUpdateRequestBot",
+      "BotUpdateRequestBotWebhook"
+    ]
+  },
+  "BotOperations_deleteWebhookEvent": {
+    "usage": "await client.Bots.DeleteWebhookEventAsync(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\");"
+  },
+  "ChatOperations_listChats": {
+    "usage": "var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta?)",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "var response = await client.Chats.GetChatAsync(334);",
+    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "var request = new ChatCreateRequest\n{\n    Chat = new ChatCreateRequestChat\n    {\n        Name = \"🤿 aqua\",\n        MemberIds = new List<int> { 123 },\n        GroupTagIds = new List<int> { 123 },\n        Channel = true,\n        @Public = false\n    }\n};\nvar response = await client.Chats.CreateChatAsync(request);",
+    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "var request = new ChatUpdateRequest { Chat = new ChatUpdateRequestChat { Name = \"Бассейн\", @Public = true } };\nvar response = await client.Chats.UpdateChatAsync(334, request);",
+    "output": "Chat(Id: int, Name: string, CreatedAt: DateTimeOffset, OwnerId: int, MemberIds: List<int>, GroupTagIds: List<int>, Channel: bool, Personal: bool, @Public: bool, LastMessageAt: DateTimeOffset, MeetRoomUrl: string)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "await client.Chats.ArchiveChatAsync(334);"
+  },
+  "ChatOperations_unarchiveChat": {
+    "usage": "await client.Chats.UnarchiveChatAsync(334);"
+  },
+  "ExportOperations_downloadExport": {
+    "usage": "var response = await client.Common.DownloadExportAsync(22322);",
+    "output": "string"
+  },
+  "CommonOperations_listProperties": {
+    "usage": "var response = await client.Common.ListPropertiesAsync(SearchEntityType.User);",
+    "output": "ListPropertiesResponse(Data: List<CustomPropertyDefinition>)",
+    "imports": [
+      "SearchEntityType"
+    ]
+  },
+  "ExportOperations_requestExport": {
+    "usage": "var request = new ExportRequest\n{\n    StartAt = \"2025-03-20\",\n    EndAt = \"2025-03-20\",\n    WebhookUrl = \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    ChatIds = new List<int> { 123 },\n    SkipChatsFile = false\n};\nawait client.Common.RequestExportAsync(request);",
+    "imports": [
+      "ExportRequest"
+    ]
+  },
+  "DirectUploadOperations_uploadFile": {
+    "usage": "var request = new FileUploadRequest\n{\n    ContentDisposition = \"example\",\n    Acl = \"example\",\n    Policy = \"example\",\n    XAmzCredential = \"example\",\n    XAmzAlgorithm = \"example\",\n    XAmzDate = \"example\",\n    XAmzSignature = \"example\",\n    Key = \"example\",\n    File = Array.Empty<byte>()\n};\nawait client.Common.UploadFileAsync(\"https://example.com\", request);",
+    "imports": [
+      "FileUploadRequest"
+    ]
+  },
+  "UploadOperations_getUploadParams": {
+    "usage": "var response = await client.Common.GetUploadParamsAsync();",
+    "output": "UploadParams(ContentDisposition: string, Acl: string, Policy: string, XAmzCredential: string, XAmzAlgorithm: string, XAmzDate: string, XAmzSignature: string, Key: string, DirectUrl: string)"
+  },
+  "ChatMemberOperations_listMembers": {
+    "usage": "var response = await client.Members.ListMembersAsync(334, ChatMemberRoleFilter.All, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListMembersResponse(Data: List<User>, Meta: PaginationMeta?)",
+    "imports": [
+      "ChatMemberRoleFilter"
+    ]
+  },
+  "ChatMemberOperations_addTags": {
+    "usage": "var groupTagIds = new List<int> { 123 };\nawait client.Members.AddTagsAsync(334, groupTagIds);"
+  },
+  "ChatMemberOperations_addMembers": {
+    "usage": "var request = new AddMembersRequest { MemberIds = new List<int> { 123 }, Silent = true };\nawait client.Members.AddMembersAsync(334, request);",
+    "imports": [
+      "AddMembersRequest"
+    ]
+  },
+  "ChatMemberOperations_updateMemberRole": {
+    "usage": "await client.Members.UpdateMemberRoleAsync(334, 186, ChatMemberRole.Admin);",
+    "imports": [
+      "ChatMemberRole"
+    ]
+  },
+  "ChatMemberOperations_removeTag": {
+    "usage": "await client.Members.RemoveTagAsync(334, 86);"
+  },
+  "ChatMemberOperations_leaveChat": {
+    "usage": "await client.Members.LeaveChatAsync(334);"
+  },
+  "ChatMemberOperations_removeMember": {
+    "usage": "await client.Members.RemoveMemberAsync(334, 186);"
+  },
+  "GroupTagOperations_listTags": {
+    "usage": "var names = new TagNamesFilter();\nvar response = await client.GroupTags.ListTagsAsync(names, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListTagsResponse(Data: List<GroupTag>, Meta: PaginationMeta?)",
+    "imports": [
+      "TagNamesFilter"
+    ]
+  },
+  "GroupTagOperations_getTag": {
+    "usage": "var response = await client.GroupTags.GetTagAsync(9111);",
+    "output": "GroupTag(Id: int, Name: string, UsersCount: int)"
+  },
+  "GroupTagOperations_getTagUsers": {
+    "usage": "var response = await client.GroupTags.GetTagUsersAsync(9111, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "GetTagUsersResponse(Data: List<User>, Meta: PaginationMeta?)"
+  },
+  "GroupTagOperations_createTag": {
+    "usage": "var request = new GroupTagRequest { GroupTag = new GroupTagRequestGroupTag { Name = \"Новое название тега\" } };\nvar response = await client.GroupTags.CreateTagAsync(request);",
+    "output": "GroupTag(Id: int, Name: string, UsersCount: int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_updateTag": {
+    "usage": "var request = new GroupTagRequest { GroupTag = new GroupTagRequestGroupTag { Name = \"Новое название тега\" } };\nvar response = await client.GroupTags.UpdateTagAsync(9111, request);",
+    "output": "GroupTag(Id: int, Name: string, UsersCount: int)",
+    "imports": [
+      "GroupTagRequest",
+      "GroupTagRequestGroupTag"
+    ]
+  },
+  "GroupTagOperations_deleteTag": {
+    "usage": "await client.GroupTags.DeleteTagAsync(9111);"
+  },
+  "ChatMessageOperations_listChatMessages": {
+    "usage": "var response = await client.Messages.ListChatMessagesAsync(198, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta?)",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "MessageOperations_getMessage": {
+    "usage": "var response = await client.Messages.GetMessageAsync(194275);",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)"
+  },
+  "MessageOperations_createMessage": {
+    "usage": "var request = new MessageCreateRequest\n{\n    Message = new MessageCreateRequestMessage\n    {\n        EntityType = MessageEntityType.Discussion,\n        EntityId = 334,\n        Content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        Files = new List<MessageCreateRequestFile> { new MessageCreateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = FileType.Image,\n            Size = 12345,\n            Width = 800,\n            Height = 600\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        ParentMessageId = 194270,\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\",\n        SkipInviteMentions = false\n    },\n    LinkPreview = false\n};\nvar response = await client.Messages.CreateMessageAsync(request);",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "imports": [
+      "Button",
+      "FileType",
+      "MessageCreateRequest",
+      "MessageCreateRequestFile",
+      "MessageCreateRequestMessage",
+      "MessageEntityType"
+    ]
+  },
+  "MessageOperations_pinMessage": {
+    "usage": "await client.Messages.PinMessageAsync(194275);"
+  },
+  "MessageOperations_updateMessage": {
+    "usage": "var request = new MessageUpdateRequest\n{\n    Message = new MessageUpdateRequestMessage\n    {\n        Content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        Files = new List<MessageUpdateRequestFile> { new MessageUpdateRequestFile\n        {\n            Key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            Name = \"logo.png\",\n            FileType = \"image\",\n            Size = 12345,\n            Width = 800,\n            Height = 600\n        } },\n        Buttons = new List<List<Button>> { new List<Button> { new Button\n        {\n            Text = \"Подробнее\",\n            Url = \"https://example.com/details\",\n            Data = \"awesome\"\n        } } },\n        DisplayAvatarUrl = \"https://example.com/avatar.png\",\n        DisplayName = \"Бот Поддержки\"\n    }\n};\nvar response = await client.Messages.UpdateMessageAsync(194275, request);",
+    "output": "Message(Id: int, EntityType: MessageEntityType, EntityId: int, ChatId: int, RootChatId: int, Content: string, UserId: int, CreatedAt: DateTimeOffset, Url: string, Files: List<File(Id: int, Key: string, Name: string, FileType: FileType, Url: string, Width: int?, Height: int?)>, Buttons: List<List<Button(Text: string, Url: string?, Data: string?)>>?, Thread: MessageThread(Id: long, ChatId: long)?, Forwarding: Forwarding(OriginalMessageId: int, OriginalChatId: int, AuthorId: int, OriginalCreatedAt: DateTimeOffset, OriginalThreadId: int?, OriginalThreadMessageId: int?, OriginalThreadParentChatId: int?)?, ParentMessageId: int?, DisplayAvatarUrl: string?, DisplayName: string?, ChangedAt: DateTimeOffset?, DeletedAt: DateTimeOffset?)",
+    "imports": [
+      "Button",
+      "MessageUpdateRequest",
+      "MessageUpdateRequestFile",
+      "MessageUpdateRequestMessage"
+    ]
+  },
+  "MessageOperations_deleteMessage": {
+    "usage": "await client.Messages.DeleteMessageAsync(194275);"
+  },
+  "MessageOperations_unpinMessage": {
+    "usage": "await client.Messages.UnpinMessageAsync(194275);"
+  },
+  "LinkPreviewOperations_createLinkPreviews": {
+    "usage": "var request = new LinkPreviewsRequest\n{\n    LinkPreviews = new Dictionary<string, LinkPreview> { [\"key\"] = new LinkPreview\n    {\n        Title = \"Статья: Отправка файлов\",\n        Description = \"Пример отправки файлов на удаленный сервер\",\n        ImageUrl = \"https://website.com/img/landing.png\",\n        Image = new LinkPreviewImage\n        {\n            Key = \"attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}\",\n            Name = \"files-to-server.jpg\",\n            Size = 695604\n        }\n    } }\n};\nawait client.LinkPreviews.CreateLinkPreviewsAsync(194275, request);",
+    "imports": [
+      "LinkPreview",
+      "LinkPreviewImage",
+      "LinkPreviewsRequest"
+    ]
+  },
+  "ReactionOperations_listReactions": {
+    "usage": "var response = await client.Reactions.ListReactionsAsync(194275, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListReactionsResponse(Data: List<Reaction>, Meta: PaginationMeta?)"
+  },
+  "ReactionOperations_addReaction": {
+    "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \":+1:\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
+    "output": "Reaction(UserId: int, CreatedAt: DateTimeOffset, Code: string, Name: string?)",
+    "imports": [
+      "ReactionRequest"
+    ]
+  },
+  "ReactionOperations_removeReaction": {
+    "usage": "await client.Reactions.RemoveReactionAsync(7231942, \"👍\", \":+1:\");"
+  },
+  "ReadMemberOperations_listReadMembers": {
+    "usage": "var response = await client.ReadMembers.ListReadMembersAsync(194275, 300, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "object"
+  },
+  "ThreadOperations_getThread": {
+    "usage": "var response = await client.Threads.GetThreadAsync(265142);",
+    "output": "Thread(Id: long, ChatId: long, MessageId: long, MessageChatId: long, UpdatedAt: DateTimeOffset)"
+  },
+  "ThreadOperations_createThread": {
+    "usage": "var response = await client.Threads.CreateThreadAsync(154332686);",
+    "output": "Thread(Id: long, ChatId: long, MessageId: long, MessageChatId: long, UpdatedAt: DateTimeOffset)"
+  },
+  "OAuthOperations_getTokenInfo": {
+    "usage": "var response = await client.Profile.GetTokenInfoAsync();",
+    "output": "AccessTokenInfo(Id: long, Token: string, Name: string?, UserId: long, Scopes: List<OAuthScope>, CreatedAt: DateTimeOffset, RevokedAt: DateTimeOffset?, ExpiresIn: int?, LastUsedAt: DateTimeOffset?)"
+  },
+  "ProfileOperations_getProfile": {
+    "usage": "var response = await client.Profile.GetProfileAsync();",
+    "output": "User(Id: int, FirstName: string, LastName: string, Nickname: string, Email: string, PhoneNumber: string, Department: string, Title: string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset, TimeZone: string, ImageUrl: string?)"
+  },
+  "ProfileOperations_getStatus": {
+    "usage": "var response = await client.Profile.GetStatusAsync();",
+    "output": "object"
+  },
+  "ProfileOperations_updateStatus": {
+    "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = \"2024-04-08T10:00:00.000Z\",\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Profile.UpdateStatusAsync(request);",
+    "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "ProfileOperations_deleteStatus": {
+    "usage": "await client.Profile.DeleteStatusAsync();"
+  },
+  "SearchOperations_searchChats": {
+    "usage": "var response = await client.Search.SearchChatsAsync(\"Разработка\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SortOrder.Desc, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", true, ChatSubtype.Discussion, false);",
+    "output": "SearchChatsResponse(Data: List<Chat>, Meta: SearchPaginationMeta)",
+    "imports": [
+      "ChatSubtype",
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "var chatIds = new List<int> { 123 };\nvar userIds = new List<int> { 123 };\nvar response = await client.Search.SearchMessagesAsync(\"футболки\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SortOrder.Desc, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", chatIds, userIds, true);",
+    "output": "SearchMessagesResponse(Data: List<Message>, Meta: SearchPaginationMeta)",
+    "imports": [
+      "SortOrder"
+    ]
+  },
+  "SearchOperations_searchUsers": {
+    "usage": "var companyRoles = new List<UserRole> { UserRole.Admin };\nvar response = await client.Search.SearchUsersAsync(\"Олег\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SearchSortOrder.ByScore, SortOrder.Desc, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", companyRoles);",
+    "output": "SearchUsersResponse(Data: List<User>, Meta: SearchPaginationMeta)",
+    "imports": [
+      "SearchSortOrder",
+      "SortOrder",
+      "UserRole"
+    ]
+  },
+  "TaskOperations_listTasks": {
+    "usage": "var response = await client.Tasks.ListTasksAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta?)"
+  },
+  "TaskOperations_getTask": {
+    "usage": "var response = await client.Tasks.GetTaskAsync(22283);",
+    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)"
+  },
+  "TaskOperations_createTask": {
+    "usage": "var request = new TaskCreateRequest\n{\n    Task = new TaskCreateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = \"2020-06-05T12:00:00.000+03:00\",\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        ChatId = 456,\n        AllDay = false,\n        CustomProperties = new List<TaskCreateRequestCustomProperty> { new TaskCreateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.CreateTaskAsync(request);",
+    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)",
+    "imports": [
+      "TaskCreateRequest",
+      "TaskCreateRequestCustomProperty",
+      "TaskCreateRequestTask",
+      "TaskKind"
+    ]
+  },
+  "TaskOperations_updateTask": {
+    "usage": "var request = new TaskUpdateRequest\n{\n    Task = new TaskUpdateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = \"2020-06-05T12:00:00.000+03:00\",\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        Status = TaskStatus.Done,\n        AllDay = false,\n        DoneAt = \"2020-06-05T12:00:00.000Z\",\n        CustomProperties = new List<TaskUpdateRequestCustomProperty> { new TaskUpdateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.UpdateTaskAsync(22283, request);",
+    "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)",
+    "imports": [
+      "TaskKind",
+      "TaskStatus",
+      "TaskUpdateRequest",
+      "TaskUpdateRequestCustomProperty",
+      "TaskUpdateRequestTask"
+    ]
+  },
+  "TaskOperations_deleteTask": {
+    "usage": "await client.Tasks.DeleteTaskAsync(22283);"
+  },
+  "UserOperations_listUsers": {
+    "usage": "var response = await client.Users.ListUsersAsync(\"Олег\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListUsersResponse(Data: List<User>, Meta: PaginationMeta?)"
+  },
+  "UserOperations_getUser": {
+    "usage": "var response = await client.Users.GetUserAsync(12);",
+    "output": "User(Id: int, FirstName: string, LastName: string, Nickname: string, Email: string, PhoneNumber: string, Department: string, Title: string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset, TimeZone: string, ImageUrl: string?)"
+  },
+  "UserStatusOperations_getUserStatus": {
+    "usage": "var response = await client.Users.GetUserStatusAsync(12);",
+    "output": "object"
+  },
+  "UserOperations_createUser": {
+    "usage": "var request = new UserCreateRequest\n{\n    User = new UserCreateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegp@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Продукт\",\n        Title = \"CIO\",\n        Role = UserRoleInput.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        CustomProperties = new List<UserCreateRequestCustomProperty> { new UserCreateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    },\n    SkipEmailNotify = true\n};\nvar response = await client.Users.CreateUserAsync(request);",
+    "output": "User(Id: int, FirstName: string, LastName: string, Nickname: string, Email: string, PhoneNumber: string, Department: string, Title: string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset, TimeZone: string, ImageUrl: string?)",
+    "imports": [
+      "UserCreateRequest",
+      "UserCreateRequestCustomProperty",
+      "UserCreateRequestUser",
+      "UserRoleInput"
+    ]
+  },
+  "UserOperations_updateUser": {
+    "usage": "var request = new UserUpdateRequest\n{\n    User = new UserUpdateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegpetrov@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Отдел разработки\",\n        Title = \"Старший разработчик\",\n        Role = UserRoleInput.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        CustomProperties = new List<UserUpdateRequestCustomProperty> { new UserUpdateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    }\n};\nvar response = await client.Users.UpdateUserAsync(12, request);",
+    "output": "User(Id: int, FirstName: string, LastName: string, Nickname: string, Email: string, PhoneNumber: string, Department: string, Title: string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset, TimeZone: string, ImageUrl: string?)",
+    "imports": [
+      "UserRoleInput",
+      "UserUpdateRequest",
+      "UserUpdateRequestCustomProperty",
+      "UserUpdateRequestUser"
+    ]
+  },
+  "UserStatusOperations_updateUserStatus": {
+    "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = \"2024-04-08T10:00:00.000Z\",\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Users.UpdateUserStatusAsync(12, request);",
+    "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)",
+    "imports": [
+      "StatusUpdateRequest",
+      "StatusUpdateRequestStatus"
+    ]
+  },
+  "UserOperations_deleteUser": {
+    "usage": "await client.Users.DeleteUserAsync(12);"
+  },
+  "UserStatusOperations_deleteUserStatus": {
+    "usage": "await client.Users.DeleteUserStatusAsync(12);"
+  },
+  "FormOperations_openView": {
+    "usage": "var request = new OpenViewRequest\n{\n    Type = \"modal\",\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\"timeoff_id\":4378}\",\n    CallbackId = \"timeoff_reguest_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Type = \"header\", Text = \"Основная информация\" } }\n    }\n};\nawait client.Views.OpenViewAsync(request);",
+    "imports": [
+      "OpenViewRequest",
+      "OpenViewRequestView",
+      "ViewBlockUnion"
+    ]
+  }
+}

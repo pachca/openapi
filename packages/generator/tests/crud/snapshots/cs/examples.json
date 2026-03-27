@@ -1,0 +1,42 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "ChatOperations_listChats": {
+    "usage": "var response = await client.Chats.ListChatsAsync(ChatAvailability.IsMember, 123, \"example\", \"example\", SortOrder.Asc);",
+    "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta?)",
+    "imports": [
+      "ChatAvailability",
+      "SortOrder"
+    ]
+  },
+  "ChatOperations_getChat": {
+    "usage": "var response = await client.Chats.GetChatAsync(123);",
+    "output": "Chat(Id: int, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: DateTimeOffset, MemberIds: List<int>?)"
+  },
+  "ChatOperations_createChat": {
+    "usage": "var request = new ChatCreateRequest\n{\n    Chat = new ChatCreateRequestChat\n    {\n        Name = \"example\",\n        Channel = true,\n        @Public = true,\n        MemberIds = new List<int> { 123 }\n    }\n};\nvar response = await client.Chats.CreateChatAsync(request);",
+    "output": "Chat(Id: int, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: DateTimeOffset, MemberIds: List<int>?)",
+    "imports": [
+      "ChatCreateRequest",
+      "ChatCreateRequestChat"
+    ]
+  },
+  "ChatOperations_updateChat": {
+    "usage": "var request = new ChatUpdateRequest { Chat = new ChatUpdateRequestChat { Name = \"example\", @Public = true } };\nvar response = await client.Chats.UpdateChatAsync(123, request);",
+    "output": "Chat(Id: int, Name: string, IsChannel: bool, IsPublic: bool, CreatedAt: DateTimeOffset, MemberIds: List<int>?)",
+    "imports": [
+      "ChatUpdateRequest",
+      "ChatUpdateRequestChat"
+    ]
+  },
+  "ChatOperations_archiveChat": {
+    "usage": "await client.Chats.ArchiveChatAsync(123);"
+  },
+  "ChatOperations_deleteChat": {
+    "usage": "await client.Chats.DeleteChatAsync(123);"
+  }
+}

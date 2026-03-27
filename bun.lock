@@ -113,6 +113,13 @@
         "@typespec/rest": "^0.77.0",
       },
     },
+    "sdk/csharp": {
+      "name": "@pachca/csharp",
+      "version": "1.0.0",
+      "devDependencies": {
+        "@pachca/spec": "workspace:*",
+      },
+    },
     "sdk/go": {
       "name": "@pachca/go",
       "version": "1.0.0",
@@ -566,6 +573,8 @@
     "@oxc-resolver/binding-win32-x64-msvc": ["@oxc-resolver/binding-win32-x64-msvc@11.17.1", "", { "os": "win32", "cpu": "x64" }, "sha512-jRPVU+6/12baj87q2+UGRh30FBVBzqKdJ7rP/mSqiL1kpNQB9yZ1j0+m3sru1m+C8hiFK7lBFwjUtYUBI7+UpQ=="],
 
     "@pachca/cli": ["@pachca/cli@workspace:packages/cli"],
+
+    "@pachca/csharp": ["@pachca/csharp@workspace:sdk/csharp"],
 
     "@pachca/docs": ["@pachca/docs@workspace:apps/docs"],
 

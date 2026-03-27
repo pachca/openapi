@@ -65,6 +65,14 @@ jobs:
         working-directory: sdk/python/generated
         run: python3 -m py_compile $(find pachca -name '*.py')
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Compile C# SDK
+        working-directory: sdk/csharp/generated
+        run: dotnet build
+
       - name: Setup Swift
         uses: swift-actions/setup-swift@v2
       - name: Compile Swift SDK
@@ -246,3 +254,30 @@ jobs:
       - uses: badasintended/autojitpack@v1
         with:
           version: v${{ needs.generate-and-build.outputs.version }}
+
+  publish-cs:
+    if: github.event_name == 'push'
+    needs: generate-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.generate-and-build.outputs.version }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Set version
+        working-directory: sdk/csharp/generated
+        run: sed -i 's/<Version>0.0.0<\/Version>/<Version>${{ needs.generate-and-build.outputs.version }}<\/Version>/' Pachca.csproj
+      - name: Pack
+        working-directory: sdk/csharp/generated
+        run: dotnet pack -c Release
+      - name: Publish to NuGet
+        working-directory: sdk/csharp/generated
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_TOKEN }}
+        run: |
+          dotnet nuget push bin/Release/*.nupkg \
+            --api-key $NUGET_API_KEY \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

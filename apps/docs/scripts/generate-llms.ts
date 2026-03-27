@@ -132,7 +132,10 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content += '## Содержание\n\n';
   content += '### Руководства\n';
   for (const guide of guidePages) {
-    const anchor = guide.title.toLowerCase().replace(/\s+/g, '-');
+    const anchor = guide.title
+      .toLowerCase()
+      .replace(/[#?&=]/g, '')
+      .replace(/\s+/g, '-');
     content += `- [${guide.title}](#${anchor})\n`;
   }
   content += '\n';

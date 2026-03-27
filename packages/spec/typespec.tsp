@@ -2979,7 +2979,6 @@ union WebhookPayloadUnion {
   MessageWebhookPayload,
   ReactionWebhookPayload,
   ButtonWebhookPayload,
-  ViewSubmitWebhookPayload,
   ChatMemberWebhookPayload,
   CompanyMemberWebhookPayload,
   LinkSharedWebhookPayload,

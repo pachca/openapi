@@ -8128,7 +8128,6 @@ components:
         - $ref: '#/components/schemas/MessageWebhookPayload'
         - $ref: '#/components/schemas/ReactionWebhookPayload'
         - $ref: '#/components/schemas/ButtonWebhookPayload'
-        - $ref: '#/components/schemas/ViewSubmitWebhookPayload'
         - $ref: '#/components/schemas/ChatMemberWebhookPayload'
         - $ref: '#/components/schemas/CompanyMemberWebhookPayload'
         - $ref: '#/components/schemas/LinkSharedWebhookPayload'

@@ -269,7 +269,7 @@ export async function ApiCards() {
  * params — override query parameter values; only specified + required params are included (curl/cli only)
  * responseMode — "full" (default): all fields with values; "minimal": null for nullable, [] for optional arrays
  * lang — single language: no dropdown/header, renders as simple code block
- * langs — filter languages in multi-language dropdown (e.g. ["typescript", "python", "go", "kotlin", "swift"])
+ * langs — filter languages in multi-language dropdown (e.g. ["typescript", "python", "go", "kotlin", "swift", "csharp"])
  * operations — multiple operations in one block (single-language mode only)
  * showInit — whether to include Client_Init (default: true)
  */
@@ -280,9 +280,9 @@ interface ApiCodeExampleProps {
   show?: 'request' | 'response' | 'both';
   params?: Record<string, unknown>;
   responseMode?: 'full' | 'minimal';
-  lang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli';
-  langs?: Array<'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli'>;
-  defaultLang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'curl' | 'cli';
+  lang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp' | 'curl' | 'cli';
+  langs?: Array<'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp' | 'curl' | 'cli'>;
+  defaultLang?: 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp' | 'curl' | 'cli';
   operations?: Array<{ id: string; comment?: string }>;
   showInit?: boolean;
 }

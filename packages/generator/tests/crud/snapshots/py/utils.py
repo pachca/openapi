@@ -79,10 +79,16 @@ def serialize(obj: object) -> dict:
 
 
 _MAX_RETRIES = 3
+_RETRYABLE_5XX = {500, 502, 503, 504}
+
+
+def _jitter(delay: float) -> float:
+    import random
+    return delay * (0.5 + random.random() * 0.5)
 
 
 class RetryTransport(httpx.AsyncBaseTransport):
-    """Wraps an httpx transport with retry on 429 Too Many Requests."""
+    """Wraps an httpx transport with retry on 429 Too Many Requests and 5xx errors."""
 
     def __init__(self, transport: httpx.AsyncBaseTransport, max_retries: int = _MAX_RETRIES) -> None:
         self._transport = transport
@@ -95,6 +101,10 @@ class RetryTransport(httpx.AsyncBaseTransport):
             if response.status_code == 429 and attempt < self._max_retries:
                 retry_after = response.headers.get("retry-after")
                 delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
+                await asyncio.sleep(delay)
+                continue
+            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:
+                delay = _jitter(10 * (2 ** attempt))
                 await asyncio.sleep(delay)
                 continue
             return response

@@ -68,7 +68,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
 
   content += '## SDK\n\n';
   content +=
-    'Типизированные клиенты для 5 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.\n\n';
+    'Типизированные клиенты для 6 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.\n\n';
   content += '| Язык | Пакет | Установка |\n';
   content += '|------|-------|----------|\n';
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
@@ -76,7 +76,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content +=
     '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |\n';
-  content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n\n';
+  content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
+  content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += 'Конвенции:\n';
   content +=
     '- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.\n';
@@ -91,6 +92,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += 'Kotlin:     PachcaClient("TOKEN")     → pachca.messages.createMessage(...)\n';
   content +=
     'Swift:      PachcaClient(token: "TOKEN") → try await pachca.messages.createMessage(...)\n';
+  content +=
+    'C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessageAsync(...)\n';
   content += '```\n\n';
 
   content += '## Agent Skills\n\n';
@@ -129,7 +132,10 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content += '## Содержание\n\n';
   content += '### Руководства\n';
   for (const guide of guidePages) {
-    const anchor = guide.title.toLowerCase().replace(/\s+/g, '-');
+    const anchor = guide.title
+      .toLowerCase()
+      .replace(/[#?&=]/g, '')
+      .replace(/\s+/g, '-');
     content += `- [${guide.title}](#${anchor})\n`;
   }
   content += '\n';
@@ -146,7 +152,7 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
 
   content += '# SDK\n\n';
   content +=
-    'Типизированные клиенты для 5 языков. Единый паттерн: `PachcaClient(token)` → `client.service.method(request)`.\n\n';
+    'Типизированные клиенты для 6 языков. Единый паттерн: `PachcaClient(token)` → `client.service.method(request)`.\n\n';
   content += '| Язык | Пакет | Установка |\n';
   content += '|------|-------|----------|\n';
   content += '| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |\n';
@@ -154,7 +160,8 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content +=
     '| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |\n';
   content += '| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |\n';
-  content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n\n';
+  content += '| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |\n';
+  content += '| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |\n\n';
   content += '## Конвенции SDK\n\n';
   content +=
     '- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.\n';
@@ -173,6 +180,8 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
     '**Kotlin:**\n```kotlin\nval pachca = PachcaClient("YOUR_TOKEN")\nval users = pachca.users.listUsers()\npachca.reactions.addReaction(messageId, ReactionRequest(code = "👍"))\n```\n\n';
   content +=
     '**Swift:**\n```swift\nlet pachca = PachcaClient(token: "YOUR_TOKEN")\nlet users = try await pachca.users.listUsers()\ntry await pachca.reactions.addReaction(messageId, ReactionRequest(code: "👍"))\n```\n\n';
+  content +=
+    '**C#:**\n```csharp\nusing var client = new PachcaClient("YOUR_TOKEN");\nvar users = await client.Users.ListUsersAsync();\nawait client.Reactions.AddReactionAsync(messageId, new ReactionRequest { Code = "👍" });\n```\n\n';
 
   content += '---\n\n';
 

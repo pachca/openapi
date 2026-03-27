@@ -224,6 +224,7 @@ Detailed documentation on specific topics is available at:
 - [Go](https://dev.pachca.com/guides/sdk/go) — Типизированный клиент для Pachca API на Go с контекстами и автопагинацией
 - [Kotlin](https://dev.pachca.com/guides/sdk/kotlin) — Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
 - [Swift](https://dev.pachca.com/guides/sdk/swift) — Типизированный клиент для Pachca API на Swift с async/await и Codable
+- [CSharp](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C# с async/await и автопагинацией
 - [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API
 - [Боты](https://dev.pachca.com/guides/bots) — Создание, настройка и возможности ботов в Пачке
 - [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Отправка сообщений от имени бота без использования API

@@ -478,6 +478,8 @@ export async function expandMdxComponents(content: string): Promise<string> {
             return `client.${camelToSnake(service)}.${camelToSnake(method)}()`;
           case 'go':
             return `client.${service.charAt(0).toUpperCase() + service.slice(1)}.${method.charAt(0).toUpperCase() + method.slice(1)}()`;
+          case 'csharp':
+            return `client.${service.charAt(0).toUpperCase() + service.slice(1)}.${method.charAt(0).toUpperCase() + method.slice(1)}Async()`;
           default:
             return `client.${service}.${method}()`;
         }
@@ -506,7 +508,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
     const apiCodeRegex = /<ApiCodeExample\s+([\s\S]*?)\/>/g;
     const apiCodeMatches = [...result.matchAll(apiCodeRegex)];
 
-    const SDK_LANGS = ['typescript', 'python', 'go', 'kotlin', 'swift'];
+    const SDK_LANGS = ['typescript', 'python', 'go', 'kotlin', 'swift', 'csharp'];
 
     for (const match of apiCodeMatches) {
       const [fullMatch, attrs] = match;

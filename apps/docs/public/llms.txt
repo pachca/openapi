@@ -28,6 +28,7 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [Go](https://dev.pachca.com/guides/sdk/go.md): Типизированный клиент для Pachca API на Go с контекстами и автопагинацией
 - [Kotlin](https://dev.pachca.com/guides/sdk/kotlin.md): Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
 - [Swift](https://dev.pachca.com/guides/sdk/swift.md): Типизированный клиент для Pachca API на Swift с async/await и Codable
+- [CSharp](https://dev.pachca.com/guides/sdk/csharp.md): Типизированный клиент для Pachca API на C# с async/await и автопагинацией
 - [Сценарии](https://dev.pachca.com/guides/workflows.md): Пошаговые сценарии для типичных задач с API
 - [Боты](https://dev.pachca.com/guides/bots.md): Создание, настройка и возможности ботов в Пачке
 - [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks.md): Отправка сообщений от имени бота без использования API
@@ -148,7 +149,7 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 
 ## SDK
 
-Типизированные клиенты для 5 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.
+Типизированные клиенты для 6 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.
 
 | Язык | Пакет | Установка |
 |------|-------|----------|
@@ -157,6 +158,7 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 | Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
 | Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
+| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
 Конвенции:
 - **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
@@ -169,6 +171,7 @@ Python:     PachcaClient("TOKEN")     → await client.messages.create_message(.
 Go:         NewPachcaClient("TOKEN")  → client.Messages.CreateMessage(ctx, ...)
 Kotlin:     PachcaClient("TOKEN")     → pachca.messages.createMessage(...)
 Swift:      PachcaClient(token: "TOKEN") → try await pachca.messages.createMessage(...)
+C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessageAsync(...)
 ```
 
 ## Agent Skills

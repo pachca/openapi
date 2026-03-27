@@ -58,6 +58,11 @@ public struct AnyCodable: Codable {
 }
 
 private let maxRetries = 3
+private let retryable5xx: Set<Int> = [500, 502, 503, 504]
+
+private func jitter(_ delay: UInt64) -> UInt64 {
+    return UInt64(Double(delay) * (0.5 + Double.random(in: 0..<0.5)))
+}
 
 func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
     for attempt in 0...maxRetries {
@@ -69,6 +74,11 @@ func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any 
             } else {
                 delay = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000
             }
+            try await _Concurrency.Task.sleep(nanoseconds: delay)
+            continue
+        }
+        if let http = response as? HTTPURLResponse, retryable5xx.contains(http.statusCode), attempt < maxRetries {
+            let delay = jitter(10 * UInt64(pow(2.0, Double(attempt))) * 1_000_000_000)
             try await _Concurrency.Task.sleep(nanoseconds: delay)
             continue
         }

@@ -1,0 +1,281 @@
+---
+title: C#
+description: Типизированный клиент для Pachca API на C# с async/await и автопагинацией
+---
+
+# C#
+
+<CardRow>
+  <Card compact icon="Package" title="Pachca.Sdk" href="https://www.nuget.org/packages/Pachca.Sdk">NuGet</Card>
+</CardRow>
+
+Типизированный клиент для Pachca API. Работает в .NET 8+ с поддержкой `async/await` и `CancellationToken`.
+
+## Быстрый старт
+
+<Steps>
+  <Step title="Установка">
+
+```bash
+dotnet add package Pachca.Sdk
+```
+
+  </Step>
+  <Step title="Создание клиента">
+
+Получите API-токен в интерфейсе Пачки: **Настройки** > **Автоматизации** > **API** (подробнее — [Авторизация](/api/authorization)).
+
+<ApiCodeExample lang="csharp" operations={[]} />
+
+  </Step>
+  <Step title="Первый запрос">
+
+<ApiCodeExample lang="csharp" showInit={false} operations={[
+  { id: "ProfileOperations_getProfile", comment: "Получение профиля" }
+]} />
+
+  </Step>
+</Steps>
+
+## Инициализация
+
+```csharp
+using Pachca.Sdk;
+
+// Стандартное подключение
+using var client = new PachcaClient("YOUR_TOKEN");
+
+// С кастомным базовым URL
+using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/api/shared/v1");
+```
+
+| Параметр | Тип | По умолчанию | Описание |
+|----------|-----|-------------|----------|
+| `token` | `string` | — | Bearer-токен для авторизации |
+| `baseUrl` | `string` | `https://api.pachca.com/api/shared/v1` | Базовый URL API |
+
+Клиент реализует `IDisposable` — рекомендуется использовать `using` для автоматического освобождения ресурсов.
+
+## Все методы
+
+<SdkCommands lang="csharp" />
+
+## Запросы
+
+Все методы — асинхронные и возвращают `Task<T>`.
+
+**GET с параметрами:**
+
+<ApiCodeExample lang="csharp" showInit={false} operations={[
+  { id: "ChatOperations_listChats", comment: "Список чатов" }
+]} />
+
+**POST с телом запроса:**
+
+<ApiCodeExample lang="csharp" showInit={false} operations={[
+  { id: "ChatOperations_createChat", comment: "Создание чата" }
+]} />
+
+**Простой вызов по ID:**
+
+<ApiCodeExample lang="csharp" showInit={false} operations={[
+  { id: "ChatOperations_getChat", comment: "Получение чата" }
+]} />
+
+## Пагинация
+
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы.
+
+### Ручная пагинация
+
+```csharp
+var chats = new List<Chat>();
+string? cursor = null;
+
+do
+{
+    var response = await client.Chats.ListChatsAsync(cursor: cursor);
+    chats.AddRange(response.Data);
+    cursor = response.Meta?.Paginate?.NextPage;
+} while (cursor != null);
+```
+
+### Автопагинация
+
+Для каждого метода с пагинацией есть `*AllAsync()` вариант, который автоматически обходит все страницы и возвращает плоский список:
+
+```csharp
+// Все чаты одним списком
+var chats = await client.Chats.ListChatsAllAsync();
+Console.WriteLine($"Всего: {chats.Count}");
+```
+
+Доступные методы автопагинации:
+
+| Метод | Возвращает |
+|-------|-----------|
+| `Security.GetAuditEventsAllAsync()` | `List<AuditEvent>` |
+| `Bots.GetWebhookEventsAllAsync()` | `List<WebhookEvent>` |
+| `Chats.ListChatsAllAsync()` | `List<Chat>` |
+| `GroupTags.ListTagsAllAsync()` | `List<GroupTag>` |
+| `GroupTags.GetTagUsersAllAsync()` | `List<User>` |
+| `Members.ListMembersAllAsync()` | `List<User>` |
+| `Messages.ListChatMessagesAllAsync()` | `List<Message>` |
+| `Reactions.ListReactionsAllAsync()` | `List<Reaction>` |
+| `Search.SearchChatsAllAsync()` | `List<Chat>` |
+| `Search.SearchMessagesAllAsync()` | `List<Message>` |
+| `Search.SearchUsersAllAsync()` | `List<User>` |
+| `Tasks.ListTasksAllAsync()` | `List<Task>` |
+| `Users.ListUsersAllAsync()` | `List<User>` |
+
+## Обработка ошибок
+
+SDK выбрасывает два типа исключений:
+
+### ApiError
+
+Возникает при ошибках `400`, `403`, `404`, `409`, `410`, `422`:
+
+```csharp
+using Pachca.Sdk;
+
+try
+{
+    await client.Chats.CreateChatAsync(request);
+}
+catch (ApiError e)
+{
+    foreach (var err in e.Errors)
+    {
+        Console.WriteLine($"{err.Key}: {err.Message}");  // "name", "не может быть пустым"
+        Console.WriteLine(err.Code);                     // "blank"
+    }
+}
+```
+
+Поля `ApiErrorItem`:
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `Key` | `string` | Поле, вызвавшее ошибку |
+| `Value` | `string?` | Переданное значение |
+| `Message` | `string` | Текст ошибки |
+| `Code` | `ValidationErrorCode` | Код валидации (`Blank`, `Invalid`, `Taken`, ...) |
+| `Payload` | `string?` | Дополнительные данные |
+
+### OAuthError
+
+Возникает при ошибке авторизации (`401`):
+
+```csharp
+using Pachca.Sdk;
+
+try
+{
+    await client.Profile.GetProfileAsync();
+}
+catch (OAuthError e)
+{
+    Console.WriteLine(e.ErrorDescription); // "Token not found"
+}
+```
+
+## Повторные запросы
+
+SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+
+- До **3 повторов** на каждый запрос
+- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
+- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- Все остальные ошибки возвращаются сразу без retry
+
+## Отмена запросов
+
+Все асинхронные методы поддерживают `CancellationToken`:
+
+```csharp
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+var users = await client.Users.ListUsersAsync(cancellationToken: cts.Token);
+```
+
+## Загрузка файлов
+
+Загрузка файла — трёхшаговый процесс:
+
+```csharp
+// 1. Получить параметры загрузки
+var uploadParams = await client.Common.GetUploadParamsAsync();
+
+// 2. Загрузить файл на S3
+using var fileStream = File.OpenRead("photo.png");
+await client.Common.UploadFileAsync(uploadParams, fileStream, "photo.png");
+
+// 3. Прикрепить к сообщению (используя key из uploadParams)
+await client.Messages.CreateMessageAsync(new MessageCreateRequest
+{
+    Message = new MessageCreateRequestMessage
+    {
+        EntityId = chatId,
+        Content = "Фото",
+        Files = new List<MessageFile> { new() { Key = uploadParams.Key, Name = "photo.png" } }
+    }
+});
+```
+
+## Сериализация
+
+SDK автоматически конвертирует имена полей между PascalCase (C#) и snake_case (API):
+
+```csharp
+// Вы пишете:
+new ChatCreateRequestChat { MemberIds = new List<int> { 123 }, GroupTagIds = new List<int> { 456 } }
+
+// SDK отправляет:
+{ "member_ids": [123], "group_tag_ids": [456] }
+
+// API возвращает:
+{ "last_message_at": "2025-01-01T00:00:00Z" }
+
+// Вы получаете:
+chat.LastMessageAt // DateTimeOffset
+```
+
+## Типы
+
+Все типы доступны из пространства имён `Pachca.Sdk`:
+
+```csharp
+using Pachca.Sdk;
+
+// Модели
+Chat chat;
+Message message;
+User user;
+Task task;
+GroupTag groupTag;
+
+// Запросы
+ChatCreateRequest chatRequest;
+MessageCreateRequest messageRequest;
+TaskCreateRequest taskRequest;
+
+// Перечисления
+AuditEventKey eventKey;
+ChatAvailability availability;
+ChatMemberRole role;
+TaskStatus status;
+ValidationErrorCode errorCode;
+
+// Ошибки
+ApiError apiError;
+OAuthError oauthError;
+```
+
+## Примеры
+
+<ApiCodeExample lang="csharp" operations={[
+  { id: "MessageOperations_createMessage", comment: "Отправка сообщения" },
+  { id: "UserOperations_listUsers", comment: "Список сотрудников" },
+  { id: "TaskOperations_createTask", comment: "Создание задачи" }
+]} />
+

@@ -23,7 +23,7 @@ interface CodeExamplesProps {
   className?: string;
 }
 
-type Language = 'curl' | 'cli' | 'typescript' | 'python' | 'go' | 'kotlin' | 'swift';
+type Language = 'curl' | 'cli' | 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp';
 
 const STORAGE_KEY = 'pachca-docs-code-lang';
 
@@ -35,6 +35,7 @@ const languageLabels: Record<Language, string> = {
   go: 'Go',
   kotlin: 'Kotlin',
   swift: 'Swift',
+  csharp: 'C#',
 };
 
 export function CodeExamples({
@@ -193,6 +194,7 @@ function getLanguageForHighlight(lang: Language): string {
     go: 'go',
     kotlin: 'kotlin',
     swift: 'swift',
+    csharp: 'csharp',
   };
   return languageMap[lang];
 }

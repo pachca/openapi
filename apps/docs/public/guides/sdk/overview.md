@@ -25,7 +25,7 @@
 npx @pachca/generator --output ./generated --lang typescript
 
 # Несколько языков
-npx @pachca/generator --output ./generated --lang typescript,python,go
+npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,swift,csharp
 
 # Из локального файла или произвольного URL
 npx @pachca/generator --spec openapi.yaml --output ./generated --lang typescript
@@ -36,7 +36,7 @@ npx @pachca/generator --spec https://example.com/openapi.yaml --output ./generat
 |----------|----------|
 | `--spec <path\|url>` | Путь или URL к OpenAPI 3.0 YAML (по умолчанию: `https://dev.pachca.com/openapi.yaml`) |
 | `--output <dir>` | Директория для сгенерированного кода |
-| `--lang <langs>` | Языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift` |
+| `--lang <langs>` | Языки через запятую: `typescript`, `python`, `go`, `kotlin`, `swift`, `csharp` |
 | `--examples` | Генерировать `examples.json` с примерами вызовов |
 
 ## Возможности
@@ -62,13 +62,13 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 
 ## Сравнение языков
 
-| | TypeScript | Python | Go | Kotlin | Swift |
-|---|---|---|---|---|---|
-| **Пакет** | `@pachca/sdk` | `pachca-sdk` | `go get ...` | `com.pachca:pachca-sdk` | `PachcaSDK` |
-| **Менеджер** | npm | PyPI | Go modules | JitPack (Gradle) | SPM |
-| **Async** | `await` | `await` (asyncio) | синхронный | `suspend` (coroutines) | `try await` |
-| **HTTP** | fetch | httpx | net/http | Ktor | URLSession |
-| **Naming** | camelCase | snake_case | PascalCase | camelCase | camelCase |
-| **Cleanup** | — | `await client.close()` | — | `client.close()` | — |
-| **Требования** | Node.js 18+ | Python 3.10+ | Go 1.24+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+, iOS 16+ |
+| | TypeScript | Python | Go | Kotlin | Swift | C# |
+|---|---|---|---|---|---|---|
+| **Пакет** | `@pachca/sdk` | `pachca-sdk` | `go get ...` | `com.pachca:pachca-sdk` | `PachcaSDK` | `Pachca.Sdk` |
+| **Менеджер** | npm | PyPI | Go modules | JitPack (Gradle) | SPM | NuGet |
+| **Async** | `await` | `await` (asyncio) | синхронный | `suspend` (coroutines) | `try await` | `await` |
+| **HTTP** | fetch | httpx | net/http | Ktor | URLSession | HttpClient |
+| **Naming** | camelCase | snake_case | PascalCase | camelCase | camelCase | PascalCase |
+| **Cleanup** | — | `await client.close()` | — | `client.close()` | — | `client.Dispose()` |
+| **Требования** | Node.js 18+ | Python 3.10+ | Go 1.24+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+, iOS 16+ | .NET 8+ |
 

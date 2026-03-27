@@ -6,7 +6,7 @@ import { EndpointLink } from '@/components/api/endpoint-link';
 
 const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
 
-type SdkLanguage = 'typescript' | 'python' | 'go' | 'kotlin' | 'swift';
+type SdkLanguage = 'typescript' | 'python' | 'go' | 'kotlin' | 'swift' | 'csharp';
 
 /** Tag name → service property: "Group tags" → "groupTags" */
 function tagToProperty(tag: string): string {
@@ -32,6 +32,11 @@ function camelToSnake(str: string): string {
     .toLowerCase();
 }
 
+/** camelCase → PascalCase */
+function camelToPascal(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function formatMethodCall(tag: string, operationId: string, lang: SdkLanguage): string {
   const service = tagToProperty(tag);
   const method = operationToMethod(operationId);
@@ -40,7 +45,9 @@ function formatMethodCall(tag: string, operationId: string, lang: SdkLanguage): 
     case 'python':
       return `client.${camelToSnake(service)}.${camelToSnake(method)}()`;
     case 'go':
-      return `client.${service.charAt(0).toUpperCase() + service.slice(1)}.${method.charAt(0).toUpperCase() + method.slice(1)}()`;
+      return `client.${camelToPascal(service)}.${camelToPascal(method)}()`;
+    case 'csharp':
+      return `client.${camelToPascal(service)}.${camelToPascal(method)}Async()`;
     default:
       return `client.${service}.${method}()`;
   }

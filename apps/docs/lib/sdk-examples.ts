@@ -12,7 +12,7 @@ interface ExampleEntry {
 
 type ExamplesJson = Record<string, ExampleEntry>;
 
-const SDK_LANGUAGES = ['typescript', 'python', 'go', 'kotlin', 'swift'] as const;
+const SDK_LANGUAGES = ['typescript', 'python', 'go', 'kotlin', 'swift', 'csharp'] as const;
 type SdkLanguage = (typeof SDK_LANGUAGES)[number];
 
 let cached: Record<SdkLanguage, ExamplesJson> | null = null;
@@ -43,6 +43,7 @@ const COMMENT_PREFIX: Record<SdkLanguage, string> = {
   go: '//',
   kotlin: '//',
   swift: '//',
+  csharp: '//',
 };
 
 function buildImportBlock(
@@ -73,6 +74,9 @@ function buildImportBlock(
     }
     case 'swift': {
       return `import PachcaSDK`;
+    }
+    case 'csharp': {
+      return `using Pachca.Sdk;`;
     }
   }
 }

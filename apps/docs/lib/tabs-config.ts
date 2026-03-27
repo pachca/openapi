@@ -65,6 +65,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Go', path: '/guides/sdk/go' },
           { title: 'Kotlin', path: '/guides/sdk/kotlin' },
           { title: 'Swift', path: '/guides/sdk/swift' },
+          { title: 'C#', path: '/guides/sdk/csharp' },
         ],
       },
       { title: 'Сценарии', path: '/guides/workflows' },

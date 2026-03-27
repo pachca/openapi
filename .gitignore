@@ -67,3 +67,10 @@ evals/results/
 # Agent-specific local skills (installed via `npx skills add`)
 .claude/skills/
 .cursor/
+
+# C# / .NET
+bin/
+obj/
+*.user
+*.suo
+sdk/csharp/examples/Examples.csproj

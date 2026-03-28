@@ -23,7 +23,7 @@ npm install @pachca/sdk
 ```typescript
 import { PachcaClient } from "@pachca/sdk"
 
-const client = new PachcaClient({ token: "YOUR_TOKEN" })
+const client = new PachcaClient("YOUR_TOKEN")
 ```
 
 
@@ -335,7 +335,7 @@ import {
 ```typescript
 import { Button, FileType, MessageCreateRequest, MessageCreateRequestFile, MessageCreateRequestMessage, MessageEntityType, PachcaClient, TaskCreateRequest, TaskCreateRequestCustomProperty, TaskCreateRequestTask, TaskKind } from "@pachca/sdk"
 
-const client = new PachcaClient({ token: "YOUR_TOKEN" })
+const client = new PachcaClient("YOUR_TOKEN")
 
 // Отправка сообщения
 const request: MessageCreateRequest = {

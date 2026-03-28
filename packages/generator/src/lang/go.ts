@@ -705,10 +705,11 @@ function emitStubMethod(lines: string[], op: IROperation, ir: IR): void {
     const hasReq = op.queryParams.some((p) => p.required);
     args.push(`${snakeToCamel('params')} ${hasReq ? pName : `*${pName}`}`);
   }
+  const methodRef = JSON.stringify(`${op.tag}.${op.methodName}`);
   lines.push(`func (s *${stubName}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
-  if (op.successResponse.isRedirect) lines.push(`\treturn "", fmt.Errorf(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
-  else if (!op.successResponse.hasBody) lines.push(`\treturn fmt.Errorf(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
-  else lines.push(`\treturn nil, fmt.Errorf(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+  if (op.successResponse.isRedirect) lines.push(`\treturn "", NotImplementedError{Method: ${methodRef}}`);
+  else if (!op.successResponse.hasBody) lines.push(`\treturn NotImplementedError{Method: ${methodRef}}`);
+  else lines.push(`\treturn nil, NotImplementedError{Method: ${methodRef}}`);
   lines.push('}');
 }
 
@@ -720,7 +721,7 @@ function emitStubPaginationMethod(lines: string[], op: IROperation): void {
   for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)} ${goType(p.type)}`);
   if (op.queryParams.length > 0) args.push(`params *${upperFirst(op.methodName)}Params`);
   lines.push(`func (s *${stubName}) ${goMethodName(op)}All(${args.join(', ')}) ([]${itemType}, error) {`);
-  lines.push(`\treturn nil, fmt.Errorf(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
+  lines.push(`\treturn nil, NotImplementedError{Method: ${JSON.stringify(`${op.tag}.${op.methodName}All`)}}`);
   lines.push('}');
 }
 
@@ -737,7 +738,7 @@ function generateClient(ir: IR): string {
   const needURL = ir.services.some((s) => s.operations.some((o) => o.queryParams.length > 0));
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
-  const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"math/rand"', '"net/http"', '"strconv"', '"time"'];
+  const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"time"'];
   if (needBytes) imports.push('"bytes"');
   if (needURL) imports.push('"net/url"');
   if (needErrors) imports.push('"errors"');
@@ -760,50 +761,6 @@ function generateClient(ir: IR): string {
   lines.push('func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {');
   lines.push('\treq.Header.Set("Authorization", "Bearer "+t.token)');
   lines.push('\treturn t.base.RoundTrip(req)');
-  lines.push('}');
-  lines.push('');
-  lines.push('const maxRetries = 3');
-  lines.push('');
-  lines.push('var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}');
-  lines.push('');
-  lines.push('func jitter(d time.Duration) time.Duration {');
-  lines.push('\treturn time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))');
-  lines.push('}');
-  lines.push('');
-  lines.push('func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {');
-  lines.push('\tfor attempt := 0; ; attempt++ {');
-  lines.push('\t\tif attempt > 0 && req.GetBody != nil {');
-  lines.push('\t\t\treq.Body, _ = req.GetBody()');
-  lines.push('\t\t}');
-  lines.push('\t\tresp, err := client.Do(req)');
-  lines.push('\t\tif err != nil {');
-  lines.push('\t\t\treturn nil, err');
-  lines.push('\t\t}');
-  lines.push('\t\tif resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {');
-  lines.push('\t\t\tresp.Body.Close()');
-  lines.push('\t\t\tdelay := time.Duration(1<<uint(attempt)) * time.Second');
-  lines.push('\t\t\tif ra := resp.Header.Get("Retry-After"); ra != "" {');
-  lines.push('\t\t\t\tif secs, err := strconv.Atoi(ra); err == nil {');
-  lines.push('\t\t\t\t\tdelay = time.Duration(secs) * time.Second');
-  lines.push('\t\t\t\t}');
-  lines.push('\t\t\t}');
-  lines.push('\t\t\ttime.Sleep(addJitter(delay))');
-  lines.push('\t\t\tcontinue');
-  lines.push('\t\t}');
-  lines.push('\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {');
-  lines.push('\t\t\tresp.Body.Close()');
-  lines.push('\t\t\tdelay := time.Duration(attempt+1) * time.Second');
-  lines.push('\t\t\ttime.Sleep(addJitter(delay))');
-  lines.push('\t\t\tcontinue');
-  lines.push('\t\t}');
-  lines.push('\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {');
-  lines.push('\t\t\tresp.Body.Close()');
-  lines.push('\t\t\tdelay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)');
-  lines.push('\t\t\ttime.Sleep(delay)');
-  lines.push('\t\t\tcontinue');
-  lines.push('\t\t}');
-  lines.push('\t\treturn resp, nil');
-  lines.push('\t}');
   lines.push('}');
   lines.push('');
 
@@ -927,9 +884,63 @@ function generateUtils(): string {
   return [
     'package pachca',
     '',
+    'import (',
+    '\t"math/rand"',
+    '\t"net/http"',
+    '\t"strconv"',
+    '\t"time"',
+    ')',
+    '',
     '// Ptr returns a pointer to the given value.',
     'func Ptr[T any](v T) *T {',
     '\treturn &v',
+    '}',
+    '',
+    '// NotImplementedError is returned by stub methods that have not been implemented.',
+    'type NotImplementedError struct {',
+    '\tMethod string',
+    '}',
+    '',
+    'func (e NotImplementedError) Error() string {',
+    '\treturn e.Method + " is not implemented"',
+    '}',
+    '',
+    'const maxRetries = 3',
+    '',
+    'var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}',
+    '',
+    'func jitter(d time.Duration) time.Duration {',
+    '\treturn time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))',
+    '}',
+    '',
+    'func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {',
+    '\tfor attempt := 0; ; attempt++ {',
+    '\t\tif attempt > 0 && req.GetBody != nil {',
+    '\t\t\treq.Body, _ = req.GetBody()',
+    '\t\t}',
+    '\t\tresp, err := client.Do(req)',
+    '\t\tif err != nil {',
+    '\t\t\treturn nil, err',
+    '\t\t}',
+    '\t\tif resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {',
+    '\t\t\tresp.Body.Close()',
+    '\t\t\tdelay := time.Duration(1<<uint(attempt)) * time.Second',
+    '\t\t\tif ra := resp.Header.Get("Retry-After"); ra != "" {',
+    '\t\t\t\tif secs, err := strconv.Atoi(ra); err == nil {',
+    '\t\t\t\t\tdelay = time.Duration(secs) * time.Second',
+    '\t\t\t\t}',
+    '\t\t\t}',
+    '\t\t\ttime.Sleep(jitter(delay))',
+    '\t\t\tcontinue',
+    '\t\t}',
+    '\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {',
+    '\t\t\tresp.Body.Close()',
+    '\t\t\tdelay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)',
+    '\t\t\ttime.Sleep(delay)',
+    '\t\t\tcontinue',
+    '\t\t}',
+    '\t\treturn resp, nil',
+    '\t}',
     '}',
     '',
   ].join('\n');

@@ -81,6 +81,18 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
       - `user_id: integer, int32` (required) — Идентификатор пользователя, который нажал кнопку
       - `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка
       - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+    - **ViewSubmitWebhookPayload**: Структура исходящего вебхука о заполнении формы
+      - `type: string` (required) — Тип объекта
+        Значения: `view` — Для формы всегда view
+      - `event: string` (required) — Тип события
+        Значения: `submit` — Отправка формы
+      - `callback_id: string` (required) — Идентификатор обратного вызова, указанный при открытии представления
+      - `private_metadata: string` (required) — Приватные метаданные, указанные при открытии представления
+      - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму
+      - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные
+        **Структура значений Record:**
+        - Тип значения: `any`
+      - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
     - **ChatMemberWebhookPayload**: Структура исходящего вебхука об участниках чата
       - `type: string` (required) — Тип объекта
         Значения: `chat_member` — Для участника чата всегда chat_member

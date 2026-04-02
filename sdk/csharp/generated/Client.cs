@@ -51,7 +51,7 @@ public sealed class SecurityService
         if (entityType != null)
             queryParts.Add($"entity_type={Uri.EscapeDataString(entityType)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/audit_events" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -110,7 +110,7 @@ public sealed class BotsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/webhooks/events" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -215,7 +215,7 @@ public sealed class ChatsService
         if (personal != null)
             queryParts.Add($"personal={Uri.EscapeDataString((personal.Value ? "true" : "false"))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/chats" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -480,7 +480,7 @@ public sealed class MembersService
         if (role != null)
             queryParts.Add($"role={Uri.EscapeDataString(PachcaUtils.EnumToApiString(role.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/chats/{id}/members" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -658,9 +658,9 @@ public sealed class GroupTagsService
     {
         var queryParts = new List<string>();
         if (names != null)
-            queryParts.Add($"names={Uri.EscapeDataString(names.ToString())}");
+            queryParts.Add($"names={Uri.EscapeDataString(names.ToString()!)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/group_tags" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -719,7 +719,7 @@ public sealed class GroupTagsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/group_tags/{id}/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -829,11 +829,11 @@ public sealed class MessagesService
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
-        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString())}");
+        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString()!)}");
         if (sortId != null)
             queryParts.Add($"sort[{{field}}]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sortId.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1028,7 +1028,7 @@ public sealed class ReactionsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages/{id}/reactions" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1128,7 +1128,7 @@ public sealed class ReadMembersService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages/{id}/read_member_ids" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1318,7 +1318,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (order != null)
@@ -1386,7 +1386,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (order != null)
@@ -1396,9 +1396,9 @@ public sealed class SearchService
         if (createdTo != null)
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (chatIds != null)
-            queryParts.Add($"chat_ids={Uri.EscapeDataString(chatIds.ToString())}");
+            queryParts.Add($"chat_ids={Uri.EscapeDataString(chatIds.ToString()!)}");
         if (userIds != null)
-            queryParts.Add($"user_ids={Uri.EscapeDataString(userIds.ToString())}");
+            queryParts.Add($"user_ids={Uri.EscapeDataString(userIds.ToString()!)}");
         if (active != null)
             queryParts.Add($"active={Uri.EscapeDataString((active.Value ? "true" : "false"))}");
         var url = $"{_baseUrl}/search/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1453,7 +1453,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (sort != null)
@@ -1465,7 +1465,7 @@ public sealed class SearchService
         if (createdTo != null)
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (companyRoles != null)
-            queryParts.Add($"company_roles={Uri.EscapeDataString(companyRoles.ToString())}");
+            queryParts.Add($"company_roles={Uri.EscapeDataString(companyRoles.ToString()!)}");
         var url = $"{_baseUrl}/search/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
@@ -1521,7 +1521,7 @@ public sealed class TasksService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/tasks" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1649,7 +1649,7 @@ public sealed class UsersService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");

@@ -80,17 +80,3 @@ npx skills add pachca/openapi
 ```
 
 More info: [API Docs](https://dev.pachca.com) · [Full reference](https://dev.pachca.com/llms-full.txt) · [OpenAPI spec](https://dev.pachca.com/openapi.yaml) · CLI help: `pachca --help`
-
-## Generator Development
-
-When modifying the SDK generator (`packages/generator/src/lang/*.ts`):
-
-1. Run tests: `cd packages/generator && npm test`
-2. **Regenerate test snapshots**: Ask the user to run `bun bin/regen-snapshots.ts` in `packages/generator`
-3. Regenerate SDKs: Run `npm run generate` in each `sdk/*` directory
-
-## Agent Restrictions
-
-**NEVER run these commands directly** — ask the user to run them:
-- `bun bin/regen-snapshots.ts` — regenerates test snapshots
-- Any command that bulk-modifies test fixtures or snapshots

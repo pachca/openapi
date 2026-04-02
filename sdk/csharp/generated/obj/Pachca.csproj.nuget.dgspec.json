@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/runner/work/openapi/openapi/sdk/csharp/generated/Pachca.csproj": {}
+    "/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/Pachca.csproj": {}
   },
   "projects": {
-    "/home/runner/work/openapi/openapi/sdk/csharp/generated/Pachca.csproj": {
+    "/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/Pachca.csproj": {
       "version": "0.0.0",
       "restore": {
-        "projectUniqueName": "/home/runner/work/openapi/openapi/sdk/csharp/generated/Pachca.csproj",
+        "projectUniqueName": "/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/Pachca.csproj",
         "projectName": "Pachca.Sdk",
-        "projectPath": "/home/runner/work/openapi/openapi/sdk/csharp/generated/Pachca.csproj",
-        "packagesPath": "/home/runner/.nuget/packages/",
-        "outputPath": "/home/runner/work/openapi/openapi/sdk/csharp/generated/obj/",
+        "projectPath": "/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/Pachca.csproj",
+        "packagesPath": "/Users/andrewlukin/.nuget/packages/",
+        "outputPath": "/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/runner/.nuget/NuGet/NuGet.Config"
+          "/Users/andrewlukin/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,13 +32,7 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "10.0.200"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -59,7 +53,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.125/libexec/sdk/8.0.125/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

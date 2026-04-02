@@ -1,0 +1,52 @@
+{
+  "name": "Пересылка сообщений",
+  "nodes": [
+    {
+      "parameters": {
+        "events": ["new_message"]
+      },
+      "name": "Pachca Trigger",
+      "type": "n8n-nodes-pachca.pachcaTrigger",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": "CHAT_ID_ИСТОЧНИКА",
+              "operator": { "type": "number", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "IF из нужного чата",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": "CHAT_ID_ЦЕЛЕВОГО",
+        "content": "**Пересылка от {{ $('Pachca Trigger').item.json.user_id }}:**\n\n{{ $('Pachca Trigger').item.json.content }}"
+      },
+      "name": "Переслать",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Pachca Trigger": { "main": [[{ "node": "IF из нужного чата", "type": "main", "index": 0 }]] },
+    "IF из нужного чата": { "main": [[{ "node": "Переслать", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

@@ -1,0 +1,52 @@
+{
+  "name": "Приветствие нового сотрудника",
+  "nodes": [
+    {
+      "parameters": {
+        "events": ["new_message"]
+      },
+      "name": "Pachca Trigger",
+      "type": "n8n-nodes-pachca.pachcaTrigger",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "присоединил",
+              "operator": { "type": "string", "operation": "contains" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "IF системное",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": "={{ $('Pachca Trigger').item.json.chat_id }}",
+        "content": "Добро пожаловать в команду! Если есть вопросы — пишите в этот чат."
+      },
+      "name": "Приветствие",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Pachca Trigger": { "main": [[{ "node": "IF системное", "type": "main", "index": 0 }]] },
+    "IF системное": { "main": [[{ "node": "Приветствие", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

@@ -1,0 +1,135 @@
+name: n8n Node
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/n8n/**'
+      - 'packages/spec/openapi.yaml'
+      - 'packages/spec/workflows.ts'
+      - 'packages/spec/examples.ts'
+      - 'packages/openapi-parser/src/**'
+      - 'packages/generator/src/naming.ts'
+      - 'apps/docs/lib/openapi/mapper.ts'
+      - 'apps/docs/lib/openapi/example-generator.ts'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'integrations/n8n/**'
+      - 'packages/spec/openapi.yaml'
+      - 'packages/spec/workflows.ts'
+      - 'packages/spec/examples.ts'
+      - 'packages/openapi-parser/src/**'
+      - 'packages/generator/src/naming.ts'
+      - 'apps/docs/lib/openapi/mapper.ts'
+      - 'apps/docs/lib/openapi/example-generator.ts'
+  workflow_dispatch:
+
+jobs:
+  generate-and-build:
+    name: Generate & Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build parser
+        working-directory: packages/openapi-parser
+        run: bun run build
+
+      - name: Generate n8n node
+        run: bun run integrations/n8n/scripts/generate-n8n.ts
+
+      - name: Type check
+        working-directory: integrations/n8n
+        run: bun run tsc --noEmit
+
+      - name: Lint
+        working-directory: integrations/n8n
+        run: bun run lint
+
+      - name: Test
+        working-directory: integrations/n8n
+        run: bun run test
+
+      - name: Build n8n node
+        working-directory: integrations/n8n
+        run: bun run build
+
+  publish:
+    if: github.event_name == 'push'
+    needs: generate-and-build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-n8n
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build parser
+        working-directory: packages/openapi-parser
+        run: bun run build
+
+      - name: Generate n8n node
+        run: bun run integrations/n8n/scripts/generate-n8n.ts
+
+      - name: Check version
+        id: version
+        run: |
+          PKG_VERSION=$(node -e "console.log(require('./integrations/n8n/package.json').version)")
+          CHANGELOG_VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('integrations/n8n/changelog.json'))[0].version)")
+
+          if [ "$PKG_VERSION" != "$CHANGELOG_VERSION" ]; then
+            echo "::error::Version mismatch: package.json=$PKG_VERSION, changelog.json=$CHANGELOG_VERSION"
+            exit 1
+          fi
+
+          echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
+
+          # Check if this version already exists on npm
+          PUBLISHED=$(node -e "
+            const { execSync } = require('child_process');
+            try {
+              const raw = execSync('npm view n8n-nodes-pachca versions --json', { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
+              const versions = JSON.parse(raw);
+              const list = Array.isArray(versions) ? versions : [versions];
+              console.log(list.includes('$PKG_VERSION') ? 'yes' : 'no');
+            } catch { console.log('no'); }
+          ")
+          echo "published=$PUBLISHED" >> $GITHUB_OUTPUT
+
+      - name: Build n8n node
+        if: steps.version.outputs.published == 'no'
+        working-directory: integrations/n8n
+        run: bun run build
+
+      - name: Scan community package
+        if: steps.version.outputs.published == 'no'
+        working-directory: integrations/n8n
+        run: bun x @n8n/scan-community-package .
+
+      - name: Publish to npm
+        if: steps.version.outputs.published == 'no'
+        working-directory: integrations/n8n
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance

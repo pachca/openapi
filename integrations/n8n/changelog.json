@@ -1,0 +1,16 @@
+[
+  {
+    "version": "2.0.0",
+    "date": "2026-03-29",
+    "changes": [
+      { "type": "+", "scope": "all", "description": "Auto-generated from OpenAPI with full v1 backward compatibility" },
+      { "type": "+", "scope": "resource", "description": "New: Member, Read Member, Link Preview, Search, Security" },
+      { "type": "+", "scope": "resource", "description": "Task resource now supports full CRUD (was create-only)" },
+      { "type": "+", "scope": "feature", "description": "Auto-pagination with Return All / Limit (cursor-based)" },
+      { "type": "+", "scope": "feature", "description": "AI Tool Use support (usableAsTool: true)" },
+      { "type": "+", "scope": "trigger", "description": "Pachca Trigger with automatic webhook registration" },
+      { "type": "+", "scope": "feature", "description": "English descriptions for common fields" },
+      { "type": "+", "scope": "feature", "description": "Bot update with dedicated webhookUrl field" }
+    ]
+  }
+]

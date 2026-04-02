@@ -7962,6 +7962,58 @@ components:
         - $ref: '#/components/schemas/ViewBlockTime'
         - $ref: '#/components/schemas/ViewBlockFileInput'
       description: Union-тип для всех возможных блоков представления
+    ViewSubmitWebhookPayload:
+      type: object
+      required:
+        - type
+        - event
+        - callback_id
+        - private_metadata
+        - user_id
+        - data
+        - webhook_timestamp
+      properties:
+        type:
+          type: string
+          enum:
+            - view
+          description: Тип объекта
+          example: view
+          x-enum-descriptions:
+            view: Для формы всегда view
+        event:
+          type: string
+          enum:
+            - submit
+          description: Тип события
+          example: submit
+          x-enum-descriptions:
+            submit: Отправка формы
+        callback_id:
+          type: string
+          nullable: true
+          description: Идентификатор обратного вызова, указанный при открытии представления
+          example: timeoff_request_form
+        private_metadata:
+          type: string
+          nullable: true
+          description: Приватные метаданные, указанные при открытии представления
+          example: "{'timeoff_id':4378}"
+        user_id:
+          type: integer
+          format: int32
+          description: Идентификатор пользователя, который отправил форму
+          example: 1235523
+        data:
+          type: object
+          additionalProperties: {}
+          description: Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные
+        webhook_timestamp:
+          type: integer
+          format: int32
+          description: Дата и время отправки вебхука (UTC+0) в формате UNIX
+          example: 1755075544
+      description: Структура исходящего вебхука о заполнении формы
     WebhookEvent:
       type: object
       required:
@@ -8036,6 +8088,7 @@ components:
         - $ref: '#/components/schemas/MessageWebhookPayload'
         - $ref: '#/components/schemas/ReactionWebhookPayload'
         - $ref: '#/components/schemas/ButtonWebhookPayload'
+        - $ref: '#/components/schemas/ViewSubmitWebhookPayload'
         - $ref: '#/components/schemas/ChatMemberWebhookPayload'
         - $ref: '#/components/schemas/CompanyMemberWebhookPayload'
         - $ref: '#/components/schemas/LinkSharedWebhookPayload'

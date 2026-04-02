@@ -1613,6 +1613,7 @@ public class ViewBlockFileInput : ViewBlockUnion
 [JsonDerivedType(typeof(MessageWebhookPayload), "message")]
 [JsonDerivedType(typeof(ReactionWebhookPayload), "reaction")]
 [JsonDerivedType(typeof(ButtonWebhookPayload), "button")]
+[JsonDerivedType(typeof(ViewSubmitWebhookPayload), "view")]
 [JsonDerivedType(typeof(ChatMemberWebhookPayload), "chat_member")]
 [JsonDerivedType(typeof(CompanyMemberWebhookPayload), "company_member")]
 [JsonDerivedType(typeof(LinkSharedWebhookPayload), "message")]
@@ -1683,6 +1684,21 @@ public class ButtonWebhookPayload : WebhookPayloadUnion
     public int UserId { get; set; } = default!;
     [JsonPropertyName("chat_id")]
     public int ChatId { get; set; } = default!;
+    [JsonPropertyName("webhook_timestamp")]
+    public int WebhookTimestamp { get; set; } = default!;
+}
+
+public class ViewSubmitWebhookPayload : WebhookPayloadUnion
+{
+    public override string Type => "view";
+    [JsonPropertyName("callback_id")]
+    public string? CallbackId { get; set; }
+    [JsonPropertyName("private_metadata")]
+    public string? PrivateMetadata { get; set; }
+    [JsonPropertyName("user_id")]
+    public int UserId { get; set; } = default!;
+    [JsonPropertyName("data")]
+    public Dictionary<string, string> Data { get; set; } = default!;
     [JsonPropertyName("webhook_timestamp")]
     public int WebhookTimestamp { get; set; } = default!;
 }

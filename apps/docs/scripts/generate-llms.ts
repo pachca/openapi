@@ -12,7 +12,6 @@ import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
-import { WORKFLOWS } from '@pachca/spec/workflows';
 
 const SITE_URL = 'https://dev.pachca.com';
 
@@ -433,52 +432,6 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   ].join('\n');
 }
 
-function generateScenariosJson() {
-  const scenarios: {
-    id: string;
-    title: string;
-    skill: string;
-    steps: {
-      description: string;
-      command?: string;
-      apiMethod?: string;
-      apiPath?: string;
-      notes?: string;
-    }[];
-    notes?: string;
-    related?: string[];
-  }[] = [];
-  const skillNames = new Set(SKILL_TAG_MAP.map((c) => c.name));
-
-  for (const [skillName, workflows] of Object.entries(WORKFLOWS)) {
-    if (!skillNames.has(skillName)) continue;
-    for (let i = 0; i < workflows.length; i++) {
-      const wf = workflows[i];
-      scenarios.push({
-        id: `${skillName}-${i}`,
-        title: wf.title,
-        skill: skillName,
-        steps: wf.steps.map((step) => {
-          const s: Record<string, string | undefined> = { description: step.description };
-          if (step.command) s.command = step.command;
-          if (step.apiMethod) s.apiMethod = step.apiMethod;
-          if (step.apiPath) s.apiPath = step.apiPath;
-          if (step.notes) s.notes = step.notes;
-          return s as (typeof scenarios)[0]['steps'][0];
-        }),
-        ...(wf.notes ? { notes: wf.notes } : {}),
-        ...(wf.related?.length ? { related: wf.related } : {}),
-      });
-    }
-  }
-
-  return {
-    $schema: 'https://dev.pachca.com/scenarios.schema.json',
-    version: '1.0',
-    scenarios,
-  };
-}
-
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url ?? 'https://api.pachca.com/api/shared/v1';
   const grouped = groupByTag(api.endpoints);
@@ -679,9 +632,7 @@ async function main() {
   }
   console.log(`✓ ${skillFiles.length} skill files`);
 
-  const scenarios = generateScenariosJson();
-  writeFile('public/scenarios.json', JSON.stringify(scenarios, null, 2) + '\n');
-  console.log(`✓ public/scenarios.json (${scenarios.scenarios.length} scenarios)`);
+  // scenarios.json removed — its role is covered by the n8n node (n8n-nodes-pachca)
 
   const postmanCollection = generatePostmanCollection(api);
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));

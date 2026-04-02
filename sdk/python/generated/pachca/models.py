@@ -1132,6 +1132,17 @@ class ViewBlockTime:
 
 
 @dataclass
+class ViewSubmitWebhookPayload:
+    type: str  # literal "view"
+    event: str  # literal "submit"
+    user_id: int
+    data: dict[str, str]
+    webhook_timestamp: int
+    callback_id: str | None = None
+    private_metadata: str | None = None
+
+
+@dataclass
 class WebhookEvent:
     id: str
     event_type: str
@@ -1157,7 +1168,7 @@ AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, Audit
 ViewBlockUnion = Union[ViewBlockHeader, ViewBlockPlainText, ViewBlockMarkdown, ViewBlockDivider, ViewBlockInput, ViewBlockSelect, ViewBlockRadio, ViewBlockCheckbox, ViewBlockDate, ViewBlockTime, ViewBlockFileInput]
 
 
-WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, ButtonWebhookPayload, ChatMemberWebhookPayload, CompanyMemberWebhookPayload, LinkSharedWebhookPayload]
+WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, ButtonWebhookPayload, ViewSubmitWebhookPayload, ChatMemberWebhookPayload, CompanyMemberWebhookPayload, LinkSharedWebhookPayload]
 
 
 @dataclass

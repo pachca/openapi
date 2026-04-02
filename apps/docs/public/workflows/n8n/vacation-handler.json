@@ -1,0 +1,71 @@
+{
+  "name": "Обработка заявки на отпуск",
+  "nodes": [
+    {
+      "parameters": {
+        "events": ["button_pressed"]
+      },
+      "name": "Button Pressed",
+      "type": "n8n-nodes-pachca.pachcaTrigger",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "form",
+        "operation": "create",
+        "triggerId": "={{ $json.trigger_id }}",
+        "title": "Заявка на отпуск",
+        "blocks": "[{\"type\":\"input\",\"element\":{\"type\":\"datepicker\",\"action_id\":\"date_from\"},\"label\":{\"text\":\"Дата начала\"}},{\"type\":\"input\",\"element\":{\"type\":\"datepicker\",\"action_id\":\"date_to\"},\"label\":{\"text\":\"Дата окончания\"}},{\"type\":\"input\",\"element\":{\"type\":\"plain_text_input\",\"multiline\":true,\"action_id\":\"comment\"},\"label\":{\"text\":\"Комментарий\"},\"optional\":true}]"
+      },
+      "name": "Форма отпуска",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "events": ["form_submitted"]
+      },
+      "name": "Form Submitted",
+      "type": "n8n-nodes-pachca.pachcaTrigger",
+      "typeVersion": 2,
+      "position": [520, 0]
+    },
+    {
+      "parameters": {
+        "resource": "thread",
+        "operation": "create",
+        "messageId": "={{ $(\"Form Submitted\").item.json.message_id }}",
+        "content": "**Заявка на отпуск**\n\n**С:** {{ $(\"Form Submitted\").item.json.values.date_from }}\n**По:** {{ $(\"Form Submitted\").item.json.values.date_to }}\n**Комментарий:** {{ $(\"Form Submitted\").item.json.values.comment || '—' }}"
+      },
+      "name": "Тред с заявкой",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [780, 0]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "entityId": "CHAT_ID_HR",
+        "content": "Новая заявка на отпуск. Примите решение:",
+        "additionalFields": {
+          "buttons": "[[{\"text\": \"Согласовать\", \"data\": \"approve\"}, {\"text\": \"Отклонить\", \"data\": \"reject\"}]]"
+        }
+      },
+      "name": "Кнопки решения",
+      "type": "n8n-nodes-pachca.pachca",
+      "typeVersion": 2,
+      "position": [1040, 0]
+    }
+  ],
+  "connections": {
+    "Button Pressed": { "main": [[{ "node": "Форма отпуска", "type": "main", "index": 0 }]] },
+    "Форма отпуска": { "main": [[{ "node": "Form Submitted", "type": "main", "index": 0 }]] },
+    "Form Submitted": { "main": [[{ "node": "Тред с заявкой", "type": "main", "index": 0 }]] },
+    "Тред с заявкой": { "main": [[{ "node": "Кнопки решения", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

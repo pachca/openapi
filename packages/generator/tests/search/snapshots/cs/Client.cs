@@ -37,10 +37,10 @@ public sealed class SearchService
         queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (chatIds != null)
             foreach (var item in chatIds)
-                queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString())}");
+                queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString()!)}");
         if (userIds != null)
             foreach (var item in userIds)
-                queryParts.Add($"user_ids[]={Uri.EscapeDataString(item.ToString())}");
+                queryParts.Add($"user_ids[]={Uri.EscapeDataString(item.ToString()!)}");
         if (createdFrom != null)
             queryParts.Add($"created_from={Uri.EscapeDataString(createdFrom.Value.ToString("o"))}");
         if (createdTo != null)
@@ -48,7 +48,7 @@ public sealed class SearchService
         if (sort != null)
             queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/search/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");

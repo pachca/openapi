@@ -1,5 +1,5 @@
 
-# CSharp
+# C#
 
 [Pachca.Sdk](https://www.nuget.org/packages/Pachca.Sdk) NuGet
 
@@ -137,7 +137,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 using Pachca.Sdk;
 
 // Список чатов
-var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, "2025-01-01T00:00:00.000Z", "2025-02-01T00:00:00.000Z", false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
+var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
 // → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta?)
 ```
 
@@ -275,11 +275,11 @@ catch (OAuthError e)
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Отмена запросов
@@ -415,7 +415,7 @@ var request = new TaskCreateRequest
     {
         Kind = TaskKind.Reminder,
         Content = "Забрать со склада 21 заказ",
-        DueAt = "2020-06-05T12:00:00.000+03:00",
+        DueAt = DateTimeOffset.Parse("2020-06-05T12:00:00.000+03:00"),
         Priority = 2,
         PerformerIds = new List<int> { 123 },
         ChatId = 456,

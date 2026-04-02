@@ -12,3 +12,17 @@
 /home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.xml
 /home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.pdb
 /home/runner/work/openapi/openapi/sdk/csharp/generated/obj/Debug/net8.0/ref/Pachca.dll
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.GeneratedMSBuildEditorConfig.editorconfig
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.AssemblyInfoInputs.cache
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.AssemblyInfo.cs
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.csproj.CoreCompileInputs.cache
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.sourcelink.json
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.dll
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/refint/Pachca.dll
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.xml
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/Pachca.pdb
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.deps.json
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.dll
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.pdb
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/bin/Debug/net8.0/Pachca.xml
+/Users/andrewlukin/Documents/openapi/sdk/csharp/generated/obj/Debug/net8.0/ref/Pachca.dll

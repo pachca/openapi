@@ -435,6 +435,18 @@
     - `user_id: integer, int32` (required) — Идентификатор пользователя, который нажал кнопку. Пример: `2345`
     - `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка. Пример: `9012`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
+  - **ViewSubmitWebhookPayload**: Структура исходящего вебхука о заполнении формы
+    - `type: string` (required) — Тип объекта. Пример: `"view"`
+      Значения: `view` — Для формы всегда view
+    - `event: string` (required) — Тип события. Пример: `"submit"`
+      Значения: `submit` — Отправка формы
+    - `callback_id: string` (required) — Идентификатор обратного вызова, указанный при открытии представления. Пример: `"timeoff_request_form"`
+    - `private_metadata: string` (required) — Приватные метаданные, указанные при открытии представления. Пример: `"{'timeoff_id':4378}"`
+    - `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
+    - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные
+      **Структура значений Record:**
+      - Тип значения: `any`
+    - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1755075544`
   - **ChatMemberWebhookPayload**: Структура исходящего вебхука об участниках чата
     - `type: string` (required) — Тип объекта. Пример: `"chat_member"`
       Значения: `chat_member` — Для участника чата всегда chat_member

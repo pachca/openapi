@@ -20,7 +20,13 @@ export function resolveEndpointLinks(
       if (endpoint) {
         const url = generateUrlFromOperation(endpoint);
         if (mdx) {
-          return `<EndpointLink method="${method}" href="${url}">${description.trim()}</EndpointLink>`;
+          const req = endpoint.requirements;
+          const attrs: string[] = [`method="${method}"`, `href="${url}"`];
+          if (req?.scope) attrs.push(`scope="${req.scope}"`);
+          if (req?.scopeRoles) attrs.push(`scopeRoles="${req.scopeRoles.join(',')}"`);
+          if (req?.plan) attrs.push(`plan="${req.plan}"`);
+          if (req?.auth === false) attrs.push(`noAuth`);
+          return `<EndpointLink ${attrs.join(' ')}>${description.trim()}</EndpointLink>`;
         }
         return `[${description.trim()}](${method}:${url})`;
       }

@@ -13,6 +13,8 @@ const redirects: Redirect[] = [
   // ===== Guides: accordion parent → first child =====
   { source: '/guides/forms', destination: '/guides/forms/overview' },
   { source: '/guides/forms.md', destination: '/guides/forms/overview.md' },
+  { source: '/guides/n8n', destination: '/guides/n8n/overview' },
+  { source: '/guides/n8n.md', destination: '/guides/n8n/overview.md' },
 
   // ===== SDK → Guides =====
   { source: '/api/sdk', destination: '/guides/sdk/overview' },

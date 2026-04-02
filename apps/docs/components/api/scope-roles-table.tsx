@@ -129,22 +129,21 @@ export function ScopeRolesTable({ schema }: ScopeRolesTableProps) {
                           align="end"
                           sideOffset={4}
                           collisionPadding={8}
-                          className="z-50 animate-tooltip bg-text-primary text-[12px] font-semibold rounded-md px-2.5 py-1.5 shadow-xl whitespace-nowrap flex items-center gap-1.5"
+                          className="z-50 animate-tooltip rounded-lg px-2.5 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md text-[12px] font-semibold whitespace-nowrap flex items-center gap-1.5"
                         >
                           {ROLES.map((r, i) => (
                             <span
                               key={r}
                               className={
                                 scopeRoles[scope].includes(r)
-                                  ? 'text-background'
-                                  : 'text-background/40'
+                                  ? 'text-text-primary'
+                                  : 'text-text-tertiary'
                               }
                             >
-                              {i > 0 && <span className="text-background/20 mr-1.5">·</span>}
+                              {i > 0 && <span className="text-text-tertiary/50 mr-1.5">·</span>}
                               {ROLE_LABELS[r]}
                             </span>
                           ))}
-                          <Tooltip.Arrow className="fill-text-primary" width={8} height={4} />
                         </Tooltip.Content>
                       </Tooltip.Portal>
                     </Tooltip.Root>

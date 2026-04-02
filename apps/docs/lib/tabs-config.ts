@@ -65,7 +65,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Go', path: '/guides/sdk/go' },
           { title: 'Kotlin', path: '/guides/sdk/kotlin' },
           { title: 'Swift', path: '/guides/sdk/swift' },
-          { title: 'CSharp', path: '/guides/sdk/csharp' },
+          { title: 'C#', path: '/guides/sdk/csharp' },
         ],
       },
       { title: 'Сценарии', path: '/guides/workflows' },
@@ -101,7 +101,20 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
   {
     title: 'No-code интеграции',
     items: [
-      { title: 'n8n', path: '/guides/n8n' },
+      {
+        title: 'n8n',
+        path: '/guides/n8n/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/n8n/overview' },
+          { title: 'Настройка', path: '/guides/n8n/setup' },
+          { title: 'Ресурсы и операции', path: '/guides/n8n/resources' },
+          { title: 'Триггер', path: '/guides/n8n/trigger' },
+          { title: 'Примеры workflow', path: '/guides/n8n/workflows' },
+          { title: 'Продвинутые функции', path: '/guides/n8n/advanced' },
+          { title: 'Устранение ошибок', path: '/guides/n8n/troubleshooting' },
+          { title: 'Миграция с v1', path: '/guides/n8n/migration' },
+        ],
+      },
       { title: 'Albato', path: '/guides/albato' },
     ],
   },

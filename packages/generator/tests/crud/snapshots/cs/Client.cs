@@ -34,7 +34,7 @@ public sealed class ChatsService
         if (availability != null)
             queryParts.Add($"availability={Uri.EscapeDataString(PachcaUtils.EnumToApiString(availability.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (sortField != null)

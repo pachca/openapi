@@ -1,0 +1,79 @@
+{
+  "name": "n8n-nodes-pachca",
+  "version": "2.0.0",
+  "description": "Pachca node for n8n workflow automation",
+  "license": "MIT",
+  "main": "index.js",
+  "author": {
+    "name": "Pachca",
+    "email": "dev@pachca.com"
+  },
+  "keywords": [
+    "n8n-community-node-package",
+    "pachca",
+    "messenger",
+    "automation",
+    "workflow",
+    "chat",
+    "messages",
+    "users",
+    "files",
+    "api",
+    "integration"
+  ],
+  "homepage": "https://github.com/pachca/openapi/tree/main/integrations/n8n#readme",
+  "bugs": {
+    "url": "https://github.com/pachca/openapi/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pachca/openapi.git",
+    "directory": "integrations/n8n"
+  },
+  "files": [
+    "dist/",
+    "index.js",
+    "icons/",
+    "docs/",
+    "examples/"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/PachcaApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Pachca/Pachca.node.js",
+      "dist/nodes/Pachca/PachcaTrigger.node.js"
+    ]
+  },
+  "scripts": {
+    "generate-n8n": "tsx scripts/generate-n8n.ts && eslint --fix nodes/Pachca/V2/ nodes/Pachca/SharedRouter.ts nodes/Pachca/Pachca.node.ts credentials/ || true",
+    "build": "n8n-node build",
+    "dev:n8n": "n8n-node dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "test": "vitest run --exclude 'e2e/**'",
+    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "e2e:headed": "playwright test -c e2e/playwright.config.ts --headed",
+    "e2e:debug": "playwright test -c e2e/playwright.config.ts --debug",
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "^0.23.0",
+    "eslint": "^9.0.0",
+    "@pachca/openapi-parser": "workspace:*",
+    "n8n-workflow": "*",
+    "typescript": "^5.9.0",
+    "tsx": "^4.0.0",
+    "vitest": "^3.0.0"
+  }
+}

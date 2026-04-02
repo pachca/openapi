@@ -2796,6 +2796,42 @@ model ButtonWebhookPayload {
   webhook_timestamp: int32;
 }
 
+@doc("Структура исходящего вебхука о заполнении формы")
+model ViewSubmitWebhookPayload {
+  @doc("Тип объекта")
+  @example("view")
+  @extension("x-enum-descriptions", #{
+    view: "Для формы всегда view"
+  })
+  type: "view";
+
+  @doc("Тип события")
+  @example("submit")
+  @extension("x-enum-descriptions", #{
+    submit: "Отправка формы"
+  })
+  event: "submit";
+
+  @doc("Идентификатор обратного вызова, указанный при открытии представления")
+  @example("timeoff_request_form")
+  callback_id: string | null;
+
+  @doc("Приватные метаданные, указанные при открытии представления")
+  @example("{'timeoff_id':4378}")
+  private_metadata: string | null;
+
+  @doc("Идентификатор пользователя, который отправил форму")
+  @example(1235523)
+  user_id: int32;
+
+  @doc("Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные")
+  data: Record<unknown>;
+
+  @doc("Дата и время отправки вебхука (UTC+0) в формате UNIX")
+  @example(1755075544)
+  webhook_timestamp: int32;
+}
+
 @doc("Структура исходящего вебхука об участниках чата")
 model ChatMemberWebhookPayload {
   @doc("Тип объекта")
@@ -2912,6 +2948,7 @@ union WebhookPayloadUnion {
   MessageWebhookPayload,
   ReactionWebhookPayload,
   ButtonWebhookPayload,
+  ViewSubmitWebhookPayload,
   ChatMemberWebhookPayload,
   CompanyMemberWebhookPayload,
   LinkSharedWebhookPayload,
@@ -3005,6 +3042,11 @@ interface CommonOperations {
 
 @route("/uploads")
 @tag("Common")
+@extension("x-n8n-file-upload", #{
+  presignEndpoint: "/uploads",
+  urlField: "direct_url",
+  keyField: "key",
+})
 interface UploadOperations {
   @extension("x-requirements", #{
     scope: "uploads:write",

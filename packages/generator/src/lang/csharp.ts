@@ -149,7 +149,7 @@ function queryParamValueExpr(p: IRParam): string {
     return `PachcaUtils.EnumToApiString(${paramName}${valueSuffix})`;
   if (p.type.kind === 'primitive' && p.type.primitive === 'string')
     return paramName;
-  return `${paramName}${valueSuffix}.ToString()`;
+  return `${paramName}${valueSuffix}.ToString()!`;
 }
 
 /** Check if ApiError model exists in IR */
@@ -402,6 +402,7 @@ function generateUtils(): string {
   return `#nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -778,11 +779,11 @@ function emitMethodBody(
       if (p.isArray) {
         if (p.required) {
           lines.push(`${indent2}foreach (var item in ${paramName})`);
-          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString())}");`);
+          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString()!)}");`);
         } else {
           lines.push(`${indent2}if (${paramName} != null)`);
           lines.push(`${indent2}    foreach (var item in ${paramName})`);
-          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString())}");`);
+          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString()!)}");`);
         }
       } else {
         const valueExpr = queryParamValueExpr(p);
@@ -1016,7 +1017,11 @@ function csLiteral(
         return `${ft.example}d`;
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return `"${ft.example}"`;
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `DateTimeOffset.Parse(${JSON.stringify(ft.example)})`;
+        if (ft.format === 'date') return `DateOnly.Parse(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -1032,7 +1037,7 @@ function csLiteral(
       if (ft.primitive === 'any') return 'new object()';
       if (ft.primitive === 'string') {
         if (ft.format === 'date-time') return 'DateTimeOffset.UtcNow';
-        if (ft.format === 'date') return '"2024-01-01"';
+        if (ft.format === 'date') return 'DateOnly.Parse("2024-01-01")';
       }
       return '"example"';
     }
@@ -1062,7 +1067,7 @@ function csLiteral(
       return `default(${ft.ref ?? 'object'})!`;
     }
     case 'literal':
-      return `"${ft.literalValue}"`;
+      return JSON.stringify(ft.literalValue);
     case 'binary':
       return 'Array.Empty<byte>()';
   }
@@ -1085,7 +1090,7 @@ function csModelLiteral(
   const isCyclic = (f: IRField) =>
     f.type.kind === 'model' && f.type.ref != null && nextVisited.has(f.type.ref);
   const fields = model.fields.filter(
-    (f) => (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
+    (f) => f.type.kind !== 'literal' && (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
   );
   if (fields.length === 0) return `new ${modelName}()`;
 

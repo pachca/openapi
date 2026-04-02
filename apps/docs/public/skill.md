@@ -224,7 +224,7 @@ Detailed documentation on specific topics is available at:
 - [Go](https://dev.pachca.com/guides/sdk/go) — Типизированный клиент для Pachca API на Go с контекстами и автопагинацией
 - [Kotlin](https://dev.pachca.com/guides/sdk/kotlin) — Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
 - [Swift](https://dev.pachca.com/guides/sdk/swift) — Типизированный клиент для Pachca API на Swift с async/await и Codable
-- [CSharp](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C# с async/await и автопагинацией
+- [C#](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C# с async/await и автопагинацией
 - [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API
 - [Боты](https://dev.pachca.com/guides/bots) — Создание, настройка и возможности ботов в Пачке
 - [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Отправка сообщений от имени бота без использования API
@@ -237,7 +237,14 @@ Detailed documentation on specific topics is available at:
 - [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов: запрос, скачивание и структура архива
 - [DLP-система](https://dev.pachca.com/guides/dlp) — Создание правил DLP: условия, контексты и действия
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов
-- [n8n](https://dev.pachca.com/guides/n8n) — Автоматизации в Пачке через платформу n8n без программирования
+- [Обзор](https://dev.pachca.com/guides/n8n/overview) — Автоматизации в Пачке через платформу n8n — 18 ресурсов, триггер, AI-агент
+- [Настройка](https://dev.pachca.com/guides/n8n/setup) — Установка n8n, расширения Пачки, настройка Credentials и первый workflow
+- [Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources) — Все 18 ресурсов и более 60 операций расширения Пачки для n8n
+- [Триггер](https://dev.pachca.com/guides/n8n/trigger) — Pachca Trigger: 16 типов событий, авторегистрация вебхука, проверка подписи
+- [Примеры workflow](https://dev.pachca.com/guides/n8n/workflows) — Готовые сценарии автоматизации Пачки в n8n: приветствие, пересылка, задачи, согласование, мониторинг, заявки на отпуск
+- [Продвинутые функции](https://dev.pachca.com/guides/n8n/advanced) — Экспорт сообщений, загрузка файлов, кнопки, формы, AI-агент, разворачивание ссылок, журнал безопасности
+- [Устранение ошибок](https://dev.pachca.com/guides/n8n/troubleshooting) — Частые ошибки при работе с Пачкой в n8n: неверный токен, 403, 429, вебхук не приходит
+- [Миграция с v1](https://dev.pachca.com/guides/n8n/migration) — Обновление с v1 на v2: таблицы переименований, новые ресурсы, полная обратная совместимость
 - [Albato](https://dev.pachca.com/guides/albato) — Интеграция Пачки с Albato — подключение сотен сервисов без кода
 - [Последние обновления](https://dev.pachca.com/updates) — История изменений и новые возможности API
 - [Авторизация](https://dev.pachca.com/api/authorization) — Типы токенов, скоупы и настройка доступа к API

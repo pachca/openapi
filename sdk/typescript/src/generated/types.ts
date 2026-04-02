@@ -1154,6 +1154,16 @@ export interface ViewBlockTime {
   hint?: string;
 }
 
+export interface ViewSubmitWebhookPayload {
+  type: "view";
+  event: "submit";
+  callbackId: string | null;
+  privateMetadata: string | null;
+  userId: number;
+  data: Record<string, string>;
+  webhookTimestamp: number;
+}
+
 export interface WebhookEvent {
   id: string;
   eventType: string;
@@ -1175,7 +1185,7 @@ export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
 
-export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload;
+export type WebhookPayloadUnion = MessageWebhookPayload | ReactionWebhookPayload | ButtonWebhookPayload | ViewSubmitWebhookPayload | ChatMemberWebhookPayload | CompanyMemberWebhookPayload | LinkSharedWebhookPayload;
 
 export interface GetAuditEventsParams {
   startTime?: string;

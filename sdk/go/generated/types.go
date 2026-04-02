@@ -1052,6 +1052,16 @@ type ViewBlockTime struct {
 	Hint        *string `json:"hint,omitempty"`
 }
 
+type ViewSubmitWebhookPayload struct {
+	Type             string            `json:"type"` // always "view"
+	Event            string            `json:"event"` // always "submit"
+	UserID           int32             `json:"user_id"`
+	Data             map[string]string `json:"data"`
+	WebhookTimestamp int32             `json:"webhook_timestamp"`
+	CallbackID       *string           `json:"callback_id"`
+	PrivateMetadata  *string           `json:"private_metadata"`
+}
+
 type WebhookEvent struct {
 	ID        string              `json:"id"`
 	EventType string              `json:"event_type"`
@@ -1288,6 +1298,7 @@ type WebhookPayloadUnion struct {
 	MessageWebhookPayload       *MessageWebhookPayload
 	ReactionWebhookPayload      *ReactionWebhookPayload
 	ButtonWebhookPayload        *ButtonWebhookPayload
+	ViewSubmitWebhookPayload    *ViewSubmitWebhookPayload
 	ChatMemberWebhookPayload    *ChatMemberWebhookPayload
 	CompanyMemberWebhookPayload *CompanyMemberWebhookPayload
 	LinkSharedWebhookPayload    *LinkSharedWebhookPayload
@@ -1310,6 +1321,9 @@ func (u *WebhookPayloadUnion) UnmarshalJSON(data []byte) error {
 	case "button":
 		u.ButtonWebhookPayload = &ButtonWebhookPayload{}
 		return json.Unmarshal(data, u.ButtonWebhookPayload)
+	case "view":
+		u.ViewSubmitWebhookPayload = &ViewSubmitWebhookPayload{}
+		return json.Unmarshal(data, u.ViewSubmitWebhookPayload)
 	case "chat_member":
 		u.ChatMemberWebhookPayload = &ChatMemberWebhookPayload{}
 		return json.Unmarshal(data, u.ChatMemberWebhookPayload)
@@ -1330,6 +1344,9 @@ func (u WebhookPayloadUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.ButtonWebhookPayload != nil {
 		return json.Marshal(u.ButtonWebhookPayload)
+	}
+	if u.ViewSubmitWebhookPayload != nil {
+		return json.Marshal(u.ViewSubmitWebhookPayload)
 	}
 	if u.ChatMemberWebhookPayload != nil {
 		return json.Marshal(u.ChatMemberWebhookPayload)

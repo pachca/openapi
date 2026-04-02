@@ -5,6 +5,7 @@
   /* Primary — warm orange (Pachca brand), AA-compliant white text (4.82:1) */
   --color-primary: oklch(48% 0.17 50);
   --color-primary-dark: oklch(42% 0.17 50);
+  --color-primary-inverted: oklch(72% 0.15 50);
 
   /* Text — 4-level hierarchy, warm stone neutrals */
   --color-text-primary: oklch(20% 0.01 70);
@@ -38,6 +39,7 @@
   --color-callout-tip-text: var(--color-accent-green);
 
   --color-method-get: oklch(60.2% 0.193 263);
+  --color-method-get-inverted: oklch(66% 0.193 263);
   --color-method-post: oklch(63.8% 0.142 143.5);
   --color-method-put: oklch(55.4% 0.116 77);
   --color-method-delete: oklch(63.9% 0.179 28);
@@ -85,6 +87,7 @@ html.dark {
   /* Primary — lighter warm orange for dark mode, desaturated */
   --color-primary: oklch(72% 0.15 50);
   --color-primary-dark: oklch(78% 0.13 50);
+  --color-primary-inverted: oklch(48% 0.17 50);
 
   /* Text — warm off-white, clear 3-level separation */
   --color-text-primary: oklch(93% 0.007 70);
@@ -128,6 +131,7 @@ html.dark {
 
   /* HTTP methods — lighter for dark mode readability */
   --color-method-get: oklch(66% 0.193 263);
+  --color-method-get-inverted: oklch(60.2% 0.193 263);
   --color-method-post: oklch(68% 0.142 143.5);
   --color-method-put: oklch(68% 0.116 77);
   --color-method-delete: oklch(67.1% 0.145 17);
@@ -149,6 +153,7 @@ html.dark {
   html:not(.light):not(.dark) {
     --color-primary: oklch(72% 0.15 50);
     --color-primary-dark: oklch(78% 0.13 50);
+    --color-primary-inverted: oklch(48% 0.17 50);
 
     --color-text-primary: oklch(93% 0.007 70);
     --color-text-secondary: oklch(70% 0.012 70);
@@ -187,6 +192,7 @@ html.dark {
     --color-glass-active: oklch(100% 0 0 / 12%);
 
     --color-method-get: oklch(66% 0.193 263);
+    --color-method-get-inverted: oklch(60.2% 0.193 263);
     --color-method-post: oklch(68% 0.142 143.5);
     --color-method-put: oklch(68% 0.116 77);
     --color-method-delete: oklch(67.1% 0.145 17);

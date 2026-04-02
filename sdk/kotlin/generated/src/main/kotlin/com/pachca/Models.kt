@@ -745,6 +745,17 @@ data class ButtonWebhookPayload(
 ) : WebhookPayloadUnion
 
 @Serializable
+@SerialName("view")
+data class ViewSubmitWebhookPayload(
+    override val type: String = "view",
+    @SerialName("callback_id") val callbackId: String,
+    @SerialName("private_metadata") val privateMetadata: String,
+    @SerialName("user_id") val userId: Int,
+    val data: Map<String, String>,
+    @SerialName("webhook_timestamp") val webhookTimestamp: Int,
+) : WebhookPayloadUnion
+
+@Serializable
 @SerialName("chat_member")
 data class ChatMemberWebhookPayload(
     override val type: String = "chat_member",

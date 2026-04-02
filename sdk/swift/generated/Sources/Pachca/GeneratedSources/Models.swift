@@ -2442,6 +2442,36 @@ public struct ViewBlockTime: Codable {
     }
 }
 
+public struct ViewSubmitWebhookPayload: Codable {
+    public let type: String
+    public let event: String
+    public let callbackId: String?
+    public let privateMetadata: String?
+    public let userId: Int
+    public let data: [String: String]
+    public let webhookTimestamp: Int
+
+    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, userId: Int, data: [String: String], webhookTimestamp: Int) {
+        self.type = type
+        self.event = event
+        self.callbackId = callbackId
+        self.privateMetadata = privateMetadata
+        self.userId = userId
+        self.data = data
+        self.webhookTimestamp = webhookTimestamp
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case event
+        case callbackId = "callback_id"
+        case privateMetadata = "private_metadata"
+        case userId = "user_id"
+        case data
+        case webhookTimestamp = "webhook_timestamp"
+    }
+}
+
 public struct WebhookEvent: Codable {
     public let id: String
     public let eventType: String
@@ -2663,6 +2693,7 @@ public enum WebhookPayloadUnion: Codable {
     case messageWebhookPayload(MessageWebhookPayload)
     case reactionWebhookPayload(ReactionWebhookPayload)
     case buttonWebhookPayload(ButtonWebhookPayload)
+    case viewSubmitWebhookPayload(ViewSubmitWebhookPayload)
     case chatMemberWebhookPayload(ChatMemberWebhookPayload)
     case companyMemberWebhookPayload(CompanyMemberWebhookPayload)
     case linkSharedWebhookPayload(LinkSharedWebhookPayload)
@@ -2681,6 +2712,8 @@ public enum WebhookPayloadUnion: Codable {
             self = .reactionWebhookPayload(try ReactionWebhookPayload(from: decoder))
         case "button":
             self = .buttonWebhookPayload(try ButtonWebhookPayload(from: decoder))
+        case "view":
+            self = .viewSubmitWebhookPayload(try ViewSubmitWebhookPayload(from: decoder))
         case "chat_member":
             self = .chatMemberWebhookPayload(try ChatMemberWebhookPayload(from: decoder))
         case "company_member":
@@ -2699,6 +2732,8 @@ public enum WebhookPayloadUnion: Codable {
         case .reactionWebhookPayload(let value):
             try value.encode(to: encoder)
         case .buttonWebhookPayload(let value):
+            try value.encode(to: encoder)
+        case .viewSubmitWebhookPayload(let value):
             try value.encode(to: encoder)
         case .chatMemberWebhookPayload(let value):
             try value.encode(to: encoder)

@@ -21,8 +21,8 @@ npm install n8n-nodes-pachca
 Or install from archive:
 
 ```bash
-wget https://github.com/pachca/openapi/releases/latest/download/n8n-nodes-pachca.tar.gz
-tar -xzf n8n-nodes-pachca.tar.gz -C ~/.n8n/nodes/
+wget https://github.com/pachca/openapi/releases/latest/download/n8n-nodes-pachca.tgz
+tar -xzf n8n-nodes-pachca.tgz -C ~/.n8n/nodes/
 # Restart n8n
 ```
 

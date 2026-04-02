@@ -3042,11 +3042,6 @@ interface CommonOperations {
 
 @route("/uploads")
 @tag("Common")
-@extension("x-n8n-file-upload", #{
-  presignEndpoint: "/uploads",
-  urlField: "direct_url",
-  keyField: "key",
-})
 interface UploadOperations {
   @extension("x-requirements", #{
     scope: "uploads:write",

@@ -2747,17 +2747,17 @@ public enum WebhookPayloadUnion: Codable {
 
 public struct GetAuditEventsResponse: Codable {
     public let data: [AuditEvent]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct ListChatsResponse: Codable {
     public let data: [Chat]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct ListMembersResponse: Codable {
     public let data: [User]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct ListPropertiesResponse: Codable {
@@ -2766,22 +2766,22 @@ public struct ListPropertiesResponse: Codable {
 
 public struct ListTagsResponse: Codable {
     public let data: [GroupTag]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct GetTagUsersResponse: Codable {
     public let data: [User]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct ListChatMessagesResponse: Codable {
     public let data: [Message]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct ListReactionsResponse: Codable {
     public let data: [Reaction]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct SearchChatsResponse: Codable {
@@ -2801,17 +2801,17 @@ public struct SearchUsersResponse: Codable {
 
 public struct ListTasksResponse: Codable {
     public let data: [Task]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct ListUsersResponse: Codable {
     public let data: [User]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 public struct GetWebhookEventsResponse: Codable {
     public let data: [WebhookEvent]
-    public let meta: PaginationMeta? = nil
+    public var meta: PaginationMeta? = nil
 }
 
 struct BotResponseDataWrapper: Codable {

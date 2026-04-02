@@ -224,7 +224,7 @@ function generateModels(ir: IR): string {
   for (const rt of ir.responses) {
     lines.push(`public struct ${rt.name}: Codable {`);
     lines.push(`    public let data: [${rt.dataRef}]`);
-    if (rt.metaRef) lines.push(`    public let meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
+    if (rt.metaRef) lines.push(`    public ${rt.metaIsRequired ? 'let' : 'var'} meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
     lines.push('}');
     lines.push('');
   }

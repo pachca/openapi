@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   // Keep flexsearch as external to avoid Turbopack worker_threads bundling issues
   serverExternalPackages: ['flexsearch'],
+  turbopack: {
+    root: '../../',
+  },
   async headers() {
     return [
       {

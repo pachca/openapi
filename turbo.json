@@ -64,7 +64,7 @@
     },
     "build": {
       "dependsOn": ["^build", "generate", "overlay:apply", "generate-llms", "generate-cli", "generate-n8n"],
-      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json"],
+      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json", "generated/bin/**", "generated/obj/**"],
       "cache": true
     },
     "dev": {

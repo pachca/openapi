@@ -86,6 +86,19 @@ npx skills add pachca/openapi
 
 Скиллы генерируются автоматически из OpenAPI-спеки при `bun turbo build`. Устанавливайте только из официального репозитория — скиллы содержат исключительно инструкции (нет исполняемого кода).
 
+## n8n
+
+Community node для [n8n](https://n8n.io/) — 18 ресурсов, 60+ операций, Pachca Trigger с авторегистрацией вебхука.
+
+```bash
+# В n8n: Settings > Community Nodes > n8n-nodes-pachca
+npm install n8n-nodes-pachca
+```
+
+Автоматически генерируется из OpenAPI-спецификации, полная обратная совместимость с v1.
+
+**Документация**: [dev.pachca.com/guides/n8n](https://dev.pachca.com/guides/n8n/overview) · **[README](integrations/n8n/README.md)**
+
 ## SDK
 
 | Язык | Пакет | Реестр |
@@ -149,7 +162,6 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 | [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: все endpoint'ы со ссылками |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Полная документация: гайды + endpoint'ы с параметрами |
 | [`/skill.md`](https://dev.pachca.com/skill.md) | AI-agent skill: workflows, capabilities, ссылки |
-| [`/scenarios.json`](https://dev.pachca.com/scenarios.json) | Машиночитаемые сценарии для no-code платформ (n8n, Albato) |
 | `/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
 
 [Context7](https://context7.com/pachca/openapi) — AI-native document discovery.
@@ -173,6 +185,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 |----------|---------|------------|
 | `check.yml` | PR в `main` | `bun turbo check` |
 | `sdk.yml` | Push в `main` | Генерация SDK → коммит → теги → публикация |
+| `n8n.yml` | Push/PR в `main` | Генерация n8n node → тест → npm publish → GitHub Release |
 | `deploy.yml` | Push в `main` | Docker build → GitLab registry → SSH deploy |
 | `gitlab.yml` | Push в `main` | Зеркало в GitLab |
 
@@ -203,8 +216,10 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 │   ├── kotlin/            # JitPack
 │   ├── swift/             # SPM
 │   └── csharp/            # NuGet
+├── integrations/
+│   └── n8n/               # n8n community node (генерируется из OpenAPI)
 ├── skills/                # Agent Skills (генерируются → apps/docs/public/.well-known/skills/)
-├── .github/workflows/     # CI/CD (check, sdk, deploy, gitlab)
+├── .github/workflows/     # CI/CD (check, sdk, n8n, deploy, gitlab)
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)
 ├── jitpack.yml            # JitPack конфиг для Kotlin (JDK 17)
 ├── Dockerfile             # Multi-stage Docker-сборка docs
@@ -231,7 +246,6 @@ apps/docs                           sdk/* (6 языков)
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
   + Agent Skills (skills/, AGENTS.md, .well-known/)
-  + scenarios.json (n8n, no-code)
   + CLI examples (10-й код-генератор)
   + pachca.postman_collection.json
   + OG-изображения + sitemap + RSS
@@ -240,8 +254,7 @@ workflows.ts (packages/spec — единый источник сценариев
     │
     ├──→ Web (страница сценариев с поиском)
     ├──→ CLI (pachca guide)
-    ├──→ Skills (CLI-сценарии в SKILL.md)
-    └──→ scenarios.json (no-code: n8n, Albato)
+    └──→ Skills (CLI-сценарии в SKILL.md)
 ```
 
 ## Turborepo пайплайн
@@ -381,6 +394,6 @@ Badge «Новое» показывается < 7 дней. Попадает в 
 
 ### Безопасность (next.config.ts)
 
-HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`, `scenarios.json`.
+HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
 
 </details>

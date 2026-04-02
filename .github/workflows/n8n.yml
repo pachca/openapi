@@ -12,6 +12,8 @@ on:
       - 'packages/generator/src/naming.ts'
       - 'apps/docs/lib/openapi/mapper.ts'
       - 'apps/docs/lib/openapi/example-generator.ts'
+      - 'packages/spec/overlay.en.yaml'
+      - 'packages/spec/scripts/**'
   pull_request:
     branches: [main]
     paths:
@@ -23,6 +25,8 @@ on:
       - 'packages/generator/src/naming.ts'
       - 'apps/docs/lib/openapi/mapper.ts'
       - 'apps/docs/lib/openapi/example-generator.ts'
+      - 'packages/spec/overlay.en.yaml'
+      - 'packages/spec/scripts/**'
   workflow_dispatch:
 
 jobs:
@@ -44,6 +48,10 @@ jobs:
       - name: Build parser
         working-directory: packages/openapi-parser
         run: bun run build
+
+      - name: Apply English overlay
+        working-directory: packages/spec
+        run: bun run scripts/apply-overlay.ts
 
       - name: Generate n8n node
         run: bun run integrations/n8n/scripts/generate-n8n.ts
@@ -88,6 +96,10 @@ jobs:
       - name: Build parser
         working-directory: packages/openapi-parser
         run: bun run build
+
+      - name: Apply English overlay
+        working-directory: packages/spec
+        run: bun run scripts/apply-overlay.ts
 
       - name: Generate n8n node
         run: bun run integrations/n8n/scripts/generate-n8n.ts

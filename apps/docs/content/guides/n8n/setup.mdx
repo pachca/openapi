@@ -65,8 +65,9 @@ description: Установка n8n, расширения Пачки, настр
     |------|:---:|----------|
     | **Base URL** | нет | Базовый URL API. По умолчанию `https://api.pachca.com/api/shared/v1`. Менять только для on-premise |
     | **Access Token** | да | Токен доступа к API |
-    | **Bot ID** | нет | ID бота — нужен для авторегистрации вебхука в [Pachca Trigger](/guides/n8n/trigger) |
+    | **Bot ID** | нет | ID бота — нужен для авторегистрации вебхука в [Pachca Trigger](/guides/n8n/trigger). Автоопределяется из токена бота |
     | **Signing Secret** | нет | Секрет для верификации входящих webhook-запросов (HMAC-SHA256) |
+    | **Webhook Allowed IPs** | нет | Список IP-адресов через запятую, с которых разрешены входящие вебхуки. Пачка отправляет с `37.200.70.177`. Пустое поле — разрешить все |
 
     <ImageCard src="/images/n8n/credentials-v2.avif" alt="Форма Credentials для Пачки в n8n" caption="Форма Pachca API Credentials" maxWidth={960} />
   </Step>

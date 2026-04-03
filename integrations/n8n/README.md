@@ -77,7 +77,8 @@ Create a **Pachca API** credential with:
 | **Base URL** | no | Default: `https://api.pachca.com/api/shared/v1`. Change only for on-premise. |
 | **Access Token** | yes | Bot or personal API token |
 | **Bot ID** | no | For automatic webhook registration in Trigger. Auto-detected from bot tokens. Set explicitly for admin tokens. |
-| **Signing Secret** | no | For HMAC-SHA256 verification of incoming webhooks |
+| **Signing Secret** | no | For HMAC-SHA256 verification of incoming webhooks (`pachca-signature` header) |
+| **Webhook Allowed IPs** | no | Comma-separated IPs allowed to send webhooks. Pachca sends from `37.200.70.177`. Empty = allow all. |
 
 **Where to get tokens:**
 

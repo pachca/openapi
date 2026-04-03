@@ -13,6 +13,20 @@
 - **English descriptions** for common fields
 - **Bot update** with dedicated webhookUrl field
 
+### Security
+
+- **Webhook signature verification** — HMAC-SHA256 via `pachca-signature` header
+- **IP allowlist** — restrict incoming webhooks by source IP (`Webhook Allowed IPs` credential field)
+- **Replay protection** — reject events older than 5 minutes or timestamped >1 minute in the future
+- **Filename sanitization** — strip control characters and null bytes, truncate to 255 chars
+
+### Bug Fixes
+
+- Fix `do-while` + `continue` retry bug in pagination — retries on 429/502/503 no longer silently exit the loop when cursor is undefined
+- Fix `resolveResourceLocator` — throw on null/undefined/empty values instead of passing them downstream
+- Fix `splitAndValidateCommaList` — reject float values (e.g. `3.14`) in integer mode (`Number.isInteger` instead of `isNaN`)
+- Fix replay protection — reject far-future timestamps (>1 minute ahead), not just old ones
+
 ### v1 Compatibility
 
 All v1 workflows continue to work without changes:

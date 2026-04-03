@@ -12,7 +12,7 @@ Swift клиент для [Pachca API](https://dev.pachca.com).
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
 ]
 ```
 

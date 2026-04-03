@@ -12,7 +12,7 @@ Kotlin клиент для [Pachca API](https://dev.pachca.com).
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.pachca:pachca-sdk:1.0.1")
+    implementation("com.pachca:pachca-sdk:latest.release")
 }
 ```
 

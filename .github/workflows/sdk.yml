@@ -15,6 +15,13 @@ jobs:
       contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
+      any_sdk_changed: ${{ steps.sdk_changes.outputs.any_changed }}
+      ts_changed: ${{ steps.sdk_changes.outputs.ts_changed }}
+      go_changed: ${{ steps.sdk_changes.outputs.go_changed }}
+      kotlin_changed: ${{ steps.sdk_changes.outputs.kotlin_changed }}
+      python_changed: ${{ steps.sdk_changes.outputs.python_changed }}
+      csharp_changed: ${{ steps.sdk_changes.outputs.csharp_changed }}
+      swift_changed: ${{ steps.sdk_changes.outputs.swift_changed }}
       cli_changed: ${{ steps.cli_check.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
@@ -36,12 +43,23 @@ jobs:
       - name: Check for SDK changes
         id: sdk_changes
         run: |
-          echo "ts_changed=$(git diff --name-only -- sdk/typescript/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "go_changed=$(git diff --name-only -- sdk/go/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "kotlin_changed=$(git diff --name-only -- sdk/kotlin/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "python_changed=$(git diff --name-only -- sdk/python/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "csharp_changed=$(git diff --name-only -- sdk/csharp/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
-          echo "swift_changed=$(git diff --name-only -- sdk/swift/ | grep -q . && echo true || echo false)" >> $GITHUB_OUTPUT
+          TS=$(git diff --name-only -- sdk/typescript/ | grep -q . && echo true || echo false)
+          GO=$(git diff --name-only -- sdk/go/ | grep -q . && echo true || echo false)
+          KT=$(git diff --name-only -- sdk/kotlin/ | grep -q . && echo true || echo false)
+          PY=$(git diff --name-only -- sdk/python/ | grep -q . && echo true || echo false)
+          CS=$(git diff --name-only -- sdk/csharp/ | grep -q . && echo true || echo false)
+          SW=$(git diff --name-only -- sdk/swift/ | grep -q . && echo true || echo false)
+          echo "ts_changed=$TS" >> $GITHUB_OUTPUT
+          echo "go_changed=$GO" >> $GITHUB_OUTPUT
+          echo "kotlin_changed=$KT" >> $GITHUB_OUTPUT
+          echo "python_changed=$PY" >> $GITHUB_OUTPUT
+          echo "csharp_changed=$CS" >> $GITHUB_OUTPUT
+          echo "swift_changed=$SW" >> $GITHUB_OUTPUT
+          if [ "$TS" = "true" ] || [ "$GO" = "true" ] || [ "$KT" = "true" ] || [ "$PY" = "true" ] || [ "$CS" = "true" ] || [ "$SW" = "true" ]; then
+            echo "any_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "any_changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Check for CLI changes
         if: github.event_name == 'push'
@@ -98,11 +116,11 @@ jobs:
         run: swift build
 
       - name: Copy Swift Package.swift to root
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.sdk_changes.outputs.swift_changed == 'true'
         run: cp sdk/swift/Package.swift Package.swift
 
       - name: Extract version
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
         id: version
         run: |
           SPEC_VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
@@ -121,7 +139,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -129,17 +147,18 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: regenerate SDK v${{ steps.version.outputs.version }}"
 
       - name: Tag
-        if: github.event_name == 'push'
-        run: |
-          git tag -f "v${{ steps.version.outputs.version }}"
-          git tag -f "sdk/go/generated/v${{ steps.version.outputs.version }}"
+        if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
+        run: git tag -f "v${{ steps.version.outputs.version }}"
+      - name: Tag Go SDK
+        if: github.event_name == 'push' && steps.sdk_changes.outputs.go_changed == 'true'
+        run: git tag -f "sdk/go/generated/v${{ steps.version.outputs.version }}"
 
       - name: Push
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
         run: git push && git push --tags --force
 
   publish-ts:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.ts_changed == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     permissions:
@@ -240,7 +259,7 @@ jobs:
           }
 
   publish-py:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.python_changed == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     steps:
@@ -265,7 +284,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
   publish-kt:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.kotlin_changed == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     steps:
@@ -274,7 +293,7 @@ jobs:
           version: v${{ needs.generate-and-build.outputs.version }}
 
   publish-cs:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.csharp_changed == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     steps:

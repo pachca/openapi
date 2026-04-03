@@ -273,7 +273,8 @@ export function buildMultipartBody(
   const boundary = `----WebKitFormBoundary${crypto.randomBytes(16).toString('hex')}`;
   const parts: Buffer[] = [];
   // Sanitize filename: strip CRLF and quotes to prevent header injection
-  const safeName = fileName.replace(/[\r\n\\"]/g, '_');
+  // eslint-disable-next-line no-control-regex
+  const safeName = fileName.replace(/[\x00-\x1f\x7f\\"]/g, '_').slice(0, 255);
 
   // Policy fields first (order matters for S3)
   for (const [key, value] of Object.entries(fields)) {
@@ -566,7 +567,14 @@ export function resolveResourceLocator(
     }
   }
   if (typeof value === 'object' && value !== null && (value as IDataObject).__rl) {
-    return (value as IDataObject).value as number | string;
+    const rlValue = (value as IDataObject).value;
+    if (rlValue === null || rlValue === undefined || rlValue === '') {
+      throw new NodeOperationError(ctx.getNode(), `Parameter "${paramName}" is empty`, { itemIndex });
+    }
+    return rlValue as number | string;
+  }
+  if (value === null || value === undefined || value === '') {
+    throw new NodeOperationError(ctx.getNode(), `Parameter "${paramName}" is empty`, { itemIndex });
   }
   return value as number | string;
 }
@@ -869,7 +877,7 @@ export function splitAndValidateCommaList(
 ): (number | string)[] {
   const arr = value.split(',').map(s => s.trim()).filter(Boolean);
   if (type === 'int') {
-    const invalid = arr.filter(id => isNaN(Number(id)));
+    const invalid = arr.filter(id => !Number.isInteger(Number(id)));
     if (invalid.length) {
       throw new NodeOperationError(ctx.getNode(),
         `${fieldName} must be numbers. Invalid values: ${invalid.join(', ')}`,

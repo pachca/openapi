@@ -5,7 +5,7 @@
 ## Установка
 
 ```bash
-npm install @pachca/sdk@1.0.1
+npm install @pachca/sdk
 ```
 
 ## Использование

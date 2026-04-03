@@ -194,7 +194,7 @@ export class PachcaTrigger implements INodeType {
 		const webhookTs = body.webhook_timestamp as number | undefined;
 		if (webhookTs) {
 			const ageMs = Date.now() - webhookTs * 1000;
-			if (Math.abs(ageMs) > 5 * 60 * 1000) {
+			if (ageMs < -60_000 || ageMs > 5 * 60 * 1000) {
 				return { webhookResponse: 'Rejected' };
 			}
 		}

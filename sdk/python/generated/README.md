@@ -5,7 +5,7 @@ Python клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-pip install pachca-sdk==1.0.1
+pip install pachca-sdk
 ```
 
 ## Использование

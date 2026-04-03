@@ -5,7 +5,7 @@ Go клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-go get github.com/pachca/openapi/sdk/go/generated@v1.0.1
+go get github.com/pachca/openapi/sdk/go/generated@latest
 ```
 
 ## Использование

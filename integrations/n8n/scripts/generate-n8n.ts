@@ -2425,7 +2425,7 @@ ${optionEntries}
 \t\tconst webhookTs = body.webhook_timestamp as number | undefined;
 \t\tif (webhookTs) {
 \t\t\tconst ageMs = Date.now() - webhookTs * 1000;
-\t\t\tif (Math.abs(ageMs) > 5 * 60 * 1000) {
+\t\t\tif (ageMs < -60_000 || ageMs > 5 * 60 * 1000) {
 \t\t\t\treturn { webhookResponse: 'Rejected' };
 \t\t\t}
 \t\t}

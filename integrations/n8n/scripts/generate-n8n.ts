@@ -74,8 +74,8 @@ const V1_COMPAT_PARAMS: Record<string, Record<string, Record<string, string>>> =
   },
   groupTag: {
     '*': { id: 'groupTagId' },
-    create: { name: 'groupTagName', color: 'groupTagColor' },
-    update: { name: 'groupTagName', color: 'groupTagColor' },
+    create: { name: 'groupTagName' },
+    update: { name: 'groupTagName' },
     addTags: { chatId: 'groupTagChatId', groupTagIds: 'groupTagIds' },
     removeTag: { chatId: 'groupTagChatId', tagId: 'tagId' },
     getUsers: { id: 'groupTagId' },
@@ -127,7 +127,26 @@ const V1_COMPAT_SUBCOLLECTIONS: Record<string, string> = {
 /** v1 alias operations: optional query params (not from OpenAPI) */
 const V1_ALIAS_QUERY_PARAMS: Record<string, Record<string, [string, string][]>> = {
   chat: {
-    getMembers: [['role', 'role']],
+    getMembers: [['role', 'role'], ['limit', 'limit'], ['cursor', 'cursor']],
+  },
+  message: {
+    getReadMembers: [['per', 'readMembersPer'], ['page', 'readMembersPage']],
+  },
+  reactions: {
+    getReactions: [['limit', 'reactionsPer'], ['cursor', 'reactionsCursor']],
+  },
+};
+
+/** v1 compat: pagination fields from V1 collections → API query params (for primary ops, not aliases) */
+const V1_COMPAT_PAGINATION: Record<string, Record<string, [string, string][]>> = {
+  chat: {
+    getMembers: [['limit', 'limit'], ['cursor', 'cursor']],
+  },
+  message: {
+    getReadMembers: [['per', 'readMembersPer'], ['page', 'readMembersPage']],
+  },
+  reaction: {
+    getAll: [['limit', 'reactionsPer'], ['cursor', 'reactionsCursor']],
   },
 };
 
@@ -138,12 +157,8 @@ const V1_ALIAS_SPECIALS: Record<string, Record<string, string>> = {
   },
 };
 
-/** Extra body fields for v2 operations not in OpenAPI (v1 compat, e.g. groupTag color) */
+/** Extra body fields for v2 operations not in OpenAPI (v1 compat) */
 const V1_EXTRA_BODY_FIELDS: Record<string, Record<string, [string, string][]>> = {
-  groupTag: {
-    create: [['color', 'groupTagColor']],
-    update: [['color', 'groupTagColor']],
-  },
 };
 
 /** Resources only visible in v2 (new, not in v1) */
@@ -245,7 +260,7 @@ const V1_ALIAS_FIELDS: Record<string, Record<string, { fields: AliasFieldDef[]; 
     unfurl: {
       fields: [
         { name: 'messageId', displayName: 'Message ID', type: 'number', required: true, default: 0, description: 'ID of the message' },
-        { name: 'linkPreviews', displayName: 'Link Previews', type: 'string', required: true, default: '',
+        { name: 'linkPreviews', displayName: 'Link Previews', type: 'json', required: true, default: '',
           description: 'JSON map of link previews where each key is a URL',
           placeholder: '{"https://example.com":{"title":"Example","description":"Desc"}}',
           routing: { send: { type: 'body', property: 'link_previews' } } },
@@ -645,16 +660,22 @@ function getParamName(resource: string, op: string, fieldName: string): string {
 // n8n TYPE MAPPING
 // ============================================================================
 
+/** Resolve array items schema (handles allOf wrappers) */
+function resolveArrayItems(field: BodyField): Schema | undefined {
+  if (!field.items) return undefined;
+  return field.items.allOf ? resolveAllOf(field.items) : field.items;
+}
+
 /** Map OpenAPI type → n8n field type */
 function toN8nType(field: BodyField): string {
   if (field.enum && field.enum.length > 0) return 'options';
   if (field.format === 'date-time') return 'dateTime';
   if (field.type === 'boolean') return 'boolean';
   if (field.type === 'integer' || field.type === 'number') return 'number';
-  if (field.type === 'array' && field.items?.properties) return 'fixedCollection';
+  if (field.type === 'array' && resolveArrayItems(field)?.properties) return 'fixedCollection';
   // Array of primitives → comma-separated string (transformed via splitCommaToArray)
-  if (field.type === 'array' && !field.items?.properties) return 'string';
-  if (field.type === 'object' && field.properties) return 'json';
+  if (field.type === 'array' && !resolveArrayItems(field)?.properties) return 'string';
+  if (field.type === 'object') return 'json';
   return 'string';
 }
 
@@ -677,12 +698,13 @@ function queryParamN8nType(schema: Schema): string {
 
 /** Check if a field is an array of primitives (needs splitCommaToArray preSend) */
 function isPrimitiveArray(field: BodyField): boolean {
-  return field.type === 'array' && !field.items?.properties;
+  return field.type === 'array' && !resolveArrayItems(field)?.properties;
 }
 
 /** Get the item type for primitive arrays */
 function getArrayItemType(field: BodyField): 'int' | 'string' {
-  const itemType = field.items ? getSchemaType(field.items) : 'string';
+  const resolved = resolveArrayItems(field);
+  const itemType = resolved ? getSchemaType(resolved) : 'string';
   return (itemType === 'integer' || itemType === 'number') ? 'int' : 'string';
 }
 
@@ -894,8 +916,8 @@ function generateResourceDescription(
 
     }
 
-    // Simplify toggle for GET operations (v2 only)
-    if (op.endpoint.method === 'GET') {
+    // Simplify toggle for GET operations (v2 only, skip for noDataWrapper resources like export)
+    if (op.endpoint.method === 'GET' && resource !== 'export') {
       lines.push(`\t{`);
       lines.push(`\t\tdisplayName: 'Simplify',`);
       lines.push(`\t\tname: 'simplify',`);
@@ -988,6 +1010,7 @@ function generateResourceDescription(
         lines.push(`\t\tdisplayName: ${quote(formatDisplayName(param.name))},`);
         lines.push(`\t\tname: ${quote(paramName)},`);
         lines.push(`\t\ttype: 'resourceLocator',`);
+        if (param.required) lines.push(`\t\trequired: true,`);
         lines.push(`\t\tdefault: { mode: 'list', value: '' },`);
         if (queryDesc && queryDesc.toLowerCase() !== formatDisplayName(param.name).toLowerCase()) lines.push(`\t\tdescription: ${quote(sanitizeDescription(queryDesc))},`);
         lines.push(`\t\tmodes: [`);
@@ -1465,17 +1488,23 @@ function generateFieldProperty(
     return lines.join('\n');
   }
 
+  // Check for field type overrides (e.g. priority → options instead of number)
+  const fieldOverride = FIELD_OPTIONS_OVERRIDES[field.name];
+
   lines.push(`${tab}{`);
   lines.push(`${tab}\tdisplayName: ${quote(displayName)},`);
   lines.push(`${tab}\tname: ${quote(paramName)},`);
-  lines.push(`${tab}\ttype: ${quote(n8nType)},`);
+  lines.push(`${tab}\ttype: ${quote(fieldOverride ? 'options' : n8nType)},`);
 
   if (isRequired) {
     lines.push(`${tab}\trequired: true,`);
   }
 
   // Type-specific options
-  if (n8nType === 'options' && field.enum) {
+  if (fieldOverride) {
+    const optStr = fieldOverride.options.map(o => `{ name: ${quote(o.name)}, value: ${JSON.stringify(o.value)} }`).join(',\n');
+    lines.push(`${tab}\toptions: [${optStr}],`);
+  } else if (n8nType === 'options' && field.enum) {
     const enumDescs = getEnumDescriptions(field.name, op.endpoint.id);
     lines.push(`${tab}\toptions: [${generateEnumOptions(field.enum, enumDescs)}],`);
   }
@@ -1611,11 +1640,16 @@ function generateQueryParamField(
   lines.push(`${tab}\tdisplayName: ${quote(formatDisplayName(param.name))},`);
   lines.push(`${tab}\tname: ${quote(paramName)},`);
   lines.push(`${tab}\ttype: ${quote(n8nType)},`);
+  if (param.required && !isInsideCollection) {
+    lines.push(`${tab}\trequired: true,`);
+  }
   if (n8nType === 'options' && resolvedSchema.enum) {
     const qEnumDescs = getEnumDescriptions(param.name, endpointId);
     lines.push(`${tab}\toptions: [${generateEnumOptions(resolvedSchema.enum, qEnumDescs)}],`);
   }
-  const qDefault = (typeof resolvedSchema.default === 'string' && /[а-яА-ЯёЁ]/.test(resolvedSchema.default)) ? '' : (resolvedSchema.default ?? (n8nType === 'boolean' ? false : (n8nType === 'number' ? 0 : '')));
+  // Use resolved default, falling back to original schema default (resolveAllOf may drop sibling defaults)
+  const rawDefault = resolvedSchema.default ?? param.schema.default;
+  const qDefault = (typeof rawDefault === 'string' && /[а-яА-ЯёЁ]/.test(rawDefault)) ? '' : (rawDefault ?? (n8nType === 'boolean' ? false : (n8nType === 'number' ? 0 : '')));
   lines.push(`${tab}\tdefault: ${JSON.stringify(qDefault)},`);
   if (queryDesc && queryDesc.toLowerCase() !== formatDisplayName(param.name).toLowerCase()) {
     const desc = sanitizeDescription(n8nType === 'boolean' ? booleanDescription(queryDesc) : queryDesc);
@@ -1639,7 +1673,24 @@ const SAFE_ENUM_DEFAULTS: Record<string, string[]> = {
   role: ['member', 'user'],
 };
 
+/** Fields that should be rendered as 'options' type regardless of OpenAPI schema.
+ * Used when OpenAPI uses plain integer but valid values are a small fixed set. */
+const FIELD_OPTIONS_OVERRIDES: Record<string, { options: Array<{ name: string; value: number | string }>; default: number | string }> = {
+  priority: {
+    options: [
+      { name: 'None', value: 0 },
+      { name: '1 — Normal', value: 1 },
+      { name: '2 — Important', value: 2 },
+      { name: '3 — Very Important', value: 3 },
+    ],
+    default: 0,
+  },
+};
+
 function getDefaultValue(field: BodyField, resource: string, op: string, paramName: string): unknown {
+  // Field type overrides have priority
+  const fieldOverride = FIELD_OPTIONS_OVERRIDES[field.name];
+  if (fieldOverride) return fieldOverride.default;
   // Use OpenAPI default if set and not Russian text
   if (field.default !== undefined && !(typeof field.default === 'string' && /[а-яА-ЯёЁ]/.test(field.default))) return field.default;
   if (field.enum && field.enum.length > 0) {
@@ -1755,19 +1806,10 @@ function generateV2Node(resources: string[]): string {
 \tINodeTypeDescription,
 \tIExecuteFunctions,
 \tINodeExecutionData,
-\tILoadOptionsFunctions,
-\tINodeListSearchResult,
-\tINodePropertyOptions,
 } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
 import { router } from '../SharedRouter';
-function formatUserName(u: { first_name: string; last_name: string; nickname: string }): string {
-	const fullName = [u.first_name, u.last_name]
-		.filter((v) => v != null && v !== '' && v !== 'null')
-		.join(' ');
-	const display = fullName || u.nickname || 'User';
-	return u.nickname ? \`\${display} (@\${u.nickname})\` : display;
-}
+import { searchChats, searchUsers, searchEntities, getCustomProperties } from '../GenericFunctions';
 
 ${imports.join('\n')}
 
@@ -1804,98 +1846,8 @@ ${properties.join('\n')}
 \t}
 
 \tmethods = {
-\t\tlistSearch: {
-\t\t\tasync searchChats(this: ILoadOptionsFunctions, filter?: string): Promise<INodeListSearchResult> {
-\t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
-\t\t\t\tconst url = filter
-\t\t\t\t\t? \`\${credentials.baseUrl}/search/chats?query=\${encodeURIComponent(filter)}\`
-\t\t\t\t\t: \`\${credentials.baseUrl}/chats?per=50\`;
-\t\t\t\tconst response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
-\t\t\t\t\tmethod: 'GET',
-\t\t\t\t\turl,
-\t\t\t\t});
-\t\t\t\tconst items = response.data ?? [];
-\t\t\t\treturn {
-\t\t\t\t\tresults: items.map((c: { id: number; name: string }) => ({
-\t\t\t\t\t\tname: c.name,
-\t\t\t\t\t\tvalue: c.id,
-\t\t\t\t\t})),
-\t\t\t\t};
-\t\t\t},
-\t\t\tasync searchUsers(this: ILoadOptionsFunctions, filter?: string): Promise<INodeListSearchResult> {
-\t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
-\t\t\t\tif (!filter) return { results: [] };
-\t\t\t\tconst url = \`\${credentials.baseUrl}/search/users?query=\${encodeURIComponent(filter)}\`;
-\t\t\t\tconst response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
-\t\t\t\t\tmethod: 'GET',
-\t\t\t\t\turl,
-\t\t\t\t});
-\t\t\t\tconst items = response.data ?? [];
-\t\t\t\treturn {
-\t\t\t\t\tresults: items.map((u: { id: number; first_name: string; last_name: string; nickname: string }) => ({
-\t\t\t\t\t\tname: formatUserName(u),
-\t\t\t\t\t\tvalue: u.id,
-\t\t\t\t\t})),
-\t\t\t\t};
-\t\t\t},
-\t\t\tasync searchEntities(this: ILoadOptionsFunctions, filter?: string): Promise<INodeListSearchResult> {
-\t\t\t\tlet entityType = 'discussion';
-\t\t\t\ttry {
-\t\t\t\t	entityType = (this.getNodeParameter('entityType') as string) || 'discussion';
-\t\t\t\t} catch {
-\t\t\t\t	try {
-\t\t\t\t		entityType = (this.getCurrentNodeParameter('entityType') as string) || 'discussion';
-\t\t\t\t	} catch { /* parameter may not exist yet */ }
-\t\t\t\t}
-\t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
-\t\t\t\tif (entityType === 'user') {
-\t\t\t\t\tif (!filter) return { results: [] };
-\t\t\t\t\tconst url = \`\${credentials.baseUrl}/search/users?query=\${encodeURIComponent(filter)}\`;
-\t\t\t\t\tconst response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', { method: 'GET', url });
-\t\t\t\t\tconst items = response.data ?? [];
-\t\t\t\t\treturn {
-\t\t\t\t\t\tresults: items.map((u: { id: number; first_name: string; last_name: string; nickname: string }) => ({
-\t\t\t\t\t\t\tname: formatUserName(u),
-\t\t\t\t\t\t\tvalue: u.id,
-\t\t\t\t\t\t})),
-\t\t\t\t\t};
-\t\t\t\t}
-\t\t\t\tif (entityType === 'thread') {
-\t\t\t\t\treturn { results: [] };
-\t\t\t\t}
-\t\t\t\tconst url = filter
-\t\t\t\t\t? \`\${credentials.baseUrl}/search/chats?query=\${encodeURIComponent(filter)}\`
-\t\t\t\t\t: \`\${credentials.baseUrl}/chats?per=50\`;
-\t\t\t\tconst response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', { method: 'GET', url });
-\t\t\t\tconst items = response.data ?? [];
-\t\t\t\treturn {
-\t\t\t\t\tresults: items.map((c: { id: number; name: string }) => ({
-\t\t\t\t\t\tname: c.name,
-\t\t\t\t\t\tvalue: c.id,
-\t\t\t\t\t})),
-\t\t\t\t};
-\t\t\t},
-\t\t},
-\t\tloadOptions: {
-\t\t\tasync getCustomProperties(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-\t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
-\t\t\t\tconst resource = this.getNodeParameter('resource') as string;
-\t\t\t\tconst entityType = resource === 'task' ? 'Task' : 'User';
-\t\t\t\ttry {
-\t\t\t\t\tconst response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
-\t\t\t\t\t\tmethod: 'GET',
-\t\t\t\t\t\turl: \`\${credentials.baseUrl}/custom_properties?entity_type=\${entityType}\`,
-\t\t\t\t\t});
-\t\t\t\t\tconst items = response.data ?? [];
-\t\t\t\t\treturn items.map((p: { id: number; name: string }) => ({
-\t\t\t\t\t\tname: p.name,
-\t\t\t\t\t\tvalue: p.id,
-\t\t\t\t\t}));
-\t\t\t\t} catch {
-\t\t\t\t\treturn [];
-\t\t\t\t}
-\t\t\t},
-\t\t},
+\t\tlistSearch: { searchChats, searchUsers, searchEntities },
+\t\tloadOptions: { getCustomProperties },
 \t};
 }
 `;
@@ -1979,6 +1931,15 @@ export class PachcaApi implements ICredentialType {
 \t\t\tdefault: '',
 \t\t\tdescription: 'Used to verify incoming webhook requests from Pachca. Found in bot settings under the Webhook section.',
 \t\t\thint: 'Only required when using the Pachca Trigger node',
+\t\t},
+\t\t{
+\t\t\tdisplayName: 'Webhook Allowed IPs',
+\t\t\tname: 'webhookAllowedIps',
+\t\t\ttype: 'string',
+\t\t\tdefault: '',
+\t\t\tdescription: 'Comma-separated list of IP addresses allowed to send webhooks. Pachca sends from 37.200.70.177. Leave empty to allow all.',
+\t\t\tplaceholder: '37.200.70.177',
+\t\t\thint: 'Only used with the Pachca Trigger node',
 \t\t},
 \t];
 
@@ -2165,7 +2126,7 @@ function injectFileUploadFields(outputDir: string): void {
 \t\t],
 \t\tdefault: 'binary',
 \t\tdescription: 'Where to get the file to upload',
-\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create', 'upload'] } },
+\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create'] } },
 \t},
 \t{
 \t\tdisplayName: 'File URL',
@@ -2174,7 +2135,7 @@ function injectFileUploadFields(outputDir: string): void {
 \t\trequired: true,
 \t\tdefault: '',
 \t\tdescription: 'URL of the file to upload',
-\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create', 'upload'], fileSource: ['url'] } },
+\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create'], fileSource: ['url'] } },
 \t},
 \t{
 \t\tdisplayName: 'Input Binary Field',
@@ -2183,7 +2144,7 @@ function injectFileUploadFields(outputDir: string): void {
 \t\trequired: true,
 \t\tdefault: 'data',
 \t\thint: 'The name of the input binary field containing the file to be uploaded',
-\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create', 'upload'], fileSource: ['binary'] } },
+\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create'], fileSource: ['binary'] } },
 \t},
 \t{
 \t\tdisplayName: 'Additional Fields',
@@ -2191,7 +2152,7 @@ function injectFileUploadFields(outputDir: string): void {
 \t\ttype: 'collection',
 \t\tplaceholder: 'Add Field',
 \t\tdefault: {},
-\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create', 'upload'] } },
+\t\tdisplayOptions: { show: { resource: ['file'], operation: ['create'] } },
 \t\toptions: [
 \t\t\t{
 \t\t\t\tdisplayName: 'Content Type',
@@ -2333,6 +2294,7 @@ export class PachcaTrigger implements INodeType {
 \t\t\t\thttpMethod: 'POST',
 \t\t\t\tresponseMode: 'onReceived',
 \t\t\t\tpath: 'webhook',
+\t\t\t\trawBody: true,
 \t\t\t},
 \t\t],
 \t\tproperties: [
@@ -2356,7 +2318,12 @@ ${optionEntries}
 \t\tdefault: {
 \t\t\tasync checkExists(this: IHookFunctions): Promise<boolean> {
 \t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
-\t\t\t\tconst botId = await resolveBotId(this, credentials);
+\t\t\t\tlet botId: number;
+\t\t\t\ttry {
+\t\t\t\t\tbotId = await resolveBotId(this, credentials);
+\t\t\t\t} catch {
+\t\t\t\t\treturn false; // Network error → treat as not exists, will trigger create
+\t\t\t\t}
 \t\t\t\tif (!botId) return false;
 \t\t\t\tconst webhookUrl = this.getNodeWebhookUrl('default');
 \t\t\t\ttry {
@@ -2379,7 +2346,10 @@ ${optionEntries}
 \t\t\tasync create(this: IHookFunctions): Promise<boolean> {
 \t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
 \t\t\t\tconst botId = await resolveBotId(this, credentials);
-\t\t\t\tif (!botId) return true; // Not a bot token → manual mode
+\t\t\t\tif (!botId) {
+\t\t\t\t\tthis.logger.warn('Pachca Trigger: token is not a bot token. Webhook was NOT registered automatically. Configure webhook URL manually in Pachca bot settings.');
+\t\t\t\t\treturn true;
+\t\t\t\t}
 \t\t\t\tconst webhookUrl = this.getNodeWebhookUrl('default');
 \t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
 \t\t\t\t\tmethod: 'PUT',
@@ -2391,7 +2361,12 @@ ${optionEntries}
 
 \t\t\tasync delete(this: IHookFunctions): Promise<boolean> {
 \t\t\t\tconst credentials = await this.getCredentials('pachcaApi');
-\t\t\t\tconst botId = await resolveBotId(this, credentials);
+\t\t\t\tlet botId: number;
+\t\t\t\ttry {
+\t\t\t\t\tbotId = await resolveBotId(this, credentials);
+\t\t\t\t} catch {
+\t\t\t\t\treturn true; // Can't resolve bot → nothing to clean up
+\t\t\t\t}
 \t\t\t\tif (!botId) return true;
 \t\t\t\ttry {
 \t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
@@ -2413,11 +2388,23 @@ ${optionEntries}
 \t\tconst credentials = await this.getCredentials('pachcaApi');
 \t\tconst event = this.getNodeParameter('event') as string;
 
+\t\t// IP allowlist check
+\t\tconst allowedIps = ((credentials.webhookAllowedIps as string) || '').split(',').map(s => s.trim()).filter(Boolean);
+\t\tif (allowedIps.length > 0) {
+\t\t\tconst request = this.getRequestObject();
+\t\t\tconst clientIp = (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || request.socket?.remoteAddress || '';
+\t\t\tconst normalizedIp = clientIp.replace(/^::ffff:/, '');
+\t\t\tif (!allowedIps.includes(normalizedIp)) {
+\t\t\t\treturn { webhookResponse: 'Forbidden' };
+\t\t\t}
+\t\t}
+
 \t\t// Signing secret verification (use raw body bytes for accurate HMAC)
-\t\tif (credentials.signingSecret) {
-\t\t\tconst signature = headerData['x-pachca-signature'] as string;
+\t\tconst signingSecret = ((credentials.signingSecret as string) || '').trim();
+\t\tif (signingSecret) {
+\t\t\tconst signature = headerData['pachca-signature'] as string;
 \t\t\tif (!signature) {
-\t\t\t\treturn { webhookResponse: 'Missing signature' };
+\t\t\t\treturn { webhookResponse: 'Rejected' };
 \t\t\t}
 \t\t\tconst request = this.getRequestObject();
 \t\t\tconst rawBody = request.rawBody
@@ -2427,10 +2414,19 @@ ${optionEntries}
 \t\t\t\t!verifyWebhookSignature(
 \t\t\t\t\trawBody,
 \t\t\t\t\tsignature,
-\t\t\t\t\tcredentials.signingSecret as string,
+\t\t\t\t\tsigningSecret,
 \t\t\t\t)
 \t\t\t) {
-\t\t\t\treturn { webhookResponse: 'Invalid signature' };
+\t\t\t\treturn { webhookResponse: 'Rejected' };
+\t\t\t}
+\t\t}
+
+\t\t// Replay protection — reject events older than 5 minutes
+\t\tconst webhookTs = body.webhook_timestamp as number | undefined;
+\t\tif (webhookTs) {
+\t\t\tconst ageMs = Date.now() - webhookTs * 1000;
+\t\t\tif (Math.abs(ageMs) > 5 * 60 * 1000) {
+\t\t\t\treturn { webhookResponse: 'Rejected' };
 \t\t\t}
 \t\t}
 
@@ -2465,6 +2461,7 @@ function getSpecialHandler(resource: string, v2Op: string): string | null {
   if (resource === 'form' && v2Op === 'create') return 'formBlocks';
   if (resource === 'bot' && v2Op === 'update') return 'botWebhook';
   if (resource === 'user' && v2Op === 'getAll') return 'userGetAllFilters';
+  if (resource === 'export' && v2Op === 'get') return 'exportDownload';
   return null;
 }
 
@@ -2599,6 +2596,7 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
     const locator = !!SEARCHABLE_QUERY_PARAMS[p.name];
     const qm: string[] = [`api: '${p.name}'`, `n8n: '${n8nName}'`];
     if (locator) qm.push('locator: true');
+    if (p.required) qm.push('required: true');
     queryMapEntries.push(`{ ${qm.join(', ')} }`);
   }
   if (queryMapEntries.length) parts.push(`queryMap: [${queryMapEntries.join(', ')}]`);
@@ -2607,6 +2605,13 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   for (const p of filterQueryParams) {
     const n8nName = getParamName(resource, op.v1Op, p.name);
     optQueryEntries.push(`{ api: '${p.name}', n8n: '${n8nName}' }`);
+  }
+  // v1 compat: pagination fields from V1-specific collections (not in OpenAPI spec)
+  const v1Pagination = V1_COMPAT_PAGINATION[resource]?.[v2Op];
+  if (v1Pagination) {
+    for (const [api, n8n] of v1Pagination) {
+      optQueryEntries.push(`{ api: '${api}', n8n: '${n8n}' }`);
+    }
   }
   if (optQueryEntries.length) parts.push(`optionalQueryMap: [${optQueryEntries.join(', ')}]`);
 
@@ -2658,6 +2663,7 @@ function buildAliasRouteEntry(
 
   // Collect body fields from splitComma + V1_ALIAS_FIELDS routing
   const bodyEntries: string[] = [];
+  const optBodyEntries: string[] = [];
   if (routing.splitComma) {
     for (const [n8n, api, type] of routing.splitComma) {
       bodyEntries.push(`{ api: '${api}', n8n: '${n8n}', isArray: true, arrayType: '${type}' }`);
@@ -2667,11 +2673,17 @@ function buildAliasRouteEntry(
   if (aliasFieldDefs) {
     for (const f of aliasFieldDefs.fields) {
       if (f.routing) {
-        bodyEntries.push(`{ api: '${f.routing.send.property}', n8n: '${f.name}' }`);
+        const entry = `{ api: '${f.routing.send.property}', n8n: '${f.name}' }`;
+        if (f.required) {
+          bodyEntries.push(entry);
+        } else {
+          optBodyEntries.push(entry);
+        }
       }
     }
   }
   if (bodyEntries.length) parts.push(`bodyMap: [${bodyEntries.join(', ')}]`);
+  if (optBodyEntries.length) parts.push(`optionalBodyMap: [${optBodyEntries.join(', ')}]`);
 
   return `\t\t${aliasOp}: {\n\t\t\t${parts.join(',\n\t\t\t')},\n\t\t}`;
 }
@@ -2727,6 +2739,7 @@ import {
 \tsplitAndValidateCommaList,
 \tsimplifyItem,
 \tFORM_TEMPLATES,
+\tsanitizeBaseUrl,
 } from './GenericFunctions';
 
 // ============================================================================
@@ -2753,6 +2766,7 @@ interface QueryMap {
 \tapi: string;
 \tn8n: string;
 \tlocator?: boolean;
+\trequired?: boolean;
 }
 
 interface RouteConfig {
@@ -2858,7 +2872,26 @@ async function executeRoute(
 \t\t\tjson: { name: key, blocks } as unknown as IDataObject,
 \t\t}));
 \t}
-
+\tif (route.special === 'exportDownload') {
+\t\tconst exportId = this.getNodeParameter('id', i) as number;
+\t\tconst credentials = await this.getCredentials('pachcaApi');
+\t\tconst base = sanitizeBaseUrl(credentials.baseUrl as string);
+\t\tconst resp = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+\t\t\tmethod: 'GET',
+\t\t\turl: \`\${base}/chats/exports/\${exportId}\`,
+\t\t\tignoreHttpStatusErrors: true,
+\t\t\treturnFullResponse: true,
+\t\t\tdisableFollowRedirect: true,
+\t\t}) as { statusCode: number; headers: Record<string, string>; body: unknown };
+\t\tconst location = resp.headers?.location;
+\t\tif (location) {
+\t\t\treturn [{ json: { id: exportId, url: location } as unknown as IDataObject }];
+\t\t}
+\t\tif (typeof resp.body === 'object' && resp.body) {
+\t\t\treturn [{ json: resp.body as IDataObject }];
+\t\t}
+\t\treturn [{ json: { id: exportId, success: true } as unknown as IDataObject }];
+\t}
 \t// === Build URL with path params ===
 \tlet url = route.path;
 \tfor (const pp of route.pathParams ?? []) {
@@ -2875,6 +2908,9 @@ async function executeRoute(
 \t\t\t\t\tthrow e;
 \t\t\t\t}
 \t\t\t}
+\t\t}
+\t\tif (value === undefined || value === null || value === '') {
+\t\t\tthrow new Error(\`Missing required path parameter: \${pp.n8n}\`);
 \t\t}
 \t\turl = url.replace(\`{\${pp.api}}\`, String(value));
 \t}
@@ -2934,7 +2970,9 @@ async function executeRoute(
 \t\t\t\tval = this.getNodeParameter(qm.n8n, i);
 \t\t\t}
 \t\t\tif (val !== undefined && val !== null && val !== '') qs[qm.api] = val as IDataObject;
-\t\t} catch { /* param not shown / not filled */ }
+\t\t} catch (e) {
+\t\t\tif (qm.required) throw e; // Required query param must be present
+\t\t}
 \t}
 
 \t// Read query params from collection, with top-level fallback (same pattern as optionalBodyMap)
@@ -3049,7 +3087,15 @@ async function executeRoute(
 \t\treturn [{ json: { success: true } }];
 \t}
 
+\t// Handle 204 No Content for non-DELETE methods (archive, unarchive, pin, addMembers, etc.)
+\tif (!response || (typeof response === 'object' && Object.keys(response).length === 0)) {
+\t\treturn [{ json: { success: true } }];
+\t}
+
 \tif (route.noDataWrapper) {
+\t\tif (!response || (typeof response === 'object' && Object.keys(response).length === 0)) {
+\t\t\treturn [{ json: { success: true } as unknown as IDataObject }];
+\t\t}
 \t\treturn [{ json: response }];
 \t}
 

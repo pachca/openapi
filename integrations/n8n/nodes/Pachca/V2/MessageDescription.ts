@@ -312,6 +312,7 @@ export const messageFields: INodeProperties[] = [
 		displayName: 'Chat ID',
 		name: 'chatId',
 		type: 'resourceLocator',
+		required: true,
 		default: { mode: 'list', value: '' },
 		description: 'Chat ID (conversation, channel, direct message, or thread chat)',
 		modes: [

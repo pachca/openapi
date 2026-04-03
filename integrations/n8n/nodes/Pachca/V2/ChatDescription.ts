@@ -127,7 +127,7 @@ export const chatFields: INodeProperties[] = [
 		type: 'options',
 		options: [{ name: 'Is Member', value: 'is_member', description: 'Chats where the user is a member' },
 { name: 'Public', value: 'public', description: 'All public chats in the workspace, regardless of user membership' }],
-		default: "",
+		default: "is_member",
 		description: 'Parameter that controls chat availability and filtering for the user',
 		displayOptions: { show: { resource: ['chat'], operation: ['getAll'] } },
 		routing: { send: { type: 'query', property: 'availability' } },

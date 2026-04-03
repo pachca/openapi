@@ -5,7 +5,7 @@
 ### New
 
 - **Auto-generated from OpenAPI** with full v1 backward compatibility
-- **New resources:** Member, Read Member, Link Preview, Search, Security
+- **New resources:** Member, Read Member, Link Preview, Chat Export, Search, Security
 - **Task resource** now supports full CRUD (was create-only)
 - **Auto-pagination** with Return All / Limit (cursor-based)
 - **AI Tool Use** support (`usableAsTool: true`)

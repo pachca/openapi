@@ -29,7 +29,7 @@ export const fileFields: INodeProperties[] = [
 		],
 		default: 'binary',
 		description: 'Where to get the file to upload',
-		displayOptions: { show: { resource: ['file'], operation: ['create', 'upload'] } },
+		displayOptions: { show: { resource: ['file'], operation: ['create'] } },
 	},
 	{
 		displayName: 'File URL',
@@ -38,7 +38,7 @@ export const fileFields: INodeProperties[] = [
 		required: true,
 		default: '',
 		description: 'URL of the file to upload',
-		displayOptions: { show: { resource: ['file'], operation: ['create', 'upload'], fileSource: ['url'] } },
+		displayOptions: { show: { resource: ['file'], operation: ['create'], fileSource: ['url'] } },
 	},
 	{
 		displayName: 'Input Binary Field',
@@ -47,7 +47,7 @@ export const fileFields: INodeProperties[] = [
 		required: true,
 		default: 'data',
 		hint: 'The name of the input binary field containing the file to be uploaded',
-		displayOptions: { show: { resource: ['file'], operation: ['create', 'upload'], fileSource: ['binary'] } },
+		displayOptions: { show: { resource: ['file'], operation: ['create'], fileSource: ['binary'] } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -55,7 +55,7 @@ export const fileFields: INodeProperties[] = [
 		type: 'collection',
 		placeholder: 'Add Field',
 		default: {},
-		displayOptions: { show: { resource: ['file'], operation: ['create', 'upload'] } },
+		displayOptions: { show: { resource: ['file'], operation: ['create'] } },
 		options: [
 			{
 				displayName: 'Content Type',

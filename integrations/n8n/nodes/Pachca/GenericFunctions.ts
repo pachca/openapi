@@ -5,7 +5,10 @@ import type {
   IHookFunctions,
   IHttpRequestMethods,
   IHttpRequestOptions,
+  ILoadOptionsFunctions,
   INodeExecutionData,
+  INodeListSearchResult,
+  INodePropertyOptions,
   IN8nHttpFullResponse,
   JsonObject,
 } from 'n8n-workflow';
@@ -213,8 +216,8 @@ export function verifyWebhookSignature(
   const expected = hmac.digest('hex');
   try {
     return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expected),
+      Buffer.from(signature, 'hex'),
+      Buffer.from(expected, 'hex'),
     );
   } catch {
     return false;
@@ -225,27 +228,35 @@ export function verifyWebhookSignature(
 // S3 FILE UPLOAD UTILITIES
 // ============================================================================
 
+/** MIME type lookup table (module-level to avoid re-creation per call) */
+const MIME_TYPES: Record<string, string> = {
+  pdf: 'application/pdf',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  heic: 'image/heic',
+  avif: 'image/avif',
+  svg: 'image/svg+xml',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  zip: 'application/zip',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  mp3: 'audio/mpeg',
+  ogg: 'audio/ogg',
+  txt: 'text/plain',
+  csv: 'text/csv',
+  json: 'application/json',
+};
+
 /** Detect MIME type from file extension */
 export function detectMimeType(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() ?? '';
-  const MIME_TYPES: Record<string, string> = {
-    pdf: 'application/pdf',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    gif: 'image/gif',
-    webp: 'image/webp',
-    doc: 'application/msword',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    xls: 'application/vnd.ms-excel',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    zip: 'application/zip',
-    mp4: 'video/mp4',
-    mp3: 'audio/mpeg',
-    txt: 'text/plain',
-    csv: 'text/csv',
-    json: 'application/json',
-  };
   return MIME_TYPES[ext] ?? 'application/octet-stream';
 }
 
@@ -261,6 +272,8 @@ export function buildMultipartBody(
 ): { body: Buffer; contentType: string } {
   const boundary = `----WebKitFormBoundary${crypto.randomBytes(16).toString('hex')}`;
   const parts: Buffer[] = [];
+  // Sanitize filename: strip CRLF and quotes to prevent header injection
+  const safeName = fileName.replace(/[\r\n\\"]/g, '_');
 
   // Policy fields first (order matters for S3)
   for (const [key, value] of Object.entries(fields)) {
@@ -274,7 +287,7 @@ export function buildMultipartBody(
   // File last
   parts.push(
     Buffer.from(
-      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\nContent-Type: ${contentType}\r\n\r\n`,
+      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${safeName}"\r\nContent-Type: ${contentType}\r\n\r\n`,
     ),
   );
   parts.push(fileBuffer);
@@ -293,6 +306,7 @@ export function buildMultipartBody(
 /**
  * Resolve bot ID: use explicit credential value, or auto-detect via /oauth/token/info.
  * Returns the bot's user_id if the token belongs to a bot, or 0 if it's a personal token.
+ * Throws on network/auth errors so callers can distinguish "not a bot" from "failed to check".
  */
 export async function resolveBotId(
   context: IHookFunctions,
@@ -301,24 +315,29 @@ export async function resolveBotId(
   if (credentials.botId && Number(credentials.botId) > 0) {
     return Number(credentials.botId);
   }
-  try {
-    const response = (await context.helpers.httpRequestWithAuthentication.call(
-      context,
-      'pachcaApi',
-      {
-        method: 'GET',
-        url: `${credentials.baseUrl}/oauth/token/info`,
-      },
-    )) as IDataObject;
-    const data = response.data as IDataObject | undefined;
-    // Bot tokens have name: null, personal tokens have a user-defined name
-    if (data && data.name === null && data.user_id) {
-      return Number(data.user_id);
-    }
-    return 0;
-  } catch {
-    return 0;
+  const response = (await context.helpers.httpRequestWithAuthentication.call(
+    context,
+    'pachcaApi',
+    {
+      method: 'GET',
+      url: `${credentials.baseUrl}/oauth/token/info`,
+    },
+  )) as IDataObject;
+  const data = response.data as IDataObject | undefined;
+  // Bot tokens have name: null, personal tokens have a user-defined name
+  if (data && data.name === null && data.user_id) {
+    return Number(data.user_id);
   }
+  return 0;
+}
+
+/** Sanitize baseUrl: strip trailing slashes, validate protocol */
+export function sanitizeBaseUrl(url: string): string {
+  const trimmed = url.replace(/\/+$/, '');
+  if (!/^https?:\/\//.test(trimmed)) {
+    throw new Error(`Invalid Base URL: must start with http:// or https://. Got: ${trimmed}`);
+  }
+  return trimmed;
 }
 
 // ============================================================================
@@ -338,21 +357,34 @@ export async function makeApiRequest(
   itemIndex?: number,
 ): Promise<IDataObject> {
   const credentials = await this.getCredentials('pachcaApi');
+  const baseUrl = sanitizeBaseUrl(credentials.baseUrl as string);
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (method !== 'GET' && method !== 'DELETE') {
+    headers['Content-Type'] = 'application/json';
+  }
   const options: IHttpRequestOptions = {
     method,
-    url: `${credentials.baseUrl}${endpoint}`,
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    url: `${baseUrl}${endpoint}`,
+    headers,
     qs,
-    body,
+    body: (method !== 'GET' && method !== 'DELETE') ? body : undefined,
     returnFullResponse: true,
+    ignoreHttpStatusErrors: true,
   };
 
   const response = (await this.helpers.httpRequestWithAuthentication.call(
     this, 'pachcaApi', options,
   )) as IN8nHttpFullResponse;
 
+  // Handle empty/null body (e.g. 204 No Content)
+  if (!response.body || typeof response.body !== 'object') {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return { success: true } as unknown as IDataObject;
+    }
+  }
+
   if (response.statusCode >= 400) {
-    const resBody = response.body as IDataObject;
+    const resBody = (response.body ?? {}) as IDataObject;
     const errors = resBody.errors as Array<{ key: string; value: string }> | undefined;
 
     let message: string;
@@ -368,12 +400,18 @@ export async function makeApiRequest(
     const hint = STATUS_HINTS[response.statusCode];
     const description = hint ? `${hint}\n${message}` : message;
 
-    throw new NodeApiError(this.getNode(), resBody as JsonObject, {
+    const apiError = new NodeApiError(this.getNode(), resBody as JsonObject, {
       message,
       httpCode: String(response.statusCode),
       description,
       itemIndex,
     });
+    // Attach Retry-After for pagination retry logic
+    const headers = response.headers as Record<string, string> | undefined;
+    if (headers?.['retry-after']) {
+      (apiError as NodeApiError & { retryAfter?: number }).retryAfter = parseInt(headers['retry-after'], 10) || 2;
+    }
+    throw apiError;
   }
 
   return response.body as IDataObject;
@@ -412,6 +450,17 @@ export async function makeApiRequestAllPages(
       const items = (response.data as IDataObject[]) ?? [];
       return items.map(item => ({ json: item }));
     }
+
+    // V1-specific: collection pagination params already in qs (via optionalQueryMap + v1Collection).
+    // Original V1 used single-page manual pagination for these endpoints.
+    const hasV1CollectionPagination = ('per' in qs || 'page' in qs ||
+      (qs.cursor !== undefined && qs.cursor !== '') ||
+      (qs.limit !== undefined && qs.limit !== ''));
+    if (hasV1CollectionPagination) {
+      const response = await makeApiRequest.call(this, method, endpoint, undefined, qs, itemIndex);
+      const items = (response.data as IDataObject[]) ?? [];
+      return items.map(item => ({ json: item }));
+    }
   }
 
   // Check returnAll / getAllUsersNoLimit (v1 alias)
@@ -424,35 +473,51 @@ export async function makeApiRequestAllPages(
   const limit = returnAll ? 0 : ((this.getNodeParameter('limit', itemIndex, 50) as number) || 50);
   const results: IDataObject[] = [];
   let cursor: string | undefined;
-  let retryCount = 0;
+  let previousCursor: string | undefined;
+  let totalRetries = 0;
   const MAX_RETRIES = 5;
+  const MAX_PAGES = 1000;
+  let pageCount = 0;
 
   do {
     const pageQs: IDataObject = { ...qs, limit: 50 };
     if (cursor) pageQs.cursor = cursor;
 
+    // Inner retry loop: avoids `continue` on the outer do-while, which
+    // would re-evaluate `while(cursor && ...)` and exit prematurely when
+    // cursor is undefined (e.g. 429 on the very first page).
     let response: IDataObject;
-    try {
-      response = await makeApiRequest.call(this, method, endpoint, undefined, pageQs, itemIndex);
-      retryCount = 0;
-    } catch (error: unknown) {
-      const err = error as { httpCode?: string; response?: { headers?: Record<string, string> } };
-      if (err.httpCode === '429' && retryCount < MAX_RETRIES) {
-        retryCount++;
-        const retryAfter = parseInt(err.response?.headers?.['retry-after'] ?? '1', 10);
-        // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
-        await new Promise(r => setTimeout(r, retryAfter * 1000));
-        continue;
+    for (;;) {
+      try {
+        response = await makeApiRequest.call(this, method, endpoint, undefined, pageQs, itemIndex);
+        break;
+      } catch (error: unknown) {
+        const err = error instanceof NodeApiError ? error : null;
+        const code = err?.httpCode;
+        if ((code === '429' || code === '502' || code === '503') && totalRetries < MAX_RETRIES) {
+          totalRetries++;
+          const retryAfter = (err as NodeApiError & { retryAfter?: number })?.retryAfter;
+          const waitSec = retryAfter ?? (code === '429' ? 2 : 1);
+          // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
+          await new Promise(r => setTimeout(r, waitSec * 1000));
+          continue;
+        }
+        throw error;
       }
-      throw error;
     }
 
     const items = (response.data as IDataObject[]) ?? [];
     results.push(...items);
     const meta = response.meta as IDataObject | undefined;
     const paginate = meta?.paginate as IDataObject | undefined;
-    cursor = (paginate?.next_page as string) ?? undefined;
-  } while (cursor && (returnAll || results.length < limit));
+    const nextCursor = (paginate?.next_page as string) ?? undefined;
+
+    // Guard against infinite loops: duplicate cursor or too many pages
+    if (nextCursor && nextCursor === previousCursor) break;
+    previousCursor = cursor;
+    cursor = nextCursor;
+    pageCount++;
+  } while (cursor && (returnAll || results.length < limit) && pageCount < MAX_PAGES);
 
   const finalResults = returnAll ? results : results.slice(0, limit);
 
@@ -726,6 +791,7 @@ export async function uploadFileToS3(
   let fileBuffer: Buffer;
   let resolvedFileName: string;
 
+  let binaryMimeType: string | undefined;
   if (fileSource === 'url') {
     const fileUrl = ctx.getNodeParameter('fileUrl', itemIndex, '') as string;
     fileBuffer = (await ctx.helpers.httpRequest({
@@ -733,15 +799,19 @@ export async function uploadFileToS3(
       url: fileUrl,
       encoding: 'arraybuffer',
     })) as Buffer;
-    resolvedFileName = userFileName || fileUrl.split('/').pop()?.split('?')[0] || 'file';
+    const rawName = fileUrl.split('/').pop()?.split('?')[0]?.split('#')[0] || 'file';
+    resolvedFileName = userFileName || decodeURIComponent(rawName);
   } else {
     const binaryProperty = ctx.getNodeParameter('binaryProperty', itemIndex, 'data') as string;
     const binaryData = ctx.helpers.assertBinaryData(itemIndex, binaryProperty);
     fileBuffer = await ctx.helpers.getBinaryDataBuffer(itemIndex, binaryProperty);
     resolvedFileName = userFileName || binaryData.fileName || 'file';
+    binaryMimeType = binaryData.mimeType;
   }
 
-  const contentType = userContentType || detectMimeType(resolvedFileName);
+  // Treat 'application/octet-stream' as unset (V1 default) — fall through to auto-detection
+  const effectiveUserType = (userContentType && userContentType !== 'application/octet-stream') ? userContentType : '';
+  const contentType = effectiveUserType || binaryMimeType || detectMimeType(resolvedFileName);
 
   // Step 2: Upload to S3 with retry
   const MAX_RETRIES = 3;
@@ -755,7 +825,7 @@ export async function uploadFileToS3(
       'x-amz-algorithm': String(presigned['x-amz-algorithm']),
       'x-amz-date': String(presigned['x-amz-date']),
       'x-amz-signature': String(presigned['x-amz-signature']),
-      key: String(presigned.key).replace('${filename}', resolvedFileName),
+      key: String(presigned.key).replace('${filename}', () => resolvedFileName),
     };
 
     const multipart = buildMultipartBody(s3Fields, fileBuffer, resolvedFileName, contentType);
@@ -777,7 +847,7 @@ export async function uploadFileToS3(
     }
   }
 
-  const fileKey = String(presigned.key).replace('${filename}', resolvedFileName);
+  const fileKey = String(presigned.key).replace('${filename}', () => resolvedFileName);
   return {
     key: fileKey,
     file_name: resolvedFileName,
@@ -809,4 +879,126 @@ export function splitAndValidateCommaList(
     return arr.map(Number);
   }
   return arr;
+}
+
+// ============================================================================
+// SHARED LIST-SEARCH & LOAD-OPTIONS METHODS (used by V2 node)
+// ============================================================================
+
+/** Format user name for display in resource locator dropdowns */
+export function formatUserName(u: { first_name: string; last_name: string; nickname: string }): string {
+  const fullName = [u.first_name, u.last_name]
+    .filter((v) => v != null && v !== '' && v !== 'null')
+    .join(' ');
+  const display = fullName || u.nickname || 'User';
+  return u.nickname ? `${display} (@${u.nickname})` : display;
+}
+
+/**
+ * Search chats with cursor-based pagination.
+ * When filtering — uses search endpoint (returns all matches).
+ * When listing — fetches multiple pages up to 200 results.
+ */
+export async function searchChats(
+  this: ILoadOptionsFunctions,
+  filter?: string,
+  paginationToken?: unknown,
+): Promise<INodeListSearchResult> {
+  const credentials = await this.getCredentials('pachcaApi');
+
+  if (filter) {
+    const url = `${credentials.baseUrl}/search/chats?query=${encodeURIComponent(filter)}`;
+    const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+      method: 'GET',
+      url,
+    });
+    const items = response.data ?? [];
+    return {
+      results: items.map((c: { id: number; name: string }) => ({
+        name: c.name,
+        value: c.id,
+      })),
+    };
+  }
+
+  // No filter — paginated listing
+  const cursor = paginationToken as string | undefined;
+  const qs = cursor ? `per=50&cursor=${cursor}` : 'per=50';
+  const url = `${credentials.baseUrl}/chats?${qs}`;
+  const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+    method: 'GET',
+    url,
+  });
+  const items = response.data ?? [];
+  const nextCursor = response.meta?.paginate?.next_page as string | undefined;
+  return {
+    results: items.map((c: { id: number; name: string }) => ({
+      name: c.name,
+      value: c.id,
+    })),
+    paginationToken: nextCursor,
+  };
+}
+
+/** Search users by name/nickname */
+export async function searchUsers(
+  this: ILoadOptionsFunctions,
+  filter?: string,
+): Promise<INodeListSearchResult> {
+  const credentials = await this.getCredentials('pachcaApi');
+  if (!filter) return { results: [] };
+  const url = `${credentials.baseUrl}/search/users?query=${encodeURIComponent(filter)}`;
+  const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+    method: 'GET',
+    url,
+  });
+  const items = response.data ?? [];
+  return {
+    results: items.map((u: { id: number; first_name: string; last_name: string; nickname: string }) => ({
+      name: formatUserName(u),
+      value: u.id,
+    })),
+  };
+}
+
+/** Search entities — dispatches to chats or users based on entityType parameter */
+export async function searchEntities(
+  this: ILoadOptionsFunctions,
+  filter?: string,
+  paginationToken?: unknown,
+): Promise<INodeListSearchResult> {
+  let entityType = 'discussion';
+  try {
+    entityType = (this.getNodeParameter('entityType') as string) || 'discussion';
+  } catch {
+    try {
+      entityType = (this.getCurrentNodeParameter('entityType') as string) || 'discussion';
+    } catch { /* parameter may not exist yet */ }
+  }
+
+  if (entityType === 'user') {
+    return searchUsers.call(this, filter);
+  }
+  if (entityType === 'thread') {
+    return { results: [] };
+  }
+  return searchChats.call(this, filter, paginationToken);
+}
+
+/** Load custom properties for the current resource (User or Task) */
+export async function getCustomProperties(
+  this: ILoadOptionsFunctions,
+): Promise<INodePropertyOptions[]> {
+  const credentials = await this.getCredentials('pachcaApi');
+  const resource = this.getNodeParameter('resource') as string;
+  const entityType = resource === 'task' ? 'Task' : 'User';
+  const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+    method: 'GET',
+    url: `${credentials.baseUrl}/custom_properties?entity_type=${entityType}`,
+  });
+  const items = response.data ?? [];
+  return items.map((p: { id: number; name: string }) => ({
+    name: p.name,
+    value: p.id,
+  }));
 }

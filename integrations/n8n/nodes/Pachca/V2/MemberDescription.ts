@@ -225,7 +225,7 @@ export const memberFields: INodeProperties[] = [
 { name: 'Editor', value: 'editor' },
 { name: 'Member', value: 'member', description: 'Member/subscriber' },
 { name: 'Owner', value: 'owner' }],
-		default: "",
+		default: "all",
 		description: 'Role in the chat',
 		displayOptions: { show: { resource: ['member'], operation: ['getAll'] } },
 		routing: { send: { type: 'query', property: 'role' } },

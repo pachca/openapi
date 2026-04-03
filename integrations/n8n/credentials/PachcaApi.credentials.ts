@@ -43,6 +43,15 @@ export class PachcaApi implements ICredentialType {
 			description: 'Used to verify incoming webhook requests from Pachca. Found in bot settings under the Webhook section.',
 			hint: 'Only required when using the Pachca Trigger node',
 		},
+		{
+			displayName: 'Webhook Allowed IPs',
+			name: 'webhookAllowedIps',
+			type: 'string',
+			default: '',
+			description: 'Comma-separated list of IP addresses allowed to send webhooks. Pachca sends from 37.200.70.177. Leave empty to allow all.',
+			placeholder: '37.200.70.177',
+			hint: 'Only used with the Pachca Trigger node',
+		},
 	];
 
 	authenticate: IAuthenticateGeneric = {

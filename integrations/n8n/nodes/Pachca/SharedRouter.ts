@@ -15,6 +15,7 @@ import {
 	splitAndValidateCommaList,
 	simplifyItem,
 	FORM_TEMPLATES,
+	sanitizeBaseUrl,
 } from './GenericFunctions';
 
 // ============================================================================
@@ -41,6 +42,7 @@ interface QueryMap {
 	api: string;
 	n8n: string;
 	locator?: boolean;
+	required?: boolean;
 }
 
 interface RouteConfig {
@@ -168,13 +170,14 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			pathParams: [{ api: 'chatId', n8n: 'chatId' }],
 			paginated: true,
 			v1Collection: 'chatMembersOptions',
-			optionalQueryMap: [{ api: 'role', n8n: 'role' }],
+			optionalQueryMap: [{ api: 'role', n8n: 'role' }, { api: 'limit', n8n: 'limit' }, { api: 'cursor', n8n: 'cursor' }],
 		},
 		addUsers: {
 			method: 'POST' as IHttpRequestMethods,
 			path: '/chats/{chatId}/members',
 			pathParams: [{ api: 'chatId', n8n: 'chatId' }],
-			bodyMap: [{ api: 'member_ids', n8n: 'memberIds', isArray: true, arrayType: 'int' }, { api: 'silent', n8n: 'silent' }],
+			bodyMap: [{ api: 'member_ids', n8n: 'memberIds', isArray: true, arrayType: 'int' }],
+			optionalBodyMap: [{ api: 'silent', n8n: 'silent' }],
 		},
 		removeUser: {
 			method: 'DELETE' as IHttpRequestMethods,
@@ -252,9 +255,6 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			bodyMap: [
 				{ api: 'name', n8n: 'groupTagName' },
 			],
-			optionalBodyMap: [
-				{ api: 'color', n8n: 'groupTagColor' },
-			],
 		},
 		getAll: {
 			method: 'GET' as IHttpRequestMethods,
@@ -274,9 +274,6 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			wrapperKey: 'group_tag',
 			bodyMap: [
 				{ api: 'name', n8n: 'groupTagName' },
-			],
-			optionalBodyMap: [
-				{ api: 'color', n8n: 'groupTagColor' },
 			],
 		},
 		delete: {
@@ -327,7 +324,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/messages',
 			paginated: true,
-			queryMap: [{ api: 'chat_id', n8n: 'chatId', locator: true }],
+			queryMap: [{ api: 'chat_id', n8n: 'chatId', locator: true, required: true }],
 		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
@@ -368,6 +365,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			pathParams: [{ api: 'messageId', n8n: 'messageId' }],
 			paginated: true,
 			v1Collection: 'readMembersOptions',
+			optionalQueryMap: [{ api: 'per', n8n: 'readMembersPer' }, { api: 'page', n8n: 'readMembersPage' }],
 		},
 		unfurl: {
 			method: 'POST' as IHttpRequestMethods,
@@ -403,7 +401,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/messages/{id}/reactions',
 			pathParams: [{ api: 'id', n8n: 'reactionsMessageId' }],
-			queryMap: [{ api: 'code', n8n: 'reactionsReactionCode' }, { api: 'name', n8n: 'name' }],
+			queryMap: [{ api: 'code', n8n: 'reactionsReactionCode', required: true }, { api: 'name', n8n: 'name' }],
 		},
 		getAll: {
 			method: 'GET' as IHttpRequestMethods,
@@ -411,6 +409,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			pathParams: [{ api: 'id', n8n: 'reactionsMessageId' }],
 			paginated: true,
 			v1Collection: 'reactionsOptions',
+			optionalQueryMap: [{ api: 'limit', n8n: 'reactionsPer' }, { api: 'cursor', n8n: 'reactionsCursor' }],
 		},
 	},
 	readMember: {
@@ -675,13 +674,14 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/chats/exports/{id}',
 			pathParams: [{ api: 'id', n8n: 'id' }],
 			noDataWrapper: true,
+			special: 'exportDownload',
 		},
 	},
 	customProperty: {
 		get: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/custom_properties',
-			queryMap: [{ api: 'entity_type', n8n: 'entityType' }],
+			queryMap: [{ api: 'entity_type', n8n: 'entityType', required: true }],
 		},
 	},
 	file: {
@@ -758,7 +758,26 @@ async function executeRoute(
 			json: { name: key, blocks } as unknown as IDataObject,
 		}));
 	}
-
+	if (route.special === 'exportDownload') {
+		const exportId = this.getNodeParameter('id', i) as number;
+		const credentials = await this.getCredentials('pachcaApi');
+		const base = sanitizeBaseUrl(credentials.baseUrl as string);
+		const resp = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
+			method: 'GET',
+			url: `${base}/chats/exports/${exportId}`,
+			ignoreHttpStatusErrors: true,
+			returnFullResponse: true,
+			disableFollowRedirect: true,
+		}) as { statusCode: number; headers: Record<string, string>; body: unknown };
+		const location = resp.headers?.location;
+		if (location) {
+			return [{ json: { id: exportId, url: location } as unknown as IDataObject }];
+		}
+		if (typeof resp.body === 'object' && resp.body) {
+			return [{ json: resp.body as IDataObject }];
+		}
+		return [{ json: { id: exportId, success: true } as unknown as IDataObject }];
+	}
 	// === Build URL with path params ===
 	let url = route.path;
 	for (const pp of route.pathParams ?? []) {
@@ -775,6 +794,9 @@ async function executeRoute(
 					throw e;
 				}
 			}
+		}
+		if (value === undefined || value === null || value === '') {
+			throw new Error(`Missing required path parameter: ${pp.n8n}`);
 		}
 		url = url.replace(`{${pp.api}}`, String(value));
 	}
@@ -834,7 +856,9 @@ async function executeRoute(
 				val = this.getNodeParameter(qm.n8n, i);
 			}
 			if (val !== undefined && val !== null && val !== '') qs[qm.api] = val as IDataObject;
-		} catch { /* param not shown / not filled */ }
+		} catch (e) {
+			if (qm.required) throw e; // Required query param must be present
+		}
 	}
 
 	// Read query params from collection, with top-level fallback (same pattern as optionalBodyMap)
@@ -949,7 +973,15 @@ async function executeRoute(
 		return [{ json: { success: true } }];
 	}
 
+	// Handle 204 No Content for non-DELETE methods (archive, unarchive, pin, addMembers, etc.)
+	if (!response || (typeof response === 'object' && Object.keys(response).length === 0)) {
+		return [{ json: { success: true } }];
+	}
+
 	if (route.noDataWrapper) {
+		if (!response || (typeof response === 'object' && Object.keys(response).length === 0)) {
+			return [{ json: { success: true } as unknown as IDataObject }];
+		}
 		return [{ json: response }];
 	}
 

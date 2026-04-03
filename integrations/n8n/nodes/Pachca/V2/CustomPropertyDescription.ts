@@ -31,6 +31,7 @@ export const customPropertyFields: INodeProperties[] = [
 		displayName: 'Entity Type',
 		name: 'entityType',
 		type: 'options',
+		required: true,
 		options: [{ name: 'Task', value: 'Task' },
 { name: 'User', value: 'User' }],
 		default: "",

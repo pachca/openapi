@@ -4,19 +4,10 @@ import type {
 	INodeTypeDescription,
 	IExecuteFunctions,
 	INodeExecutionData,
-	ILoadOptionsFunctions,
-	INodeListSearchResult,
-	INodePropertyOptions,
 } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
 import { router } from '../SharedRouter';
-function formatUserName(u: { first_name: string; last_name: string; nickname: string }): string {
-	const fullName = [u.first_name, u.last_name]
-		.filter((v) => v != null && v !== '' && v !== 'null')
-		.join(' ');
-	const display = fullName || u.nickname || 'User';
-	return u.nickname ? `${display} (@${u.nickname})` : display;
-}
+import { searchChats, searchUsers, searchEntities, getCustomProperties } from '../GenericFunctions';
 
 import { securityOperations, securityFields } from './SecurityDescription';
 import { botOperations, botFields } from './BotDescription';
@@ -122,97 +113,7 @@ export class PachcaV2 implements INodeType {
 	}
 
 	methods = {
-		listSearch: {
-			async searchChats(this: ILoadOptionsFunctions, filter?: string): Promise<INodeListSearchResult> {
-				const credentials = await this.getCredentials('pachcaApi');
-				const url = filter
-					? `${credentials.baseUrl}/search/chats?query=${encodeURIComponent(filter)}`
-					: `${credentials.baseUrl}/chats?per=50`;
-				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
-					method: 'GET',
-					url,
-				});
-				const items = response.data ?? [];
-				return {
-					results: items.map((c: { id: number; name: string }) => ({
-						name: c.name,
-						value: c.id,
-					})),
-				};
-			},
-			async searchUsers(this: ILoadOptionsFunctions, filter?: string): Promise<INodeListSearchResult> {
-				const credentials = await this.getCredentials('pachcaApi');
-				if (!filter) return { results: [] };
-				const url = `${credentials.baseUrl}/search/users?query=${encodeURIComponent(filter)}`;
-				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
-					method: 'GET',
-					url,
-				});
-				const items = response.data ?? [];
-				return {
-					results: items.map((u: { id: number; first_name: string; last_name: string; nickname: string }) => ({
-						name: formatUserName(u),
-						value: u.id,
-					})),
-				};
-			},
-			async searchEntities(this: ILoadOptionsFunctions, filter?: string): Promise<INodeListSearchResult> {
-				let entityType = 'discussion';
-				try {
-					entityType = (this.getNodeParameter('entityType') as string) || 'discussion';
-				} catch {
-					try {
-						entityType = (this.getCurrentNodeParameter('entityType') as string) || 'discussion';
-					} catch { /* parameter may not exist yet */ }
-				}
-				const credentials = await this.getCredentials('pachcaApi');
-				if (entityType === 'user') {
-					if (!filter) return { results: [] };
-					const url = `${credentials.baseUrl}/search/users?query=${encodeURIComponent(filter)}`;
-					const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', { method: 'GET', url });
-					const items = response.data ?? [];
-					return {
-						results: items.map((u: { id: number; first_name: string; last_name: string; nickname: string }) => ({
-							name: formatUserName(u),
-							value: u.id,
-						})),
-					};
-				}
-				if (entityType === 'thread') {
-					return { results: [] };
-				}
-				const url = filter
-					? `${credentials.baseUrl}/search/chats?query=${encodeURIComponent(filter)}`
-					: `${credentials.baseUrl}/chats?per=50`;
-				const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', { method: 'GET', url });
-				const items = response.data ?? [];
-				return {
-					results: items.map((c: { id: number; name: string }) => ({
-						name: c.name,
-						value: c.id,
-					})),
-				};
-			},
-		},
-		loadOptions: {
-			async getCustomProperties(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('pachcaApi');
-				const resource = this.getNodeParameter('resource') as string;
-				const entityType = resource === 'task' ? 'Task' : 'User';
-				try {
-					const response = await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
-						method: 'GET',
-						url: `${credentials.baseUrl}/custom_properties?entity_type=${entityType}`,
-					});
-					const items = response.data ?? [];
-					return items.map((p: { id: number; name: string }) => ({
-						name: p.name,
-						value: p.id,
-					}));
-				} catch {
-					return [];
-				}
-			},
-		},
+		listSearch: { searchChats, searchUsers, searchEntities },
+		loadOptions: { getCustomProperties },
 	};
 }

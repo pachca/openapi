@@ -107,12 +107,4 @@ export const exportFields: INodeProperties[] = [
 		default: '',
 		displayOptions: { show: { resource: ['export'], operation: ['get'] } },
 	},
-	{
-		displayName: 'Simplify',
-		name: 'simplify',
-		type: 'boolean',
-		default: true,
-		description: 'Whether to return a simplified version of the response instead of all fields',
-		displayOptions: { show: { resource: ['export'], operation: ['get'] } },
-	},
 ];

@@ -81,6 +81,7 @@ export const reactionFields: INodeProperties[] = [
 		displayName: 'Code',
 		name: 'reactionsReactionCode',
 		type: 'string',
+		required: true,
 		default: "",
 		description: 'Emoji character of the reaction',
 		placeholder: '👍',

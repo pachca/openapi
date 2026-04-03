@@ -48,6 +48,7 @@ export class PachcaTrigger implements INodeType {
 				httpMethod: 'POST',
 				responseMode: 'onReceived',
 				path: 'webhook',
+				rawBody: true,
 			},
 		],
 		properties: [
@@ -86,7 +87,12 @@ export class PachcaTrigger implements INodeType {
 		default: {
 			async checkExists(this: IHookFunctions): Promise<boolean> {
 				const credentials = await this.getCredentials('pachcaApi');
-				const botId = await resolveBotId(this, credentials);
+				let botId: number;
+				try {
+					botId = await resolveBotId(this, credentials);
+				} catch {
+					return false; // Network error → treat as not exists, will trigger create
+				}
 				if (!botId) return false;
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				try {
@@ -109,7 +115,10 @@ export class PachcaTrigger implements INodeType {
 			async create(this: IHookFunctions): Promise<boolean> {
 				const credentials = await this.getCredentials('pachcaApi');
 				const botId = await resolveBotId(this, credentials);
-				if (!botId) return true; // Not a bot token → manual mode
+				if (!botId) {
+					this.logger.warn('Pachca Trigger: token is not a bot token. Webhook was NOT registered automatically. Configure webhook URL manually in Pachca bot settings.');
+					return true;
+				}
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
 					method: 'PUT',
@@ -121,7 +130,12 @@ export class PachcaTrigger implements INodeType {
 
 			async delete(this: IHookFunctions): Promise<boolean> {
 				const credentials = await this.getCredentials('pachcaApi');
-				const botId = await resolveBotId(this, credentials);
+				let botId: number;
+				try {
+					botId = await resolveBotId(this, credentials);
+				} catch {
+					return true; // Can't resolve bot → nothing to clean up
+				}
 				if (!botId) return true;
 				try {
 					await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
@@ -143,11 +157,23 @@ export class PachcaTrigger implements INodeType {
 		const credentials = await this.getCredentials('pachcaApi');
 		const event = this.getNodeParameter('event') as string;
 
+		// IP allowlist check
+		const allowedIps = ((credentials.webhookAllowedIps as string) || '').split(',').map(s => s.trim()).filter(Boolean);
+		if (allowedIps.length > 0) {
+			const request = this.getRequestObject();
+			const clientIp = (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || request.socket?.remoteAddress || '';
+			const normalizedIp = clientIp.replace(/^::ffff:/, '');
+			if (!allowedIps.includes(normalizedIp)) {
+				return { webhookResponse: 'Forbidden' };
+			}
+		}
+
 		// Signing secret verification (use raw body bytes for accurate HMAC)
-		if (credentials.signingSecret) {
-			const signature = headerData['x-pachca-signature'] as string;
+		const signingSecret = ((credentials.signingSecret as string) || '').trim();
+		if (signingSecret) {
+			const signature = headerData['pachca-signature'] as string;
 			if (!signature) {
-				return { webhookResponse: 'Missing signature' };
+				return { webhookResponse: 'Rejected' };
 			}
 			const request = this.getRequestObject();
 			const rawBody = request.rawBody
@@ -157,10 +183,19 @@ export class PachcaTrigger implements INodeType {
 				!verifyWebhookSignature(
 					rawBody,
 					signature,
-					credentials.signingSecret as string,
+					signingSecret,
 				)
 			) {
-				return { webhookResponse: 'Invalid signature' };
+				return { webhookResponse: 'Rejected' };
+			}
+		}
+
+		// Replay protection — reject events older than 5 minutes
+		const webhookTs = body.webhook_timestamp as number | undefined;
+		if (webhookTs) {
+			const ageMs = Date.now() - webhookTs * 1000;
+			if (Math.abs(ageMs) > 5 * 60 * 1000) {
+				return { webhookResponse: 'Rejected' };
 			}
 		}
 

@@ -112,50 +112,53 @@ jobs:
       - name: Generate n8n node
         run: bun run integrations/n8n/scripts/generate-n8n.ts
 
-      - name: Check version
+      - name: Set version (auto-increment patch)
         id: version
+        working-directory: integrations/n8n
         run: |
-          PKG_VERSION=$(node -e "console.log(require('./integrations/n8n/package.json').version)")
-          CHANGELOG_VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('integrations/n8n/changelog.json'))[0].version)")
-
-          if [ "$PKG_VERSION" != "$CHANGELOG_VERSION" ]; then
-            echo "::error::Version mismatch: package.json=$PKG_VERSION, changelog.json=$CHANGELOG_VERSION"
-            exit 1
-          fi
-
-          echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
-
-          # Check if this version already exists on npm
-          PUBLISHED=$(node -e "
+          VERSION=$(node -e "
             const { execSync } = require('child_process');
+            const base = require('./package.json').version.split('.').slice(0, 2).join('.');
+            let versions = [];
             try {
               const raw = execSync('npm view n8n-nodes-pachca versions --json', { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
-              const versions = JSON.parse(raw);
-              const list = Array.isArray(versions) ? versions : [versions];
-              console.log(list.includes('$PKG_VERSION') ? 'yes' : 'no');
-            } catch { console.log('no'); }
+              const parsed = JSON.parse(raw);
+              versions = Array.isArray(parsed) ? parsed : [parsed];
+            } catch {}
+            const matching = versions.filter(v => v.startsWith(base + '.'));
+            const lastPatch = matching.length > 0
+              ? Math.max(...matching.map(v => parseInt(v.split('.')[2])))
+              : -1;
+            console.log(base + '.' + (lastPatch + 1));
           ")
-          echo "published=$PUBLISHED" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='$VERSION';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          echo "Publishing n8n-nodes-pachca@$VERSION"
 
       - name: Build n8n node
-        if: steps.version.outputs.published == 'no'
         working-directory: integrations/n8n
         run: bun run build
 
       - name: Scan community package
-        if: steps.version.outputs.published == 'no'
         working-directory: integrations/n8n
         run: bun x @n8n/scan-community-package .
 
       - name: Publish to npm
-        if: steps.version.outputs.published == 'no'
         working-directory: integrations/n8n
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --provenance
+        run: |
+          OUTPUT=$(npm publish --access public --provenance 2>&1) || {
+            CODE=$?
+            if echo "$OUTPUT" | grep -q "E409\|already exists"; then
+              echo "Version ${{ steps.version.outputs.version }} already published, skipping"
+            else
+              echo "$OUTPUT"
+              exit $CODE
+            fi
+          }
 
       - name: Create GitHub Release
-        if: steps.version.outputs.published == 'no'
         working-directory: integrations/n8n
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -15,7 +15,6 @@ import {
 	uploadAvatar,
 	splitAndValidateCommaList,
 	simplifyItem,
-	FORM_TEMPLATES,
 	sanitizeBaseUrl,
 } from './GenericFunctions';
 
@@ -672,11 +671,6 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/profile',
 			special: 'formProcessSubmission',
 		},
-		getTemplates: {
-			method: 'GET' as IHttpRequestMethods,
-			path: '/profile',
-			special: 'formGetTemplates',
-		},
 	},
 	export: {
 		create: {
@@ -776,11 +770,6 @@ async function executeRoute(
 		// v1 only: pass through form submission data from webhook input
 		const inputData = this.getInputData()[i].json;
 		return [{ json: inputData }];
-	}
-	if (route.special === 'formGetTemplates') {
-		return Object.entries(FORM_TEMPLATES).map(([key, blocks]) => ({
-			json: { name: key, blocks } as unknown as IDataObject,
-		}));
 	}
 	if (route.special === 'exportDownload') {
 		const exportId = this.getNodeParameter('id', i) as number;

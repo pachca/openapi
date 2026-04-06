@@ -144,7 +144,7 @@ const V1_COMPAT_PARAMS: Record<string, Record<string, Record<string, string>>> =
 	task: { create: { kind: 'taskKind', content: 'taskContent', dueAt: 'taskDueAt', priority: 'taskPriority' } },
 	status: { updateStatus: { emoji: 'statusEmoji', title: 'statusTitle', expiresAt: 'statusExpiresAt' } },
 	bot: { update: { id: 'botId', outgoingUrl: 'webhookUrl' } },
-	form: { createView: { title: 'formTitle', blocks: 'formBlocks', builderMode: 'formBuilderMode', template: 'formTemplate' } },
+	form: { createView: { title: 'formTitle', blocks: 'formBlocks', builderMode: 'formBuilderMode' } },
 };
 
 function getParamName(resource: string, op: string, fieldName: string): string {

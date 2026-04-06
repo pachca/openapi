@@ -28,6 +28,7 @@ export default class MembersList extends BaseCommand {
     'role': Flags.string({
       description: "Роль в чате",
       options: ["all","owner","admin","editor","member"],
+      default: "all",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

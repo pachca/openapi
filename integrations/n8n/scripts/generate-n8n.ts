@@ -94,7 +94,7 @@ const V1_COMPAT_PARAMS: Record<string, Record<string, Record<string, string>>> =
     update: { id: 'botId', outgoingUrl: 'webhookUrl' },
   },
   form: {
-    createView: { title: 'formTitle', blocks: 'formBlocks', builderMode: 'formBuilderMode', template: 'formTemplate' },
+    createView: { title: 'formTitle', blocks: 'formBlocks', builderMode: 'formBuilderMode' },
   },
 };
 
@@ -1012,7 +1012,7 @@ function generateResourceDescription(
       lines.push(`\t},`);
     }
 
-    // Query parameters (non-pagination, skip template params with {})
+    // Query parameters (non-pagination, skip parameterized params with {})
     // Primary query params are required or named 'query' (shown top-level for all resources)
     const PRIMARY_QUERY_PARAMS = new Set(['query']);
     // Resources where optional query params should be wrapped in Additional Fields
@@ -1188,41 +1188,18 @@ function generateResourceDescription(
 
     // Form builder for form create/createView (Phase 13)
     if (resource === 'form' && (op.v2Op === 'create' || op.v1Op === 'createView')) {
-      // Builder mode selector: Template (v1 only) / Visual Builder / JSON
+      // Builder mode selector: Visual Builder / JSON
       lines.push(`\t{`);
       lines.push(`\t\tdisplayName: 'Builder Mode',`);
       lines.push(`\t\tname: 'formBuilderMode',`);
       lines.push(`\t\ttype: 'options',`);
       lines.push(`\t\toptions: [`);
-      lines.push(`\t\t\t{ name: 'Template', value: 'template', displayOptions: { show: { '@version': [1] } } },`);
       lines.push(`\t\t\t{ name: 'Visual Builder', value: 'builder' },`);
       lines.push(`\t\t\t{ name: 'JSON', value: 'json' },`);
       lines.push(`\t\t],`);
       lines.push(`\t\tdefault: 'builder',`);
-      lines.push(`\t\tdescription: 'Build form visually, use a template, or paste JSON',`);
+      lines.push(`\t\tdescription: 'Build form visually or paste JSON',`);
       lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
-      lines.push(`\t},`);
-      // Template selector (v1 only, shown in template mode)
-      lines.push(`\t{`);
-      lines.push(`\t\tdisplayName: 'Template',`);
-      lines.push(`\t\tname: 'formTemplate',`);
-      lines.push(`\t\ttype: 'options',`);
-      lines.push(`\t\toptions: [`);
-      // Sorted alphabetically by name (n8n lint: node-param-options-type-unsorted-items)
-      // All option names must be title-cased (n8n lint: node-param-display-name-miscased)
-      lines.push(`\t\t\t{ name: 'Access Request (V1)', value: 'access_request', description: 'Access request form' },`);
-      lines.push(`\t\t\t{ name: 'Bug Report', value: 'bug_report', description: 'Bug report with severity and screenshots' },`);
-      lines.push(`\t\t\t{ name: 'Feedback', value: 'feedback', description: 'Collect user feedback with rating' },`);
-      lines.push(`\t\t\t{ name: 'Feedback Form (V1)', value: 'feedback_form', description: 'Feedback form' },`);
-      lines.push(`\t\t\t{ name: 'Survey', value: 'survey', description: 'Multi-question survey with radio and checkboxes' },`);
-      lines.push(`\t\t\t{ name: 'Survey Form (V1)', value: 'survey_form', description: 'Survey form' },`);
-      lines.push(`\t\t\t{ name: 'Task Request (V1)', value: 'task_request', description: 'Task creation form' },`);
-      lines.push(`\t\t\t{ name: 'Time Off Request', value: 'timeoff', description: 'Vacation request with dates and documents' },`);
-      lines.push(`\t\t\t{ name: 'Time-Off Request (V1)', value: 'timeoff_request', description: 'Time-off request form' },`);
-      lines.push(`\t\t],`);
-      lines.push(`\t\tdefault: 'feedback',`);
-      lines.push(`\t\tdescription: 'Select a predefined form template',`);
-      lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}], formBuilderMode: ['template'] } },`);
       lines.push(`\t},`);
       // Visual builder — fixedCollection with all block types (shown in builder mode)
       lines.push(`\t{`);
@@ -1442,14 +1419,6 @@ function generateResourceDescription(
       lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: ['processSubmission'] } },`);
       lines.push(`\t},`);
 
-      // v1-only getTemplates notice
-      lines.push(`\t{`);
-      lines.push(`\t\tdisplayName: 'This operation is deprecated. In v2, form templates are available directly in the Visual Builder mode when creating a form.',`);
-      lines.push(`\t\tname: 'getTemplatesNotice',`);
-      lines.push(`\t\ttype: 'notice',`);
-      lines.push(`\t\tdefault: '',`);
-      lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: ['getTemplates'] } },`);
-      lines.push(`\t},`);
     }
 
   }
@@ -2753,7 +2722,6 @@ function generateRouter(resourceOperations: Map<string, OperationInfo[]>): strin
     // V1-only form operations (no real API call)
     if (resource === 'form') {
       opEntries.push(`\t\tprocessSubmission: {\n\t\t\tmethod: 'GET' as IHttpRequestMethods,\n\t\t\tpath: '/profile',\n\t\t\tspecial: 'formProcessSubmission',\n\t\t}`);
-      opEntries.push(`\t\tgetTemplates: {\n\t\t\tmethod: 'GET' as IHttpRequestMethods,\n\t\t\tpath: '/profile',\n\t\t\tspecial: 'formGetTemplates',\n\t\t}`);
     }
     if (opEntries.length) {
       routeBlocks.push(`\t${resource}: {\n${opEntries.join(',\n')},\n\t}`);
@@ -2787,7 +2755,6 @@ import {
 \tuploadAvatar,
 \tsplitAndValidateCommaList,
 \tsimplifyItem,
-\tFORM_TEMPLATES,
 \tsanitizeBaseUrl,
 } from './GenericFunctions';
 
@@ -2917,11 +2884,6 @@ async function executeRoute(
 \t\t// v1 only: pass through form submission data from webhook input
 \t\tconst inputData = this.getInputData()[i].json;
 \t\treturn [{ json: inputData }];
-\t}
-\tif (route.special === 'formGetTemplates') {
-\t\treturn Object.entries(FORM_TEMPLATES).map(([key, blocks]) => ({
-\t\t\tjson: { name: key, blocks } as unknown as IDataObject,
-\t\t}));
 \t}
 \tif (route.special === 'exportDownload') {
 \t\tconst exportId = this.getNodeParameter('id', i) as number;

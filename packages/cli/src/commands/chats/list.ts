@@ -25,14 +25,17 @@ export default class ChatsList extends BaseCommand {
     'sort': Flags.string({
       description: "Поле сортировки",
       options: ["id","last_message_at"],
+      default: "id",
     }),
     'order': Flags.string({
       description: "Направление сортировки",
       options: ["asc","desc"],
+      default: "desc",
     }),
     'availability': Flags.string({
       description: "Параметр, который отвечает за доступность и выборку чатов для пользователя",
       options: ["is_member","public"],
+      default: "is_member",
     }),
     'last-message-at-after': Flags.string({
       description: "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).",

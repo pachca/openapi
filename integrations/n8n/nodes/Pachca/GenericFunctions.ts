@@ -60,145 +60,6 @@ const SIMPLIFY_FIELDS: Record<string, string[]> = {
 };
 
 // ============================================================================
-// FORM TEMPLATES
-// ============================================================================
-
-/**
- * Predefined form templates for the template builder mode.
- * Each template is an array of ViewBlock objects matching the Pachca forms API.
- */
-export const FORM_TEMPLATES: Record<string, IDataObject[]> = {
-  feedback: [
-    { type: 'header', text: 'Обратная связь' },
-    {
-      type: 'input',
-      name: 'feedback',
-      label: 'Ваш отзыв',
-      multiline: true,
-      required: true,
-      placeholder: 'Опишите ваш опыт...',
-    },
-    {
-      type: 'select',
-      name: 'rating',
-      label: 'Оценка',
-      required: true,
-      options: [
-        { text: '⭐ Отлично', value: '5' },
-        { text: '👍 Хорошо', value: '4' },
-        { text: '👌 Нормально', value: '3' },
-        { text: '👎 Плохо', value: '2' },
-        { text: '❌ Ужасно', value: '1' },
-      ],
-    },
-  ],
-  timeoff: [
-    { type: 'header', text: 'Заявка на отпуск' },
-    { type: 'date', name: 'date_start', label: 'Дата начала', required: true },
-    { type: 'date', name: 'date_end', label: 'Дата окончания', required: true },
-    {
-      type: 'radio',
-      name: 'accessibility',
-      label: 'Доступность',
-      options: [
-        { text: 'Только телефон', value: 'phone_only' },
-        { text: 'Телефон и мессенджер', value: 'phone_and_messenger' },
-        { text: 'Недоступен', value: 'unavailable' },
-      ],
-    },
-    {
-      type: 'input',
-      name: 'info',
-      label: 'Комментарий',
-      multiline: true,
-      placeholder: 'Дополнительная информация...',
-    },
-    {
-      type: 'file_input',
-      name: 'documents',
-      label: 'Документы',
-      max_files: 5,
-    },
-  ],
-  survey: [
-    { type: 'header', text: 'Опрос' },
-    {
-      type: 'radio',
-      name: 'satisfaction',
-      label: 'Насколько вы довольны?',
-      required: true,
-      options: [
-        { text: 'Полностью доволен', value: 'very_satisfied' },
-        { text: 'Скорее доволен', value: 'satisfied' },
-        { text: 'Скорее недоволен', value: 'dissatisfied' },
-        { text: 'Совсем не доволен', value: 'very_dissatisfied' },
-      ],
-    },
-    {
-      type: 'checkbox',
-      name: 'features',
-      label: 'Какие функции вы используете?',
-      options: [
-        { text: 'Чаты', value: 'chats' },
-        { text: 'Задачи', value: 'tasks' },
-        { text: 'Боты', value: 'bots' },
-        { text: 'Формы', value: 'forms' },
-      ],
-    },
-    {
-      type: 'input',
-      name: 'suggestions',
-      label: 'Предложения по улучшению',
-      multiline: true,
-    },
-  ],
-  bug_report: [
-    { type: 'header', text: 'Отчёт об ошибке' },
-    {
-      type: 'input',
-      name: 'title',
-      label: 'Краткое описание',
-      required: true,
-      placeholder: 'Что произошло?',
-    },
-    {
-      type: 'input',
-      name: 'steps',
-      label: 'Шаги воспроизведения',
-      multiline: true,
-      required: true,
-      placeholder: '1. Открыть...\n2. Нажать...\n3. Увидеть ошибку',
-    },
-    {
-      type: 'select',
-      name: 'severity',
-      label: 'Серьёзность',
-      required: true,
-      options: [
-        { text: 'Критическая', value: 'critical' },
-        { text: 'Высокая', value: 'high' },
-        { text: 'Средняя', value: 'medium' },
-        { text: 'Низкая', value: 'low' },
-      ],
-    },
-    {
-      type: 'file_input',
-      name: 'screenshots',
-      label: 'Скриншоты',
-      filetypes: ['png', 'jpg', 'gif', 'webp'],
-      max_files: 5,
-    },
-  ],
-};
-
-// v1 backward compat: old template keys → same blocks as v2 equivalents
-FORM_TEMPLATES.timeoff_request = FORM_TEMPLATES.timeoff;
-FORM_TEMPLATES.feedback_form = FORM_TEMPLATES.feedback;
-FORM_TEMPLATES.survey_form = FORM_TEMPLATES.survey;
-FORM_TEMPLATES.task_request = FORM_TEMPLATES.bug_report;
-FORM_TEMPLATES.access_request = FORM_TEMPLATES.feedback;
-
-// ============================================================================
 // WEBHOOK SIGNATURE VERIFICATION
 // ============================================================================
 
@@ -736,7 +597,7 @@ export function cleanFileAttachments(
 }
 
 /**
- * Resolve form blocks from builder mode, template, or JSON input.
+ * Resolve form blocks from builder mode or JSON input.
  * Works with IExecuteFunctions context (execute() mode).
  */
 export function resolveFormBlocksFromParams(
@@ -808,12 +669,6 @@ export function resolveFormBlocksFromParams(
       blocks.push(block);
     }
     return blocks;
-  }
-
-  if (builderMode === 'template') {
-    let templateName: string;
-    try { templateName = ctx.getNodeParameter('formTemplate', itemIndex, '') as string; } catch { return []; }
-    return FORM_TEMPLATES[templateName] ?? [];
   }
 
   // JSON mode

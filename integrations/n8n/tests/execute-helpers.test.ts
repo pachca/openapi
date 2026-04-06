@@ -10,7 +10,6 @@ import {
   splitAndValidateCommaList,
   uploadFileToS3,
   buildMultipartBody,
-  FORM_TEMPLATES,
 } from '../nodes/Pachca/GenericFunctions';
 
 // ============================================================================
@@ -497,35 +496,6 @@ describe('resolveFormBlocksFromParams', () => {
     });
   });
 
-  describe('template mode', () => {
-    it('should return feedback template', () => {
-      const ctx = createMockCtx({
-        formBuilderMode: 'template',
-        formTemplate: 'feedback',
-      });
-      const result = resolveFormBlocksFromParams(ctx, 0);
-      expect(result).toEqual(FORM_TEMPLATES.feedback);
-      expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('should return timeoff template', () => {
-      const ctx = createMockCtx({
-        formBuilderMode: 'template',
-        formTemplate: 'timeoff',
-      });
-      const result = resolveFormBlocksFromParams(ctx, 0);
-      expect(result).toEqual(FORM_TEMPLATES.timeoff);
-      expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('should return empty array for unknown template', () => {
-      const ctx = createMockCtx({
-        formBuilderMode: 'template',
-        formTemplate: 'nonexistent_template',
-      });
-      expect(resolveFormBlocksFromParams(ctx, 0)).toEqual([]);
-    });
-  });
 
   describe('builder mode', () => {
     it('should build header block', () => {

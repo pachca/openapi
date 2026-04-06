@@ -22,6 +22,16 @@
         "type": "+",
         "command": "users remove-avatar",
         "description": "Удаление аватара сотрудника"
+      },
+      {
+        "type": "~",
+        "command": "chats list, messages list",
+        "description": "Исправлена сортировка: --order без --sort теперь корректно работает (sort по умолчанию id, order по умолчанию desc)"
+      },
+      {
+        "type": "~",
+        "command": "messages list",
+        "description": "chat_id можно передать первым аргументом: pachca messages list 12345"
       }
     ]
   },

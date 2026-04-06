@@ -24,13 +24,7 @@ export const formOperations: INodeProperties[] = [
 				action: 'Process form submission',
 				description: 'Handle form submit and send response',
 			},
-			{
-				name: 'Get form templates',
-				value: 'getTemplates',
-				action: 'Get form templates',
-				description: 'Get list of available form templates',
-			},
-		],
+			],
 		default: 'createView',
 		displayOptions: {
 			show: {
@@ -47,11 +41,6 @@ export const formFields: INodeProperties[] = [
 		type: 'options',
 		options: [
 			{
-				name: '📋 Use Template',
-				value: 'template',
-				description: 'Use preset template',
-			},
-			{
 				name: '🎨 Visual Builder',
 				value: 'builder',
 				description: 'Visual form builder',
@@ -62,53 +51,12 @@ export const formFields: INodeProperties[] = [
 				description: 'Edit JSON directly',
 			},
 		],
-		default: 'template',
+		default: 'builder',
 		description: 'Form creation method',
 		displayOptions: {
 			show: {
 				resource: ['form'],
 				operation: ['createView'],
-			},
-		},
-	},
-	{
-		displayName: 'Form Template',
-		name: 'formTemplate',
-		type: 'options',
-		options: [
-			{
-				name: '📋 Timeoff Request',
-				value: 'timeoff_request',
-				description: 'Time-off request form',
-			},
-			{
-				name: '💬 Feedback Form',
-				value: 'feedback_form',
-				description: 'Feedback form',
-			},
-			{
-				name: '📝 Task Request',
-				value: 'task_request',
-				description: 'Task creation form',
-			},
-			{
-				name: '📊 Survey Form',
-				value: 'survey_form',
-				description: 'Survey form',
-			},
-			{
-				name: '🔐 Access Request',
-				value: 'access_request',
-				description: 'Access request form',
-			},
-		],
-		default: 'timeoff_request',
-		description: 'Select form template',
-		displayOptions: {
-			show: {
-				resource: ['form'],
-				operation: ['createView'],
-				formBuilderMode: ['template'],
 			},
 		},
 	},

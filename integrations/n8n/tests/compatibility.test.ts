@@ -577,10 +577,10 @@ describe('V1 top-level field duplicates', () => {
 });
 
 // ============================================================================
-// NO TEMPLATE PARAMETERS (V2 files)
+// NO PARAMETERIZED QUERY PARAMS (V2 files)
 // ============================================================================
 
-describe('No template parameters in output', () => {
+describe('No parameterized query params in output', () => {
   it('should not have sort[{field}] parameter in V2 descriptions', () => {
     const files = fs.readdirSync(V2_DIR).filter(f => f.endsWith('Description.ts'));
     for (const file of files) {
@@ -654,34 +654,26 @@ describe('Visual button constructor', () => {
 // FORM BUILDER (V2 file)
 // ============================================================================
 
-describe('Form builder (templates + JSON)', () => {
+describe('Form builder (visual + JSON)', () => {
   let formContent: string;
   beforeAll(() => {
     formContent = fs.readFileSync(path.join(V2_DIR, 'FormDescription.ts'), 'utf-8');
   });
 
-  it('formBuilderMode field exists with template and json options', () => {
+  it('formBuilderMode field exists with builder and json options', () => {
     expect(formContent).toContain("name: 'formBuilderMode'");
-    expect(formContent).toContain("value: 'template'");
+    expect(formContent).toContain("value: 'builder'");
     expect(formContent).toContain("value: 'json'");
   });
 
-  it('formBuilderMode field exists in the form fields section', () => {
-    expect(formContent).toContain("name: 'formBuilderMode'");
-  });
-
-  it('formTemplate shown only in template mode', () => {
-    const match = formContent.match(/name: 'formTemplate'[\s\S]*?displayOptions: \{[^}]*formBuilderMode: \[([^\]]+)\]/);
-    expect(match).toBeTruthy();
-    expect(match![1]).toContain("'template'");
-    expect(match![1]).not.toContain("'json'");
-  });
-
-  it('formTemplate has all 4 templates', () => {
-    expect(formContent).toContain("value: 'feedback'");
-    expect(formContent).toContain("value: 'timeoff'");
-    expect(formContent).toContain("value: 'survey'");
-    expect(formContent).toContain("value: 'bug_report'");
+  it('formBuilderMode has only builder and json options', () => {
+    const builderModeMatch = formContent.match(/name: 'formBuilderMode'[\s\S]*?options: \[([\s\S]*?)\]/);
+    expect(builderModeMatch).toBeTruthy();
+    expect(builderModeMatch![1]).toContain("'builder'");
+    expect(builderModeMatch![1]).toContain("'json'");
+    // Only 2 options
+    const valueCount = (builderModeMatch![1].match(/value:/g) || []).length;
+    expect(valueCount).toBe(2);
   });
 
   it('formBlocks shown for builder and json modes', () => {

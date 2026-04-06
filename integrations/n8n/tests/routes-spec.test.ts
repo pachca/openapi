@@ -125,7 +125,6 @@ const V1_ALIAS_OPS: Record<string, string[]> = {
 // Special operations that don't map directly to an API endpoint
 const SPECIAL_NON_API_OPS = new Set([
 	'form.processSubmission',
-	'form.getTemplates',
 ]);
 
 // ============================================================================

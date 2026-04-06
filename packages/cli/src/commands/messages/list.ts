@@ -33,10 +33,12 @@ export default class MessagesList extends BaseCommand {
     'sort': Flags.string({
       description: "Поле сортировки",
       options: ["id"],
+      default: "id",
     }),
     'order': Flags.string({
       description: "Направление сортировки",
       options: ["asc","desc"],
+      default: "desc",
     }),
     limit: Flags.integer({
       description: 'Количество результатов на страницу',

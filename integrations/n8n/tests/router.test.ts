@@ -567,22 +567,6 @@ describe('Special: formProcessSubmission', () => {
 	});
 });
 
-describe('Special: formGetTemplates', () => {
-	it('returns all templates without API call', async () => {
-		const ctx = createMockContext({
-			resource: 'form',
-			operation: 'getTemplates',
-		});
-		const result = await runRouter(ctx);
-		const templateNames = result[0].map((item) => item.json.name);
-		expect(templateNames).toContain('feedback');
-		expect(templateNames).toContain('timeoff');
-		expect(templateNames).toContain('survey');
-		expect(templateNames).toContain('bug_report');
-		expect(ctx._calls).toHaveLength(0); // no API call
-	});
-});
-
 // ============================================================================
 // SIMPLIFY MODE
 // ============================================================================

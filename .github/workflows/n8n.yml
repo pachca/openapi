@@ -90,6 +90,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.4
@@ -112,7 +114,26 @@ jobs:
       - name: Generate n8n node
         run: bun run integrations/n8n/scripts/generate-n8n.ts
 
+      - name: Check for publishable changes
+        id: changes
+        run: |
+          # Check committed source changes (exclude tests, scripts, docs, config)
+          COMMITTED=$(git diff --name-only HEAD~1 HEAD -- integrations/n8n/ \
+            | grep -v -E '^integrations/n8n/(tests/|scripts/|docs/|e2e/|eslint|tsconfig|\.gitignore|\.npmrc|vitest)' \
+            | grep -q . && echo true || echo false)
+          # Check if generation produced different files (spec/generator changed)
+          GENERATED=$(git diff --name-only -- integrations/n8n/nodes/ integrations/n8n/credentials/ \
+            | grep -q . && echo true || echo false)
+          if [ "$COMMITTED" = "true" ] || [ "$GENERATED" = "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Publishable changes detected (committed=$COMMITTED, generated=$GENERATED)"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No publishable changes, skipping publish"
+          fi
+
       - name: Set version (auto-increment patch)
+        if: steps.changes.outputs.changed == 'true'
         id: version
         working-directory: integrations/n8n
         run: |
@@ -136,14 +157,17 @@ jobs:
           echo "Publishing n8n-nodes-pachca@$VERSION"
 
       - name: Build n8n node
+        if: steps.changes.outputs.changed == 'true'
         working-directory: integrations/n8n
         run: bun run build
 
       - name: Scan community package
+        if: steps.changes.outputs.changed == 'true'
         working-directory: integrations/n8n
         run: bun x @n8n/scan-community-package .
 
       - name: Publish to npm
+        if: steps.changes.outputs.changed == 'true'
         working-directory: integrations/n8n
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -159,6 +183,7 @@ jobs:
           }
 
       - name: Create GitHub Release
+        if: steps.changes.outputs.changed == 'true'
         working-directory: integrations/n8n
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

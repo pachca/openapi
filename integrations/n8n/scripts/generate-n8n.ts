@@ -745,7 +745,7 @@ function generateEnumOptions(values: unknown[], enumDescriptions?: Record<string
   return values
     .map(v => {
       const val = String(v);
-      const name = val.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const name = formatDisplayName(val);
       const desc = enumDescriptions?.[val];
       if (desc && desc.toLowerCase() !== name.toLowerCase()) {
         return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)}, description: ${quote(desc)} }` };

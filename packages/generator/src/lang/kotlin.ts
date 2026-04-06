@@ -270,8 +270,10 @@ function emitUnion(
       const isOpt = !f.required;
       const fullType = isOpt ? `${typeName}?` : typeName;
       const default_ = isOpt ? ' = null' : '';
+      const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
+      const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
       const serialName =
-        needsSerialName(f) ? `@SerialName("${f.name}") ` : '';
+        needsSerialName(f) ? `${dtAnnotation}@SerialName("${f.name}") ` : dtAnnotation;
       lines.push(`    ${serialName}val ${sdkName}: ${fullType}${default_},`);
     }
     lines.push(`) : ${u.name}`);
@@ -397,6 +399,10 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.serialization.kotlinx.json.*');
   lines.push('import kotlinx.serialization.json.Json');
   lines.push('import java.io.Closeable');
+  const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+  if (clientNeedDateTime) {
+    lines.push('import java.time.OffsetDateTime');
+  }
 
   // Services
   for (const svc of ir.services) {
@@ -628,11 +634,14 @@ function emitMethodBody(
           );
         }
       } else {
-        const valueExpr = p.type.kind === 'enum' ? 'it.value' : 'it';
+        const isDateTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && p.type.format === 'date-time';
+        const valueExpr = p.type.kind === 'enum' ? 'it.value' : isDateTime ? 'it.toString()' : 'it';
         if (p.required) {
           const reqExpr = p.type.kind === 'enum'
             ? `${p.sdkName}.value`
-            : p.sdkName;
+            : isDateTime
+              ? `${p.sdkName}.toString()`
+              : p.sdkName;
           lines.push(`${indent3}parameter("${p.name}", ${reqExpr})`);
         } else {
           lines.push(

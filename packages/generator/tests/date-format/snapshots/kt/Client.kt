@@ -12,6 +12,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
+import java.time.OffsetDateTime
 
 class ExportService internal constructor(
     private val baseUrl: String,
@@ -26,7 +27,7 @@ class ExportService internal constructor(
         val response = client.get("$baseUrl/events") {
             parameter("date_from", dateFrom)
             dateTo?.let { parameter("date_to", it) }
-            createdAfter?.let { parameter("created_after", it) }
+            createdAfter?.let { parameter("created_after", it.toString()) }
             limit?.let { parameter("limit", it) }
         }
         return when (response.status.value) {

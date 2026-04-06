@@ -23,8 +23,8 @@ public sealed class ExportService
     }
 
     public async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
-        DateOnly dateFrom,
-        DateOnly? dateTo = null,
+        string dateFrom,
+        string? dateTo = null,
         DateTimeOffset? createdAfter = null,
         int? limit = null,
         CancellationToken cancellationToken = default)

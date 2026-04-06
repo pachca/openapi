@@ -6,12 +6,12 @@
     ]
   },
   "EventOperations_listEvents": {
-    "usage": "val response = client.export.listEvents(dateFrom = \"2024-01-01\", dateTo = \"2024-01-01\", createdAfter = \"2024-01-01T00:00:00Z\", limit = 123)",
+    "usage": "val createdAfter = OffsetDateTime.parse(\"2024-01-01T00:00:00Z\")\nval response = client.export.listEvents(dateFrom = \"2024-01-01\", dateTo = \"2024-01-01\", createdAfter = createdAfter, limit = 123)",
     "output": "ListEventsResponse(data: List<Event>)"
   },
   "ExportOperations_createExport": {
     "usage": "val request = ExportRequest(\n    startAt = \"2025-03-20\",\n    endAt = \"2025-03-20\",\n    webhookUrl = \"example\"\n)\nval response = client.export.createExport(request = request)",
-    "output": "Export(id: Int, startAt: String, endAt: String, status: String, createdAt: String)",
+    "output": "Export(id: Int, startAt: String, endAt: String, status: String, createdAt: OffsetDateTime)",
     "imports": [
       "ExportRequest"
     ]

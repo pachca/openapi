@@ -59,7 +59,6 @@ function csType(ft: IRFieldType): string {
       if (ft.primitive === 'any') return 'object';
       if (ft.primitive === 'string') {
         if (ft.format === 'date-time') return 'DateTimeOffset';
-        if (ft.format === 'date') return 'DateOnly';
       }
       return 'string';
     case 'enum':
@@ -82,7 +81,7 @@ function csType(ft: IRFieldType): string {
 function isValueType(ft: IRFieldType): boolean {
   if (ft.kind === 'primitive') {
     if (ft.primitive === 'integer' || ft.primitive === 'number' || ft.primitive === 'boolean') return true;
-    if (ft.primitive === 'string' && (ft.format === 'date-time' || ft.format === 'date')) return true;
+    if (ft.primitive === 'string' && ft.format === 'date-time') return true;
   }
   if (ft.kind === 'enum') return true;
   return false;
@@ -1021,7 +1020,6 @@ function csLiteral(
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
       if (ft.primitive === 'string' && typeof ft.example === 'string') {
         if (ft.format === 'date-time') return `DateTimeOffset.Parse(${JSON.stringify(ft.example)})`;
-        if (ft.format === 'date') return `DateOnly.Parse(${JSON.stringify(ft.example)})`;
         return JSON.stringify(ft.example);
       }
     }
@@ -1039,7 +1037,6 @@ function csLiteral(
       if (ft.primitive === 'any') return 'new object()';
       if (ft.primitive === 'string') {
         if (ft.format === 'date-time') return 'DateTimeOffset.UtcNow';
-        if (ft.format === 'date') return 'DateOnly.Parse("2024-01-01")';
       }
       return '"example"';
     }

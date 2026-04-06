@@ -26,9 +26,9 @@ public struct Export: Codable {
     public let startAt: String
     public let endAt: String
     public let status: String
-    public let createdAt: Date
+    public let createdAt: String
 
-    public init(id: Int, startAt: String, endAt: String, status: String, createdAt: Date) {
+    public init(id: Int, startAt: String, endAt: String, status: String, createdAt: String) {
         self.id = id
         self.startAt = startAt
         self.endAt = endAt
@@ -48,9 +48,9 @@ public struct Export: Codable {
 public struct Event: Codable {
     public let id: Int
     public let type: String
-    public let occurredAt: Date
+    public let occurredAt: String
 
-    public init(id: Int, type: String, occurredAt: Date) {
+    public init(id: Int, type: String, occurredAt: String) {
         self.id = id
         self.type = type
         self.occurredAt = occurredAt

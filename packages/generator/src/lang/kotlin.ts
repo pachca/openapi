@@ -36,6 +36,7 @@ function ktType(ft: IRFieldType): string {
       if (ft.primitive === 'number') return 'Double';
       if (ft.primitive === 'boolean') return 'Boolean';
       if (ft.primitive === 'any') return 'Any';
+      if (ft.primitive === 'string' && ft.format === 'date-time') return 'OffsetDateTime';
       return 'String';
     case 'enum':
     case 'model':
@@ -150,11 +151,30 @@ function generateModels(ir: IR): string {
   lines.push('package com.pachca.sdk');
   lines.push('');
 
+  const needDateTime = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time'))
+    || ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+
   const imports: string[] = [];
+  if (needDateTime) imports.push('import java.time.OffsetDateTime');
+  if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
+  if (needDateTime) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
+  if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
+  if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
+  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Encoder');
   lines.push(imports.join('\n'));
+
+  if (needDateTime) {
+    lines.push('');
+    lines.push('object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {');
+    lines.push('    override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)');
+    lines.push('    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))');
+    lines.push('    override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)');
+    lines.push('}');
+  }
 
   // Enums
   for (const e of ir.enums) {
@@ -315,11 +335,13 @@ function emitModel(
       default_ = '';
     }
 
+    const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
+    const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
     const annotation = isBinary
       ? '@Transient '
       : needsSerialName(f)
-        ? `@SerialName("${f.name}") `
-        : '';
+        ? `${dtAnnotation}@SerialName("${f.name}") `
+        : dtAnnotation;
 
     lines.push(`    ${annotation}val ${sdkName}: ${fullType}${default_},`);
   }
@@ -852,7 +874,10 @@ function ktLiteral(
         return String(ft.example);
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return JSON.stringify(ft.example);
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `OffsetDateTime.parse(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -868,7 +893,7 @@ function ktLiteral(
       if (ft.primitive === 'any') return 'mapOf<String, Any>()';
       // string with format variants
       if (ft.primitive === 'string') {
-        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date-time') return 'OffsetDateTime.parse("2024-01-01T00:00:00Z")';
         if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';

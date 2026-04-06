@@ -19,7 +19,7 @@ public struct ExportService {
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "date_from", value: String(dateFrom)))
         if let dateTo { queryItems.append(URLQueryItem(name: "date_to", value: String(dateTo))) }
-        if let createdAfter { queryItems.append(URLQueryItem(name: "created_after", value: createdAfter)) }
+        if let createdAfter { queryItems.append(URLQueryItem(name: "created_after", value: String(createdAfter))) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)

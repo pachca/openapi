@@ -1,7 +1,20 @@
 package com.pachca.sdk
 
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+
+object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
+    override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+    override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+}
 
 /** Роль пользователя */
 @Serializable
@@ -26,7 +39,7 @@ data class User(
     val role: UserRole,
     @SerialName("is_active") val isActive: Boolean,
     @SerialName("bot_id") val botId: Long? = null,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     val birthday: String? = null,
     @SerialName("tag_ids") val tagIds: List<Int>,
     @SerialName("custom_properties") val customProperties: List<CustomProperty>? = null,
@@ -37,7 +50,7 @@ data class User(
 data class UserStatus(
     val emoji: String? = null,
     val title: String? = null,
-    @SerialName("expires_at") val expiresAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime? = null,
 )
 
 @Serializable

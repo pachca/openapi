@@ -20,8 +20,8 @@ public struct SearchService {
         queryItems.append(URLQueryItem(name: "query", value: String(query)))
         if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
         if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) } }
-        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
-        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
+        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String(createdFrom))) }
+        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String(createdTo))) }
         if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }

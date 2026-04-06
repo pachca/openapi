@@ -24,7 +24,7 @@ class ExportService:
         if params is not None and params.date_to is not None:
             query.append(("date_to", params.date_to))
         if params is not None and params.created_after is not None:
-            query.append(("created_after", params.created_after))
+            query.append(("created_after", params.created_after.isoformat()))
         if params is not None and params.limit is not None:
             query.append(("limit", str(params.limit)))
         response = await self._client.get(

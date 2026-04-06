@@ -10,7 +10,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"example\",\n        channel = true,\n        public = true,\n        memberIds = listOf(123)\n    )\n)\nval response = client.chats.createChat(request = request)",
-    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: String)",
+    "output": "Chat(id: Int, name: String, isChannel: Boolean, isPublic: Boolean, createdAt: OffsetDateTime)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"

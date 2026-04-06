@@ -10,7 +10,7 @@
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
-    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str)",
+    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: datetime)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"

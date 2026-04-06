@@ -5,9 +5,9 @@ import FoundationNetworking
 
 public struct BaseEntity: Codable {
     public let id: Int
-    public let createdAt: Date
+    public let createdAt: String
 
-    public init(id: Int, createdAt: Date) {
+    public init(id: Int, createdAt: String) {
         self.id = id
         self.createdAt = createdAt
     }
@@ -20,12 +20,12 @@ public struct BaseEntity: Codable {
 
 public struct Article: Codable {
     public let id: Int
-    public let createdAt: Date
+    public let createdAt: String
     public let title: String
     public let body: String
     public let isPublished: Bool?
 
-    public init(id: Int, createdAt: Date, title: String, body: String, isPublished: Bool? = nil) {
+    public init(id: Int, createdAt: String, title: String, body: String, isPublished: Bool? = nil) {
         self.id = id
         self.createdAt = createdAt
         self.title = title

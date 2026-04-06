@@ -63,6 +63,13 @@ function hasAnyTypeInField(ft: IRFieldType): boolean {
   return false;
 }
 
+function hasDateTimeInField(ft: IRFieldType): boolean {
+  if (ft.kind === 'primitive' && ft.primitive === 'string' && ft.format === 'date-time') return true;
+  if (ft.items) return hasDateTimeInField(ft.items);
+  if (ft.valueType) return hasDateTimeInField(ft.valueType);
+  return false;
+}
+
 function hasAnyType(model: IRModel): boolean {
   return model.fields.some((f) => hasAnyTypeInField(f.type)) ||
     model.inlineObjects.some((m) => hasAnyType(m));
@@ -75,6 +82,7 @@ function pyType(ft: IRFieldType): string {
       if (ft.primitive === 'number') return 'float';
       if (ft.primitive === 'boolean') return 'bool';
       if (ft.primitive === 'any') return 'Any';
+      if (ft.primitive === 'string' && ft.format === 'date-time') return 'datetime';
       return 'str';
     case 'enum':
     case 'model':
@@ -209,9 +217,11 @@ function generateModels(ir: IR): string {
   const needEnum = ir.enums.length > 0;
   const needUnion = ir.unions.length > 0;
   const needAny = ir.models.some((m) => hasAnyType(m)) || ir.params.some((p) => p.params.some((q) => hasAnyTypeInField(q.type)));
+  const needDatetime = ir.models.some((m) => m.fields.some((f) => hasDateTimeInField(f.type))) || ir.params.some((p) => p.params.some((q) => hasDateTimeInField(q.type)));
 
   lines.push('from __future__ import annotations');
   lines.push('');
+  if (needDatetime) lines.push('from datetime import datetime');
   if (needDataclass) {
     lines.push('from dataclasses import dataclass');
     if (needEnum) lines.push('from enum import StrEnum');
@@ -479,12 +489,15 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
           lines.push(`            for v in ${v}:`);
           lines.push(`                query.append((${JSON.stringify(p.name)}, str(v)))`);
         } else {
+          const isDateTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && p.type.format === 'date-time';
           const rhs = p.type.kind === 'primitive' && p.type.primitive === 'boolean'
             ? `str(${v}).lower()`
             : p.type.kind === 'primitive' &&
               (p.type.primitive === 'integer' || p.type.primitive === 'number')
               ? `str(${v})`
-              : v;
+              : isDateTime
+                ? `${v}.isoformat()`
+                : v;
           if (p.required) {
             if (op.queryParams.some((x) => x.isArray) || op.queryParams.some((x) => x.required)) {
               lines.push(`        query.append((${JSON.stringify(p.name)}, ${rhs}))`);
@@ -722,6 +735,7 @@ function generateUtils(): string {
     'import dataclasses',
     'import keyword',
     'from dataclasses import asdict, fields',
+    'from datetime import datetime',
     'from typing import Type, TypeVar, get_args, get_origin, get_type_hints',
     '',
     'import httpx',
@@ -777,6 +791,16 @@ function generateUtils(): string {
     '            item_tp = _resolve_list_item_type(hints[f.name])',
     '            if item_tp is not None and _is_dataclass_type(item_tp):',
     '                v = [deserialize(item_tp, i) if isinstance(i, dict) else i for i in v]',
+    '        elif isinstance(v, str):',
+    '            hint = hints.get(f.name)',
+    '            raw_hint = hint',
+    '            if get_origin(hint) is not None:',
+    '                for a in get_args(hint):',
+    '                    if a is not type(None):',
+    '                        raw_hint = a',
+    '                        break',
+    '            if raw_hint is datetime:',
+    '                v = datetime.fromisoformat(v)',
     '        kwargs[k] = v',
     '    return cls(**kwargs)',
     '',
@@ -789,6 +813,8 @@ function generateUtils(): string {
     '        }',
     '    if isinstance(val, list):',
     '        return [_strip_nones(v) for v in val]',
+    '    if isinstance(val, datetime):',
+    '        return val.isoformat()',
     '    return val',
     '',
     '',
@@ -845,7 +871,10 @@ function pyLiteral(
     if (ft.kind === 'primitive') {
       if ((ft.primitive === 'integer' || ft.primitive === 'number') && typeof ft.example === 'number') return String(ft.example);
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return ft.example ? 'True' : 'False';
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return JSON.stringify(ft.example);
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `datetime.fromisoformat(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -860,7 +889,7 @@ function pyLiteral(
       if (ft.primitive === 'boolean') return 'True';
       if (ft.primitive === 'any') return '{}';
       if (ft.primitive === 'string') {
-        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date-time') return 'datetime.fromisoformat("2024-01-01T00:00:00Z")';
         if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';

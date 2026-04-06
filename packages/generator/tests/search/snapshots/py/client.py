@@ -28,9 +28,9 @@ class SearchService:
             for v in params.user_ids:
                 query.append(("user_ids[]", str(v)))
         if params is not None and params.created_from is not None:
-            query.append(("created_from", params.created_from))
+            query.append(("created_from", params.created_from.isoformat()))
         if params is not None and params.created_to is not None:
-            query.append(("created_to", params.created_to))
+            query.append(("created_to", params.created_to.isoformat()))
         if params is not None and params.sort is not None:
             query.append(("sort", params.sort))
         if params is not None and params.limit is not None:

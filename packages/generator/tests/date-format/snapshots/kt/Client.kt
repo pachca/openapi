@@ -20,7 +20,7 @@ class ExportService internal constructor(
     suspend fun listEvents(
         dateFrom: String,
         dateTo: String? = null,
-        createdAfter: String? = null,
+        createdAfter: OffsetDateTime? = null,
         limit: Int? = null,
     ): ListEventsResponse {
         val response = client.get("$baseUrl/events") {

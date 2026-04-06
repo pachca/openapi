@@ -10,9 +10,9 @@ namespace Pachca.Sdk;
 public class ExportRequest
 {
     [JsonPropertyName("start_at")]
-    public DateOnly StartAt { get; set; } = default!;
+    public string StartAt { get; set; } = default!;
     [JsonPropertyName("end_at")]
-    public DateOnly EndAt { get; set; } = default!;
+    public string EndAt { get; set; } = default!;
     [JsonPropertyName("webhook_url")]
     public string WebhookUrl { get; set; } = default!;
 }
@@ -22,9 +22,9 @@ public class Export
     [JsonPropertyName("id")]
     public int Id { get; set; } = default!;
     [JsonPropertyName("start_at")]
-    public DateOnly StartAt { get; set; } = default!;
+    public string StartAt { get; set; } = default!;
     [JsonPropertyName("end_at")]
-    public DateOnly EndAt { get; set; } = default!;
+    public string EndAt { get; set; } = default!;
     [JsonPropertyName("status")]
     public string Status { get; set; } = default!;
     [JsonPropertyName("created_at")]

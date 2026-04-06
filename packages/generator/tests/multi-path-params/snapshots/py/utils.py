@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import keyword
 from dataclasses import asdict, fields
+from datetime import datetime
 from typing import Type, TypeVar, get_args, get_origin, get_type_hints
 
 import httpx
@@ -58,6 +59,16 @@ def deserialize(cls: Type[T], data: dict) -> T:
             item_tp = _resolve_list_item_type(hints[f.name])
             if item_tp is not None and _is_dataclass_type(item_tp):
                 v = [deserialize(item_tp, i) if isinstance(i, dict) else i for i in v]
+        elif isinstance(v, str):
+            hint = hints.get(f.name)
+            raw_hint = hint
+            if get_origin(hint) is not None:
+                for a in get_args(hint):
+                    if a is not type(None):
+                        raw_hint = a
+                        break
+            if raw_hint is datetime:
+                v = datetime.fromisoformat(v)
         kwargs[k] = v
     return cls(**kwargs)
 
@@ -70,6 +81,8 @@ def _strip_nones(val: object) -> object:
         }
     if isinstance(val, list):
         return [_strip_nones(v) for v in val]
+    if isinstance(val, datetime):
+        return val.isoformat()
     return val
 
 

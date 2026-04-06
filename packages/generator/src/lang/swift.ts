@@ -35,7 +35,6 @@ function swiftType(ft: IRFieldType, opts: { nullable?: boolean } = {}): string {
       else if (ft.primitive === 'number') base = 'Double';
       else if (ft.primitive === 'boolean') base = 'Bool';
       else if (ft.primitive === 'any') base = 'AnyCodable';
-      else if (ft.format === 'date-time') base = opts.nullable ? 'String' : 'Date';
       else base = 'String';
       break;
     case 'enum':
@@ -224,7 +223,7 @@ function generateModels(ir: IR): string {
   for (const rt of ir.responses) {
     lines.push(`public struct ${rt.name}: Codable {`);
     lines.push(`    public let data: [${rt.dataRef}]`);
-    if (rt.metaRef) lines.push(`    public ${rt.metaIsRequired ? 'let' : 'var'} meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
+    if (rt.metaRef) lines.push(`    public let meta: ${rt.metaRef}${rt.metaIsRequired ? '' : '?'}${rt.metaIsRequired ? '' : ' = nil'}`);
     lines.push('}');
     lines.push('');
   }
@@ -287,12 +286,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     for (const q of op.queryParams) {
       const n = snakeToCamel(q.sdkName);
       const isEnum = q.type.kind === 'enum';
-      const isDate = q.type.kind === 'primitive' && q.type.format === 'date-time';
       const isModel = q.type.kind === 'model' || q.type.kind === 'record';
       function valueExpr(varName: string): string {
         if (isEnum) return `${varName}.rawValue`;
-         if (isDate && q.required) return `ISO8601DateFormatter().string(from: ${varName})`;
-        if (isDate) return varName; // optional dates are typed as String
         if (isModel) return `String(data: try serialize(${varName}), encoding: .utf8)!`;
         return `String(${varName})`;
       }
@@ -542,13 +538,11 @@ function generateUtils(ir: IR): string {
     '',
     'let pachcaDecoder: JSONDecoder = {',
     '    let decoder = JSONDecoder()',
-    '    decoder.dateDecodingStrategy = .iso8601',
     '    return decoder',
     '}()',
     '',
     'let pachcaEncoder: JSONEncoder = {',
     '    let encoder = JSONEncoder()',
-    '    encoder.dateEncodingStrategy = .iso8601',
     '    return encoder',
     '}()',
     '',

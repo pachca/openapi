@@ -25,7 +25,7 @@ class EventsService internal constructor(
     ): ListEventsResponse {
         val response = client.get("$baseUrl/events") {
             isActive?.let { parameter("is_active", it) }
-            scopes?.let { parameter("scopes", it) }
+            scopes?.forEach { parameter("scopes[]", it.value) }
             filter?.let { parameter("filter", it) }
         }
         return when (response.status.value) {

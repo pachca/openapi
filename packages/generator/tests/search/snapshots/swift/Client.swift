@@ -46,8 +46,9 @@ public struct SearchService {
         repeat {
             let response = try await searchMessages(query: query, chatIds: chatIds, userIds: userIds, createdFrom: createdFrom, createdTo: createdTo, sort: sort, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 }

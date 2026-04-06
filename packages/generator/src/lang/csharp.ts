@@ -645,9 +645,12 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   const baseName = `${snakeToPascal(op.methodName)}Async`;
   lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
   lines.push(`${indent2}    items.AddRange(response.Data);`);
-  lines.push(`${indent2}    cursor = response.Meta?.Paginate?.NextPage;`);
-  lines.push(`${indent2}} while (cursor != null);`);
+  lines.push(`${indent2}    if (response.Data.Count == 0) break;`);
+  lines.push(`${indent2}    cursor = ${metaAccess};`);
+  lines.push(rt?.metaIsRequired ? `${indent2}} while (true);` : `${indent2}} while (cursor != null);`);
   lines.push(`${indent2}return items;`);
   lines.push(`${indent}}`);
 }
@@ -696,9 +699,7 @@ function getReturnType(
   if (resp.isRedirect) return 'string';
   if (!resp.hasBody) return null;
   if (resp.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'object';
   }
   if (resp.isUnwrap && resp.dataRef) return csClientTypeRef(resp.dataRef);
@@ -777,13 +778,15 @@ function emitMethodBody(
       // Escape curly braces in param name for C# string interpolation
       const paramKey = p.name.replace(/\{/g, '{{').replace(/\}/g, '}}');
       if (p.isArray) {
+        const itemIsEnum = p.type.kind === 'array' && p.type.items?.kind === 'enum';
+        const itemExpr = itemIsEnum ? 'PachcaUtils.EnumToApiString(item)' : 'item.ToString()!';
         if (p.required) {
           lines.push(`${indent2}foreach (var item in ${paramName})`);
-          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString()!)}");`);
+          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(${itemExpr})}");`);
         } else {
           lines.push(`${indent2}if (${paramName} != null)`);
           lines.push(`${indent2}    foreach (var item in ${paramName})`);
-          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString()!)}");`);
+          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(${itemExpr})}");`);
         }
       } else {
         const valueExpr = queryParamValueExpr(p);
@@ -916,9 +919,7 @@ function emitResponseHandling(
   } else if (resp.isList) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);
     // Use same lookup as getReturnType for consistency
-    const foundResp = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const foundResp = ir.responses.find((r) => r.name === resp.responseRef);
     const rt = foundResp?.name ?? 'object';
     lines.push(`${indent2}        return PachcaUtils.Deserialize<${rt}>(json);`);
   } else if (resp.isUnwrap && resp.dataRef) {

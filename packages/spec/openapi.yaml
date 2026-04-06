@@ -123,6 +123,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -404,6 +405,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -962,6 +964,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -1436,6 +1439,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -1713,6 +1717,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -1890,6 +1895,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -2470,6 +2476,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -2561,6 +2568,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -3398,6 +3406,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -3830,6 +3839,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -4326,6 +4336,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
@@ -6515,6 +6526,8 @@ components:
       description: Представление
     PaginationMeta:
       type: object
+      required:
+        - paginate
       properties:
         paginate:
           type: object
@@ -6523,6 +6536,8 @@ components:
               type: string
               description: Курсор пагинации следующей страницы
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
+          required:
+            - next_page
           description: Вспомогательная информация
       description: Метаданные пагинации
     Reaction:

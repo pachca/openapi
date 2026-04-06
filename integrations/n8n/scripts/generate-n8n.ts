@@ -708,6 +708,22 @@ function getArrayItemType(field: BodyField): 'int' | 'string' {
   return (itemType === 'integer' || itemType === 'number') ? 'int' : 'string';
 }
 
+/** Check if a query parameter is an array of primitives */
+function isQueryParamArray(param: Parameter): boolean {
+  const schema = resolveQuerySchema(param.schema);
+  return getSchemaType(schema) === 'array' && !!schema.items && !schema.items.properties;
+}
+
+/** Get the item type for a query parameter array */
+function getQueryArrayItemType(param: Parameter): 'int' | 'string' {
+  const schema = resolveQuerySchema(param.schema);
+  const items = schema.items;
+  if (!items) return 'string';
+  const resolved = items.allOf ? resolveAllOf(items) : items;
+  const itemType = getSchemaType(resolved);
+  return (itemType === 'integer' || itemType === 'number') ? 'int' : 'string';
+}
+
 /** Ensure boolean descriptions start with "Whether" (eslint requirement) */
 function booleanDescription(desc?: string): string {
   if (!desc) return 'Whether to enable this option';
@@ -905,12 +921,14 @@ function generateResourceDescription(
       lines.push(`\t},`);
 
       lines.push(`\t{`);
+      const limitParam = op.queryParams.find(p => p.name === 'limit');
+      const maxLimit = limitParam?.schema?.maximum ?? 50;
       lines.push(`\t\tdisplayName: 'Limit',`);
       lines.push(`\t\tname: 'limit',`);
       lines.push(`\t\ttype: 'number',`);
       lines.push(`\t\tdefault: 50,`);
       lines.push(`\t\tdescription: 'Max number of results to return',`);
-      lines.push(`\t\ttypeOptions: { minValue: 1, maxValue: 50 },`);
+      lines.push(`\t\ttypeOptions: { minValue: 1, maxValue: ${maxLimit} },`);
       lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}], returnAll: [false] } },`);
       lines.push(`\t},`);
 
@@ -990,14 +1008,18 @@ function generateResourceDescription(
       p => !['limit', 'cursor', 'per', 'page'].includes(p.name) && !p.name.includes('{')
     );
 
-    // Split into primary (top-level) and filter (collection) params
+    // Split into primary (top-level) and filter (collection) params.
+    // Optional boolean query params always go into filter (Additional Fields) because
+    // boolean default false is indistinguishable from "not set" at the UI level,
+    // but the API may treat absence differently from false (e.g. chat.getAll personal).
     const shouldWrapFilters = QUERY_FILTER_RESOURCES.has(resource);
+    const isOptionalBool = (p: Parameter) => !p.required && queryParamN8nType(p.schema) === 'boolean';
     const primaryParams = shouldWrapFilters
       ? nonPaginationParams.filter(p => p.required || PRIMARY_QUERY_PARAMS.has(p.name))
-      : nonPaginationParams;
+      : nonPaginationParams.filter(p => !isOptionalBool(p));
     const filterParams = shouldWrapFilters
       ? nonPaginationParams.filter(p => !p.required && !PRIMARY_QUERY_PARAMS.has(p.name))
-      : [];
+      : nonPaginationParams.filter(p => isOptionalBool(p));
 
     for (const param of primaryParams) {
       const paramName = getParamName(resource, op.v1Op, param.name);
@@ -1712,7 +1734,7 @@ function getDefaultValue(field: BodyField, resource: string, op: string, paramNa
   if (field.type === 'array' && !field.items?.properties) return '';
   if (field.type === 'array') return [];
   if (field.type === 'object' && n8nFieldType === 'string') return '';
-  if (field.type === 'object') return {};
+  if (field.type === 'object') return '{}'; // n8n json type expects string default
   return '';
 }
 
@@ -2583,12 +2605,14 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   // BUG 1 fix: user.getAll query param must be in optionalQueryMap (read from v1Collection with fallback)
   const isUserGetAll = resource === 'user' && op.v2Op === 'getAll';
 
+  // Optional boolean query params always go to optionalQueryMap (same logic as Description generation)
+  const isOptionalBool = (p: Parameter) => !p.required && queryParamN8nType(p.schema) === 'boolean';
   const topLevelQueryParams = shouldWrapFilters
     ? nonPaginationParams.filter(p => p.required || PRIMARY_QUERY_PARAMS.has(p.name))
-    : isUserGetAll ? [] : nonPaginationParams;
+    : isUserGetAll ? [] : nonPaginationParams.filter(p => !isOptionalBool(p));
   const filterQueryParams = shouldWrapFilters
     ? nonPaginationParams.filter(p => !p.required && !PRIMARY_QUERY_PARAMS.has(p.name))
-    : isUserGetAll ? nonPaginationParams : [];
+    : isUserGetAll ? nonPaginationParams : nonPaginationParams.filter(p => isOptionalBool(p));
 
   const queryMapEntries: string[] = [];
   for (const p of topLevelQueryParams) {
@@ -2597,6 +2621,10 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
     const qm: string[] = [`api: '${p.name}'`, `n8n: '${n8nName}'`];
     if (locator) qm.push('locator: true');
     if (p.required) qm.push('required: true');
+    if (isQueryParamArray(p)) {
+      qm.push('isArray: true');
+      qm.push(`arrayType: '${getQueryArrayItemType(p)}'`);
+    }
     queryMapEntries.push(`{ ${qm.join(', ')} }`);
   }
   if (queryMapEntries.length) parts.push(`queryMap: [${queryMapEntries.join(', ')}]`);
@@ -2604,7 +2632,12 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   const optQueryEntries: string[] = [];
   for (const p of filterQueryParams) {
     const n8nName = getParamName(resource, op.v1Op, p.name);
-    optQueryEntries.push(`{ api: '${p.name}', n8n: '${n8nName}' }`);
+    const qm: string[] = [`api: '${p.name}'`, `n8n: '${n8nName}'`];
+    if (isQueryParamArray(p)) {
+      qm.push('isArray: true');
+      qm.push(`arrayType: '${getQueryArrayItemType(p)}'`);
+    }
+    optQueryEntries.push(`{ ${qm.join(', ')} }`);
   }
   // v1 compat: pagination fields from V1-specific collections (not in OpenAPI spec)
   const v1Pagination = V1_COMPAT_PAGINATION[resource]?.[v2Op];
@@ -2767,6 +2800,8 @@ interface QueryMap {
 \tn8n: string;
 \tlocator?: boolean;
 \trequired?: boolean;
+\tisArray?: boolean;
+\tarrayType?: 'int' | 'string';
 }
 
 interface RouteConfig {
@@ -2969,9 +3004,15 @@ async function executeRoute(
 \t\t\t} else {
 \t\t\t\tval = this.getNodeParameter(qm.n8n, i);
 \t\t\t}
-\t\t\tif (val !== undefined && val !== null && val !== '') qs[qm.api] = val as IDataObject;
+\t\t\tif (val !== undefined && val !== null && val !== '') {
+\t\t\t\tif (qm.isArray && typeof val === 'string') {
+\t\t\t\t\tqs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
+\t\t\t\t} else {
+\t\t\t\t\tqs[qm.api] = val as IDataObject;
+\t\t\t\t}
+\t\t\t}
 \t\t} catch (e) {
-\t\t\tif (qm.required) throw e; // Required query param must be present
+\t\t\tif (qm.required) throw e;
 \t\t}
 \t}
 
@@ -2981,7 +3022,13 @@ async function executeRoute(
 \t\tif (val === undefined) {
 \t\t\ttry { val = this.getNodeParameter(qm.n8n, i, undefined); } catch { /* not present */ }
 \t\t}
-\t\tif (val !== undefined && val !== null && val !== '') qs[qm.api] = val;
+\t\tif (val !== undefined && val !== null && val !== '') {
+\t\t\tif (qm.isArray && typeof val === 'string') {
+\t\t\t\tqs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
+\t\t\t} else {
+\t\t\t\tqs[qm.api] = val;
+\t\t\t}
+\t\t}
 \t}
 
 \t// === Special handlers ===

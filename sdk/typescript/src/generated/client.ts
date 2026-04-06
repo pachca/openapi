@@ -28,6 +28,7 @@ import {
   ListTagsResponse,
   GroupTag,
   GetTagUsersParams,
+  GetTagUsersResponse,
   GroupTagRequest,
   ListChatMessagesParams,
   ListChatMessagesResponse,
@@ -46,14 +47,18 @@ import {
   StatusUpdateRequest,
   UserStatus,
   SearchChatsParams,
+  SearchChatsResponse,
   SearchMessagesParams,
+  SearchMessagesResponse,
   SearchUsersParams,
+  SearchUsersResponse,
   ListTasksParams,
   ListTasksResponse,
   Task,
   TaskCreateRequest,
   TaskUpdateRequest,
   ListUsersParams,
+  ListUsersResponse,
   UserCreateRequest,
   UserUpdateRequest,
   OpenViewRequest,
@@ -98,8 +103,9 @@ class SecurityService {
     do {
       const response = await this.getAuditEvents({ ...params, cursor } as GetAuditEventsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 }
@@ -135,8 +141,9 @@ class BotsService {
     do {
       const response = await this.getWebhookEvents({ ...params, cursor } as GetWebhookEventsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -181,7 +188,7 @@ class ChatsService {
 
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     const query = new URLSearchParams();
-    if (params?.sortId !== undefined) query.set("sort[{field}]", params.sortId);
+    if (params?.sortId !== undefined) query.set("sort[id]", params.sortId);
     if (params?.availability !== undefined) query.set("availability", params.availability);
     if (params?.lastMessageAtAfter !== undefined) query.set("last_message_at_after", params.lastMessageAtAfter);
     if (params?.lastMessageAtBefore !== undefined) query.set("last_message_at_before", params.lastMessageAtBefore);
@@ -209,8 +216,9 @@ class ChatsService {
     do {
       const response = await this.listChats({ ...params, cursor } as ListChatsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -425,8 +433,9 @@ class MembersService {
     do {
       const response = await this.listMembers(id, { ...params, cursor } as ListMembersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -532,7 +541,9 @@ class GroupTagsService {
 
   async listTags(params?: ListTagsParams): Promise<ListTagsResponse> {
     const query = new URLSearchParams();
-    if (params?.names !== undefined) query.set("names", String(params.names));
+    if (params?.names !== undefined) {
+      params.names.forEach((v) => query.append("names[]", String(v)));
+    }
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const url = `${this.baseUrl}/group_tags${query.toString() ? `?${query}` : ""}`;
@@ -556,8 +567,9 @@ class GroupTagsService {
     do {
       const response = await this.listTags({ ...params, cursor } as ListTagsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -576,7 +588,7 @@ class GroupTagsService {
     }
   }
 
-  async getTagUsers(id: number, params?: GetTagUsersParams): Promise<ListMembersResponse> {
+  async getTagUsers(id: number, params?: GetTagUsersParams): Promise<GetTagUsersResponse> {
     const query = new URLSearchParams();
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
@@ -587,7 +599,7 @@ class GroupTagsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListMembersResponse;
+        return deserialize(body) as GetTagUsersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -601,8 +613,9 @@ class GroupTagsService {
     do {
       const response = await this.getTagUsers(id, { ...params, cursor } as GetTagUsersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -665,7 +678,7 @@ class MessagesService {
   async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
     const query = new URLSearchParams();
     query.set("chat_id", String(params.chatId));
-    if (params?.sortId !== undefined) query.set("sort[{field}]", params.sortId);
+    if (params?.sortId !== undefined) query.set("sort[id]", params.sortId);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const response = await fetchWithRetry(`${this.baseUrl}/messages?${query}`, {
@@ -688,8 +701,9 @@ class MessagesService {
     do {
       const response = await this.listChatMessages({ ...params, cursor } as ListChatMessagesParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -842,8 +856,9 @@ class ReactionsService {
     do {
       const response = await this.listReactions(id, { ...params, cursor } as ListReactionsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -1037,7 +1052,7 @@ class SearchService {
     private headers: Record<string, string>,
   ) {}
 
-  async searchChats(params?: SearchChatsParams): Promise<ListChatsResponse> {
+  async searchChats(params?: SearchChatsParams): Promise<SearchChatsResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1055,7 +1070,7 @@ class SearchService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListChatsResponse;
+        return deserialize(body) as SearchChatsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1069,12 +1084,13 @@ class SearchService {
     do {
       const response = await this.searchChats({ ...params, cursor } as SearchChatsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
-  async searchMessages(params?: SearchMessagesParams): Promise<ListChatMessagesResponse> {
+  async searchMessages(params?: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1082,8 +1098,12 @@ class SearchService {
     if (params?.order !== undefined) query.set("order", params.order);
     if (params?.createdFrom !== undefined) query.set("created_from", params.createdFrom);
     if (params?.createdTo !== undefined) query.set("created_to", params.createdTo);
-    if (params?.chatIds !== undefined) query.set("chat_ids", String(params.chatIds));
-    if (params?.userIds !== undefined) query.set("user_ids", String(params.userIds));
+    if (params?.chatIds !== undefined) {
+      params.chatIds.forEach((v) => query.append("chat_ids[]", String(v)));
+    }
+    if (params?.userIds !== undefined) {
+      params.userIds.forEach((v) => query.append("user_ids[]", String(v)));
+    }
     if (params?.active !== undefined) query.set("active", String(params.active));
     const url = `${this.baseUrl}/search/messages${query.toString() ? `?${query}` : ""}`;
     const response = await fetchWithRetry(url, {
@@ -1092,7 +1112,7 @@ class SearchService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListChatMessagesResponse;
+        return deserialize(body) as SearchMessagesResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1106,12 +1126,13 @@ class SearchService {
     do {
       const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
-  async searchUsers(params?: SearchUsersParams): Promise<ListMembersResponse> {
+  async searchUsers(params?: SearchUsersParams): Promise<SearchUsersResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1120,7 +1141,9 @@ class SearchService {
     if (params?.order !== undefined) query.set("order", params.order);
     if (params?.createdFrom !== undefined) query.set("created_from", params.createdFrom);
     if (params?.createdTo !== undefined) query.set("created_to", params.createdTo);
-    if (params?.companyRoles !== undefined) query.set("company_roles", String(params.companyRoles));
+    if (params?.companyRoles !== undefined) {
+      params.companyRoles.forEach((v) => query.append("company_roles[]", String(v)));
+    }
     const url = `${this.baseUrl}/search/users${query.toString() ? `?${query}` : ""}`;
     const response = await fetchWithRetry(url, {
       headers: this.headers,
@@ -1128,7 +1151,7 @@ class SearchService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListMembersResponse;
+        return deserialize(body) as SearchUsersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1142,8 +1165,9 @@ class SearchService {
     do {
       const response = await this.searchUsers({ ...params, cursor } as SearchUsersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 }
@@ -1179,8 +1203,9 @@ class TasksService {
     do {
       const response = await this.listTasks({ ...params, cursor } as ListTasksParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 
@@ -1255,7 +1280,7 @@ class UsersService {
     private headers: Record<string, string>,
   ) {}
 
-  async listUsers(params?: ListUsersParams): Promise<ListMembersResponse> {
+  async listUsers(params?: ListUsersParams): Promise<ListUsersResponse> {
     const query = new URLSearchParams();
     if (params?.query !== undefined) query.set("query", params.query);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
@@ -1267,7 +1292,7 @@ class UsersService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as ListMembersResponse;
+        return deserialize(body) as ListUsersResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1281,8 +1306,9 @@ class UsersService {
     do {
       const response = await this.listUsers({ ...params, cursor } as ListUsersParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 

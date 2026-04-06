@@ -7,7 +7,7 @@
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "params := &GetAuditEventsParams{\n\tStartTime: Ptr(\"2025-05-01T09:11:00Z\"),\n\tEndTime: Ptr(\"2025-05-02T09:11:00Z\"),\n\tEventKey: Ptr(AuditEventKeyUserLogin),\n\tActorID: Ptr(\"98765\"),\n\tActorType: Ptr(\"User\"),\n\tEntityID: Ptr(\"98765\"),\n\tEntityType: Ptr(\"User\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Security.GetAuditEvents(ctx, params)",
-    "output": "GetAuditEventsResponse{Data: []AuditEvent, Meta: *PaginationMeta}",
+    "output": "GetAuditEventsResponse{Data: []AuditEvent, Meta: PaginationMeta}",
     "imports": [
       "AuditEventKey",
       "GetAuditEventsParams"
@@ -15,7 +15,7 @@
   },
   "BotOperations_getWebhookEvents": {
     "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
-    "output": "GetWebhookEventsResponse{Data: []WebhookEvent, Meta: *PaginationMeta}",
+    "output": "GetWebhookEventsResponse{Data: []WebhookEvent, Meta: PaginationMeta}",
     "imports": [
       "GetWebhookEventsParams"
     ]
@@ -34,7 +34,7 @@
   },
   "ChatOperations_listChats": {
     "usage": "params := &ListChatsParams{\n\tSortID: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
-    "output": "ListChatsResponse{Data: []Chat, Meta: *PaginationMeta}",
+    "output": "ListChatsResponse{Data: []Chat, Meta: PaginationMeta}",
     "imports": [
       "ChatAvailability",
       "ListChatsParams",
@@ -97,7 +97,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "params := &ListMembersParams{\n\tRole: Ptr(ChatMemberRoleFilterAll),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Members.ListMembers(ctx, int32(334), params)",
-    "output": "ListMembersResponse{Data: []User, Meta: *PaginationMeta}",
+    "output": "ListMembersResponse{Data: []User, Meta: PaginationMeta}",
     "imports": [
       "ChatMemberRoleFilter",
       "ListMembersParams"
@@ -128,11 +128,10 @@
     "usage": "client.Members.RemoveMember(ctx, int32(334), int32(186))"
   },
   "GroupTagOperations_listTags": {
-    "usage": "params := &ListTagsParams{\n\tNames: Ptr(TagNamesFilter{}),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.ListTags(ctx, params)",
-    "output": "ListTagsResponse{Data: []GroupTag, Meta: *PaginationMeta}",
+    "usage": "params := &ListTagsParams{\n\tNames: []string{\"example\"},\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.ListTags(ctx, params)",
+    "output": "ListTagsResponse{Data: []GroupTag, Meta: PaginationMeta}",
     "imports": [
-      "ListTagsParams",
-      "TagNamesFilter"
+      "ListTagsParams"
     ]
   },
   "GroupTagOperations_getTag": {
@@ -141,7 +140,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "params := &GetTagUsersParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.GroupTags.GetTagUsers(ctx, int32(9111), params)",
-    "output": "GetTagUsersResponse{Data: []User, Meta: *PaginationMeta}",
+    "output": "GetTagUsersResponse{Data: []User, Meta: PaginationMeta}",
     "imports": [
       "GetTagUsersParams"
     ]
@@ -167,7 +166,7 @@
   },
   "ChatMessageOperations_listChatMessages": {
     "usage": "params := ListChatMessagesParams{\n\tChatID: int32(198),\n\tSortID: Ptr(SortOrderDesc),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
-    "output": "ListChatMessagesResponse{Data: []Message, Meta: *PaginationMeta}",
+    "output": "ListChatMessagesResponse{Data: []Message, Meta: PaginationMeta}",
     "imports": [
       "ListChatMessagesParams",
       "SortOrder"
@@ -218,7 +217,7 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "params := &ListReactionsParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Reactions.ListReactions(ctx, int32(194275), params)",
-    "output": "ListReactionsResponse{Data: []Reaction, Meta: *PaginationMeta}",
+    "output": "ListReactionsResponse{Data: []Reaction, Meta: PaginationMeta}",
     "imports": [
       "ListReactionsParams"
     ]
@@ -303,7 +302,7 @@
   },
   "TaskOperations_listTasks": {
     "usage": "params := &ListTasksParams{\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Tasks.ListTasks(ctx, params)",
-    "output": "ListTasksResponse{Data: []Task, Meta: *PaginationMeta}",
+    "output": "ListTasksResponse{Data: []Task, Meta: PaginationMeta}",
     "imports": [
       "ListTasksParams"
     ]
@@ -338,7 +337,7 @@
   },
   "UserOperations_listUsers": {
     "usage": "params := &ListUsersParams{\n\tQuery: Ptr(\"Олег\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Users.ListUsers(ctx, params)",
-    "output": "ListUsersResponse{Data: []User, Meta: *PaginationMeta}",
+    "output": "ListUsersResponse{Data: []User, Meta: PaginationMeta}",
     "imports": [
       "ListUsersParams"
     ]

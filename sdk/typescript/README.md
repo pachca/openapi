@@ -49,11 +49,12 @@ const message = await pachca.messages.createMessage(...); // Message, не { dat
 // Вручную
 let cursor: string | undefined;
 const chats: Chat[] = [];
-do {
+for (;;) {
   const response = await pachca.chats.listChats({ cursor });
+  if (response.data.length === 0) break;
   chats.push(...response.data);
-  cursor = response.meta?.paginate?.nextPage;
-} while (cursor);
+  cursor = response.meta.paginate.nextPage;
+}
 
 // Автоматически
 const allChats = await pachca.chats.listChatsAll();

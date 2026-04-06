@@ -67,13 +67,13 @@ export default class SearchListMessages extends BaseCommand {
       const seenCursors = new Set<string>();
 
       while (pages < 500) {
-        const query: Record<string, string | number | boolean | undefined> = {
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
         query: flags['query'],
         order: flags['order'],
         'created_from': flags['created-from'],
         'created_to': flags['created-to'],
-        'chat_ids': flags['chat-ids'],
-        'user_ids': flags['user-ids'],
+        'chat_ids': flags['chat-ids']?.split(','),
+        'user_ids': flags['user-ids']?.split(','),
         active: flags['active'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -82,6 +82,7 @@ export default class SearchListMessages extends BaseCommand {
         const body = response.data as Record<string, unknown>;
         const items = body.data as unknown[];
         if (items) allData.push(...items);
+        if (!items || items.length === 0) break;
         const meta = body.meta as Record<string, unknown> | undefined;
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;
@@ -117,8 +118,8 @@ export default class SearchListMessages extends BaseCommand {
       order: flags['order'],
       'created_from': flags['created-from'],
       'created_to': flags['created-to'],
-      'chat_ids': flags['chat-ids'],
-      'user_ids': flags['user-ids'],
+      'chat_ids': flags['chat-ids']?.split(','),
+      'user_ids': flags['user-ids']?.split(','),
       active: flags['active'],
       limit: flags.limit,
       cursor: flags.cursor,

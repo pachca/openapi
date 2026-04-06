@@ -583,11 +583,11 @@ function generateCommandCode(p: CommandGenParams): string {
       continue;
     }
     const flagName = toKebabCase(param.name);
-    if (flagName !== param.name) {
-      queryEntries.push(`      '${param.name}': flags['${flagName}'],`);
-    } else {
-      queryEntries.push(`      ${param.name}: flags['${param.name}'],`);
-    }
+    const isArrayParam = param.schema.type === 'array';
+    const flagRef = flagName !== param.name ? `flags['${flagName}']` : `flags['${param.name}']`;
+    const value = isArrayParam ? `${flagRef}?.split(',')` : flagRef;
+    const key = flagName !== param.name ? `'${param.name}'` : param.name;
+    queryEntries.push(`      ${key}: ${value},`);
   }
   if (p.hasPagination) {
     queryEntries.push(`      limit: flags.limit,`);
@@ -629,7 +629,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`      const seenCursors = new Set<string>();`);
     runBodyLines.push('');
     runBodyLines.push(`      while (pages < 500) {`);
-    runBodyLines.push(`        const query: Record<string, string | number | boolean | undefined> = {`);
+    runBodyLines.push(`        const query: Record<string, string | number | boolean | string[] | undefined> = {`);
     for (const entry of queryEntries) {
       if (!entry.includes('cursor:')) runBodyLines.push(`  ${entry}`);
     }
@@ -639,6 +639,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const body = response.data as Record<string, unknown>;`);
     runBodyLines.push(`        const items = body.data as unknown[];`);
     runBodyLines.push(`        if (items) allData.push(...items);`);
+    runBodyLines.push(`        if (!items || items.length === 0) break;`);
     runBodyLines.push(`        const meta = body.meta as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        const paginate = meta?.paginate as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        nextCursor = paginate?.next_page as string | undefined;`);

@@ -7,7 +7,7 @@
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "params = GetAuditEventsParams(\n    start_time=\"2025-05-01T09:11:00Z\",\n    end_time=\"2025-05-02T09:11:00Z\",\n    event_key=AuditEventKey.USER_LOGIN,\n    actor_id=\"98765\",\n    actor_type=\"User\",\n    entity_id=\"98765\",\n    entity_type=\"User\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.security.get_audit_events(params=params)",
-    "output": "GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta | None)",
+    "output": "GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta)",
     "imports": [
       "AuditEventKey",
       "GetAuditEventsParams"
@@ -15,7 +15,7 @@
   },
   "BotOperations_getWebhookEvents": {
     "usage": "params = GetWebhookEventsParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.bots.get_webhook_events(params=params)",
-    "output": "GetWebhookEventsResponse(data: list[WebhookEvent], meta: PaginationMeta | None)",
+    "output": "GetWebhookEventsResponse(data: list[WebhookEvent], meta: PaginationMeta)",
     "imports": [
       "GetWebhookEventsParams"
     ]
@@ -34,7 +34,7 @@
   },
   "ChatOperations_listChats": {
     "usage": "params = ListChatsParams(\n    sort_id=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    last_message_at_after=\"2025-01-01T00:00:00.000Z\",\n    last_message_at_before=\"2025-02-01T00:00:00.000Z\",\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
-    "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)",
+    "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
       "ListChatsParams",
@@ -97,7 +97,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "params = ListMembersParams(\n    role=ChatMemberRoleFilter.ALL,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.members.list_members(id=334, params=params)",
-    "output": "ListMembersResponse(data: list[User], meta: PaginationMeta | None)",
+    "output": "ListMembersResponse(data: list[User], meta: PaginationMeta)",
     "imports": [
       "ChatMemberRoleFilter",
       "ListMembersParams"
@@ -128,11 +128,10 @@
     "usage": "await client.members.remove_member(id=334, user_id=186)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "params = ListTagsParams(\n    names=TagNamesFilter(),\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.group_tags.list_tags(params=params)",
-    "output": "ListTagsResponse(data: list[GroupTag], meta: PaginationMeta | None)",
+    "usage": "params = ListTagsParams(\n    names=[\"example\"],\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.group_tags.list_tags(params=params)",
+    "output": "ListTagsResponse(data: list[GroupTag], meta: PaginationMeta)",
     "imports": [
-      "ListTagsParams",
-      "TagNamesFilter"
+      "ListTagsParams"
     ]
   },
   "GroupTagOperations_getTag": {
@@ -141,7 +140,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "params = GetTagUsersParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.group_tags.get_tag_users(id=9111, params=params)",
-    "output": "GetTagUsersResponse(data: list[User], meta: PaginationMeta | None)",
+    "output": "GetTagUsersResponse(data: list[User], meta: PaginationMeta)",
     "imports": [
       "GetTagUsersParams"
     ]
@@ -167,7 +166,7 @@
   },
   "ChatMessageOperations_listChatMessages": {
     "usage": "params = ListChatMessagesParams(\n    chat_id=198,\n    sort_id=SortOrder.DESC,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.messages.list_chat_messages(params=params)",
-    "output": "ListChatMessagesResponse(data: list[Message], meta: PaginationMeta | None)",
+    "output": "ListChatMessagesResponse(data: list[Message], meta: PaginationMeta)",
     "imports": [
       "ListChatMessagesParams",
       "SortOrder"
@@ -218,7 +217,7 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "params = ListReactionsParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.reactions.list_reactions(id=194275, params=params)",
-    "output": "ListReactionsResponse(data: list[Reaction], meta: PaginationMeta | None)",
+    "output": "ListReactionsResponse(data: list[Reaction], meta: PaginationMeta)",
     "imports": [
       "ListReactionsParams"
     ]
@@ -303,7 +302,7 @@
   },
   "TaskOperations_listTasks": {
     "usage": "params = ListTasksParams(limit=1, cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")\nresponse = await client.tasks.list_tasks(params=params)",
-    "output": "ListTasksResponse(data: list[Task], meta: PaginationMeta | None)",
+    "output": "ListTasksResponse(data: list[Task], meta: PaginationMeta)",
     "imports": [
       "ListTasksParams"
     ]
@@ -338,7 +337,7 @@
   },
   "UserOperations_listUsers": {
     "usage": "params = ListUsersParams(\n    query=\"Олег\",\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.users.list_users(params=params)",
-    "output": "ListUsersResponse(data: list[User], meta: PaginationMeta | None)",
+    "output": "ListUsersResponse(data: list[User], meta: PaginationMeta)",
     "imports": [
       "ListUsersParams"
     ]

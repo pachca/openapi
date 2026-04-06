@@ -1030,13 +1030,13 @@ public struct CustomPropertyDefinition: Codable {
 }
 
 public struct ExportRequest: Codable {
-    public let startAt: Date
-    public let endAt: Date
+    public let startAt: String
+    public let endAt: String
     public let webhookUrl: String
     public let chatIds: [Int]?
     public let skipChatsFile: Bool?
 
-    public init(startAt: Date, endAt: Date, webhookUrl: String, chatIds: [Int]? = nil, skipChatsFile: Bool? = nil) {
+    public init(startAt: String, endAt: String, webhookUrl: String, chatIds: [Int]? = nil, skipChatsFile: Bool? = nil) {
         self.startAt = startAt
         self.endAt = endAt
         self.webhookUrl = webhookUrl
@@ -1589,9 +1589,9 @@ public struct OpenViewRequest: Codable {
 }
 
 public struct PaginationMetaPaginate: Codable {
-    public let nextPage: String?
+    public let nextPage: String
 
-    public init(nextPage: String? = nil) {
+    public init(nextPage: String) {
         self.nextPage = nextPage
     }
 
@@ -1601,9 +1601,9 @@ public struct PaginationMetaPaginate: Codable {
 }
 
 public struct PaginationMeta: Codable {
-    public let paginate: PaginationMetaPaginate?
+    public let paginate: PaginationMetaPaginate
 
-    public init(paginate: PaginationMetaPaginate? = nil) {
+    public init(paginate: PaginationMetaPaginate) {
         self.paginate = paginate
     }
 }
@@ -1724,9 +1724,6 @@ public struct StatusUpdateRequest: Codable {
     public init(status: StatusUpdateRequestStatus) {
         self.status = status
     }
-}
-
-public struct TagNamesFilter: Codable {
 }
 
 public struct Task: Codable {
@@ -2747,17 +2744,17 @@ public enum WebhookPayloadUnion: Codable {
 
 public struct GetAuditEventsResponse: Codable {
     public let data: [AuditEvent]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct ListChatsResponse: Codable {
     public let data: [Chat]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct ListMembersResponse: Codable {
     public let data: [User]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct ListPropertiesResponse: Codable {
@@ -2766,22 +2763,22 @@ public struct ListPropertiesResponse: Codable {
 
 public struct ListTagsResponse: Codable {
     public let data: [GroupTag]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct GetTagUsersResponse: Codable {
     public let data: [User]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct ListChatMessagesResponse: Codable {
     public let data: [Message]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct ListReactionsResponse: Codable {
     public let data: [Reaction]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct SearchChatsResponse: Codable {
@@ -2801,17 +2798,17 @@ public struct SearchUsersResponse: Codable {
 
 public struct ListTasksResponse: Codable {
     public let data: [Task]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct ListUsersResponse: Codable {
     public let data: [User]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 public struct GetWebhookEventsResponse: Codable {
     public let data: [WebhookEvent]
-    public var meta: PaginationMeta? = nil
+    public let meta: PaginationMeta
 }
 
 struct BotResponseDataWrapper: Codable {

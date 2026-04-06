@@ -2243,13 +2243,13 @@ public class OpenViewRequest
 public class PaginationMetaPaginate
 {
     [JsonPropertyName("next_page")]
-    public string? NextPage { get; set; }
+    public string NextPage { get; set; } = default!;
 }
 
 public class PaginationMeta
 {
     [JsonPropertyName("paginate")]
-    public PaginationMetaPaginate? Paginate { get; set; }
+    public PaginationMetaPaginate Paginate { get; set; } = default!;
 }
 
 public class Reaction
@@ -2305,8 +2305,6 @@ public class StatusUpdateRequest
     [JsonPropertyName("status")]
     public StatusUpdateRequestStatus Status { get; set; } = default!;
 }
-
-public class TagNamesFilter { }
 
 public class Task
 {
@@ -2665,7 +2663,7 @@ public class GetAuditEventsResponse
     [JsonPropertyName("data")]
     public List<AuditEvent> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListChatsResponse
@@ -2673,7 +2671,7 @@ public class ListChatsResponse
     [JsonPropertyName("data")]
     public List<Chat> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListMembersResponse
@@ -2681,7 +2679,7 @@ public class ListMembersResponse
     [JsonPropertyName("data")]
     public List<User> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListPropertiesResponse
@@ -2695,7 +2693,7 @@ public class ListTagsResponse
     [JsonPropertyName("data")]
     public List<GroupTag> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class GetTagUsersResponse
@@ -2703,7 +2701,7 @@ public class GetTagUsersResponse
     [JsonPropertyName("data")]
     public List<User> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListChatMessagesResponse
@@ -2711,7 +2709,7 @@ public class ListChatMessagesResponse
     [JsonPropertyName("data")]
     public List<Message> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListReactionsResponse
@@ -2719,7 +2717,7 @@ public class ListReactionsResponse
     [JsonPropertyName("data")]
     public List<Reaction> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class SearchChatsResponse
@@ -2751,7 +2749,7 @@ public class ListTasksResponse
     [JsonPropertyName("data")]
     public List<Task> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class ListUsersResponse
@@ -2759,7 +2757,7 @@ public class ListUsersResponse
     [JsonPropertyName("data")]
     public List<User> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class GetWebhookEventsResponse
@@ -2767,7 +2765,7 @@ public class GetWebhookEventsResponse
     [JsonPropertyName("data")]
     public List<WebhookEvent> Data { get; set; } = new();
     [JsonPropertyName("meta")]
-    public PaginationMeta? Meta { get; set; }
+    public PaginationMeta Meta { get; set; } = default!;
 }
 
 public class BotResponseDataWrapper

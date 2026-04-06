@@ -42,7 +42,7 @@ export const readMemberFields: INodeProperties[] = [
 		type: 'number',
 		default: 50,
 		description: 'Max number of results to return',
-		typeOptions: { minValue: 1, maxValue: 50 },
+		typeOptions: { minValue: 1, maxValue: 300 },
 		displayOptions: { show: { resource: ['readMember'], operation: ['getAllReadMemberIds'], returnAll: [false] } },
 	},
 	{

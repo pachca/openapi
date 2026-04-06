@@ -138,7 +138,7 @@ using Pachca.Sdk;
 
 // Список чатов
 var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
-// → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta?)
+// → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)
 ```
 
 
@@ -177,7 +177,7 @@ var response = await client.Chats.GetChatAsync(334);
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `Data`.
 
 ### Ручная пагинация
 
@@ -185,12 +185,13 @@ var response = await client.Chats.GetChatAsync(334);
 var chats = new List<Chat>();
 string? cursor = null;
 
-do
+while (true)
 {
     var response = await client.Chats.ListChatsAsync(cursor: cursor);
+    if (response.Data.Count == 0) break;
     chats.AddRange(response.Data);
-    cursor = response.Meta?.Paginate?.NextPage;
-} while (cursor != null);
+    cursor = response.Meta.Paginate.NextPage;
+}
 ```
 
 ### Автопагинация
@@ -406,7 +407,7 @@ var response = await client.Messages.CreateMessageAsync(request);
 
 // Список сотрудников
 var response = await client.Users.ListUsersAsync("Олег", 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
-// → ListUsersResponse(Data: List<User>, Meta: PaginationMeta?)
+// → ListUsersResponse(Data: List<User>, Meta: PaginationMeta)
 
 // Создание задачи
 var request = new TaskCreateRequest

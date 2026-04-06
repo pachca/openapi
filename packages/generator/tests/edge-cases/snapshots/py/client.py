@@ -20,13 +20,14 @@ class EventsService:
         self,
         params: ListEventsParams | None = None,
     ) -> ListEventsResponse:
-        query: dict[str, str] = {}
+        query: list[tuple[str, str]] = []
         if params is not None and params.is_active is not None:
-            query["is_active"] = str(params.is_active).lower()
+            query.append(("is_active", str(params.is_active).lower()))
         if params is not None and params.scopes is not None:
-            query["scopes"] = params.scopes
+            for v in params.scopes:
+                query.append(("scopes[]", str(v)))
         if params is not None and params.filter is not None:
-            query["filter"] = params.filter
+            query.append(("filter", params.filter))
         response = await self._client.get(
             "/events",
             params=query,

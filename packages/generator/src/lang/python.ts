@@ -277,9 +277,7 @@ function opReturnType(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'str';
   if (!op.successResponse.hasBody) return 'None';
   if (op.successResponse.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'object';
   }
   return op.successResponse.dataRef ?? 'object';
@@ -336,9 +334,7 @@ function collectClientImports(ir: IR): string[] {
       }
       if (op.successResponse.hasBody && !op.successResponse.isRedirect) {
         if (op.successResponse.isList) {
-          const rt = ir.responses.find(
-            (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
-          );
+          const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
           if (rt) add(rt.name);
           if (op.isPaginated && op.successResponse.dataRef) {
             add(op.successResponse.dataRef);
@@ -472,7 +468,8 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
         const v = `params.${paramName}`;
         const maybe = p.required ? v : `params.${paramName}`;
         if (p.isArray) {
-          lines.push(`        if ${maybe} is not None:`);
+          const guard = p.required ? `${maybe} is not None` : `params is not None and ${maybe} is not None`;
+          lines.push(`        if ${guard}:`);
           lines.push(`            for v in ${v}:`);
           lines.push(`                query.append((${JSON.stringify(p.name)}, str(v)))`);
         } else {
@@ -560,9 +557,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push('                return');
   } else if (op.successResponse.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     lines.push(`            case ${op.successResponse.statusCode}:`);
     lines.push(`                return deserialize(${rt?.name ?? 'object'}, body)`);
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
@@ -627,10 +622,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     }
     lines.push(`            response = await self.${pyMethodName(op)}(${callParts.join(', ')})`);
   }
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.next_page' : 'response.meta.paginate.next_page if response.meta else None';
   lines.push('            items.extend(response.data)');
-  lines.push('            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None');
-  lines.push('            if not cursor:');
+  lines.push('            if not response.data:');
   lines.push('                break');
+  lines.push(`            cursor = ${metaAccess}`);
+  if (!rt?.metaIsRequired) {
+    lines.push('            if not cursor:');
+    lines.push('                break');
+  }
   lines.push('        return items');
 }
 

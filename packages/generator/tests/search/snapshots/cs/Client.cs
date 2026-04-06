@@ -82,8 +82,9 @@ public sealed class SearchService
         {
             var response = await SearchMessagesAsync(query: query, chatIds: chatIds, userIds: userIds, createdFrom: createdFrom, createdTo: createdTo, sort: sort, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 }

@@ -50,9 +50,9 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=1" \
     - `data_type: string` (required) — Тип поля
       Значения: `string` — Строковое значение, `number` — Числовое значение, `date` — Дата, `link` — Ссылка
     - `value: string` (required) — Значение
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

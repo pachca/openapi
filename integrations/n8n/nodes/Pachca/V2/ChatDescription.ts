@@ -153,13 +153,22 @@ export const chatFields: INodeProperties[] = [
 		routing: { send: { type: 'query', property: 'last_message_at_before' } },
 	},
 	{
-		displayName: 'Personal',
-		name: 'personal',
-		type: 'boolean',
-		default: false,
-		description: 'Whether to filter by direct and group chats. If not specified, all chats are returned.',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['chat'], operation: ['getAll'] } },
-		routing: { send: { type: 'query', property: 'personal' } },
+		options: [
+			{
+				displayName: 'Personal',
+				name: 'personal',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to filter by direct and group chats. If not specified, all chats are returned.',
+				routing: { send: { type: 'query', property: 'personal' } },
+			},
+		],
 	},
 	{
 		displayName: 'ID',

@@ -47,8 +47,9 @@ public struct SecurityService {
         repeat {
             let response = try await getAuditEvents(startTime: startTime, endTime: endTime, eventKey: eventKey, actorId: actorId, actorType: actorType, entityId: entityId, entityType: entityType, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 }
@@ -90,8 +91,9 @@ public struct BotsService {
         repeat {
             let response = try await getWebhookEvents(limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -144,7 +146,7 @@ public struct ChatsService {
     public func listChats(sortId: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatsResponse {
         var components = URLComponents(string: "\(baseURL)/chats")!
         var queryItems: [URLQueryItem] = []
-        if let sortId { queryItems.append(URLQueryItem(name: "sort[{field}]", value: sortId.rawValue)) }
+        if let sortId { queryItems.append(URLQueryItem(name: "sort[id]", value: sortId.rawValue)) }
         if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
         if let lastMessageAtAfter { queryItems.append(URLQueryItem(name: "last_message_at_after", value: lastMessageAtAfter)) }
         if let lastMessageAtBefore { queryItems.append(URLQueryItem(name: "last_message_at_before", value: lastMessageAtBefore)) }
@@ -172,8 +174,9 @@ public struct ChatsService {
         repeat {
             let response = try await listChats(sortId: sortId, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -393,7 +396,7 @@ public struct MembersService {
     }
 
     public func listMembers(id: Int, role: ChatMemberRoleFilter? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListMembersResponse {
-        var components = URLComponents(string: "\(baseURL)/chats/{id}/members")!
+        var components = URLComponents(string: "\(baseURL)/chats/\(id)/members")!
         var queryItems: [URLQueryItem] = []
         if let role { queryItems.append(URLQueryItem(name: "role", value: role.rawValue)) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
@@ -419,8 +422,9 @@ public struct MembersService {
         repeat {
             let response = try await listMembers(id: id, role: role, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -465,7 +469,7 @@ public struct MembersService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["role": role])
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["role": role.rawValue])
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
@@ -538,10 +542,10 @@ public struct GroupTagsService {
         self.session = session
     }
 
-    public func listTags(names: TagNamesFilter? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListTagsResponse {
+    public func listTags(names: [String]? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListTagsResponse {
         var components = URLComponents(string: "\(baseURL)/group_tags")!
         var queryItems: [URLQueryItem] = []
-        if let names { queryItems.append(URLQueryItem(name: "names", value: String(data: try serialize(names), encoding: .utf8)!)) }
+        if let names { names.forEach { queryItems.append(URLQueryItem(name: "names[]", value: String($0))) } }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
@@ -559,14 +563,15 @@ public struct GroupTagsService {
         }
     }
 
-    public func listTagsAll(names: TagNamesFilter? = nil, limit: Int? = nil) async throws -> [GroupTag] {
+    public func listTagsAll(names: [String]? = nil, limit: Int? = nil) async throws -> [GroupTag] {
         var items: [GroupTag] = []
         var cursor: String? = nil
         repeat {
             let response = try await listTags(names: names, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -585,8 +590,8 @@ public struct GroupTagsService {
         }
     }
 
-    public func getTagUsers(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListMembersResponse {
-        var components = URLComponents(string: "\(baseURL)/group_tags/{id}/users")!
+    public func getTagUsers(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> GetTagUsersResponse {
+        var components = URLComponents(string: "\(baseURL)/group_tags/\(id)/users")!
         var queryItems: [URLQueryItem] = []
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
@@ -597,7 +602,7 @@ public struct GroupTagsService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(ListMembersResponse.self, from: data)
+            return try deserialize(GetTagUsersResponse.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -611,8 +616,9 @@ public struct GroupTagsService {
         repeat {
             let response = try await getTagUsers(id: id, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -684,7 +690,7 @@ public struct MessagesService {
         var components = URLComponents(string: "\(baseURL)/messages")!
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "chat_id", value: String(chatId)))
-        if let sortId { queryItems.append(URLQueryItem(name: "sort[{field}]", value: sortId.rawValue)) }
+        if let sortId { queryItems.append(URLQueryItem(name: "sort[id]", value: sortId.rawValue)) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
@@ -708,8 +714,9 @@ public struct MessagesService {
         repeat {
             let response = try await listChatMessages(chatId: chatId, sortId: sortId, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -855,7 +862,7 @@ public struct ReactionsService {
     }
 
     public func listReactions(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> ListReactionsResponse {
-        var components = URLComponents(string: "\(baseURL)/messages/{id}/reactions")!
+        var components = URLComponents(string: "\(baseURL)/messages/\(id)/reactions")!
         var queryItems: [URLQueryItem] = []
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
@@ -880,8 +887,9 @@ public struct ReactionsService {
         repeat {
             let response = try await listReactions(id: id, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -904,7 +912,7 @@ public struct ReactionsService {
     }
 
     public func removeReaction(id: Int, code: String, name: String? = nil) async throws -> Void {
-        var components = URLComponents(string: "\(baseURL)/messages/{id}/reactions")!
+        var components = URLComponents(string: "\(baseURL)/messages/\(id)/reactions")!
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "code", value: String(code)))
         if let name { queryItems.append(URLQueryItem(name: "name", value: String(name))) }
@@ -937,7 +945,7 @@ public struct ReadMembersService {
     }
 
     public func listReadMembers(id: Int, limit: Int? = nil, cursor: String? = nil) async throws -> String {
-        var components = URLComponents(string: "\(baseURL)/messages/{id}/read_member_ids")!
+        var components = URLComponents(string: "\(baseURL)/messages/\(id)/read_member_ids")!
         var queryItems: [URLQueryItem] = []
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
@@ -1102,7 +1110,7 @@ public struct SearchService {
         self.session = session
     }
 
-    public func searchChats(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, active: Bool? = nil, chatSubtype: ChatSubtype? = nil, personal: Bool? = nil) async throws -> ListChatsResponse {
+    public func searchChats(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, active: Bool? = nil, chatSubtype: ChatSubtype? = nil, personal: Bool? = nil) async throws -> SearchChatsResponse {
         var components = URLComponents(string: "\(baseURL)/search/chats")!
         var queryItems: [URLQueryItem] = []
         if let query { queryItems.append(URLQueryItem(name: "query", value: String(query))) }
@@ -1121,7 +1129,7 @@ public struct SearchService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(ListChatsResponse.self, from: data)
+            return try deserialize(SearchChatsResponse.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -1135,12 +1143,13 @@ public struct SearchService {
         repeat {
             let response = try await searchChats(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, active: active, chatSubtype: chatSubtype, personal: personal)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
-    public func searchMessages(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> ListChatMessagesResponse {
+    public func searchMessages(query: String? = nil, limit: Int? = nil, cursor: String? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, chatIds: [Int]? = nil, userIds: [Int]? = nil, active: Bool? = nil) async throws -> SearchMessagesResponse {
         var components = URLComponents(string: "\(baseURL)/search/messages")!
         var queryItems: [URLQueryItem] = []
         if let query { queryItems.append(URLQueryItem(name: "query", value: String(query))) }
@@ -1149,8 +1158,8 @@ public struct SearchService {
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
         if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
         if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
-        if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids", value: String($0))) } }
-        if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids", value: String($0))) } }
+        if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
+        if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) } }
         if let active { queryItems.append(URLQueryItem(name: "active", value: String(active))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
@@ -1159,7 +1168,7 @@ public struct SearchService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(ListChatMessagesResponse.self, from: data)
+            return try deserialize(SearchMessagesResponse.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -1173,12 +1182,13 @@ public struct SearchService {
         repeat {
             let response = try await searchMessages(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
-    public func searchUsers(query: String? = nil, limit: Int? = nil, cursor: String? = nil, sort: SearchSortOrder? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, companyRoles: [UserRole]? = nil) async throws -> ListMembersResponse {
+    public func searchUsers(query: String? = nil, limit: Int? = nil, cursor: String? = nil, sort: SearchSortOrder? = nil, order: SortOrder? = nil, createdFrom: String? = nil, createdTo: String? = nil, companyRoles: [UserRole]? = nil) async throws -> SearchUsersResponse {
         var components = URLComponents(string: "\(baseURL)/search/users")!
         var queryItems: [URLQueryItem] = []
         if let query { queryItems.append(URLQueryItem(name: "query", value: String(query))) }
@@ -1188,7 +1198,7 @@ public struct SearchService {
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
         if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
         if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
-        if let companyRoles { companyRoles.forEach { queryItems.append(URLQueryItem(name: "company_roles", value: $0.rawValue)) } }
+        if let companyRoles { companyRoles.forEach { queryItems.append(URLQueryItem(name: "company_roles[]", value: $0.rawValue)) } }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -1196,7 +1206,7 @@ public struct SearchService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(ListMembersResponse.self, from: data)
+            return try deserialize(SearchUsersResponse.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -1210,8 +1220,9 @@ public struct SearchService {
         repeat {
             let response = try await searchUsers(query: query, limit: limit, cursor: cursor, sort: sort, order: order, createdFrom: createdFrom, createdTo: createdTo, companyRoles: companyRoles)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 }
@@ -1253,8 +1264,9 @@ public struct TasksService {
         repeat {
             let response = try await listTasks(limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 
@@ -1337,7 +1349,7 @@ public struct UsersService {
         self.session = session
     }
 
-    public func listUsers(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListMembersResponse {
+    public func listUsers(query: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListUsersResponse {
         var components = URLComponents(string: "\(baseURL)/users")!
         var queryItems: [URLQueryItem] = []
         if let query { queryItems.append(URLQueryItem(name: "query", value: String(query))) }
@@ -1350,7 +1362,7 @@ public struct UsersService {
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {
         case 200:
-            return try deserialize(ListMembersResponse.self, from: data)
+            return try deserialize(ListUsersResponse.self, from: data)
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -1364,8 +1376,9 @@ public struct UsersService {
         repeat {
             let response = try await listUsers(query: query, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 

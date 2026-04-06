@@ -376,12 +376,14 @@ describe('generated commands — functional tests', () => {
   // ----- Array query (search list-messages) -----
 
   describe('search list-messages', () => {
-    it('--chat-ids 1,2,3 → query chat_ids', async () => {
+    it('--chat-ids 1,2,3 → query chat_ids[] repeated', async () => {
       mockFetchForEndpoint('/search/messages', 'GET');
       await runCommand(['search', 'list-messages', '--chat-ids', '1,2,3'], { root: CLI_ROOT });
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;
-      expect(url).toContain('chat_ids=');
+      expect(url).toContain('chat_ids%5B%5D=1');
+      expect(url).toContain('chat_ids%5B%5D=2');
+      expect(url).toContain('chat_ids%5B%5D=3');
     });
   });
 });

@@ -43,12 +43,21 @@ jobs:
       - name: Check for SDK changes
         id: sdk_changes
         run: |
-          TS=$(git diff --name-only -- sdk/typescript/ | grep -q . && echo true || echo false)
-          GO=$(git diff --name-only -- sdk/go/ | grep -q . && echo true || echo false)
-          KT=$(git diff --name-only -- sdk/kotlin/ | grep -q . && echo true || echo false)
-          PY=$(git diff --name-only -- sdk/python/ | grep -q . && echo true || echo false)
-          CS=$(git diff --name-only -- sdk/csharp/ | grep -q . && echo true || echo false)
-          SW=$(git diff --name-only -- sdk/swift/ | grep -q . && echo true || echo false)
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          check_sdk() {
+            local dir=$1
+            if [ -n "$PREV_TAG" ]; then
+              git diff --name-only "$PREV_TAG" HEAD -- "$dir" | grep -q . && echo true || echo false
+            else
+              git diff --name-only HEAD~1 HEAD -- "$dir" | grep -q . && echo true || echo false
+            fi
+          }
+          TS=$(check_sdk sdk/typescript/)
+          GO=$(check_sdk sdk/go/)
+          KT=$(check_sdk sdk/kotlin/)
+          PY=$(check_sdk sdk/python/)
+          CS=$(check_sdk sdk/csharp/)
+          SW=$(check_sdk sdk/swift/)
           echo "ts_changed=$TS" >> $GITHUB_OUTPUT
           echo "go_changed=$GO" >> $GITHUB_OUTPUT
           echo "kotlin_changed=$KT" >> $GITHUB_OUTPUT

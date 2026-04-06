@@ -72,8 +72,9 @@ class SecurityService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 }
@@ -100,8 +101,9 @@ class BotsService internal constructor(
         do {
             val response = getWebhookEvents(limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -141,7 +143,7 @@ class ChatsService internal constructor(
         cursor: String? = null,
     ): ListChatsResponse {
         val response = client.get("$baseUrl/chats") {
-            sortId?.let { parameter("sort[{field}]", it.value) }
+            sortId?.let { parameter("sort[id]", it.value) }
             availability?.let { parameter("availability", it.value) }
             lastMessageAtAfter?.let { parameter("last_message_at_after", it) }
             lastMessageAtBefore?.let { parameter("last_message_at_before", it) }
@@ -177,8 +179,9 @@ class ChatsService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -343,8 +346,9 @@ class MembersService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -421,12 +425,12 @@ class GroupTagsService internal constructor(
     private val client: HttpClient,
 ) {
     suspend fun listTags(
-        names: TagNamesFilter? = null,
+        names: List<String>? = null,
         limit: Int? = null,
         cursor: String? = null,
     ): ListTagsResponse {
         val response = client.get("$baseUrl/group_tags") {
-            names?.let { parameter("names", it) }
+            names?.forEach { parameter("names[]", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
         }
@@ -437,14 +441,15 @@ class GroupTagsService internal constructor(
         }
     }
 
-    suspend fun listTagsAll(names: TagNamesFilter? = null, limit: Int? = null): List<GroupTag> {
+    suspend fun listTagsAll(names: List<String>? = null, limit: Int? = null): List<GroupTag> {
         val items = mutableListOf<GroupTag>()
         var cursor: String? = null
         do {
             val response = listTags(names = names, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -461,7 +466,7 @@ class GroupTagsService internal constructor(
         id: Int,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListMembersResponse {
+    ): GetTagUsersResponse {
         val response = client.get("$baseUrl/group_tags/$id/users") {
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
@@ -479,8 +484,9 @@ class GroupTagsService internal constructor(
         do {
             val response = getTagUsers(id = id, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -530,7 +536,7 @@ class MessagesService internal constructor(
     ): ListChatMessagesResponse {
         val response = client.get("$baseUrl/messages") {
             parameter("chat_id", chatId)
-            sortId?.let { parameter("sort[{field}]", it.value) }
+            sortId?.let { parameter("sort[id]", it.value) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
         }
@@ -556,8 +562,9 @@ class MessagesService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -665,8 +672,9 @@ class ReactionsService internal constructor(
         do {
             val response = listReactions(id = id, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -810,7 +818,7 @@ class SearchService internal constructor(
         active: Boolean? = null,
         chatSubtype: ChatSubtype? = null,
         personal: Boolean? = null,
-    ): ListChatsResponse {
+    ): SearchChatsResponse {
         val response = client.get("$baseUrl/search/chats") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
@@ -854,8 +862,9 @@ class SearchService internal constructor(
                 personal = personal,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -869,7 +878,7 @@ class SearchService internal constructor(
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
         active: Boolean? = null,
-    ): ListChatMessagesResponse {
+    ): SearchMessagesResponse {
         val response = client.get("$baseUrl/search/messages") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
@@ -877,8 +886,8 @@ class SearchService internal constructor(
             order?.let { parameter("order", it.value) }
             createdFrom?.let { parameter("created_from", it) }
             createdTo?.let { parameter("created_to", it) }
-            chatIds?.let { parameter("chat_ids", it) }
-            userIds?.let { parameter("user_ids", it) }
+            chatIds?.forEach { parameter("chat_ids[]", it) }
+            userIds?.forEach { parameter("user_ids[]", it) }
             active?.let { parameter("active", it) }
         }
         return when (response.status.value) {
@@ -913,8 +922,9 @@ class SearchService internal constructor(
                 active = active,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -927,7 +937,7 @@ class SearchService internal constructor(
         createdFrom: String? = null,
         createdTo: String? = null,
         companyRoles: List<UserRole>? = null,
-    ): ListMembersResponse {
+    ): SearchUsersResponse {
         val response = client.get("$baseUrl/search/users") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
@@ -936,7 +946,7 @@ class SearchService internal constructor(
             order?.let { parameter("order", it.value) }
             createdFrom?.let { parameter("created_from", it) }
             createdTo?.let { parameter("created_to", it) }
-            companyRoles?.let { parameter("company_roles", it) }
+            companyRoles?.forEach { parameter("company_roles[]", it.value) }
         }
         return when (response.status.value) {
             200 -> response.body()
@@ -968,8 +978,9 @@ class SearchService internal constructor(
                 companyRoles = companyRoles,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 }
@@ -996,8 +1007,9 @@ class TasksService internal constructor(
         do {
             val response = listTasks(limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -1052,7 +1064,7 @@ class UsersService internal constructor(
         query: String? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListMembersResponse {
+    ): ListUsersResponse {
         val response = client.get("$baseUrl/users") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
@@ -1071,8 +1083,9 @@ class UsersService internal constructor(
         do {
             val response = listUsers(query = query, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 

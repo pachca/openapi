@@ -843,8 +843,8 @@ export interface OpenViewRequest {
 }
 
 export interface PaginationMeta {
-  paginate?: {
-    nextPage?: string;
+  paginate: {
+    nextPage: string;
   };
 }
 
@@ -886,9 +886,6 @@ export interface StatusUpdateRequest {
     isAway?: boolean;
     awayMessage?: string;
   };
-}
-
-export interface TagNamesFilter {
 }
 
 export interface Task {
@@ -1220,7 +1217,7 @@ export interface ListPropertiesParams {
 }
 
 export interface ListTagsParams {
-  names?: TagNamesFilter;
+  names?: string[];
   limit?: number;
   cursor?: string;
 }
@@ -1305,17 +1302,17 @@ export interface GetWebhookEventsParams {
 
 export interface GetAuditEventsResponse {
   data: AuditEvent[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListChatsResponse {
   data: Chat[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListMembersResponse {
   data: User[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListPropertiesResponse {
@@ -1324,22 +1321,22 @@ export interface ListPropertiesResponse {
 
 export interface ListTagsResponse {
   data: GroupTag[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface GetTagUsersResponse {
   data: User[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListChatMessagesResponse {
   data: Message[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListReactionsResponse {
   data: Reaction[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface SearchChatsResponse {
@@ -1359,15 +1356,15 @@ export interface SearchUsersResponse {
 
 export interface ListTasksResponse {
   data: Task[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface ListUsersResponse {
   data: User[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 export interface GetWebhookEventsResponse {
   data: WebhookEvent[];
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }

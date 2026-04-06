@@ -67,8 +67,9 @@ class SearchService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 }

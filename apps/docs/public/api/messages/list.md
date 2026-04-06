@@ -71,9 +71,9 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort[id]=desc&li
   - `display_name: string` (required) — Полное имя отправителя сообщения
   - `changed_at: date-time` (required) — Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `deleted_at: date-time` (required) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

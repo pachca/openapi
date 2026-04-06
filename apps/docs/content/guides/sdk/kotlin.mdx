@@ -100,19 +100,20 @@ client.close()
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta?.paginate?.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
 ```kotlin
 var cursor: String? = null
-do {
+while (true) {
     val response = client.users.listUsers(limit = 50, cursor = cursor)
+    if (response.data.isEmpty()) break
     for (user in response.data) {
         println("${user.firstName} ${user.lastName}")
     }
-    cursor = response.meta?.paginate?.nextPage
-} while (cursor != null)
+    cursor = response.meta.paginate.nextPage
+}
 ```
 
 ### Автопагинация

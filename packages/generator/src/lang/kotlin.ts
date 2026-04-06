@@ -458,9 +458,12 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     ? `${op.methodName}(${callArgs.join(', ')})`
     : `${op.methodName}(\n${callArgs.map(a => `${indent2}        ${a},`).join('\n')}\n${indent2}    )`;
   lines.push(`${indent2}    val response = ${callStr}`);
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
   lines.push(`${indent2}    items.addAll(response.data)`);
-  lines.push(`${indent2}    cursor = response.meta?.paginate?.nextPage`);
-  lines.push(`${indent2}} while (cursor != null)`);
+  lines.push(`${indent2}    if (response.data.isEmpty()) break`);
+  lines.push(`${indent2}    cursor = ${metaAccess}`);
+  lines.push(rt?.metaIsRequired ? `${indent2}} while (true)` : `${indent2}} while (cursor != null)`);
   lines.push(`${indent2}return items`);
   lines.push(`${indent}}`);
 }
@@ -510,9 +513,7 @@ function getReturnType(
   if (resp.isRedirect) return 'String';
   if (!resp.hasBody) return null;
   if (resp.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'Any';
   }
   if (resp.isUnwrap && resp.dataRef) return resp.dataRef;
@@ -593,13 +594,15 @@ function emitMethodBody(
     );
     for (const p of op.queryParams) {
       if (p.isArray) {
+        const itemIsEnum = p.type.kind === 'array' && p.type.items?.kind === 'enum';
+        const itemExpr = itemIsEnum ? 'it.value' : 'it';
         if (p.required) {
           lines.push(
-            `${indent3}${p.sdkName}.forEach { parameter("${p.name}", it) }`,
+            `${indent3}${p.sdkName}.forEach { parameter("${p.name}", ${itemExpr}) }`,
           );
         } else {
           lines.push(
-            `${indent3}${p.sdkName}?.forEach { parameter("${p.name}", it) }`,
+            `${indent3}${p.sdkName}?.forEach { parameter("${p.name}", ${itemExpr}) }`,
           );
         }
       } else {

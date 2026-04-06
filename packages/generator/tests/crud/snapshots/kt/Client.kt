@@ -55,6 +55,7 @@ class ChatsService internal constructor(
                 sortOrder = sortOrder,
             )
             items.addAll(response.data)
+            if (response.data.isEmpty()) break
             cursor = response.meta?.paginate?.nextPage
         } while (cursor != null)
         return items

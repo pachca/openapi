@@ -125,9 +125,9 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
       - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
       - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
   - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

@@ -15,7 +15,7 @@
 
 ```kotlin
 dependencies {
-    implementation("com.pachca:pachca-sdk:1.0.1")
+    implementation("com.pachca:pachca-sdk:latest.release")
 }
 ```
 
@@ -154,7 +154,7 @@ import com.pachca.sdk.SortOrder
 
 // Список чатов
 val response = client.chats.listChats(sortId = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = "2025-01-01T00:00:00.000Z", lastMessageAtBefore = "2025-02-01T00:00:00.000Z", personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)
+// → ListChatsResponse(data: List<Chat>, meta: PaginationMeta)
 ```
 
 
@@ -190,19 +190,20 @@ val response = client.chats.getChat(id = 334)
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta?.paginate?.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
 ```kotlin
 var cursor: String? = null
-do {
+while (true) {
     val response = client.users.listUsers(limit = 50, cursor = cursor)
+    if (response.data.isEmpty()) break
     for (user in response.data) {
         println("${user.firstName} ${user.lastName}")
     }
-    cursor = response.meta?.paginate?.nextPage
-} while (cursor != null)
+    cursor = response.meta.paginate.nextPage
+}
 ```
 
 ### Автопагинация
@@ -375,7 +376,7 @@ val response = client.messages.createMessage(request = request)
 
 // Список сотрудников
 val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListUsersResponse(data: List<User>, meta: PaginationMeta?)
+// → ListUsersResponse(data: List<User>, meta: PaginationMeta)
 
 // Создание задачи
 val request = TaskCreateRequest(

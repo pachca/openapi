@@ -84,20 +84,21 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `meta.paginate.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит поле `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
 ```typescript
 let cursor: string | undefined
 
-do {
+for (;;) {
   const response = await client.users.listUsers({ limit: 50, cursor })
+  if (response.data.length === 0) break
   for (const user of response.data) {
     console.log(user.firstName, user.lastName)
   }
-  cursor = response.meta?.paginate?.nextPage
-} while (cursor)
+  cursor = response.meta.paginate.nextPage
+}
 ```
 
 ### Автопагинация

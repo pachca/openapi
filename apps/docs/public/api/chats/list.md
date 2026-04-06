@@ -47,9 +47,9 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort[id]=desc&availability=is_m
   - `public: boolean` (required) — Открытый доступ
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `meet_room_url: string` (required) — Ссылка на Видеочат
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

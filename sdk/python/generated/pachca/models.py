@@ -763,12 +763,12 @@ class OpenViewRequest:
 
 @dataclass
 class PaginationMetaPaginate:
-    next_page: str | None = None
+    next_page: str
 
 
 @dataclass
 class PaginationMeta:
-    paginate: PaginationMetaPaginate | None = None
+    paginate: PaginationMetaPaginate
 
 
 @dataclass
@@ -820,11 +820,6 @@ class StatusUpdateRequestStatus:
 @dataclass
 class StatusUpdateRequest:
     status: StatusUpdateRequestStatus
-
-
-@dataclass
-class TagNamesFilter:
-    pass
 
 
 @dataclass
@@ -1209,7 +1204,7 @@ class ListPropertiesParams:
 
 @dataclass
 class ListTagsParams:
-    names: TagNamesFilter | None = None
+    names: list[str] | None = None
     limit: int | None = None
     cursor: str | None = None
 
@@ -1306,19 +1301,19 @@ class GetWebhookEventsParams:
 @dataclass
 class GetAuditEventsResponse:
     data: list[AuditEvent]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListChatsResponse:
     data: list[Chat]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListMembersResponse:
     data: list[User]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
@@ -1329,25 +1324,25 @@ class ListPropertiesResponse:
 @dataclass
 class ListTagsResponse:
     data: list[GroupTag]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class GetTagUsersResponse:
     data: list[User]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListChatMessagesResponse:
     data: list[Message]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListReactionsResponse:
     data: list[Reaction]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
@@ -1371,16 +1366,16 @@ class SearchUsersResponse:
 @dataclass
 class ListTasksResponse:
     data: list[Task]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class ListUsersResponse:
     data: list[User]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta
 
 
 @dataclass
 class GetWebhookEventsResponse:
     data: list[WebhookEvent]
-    meta: PaginationMeta | None = None
+    meta: PaginationMeta

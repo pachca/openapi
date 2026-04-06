@@ -43,7 +43,7 @@ export const searchFields: INodeProperties[] = [
 		type: 'number',
 		default: 50,
 		description: 'Max number of results to return',
-		typeOptions: { minValue: 1, maxValue: 50 },
+		typeOptions: { minValue: 1, maxValue: 100 },
 		displayOptions: { show: { resource: ['search'], operation: ['getAllChats'], returnAll: [false] } },
 	},
 	{
@@ -142,7 +142,7 @@ export const searchFields: INodeProperties[] = [
 		type: 'number',
 		default: 50,
 		description: 'Max number of results to return',
-		typeOptions: { minValue: 1, maxValue: 50 },
+		typeOptions: { minValue: 1, maxValue: 200 },
 		displayOptions: { show: { resource: ['search'], operation: ['getAllMessages'], returnAll: [false] } },
 	},
 	{
@@ -241,7 +241,7 @@ export const searchFields: INodeProperties[] = [
 		type: 'number',
 		default: 50,
 		description: 'Max number of results to return',
-		typeOptions: { minValue: 1, maxValue: 50 },
+		typeOptions: { minValue: 1, maxValue: 200 },
 		displayOptions: { show: { resource: ['search'], operation: ['getAllUsers'], returnAll: [false] } },
 	},
 	{

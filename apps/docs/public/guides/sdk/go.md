@@ -154,7 +154,7 @@ params := &ListChatsParams{
 	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Chats.ListChats(ctx, params)
-// → ListChatsResponse{Data: []Chat, Meta: *PaginationMeta}
+// → ListChatsResponse{Data: []Chat, Meta: PaginationMeta}
 ```
 
 
@@ -204,7 +204,7 @@ request := pachca.ChatUpdateRequest{
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `Meta.Paginate.NextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `Meta.Paginate.NextPage` — курсор для следующей страницы. Курсор никогда не бывает пустым — конец данных определяется по пустому слайсу `Data`.
 
 ### Ручная пагинация
 
@@ -216,13 +216,14 @@ for {
     if err != nil {
         log.Fatal(err)
     }
+    if len(response.Data) == 0 {
+        break
+    }
     for _, user := range response.Data {
         fmt.Println(user.FirstName, user.LastName)
     }
-    if response.Meta == nil || response.Meta.Paginate == nil || response.Meta.Paginate.NextPage == nil {
-        break
-    }
-    cursor = response.Meta.Paginate.NextPage
+    nextPage := response.Meta.Paginate.NextPage
+    cursor = &nextPage
 }
 ```
 
@@ -384,7 +385,7 @@ params := &ListUsersParams{
 	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Users.ListUsers(ctx, params)
-// → ListUsersResponse{Data: []User, Meta: *PaginationMeta}
+// → ListUsersResponse{Data: []User, Meta: PaginationMeta}
 
 // Создание задачи
 request := TaskCreateRequest{

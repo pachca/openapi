@@ -41,10 +41,15 @@ function isUnion(schema: Schema): boolean {
 // ----- Field type resolution -----
 
 function resolveFieldType(schema: Schema): IRFieldType {
-  // $ref → enum or model reference
+  // $ref → enum, array, or model reference
   if (schema.$ref) {
     const name = refName(schema.$ref);
-    return { kind: isEnumSchema(schema) ? 'enum' : 'model', ref: name };
+    if (isEnumSchema(schema)) return { kind: 'enum', ref: name };
+    // Array-type refs (e.g. TagNamesFilter: type: array, items: string) should be inlined
+    if (getSchemaType(schema) === 'array' && schema.items) {
+      return { kind: 'array', items: resolveFieldType(schema.items) };
+    }
+    return { kind: 'model', ref: name };
   }
 
   // anyOf / oneOf → union
@@ -393,12 +398,24 @@ function transformParam(param: Parameter): IRParam {
     type = { kind: 'array', items: type };
   }
 
+  // Wire name: use first x-param-names entry if available (e.g. "sort[{field}]" → "sort[id]")
+  let wireName = (param['x-param-names'] && param['x-param-names'].length > 0 && typeof param['x-param-names'][0] === 'object')
+    ? param['x-param-names'][0].name
+    : param.name;
+
+  const isArrayParam = isArray || type.kind === 'array';
+
+  // Array query params need [] suffix for Rails/Rack to parse as arrays
+  if (isArrayParam && !wireName.endsWith('[]')) {
+    wireName += '[]';
+  }
+
   return {
-    name: param.name,
+    name: wireName,
     sdkName,
     type,
     required: !!param.required,
-    isArray,
+    isArray: isArrayParam,
   };
 }
 
@@ -695,6 +712,9 @@ export function transform(spec: ParsedAPI): IR {
       unions.push(transformUnion(name, schema, spec.schemas));
     } else if (isEnumSchema(schema)) {
       enums.push(transformEnum(name, schema));
+    } else if (getSchemaType(schema) === 'array') {
+      // Array-type schemas (e.g. TagNamesFilter) are inlined as array types in field references
+      continue;
     } else {
       models.push(transformModel(name, schema));
     }

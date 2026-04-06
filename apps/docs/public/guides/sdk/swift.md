@@ -15,7 +15,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
 ]
 ```
 
@@ -144,7 +144,7 @@ import PachcaSDK
 
 // Список чатов
 let response = try await client.chats.listChats(sortId: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListChatsResponse(data: [Chat], meta: PaginationMeta?)
+// → ListChatsResponse(data: [Chat], meta: PaginationMeta)
 ```
 
 
@@ -181,7 +181,7 @@ let response = try await client.chats.getChat(id: 334)
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta?.paginate?.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `nil` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
@@ -189,11 +189,12 @@ let response = try await client.chats.getChat(id: 334)
 var cursor: String? = nil
 repeat {
     let response = try await client.users.listUsers(limit: 50, cursor: cursor)
+    if response.data.isEmpty { break }
     for user in response.data {
         print("\(user.firstName) \(user.lastName)")
     }
-    cursor = response.meta?.paginate?.nextPage
-} while cursor != nil
+    cursor = response.meta.paginate.nextPage
+} while true
 ```
 
 ### Автопагинация
@@ -347,7 +348,7 @@ let response = try await client.messages.createMessage(body: body)
 
 // Список сотрудников
 let response = try await client.users.listUsers(query: "Олег", limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListUsersResponse(data: [User], meta: PaginationMeta?)
+// → ListUsersResponse(data: [User], meta: PaginationMeta)
 
 // Создание задачи
 let body = TaskCreateRequest(

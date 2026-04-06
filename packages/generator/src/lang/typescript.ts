@@ -339,11 +339,7 @@ function responseTypeName(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'string';
   if (!op.successResponse.hasBody) return 'void';
   if (op.successResponse.isList) {
-    const rt = ir.responses.find(
-      (r) =>
-        r.dataRef === op.successResponse.dataRef &&
-        r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'unknown';
   }
   return op.successResponse.dataRef ?? 'unknown';
@@ -656,9 +652,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   for (const p of op.pathParams) callArgs.push(p.sdkName);
   if (paramsType) callArgs.push('{ ...params, cursor } as ' + paramsType);
   lines.push(`      const response = await this.${op.methodName}(${callArgs.join(', ')});`);
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
   lines.push('      items.push(...response.data);');
-  lines.push('      cursor = response.meta?.paginate?.nextPage;');
-  lines.push('    } while (cursor);');
+  lines.push('      if (response.data.length === 0) break;');
+  lines.push(`      cursor = ${metaAccess};`);
+  if (rt?.metaIsRequired) {
+    lines.push('    } while (true);');
+  } else {
+    lines.push('    } while (cursor);');
+  }
   lines.push('    return items;');
   lines.push('  }');
 }

@@ -36,8 +36,8 @@ from .models import (
     ListTagsParams,
     ListTagsResponse,
     GroupTag,
-    TagNamesFilter,
     GetTagUsersParams,
+    GetTagUsersResponse,
     GroupTagRequest,
     ListChatMessagesParams,
     ListChatMessagesResponse,
@@ -56,9 +56,12 @@ from .models import (
     StatusUpdateRequest,
     UserStatus,
     SearchChatsParams,
+    SearchChatsResponse,
     ChatSubtype,
     SearchMessagesParams,
+    SearchMessagesResponse,
     SearchUsersParams,
+    SearchUsersResponse,
     SearchSortOrder,
     ListTasksParams,
     ListTasksResponse,
@@ -66,6 +69,7 @@ from .models import (
     TaskCreateRequest,
     TaskUpdateRequest,
     ListUsersParams,
+    ListUsersResponse,
     UserCreateRequest,
     UserUpdateRequest,
     OpenViewRequest,
@@ -124,9 +128,9 @@ class SecurityService:
             params.cursor = cursor
             response = await self.get_audit_events(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
 
@@ -168,9 +172,9 @@ class BotsService:
             params.cursor = cursor
             response = await self.get_webhook_events(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def update_bot(
@@ -217,7 +221,7 @@ class ChatsService:
     ) -> ListChatsResponse:
         query: dict[str, str] = {}
         if params is not None and params.sort_id is not None:
-            query["sort[{field}]"] = params.sort_id
+            query["sort[id]"] = params.sort_id
         if params is not None and params.availability is not None:
             query["availability"] = params.availability
         if params is not None and params.last_message_at_after is not None:
@@ -255,9 +259,9 @@ class ChatsService:
             params.cursor = cursor
             response = await self.list_chats(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def get_chat(
@@ -485,9 +489,9 @@ class MembersService:
             params.cursor = cursor
             response = await self.list_members(id, params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def add_tags(
@@ -598,13 +602,14 @@ class GroupTagsService:
         self,
         params: ListTagsParams | None = None,
     ) -> ListTagsResponse:
-        query: dict[str, str] = {}
+        query: list[tuple[str, str]] = []
         if params is not None and params.names is not None:
-            query["names"] = params.names
+            for v in params.names:
+                query.append(("names[]", str(v)))
         if params is not None and params.limit is not None:
-            query["limit"] = str(params.limit)
+            query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
-            query["cursor"] = params.cursor
+            query.append(("cursor", params.cursor))
         response = await self._client.get(
             "/group_tags",
             params=query,
@@ -630,9 +635,9 @@ class GroupTagsService:
             params.cursor = cursor
             response = await self.list_tags(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def get_tag(
@@ -655,7 +660,7 @@ class GroupTagsService:
         self,
         id: int,
         params: GetTagUsersParams | None = None,
-    ) -> ListMembersResponse:
+    ) -> GetTagUsersResponse:
         query: dict[str, str] = {}
         if params is not None and params.limit is not None:
             query["limit"] = str(params.limit)
@@ -668,7 +673,7 @@ class GroupTagsService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListMembersResponse, body)
+                return deserialize(GetTagUsersResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -687,9 +692,9 @@ class GroupTagsService:
             params.cursor = cursor
             response = await self.get_tag_users(id, params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def create_tag(
@@ -754,7 +759,7 @@ class MessagesService:
         query: list[tuple[str, str]] = []
         query.append(("chat_id", str(params.chat_id)))
         if params is not None and params.sort_id is not None:
-            query.append(("sort[{field}]", params.sort_id))
+            query.append(("sort[id]", params.sort_id))
         if params is not None and params.limit is not None:
             query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
@@ -784,9 +789,9 @@ class MessagesService:
             params.cursor = cursor
             response = await self.list_chat_messages(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def get_message(
@@ -948,9 +953,9 @@ class ReactionsService:
             params.cursor = cursor
             response = await self.list_reactions(id, params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def add_reaction(
@@ -1142,7 +1147,7 @@ class SearchService:
     async def search_chats(
         self,
         params: SearchChatsParams | None = None,
-    ) -> ListChatsResponse:
+    ) -> SearchChatsResponse:
         query: dict[str, str] = {}
         if params is not None and params.query is not None:
             query["query"] = params.query
@@ -1169,7 +1174,7 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListChatsResponse, body)
+                return deserialize(SearchChatsResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1187,34 +1192,36 @@ class SearchService:
             params.cursor = cursor
             response = await self.search_chats(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def search_messages(
         self,
         params: SearchMessagesParams | None = None,
-    ) -> ListChatMessagesResponse:
-        query: dict[str, str] = {}
+    ) -> SearchMessagesResponse:
+        query: list[tuple[str, str]] = []
         if params is not None and params.query is not None:
-            query["query"] = params.query
+            query.append(("query", params.query))
         if params is not None and params.limit is not None:
-            query["limit"] = str(params.limit)
+            query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
-            query["cursor"] = params.cursor
+            query.append(("cursor", params.cursor))
         if params is not None and params.order is not None:
-            query["order"] = params.order
+            query.append(("order", params.order))
         if params is not None and params.created_from is not None:
-            query["created_from"] = params.created_from
+            query.append(("created_from", params.created_from))
         if params is not None and params.created_to is not None:
-            query["created_to"] = params.created_to
+            query.append(("created_to", params.created_to))
         if params is not None and params.chat_ids is not None:
-            query["chat_ids"] = params.chat_ids
+            for v in params.chat_ids:
+                query.append(("chat_ids[]", str(v)))
         if params is not None and params.user_ids is not None:
-            query["user_ids"] = params.user_ids
+            for v in params.user_ids:
+                query.append(("user_ids[]", str(v)))
         if params is not None and params.active is not None:
-            query["active"] = str(params.active).lower()
+            query.append(("active", str(params.active).lower()))
         response = await self._client.get(
             "/search/messages",
             params=query,
@@ -1222,7 +1229,7 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListChatMessagesResponse, body)
+                return deserialize(SearchMessagesResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1240,32 +1247,33 @@ class SearchService:
             params.cursor = cursor
             response = await self.search_messages(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def search_users(
         self,
         params: SearchUsersParams | None = None,
-    ) -> ListMembersResponse:
-        query: dict[str, str] = {}
+    ) -> SearchUsersResponse:
+        query: list[tuple[str, str]] = []
         if params is not None and params.query is not None:
-            query["query"] = params.query
+            query.append(("query", params.query))
         if params is not None and params.limit is not None:
-            query["limit"] = str(params.limit)
+            query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
-            query["cursor"] = params.cursor
+            query.append(("cursor", params.cursor))
         if params is not None and params.sort is not None:
-            query["sort"] = params.sort
+            query.append(("sort", params.sort))
         if params is not None and params.order is not None:
-            query["order"] = params.order
+            query.append(("order", params.order))
         if params is not None and params.created_from is not None:
-            query["created_from"] = params.created_from
+            query.append(("created_from", params.created_from))
         if params is not None and params.created_to is not None:
-            query["created_to"] = params.created_to
+            query.append(("created_to", params.created_to))
         if params is not None and params.company_roles is not None:
-            query["company_roles"] = params.company_roles
+            for v in params.company_roles:
+                query.append(("company_roles[]", str(v)))
         response = await self._client.get(
             "/search/users",
             params=query,
@@ -1273,7 +1281,7 @@ class SearchService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListMembersResponse, body)
+                return deserialize(SearchUsersResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1291,9 +1299,9 @@ class SearchService:
             params.cursor = cursor
             response = await self.search_users(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
 
@@ -1335,9 +1343,9 @@ class TasksService:
             params.cursor = cursor
             response = await self.list_tasks(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def get_task(
@@ -1414,7 +1422,7 @@ class UsersService:
     async def list_users(
         self,
         params: ListUsersParams | None = None,
-    ) -> ListMembersResponse:
+    ) -> ListUsersResponse:
         query: dict[str, str] = {}
         if params is not None and params.query is not None:
             query["query"] = params.query
@@ -1429,7 +1437,7 @@ class UsersService:
         body = response.json()
         match response.status_code:
             case 200:
-                return deserialize(ListMembersResponse, body)
+                return deserialize(ListUsersResponse, body)
             case 401:
                 raise deserialize(OAuthError, body)
             case _:
@@ -1447,9 +1455,9 @@ class UsersService:
             params.cursor = cursor
             response = await self.list_users(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
     async def get_user(

@@ -99,9 +99,9 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
         - Тип значения: `any`
   - `ip_address: string` (required) — IP-адрес, с которого было выполнено действие
   - `user_agent: string` (required) — User agent клиента
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

@@ -43,6 +43,8 @@ interface QueryMap {
 	n8n: string;
 	locator?: boolean;
 	required?: boolean;
+	isArray?: boolean;
+	arrayType?: 'int' | 'string';
 }
 
 interface RouteConfig {
@@ -137,7 +139,8 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/chats',
 			paginated: true,
-			queryMap: [{ api: 'availability', n8n: 'availability' }, { api: 'last_message_at_after', n8n: 'lastMessageAtAfter' }, { api: 'last_message_at_before', n8n: 'lastMessageAtBefore' }, { api: 'personal', n8n: 'personal' }],
+			queryMap: [{ api: 'availability', n8n: 'availability' }, { api: 'last_message_at_after', n8n: 'lastMessageAtAfter' }, { api: 'last_message_at_before', n8n: 'lastMessageAtBefore' }],
+			optionalQueryMap: [{ api: 'personal', n8n: 'personal' }],
 		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
@@ -260,7 +263,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/group_tags',
 			paginated: true,
-			queryMap: [{ api: 'names', n8n: 'names' }],
+			queryMap: [{ api: 'names', n8n: 'names', isArray: true, arrayType: 'string' }],
 		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
@@ -477,14 +480,14 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/search/messages',
 			paginated: true,
 			queryMap: [{ api: 'query', n8n: 'query' }],
-			optionalQueryMap: [{ api: 'order', n8n: 'order' }, { api: 'created_from', n8n: 'createdFrom' }, { api: 'created_to', n8n: 'createdTo' }, { api: 'chat_ids', n8n: 'chatIds' }, { api: 'user_ids', n8n: 'userIds' }, { api: 'active', n8n: 'active' }],
+			optionalQueryMap: [{ api: 'order', n8n: 'order' }, { api: 'created_from', n8n: 'createdFrom' }, { api: 'created_to', n8n: 'createdTo' }, { api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' }, { api: 'user_ids', n8n: 'userIds', isArray: true, arrayType: 'int' }, { api: 'active', n8n: 'active' }],
 		},
 		getAllUsers: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/search/users',
 			paginated: true,
 			queryMap: [{ api: 'query', n8n: 'query' }],
-			optionalQueryMap: [{ api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }, { api: 'created_from', n8n: 'createdFrom' }, { api: 'created_to', n8n: 'createdTo' }, { api: 'company_roles', n8n: 'companyRoles' }],
+			optionalQueryMap: [{ api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }, { api: 'created_from', n8n: 'createdFrom' }, { api: 'created_to', n8n: 'createdTo' }, { api: 'company_roles', n8n: 'companyRoles', isArray: true, arrayType: 'string' }],
 		},
 	},
 	task: {
@@ -855,9 +858,15 @@ async function executeRoute(
 			} else {
 				val = this.getNodeParameter(qm.n8n, i);
 			}
-			if (val !== undefined && val !== null && val !== '') qs[qm.api] = val as IDataObject;
+			if (val !== undefined && val !== null && val !== '') {
+				if (qm.isArray && typeof val === 'string') {
+					qs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
+				} else {
+					qs[qm.api] = val as IDataObject;
+				}
+			}
 		} catch (e) {
-			if (qm.required) throw e; // Required query param must be present
+			if (qm.required) throw e;
 		}
 	}
 
@@ -867,7 +876,13 @@ async function executeRoute(
 		if (val === undefined) {
 			try { val = this.getNodeParameter(qm.n8n, i, undefined); } catch { /* not present */ }
 		}
-		if (val !== undefined && val !== null && val !== '') qs[qm.api] = val;
+		if (val !== undefined && val !== null && val !== '') {
+			if (qm.isArray && typeof val === 'string') {
+				qs[qm.api] = splitAndValidateCommaList(this, val, qm.n8n, qm.arrayType!, i);
+			} else {
+				qs[qm.api] = val;
+			}
+		}
 	}
 
 	// === Special handlers ===

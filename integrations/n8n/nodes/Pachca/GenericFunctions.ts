@@ -50,12 +50,12 @@ const STATUS_HINTS: Record<number, string> = {
 /** Key fields per resource for Simplify mode — only these fields are returned */
 const SIMPLIFY_FIELDS: Record<string, string[]> = {
   message: ['id', 'entity_id', 'chat_id', 'content', 'user_id', 'created_at'],
-  chat: ['id', 'name', 'channel', 'public', 'members_count', 'created_at'],
+  chat: ['id', 'name', 'channel', 'public', 'member_ids', 'created_at'],
   user: ['id', 'first_name', 'last_name', 'nickname', 'email', 'role', 'suspended'],
   task: ['id', 'content', 'kind', 'status', 'priority', 'due_at', 'created_at'],
-  bot: ['id', 'name', 'created_at'],
+  bot: ['id', 'webhook'],
   groupTag: ['id', 'name', 'users_count'],
-  reaction: ['id', 'code', 'user_id', 'created_at'],
+  reaction: ['code', 'name', 'user_id', 'created_at'],
   export: ['id', 'status', 'created_at'],
 };
 
@@ -363,11 +363,35 @@ export async function makeApiRequest(
   if (method !== 'GET' && method !== 'DELETE') {
     headers['Content-Type'] = 'application/json';
   }
+  // Separate array params from scalar params — arrays need []= format for Rails
+  let scalarQs: IDataObject | undefined = qs;
+  let arrayQuerySuffix = '';
+  if (qs) {
+    const scalarEntries: [string, unknown][] = [];
+    const arrayParts: string[] = [];
+    for (const [key, value] of Object.entries(qs)) {
+      if (Array.isArray(value)) {
+        for (const v of value) {
+          arrayParts.push(`${encodeURIComponent(key + '[]')}=${encodeURIComponent(String(v))}`);
+        }
+      } else {
+        scalarEntries.push([key, value]);
+      }
+    }
+    scalarQs = scalarEntries.length > 0 ? Object.fromEntries(scalarEntries) as IDataObject : undefined;
+    arrayQuerySuffix = arrayParts.join('&');
+  }
+
+  let url = `${baseUrl}${endpoint}`;
+  if (arrayQuerySuffix) {
+    url += (url.includes('?') ? '&' : '?') + arrayQuerySuffix;
+  }
+
   const options: IHttpRequestOptions = {
     method,
-    url: `${baseUrl}${endpoint}`,
+    url,
     headers,
-    qs,
+    qs: scalarQs,
     body: (method !== 'GET' && method !== 'DELETE') ? body : undefined,
     returnFullResponse: true,
     ignoreHttpStatusErrors: true,
@@ -460,7 +484,9 @@ export async function makeApiRequestAllPages(
     if (hasV1CollectionPagination) {
       const response = await makeApiRequest.call(this, method, endpoint, undefined, qs, itemIndex);
       const items = (response.data as IDataObject[]) ?? [];
-      return items.map(item => ({ json: item }));
+      return items.map(item => ({
+        json: typeof item === 'object' && item !== null ? item : { value: item } as unknown as IDataObject,
+      }));
     }
   }
 
@@ -474,14 +500,14 @@ export async function makeApiRequestAllPages(
   const limit = returnAll ? 0 : ((this.getNodeParameter('limit', itemIndex, 50) as number) || 50);
   const results: IDataObject[] = [];
   let cursor: string | undefined;
-  let previousCursor: string | undefined;
   let totalRetries = 0;
   const MAX_RETRIES = 5;
   const MAX_PAGES = 1000;
   let pageCount = 0;
 
   do {
-    const pageQs: IDataObject = { ...qs, limit: 50 };
+    const perPage = returnAll ? 200 : limit;
+    const pageQs: IDataObject = { ...qs, limit: perPage };
     if (cursor) pageQs.cursor = cursor;
 
     // Inner retry loop: avoids `continue` on the outer do-while, which
@@ -513,9 +539,8 @@ export async function makeApiRequestAllPages(
     const paginate = meta?.paginate as IDataObject | undefined;
     const nextCursor = (paginate?.next_page as string) ?? undefined;
 
-    // Guard against infinite loops: duplicate cursor or too many pages
-    if (nextCursor && nextCursor === previousCursor) break;
-    previousCursor = cursor;
+    // Guard against infinite loops: server returned the same cursor we just sent
+    if (nextCursor && nextCursor === cursor) break;
     cursor = nextCursor;
     pageCount++;
   } while (cursor && (returnAll || results.length < limit) && pageCount < MAX_PAGES);
@@ -536,14 +561,18 @@ export async function makeApiRequestAllPages(
     }
   }
 
-  return finalResults.map(item => ({ json: item }));
+  return finalResults.map(item => ({
+    json: typeof item === 'object' && item !== null ? item : { value: item } as unknown as IDataObject,
+  }));
 }
 
 /** Simplify a single item by keeping only key fields for the resource */
 export function simplifyItem(item: IDataObject, resource: string): IDataObject {
   const keyFields = SIMPLIFY_FIELDS[resource];
   if (!keyFields) return item;
-  return Object.fromEntries(Object.entries(item).filter(([k]) => keyFields.includes(k)));
+  const simplified = Object.fromEntries(Object.entries(item).filter(([k]) => keyFields.includes(k)));
+  // If no fields matched (e.g. status response with user resource), return original
+  return Object.keys(simplified).length > 0 ? simplified : item;
 }
 
 /**

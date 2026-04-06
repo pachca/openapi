@@ -1,0 +1,19 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "EventOperations_listEvents": {
+    "usage": "var response = await client.Export.ListEventsAsync(DateOnly.Parse(\"2024-01-01\"), DateOnly.Parse(\"2024-01-01\"), DateTimeOffset.UtcNow, 123);",
+    "output": "ListEventsResponse(Data: List<Event>)"
+  },
+  "ExportOperations_createExport": {
+    "usage": "var request = new ExportRequest\n{\n    StartAt = DateOnly.Parse(\"2025-03-20\"),\n    EndAt = DateOnly.Parse(\"2025-03-20\"),\n    WebhookUrl = \"example\"\n};\nvar response = await client.Export.CreateExportAsync(request);",
+    "output": "Export(Id: int, StartAt: DateOnly, EndAt: DateOnly, Status: string, CreatedAt: DateTimeOffset)",
+    "imports": [
+      "ExportRequest"
+    ]
+  }
+}

@@ -529,11 +529,11 @@ type CustomPropertyDefinition struct {
 }
 
 type ExportRequest struct {
-	StartAt       time.Time `json:"start_at"`
-	EndAt         time.Time `json:"end_at"`
-	WebhookURL    string    `json:"webhook_url"`
-	ChatIDs       []int32   `json:"chat_ids,omitempty"`
-	SkipChatsFile *bool     `json:"skip_chats_file,omitempty"`
+	StartAt       string  `json:"start_at"`
+	EndAt         string  `json:"end_at"`
+	WebhookURL    string  `json:"webhook_url"`
+	ChatIDs       []int32 `json:"chat_ids,omitempty"`
+	SkipChatsFile *bool   `json:"skip_chats_file,omitempty"`
 }
 
 type File struct {
@@ -727,11 +727,11 @@ type OpenViewRequest struct {
 }
 
 type PaginationMetaPaginate struct {
-	NextPage *string `json:"next_page,omitempty"`
+	NextPage string `json:"next_page"`
 }
 
 type PaginationMeta struct {
-	Paginate *PaginationMetaPaginate `json:"paginate,omitempty"`
+	Paginate PaginationMetaPaginate `json:"paginate"`
 }
 
 type Reaction struct {
@@ -776,9 +776,6 @@ type StatusUpdateRequestStatus struct {
 
 type StatusUpdateRequest struct {
 	Status StatusUpdateRequestStatus `json:"status"`
-}
-
-type TagNamesFilter struct {
 }
 
 type Task struct {
@@ -968,12 +965,12 @@ type ViewBlockCheckboxOption struct {
 }
 
 type ViewBlockDate struct {
-	Type        string     `json:"type"` // always "date"
-	Name        string     `json:"name"`
-	Label       string     `json:"label"`
-	InitialDate *time.Time `json:"initial_date,omitempty"`
-	Required    *bool      `json:"required,omitempty"`
-	Hint        *string    `json:"hint,omitempty"`
+	Type        string  `json:"type"` // always "date"
+	Name        string  `json:"name"`
+	Label       string  `json:"label"`
+	InitialDate *string `json:"initial_date,omitempty"`
+	Required    *bool   `json:"required,omitempty"`
+	Hint        *string `json:"hint,omitempty"`
 }
 
 type ViewBlockDivider struct {
@@ -1393,7 +1390,7 @@ type ListPropertiesParams struct {
 }
 
 type ListTagsParams struct {
-	Names  *TagNamesFilter
+	Names  []string
 	Limit  *int32
 	Cursor *string
 }
@@ -1477,18 +1474,18 @@ type GetWebhookEventsParams struct {
 }
 
 type GetAuditEventsResponse struct {
-	Data []AuditEvent    `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []AuditEvent   `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListChatsResponse struct {
-	Data []Chat          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Chat         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListMembersResponse struct {
-	Data []User          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListPropertiesResponse struct {
@@ -1496,23 +1493,23 @@ type ListPropertiesResponse struct {
 }
 
 type ListTagsResponse struct {
-	Data []GroupTag      `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []GroupTag     `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type GetTagUsersResponse struct {
-	Data []User          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListChatMessagesResponse struct {
-	Data []Message       `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Message      `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListReactionsResponse struct {
-	Data []Reaction      `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Reaction     `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type SearchChatsResponse struct {
@@ -1531,16 +1528,16 @@ type SearchUsersResponse struct {
 }
 
 type ListTasksResponse struct {
-	Data []Task          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Task         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListUsersResponse struct {
-	Data []User          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type GetWebhookEventsResponse struct {
-	Data []WebhookEvent  `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []WebhookEvent `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }

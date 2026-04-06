@@ -1,0 +1,15 @@
+{
+  "Client_Init": {
+    "usage": "client = PachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "params = SearchMessagesParams(\n    query=\"example\",\n    chat_ids=[123],\n    user_ids=[123],\n    limit=123,\n    cursor=\"example\"\n)\nresponse = await client.search.search_messages(params=params)",
+    "output": "SearchMessagesResponse(data: list[MessageResult], meta: PaginationMeta)",
+    "imports": [
+      "SearchMessagesParams"
+    ]
+  }
+}

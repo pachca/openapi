@@ -35,9 +35,9 @@ curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Design&names[]=Pro
   - `id: integer, int32` (required) — Идентификатор тега
   - `name: string` (required) — Название тега
   - `users_count: integer, int32` (required) — Количество сотрудников, которые имеют этот тег
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

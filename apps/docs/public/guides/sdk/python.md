@@ -152,7 +152,7 @@ params = ListChatsParams(
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 )
 response = await client.chats.list_chats(params=params)
-# → ListChatsResponse(data: list[Chat], meta: PaginationMeta | None)
+# → ListChatsResponse(data: list[Chat], meta: PaginationMeta)
 ```
 
 
@@ -187,7 +187,7 @@ response = await client.chats.get_chat(id=334)
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta.paginate.next_page` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.next_page` — курсор для следующей страницы. Курсор никогда не бывает `None` — конец данных определяется по пустому списку `data`.
 
 ### Ручная пагинация
 
@@ -197,10 +197,10 @@ from pachca.models import ListUsersParams
 cursor = None
 while True:
     response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
+    if not response.data:
+        break
     for user in response.data:
         print(user.first_name, user.last_name)
-    if not response.meta or not response.meta.paginate or not response.meta.paginate.next_page:
-        break
     cursor = response.meta.paginate.next_page
 ```
 
@@ -362,7 +362,7 @@ params = ListUsersParams(
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 )
 response = await client.users.list_users(params=params)
-# → ListUsersResponse(data: list[User], meta: PaginationMeta | None)
+# → ListUsersResponse(data: list[User], meta: PaginationMeta)
 
 # Создание задачи
 request = TaskCreateRequest(

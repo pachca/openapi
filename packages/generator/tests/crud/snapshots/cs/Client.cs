@@ -69,6 +69,7 @@ public sealed class ChatsService
         {
             var response = await ListChatsAsync(availability: availability, limit: limit, cursor: cursor, sortField: sortField, sortOrder: sortOrder, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
             cursor = response.Meta?.Paginate?.NextPage;
         } while (cursor != null);
         return items;

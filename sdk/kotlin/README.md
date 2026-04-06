@@ -69,11 +69,12 @@ val message = pachca.messages.createMessage(...)  // Message, не MessageRespon
 // Вручную
 val chats = mutableListOf<Chat>()
 var cursor: String? = null
-do {
+while (true) {
     val response = pachca.chats.listChats(cursor = cursor)
+    if (response.data.isEmpty()) break
     chats.addAll(response.data)
-    cursor = response.meta?.paginate?.nextPage
-} while (cursor != null)
+    cursor = response.meta.paginate.nextPage
+}
 
 // Автоматически
 val allChats = pachca.chats.listChatsAll()

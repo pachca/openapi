@@ -68,9 +68,9 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1" \
   - `last_activity_at: date-time` (required) — Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `time_zone: string` (required) — Часовой пояс пользователя
   - `image_url: string` (required) — Ссылка на скачивание аватарки пользователя
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

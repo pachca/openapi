@@ -7,14 +7,14 @@
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "var response = await client.Security.GetAuditEventsAsync(DateTimeOffset.Parse(\"2025-05-01T09:11:00Z\"), DateTimeOffset.Parse(\"2025-05-02T09:11:00Z\"), AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "GetAuditEventsResponse(Data: List<AuditEvent>, Meta: PaginationMeta?)",
+    "output": "GetAuditEventsResponse(Data: List<AuditEvent>, Meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"
     ]
   },
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta?)"
+    "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta)"
   },
   "BotOperations_updateBot": {
     "usage": "var request = new BotUpdateRequest { Bot = new BotUpdateRequestBot { Webhook = new BotUpdateRequestBotWebhook { OutgoingUrl = \"https://www.website.com/tasks/new\" } } };\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
@@ -30,7 +30,7 @@
   },
   "ChatOperations_listChats": {
     "usage": "var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta?)",
+    "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
       "SortOrder"
@@ -91,7 +91,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "var response = await client.Members.ListMembersAsync(334, ChatMemberRoleFilter.All, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListMembersResponse(Data: List<User>, Meta: PaginationMeta?)",
+    "output": "ListMembersResponse(Data: List<User>, Meta: PaginationMeta)",
     "imports": [
       "ChatMemberRoleFilter"
     ]
@@ -121,11 +121,8 @@
     "usage": "await client.Members.RemoveMemberAsync(334, 186);"
   },
   "GroupTagOperations_listTags": {
-    "usage": "var names = new TagNamesFilter();\nvar response = await client.GroupTags.ListTagsAsync(names, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListTagsResponse(Data: List<GroupTag>, Meta: PaginationMeta?)",
-    "imports": [
-      "TagNamesFilter"
-    ]
+    "usage": "var names = new List<string> { \"example\" };\nvar response = await client.GroupTags.ListTagsAsync(names, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListTagsResponse(Data: List<GroupTag>, Meta: PaginationMeta)"
   },
   "GroupTagOperations_getTag": {
     "usage": "var response = await client.GroupTags.GetTagAsync(9111);",
@@ -133,7 +130,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "var response = await client.GroupTags.GetTagUsersAsync(9111, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "GetTagUsersResponse(Data: List<User>, Meta: PaginationMeta?)"
+    "output": "GetTagUsersResponse(Data: List<User>, Meta: PaginationMeta)"
   },
   "GroupTagOperations_createTag": {
     "usage": "var request = new GroupTagRequest { GroupTag = new GroupTagRequestGroupTag { Name = \"Новое название тега\" } };\nvar response = await client.GroupTags.CreateTagAsync(request);",
@@ -156,7 +153,7 @@
   },
   "ChatMessageOperations_listChatMessages": {
     "usage": "var response = await client.Messages.ListChatMessagesAsync(198, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta?)",
+    "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta)",
     "imports": [
       "SortOrder"
     ]
@@ -206,7 +203,7 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "var response = await client.Reactions.ListReactionsAsync(194275, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListReactionsResponse(Data: List<Reaction>, Meta: PaginationMeta?)"
+    "output": "ListReactionsResponse(Data: List<Reaction>, Meta: PaginationMeta)"
   },
   "ReactionOperations_addReaction": {
     "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \":+1:\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
@@ -279,7 +276,7 @@
   },
   "TaskOperations_listTasks": {
     "usage": "var response = await client.Tasks.ListTasksAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta?)"
+    "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta)"
   },
   "TaskOperations_getTask": {
     "usage": "var response = await client.Tasks.GetTaskAsync(22283);",
@@ -311,7 +308,7 @@
   },
   "UserOperations_listUsers": {
     "usage": "var response = await client.Users.ListUsersAsync(\"Олег\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListUsersResponse(Data: List<User>, Meta: PaginationMeta?)"
+    "output": "ListUsersResponse(Data: List<User>, Meta: PaginationMeta)"
   },
   "UserOperations_getUser": {
     "usage": "var response = await client.Users.GetUserAsync(12);",

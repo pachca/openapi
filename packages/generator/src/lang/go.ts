@@ -65,8 +65,8 @@ function goPrimitive(
   if (ft.primitive === 'boolean') return 'bool';
   if (ft.primitive === 'any') return 'any';
   if (ft.primitive === 'string') {
-    if (opts.forParam && (ft.format === 'date' || ft.format === 'date-time')) return 'time.Time';
-    if (opts.forModelField && !opts.nullable && (ft.format === 'date' || ft.format === 'date-time')) {
+    if (opts.forParam && ft.format === 'date-time') return 'time.Time';
+    if (opts.forModelField && !opts.nullable && ft.format === 'date-time') {
       return 'time.Time';
     }
     return 'string';
@@ -281,7 +281,7 @@ function generateTypes(ir: IR): string {
   const needTime = [
     ...ir.models.flatMap((m) => m.fields),
     ...ir.params.flatMap((p) => p.params),
-  ].some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && (f.type.format === 'date' || f.type.format === 'date-time'));
+  ].some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time');
   const needFmtStrings = ir.models.some((m) => m.name === 'ApiError');
   const needIO = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'binary'));
   const hasUnions = ir.unions.length > 0;
@@ -342,7 +342,7 @@ function goReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return '(string, error)';
   if (!op.successResponse.hasBody) return 'error';
   if (op.successResponse.isList) {
-    const rt = ir.responses.find((r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray);
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return `(*${rt?.name ?? 'any'}, error)`;
   }
   return `(*${op.successResponse.dataRef ?? 'any'}, error)`;
@@ -473,11 +473,14 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
       const hasReqParams = op.queryParams.some((q) => q.required);
       for (const p of op.queryParams) {
         const pn = goExportName(p.sdkName);
-        const isTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && (p.type.format === 'date' || p.type.format === 'date-time');
+        const isTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && p.type.format === 'date-time';
         if (p.isArray) {
-          lines.push(`\tfor _, v := range params.${pn} {`);
-          lines.push(`\t\tq.Add(${JSON.stringify(p.name)}, fmt.Sprintf("%v", v))`);
-          lines.push('\t}');
+          const indent = hasReqParams ? '\t' : '\t\t';
+          if (!hasReqParams) lines.push(`\tif params != nil {`);
+          lines.push(`${indent}for _, v := range params.${pn} {`);
+          lines.push(`${indent}\tq.Add(${JSON.stringify(p.name)}, fmt.Sprintf("%v", v))`);
+          lines.push(`${indent}}`);
+          if (!hasReqParams) lines.push('\t}');
         } else if (p.required) {
           let conv: string;
           if (isTime) conv = `params.${pn}.Format(time.RFC3339)`;
@@ -534,7 +537,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusNoContent'}:`);
     lines.push('\t\treturn nil');
   } else if (op.successResponse.isList) {
-    const rt = ir.responses.find((r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray);
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     lines.push(`\tcase ${op.successResponse.statusCode === 201 ? 'http.StatusCreated' : 'http.StatusOK'}:`);
     lines.push(`\t\tvar result ${rt?.name ?? 'any'}`);
     lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&result); err != nil {');
@@ -562,14 +565,23 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   if (op.hasOAuthError) {
     lines.push('\tcase http.StatusUnauthorized:');
     lines.push('\t\tvar e OAuthError');
-    lines.push('\t\tjson.NewDecoder(resp.Body).Decode(&e)');
+    lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
+    lines.push('\t\t\te.Err = fmt.Sprintf("HTTP 401: %v", err)');
+    lines.push('\t\t}');
     lines.push(`\t\t${retOAuth()}`);
   }
 
   if (op.hasApiError || ir.models.some((m) => m.name === 'ApiError')) {
     lines.push('\tdefault:');
     lines.push('\t\tvar e ApiError');
-    lines.push('\t\tjson.NewDecoder(resp.Body).Decode(&e)');
+    lines.push('\t\tif err := json.NewDecoder(resp.Body).Decode(&e); err != nil {');
+    const retFmt = op.successResponse.isRedirect
+      ? 'return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
+      : !op.successResponse.hasBody
+        ? 'return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)'
+        : 'return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)';
+    lines.push(`\t\t\t${retFmt}`);
+    lines.push('\t\t}');
     lines.push(`\t\t${retApi()}`);
   } else {
     lines.push('\tdefault:');
@@ -614,15 +626,19 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     callArgs.push(hasReq ? '*params' : 'params');
   }
 
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaNilCheck = rt?.metaIsRequired ? '' : ' || result.Meta == nil';
+  const metaAccess = rt?.metaIsRequired ? 'result.Meta.Paginate.NextPage' : 'result.Meta.Paginate.NextPage';
   lines.push(`\t\tresult, err := s.${goMethodName(op)}(${callArgs.join(', ')})`);
   lines.push('\t\tif err != nil {');
   lines.push('\t\t\treturn nil, err');
   lines.push('\t\t}');
   lines.push('\t\titems = append(items, result.Data...)');
-  lines.push('\t\tif result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {');
+  lines.push(`\t\tif len(result.Data) == 0${metaNilCheck} {`);
   lines.push('\t\t\treturn items, nil');
   lines.push('\t\t}');
-  lines.push('\t\tcursor = result.Meta.Paginate.NextPage');
+  lines.push(`\t\tnextPage := ${metaAccess}`);
+  lines.push('\t\tcursor = &nextPage');
   lines.push('\t}');
   lines.push('}');
 }

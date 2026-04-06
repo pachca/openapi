@@ -84,7 +84,7 @@ describe('simplifyItem', () => {
       name: 'General',
       channel: true,
       public: true,
-      members_count: 50,
+      member_ids: [1, 2, 3],
       created_at: '2026-01-01',
       description: 'should be removed',
       owner_id: 1,
@@ -95,7 +95,7 @@ describe('simplifyItem', () => {
       name: 'General',
       channel: true,
       public: true,
-      members_count: 50,
+      member_ids: [1, 2, 3],
       created_at: '2026-01-01',
     });
   });
@@ -149,9 +149,9 @@ describe('simplifyItem', () => {
   });
 
   it('should keep only key fields for bot', () => {
-    const item: IDataObject = { id: 3, name: 'TestBot', created_at: '2026-01-01', token: 'secret' };
+    const item: IDataObject = { id: 3, webhook: { outgoing_url: 'https://example.com' }, token: 'secret' };
     const result = simplifyItem(item, 'bot');
-    expect(result).toEqual({ id: 3, name: 'TestBot', created_at: '2026-01-01' });
+    expect(result).toEqual({ id: 3, webhook: { outgoing_url: 'https://example.com' } });
   });
 
   it('should keep only key fields for groupTag', () => {
@@ -161,9 +161,9 @@ describe('simplifyItem', () => {
   });
 
   it('should keep only key fields for reaction', () => {
-    const item: IDataObject = { id: 11, code: ':thumbsup:', user_id: 42, created_at: '2026-01-01', message_id: 999 };
+    const item: IDataObject = { code: ':thumbsup:', name: 'thumbsup', user_id: 42, created_at: '2026-01-01', message_id: 999 };
     const result = simplifyItem(item, 'reaction');
-    expect(result).toEqual({ id: 11, code: ':thumbsup:', user_id: 42, created_at: '2026-01-01' });
+    expect(result).toEqual({ code: ':thumbsup:', name: 'thumbsup', user_id: 42, created_at: '2026-01-01' });
   });
 
   it('should keep only key fields for export', () => {

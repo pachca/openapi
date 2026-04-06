@@ -35,9 +35,9 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/read_member_ids?limit
 **Схема ответа:**
 
 - `data: array of integer` (required)
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

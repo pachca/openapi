@@ -144,7 +144,7 @@ const response = client.chats.listChats({
   limit: 1,
   cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 })
-// → ListChatsResponse({ data: Chat[], meta?: PaginationMeta })
+// → ListChatsResponse({ data: Chat[], meta: PaginationMeta })
 ```
 
 
@@ -179,20 +179,21 @@ const response = client.chats.getChat(334)
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `meta.paginate.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит поле `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
 ```typescript
 let cursor: string | undefined
 
-do {
+for (;;) {
   const response = await client.users.listUsers({ limit: 50, cursor })
+  if (response.data.length === 0) break
   for (const user of response.data) {
     console.log(user.firstName, user.lastName)
   }
-  cursor = response.meta?.paginate?.nextPage
-} while (cursor)
+  cursor = response.meta.paginate.nextPage
+}
 ```
 
 ### Автопагинация
@@ -366,7 +367,7 @@ const response = client.users.listUsers({
   limit: 1,
   cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
 })
-// → ListUsersResponse({ data: User[], meta?: PaginationMeta })
+// → ListUsersResponse({ data: User[], meta: PaginationMeta })
 
 // Создание задачи
 const request: TaskCreateRequest = {

@@ -43,7 +43,8 @@ class ChatsService {
     do {
       const response = await this.listChats({ ...params, cursor } as ListChatsParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
+      if (response.data.length === 0) break;
+      cursor = response.meta?.paginate.nextPage;
     } while (cursor);
     return items;
   }

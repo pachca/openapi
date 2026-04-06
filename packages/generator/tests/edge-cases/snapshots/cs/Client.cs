@@ -33,7 +33,8 @@ public sealed class EventsService
         if (isActive != null)
             queryParts.Add($"is_active={Uri.EscapeDataString((isActive.Value ? "true" : "false"))}");
         if (scopes != null)
-            queryParts.Add($"scopes={Uri.EscapeDataString(scopes.ToString()!)}");
+            foreach (var item in scopes)
+                queryParts.Add($"scopes[]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(item))}");
         if (filter != null)
             queryParts.Add($"filter={Uri.EscapeDataString(filter.ToString()!)}");
         var url = $"{_baseUrl}/events" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");

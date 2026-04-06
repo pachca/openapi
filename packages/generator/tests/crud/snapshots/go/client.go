@@ -105,11 +105,15 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -127,10 +131,11 @@ func (s *ChatsService) ListChatsAll(ctx context.Context, params *ListChatsParams
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 || result.Meta == nil {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -155,11 +160,15 @@ func (s *ChatsService) GetChat(ctx context.Context, id int32) (*Chat, error) {
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -190,11 +199,15 @@ func (s *ChatsService) CreateChat(ctx context.Context, request ChatCreateRequest
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -225,11 +238,15 @@ func (s *ChatsService) UpdateChat(ctx context.Context, id int32, request ChatUpd
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -249,11 +266,15 @@ func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -273,11 +294,15 @@ func (s *ChatsService) DeleteChat(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }

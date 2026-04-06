@@ -7,14 +7,14 @@
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "let response = try await client.security.getAuditEvents(startTime: \"2025-05-01T09:11:00Z\", endTime: \"2025-05-02T09:11:00Z\", eventKey: .userLogin, actorId: \"98765\", actorType: \"User\", entityId: \"98765\", entityType: \"User\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetAuditEventsResponse(data: [AuditEvent], meta: PaginationMeta?)",
+    "output": "GetAuditEventsResponse(data: [AuditEvent], meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"
     ]
   },
   "BotOperations_getWebhookEvents": {
     "usage": "let response = try await client.bots.getWebhookEvents(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta?)"
+    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta)"
   },
   "BotOperations_updateBot": {
     "usage": "let body = BotUpdateRequest(bot: BotUpdateRequestBot(webhook: BotUpdateRequestBotWebhook(outgoingUrl: \"https://www.website.com/tasks/new\")))\nlet response = try await client.bots.updateBot(id: 1738816, body: body)",
@@ -30,7 +30,7 @@
   },
   "ChatOperations_listChats": {
     "usage": "let response = try await client.chats.listChats(sortId: .desc, availability: .isMember, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta?)",
+    "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
       "SortOrder"
@@ -91,7 +91,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "let response = try await client.members.listMembers(id: 334, role: .all, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListMembersResponse(data: [User], meta: PaginationMeta?)",
+    "output": "ListMembersResponse(data: [User], meta: PaginationMeta)",
     "imports": [
       "ChatMemberRoleFilter"
     ]
@@ -121,11 +121,8 @@
     "usage": "try await client.members.removeMember(id: 334, userId: 186)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "let names = TagNamesFilter()\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListTagsResponse(data: [GroupTag], meta: PaginationMeta?)",
-    "imports": [
-      "TagNamesFilter"
-    ]
+    "usage": "let names = [\"example\"]\nlet response = try await client.groupTags.listTags(names: names, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListTagsResponse(data: [GroupTag], meta: PaginationMeta)"
   },
   "GroupTagOperations_getTag": {
     "usage": "let response = try await client.groupTags.getTag(id: 9111)",
@@ -133,7 +130,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "let response = try await client.groupTags.getTagUsers(id: 9111, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetTagUsersResponse(data: [User], meta: PaginationMeta?)"
+    "output": "GetTagUsersResponse(data: [User], meta: PaginationMeta)"
   },
   "GroupTagOperations_createTag": {
     "usage": "let body = GroupTagRequest(groupTag: GroupTagRequestGroupTag(name: \"Новое название тега\"))\nlet response = try await client.groupTags.createTag(body: body)",
@@ -156,7 +153,7 @@
   },
   "ChatMessageOperations_listChatMessages": {
     "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sortId: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta?)",
+    "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta)",
     "imports": [
       "SortOrder"
     ]
@@ -206,7 +203,7 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "let response = try await client.reactions.listReactions(id: 194275, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListReactionsResponse(data: [Reaction], meta: PaginationMeta?)"
+    "output": "ListReactionsResponse(data: [Reaction], meta: PaginationMeta)"
   },
   "ReactionOperations_addReaction": {
     "usage": "let body = ReactionRequest(code: \"👍\", name: \":+1:\")\nlet response = try await client.reactions.addReaction(id: 7231942, body: body)",
@@ -279,7 +276,7 @@
   },
   "TaskOperations_listTasks": {
     "usage": "let response = try await client.tasks.listTasks(limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta?)"
+    "output": "ListTasksResponse(data: [Task], meta: PaginationMeta)"
   },
   "TaskOperations_getTask": {
     "usage": "let response = try await client.tasks.getTask(id: 22283)",
@@ -311,7 +308,7 @@
   },
   "UserOperations_listUsers": {
     "usage": "let response = try await client.users.listUsers(query: \"Олег\", limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListUsersResponse(data: [User], meta: PaginationMeta?)"
+    "output": "ListUsersResponse(data: [User], meta: PaginationMeta)"
   },
   "UserOperations_getUser": {
     "usage": "let response = try await client.users.getUser(id: 12)",

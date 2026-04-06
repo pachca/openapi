@@ -1110,10 +1110,10 @@ model Task {
 @doc("Метаданные пагинации")
 model PaginationMeta {
   @doc("Вспомогательная информация")
-  paginate?: {
+  paginate: {
     @doc("Курсор пагинации следующей страницы")
     @example("eyJxZCO2MiwiZGlyIjomSNYjIn3")
-    next_page?: string;
+    next_page: string;
   };
 }
 
@@ -1145,7 +1145,7 @@ model DataResponse<T> {
 @doc("Обертка ответа с данными и пагинацией")
 model PaginatedDataResponse<T> {
   data: T;
-  meta?: PaginationMeta;
+  meta: PaginationMeta;
 }
 
 

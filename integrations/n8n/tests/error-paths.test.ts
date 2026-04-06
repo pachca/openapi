@@ -326,25 +326,19 @@ describe('makeApiRequestAllPages error paths', () => {
       body: { data: [{ id: 2 }], meta: { paginate: { next_page: 'cursor-A' } } },
       headers: {},
     };
-    const page3 = {
-      statusCode: 200,
-      body: { data: [{ id: 3 }], meta: { paginate: { next_page: 'cursor-A' } } },
-      headers: {},
-    };
 
     const ctx = createExecCtx({
-      httpResponses: [page1, page2, page3],
+      httpResponses: [page1, page2],
       params: { returnAll: true },
     });
 
     const results = await makeApiRequestAllPages.call(
       ctx, 'GET', '/users', {}, 0, 'user', 2,
     );
-    // Guard compares nextCursor with previousCursor (one behind current):
-    // Page 1: nextCursor=A, previousCursor=undefined → no match
-    // Page 2: nextCursor=A, previousCursor=undefined → no match
-    // Page 3: nextCursor=A, previousCursor=A → match → break
-    expect(results).toHaveLength(3);
+    // Guard compares nextCursor with current cursor:
+    // Page 1: cursor=undefined, nextCursor=cursor-A → no match → cursor becomes cursor-A
+    // Page 2: cursor=cursor-A, nextCursor=cursor-A → match → break
+    expect(results).toHaveLength(2);
   });
 
   it('should respect limit and not fetch extra pages', async () => {

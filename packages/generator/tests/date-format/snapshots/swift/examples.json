@@ -1,0 +1,19 @@
+{
+  "Client_Init": {
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "EventOperations_listEvents": {
+    "usage": "let response = try await client.export.listEvents(dateFrom: \"2024-01-01\", dateTo: \"2024-01-01\", createdAfter: \"2024-01-01T00:00:00Z\", limit: 123)",
+    "output": "ListEventsResponse(data: [Event])"
+  },
+  "ExportOperations_createExport": {
+    "usage": "let body = ExportRequest(\n    startAt: \"2025-03-20\",\n    endAt: \"2025-03-20\",\n    webhookUrl: \"example\"\n)\nlet response = try await client.export.createExport(body: body)",
+    "output": "Export(id: Int, startAt: String, endAt: String, status: String, createdAt: String)",
+    "imports": [
+      "ExportRequest"
+    ]
+  }
+}

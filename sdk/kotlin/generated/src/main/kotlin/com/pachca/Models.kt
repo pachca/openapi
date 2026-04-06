@@ -1116,12 +1116,12 @@ data class OpenViewRequest(
 
 @Serializable
 data class PaginationMetaPaginate(
-    @SerialName("next_page") val nextPage: String? = null,
+    @SerialName("next_page") val nextPage: String,
 )
 
 @Serializable
 data class PaginationMeta(
-    val paginate: PaginationMetaPaginate? = null,
+    val paginate: PaginationMetaPaginate,
 )
 
 @Serializable
@@ -1162,9 +1162,6 @@ data class StatusUpdateRequestStatus(
 data class StatusUpdateRequest(
     val status: StatusUpdateRequestStatus,
 )
-
-@Serializable
-class TagNamesFilter
 
 @Serializable
 data class Task(
@@ -1395,19 +1392,19 @@ data class WebhookMessageThread(
 @Serializable
 data class GetAuditEventsResponse(
     val data: List<AuditEvent>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
 data class ListChatsResponse(
     val data: List<Chat>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
 data class ListMembersResponse(
     val data: List<User>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
@@ -1418,25 +1415,25 @@ data class ListPropertiesResponse(
 @Serializable
 data class ListTagsResponse(
     val data: List<GroupTag>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
 data class GetTagUsersResponse(
     val data: List<User>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
 data class ListChatMessagesResponse(
     val data: List<Message>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
 data class ListReactionsResponse(
     val data: List<Reaction>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
@@ -1460,19 +1457,19 @@ data class SearchUsersResponse(
 @Serializable
 data class ListTasksResponse(
     val data: List<Task>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
 data class ListUsersResponse(
     val data: List<User>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable
 data class GetWebhookEventsResponse(
     val data: List<WebhookEvent>,
-    val meta: PaginationMeta? = null,
+    val meta: PaginationMeta,
 )
 
 @Serializable

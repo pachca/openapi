@@ -7,14 +7,14 @@
   },
   "SecurityOperations_getAuditEvents": {
     "usage": "const response = client.security.getAuditEvents({\n  startTime: \"2025-05-01T09:11:00Z\",\n  endTime: \"2025-05-02T09:11:00Z\",\n  eventKey: AuditEventKey.UserLogin,\n  actorId: \"98765\",\n  actorType: \"User\",\n  entityId: \"98765\",\n  entityType: \"User\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
-    "output": "GetAuditEventsResponse({ data: AuditEvent[], meta?: PaginationMeta })",
+    "output": "GetAuditEventsResponse({ data: AuditEvent[], meta: PaginationMeta })",
     "imports": [
       "AuditEventKey"
     ]
   },
   "BotOperations_getWebhookEvents": {
     "usage": "const response = client.bots.getWebhookEvents({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
-    "output": "GetWebhookEventsResponse({ data: WebhookEvent[], meta?: PaginationMeta })"
+    "output": "GetWebhookEventsResponse({ data: WebhookEvent[], meta: PaginationMeta })"
   },
   "BotOperations_updateBot": {
     "usage": "const request: BotUpdateRequest = { bot: { webhook: { outgoingUrl: \"https://www.website.com/tasks/new\" } } }\nconst response = client.bots.updateBot(1738816, request)",
@@ -30,7 +30,7 @@
   },
   "ChatOperations_listChats": {
     "usage": "const response = client.chats.listChats({\n  sortId: SortOrder.Desc,\n  availability: ChatAvailability.IsMember,\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  personal: false,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
-    "output": "ListChatsResponse({ data: Chat[], meta?: PaginationMeta })",
+    "output": "ListChatsResponse({ data: Chat[], meta: PaginationMeta })",
     "imports": [
       "ChatAvailability",
       "SortOrder"
@@ -91,7 +91,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "const response = client.members.listMembers(334, {\n  role: ChatMemberRoleFilter.All,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
-    "output": "ListMembersResponse({ data: User[], meta?: PaginationMeta })",
+    "output": "ListMembersResponse({ data: User[], meta: PaginationMeta })",
     "imports": [
       "ChatMemberRoleFilter"
     ]
@@ -121,11 +121,8 @@
     "usage": "client.members.removeMember(334, 186)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "const response = client.groupTags.listTags({\n  names: {},\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
-    "output": "ListTagsResponse({ data: GroupTag[], meta?: PaginationMeta })",
-    "imports": [
-      "TagNamesFilter"
-    ]
+    "usage": "const response = client.groupTags.listTags({\n  names: [\"example\"],\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "output": "ListTagsResponse({ data: GroupTag[], meta: PaginationMeta })"
   },
   "GroupTagOperations_getTag": {
     "usage": "const response = client.groupTags.getTag(9111)",
@@ -133,7 +130,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "const response = client.groupTags.getTagUsers(9111, { limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
-    "output": "GetTagUsersResponse({ data: User[], meta?: PaginationMeta })"
+    "output": "GetTagUsersResponse({ data: User[], meta: PaginationMeta })"
   },
   "GroupTagOperations_createTag": {
     "usage": "const request: GroupTagRequest = { groupTag: { name: \"Новое название тега\" } }\nconst response = client.groupTags.createTag(request)",
@@ -156,7 +153,7 @@
   },
   "ChatMessageOperations_listChatMessages": {
     "usage": "const response = client.messages.listChatMessages({\n  chatId: 198,\n  sortId: SortOrder.Desc,\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
-    "output": "ListChatMessagesResponse({ data: Message[], meta?: PaginationMeta })",
+    "output": "ListChatMessagesResponse({ data: Message[], meta: PaginationMeta })",
     "imports": [
       "SortOrder"
     ]
@@ -206,7 +203,7 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "const response = client.reactions.listReactions(194275, { limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
-    "output": "ListReactionsResponse({ data: Reaction[], meta?: PaginationMeta })"
+    "output": "ListReactionsResponse({ data: Reaction[], meta: PaginationMeta })"
   },
   "ReactionOperations_addReaction": {
     "usage": "const request: ReactionRequest = { code: \"👍\", name: \":+1:\" }\nconst response = client.reactions.addReaction(7231942, request)",
@@ -279,7 +276,7 @@
   },
   "TaskOperations_listTasks": {
     "usage": "const response = client.tasks.listTasks({ limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
-    "output": "ListTasksResponse({ data: Task[], meta?: PaginationMeta })"
+    "output": "ListTasksResponse({ data: Task[], meta: PaginationMeta })"
   },
   "TaskOperations_getTask": {
     "usage": "const response = client.tasks.getTask(22283)",
@@ -311,7 +308,7 @@
   },
   "UserOperations_listUsers": {
     "usage": "const response = client.users.listUsers({\n  query: \"Олег\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
-    "output": "ListUsersResponse({ data: User[], meta?: PaginationMeta })"
+    "output": "ListUsersResponse({ data: User[], meta: PaginationMeta })"
   },
   "UserOperations_getUser": {
     "usage": "const response = client.users.getUser(12)",

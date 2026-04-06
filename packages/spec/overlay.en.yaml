@@ -70,9 +70,12 @@ actions:
         List chats
 
         Retrieve a list of chats based on the specified parameters.
-  - target: $.paths['/chats'].get.parameters[?(@.name=='sort[{field}]')]
+  - target: $.paths['/chats'].get.parameters[?(@.name=='sort')]
     update:
-      description: Sort order for the results
+      description: Sort field
+  - target: $.paths['/chats'].get.parameters[?(@.name=='order')]
+    update:
+      description: Sort direction
   - target: $.paths['/chats'].get.parameters[?(@.name=='availability')]
     update:
       description: Parameter that controls chat availability and filtering for the user
@@ -402,9 +405,12 @@ actions:
   - target: $.paths['/messages'].get.parameters[?(@.name=='chat_id')]
     update:
       description: Chat ID (conversation, channel, direct message, or thread chat)
-  - target: $.paths['/messages'].get.parameters[?(@.name=='sort[{field}]')]
+  - target: $.paths['/messages'].get.parameters[?(@.name=='sort')]
     update:
-      description: Sort order for the results
+      description: Sort field
+  - target: $.paths['/messages'].get.parameters[?(@.name=='order')]
+    update:
+      description: Sort direction
   - target: $.paths['/messages'].get.parameters[?(@.name=='limit')]
     update:
       description: Number of records to return per request
@@ -608,6 +614,21 @@ actions:
         Delete status
 
         Delete your current status.
+  - target: $.paths['/profile/avatar'].put
+    update:
+      description: |-
+        Upload avatar
+
+        Upload or update your profile avatar. The file is sent in `multipart/form-data` format.
+  - target: $.paths['/profile/avatar'].put.requestBody.properties.image
+    update:
+      description: Avatar image file
+  - target: $.paths['/profile/avatar'].delete
+    update:
+      description: |-
+        Delete avatar
+
+        Delete your profile avatar.
   - target: $.paths['/search/chats'].get
     update:
       description: |-
@@ -883,6 +904,27 @@ actions:
 
         Delete an employee's status.
   - target: $.paths['/users/{user_id}/status'].delete.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{user_id}/avatar'].put
+    update:
+      description: |-
+        Upload employee avatar
+
+        Upload or update an employee's avatar. The file is sent in `multipart/form-data` format.
+  - target: $.paths['/users/{user_id}/avatar'].put.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{user_id}/avatar'].put.requestBody.properties.image
+    update:
+      description: Avatar image file
+  - target: $.paths['/users/{user_id}/avatar'].delete
+    update:
+      description: |-
+        Delete employee avatar
+
+        Delete an employee's avatar.
+  - target: $.paths['/users/{user_id}/avatar'].delete.parameters[?(@.name=='user_id')]
     update:
       description: User ID
   - target: $.paths['/views/open'].post
@@ -1212,6 +1254,12 @@ actions:
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
         search_messages_api: Message search via API
+  - target: $.components.schemas.AvatarData
+    update:
+      description: Avatar data
+  - target: $.components.schemas.AvatarData.properties.image_url
+    update:
+      description: Avatar URL
   - target: $.components.schemas.BotResponse
     update:
       description: Bot parameters
@@ -1396,6 +1444,14 @@ actions:
   - target: $.components.schemas.ChatMemberWebhookPayload.properties.webhook_timestamp
     update:
       description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.ChatSortField
+    update:
+      description: Chat sort field
+  - target: $.components.schemas.ChatSortField
+    update:
+      x-enum-descriptions:
+        id: By chat ID
+        last_message_at: By last message date and time
   - target: $.components.schemas.ChatSubtype
     update:
       description: Chat type
@@ -3014,6 +3070,13 @@ actions:
   - target: $.components.schemas.MessageWebhookPayload.properties.thread.properties.message_chat_id
     update:
       description: Chat ID of the thread parent message
+  - target: $.components.schemas.MessageSortField
+    update:
+      description: Message sort field
+  - target: $.components.schemas.MessageSortField
+    update:
+      x-enum-descriptions:
+        id: By message ID
 
   # Task.custom_properties nested items
   - target: $.components.schemas.Task.properties.custom_properties.items.properties.id

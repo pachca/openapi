@@ -466,6 +466,71 @@ describe('Special: botWebhook', () => {
 	});
 });
 
+describe('Special: avatarUpload', () => {
+	it('profile.updateAvatar calls uploadAvatar with /profile/avatar', async () => {
+		const spy = vi.spyOn(GenericFunctions, 'uploadAvatar').mockResolvedValue({
+			id: 1,
+			image_url: 'https://example.com/avatar.jpg',
+		});
+
+		const ctx = createMockContext({
+			resource: 'profile',
+			operation: 'updateAvatar',
+			params: { image: 'data' },
+		});
+		const result = await runRouter(ctx);
+		expect(result[0][0].json).toHaveProperty('image_url', 'https://example.com/avatar.jpg');
+		expect(spy).toHaveBeenCalledTimes(1);
+		expect(spy.mock.calls[0][2]).toBe('/profile/avatar');
+
+		spy.mockRestore();
+	});
+
+	it('user.updateAvatar calls uploadAvatar with /users/{user_id}/avatar', async () => {
+		const spy = vi.spyOn(GenericFunctions, 'uploadAvatar').mockResolvedValue({
+			id: 42,
+			image_url: 'https://example.com/user-avatar.jpg',
+		});
+
+		const ctx = createMockContext({
+			resource: 'user',
+			operation: 'updateAvatar',
+			params: { image: 'data', userId: 42 },
+		});
+		const result = await runRouter(ctx);
+		expect(result[0][0].json).toHaveProperty('image_url', 'https://example.com/user-avatar.jpg');
+		expect(spy).toHaveBeenCalledTimes(1);
+		expect(spy.mock.calls[0][2]).toBe('/users/42/avatar');
+
+		spy.mockRestore();
+	});
+
+	it('profile.deleteAvatar sends DELETE /profile/avatar', async () => {
+		const ctx = createMockContext({
+			resource: 'profile',
+			operation: 'deleteAvatar',
+		});
+		mockResponse(ctx, { statusCode: 204, body: {} });
+		const result = await runRouter(ctx);
+		expect(ctx._calls[0].method).toBe('DELETE');
+		expect(ctx._calls[0].url).toContain('/profile/avatar');
+		expect(result[0][0].json).toEqual({ success: true });
+	});
+
+	it('user.deleteAvatar sends DELETE /users/{user_id}/avatar', async () => {
+		const ctx = createMockContext({
+			resource: 'user',
+			operation: 'deleteAvatar',
+			params: { userId: 42 },
+		});
+		mockResponse(ctx, { statusCode: 204, body: {} });
+		const result = await runRouter(ctx);
+		expect(ctx._calls[0].method).toBe('DELETE');
+		expect(ctx._calls[0].url).toContain('/users/42/avatar');
+		expect(result[0][0].json).toEqual({ success: true });
+	});
+});
+
 describe('Special: fileUpload', () => {
 	it('calls uploadFileToS3', async () => {
 		const spy = vi.spyOn(GenericFunctions, 'uploadFileToS3').mockResolvedValue({

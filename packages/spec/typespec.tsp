@@ -219,9 +219,31 @@ enum TaskStatus {
 enum SortOrder {
   @doc("По возрастанию")
   asc: "asc",
-  
+
   @doc("По убыванию")
   desc: "desc",
+}
+
+@doc("Поле сортировки чатов")
+@extension("x-enum-descriptions", #{
+  id: "По идентификатору чата",
+  last_message_at: "По дате и времени создания последнего сообщения",
+})
+enum ChatSortField {
+  @doc("По идентификатору чата")
+  id: "id",
+
+  @doc("По дате и времени создания последнего сообщения")
+  last_message_at: "last_message_at",
+}
+
+@doc("Поле сортировки сообщений")
+@extension("x-enum-descriptions", #{
+  id: "По идентификатору сообщения",
+})
+enum MessageSortField {
+  @doc("По идентификатору сообщения")
+  id: "id",
 }
 
 @doc("Сортировка результатов поиска")
@@ -1149,6 +1171,13 @@ model PaginatedDataResponse<T> {
 }
 
 
+@doc("Данные аватара")
+model AvatarData {
+  @doc("URL аватара")
+  @example("https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg")
+  image_url: string;
+}
+
 // ============================================================================
 // OAuth Models
 // ============================================================================
@@ -1185,8 +1214,10 @@ model PaginatedDataResponse<T> {
   profile_read: "Просмотр информации о своем профиле",
   profile_status_read: "Просмотр статуса профиля",
   profile_status_write: "Изменение и удаление статуса профиля",
+  profile_avatar_write: "Изменение и удаление аватара профиля",
   user_status_read: "Просмотр статуса сотрудника",
   user_status_write: "Изменение и удаление статуса сотрудника",
+  user_avatar_write: "Изменение и удаление аватара сотрудника",
   custom_properties_read: "Просмотр дополнительных полей",
   audit_events_read: "Просмотр журнала аудита",
   tasks_read: "Просмотр задач",
@@ -1235,8 +1266,10 @@ model PaginatedDataResponse<T> {
   profile_read: #["owner", "admin", "user", "bot"],
   profile_status_read: #["owner", "admin", "user", "bot"],
   profile_status_write: #["owner", "admin", "user", "bot"],
+  profile_avatar_write: #["owner", "admin", "user", "bot"],
   user_status_read: #["owner", "admin"],
   user_status_write: #["owner", "admin"],
+  user_avatar_write: #["owner", "admin"],
   custom_properties_read: #["owner", "admin", "user", "bot"],
   audit_events_read: #["owner"],
   tasks_read: #["owner", "admin", "user", "bot"],
@@ -1342,11 +1375,17 @@ enum OAuthScope {
   @doc("Изменение и удаление статуса профиля")
   profile_status_write: "profile_status:write",
 
+  @doc("Изменение и удаление аватара профиля")
+  profile_avatar_write: "profile_avatar:write",
+
   @doc("Просмотр статуса сотрудника")
   user_status_read: "user_status:read",
 
   @doc("Изменение и удаление статуса сотрудника")
   user_status_write: "user_status:write",
+
+  @doc("Изменение и удаление аватара сотрудника")
+  user_avatar_write: "user_avatar:write",
 
   @doc("Просмотр дополнительных полей")
   custom_properties_read: "custom_properties:read",
@@ -3285,6 +3324,69 @@ interface ProfileOperations {
 }
 
 // ============================================================================
+// Profile Avatar Operations
+// ============================================================================
+
+@route("/profile")
+@tag("Profile")
+interface ProfileAvatarOperations {
+  @extension("x-requirements", #{
+    scope: "profile_avatar:write",
+  })
+  @doc("""
+Загрузка аватара
+
+Метод для загрузки или обновления аватара своего профиля. Файл передается в формате `multipart/form-data`.
+""")
+  @route("/avatar")
+  @put
+  updateProfileAvatar(
+    @multipartBody body: {
+      @doc("Файл изображения для аватара")
+      image: HttpPart<bytes>;
+    }
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AvatarData>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "profile_avatar:write",
+  })
+  @doc("""
+Удаление аватара
+
+Метод для удаления аватара своего профиля.
+""")
+  @route("/avatar")
+  @delete
+  deleteProfileAvatar(): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+}
+
+// ============================================================================
 // User Operations
 // ============================================================================
 
@@ -3567,6 +3669,82 @@ interface UserStatusOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  };
+}
+
+// ============================================================================
+// User Avatar Operations
+// ============================================================================
+
+@route("/users")
+@tag("Users")
+interface UserAvatarOperations {
+  @extension("x-requirements", #{
+    scope: "user_avatar:write",
+  })
+  @doc("""
+Загрузка аватара сотрудника
+
+Метод для загрузки или обновления аватара сотрудника. Файл передается в формате `multipart/form-data`.
+""")
+  @route("/{user_id}/avatar")
+  @put
+  updateUserAvatar(
+    @doc("Идентификатор пользователя")
+    @extension("example", 12)
+    @path user_id: int32,
+    @multipartBody body: {
+      @doc("Файл изображения для аватара")
+      image: HttpPart<bytes>;
+    }
+  ): {
+    @statusCode _: 200;
+    @body body: DataResponse<AvatarData>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "user_avatar:write",
+  })
+  @doc("""
+Удаление аватара сотрудника
+
+Метод для удаления аватара сотрудника.
+""")
+  @route("/{user_id}/avatar")
+  @delete
+  deleteUserAvatar(
+    @doc("Идентификатор пользователя")
+    @extension("example", 12)
+    @path user_id: int32
+  ): {
+    @statusCode _: 204;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: ApiError | OAuthError;
+  } | {
+    @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
     @body body: ApiError;
   };
 }
@@ -3888,13 +4066,12 @@ interface ChatOperations {
   @extension("x-paginated", true)
   @get
   listChats(
-    @doc("Составной параметр сортировки сущностей выборки")
-    @extension("x-param-names", #[
-      #{ name: "sort[id]", description: "Идентификатор чата" },
-      #{ name: "sort[last_message_at]", description: "Дата и время создания последнего сообщения" }
-    ])
+    @doc("Поле сортировки")
+    @extension("example", "id")
+    @query sort?: ChatSortField = ChatSortField.id,
+    @doc("Направление сортировки")
     @extension("example", "desc")
-    @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc,
+    @query order?: SortOrder = SortOrder.desc,
     @doc("Параметр, который отвечает за доступность и выборку чатов для пользователя")
     @extension("example", "is_member")
     @query availability?: ChatAvailability = ChatAvailability.is_member,
@@ -4614,12 +4791,12 @@ interface ChatMessageOperations {
     @doc("Идентификатор чата (беседа, канал, диалог или чат треда)")
     @extension("example", 198)
     @query chat_id: int32,
-    @doc("Составной параметр сортировки сущностей выборки")
-    @extension("x-param-names", #[
-      #{ name: "sort[id]", description: "Идентификатор сообщения" }
-    ])
+    @doc("Поле сортировки")
+    @extension("example", "id")
+    @query sort?: MessageSortField = MessageSortField.id,
+    @doc("Направление сортировки")
     @extension("example", "desc")
-    @query("sort[{field}]") sortField?: SortOrder = SortOrder.desc,
+    @query order?: SortOrder = SortOrder.desc,
     @doc("Количество возвращаемых сущностей за один запрос")
     @query
     @extension("example", 1)

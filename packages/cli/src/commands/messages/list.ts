@@ -19,7 +19,10 @@ export default class MessagesList extends BaseCommand {
   static requiredFlags = ["chat-id"];
 
   static override args = {
-
+    chat_id: Args.integer({
+      description: "Идентификатор чата (беседа, канал, диалог или чат треда)",
+      required: false,
+    }),
   };
 
   static override flags = {
@@ -27,12 +30,12 @@ export default class MessagesList extends BaseCommand {
     'chat-id': Flags.integer({
       description: "Идентификатор чата (беседа, канал, диалог или чат треда)",
     }),
-    sort: Flags.string({
-      description: "Поле сортировки (id — идентификатор сообщения)",
+    'sort': Flags.string({
+      description: "Поле сортировки",
       options: ["id"],
     }),
-    order: Flags.string({
-      description: "Порядок сортировки",
+    'order': Flags.string({
+      description: "Направление сортировки",
       options: ["asc","desc"],
     }),
     limit: Flags.integer({
@@ -50,6 +53,10 @@ export default class MessagesList extends BaseCommand {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(MessagesList);
     this.parsedFlags = flags;
+
+    if (args.chat_id !== undefined && (flags as Record<string, unknown>)['chat-id'] === undefined) {
+      (flags as Record<string, unknown>)['chat-id'] = args.chat_id;
+    }
 
     const missingRequired: { flag: string; label: string; type: string }[] = [
       { flag: 'chat-id', label: "Идентификатор чата (беседа, канал, диалог или чат треда)", type: 'integer' },
@@ -82,7 +89,8 @@ export default class MessagesList extends BaseCommand {
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
         'chat_id': flags['chat-id'],
-        ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
+        sort: flags['sort'],
+        order: flags['order'],
         limit: flags.limit,
           cursor: nextCursor,
         };
@@ -123,7 +131,8 @@ export default class MessagesList extends BaseCommand {
       path: '/messages',
       query: {
       'chat_id': flags['chat-id'],
-      ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
+      sort: flags['sort'],
+      order: flags['order'],
       limit: flags.limit,
       cursor: flags.cursor,
       },

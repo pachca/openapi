@@ -158,6 +158,24 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
    ```
 
 
+### Загрузить аватар сотрудника
+
+1. Загрузи аватар сотруднику:
+   ```bash
+   pachca users update-avatar <user_id> --file=<путь_к_файлу>
+   ```
+   > Требует прав администратора. Файл передается в формате multipart/form-data
+
+
+### Удалить аватар сотрудника
+
+1. Удали аватар сотрудника:
+   ```bash
+   pachca users remove-avatar <user_id> --force
+   ```
+   > Требует прав администратора
+
+
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
@@ -181,6 +199,8 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 | GET | /users/{id} | Информация о сотруднике |
 | PUT | /users/{id} | Редактирование сотрудника |
 | DELETE | /users/{id} | Удаление сотрудника |
+| PUT | /users/{user_id}/avatar | Загрузка аватара сотрудника |
+| DELETE | /users/{user_id}/avatar | Удаление аватара сотрудника |
 | GET | /users/{user_id}/status | Статус сотрудника |
 | PUT | /users/{user_id}/status | Новый статус сотрудника |
 | DELETE | /users/{user_id}/status | Удаление статуса сотрудника |

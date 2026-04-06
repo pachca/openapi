@@ -681,29 +681,34 @@ function emitMultipartBody(
     (f) => f.type.kind !== 'binary',
   );
 
+  const isUnwrapped = shouldUnwrapBody(op.requestBody!);
+
   // Optional fields first (in schema order)
   for (const f of nonBinaryFields) {
     const sdkName = fieldSdkName(f);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     const isOptional = !f.required || f.nullable;
     if (isOptional) {
       lines.push(
-        `${indent4}request.${sdkName}?.let { append("${f.name}", it) }`,
+        `${indent4}${ref}?.let { append("${f.name}", it) }`,
       );
     }
   }
   // Required fields
   for (const f of nonBinaryFields) {
     const sdkName = fieldSdkName(f);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     const isOptional = !f.required || f.nullable;
     if (!isOptional) {
-      lines.push(`${indent4}append("${f.name}", request.${sdkName})`);
+      lines.push(`${indent4}append("${f.name}", ${ref})`);
     }
   }
   // Binary field
   if (binaryField) {
     const sdkName = fieldSdkName(binaryField);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     lines.push(
-      `${indent4}append("${binaryField.name}", request.${sdkName}, Headers.build {`,
+      `${indent4}append("${binaryField.name}", ${ref}, Headers.build {`,
     );
     lines.push(
       `${indent4}    append(HttpHeaders.ContentDisposition, "filename=\\"${binaryField.name}\\"")`,

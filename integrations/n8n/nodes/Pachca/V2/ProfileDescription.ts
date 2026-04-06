@@ -9,6 +9,11 @@ export const profileOperations: INodeProperties[] = [
 		displayOptions: { show: { resource: ['profile'] } },
 		options: [
 			{
+				name: 'Delete Avatar',
+				value: 'deleteAvatar',
+				action: 'Delete profile avatar',
+			},
+			{
 				name: 'Delete Status',
 				value: 'deleteStatus',
 				action: 'Delete profile status',
@@ -27,6 +32,11 @@ export const profileOperations: INodeProperties[] = [
 				name: 'Get Status',
 				value: 'getStatus',
 				action: 'Get profile status',
+			},
+			{
+				name: 'Update Avatar',
+				value: 'updateAvatar',
+				action: 'Update profile avatar',
 			},
 			{
 				name: 'Update Status',
@@ -54,6 +64,15 @@ export const profileFields: INodeProperties[] = [
 		default: true,
 		description: 'Whether to return a simplified version of the response instead of all fields',
 		displayOptions: { show: { resource: ['profile'], operation: ['get'] } },
+	},
+	{
+		displayName: 'Input Binary Field',
+		name: 'image',
+		type: 'string',
+		required: true,
+		default: "data",
+		description: 'Name of the binary property containing the avatar image. Use a previous node (e.g. HTTP Request, Read Binary File) to load the image.',
+		displayOptions: { show: { resource: ['profile'], operation: ['updateAvatar'] } },
 	},
 	{
 		displayName: 'Simplify',

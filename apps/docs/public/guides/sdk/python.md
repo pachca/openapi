@@ -74,15 +74,19 @@ await client.close()
 | `client.profile.get_token_info()` | [Информация о токене](/api/profile/get-info) |
 | `client.profile.get_profile()` | [Информация о профиле](/api/profile/get) |
 | `client.profile.get_status()` | [Текущий статус](/api/profile/get-status) |
+| `client.profile.update_profile_avatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.profile.update_status()` | [Новый статус](/api/profile/update-status) |
+| `client.profile.delete_profile_avatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.profile.delete_status()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.users.create_user()` | [Создать сотрудника](/api/users/create) |
 | `client.users.list_users()` | [Список сотрудников](/api/users/list) |
 | `client.users.get_user()` | [Информация о сотруднике](/api/users/get) |
 | `client.users.get_user_status()` | [Статус сотрудника](/api/users/get-status) |
 | `client.users.update_user()` | [Редактирование сотрудника](/api/users/update) |
+| `client.users.update_user_avatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.users.update_user_status()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.users.delete_user()` | [Удаление сотрудника](/api/users/delete) |
+| `client.users.delete_user_avatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.delete_user_status()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.group_tags.create_tag()` | [Новый тег](/api/group-tags/create) |
 | `client.group_tags.list_tags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -139,11 +143,12 @@ await client.close()
 **GET с параметрами:**
 
 ```python
-from pachca.models import ChatAvailability, ListChatsParams, SortOrder
+from pachca.models import ChatAvailability, ChatSortField, ListChatsParams, SortOrder
 
 # Список чатов
 params = ListChatsParams(
-    sort_id=SortOrder.DESC,
+    sort=ChatSortField.ID,
+    order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
     last_message_at_after="2025-01-01T00:00:00.000Z",
     last_message_at_before="2025-02-01T00:00:00.000Z",

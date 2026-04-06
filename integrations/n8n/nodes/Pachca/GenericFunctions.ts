@@ -269,6 +269,7 @@ export function buildMultipartBody(
   fileBuffer: Buffer,
   fileName: string,
   contentType: string,
+  fileFieldName = 'file',
 ): { body: Buffer; contentType: string } {
   const boundary = `----WebKitFormBoundary${crypto.randomBytes(16).toString('hex')}`;
   const parts: Buffer[] = [];
@@ -288,7 +289,7 @@ export function buildMultipartBody(
   // File last
   parts.push(
     Buffer.from(
-      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${safeName}"\r\nContent-Type: ${contentType}\r\n\r\n`,
+      `--${boundary}\r\nContent-Disposition: form-data; name="${fileFieldName}"; filename="${safeName}"\r\nContent-Type: ${contentType}\r\n\r\n`,
     ),
   );
   parts.push(fileBuffer);
@@ -298,6 +299,40 @@ export function buildMultipartBody(
     body: Buffer.concat(parts),
     contentType: `multipart/form-data; boundary=${boundary}`,
   };
+}
+
+/**
+ * Upload avatar image via multipart/form-data.
+ * Reads binary data from the input and sends it to the avatar endpoint.
+ */
+export async function uploadAvatar(
+  ctx: IExecuteFunctions,
+  itemIndex: number,
+  url: string,
+): Promise<IDataObject> {
+  const binaryProperty = ctx.getNodeParameter('image', itemIndex, 'data') as string;
+  const binaryData = ctx.helpers.assertBinaryData(itemIndex, binaryProperty);
+  const fileBuffer = await ctx.helpers.getBinaryDataBuffer(itemIndex, binaryProperty);
+  const fileName = binaryData.fileName || 'avatar.jpg';
+  const mimeType = binaryData.mimeType || detectMimeType(fileName);
+
+  const multipart = buildMultipartBody({}, fileBuffer, fileName, mimeType, 'image');
+
+  const credentials = await ctx.getCredentials('pachcaApi');
+  const base = sanitizeBaseUrl(credentials.baseUrl as string);
+
+  const response = await ctx.helpers.httpRequestWithAuthentication.call(ctx, 'pachcaApi', {
+    method: 'PUT',
+    url: `${base}${url}`,
+    body: multipart.body,
+    headers: { 'Content-Type': multipart.contentType },
+  });
+
+  if (typeof response === 'object' && response !== null) {
+    const data = (response as IDataObject).data;
+    return (data as IDataObject) ?? (response as IDataObject);
+  }
+  return { success: true } as unknown as IDataObject;
 }
 
 // ============================================================================

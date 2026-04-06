@@ -356,19 +356,22 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('            data.append("\\(value)\\r\\n".data(using: .utf8)!)');
     lines.push('        }');
     const req = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
+    const isUnwrapped = shouldUnwrapBody(op.requestBody!);
     if (req) {
       for (const f of req.fields.filter((x) => x.type.kind !== 'binary')) {
         const n = swiftIdentifier(f.name);
-        if (isOptionalField(f)) lines.push(`        if let v = body.${n} { appendField(${JSON.stringify(f.name)}, String(describing: v)) }`);
-        else lines.push(`        appendField(${JSON.stringify(f.name)}, String(describing: body.${n}))`);
+        const ref = isUnwrapped ? n : `body.${n}`;
+        if (isOptionalField(f)) lines.push(`        if let v = ${ref} { appendField(${JSON.stringify(f.name)}, String(describing: v)) }`);
+        else lines.push(`        appendField(${JSON.stringify(f.name)}, String(describing: ${ref}))`);
       }
       const bin = req.fields.find((x) => x.type.kind === 'binary');
       if (bin) {
         const n = swiftIdentifier(bin.name);
+        const binRef = isUnwrapped ? n : `body.${n}`;
         lines.push('        data.append("--\\(boundary)\\r\\n".data(using: .utf8)!)');
         lines.push(`        data.append("Content-Disposition: form-data; name=\\"${bin.name}\\"; filename=\\"upload\\"\\r\\n".data(using: .utf8)!)`);
         lines.push('        data.append("Content-Type: application/octet-stream\\r\\n\\r\\n".data(using: .utf8)!)');
-        lines.push(`        data.append(body.${n})`);
+        lines.push(`        data.append(${binRef})`);
         lines.push('        data.append("\\r\\n".data(using: .utf8)!)');
       }
     }

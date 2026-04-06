@@ -33,10 +33,11 @@
     "usage": "await client.bots.delete_webhook_event(id=\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params = ListChatsParams(\n    sort_id=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    last_message_at_after=\"2025-01-01T00:00:00.000Z\",\n    last_message_at_before=\"2025-02-01T00:00:00.000Z\",\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
+    "usage": "params = ListChatsParams(\n    sort=ChatSortField.ID,\n    order=SortOrder.DESC,\n    availability=ChatAvailability.IS_MEMBER,\n    last_message_at_after=\"2025-01-01T00:00:00.000Z\",\n    last_message_at_before=\"2025-02-01T00:00:00.000Z\",\n    personal=False,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.chats.list_chats(params=params)",
     "output": "ListChatsResponse(data: list[Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "ListChatsParams",
       "SortOrder"
     ]
@@ -165,10 +166,11 @@
     "usage": "await client.group_tags.delete_tag(id=9111)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "params = ListChatMessagesParams(\n    chat_id=198,\n    sort_id=SortOrder.DESC,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.messages.list_chat_messages(params=params)",
+    "usage": "params = ListChatMessagesParams(\n    chat_id=198,\n    sort=MessageSortField.ID,\n    order=SortOrder.DESC,\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.messages.list_chat_messages(params=params)",
     "output": "ListChatMessagesResponse(data: list[Message], meta: PaginationMeta)",
     "imports": [
       "ListChatMessagesParams",
+      "MessageSortField",
       "SortOrder"
     ]
   },
@@ -262,6 +264,10 @@
     "usage": "response = await client.profile.get_status()",
     "output": "object"
   },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "response = await client.profile.update_profile_avatar(image=b\"\")",
+    "output": "AvatarData(image_url: str)"
+  },
   "ProfileOperations_updateStatus": {
     "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=\"2024-04-08T10:00:00.000Z\",\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.profile.update_status(request=request)",
     "output": "UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)",
@@ -269,6 +275,9 @@
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
+  },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "await client.profile.delete_profile_avatar()"
   },
   "ProfileOperations_deleteStatus": {
     "usage": "await client.profile.delete_status()"
@@ -370,6 +379,10 @@
       "UserUpdateRequestUser"
     ]
   },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "response = await client.users.update_user_avatar(user_id=12, image=b\"\")",
+    "output": "AvatarData(image_url: str)"
+  },
   "UserStatusOperations_updateUserStatus": {
     "usage": "request = StatusUpdateRequest(\n    status=StatusUpdateRequestStatus(\n        emoji=\"🎮\",\n        title=\"Очень занят\",\n        expires_at=\"2024-04-08T10:00:00.000Z\",\n        is_away=True,\n        away_message=\"Вернусь после 15:00\"\n    )\n)\nresponse = await client.users.update_user_status(user_id=12, request=request)",
     "output": "UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)",
@@ -380,6 +393,9 @@
   },
   "UserOperations_deleteUser": {
     "usage": "await client.users.delete_user(id=12)"
+  },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "await client.users.delete_user_avatar(user_id=12)"
   },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "await client.users.delete_user_status(user_id=12)"

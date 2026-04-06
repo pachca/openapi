@@ -104,6 +104,14 @@ export enum ChatMemberRoleFilter {
   Member = "member",
 }
 
+/** Поле сортировки чатов */
+export enum ChatSortField {
+  /** По идентификатору чата */
+  Id = "id",
+  /** По дате и времени создания последнего сообщения */
+  LastMessageAt = "last_message_at",
+}
+
 /** Тип чата */
 export enum ChatSubtype {
   /** Канал или беседа */
@@ -156,6 +164,11 @@ export enum MessageEntityType {
   Thread = "thread",
   /** Пользователь */
   User = "user",
+}
+
+export enum MessageSortField {
+  /** По идентификатору сообщения */
+  Id = "id",
 }
 
 /** Скоуп доступа OAuth токена */
@@ -218,10 +231,14 @@ export enum OAuthScope {
   ProfileStatusRead = "profile_status:read",
   /** Изменение и удаление статуса профиля */
   ProfileStatusWrite = "profile_status:write",
+  /** Изменение и удаление аватара профиля */
+  ProfileAvatarWrite = "profile_avatar:write",
   /** Просмотр статуса сотрудника */
   UserStatusRead = "user_status:read",
   /** Изменение и удаление статуса сотрудника */
   UserStatusWrite = "user_status:write",
+  /** Изменение и удаление аватара сотрудника */
+  UserAvatarWrite = "user_avatar:write",
   /** Просмотр дополнительных полей */
   CustomPropertiesRead = "custom_properties:read",
   /** Просмотр журнала аудита */
@@ -555,6 +572,10 @@ export interface AuditEvent {
   details: AuditEventDetailsUnion;
   ipAddress: string;
   userAgent: string;
+}
+
+export interface AvatarData {
+  imageUrl: string;
 }
 
 export interface BotResponse {
@@ -1178,6 +1199,14 @@ export interface WebhookMessageThread {
   messageChatId: number;
 }
 
+export interface UpdateProfileAvatarRequest {
+  image: Blob;
+}
+
+export interface UpdateUserAvatarRequest {
+  image: Blob;
+}
+
 export type AuditEventDetailsUnion = AuditDetailsEmpty | AuditDetailsUserUpdated | AuditDetailsRoleChanged | AuditDetailsTagName | AuditDetailsInitiator | AuditDetailsInviter | AuditDetailsChatRenamed | AuditDetailsChatPermission | AuditDetailsTagChat | AuditDetailsChatId | AuditDetailsTokenScopes | AuditDetailsKms | AuditDetailsDlp | AuditDetailsSearch;
 
 export type ViewBlockUnion = ViewBlockHeader | ViewBlockPlainText | ViewBlockMarkdown | ViewBlockDivider | ViewBlockInput | ViewBlockSelect | ViewBlockRadio | ViewBlockCheckbox | ViewBlockDate | ViewBlockTime | ViewBlockFileInput;
@@ -1197,7 +1226,8 @@ export interface GetAuditEventsParams {
 }
 
 export interface ListChatsParams {
-  sortId?: SortOrder;
+  sort?: ChatSortField;
+  order?: SortOrder;
   availability?: ChatAvailability;
   lastMessageAtAfter?: string;
   lastMessageAtBefore?: string;
@@ -1229,7 +1259,8 @@ export interface GetTagUsersParams {
 
 export interface ListChatMessagesParams {
   chatId: number;
-  sortId?: SortOrder;
+  sort?: MessageSortField;
+  order?: SortOrder;
   limit?: number;
   cursor?: string;
 }

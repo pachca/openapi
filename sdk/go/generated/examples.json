@@ -33,10 +33,11 @@
     "usage": "client.Bots.DeleteWebhookEvent(ctx, \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "params := &ListChatsParams{\n\tSortID: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
+    "usage": "params := &ListChatsParams{\n\tSort: Ptr(ChatSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tAvailability: Ptr(ChatAvailabilityIsMember),\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tPersonal: Ptr(false),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Chats.ListChats(ctx, params)",
     "output": "ListChatsResponse{Data: []Chat, Meta: PaginationMeta}",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "ListChatsParams",
       "SortOrder"
     ]
@@ -165,10 +166,11 @@
     "usage": "client.GroupTags.DeleteTag(ctx, int32(9111))"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "params := ListChatMessagesParams{\n\tChatID: int32(198),\n\tSortID: Ptr(SortOrderDesc),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
+    "usage": "params := ListChatMessagesParams{\n\tChatID: int32(198),\n\tSort: Ptr(MessageSortFieldID),\n\tOrder: Ptr(SortOrderDesc),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Messages.ListChatMessages(ctx, params)",
     "output": "ListChatMessagesResponse{Data: []Message, Meta: PaginationMeta}",
     "imports": [
       "ListChatMessagesParams",
+      "MessageSortField",
       "SortOrder"
     ]
   },
@@ -262,6 +264,10 @@
     "usage": "response, err := client.Profile.GetStatus(ctx)",
     "output": "any"
   },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "response, err := client.Profile.UpdateProfileAvatar(ctx, bytes.NewReader(nil))",
+    "output": "AvatarData{ImageURL: string}"
+  },
   "ProfileOperations_updateStatus": {
     "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: \"🎮\",\n\t\tTitle: \"Очень занят\",\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Profile.UpdateStatus(ctx, request)",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}",
@@ -269,6 +275,9 @@
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
+  },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "client.Profile.DeleteProfileAvatar(ctx)"
   },
   "ProfileOperations_deleteStatus": {
     "usage": "client.Profile.DeleteStatus(ctx)"
@@ -370,6 +379,10 @@
       "UserUpdateRequestUser"
     ]
   },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "response, err := client.Users.UpdateUserAvatar(ctx, int32(12), bytes.NewReader(nil))",
+    "output": "AvatarData{ImageURL: string}"
+  },
   "UserStatusOperations_updateUserStatus": {
     "usage": "request := StatusUpdateRequest{\n\tStatus: StatusUpdateRequestStatus{\n\t\tEmoji: \"🎮\",\n\t\tTitle: \"Очень занят\",\n\t\tExpiresAt: Ptr(\"2024-04-08T10:00:00.000Z\"),\n\t\tIsAway: Ptr(true),\n\t\tAwayMessage: Ptr(\"Вернусь после 15:00\"),\n\t},\n}\nresponse, err := client.Users.UpdateUserStatus(ctx, int32(12), request)",
     "output": "UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}",
@@ -380,6 +393,9 @@
   },
   "UserOperations_deleteUser": {
     "usage": "client.Users.DeleteUser(ctx, int32(12))"
+  },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "client.Users.DeleteUserAvatar(ctx, int32(12))"
   },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "client.Users.DeleteUserStatus(ctx, int32(12))"

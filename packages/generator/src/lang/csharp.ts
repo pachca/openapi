@@ -860,6 +860,7 @@ function emitMultipartBody(
 
   const binaryField = reqModel.fields.find((f) => f.type.kind === 'binary');
   const nonBinaryFields = reqModel.fields.filter((f) => f.type.kind !== 'binary');
+  const isUnwrapped = shouldUnwrapBody(op.requestBody!);
 
   if (op.externalUrl) {
     lines.push(`${indent2}var url = ${paramSdkName(op.externalUrl)};`);
@@ -870,19 +871,19 @@ function emitMultipartBody(
   lines.push(`${indent2}using var content = new MultipartFormDataContent();`);
 
   for (const f of nonBinaryFields) {
-    const sdkName = fieldSdkName(f);
+    const sdk = isUnwrapped ? paramSdkName(f.name) : `request.${fieldSdkName(f)}`;
     const isOptional = !f.required || f.nullable;
     if (isOptional) {
-      lines.push(`${indent2}if (request.${sdkName} != null)`);
-      lines.push(`${indent2}    content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
+      lines.push(`${indent2}if (${sdk} != null)`);
+      lines.push(`${indent2}    content.Add(new StringContent($"{${sdk}}"), "${f.name}");`);
     } else {
-      lines.push(`${indent2}content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
+      lines.push(`${indent2}content.Add(new StringContent($"{${sdk}}"), "${f.name}");`);
     }
   }
 
   if (binaryField) {
-    const sdkName = fieldSdkName(binaryField);
-    lines.push(`${indent2}content.Add(new ByteArrayContent(request.${sdkName}), "${binaryField.name}", "${binaryField.name}");`);
+    const sdk = isUnwrapped ? paramSdkName(binaryField.name) : `request.${fieldSdkName(binaryField)}`;
+    lines.push(`${indent2}content.Add(new ByteArrayContent(${sdk}), "${binaryField.name}", "${binaryField.name}");`);
   }
 
   lines.push(`${indent2}using var httpRequest = new HttpRequestMessage(HttpMethod.${httpMethodName(op.method.toUpperCase())}, url);`);

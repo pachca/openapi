@@ -73,6 +73,13 @@ const (
 	ChatMemberRoleFilterMember ChatMemberRoleFilter = "member" // Участник/подписчик
 )
 
+type ChatSortField string
+
+const (
+	ChatSortFieldID            ChatSortField = "id" // По идентификатору чата
+	ChatSortFieldLastMessageAt ChatSortField = "last_message_at" // По дате и времени создания последнего сообщения
+)
+
 type ChatSubtype string
 
 const (
@@ -118,6 +125,12 @@ const (
 	MessageEntityTypeUser       MessageEntityType = "user" // Пользователь
 )
 
+type MessageSortField string
+
+const (
+	MessageSortFieldID MessageSortField = "id" // По идентификатору сообщения
+)
+
 type OAuthScope string
 
 const (
@@ -150,8 +163,10 @@ const (
 	OAuthScopeProfileRead          OAuthScope = "profile:read" // Просмотр информации о своем профиле
 	OAuthScopeProfileStatusRead    OAuthScope = "profile_status:read" // Просмотр статуса профиля
 	OAuthScopeProfileStatusWrite   OAuthScope = "profile_status:write" // Изменение и удаление статуса профиля
+	OAuthScopeProfileAvatarWrite   OAuthScope = "profile_avatar:write" // Изменение и удаление аватара профиля
 	OAuthScopeUserStatusRead       OAuthScope = "user_status:read" // Просмотр статуса сотрудника
 	OAuthScopeUserStatusWrite      OAuthScope = "user_status:write" // Изменение и удаление статуса сотрудника
+	OAuthScopeUserAvatarWrite      OAuthScope = "user_avatar:write" // Изменение и удаление аватара сотрудника
 	OAuthScopeCustomPropertiesRead OAuthScope = "custom_properties:read" // Просмотр дополнительных полей
 	OAuthScopeAuditEventsRead      OAuthScope = "audit_events:read" // Просмотр журнала аудита
 	OAuthScopeTasksRead            OAuthScope = "tasks:read" // Просмотр задач
@@ -422,6 +437,10 @@ type AuditEvent struct {
 	Details    AuditEventDetailsUnion `json:"details"`
 	IpAddress  string                 `json:"ip_address"`
 	UserAgent  string                 `json:"user_agent"`
+}
+
+type AvatarData struct {
+	ImageURL string `json:"image_url"`
 }
 
 type BotResponseWebhook struct {
@@ -1076,6 +1095,14 @@ type WebhookMessageThread struct {
 	MessageChatID int32 `json:"message_chat_id"`
 }
 
+type UpdateProfileAvatarRequest struct {
+	Image io.Reader `json:"image"`
+}
+
+type UpdateUserAvatarRequest struct {
+	Image io.Reader `json:"image"`
+}
+
 type AuditEventDetailsUnion struct {
 	AuditDetailsEmpty          *AuditDetailsEmpty
 	AuditDetailsUserUpdated    *AuditDetailsUserUpdated
@@ -1370,7 +1397,8 @@ type GetAuditEventsParams struct {
 }
 
 type ListChatsParams struct {
-	SortID              *SortOrder
+	Sort                *ChatSortField
+	Order               *SortOrder
 	Availability        *ChatAvailability
 	LastMessageAtAfter  *time.Time
 	LastMessageAtBefore *time.Time
@@ -1402,7 +1430,8 @@ type GetTagUsersParams struct {
 
 type ListChatMessagesParams struct {
 	ChatID int32
-	SortID *SortOrder
+	Sort   *MessageSortField
+	Order  *SortOrder
 	Limit  *int32
 	Cursor *string
 }

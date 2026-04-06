@@ -22,16 +22,17 @@ export default class ChatsList extends BaseCommand {
 
   static override flags = {
     ...BaseCommand.baseFlags,
-    sort: Flags.string({
-      description: "Поле сортировки (id — идентификатор чата, last-message-at — дата и время создания последнего сообщения)",
-      options: ["id","last-message-at"],
+    'sort': Flags.string({
+      description: "Поле сортировки",
+      options: ["id","last_message_at"],
     }),
-    order: Flags.string({
-      description: "Порядок сортировки",
+    'order': Flags.string({
+      description: "Направление сортировки",
       options: ["asc","desc"],
     }),
     'availability': Flags.string({
       description: "Параметр, который отвечает за доступность и выборку чатов для пользователя",
+      options: ["is_member","public"],
     }),
     'last-message-at-after': Flags.string({
       description: "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).",
@@ -68,7 +69,8 @@ export default class ChatsList extends BaseCommand {
 
       while (pages < 500) {
         const query: Record<string, string | number | boolean | string[] | undefined> = {
-        ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
+        sort: flags['sort'],
+        order: flags['order'],
         availability: flags['availability'],
         'last_message_at_after': flags['last-message-at-after'],
         'last_message_at_before': flags['last-message-at-before'],
@@ -112,7 +114,8 @@ export default class ChatsList extends BaseCommand {
       method: 'GET',
       path: '/chats',
       query: {
-      ...(flags.sort ? { [`sort[${flags.sort.replace(/-/g, '_')}]`]: flags.order || 'desc' } : {}),
+      sort: flags['sort'],
+      order: flags['order'],
       availability: flags['availability'],
       'last_message_at_after': flags['last-message-at-after'],
       'last_message_at_before': flags['last-message-at-before'],

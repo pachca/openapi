@@ -12,6 +12,7 @@ import {
 	cleanFileAttachments,
 	resolveFormBlocksFromParams,
 	uploadFileToS3,
+	uploadAvatar,
 	splitAndValidateCommaList,
 	simplifyItem,
 	FORM_TEMPLATES,
@@ -139,7 +140,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/chats',
 			paginated: true,
-			queryMap: [{ api: 'availability', n8n: 'availability' }, { api: 'last_message_at_after', n8n: 'lastMessageAtAfter' }, { api: 'last_message_at_before', n8n: 'lastMessageAtBefore' }],
+			queryMap: [{ api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }, { api: 'availability', n8n: 'availability' }, { api: 'last_message_at_after', n8n: 'lastMessageAtAfter' }, { api: 'last_message_at_before', n8n: 'lastMessageAtBefore' }],
 			optionalQueryMap: [{ api: 'personal', n8n: 'personal' }],
 		},
 		get: {
@@ -327,7 +328,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/messages',
 			paginated: true,
-			queryMap: [{ api: 'chat_id', n8n: 'chatId', locator: true, required: true }],
+			queryMap: [{ api: 'chat_id', n8n: 'chatId', locator: true, required: true }, { api: 'sort', n8n: 'sort' }, { api: 'order', n8n: 'order' }],
 		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
@@ -443,6 +444,15 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 		get: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/profile',
+		},
+		updateAvatar: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/profile/avatar',
+			special: 'avatarUpload',
+		},
+		deleteAvatar: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/profile/avatar',
 		},
 		getStatus: {
 			method: 'GET' as IHttpRequestMethods,
@@ -600,6 +610,17 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			method: 'DELETE' as IHttpRequestMethods,
 			path: '/users/{id}',
 			pathParams: [{ api: 'id', n8n: 'id', locator: true, v1Fallback: 'userId' }],
+		},
+		updateAvatar: {
+			method: 'PUT' as IHttpRequestMethods,
+			path: '/users/{user_id}/avatar',
+			pathParams: [{ api: 'user_id', n8n: 'userId' }],
+			special: 'avatarUpload',
+		},
+		deleteAvatar: {
+			method: 'DELETE' as IHttpRequestMethods,
+			path: '/users/{user_id}/avatar',
+			pathParams: [{ api: 'user_id', n8n: 'userId' }],
 		},
 		getStatus: {
 			method: 'GET' as IHttpRequestMethods,
@@ -780,6 +801,15 @@ async function executeRoute(
 			return [{ json: resp.body as IDataObject }];
 		}
 		return [{ json: { id: exportId, success: true } as unknown as IDataObject }];
+	}
+	if (route.special === 'avatarUpload') {
+		let avatarUrl = route.path;
+		for (const pp of route.pathParams ?? []) {
+			const value = this.getNodeParameter(pp.n8n, i) as number;
+			avatarUrl = avatarUrl.replace(`{${pp.api}}`, String(value));
+		}
+		const result = await uploadAvatar(this, i, avatarUrl);
+		return [{ json: result }];
 	}
 	// === Build URL with path params ===
 	let url = route.path;

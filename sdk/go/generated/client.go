@@ -302,8 +302,11 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 		return nil, err
 	}
 	q := u.Query()
-	if params != nil && params.SortID != nil {
-		q.Set("sort[id]", string(*params.SortID))
+	if params != nil && params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
+	}
+	if params != nil && params.Order != nil {
+		q.Set("order", string(*params.Order))
 	}
 	if params != nil && params.Availability != nil {
 		q.Set("availability", string(*params.Availability))
@@ -1279,8 +1282,11 @@ func (s *MessagesService) ListChatMessages(ctx context.Context, params ListChatM
 	}
 	q := u.Query()
 	q.Set("chat_id", fmt.Sprintf("%v", params.ChatID))
-	if params.SortID != nil {
-		q.Set("sort[id]", string(*params.SortID))
+	if params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
+	}
+	if params.Order != nil {
+		q.Set("order", string(*params.Order))
 	}
 	if params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -1947,6 +1953,56 @@ func (s *ProfileService) GetStatus(ctx context.Context) (*any, error) {
 	}
 }
 
+func (s *ProfileService) UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error) {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		part, err := writer.CreateFormFile("image", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, image); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/profile/avatar", s.baseURL), pr)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AvatarData `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
 func (s *ProfileService) UpdateStatus(ctx context.Context, request StatusUpdateRequest) (*UserStatus, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
@@ -1983,6 +2039,34 @@ func (s *ProfileService) UpdateStatus(ctx context.Context, request StatusUpdateR
 			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
 		}
 		return nil, &e
+	}
+}
+
+func (s *ProfileService) DeleteProfileAvatar(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/profile/avatar", s.baseURL), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
 	}
 }
 
@@ -2707,6 +2791,56 @@ func (s *UsersService) UpdateUser(ctx context.Context, id int32, request UserUpd
 	}
 }
 
+func (s *UsersService) UpdateUserAvatar(ctx context.Context, userId int32, image io.Reader) (*AvatarData, error) {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		part, err := writer.CreateFormFile("image", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, image); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/users/%v/avatar", s.baseURL, userId), pr)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AvatarData `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
 func (s *UsersService) UpdateUserStatus(ctx context.Context, userId int32, request StatusUpdateRequest) (*UserStatus, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
@@ -2748,6 +2882,34 @@ func (s *UsersService) UpdateUserStatus(ctx context.Context, userId int32, reque
 
 func (s *UsersService) DeleteUser(ctx context.Context, id int32) error {
 	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/users/%v", s.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
+func (s *UsersService) DeleteUserAvatar(ctx context.Context, userId int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/users/%v/avatar", s.baseURL, userId), nil)
 	if err != nil {
 		return err
 	}

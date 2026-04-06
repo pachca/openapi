@@ -102,6 +102,23 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 > Кастомные поля настраиваются администратором пространства.
 
 
+### Загрузить аватар профиля
+
+1. Загрузи аватар из файла:
+   ```bash
+   pachca profile update-avatar --file=<путь_к_файлу>
+   ```
+   > Файл изображения передается в формате multipart/form-data
+
+
+### Удалить аватар профиля
+
+1. Удали аватар:
+   ```bash
+   pachca profile delete-avatar --force
+   ```
+
+
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
@@ -115,6 +132,8 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 | GET | /custom_properties | Список дополнительных полей |
 | GET | /oauth/token/info | Информация о токене |
 | GET | /profile | Информация о профиле |
+| PUT | /profile/avatar | Загрузка аватара |
+| DELETE | /profile/avatar | Удаление аватара |
 | GET | /profile/status | Текущий статус |
 | PUT | /profile/status | Новый статус |
 | DELETE | /profile/status | Удаление статуса |

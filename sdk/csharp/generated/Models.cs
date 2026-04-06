@@ -295,6 +295,41 @@ internal class ChatMemberRoleFilterConverter : JsonConverter<ChatMemberRoleFilte
     }
 }
 
+/// <summary>Поле сортировки чатов</summary>
+[JsonConverter(typeof(ChatSortFieldConverter))]
+public enum ChatSortField
+{
+    /// <summary>По идентификатору чата</summary>
+    Id,
+    /// <summary>По дате и времени создания последнего сообщения</summary>
+    LastMessageAt,
+}
+
+internal class ChatSortFieldConverter : JsonConverter<ChatSortField>
+{
+    public override ChatSortField Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "id" => ChatSortField.Id,
+            "last_message_at" => ChatSortField.LastMessageAt,
+            _ => throw new JsonException($"Unknown ChatSortField value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, ChatSortField value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            ChatSortField.Id => "id",
+            ChatSortField.LastMessageAt => "last_message_at",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип чата</summary>
 [JsonConverter(typeof(ChatSubtypeConverter))]
 public enum ChatSubtype
@@ -517,6 +552,36 @@ internal class MessageEntityTypeConverter : JsonConverter<MessageEntityType>
     }
 }
 
+[JsonConverter(typeof(MessageSortFieldConverter))]
+public enum MessageSortField
+{
+    /// <summary>По идентификатору сообщения</summary>
+    Id,
+}
+
+internal class MessageSortFieldConverter : JsonConverter<MessageSortField>
+{
+    public override MessageSortField Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "id" => MessageSortField.Id,
+            _ => throw new JsonException($"Unknown MessageSortField value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, MessageSortField value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            MessageSortField.Id => "id",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Скоуп доступа OAuth токена</summary>
 [JsonConverter(typeof(OAuthScopeConverter))]
 public enum OAuthScope
@@ -579,10 +644,14 @@ public enum OAuthScope
     ProfileStatusRead,
     /// <summary>Изменение и удаление статуса профиля</summary>
     ProfileStatusWrite,
+    /// <summary>Изменение и удаление аватара профиля</summary>
+    ProfileAvatarWrite,
     /// <summary>Просмотр статуса сотрудника</summary>
     UserStatusRead,
     /// <summary>Изменение и удаление статуса сотрудника</summary>
     UserStatusWrite,
+    /// <summary>Изменение и удаление аватара сотрудника</summary>
+    UserAvatarWrite,
     /// <summary>Просмотр дополнительных полей</summary>
     CustomPropertiesRead,
     /// <summary>Просмотр журнала аудита</summary>
@@ -655,8 +724,10 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             "profile:read" => OAuthScope.ProfileRead,
             "profile_status:read" => OAuthScope.ProfileStatusRead,
             "profile_status:write" => OAuthScope.ProfileStatusWrite,
+            "profile_avatar:write" => OAuthScope.ProfileAvatarWrite,
             "user_status:read" => OAuthScope.UserStatusRead,
             "user_status:write" => OAuthScope.UserStatusWrite,
+            "user_avatar:write" => OAuthScope.UserAvatarWrite,
             "custom_properties:read" => OAuthScope.CustomPropertiesRead,
             "audit_events:read" => OAuthScope.AuditEventsRead,
             "tasks:read" => OAuthScope.TasksRead,
@@ -711,8 +782,10 @@ internal class OAuthScopeConverter : JsonConverter<OAuthScope>
             OAuthScope.ProfileRead => "profile:read",
             OAuthScope.ProfileStatusRead => "profile_status:read",
             OAuthScope.ProfileStatusWrite => "profile_status:write",
+            OAuthScope.ProfileAvatarWrite => "profile_avatar:write",
             OAuthScope.UserStatusRead => "user_status:read",
             OAuthScope.UserStatusWrite => "user_status:write",
+            OAuthScope.UserAvatarWrite => "user_avatar:write",
             OAuthScope.CustomPropertiesRead => "custom_properties:read",
             OAuthScope.AuditEventsRead => "audit_events:read",
             OAuthScope.TasksRead => "tasks:read",
@@ -1830,6 +1903,12 @@ public class AuditEvent
     public string UserAgent { get; set; } = default!;
 }
 
+public class AvatarData
+{
+    [JsonPropertyName("image_url")]
+    public string ImageUrl { get; set; } = default!;
+}
+
 public class BotResponseWebhook
 {
     [JsonPropertyName("outgoing_url")]
@@ -2658,6 +2737,18 @@ public class WebhookMessageThread
     public int MessageChatId { get; set; } = default!;
 }
 
+public class UpdateProfileAvatarRequest
+{
+    [JsonIgnore]
+    public byte[] Image { get; set; } = Array.Empty<byte>();
+}
+
+public class UpdateUserAvatarRequest
+{
+    [JsonIgnore]
+    public byte[] Image { get; set; } = Array.Empty<byte>();
+}
+
 public class GetAuditEventsResponse
 {
     [JsonPropertyName("data")]
@@ -2808,6 +2899,12 @@ public class UserDataWrapper
 {
     [JsonPropertyName("data")]
     public User Data { get; set; } = default!;
+}
+
+public class AvatarDataDataWrapper
+{
+    [JsonPropertyName("data")]
+    public AvatarData Data { get; set; } = default!;
 }
 
 public class UserStatusDataWrapper

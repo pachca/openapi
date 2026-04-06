@@ -134,7 +134,8 @@ class ChatsService internal constructor(
     private val client: HttpClient,
 ) {
     suspend fun listChats(
-        sortId: SortOrder? = null,
+        sort: ChatSortField? = null,
+        order: SortOrder? = null,
         availability: ChatAvailability? = null,
         lastMessageAtAfter: String? = null,
         lastMessageAtBefore: String? = null,
@@ -143,7 +144,8 @@ class ChatsService internal constructor(
         cursor: String? = null,
     ): ListChatsResponse {
         val response = client.get("$baseUrl/chats") {
-            sortId?.let { parameter("sort[id]", it.value) }
+            sort?.let { parameter("sort", it.value) }
+            order?.let { parameter("order", it.value) }
             availability?.let { parameter("availability", it.value) }
             lastMessageAtAfter?.let { parameter("last_message_at_after", it) }
             lastMessageAtBefore?.let { parameter("last_message_at_before", it) }
@@ -159,7 +161,8 @@ class ChatsService internal constructor(
     }
 
     suspend fun listChatsAll(
-        sortId: SortOrder? = null,
+        sort: ChatSortField? = null,
+        order: SortOrder? = null,
         availability: ChatAvailability? = null,
         lastMessageAtAfter: String? = null,
         lastMessageAtBefore: String? = null,
@@ -170,7 +173,8 @@ class ChatsService internal constructor(
         var cursor: String? = null
         do {
             val response = listChats(
-                sortId = sortId,
+                sort = sort,
+                order = order,
                 availability = availability,
                 lastMessageAtAfter = lastMessageAtAfter,
                 lastMessageAtBefore = lastMessageAtBefore,
@@ -530,13 +534,15 @@ class MessagesService internal constructor(
 ) {
     suspend fun listChatMessages(
         chatId: Int,
-        sortId: SortOrder? = null,
+        sort: MessageSortField? = null,
+        order: SortOrder? = null,
         limit: Int? = null,
         cursor: String? = null,
     ): ListChatMessagesResponse {
         val response = client.get("$baseUrl/messages") {
             parameter("chat_id", chatId)
-            sortId?.let { parameter("sort[id]", it.value) }
+            sort?.let { parameter("sort", it.value) }
+            order?.let { parameter("order", it.value) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
         }
@@ -549,7 +555,8 @@ class MessagesService internal constructor(
 
     suspend fun listChatMessagesAll(
         chatId: Int,
-        sortId: SortOrder? = null,
+        sort: MessageSortField? = null,
+        order: SortOrder? = null,
         limit: Int? = null,
     ): List<Message> {
         val items = mutableListOf<Message>()
@@ -557,7 +564,8 @@ class MessagesService internal constructor(
         do {
             val response = listChatMessages(
                 chatId = chatId,
-                sortId = sortId,
+                sort = sort,
+                order = order,
                 limit = limit,
                 cursor = cursor,
             )
@@ -782,6 +790,22 @@ class ProfileService internal constructor(
         }
     }
 
+    suspend fun updateProfileAvatar(image: ByteArray): AvatarData {
+        val response = client.submitFormWithBinaryData(
+            "$baseUrl/profile/avatar",
+            formData {
+                append("image", image, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"image\"")
+                })
+            },
+        )
+        return when (response.status.value) {
+            200 -> response.body<AvatarDataDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     suspend fun updateStatus(request: StatusUpdateRequest): UserStatus {
         val response = client.put("$baseUrl/profile/status") {
             contentType(ContentType.Application.Json)
@@ -789,6 +813,15 @@ class ProfileService internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    suspend fun deleteProfileAvatar() {
+        val response = client.delete("$baseUrl/profile/avatar")
+        when (response.status.value) {
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -1131,6 +1164,22 @@ class UsersService internal constructor(
         }
     }
 
+    suspend fun updateUserAvatar(userId: Int, image: ByteArray): AvatarData {
+        val response = client.submitFormWithBinaryData(
+            "$baseUrl/users/$userId/avatar",
+            formData {
+                append("image", image, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"image\"")
+                })
+            },
+        )
+        return when (response.status.value) {
+            200 -> response.body<AvatarDataDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     suspend fun updateUserStatus(userId: Int, request: StatusUpdateRequest): UserStatus {
         val response = client.put("$baseUrl/users/$userId/status") {
             contentType(ContentType.Application.Json)
@@ -1145,6 +1194,15 @@ class UsersService internal constructor(
 
     suspend fun deleteUser(id: Int) {
         val response = client.delete("$baseUrl/users/$id")
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    suspend fun deleteUserAvatar(userId: Int) {
+        val response = client.delete("$baseUrl/users/$userId/avatar")
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()

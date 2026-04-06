@@ -29,10 +29,11 @@
     "usage": "try await client.bots.deleteWebhookEvent(id: \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "let response = try await client.chats.listChats(sortId: .desc, availability: .isMember, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\", personal: false, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListChatsResponse(data: [Chat], meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "SortOrder"
     ]
   },
@@ -152,9 +153,10 @@
     "usage": "try await client.groupTags.deleteTag(id: 9111)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sortId: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "let response = try await client.messages.listChatMessages(chatId: 198, sort: .id, order: .desc, limit: 1, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListChatMessagesResponse(data: [Message], meta: PaginationMeta)",
     "imports": [
+      "MessageSortField",
       "SortOrder"
     ]
   },
@@ -239,6 +241,10 @@
     "usage": "let response = try await client.profile.getStatus()",
     "output": "String"
   },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "let image = Data()\nlet response = try await client.profile.updateProfileAvatar(image: image)",
+    "output": "AvatarData(imageUrl: String)"
+  },
   "ProfileOperations_updateStatus": {
     "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"🎮\",\n        title: \"Очень занят\",\n        expiresAt: \"2024-04-08T10:00:00.000Z\",\n        isAway: true,\n        awayMessage: \"Вернусь после 15:00\"\n    )\n)\nlet response = try await client.profile.updateStatus(body: body)",
     "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)",
@@ -246,6 +252,9 @@
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
+  },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "try await client.profile.deleteProfileAvatar()"
   },
   "ProfileOperations_deleteStatus": {
     "usage": "try await client.profile.deleteStatus()"
@@ -338,6 +347,10 @@
       "UserUpdateRequestUser"
     ]
   },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "let image = Data()\nlet response = try await client.users.updateUserAvatar(userId: 12, image: image)",
+    "output": "AvatarData(imageUrl: String)"
+  },
   "UserStatusOperations_updateUserStatus": {
     "usage": "let body = StatusUpdateRequest(\n    status: StatusUpdateRequestStatus(\n        emoji: \"🎮\",\n        title: \"Очень занят\",\n        expiresAt: \"2024-04-08T10:00:00.000Z\",\n        isAway: true,\n        awayMessage: \"Вернусь после 15:00\"\n    )\n)\nlet response = try await client.users.updateUserStatus(userId: 12, body: body)",
     "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)",
@@ -348,6 +361,9 @@
   },
   "UserOperations_deleteUser": {
     "usage": "try await client.users.deleteUser(id: 12)"
+  },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "try await client.users.deleteUserAvatar(userId: 12)"
   },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "try await client.users.deleteUserStatus(userId: 12)"

@@ -61,6 +61,8 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ### Profile
 - `GET /oauth/token/info` — Get token info
 - `GET /profile` — Get profile
+- `PUT /profile/avatar` — Update profile avatar
+- `DELETE /profile/avatar` — Delete profile avatar
 - `GET /profile/status` — Get status
 - `PUT /profile/status` — Update status
 - `DELETE /profile/status` — Delete status
@@ -71,6 +73,8 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `GET /users/{id}` — Get user
 - `PUT /users/{id}` — Update user
 - `DELETE /users/{id}` — Delete user
+- `PUT /users/{user_id}/avatar` — Update user avatar
+- `DELETE /users/{user_id}/avatar` — Delete user avatar
 - `GET /users/{user_id}/status` — Get user status
 - `PUT /users/{user_id}/status` — Update user status
 - `DELETE /users/{user_id}/status` — Delete user status

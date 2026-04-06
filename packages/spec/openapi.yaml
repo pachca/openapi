@@ -320,20 +320,25 @@ paths:
 
         Метод для получения списка чатов по заданным параметрам.
       parameters:
-        - name: sort[{field}]
+        - name: sort
           in: query
           required: false
-          description: Составной параметр сортировки сущностей выборки
+          description: Поле сортировки
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ChatSortField'
+            default: id
+          example: id
+          explode: false
+        - name: order
+          in: query
+          required: false
+          description: Направление сортировки
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
             default: desc
           example: desc
-          x-param-names:
-            - name: sort[id]
-              description: Идентификатор чата
-            - name: sort[last_message_at]
-              description: Дата и время создания последнего сообщения
           explode: false
         - name: availability
           in: query
@@ -1851,18 +1856,25 @@ paths:
             example: 198
           example: 198
           explode: false
-        - name: sort[{field}]
+        - name: sort
           in: query
           required: false
-          description: Составной параметр сортировки сущностей выборки
+          description: Поле сортировки
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/MessageSortField'
+            default: id
+          example: id
+          explode: false
+        - name: order
+          in: query
+          required: false
+          description: Направление сортировки
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
             default: desc
           example: desc
-          x-param-names:
-            - name: sort[id]
-              description: Идентификатор сообщения
           explode: false
         - name: limit
           in: query
@@ -2739,6 +2751,104 @@ paths:
         - Profile
       x-requirements:
         scope: profile:read
+  /profile/avatar:
+    put:
+      operationId: ProfileAvatarOperations_updateProfileAvatar
+      description: |-
+        Загрузка аватара
+
+        Метод для загрузки или обновления аватара своего профиля. Файл передается в формате `multipart/form-data`.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AvatarData'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Файл изображения для аватара
+              required:
+                - image
+      x-requirements:
+        scope: profile_avatar:write
+    delete:
+      operationId: ProfileAvatarOperations_deleteProfileAvatar
+      description: |-
+        Удаление аватара
+
+        Метод для удаления аватара своего профиля.
+      parameters: []
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Profile
+      x-requirements:
+        scope: profile_avatar:write
   /profile/status:
     get:
       operationId: ProfileOperations_getStatus
@@ -4069,6 +4179,134 @@ paths:
         - Users
       x-requirements:
         scope: users:delete
+  /users/{user_id}/avatar:
+    put:
+      operationId: UserAvatarOperations_updateUserAvatar
+      description: |-
+        Загрузка аватара сотрудника
+
+        Метод для загрузки или обновления аватара сотрудника. Файл передается в формате `multipart/form-data`.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+            example: 12
+          example: 12
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AvatarData'
+                description: Обертка ответа с данными
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Файл изображения для аватара
+              required:
+                - image
+      x-requirements:
+        scope: user_avatar:write
+    delete:
+      operationId: UserAvatarOperations_deleteUserAvatar
+      description: |-
+        Удаление аватара сотрудника
+
+        Метод для удаления аватара сотрудника.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+            format: int32
+            example: 12
+          example: 12
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Users
+      x-requirements:
+        scope: user_avatar:write
   /users/{user_id}/status:
     get:
       operationId: UserStatusOperations_getUserStatus
@@ -4929,6 +5167,16 @@ components:
         search_users_api: Поиск сотрудников через API
         search_chats_api: Поиск чатов через API
         search_messages_api: Поиск сообщений через API
+    AvatarData:
+      type: object
+      required:
+        - image_url
+      properties:
+        image_url:
+          type: string
+          description: URL аватара
+          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+      description: Данные аватара
     BotResponse:
       type: object
       required:
@@ -5257,6 +5505,15 @@ components:
           description: Дата и время отправки вебхука (UTC+0) в формате UNIX
           example: 1747574400
       description: Структура исходящего вебхука об участниках чата
+    ChatSortField:
+      type: string
+      enum:
+        - id
+        - last_message_at
+      description: Поле сортировки чатов
+      x-enum-descriptions:
+        id: По идентификатору чата
+        last_message_at: По дате и времени создания последнего сообщения
     ChatSubtype:
       type: string
       enum:
@@ -5977,6 +6234,13 @@ components:
         discussion: Беседа или канал
         thread: Тред
         user: Пользователь
+    MessageSortField:
+      type: string
+      enum:
+        - id
+      description: Поле сортировки сообщений
+      x-enum-descriptions:
+        id: По идентификатору сообщения
     MessageUpdateRequest:
       type: object
       required:
@@ -6177,8 +6441,10 @@ components:
         - profile:read
         - profile_status:read
         - profile_status:write
+        - profile_avatar:write
         - user_status:read
         - user_status:write
+        - user_avatar:write
         - custom_properties:read
         - audit_events:read
         - tasks:read
@@ -6332,10 +6598,18 @@ components:
           - admin
           - user
           - bot
+        profile_avatar_write:
+          - owner
+          - admin
+          - user
+          - bot
         user_status_read:
           - owner
           - admin
         user_status_write:
+          - owner
+          - admin
+        user_avatar_write:
           - owner
           - admin
         custom_properties_read:
@@ -6446,8 +6720,10 @@ components:
         profile_read: Просмотр информации о своем профиле
         profile_status_read: Просмотр статуса профиля
         profile_status_write: Изменение и удаление статуса профиля
+        profile_avatar_write: Изменение и удаление аватара профиля
         user_status_read: Просмотр статуса сотрудника
         user_status_write: Изменение и удаление статуса сотрудника
+        user_avatar_write: Изменение и удаление аватара сотрудника
         custom_properties_read: Просмотр дополнительных полей
         audit_events_read: Просмотр журнала аудита
         tasks_read: Просмотр задач

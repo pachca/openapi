@@ -143,10 +143,11 @@ public struct ChatsService {
         self.session = session
     }
 
-    public func listChats(sortId: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatsResponse {
+    public func listChats(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatsResponse {
         var components = URLComponents(string: "\(baseURL)/chats")!
         var queryItems: [URLQueryItem] = []
-        if let sortId { queryItems.append(URLQueryItem(name: "sort[id]", value: sortId.rawValue)) }
+        if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
+        if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
         if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
         if let lastMessageAtAfter { queryItems.append(URLQueryItem(name: "last_message_at_after", value: lastMessageAtAfter)) }
         if let lastMessageAtBefore { queryItems.append(URLQueryItem(name: "last_message_at_before", value: lastMessageAtBefore)) }
@@ -168,11 +169,11 @@ public struct ChatsService {
         }
     }
 
-    public func listChatsAll(sortId: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
+    public func listChatsAll(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
         var items: [Chat] = []
         var cursor: String? = nil
         repeat {
-            let response = try await listChats(sortId: sortId, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor)
+            let response = try await listChats(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
@@ -686,11 +687,12 @@ public struct MessagesService {
         self.session = session
     }
 
-    public func listChatMessages(chatId: Int, sortId: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatMessagesResponse {
+    public func listChatMessages(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListChatMessagesResponse {
         var components = URLComponents(string: "\(baseURL)/messages")!
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "chat_id", value: String(chatId)))
-        if let sortId { queryItems.append(URLQueryItem(name: "sort[id]", value: sortId.rawValue)) }
+        if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
+        if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
@@ -708,11 +710,11 @@ public struct MessagesService {
         }
     }
 
-    public func listChatMessagesAll(chatId: Int, sortId: SortOrder? = nil, limit: Int? = nil) async throws -> [Message] {
+    public func listChatMessagesAll(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil) async throws -> [Message] {
         var items: [Message] = []
         var cursor: String? = nil
         repeat {
-            let response = try await listChatMessages(chatId: chatId, sortId: sortId, limit: limit, cursor: cursor)
+            let response = try await listChatMessages(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
@@ -1064,6 +1066,37 @@ public struct ProfileService {
         }
     }
 
+    public func updateProfileAvatar(image: Data) async throws -> AvatarData {
+        var request = URLRequest(url: URL(string: "\(baseURL)/profile/avatar")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var data = Data()
+        func appendField(_ name: String, _ value: String) {
+            data.append("--\(boundary)\r\n".data(using: .utf8)!)
+            data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            data.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"image\"; filename=\"upload\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(image)
+        data.append("\r\n".data(using: .utf8)!)
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = data
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: responseData)
+        default:
+            throw try deserialize(ApiError.self, from: responseData)
+        }
+    }
+
     public func updateStatus(request body: StatusUpdateRequest) async throws -> UserStatus {
         var request = URLRequest(url: URL(string: "\(baseURL)/profile/status")!)
         request.httpMethod = "PUT"
@@ -1075,6 +1108,22 @@ public struct ProfileService {
         switch statusCode {
         case 200:
             return try deserialize(UserStatusDataWrapper.self, from: data).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public func deleteProfileAvatar() async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/profile/avatar")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
         case 401:
             throw try deserialize(OAuthError.self, from: data)
         default:
@@ -1448,6 +1497,37 @@ public struct UsersService {
         }
     }
 
+    public func updateUserAvatar(userId: Int, image: Data) async throws -> AvatarData {
+        var request = URLRequest(url: URL(string: "\(baseURL)/users/\(userId)/avatar")!)
+        request.httpMethod = "PUT"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var data = Data()
+        func appendField(_ name: String, _ value: String) {
+            data.append("--\(boundary)\r\n".data(using: .utf8)!)
+            data.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            data.append("\(value)\r\n".data(using: .utf8)!)
+        }
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"image\"; filename=\"upload\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(image)
+        data.append("\r\n".data(using: .utf8)!)
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = data
+        let (responseData, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(AvatarDataDataWrapper.self, from: responseData).data
+        case 401:
+            throw try deserialize(OAuthError.self, from: responseData)
+        default:
+            throw try deserialize(ApiError.self, from: responseData)
+        }
+    }
+
     public func updateUserStatus(userId: Int, request body: StatusUpdateRequest) async throws -> UserStatus {
         var request = URLRequest(url: URL(string: "\(baseURL)/users/\(userId)/status")!)
         request.httpMethod = "PUT"
@@ -1468,6 +1548,22 @@ public struct UsersService {
 
     public func deleteUser(id: Int) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/users/\(id)")!)
+        request.httpMethod = "DELETE"
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 204:
+            return
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public func deleteUserAvatar(userId: Int) async throws -> Void {
+        var request = URLRequest(url: URL(string: "\(baseURL)/users/\(userId)/avatar")!)
         request.httpMethod = "DELETE"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)

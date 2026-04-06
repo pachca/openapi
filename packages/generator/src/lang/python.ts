@@ -409,22 +409,28 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   if (isMultipart) {
     lines.push(`        data: dict[str, str] = {}`);
     const req = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
+    const isUnwrapped = shouldUnwrapBody(op.requestBody!);
     if (req) {
       const binary = req.fields.find((f) => f.type.kind === 'binary');
       const nonBinary = req.fields.filter((f) => f.type.kind !== 'binary');
       for (const f of nonBinary.filter((x) => !isOptionalField(x))) {
+        const ref = isUnwrapped ? pyFieldName(f) : `request.${pyFieldName(f)}`;
         lines.push(
-          `        data[${JSON.stringify(f.name)}] = request.${pyFieldName(f)}`,
+          `        data[${JSON.stringify(f.name)}] = ${ref}`,
         );
       }
       for (const f of nonBinary.filter((x) => isOptionalField(x))) {
-        lines.push(`        if request.${pyFieldName(f)} is not None:`);
+        const ref = isUnwrapped ? pyFieldName(f) : `request.${pyFieldName(f)}`;
+        lines.push(`        if ${ref} is not None:`);
         lines.push(
-          `            data[${JSON.stringify(f.name)}] = request.${pyFieldName(f)}`,
+          `            data[${JSON.stringify(f.name)}] = ${ref}`,
         );
       }
+      const binaryRef = binary
+        ? (isUnwrapped ? pyFieldName(binary) : `request.${pyFieldName(binary)}`)
+        : undefined;
       const filesExpr = binary
-        ? `{"${binary.name}": request.${pyFieldName(binary)}}`
+        ? `{"${binary.name}": ${binaryRef}}`
         : '{}';
       const mpPathStr = op.externalUrl
         ? camelToSnake(op.externalUrl)

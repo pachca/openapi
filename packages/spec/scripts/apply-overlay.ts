@@ -187,6 +187,22 @@ const RU_TO_EN: Record<string, string> = {
 	'Обертка ответа с данными': 'Response wrapper with data',
 	'Обертка ответа поисковых результатов с данными и пагинацией': 'Search results response wrapper with data and pagination',
 
+	// Avatar model
+	'Данные аватара': 'Avatar data',
+	'URL аватара': 'Avatar URL',
+	'Файл изображения для аватара': 'Avatar image file',
+	'Изменение и удаление аватара профиля': 'Update and delete profile avatar',
+	'Изменение и удаление аватара сотрудника': 'Update and delete employee avatar',
+
+	// ChatSortField enum
+	'Поле сортировки чатов': 'Chat sort field',
+	'По идентификатору чата': 'By chat ID',
+	'По дате и времени создания последнего сообщения': 'By date and time of the last message',
+
+	// MessageSortField enum
+	'Поле сортировки сообщений': 'Message sort field',
+	'По идентификатору сообщения': 'By message ID',
+
 	// x-param-names descriptions
 	'Идентификатор чата': 'Chat ID',
 	'Дата и время создания последнего сообщения': 'Date and time of the last message creation',

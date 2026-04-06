@@ -44,6 +44,7 @@ import {
   ListReadMembersParams,
   Thread,
   AccessTokenInfo,
+  AvatarData,
   StatusUpdateRequest,
   UserStatus,
   SearchChatsParams,
@@ -188,7 +189,8 @@ class ChatsService {
 
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     const query = new URLSearchParams();
-    if (params?.sortId !== undefined) query.set("sort[id]", params.sortId);
+    if (params?.sort !== undefined) query.set("sort", params.sort);
+    if (params?.order !== undefined) query.set("order", params.order);
     if (params?.availability !== undefined) query.set("availability", params.availability);
     if (params?.lastMessageAtAfter !== undefined) query.set("last_message_at_after", params.lastMessageAtAfter);
     if (params?.lastMessageAtBefore !== undefined) query.set("last_message_at_before", params.lastMessageAtBefore);
@@ -678,7 +680,8 @@ class MessagesService {
   async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
     const query = new URLSearchParams();
     query.set("chat_id", String(params.chatId));
-    if (params?.sortId !== undefined) query.set("sort[id]", params.sortId);
+    if (params?.sort !== undefined) query.set("sort", params.sort);
+    if (params?.order !== undefined) query.set("order", params.order);
     if (params?.limit !== undefined) query.set("limit", String(params.limit));
     if (params?.cursor !== undefined) query.set("cursor", params.cursor);
     const response = await fetchWithRetry(`${this.baseUrl}/messages?${query}`, {
@@ -1013,6 +1016,25 @@ class ProfileService {
     }
   }
 
+  async updateProfileAvatar(image: Blob): Promise<AvatarData> {
+    const form = new FormData();
+    form.set("image", image, "upload");
+    const response = await fetchWithRetry(`${this.baseUrl}/profile/avatar`, {
+      method: "PUT",
+      headers: this.headers,
+      body: form,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body.data) as AvatarData;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
   async updateStatus(request: StatusUpdateRequest): Promise<UserStatus> {
     const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       method: "PUT",
@@ -1027,6 +1049,21 @@ class ProfileService {
         throw new OAuthError(body.error);
       default:
         throw new ApiError(body.errors);
+    }
+  }
+
+  async deleteProfileAvatar(): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/profile/avatar`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
     }
   }
 
@@ -1376,6 +1413,25 @@ class UsersService {
     }
   }
 
+  async updateUserAvatar(userId: number, image: Blob): Promise<AvatarData> {
+    const form = new FormData();
+    form.set("image", image, "upload");
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/avatar`, {
+      method: "PUT",
+      headers: this.headers,
+      body: form,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body.data) as AvatarData;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
   async updateUserStatus(userId: number, request: StatusUpdateRequest): Promise<UserStatus> {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       method: "PUT",
@@ -1395,6 +1451,21 @@ class UsersService {
 
   async deleteUser(id: number): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
+      method: "DELETE",
+      headers: this.headers,
+    });
+    switch (response.status) {
+      case 204:
+        return;
+      case 401:
+        throw new OAuthError(((await response.json()) as any).error);
+      default:
+        throw new ApiError(((await response.json()) as any).errors);
+    }
+  }
+
+  async deleteUserAvatar(userId: number): Promise<void> {
+    const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/avatar`, {
       method: "DELETE",
       headers: this.headers,
     });

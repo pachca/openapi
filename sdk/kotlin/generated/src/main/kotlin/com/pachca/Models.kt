@@ -114,6 +114,15 @@ enum class ChatMemberRoleFilter(val value: String) {
     @SerialName("member") MEMBER("member"),
 }
 
+/** Поле сортировки чатов */
+@Serializable
+enum class ChatSortField(val value: String) {
+    /** По идентификатору чата */
+    @SerialName("id") ID("id"),
+    /** По дате и времени создания последнего сообщения */
+    @SerialName("last_message_at") LAST_MESSAGE_AT("last_message_at"),
+}
+
 /** Тип чата */
 @Serializable
 enum class ChatSubtype(val value: String) {
@@ -172,6 +181,12 @@ enum class MessageEntityType(val value: String) {
     @SerialName("thread") THREAD("thread"),
     /** Пользователь */
     @SerialName("user") USER("user"),
+}
+
+@Serializable
+enum class MessageSortField(val value: String) {
+    /** По идентификатору сообщения */
+    @SerialName("id") ID("id"),
 }
 
 /** Скоуп доступа OAuth токена */
@@ -235,10 +250,14 @@ enum class OAuthScope(val value: String) {
     @SerialName("profile_status:read") PROFILE_STATUS_READ("profile_status:read"),
     /** Изменение и удаление статуса профиля */
     @SerialName("profile_status:write") PROFILE_STATUS_WRITE("profile_status:write"),
+    /** Изменение и удаление аватара профиля */
+    @SerialName("profile_avatar:write") PROFILE_AVATAR_WRITE("profile_avatar:write"),
     /** Просмотр статуса сотрудника */
     @SerialName("user_status:read") USER_STATUS_READ("user_status:read"),
     /** Изменение и удаление статуса сотрудника */
     @SerialName("user_status:write") USER_STATUS_WRITE("user_status:write"),
+    /** Изменение и удаление аватара сотрудника */
+    @SerialName("user_avatar:write") USER_AVATAR_WRITE("user_avatar:write"),
     /** Просмотр дополнительных полей */
     @SerialName("custom_properties:read") CUSTOM_PROPERTIES_READ("custom_properties:read"),
     /** Просмотр журнала аудита */
@@ -842,6 +861,11 @@ data class AuditEvent(
 )
 
 @Serializable
+data class AvatarData(
+    @SerialName("image_url") val imageUrl: String,
+)
+
+@Serializable
 data class BotResponseWebhook(
     @SerialName("outgoing_url") val outgoingUrl: String,
 )
@@ -1390,6 +1414,16 @@ data class WebhookMessageThread(
 )
 
 @Serializable
+data class UpdateProfileAvatarRequest(
+    @Transient val image: ByteArray = ByteArray(0),
+)
+
+@Serializable
+data class UpdateUserAvatarRequest(
+    @Transient val image: ByteArray = ByteArray(0),
+)
+
+@Serializable
 data class GetAuditEventsResponse(
     val data: List<AuditEvent>,
     val meta: PaginationMeta,
@@ -1492,6 +1526,9 @@ data class AccessTokenInfoDataWrapper(val data: AccessTokenInfo)
 
 @Serializable
 data class UserDataWrapper(val data: User)
+
+@Serializable
+data class AvatarDataDataWrapper(val data: AvatarData)
 
 @Serializable
 data class UserStatusDataWrapper(val data: UserStatus)

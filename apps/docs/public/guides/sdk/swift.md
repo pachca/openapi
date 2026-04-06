@@ -75,15 +75,19 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 | `client.profile.getTokenInfo()` | [Информация о токене](/api/profile/get-info) |
 | `client.profile.getProfile()` | [Информация о профиле](/api/profile/get) |
 | `client.profile.getStatus()` | [Текущий статус](/api/profile/get-status) |
+| `client.profile.updateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.profile.updateStatus()` | [Новый статус](/api/profile/update-status) |
+| `client.profile.deleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.profile.deleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.users.createUser()` | [Создать сотрудника](/api/users/create) |
 | `client.users.listUsers()` | [Список сотрудников](/api/users/list) |
 | `client.users.getUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.users.getUserStatus()` | [Статус сотрудника](/api/users/get-status) |
 | `client.users.updateUser()` | [Редактирование сотрудника](/api/users/update) |
+| `client.users.updateUserAvatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.users.updateUserStatus()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.users.deleteUser()` | [Удаление сотрудника](/api/users/delete) |
+| `client.users.deleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.deleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.groupTags.createTag()` | [Новый тег](/api/group-tags/create) |
 | `client.groupTags.listTags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -143,7 +147,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 import PachcaSDK
 
 // Список чатов
-let response = try await client.chats.listChats(sortId: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+let response = try await client.chats.listChats(sort: .id, order: .desc, availability: .isMember, lastMessageAtAfter: "2025-01-01T00:00:00.000Z", lastMessageAtBefore: "2025-02-01T00:00:00.000Z", personal: false, limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: [Chat], meta: PaginationMeta)
 ```
 

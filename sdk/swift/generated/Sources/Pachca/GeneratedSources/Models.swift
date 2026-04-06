@@ -105,6 +105,13 @@ public enum ChatMemberRoleFilter: String, Codable, CaseIterable {
     case member
 }
 
+public enum ChatSortField: String, Codable, CaseIterable {
+    /// По идентификатору чата
+    case id
+    /// По дате и времени создания последнего сообщения
+    case lastMessageAt = "last_message_at"
+}
+
 public enum ChatSubtype: String, Codable, CaseIterable {
     /// Канал или беседа
     case discussion
@@ -151,6 +158,11 @@ public enum MessageEntityType: String, Codable, CaseIterable {
     case thread
     /// Пользователь
     case user
+}
+
+public enum MessageSortField: String, Codable, CaseIterable {
+    /// По идентификатору сообщения
+    case id
 }
 
 public enum OAuthScope: String, Codable, CaseIterable {
@@ -212,10 +224,14 @@ public enum OAuthScope: String, Codable, CaseIterable {
     case profileStatusRead = "profile_status:read"
     /// Изменение и удаление статуса профиля
     case profileStatusWrite = "profile_status:write"
+    /// Изменение и удаление аватара профиля
+    case profileAvatarWrite = "profile_avatar:write"
     /// Просмотр статуса сотрудника
     case userStatusRead = "user_status:read"
     /// Изменение и удаление статуса сотрудника
     case userStatusWrite = "user_status:write"
+    /// Изменение и удаление аватара сотрудника
+    case userAvatarWrite = "user_avatar:write"
     /// Просмотр дополнительных полей
     case customPropertiesRead = "custom_properties:read"
     /// Просмотр журнала аудита
@@ -741,6 +757,18 @@ public struct AuditEvent: Codable {
         case details
         case ipAddress = "ip_address"
         case userAgent = "user_agent"
+    }
+}
+
+public struct AvatarData: Codable {
+    public let imageUrl: String
+
+    public init(imageUrl: String) {
+        self.imageUrl = imageUrl
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case imageUrl = "image_url"
     }
 }
 
@@ -2515,6 +2543,22 @@ public struct WebhookMessageThread: Codable {
     }
 }
 
+public struct UpdateProfileAvatarRequest: Codable {
+    public var image: Data
+
+    public init(image: Data) {
+        self.image = image
+    }
+}
+
+public struct UpdateUserAvatarRequest: Codable {
+    public var image: Data
+
+    public init(image: Data) {
+        self.image = image
+    }
+}
+
 public enum AuditEventDetailsUnion: Codable {
     case auditDetailsEmpty(AuditDetailsEmpty)
     case auditDetailsUserUpdated(AuditDetailsUserUpdated)
@@ -2837,6 +2881,10 @@ struct AccessTokenInfoDataWrapper: Codable {
 
 struct UserDataWrapper: Codable {
     let data: User
+}
+
+struct AvatarDataDataWrapper: Codable {
+    let data: AvatarData
 }
 
 struct UserStatusDataWrapper: Codable {

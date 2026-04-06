@@ -325,20 +325,25 @@ paths:
 
         Retrieve a list of chats based on the specified parameters.
       parameters:
-        - name: sort[{field}]
+        - name: sort
           in: query
           required: false
-          description: Sort order for the results
+          description: Sort field
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ChatSortField'
+            default: id
+          example: id
+          explode: false
+        - name: order
+          in: query
+          required: false
+          description: Sort direction
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
             default: desc
           example: desc
-          x-param-names:
-            - name: sort[id]
-              description: Chat ID
-            - name: sort[last_message_at]
-              description: Date and time of the last message creation
           explode: false
         - name: availability
           in: query
@@ -1902,18 +1907,25 @@ paths:
             example: 198
           example: 198
           explode: false
-        - name: sort[{field}]
+        - name: sort
           in: query
           required: false
-          description: Sort order for the results
+          description: Sort field
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/MessageSortField'
+            default: id
+          example: id
+          explode: false
+        - name: order
+          in: query
+          required: false
+          description: Sort direction
           schema:
             allOf:
               - $ref: '#/components/schemas/SortOrder'
             default: desc
           example: desc
-          x-param-names:
-            - name: sort[id]
-              description: Message ID
           explode: false
         - name: limit
           in: query
@@ -2814,6 +2826,104 @@ paths:
         - Profile
       x-requirements:
         scope: profile:read
+  /profile/avatar:
+    put:
+      operationId: ProfileAvatarOperations_updateProfileAvatar
+      description: |-
+        Upload avatar
+
+        Upload or update your profile avatar. The file is sent in `multipart/form-data` format.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AvatarData'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Avatar image file
+              required:
+                - image
+      x-requirements:
+        scope: profile_avatar:write
+    delete:
+      operationId: ProfileAvatarOperations_deleteProfileAvatar
+      description: |-
+        Delete avatar
+
+        Delete your profile avatar.
+      parameters: []
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Profile
+      x-requirements:
+        scope: profile_avatar:write
   /profile/status:
     get:
       operationId: ProfileOperations_getStatus
@@ -4164,6 +4274,134 @@ paths:
         - Users
       x-requirements:
         scope: users:delete
+  /users/{user_id}/avatar:
+    put:
+      operationId: UserAvatarOperations_updateUserAvatar
+      description: |-
+        Upload employee avatar
+
+        Upload or update an employee's avatar. The file is sent in `multipart/form-data` format.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            format: int32
+            example: 12
+          example: 12
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AvatarData'
+                description: Response wrapper with data
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Avatar image file
+              required:
+                - image
+      x-requirements:
+        scope: user_avatar:write
+    delete:
+      operationId: UserAvatarOperations_deleteUserAvatar
+      description: |-
+        Delete employee avatar
+
+        Delete an employee's avatar.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            format: int32
+            example: 12
+          example: 12
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiError'
+                  - $ref: '#/components/schemas/OAuthError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Users
+      x-requirements:
+        scope: user_avatar:write
   /users/{user_id}/status:
     get:
       operationId: UserStatusOperations_getUserStatus
@@ -5039,6 +5277,16 @@ components:
         search_users_api: Employee search via API
         search_chats_api: Chat search via API
         search_messages_api: Message search via API
+    AvatarData:
+      type: object
+      required:
+        - image_url
+      properties:
+        image_url:
+          type: string
+          description: Avatar URL
+          example: https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg
+      description: Avatar data
     BotResponse:
       type: object
       required:
@@ -5367,6 +5615,15 @@ components:
           description: Webhook send date and time (UTC+0) in UNIX format
           example: 1747574400
       description: Outgoing webhook payload for chat members
+    ChatSortField:
+      type: string
+      enum:
+        - id
+        - last_message_at
+      description: Chat sort field
+      x-enum-descriptions:
+        id: By chat ID
+        last_message_at: By last message date and time
     ChatSubtype:
       type: string
       enum:
@@ -6100,6 +6357,13 @@ components:
         discussion: Conversation or channel
         thread: Thread
         user: User
+    MessageSortField:
+      type: string
+      enum:
+        - id
+      description: Message sort field
+      x-enum-descriptions:
+        id: By message ID
     MessageUpdateRequest:
       type: object
       required:
@@ -6304,8 +6568,10 @@ components:
         - profile:read
         - profile_status:read
         - profile_status:write
+        - profile_avatar:write
         - user_status:read
         - user_status:write
+        - user_avatar:write
         - custom_properties:read
         - audit_events:read
         - tasks:read
@@ -6459,10 +6725,18 @@ components:
           - admin
           - user
           - bot
+        profile_avatar_write:
+          - owner
+          - admin
+          - user
+          - bot
         user_status_read:
           - owner
           - admin
         user_status_write:
+          - owner
+          - admin
+        user_avatar_write:
           - owner
           - admin
         custom_properties_read:
@@ -6573,8 +6847,10 @@ components:
         profile_read: View own profile information
         profile_status_read: View profile status
         profile_status_write: Update and delete profile status
+        profile_avatar_write: Update and delete profile avatar
         user_status_read: View employee status
         user_status_write: Update and delete employee status
+        user_avatar_write: Update and delete employee avatar
         custom_properties_read: View custom properties
         audit_events_read: View audit log
         tasks_read: View tasks

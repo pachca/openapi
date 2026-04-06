@@ -30,7 +30,7 @@ tar -xzf n8n-nodes-pachca.tgz -C ~/.n8n/nodes/
 
 ### Pachca
 
-Main node for interacting with the Pachca API. Supports 18 resources and 60+ operations:
+Main node for interacting with the Pachca API. Supports 18 resources and 65+ operations:
 
 | Resource | Operations |
 |----------|-----------|
@@ -44,14 +44,14 @@ Main node for interacting with the Pachca API. Supports 18 resources and 60+ ope
 | Group Tag | Create, Get, Get Many, Update, Delete, Get Many Users |
 | Link Preview | Create |
 | Message | Create, Get, Get Many, Update, Delete, Pin, Unpin |
-| Profile | Get Info, Get, Get/Update/Delete Status |
+| Profile | Get Info, Get, Update/Delete Avatar, Get/Update/Delete Status |
 | Reaction | Create, Delete, Get Many |
 | Read Member | Get Many |
 | Search | Chats, Messages, Users |
 | Security | Get Many |
 | Task | Create, Get, Get Many, Update, Delete |
 | Thread | Create, Get |
-| User | Create, Get, Get Many, Update, Delete, Get/Update/Delete Status |
+| User | Create, Get, Get Many, Update, Delete, Update/Delete Avatar, Get/Update/Delete Status |
 
 ### Pachca Trigger
 
@@ -128,6 +128,10 @@ Create modal forms with three builder modes:
 - **JSON** — paste blocks from the visual playground
 
 Forms require a `trigger_id` from a `button_pressed` webhook event (valid for 3 seconds).
+
+### Avatar Upload
+
+Upload avatar images for profiles and users via `multipart/form-data`. Uses binary data from a previous node (HTTP Request, Read Binary File). The **Input Binary Field** parameter (default: `data`) specifies which binary property contains the image.
 
 ### File Upload
 

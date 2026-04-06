@@ -22,11 +22,11 @@
 | 1 | [Message](#message) | 7 | Сообщения: создание, редактирование, удаление, закрепление | |
 | 2 | [Chat](#chat) | 6 | Чаты: создание, обновление, архивация | |
 | 3 | [Chat Member](#chat-member) | 7 | Участники чата: добавление, удаление, роли, теги | да |
-| 4 | [User](#user) | 8 | Сотрудники: CRUD, статус | |
+| 4 | [User](#user) | 10 | Сотрудники: CRUD, аватар, статус | |
 | 5 | [Group Tag](#group-tag) | 6 | Теги сотрудников: CRUD, список пользователей | |
 | 6 | [Thread](#thread) | 2 | Треды: создание, получение | |
 | 7 | [Reaction](#reaction) | 3 | Реакции: создание, удаление, список | |
-| 8 | [Profile](#profile) | 5 | Мой профиль: информация, статус | |
+| 8 | [Profile](#profile) | 7 | Мой профиль: информация, аватар, статус | |
 | 9 | [Task](#task) | 5 | Задачи: полный CRUD | |
 | 10 | [Bot](#bot) | 3 | Боты: обновление, события, удаление событий | |
 | 11 | [File](#file) | 1 | Загрузка файлов через S3 | |
@@ -59,6 +59,8 @@
 
 **Ключевые параметры Create:** `entityId` (ID чата или пользователя), `content` (текст, Markdown), `entityType` (discussion, user, thread), `files`, `buttons`, `parentMessageId`.
 
+**Сортировка в Get Many:** параметры `sort` (по умолчанию `id`) и `order` (`asc` / `desc`) определяют порядок выдачи сообщений.
+
 ![Настройка Message Get Many с Entity ID и Return All](/images/n8n/message-get-many.avif)
 
 *Настройка Message → Get Many*
@@ -78,6 +80,8 @@
 | Update | [Обновление чата](PUT /chats/{id}) |
 | Archive | [Архивация чата](PUT /chats/{id}/archive) |
 | Unarchive | [Разархивация чата](PUT /chats/{id}/unarchive) |
+
+**Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
 
 ---
 
@@ -111,6 +115,8 @@
 | Get | [Информация о сотруднике](GET /users/{id}) |
 | Update | [Обновление сотрудника](PUT /users/{id}) |
 | Delete | [Удаление сотрудника](DELETE /users/{id}) |
+| Update Avatar | [Обновление аватара](PUT /users/{user_id}/avatar) |
+| Delete Avatar | [Удаление аватара](DELETE /users/{user_id}/avatar) |
 | Get Status | [Получение статуса](GET /users/{user_id}/status) |
 | Update Status | [Обновление статуса](PUT /users/{user_id}/status) |
 | Delete Status | [Удаление статуса](DELETE /users/{user_id}/status) |
@@ -163,9 +169,13 @@
 |----------|-----|
 | Get | [Информация о профиле](GET /profile) |
 | Get Info | [Информация о токене](GET /oauth/token/info) |
+| Update Avatar | [Обновление аватара](PUT /profile/avatar) |
+| Delete Avatar | [Удаление аватара](DELETE /profile/avatar) |
 | Get Status | [Получение статуса](GET /profile/status) |
 | Update Status | [Обновление статуса](PUT /profile/status) |
 | Delete Status | [Удаление статуса](DELETE /profile/status) |
+
+**Загрузка аватара:** операция Update Avatar принимает бинарные данные из предыдущего узла (например, HTTP Request или Read Binary File). В поле **Input Binary Field** укажите имя бинарного свойства (по умолчанию `data`).
 
 ---
 

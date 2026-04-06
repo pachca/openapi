@@ -29,10 +29,11 @@
     "usage": "client.bots.deleteWebhookEvent(id = \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "val response = client.chats.listChats(sortId = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore = \"2025-02-01T00:00:00.000Z\", personal = false, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore = \"2025-02-01T00:00:00.000Z\", personal = false, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "SortOrder"
     ]
   },
@@ -152,9 +153,10 @@
     "usage": "client.groupTags.deleteTag(id = 9111)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "val response = client.messages.listChatMessages(chatId = 198, sortId = SortOrder.DESC, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "usage": "val response = client.messages.listChatMessages(chatId = 198, sort = MessageSortField.ID, order = SortOrder.DESC, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
     "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta)",
     "imports": [
+      "MessageSortField",
       "SortOrder"
     ]
   },
@@ -239,6 +241,10 @@
     "usage": "val response = client.profile.getStatus()",
     "output": "Any"
   },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "val image = ByteArray(0)\nval response = client.profile.updateProfileAvatar(image = image)",
+    "output": "AvatarData(imageUrl: String)"
+  },
   "ProfileOperations_updateStatus": {
     "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"🎮\",\n        title = \"Очень занят\",\n        expiresAt = \"2024-04-08T10:00:00.000Z\",\n        isAway = true,\n        awayMessage = \"Вернусь после 15:00\"\n    )\n)\nval response = client.profile.updateStatus(request = request)",
     "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
@@ -246,6 +252,9 @@
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
+  },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "client.profile.deleteProfileAvatar()"
   },
   "ProfileOperations_deleteStatus": {
     "usage": "client.profile.deleteStatus()"
@@ -338,6 +347,10 @@
       "UserUpdateRequestUser"
     ]
   },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "val image = ByteArray(0)\nval response = client.users.updateUserAvatar(userId = 12, image = image)",
+    "output": "AvatarData(imageUrl: String)"
+  },
   "UserStatusOperations_updateUserStatus": {
     "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"🎮\",\n        title = \"Очень занят\",\n        expiresAt = \"2024-04-08T10:00:00.000Z\",\n        isAway = true,\n        awayMessage = \"Вернусь после 15:00\"\n    )\n)\nval response = client.users.updateUserStatus(userId = 12, request = request)",
     "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
@@ -348,6 +361,9 @@
   },
   "UserOperations_deleteUser": {
     "usage": "client.users.deleteUser(id = 12)"
+  },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "client.users.deleteUserAvatar(userId = 12)"
   },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "client.users.deleteUserStatus(userId = 12)"

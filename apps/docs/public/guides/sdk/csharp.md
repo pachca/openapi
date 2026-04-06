@@ -69,15 +69,19 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Profile.GetTokenInfoAsync()` | [Информация о токене](/api/profile/get-info) |
 | `client.Profile.GetProfileAsync()` | [Информация о профиле](/api/profile/get) |
 | `client.Profile.GetStatusAsync()` | [Текущий статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfileAvatarAsync()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.Profile.UpdateStatusAsync()` | [Новый статус](/api/profile/update-status) |
+| `client.Profile.DeleteProfileAvatarAsync()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.Profile.DeleteStatusAsync()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.Users.CreateUserAsync()` | [Создать сотрудника](/api/users/create) |
 | `client.Users.ListUsersAsync()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUserAsync()` | [Информация о сотруднике](/api/users/get) |
 | `client.Users.GetUserStatusAsync()` | [Статус сотрудника](/api/users/get-status) |
 | `client.Users.UpdateUserAsync()` | [Редактирование сотрудника](/api/users/update) |
+| `client.Users.UpdateUserAvatarAsync()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.Users.UpdateUserStatusAsync()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.Users.DeleteUserAsync()` | [Удаление сотрудника](/api/users/delete) |
+| `client.Users.DeleteUserAvatarAsync()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.Users.DeleteUserStatusAsync()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.GroupTags.CreateTagAsync()` | [Новый тег](/api/group-tags/create) |
 | `client.GroupTags.ListTagsAsync()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -137,7 +141,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 using Pachca.Sdk;
 
 // Список чатов
-var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
+var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
 // → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)
 ```
 

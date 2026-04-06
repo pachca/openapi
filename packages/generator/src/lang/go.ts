@@ -420,24 +420,29 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
     lines.push('\tgo func() {');
     lines.push('\t\tdefer pw.Close()');
     lines.push('\t\tdefer writer.Close()');
+    const isUnwrapped = shouldUnwrapBody(op.requestBody!);
     if (req) {
       const bin = req.fields.find((f) => f.type.kind === 'binary');
       const non = req.fields.filter((f) => f.type.kind !== 'binary');
       for (const f of non.filter((x) => isOptionalField(x))) {
-        lines.push(`\t\tif request.${goExportName(f.name)} != nil {`);
-        lines.push(`\t\t\twriter.WriteField(${JSON.stringify(f.name)}, fmt.Sprintf("%v", *request.${goExportName(f.name)}))`);
+        const ref = isUnwrapped ? snakeToCamel(f.name) : `request.${goExportName(f.name)}`;
+        const deref = isUnwrapped ? snakeToCamel(f.name) : `*request.${goExportName(f.name)}`;
+        lines.push(`\t\tif ${ref} != nil {`);
+        lines.push(`\t\t\twriter.WriteField(${JSON.stringify(f.name)}, fmt.Sprintf("%v", ${deref}))`);
         lines.push('\t\t}');
       }
       for (const f of non.filter((x) => !isOptionalField(x))) {
-        lines.push(`\t\twriter.WriteField(${JSON.stringify(f.name)}, fmt.Sprintf("%v", request.${goExportName(f.name)}))`);
+        const ref = isUnwrapped ? snakeToCamel(f.name) : `request.${goExportName(f.name)}`;
+        lines.push(`\t\twriter.WriteField(${JSON.stringify(f.name)}, fmt.Sprintf("%v", ${ref}))`);
       }
       if (bin) {
+        const binRef = isUnwrapped ? snakeToCamel(bin.name) : `request.${goExportName(bin.name)}`;
         lines.push(`\t\tpart, err := writer.CreateFormFile(${JSON.stringify(bin.name)}, "upload")`);
         lines.push('\t\tif err != nil {');
         lines.push('\t\t\tpw.CloseWithError(err)');
         lines.push('\t\t\treturn');
         lines.push('\t\t}');
-        lines.push(`\t\tif _, err := io.Copy(part, request.${goExportName(bin.name)}); err != nil {`);
+        lines.push(`\t\tif _, err := io.Copy(part, ${binRef}); err != nil {`);
         lines.push('\t\t\tpw.CloseWithError(err)');
         lines.push('\t\t\treturn');
         lines.push('\t\t}');

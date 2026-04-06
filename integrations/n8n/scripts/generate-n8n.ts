@@ -971,6 +971,20 @@ function generateResourceDescription(
       requiredFields = requiredFields.filter(f => f.name !== 'blocks');
     }
 
+    // Avatar upload: replace `image` body field with binary property reference
+    if (getSpecialHandler(resource, op.v2Op) === 'avatarUpload') {
+      requiredFields = requiredFields.filter(f => f.name !== 'image');
+      lines.push(`\t{`);
+      lines.push(`\t\tdisplayName: 'Input Binary Field',`);
+      lines.push(`\t\tname: 'image',`);
+      lines.push(`\t\ttype: 'string',`);
+      lines.push(`\t\trequired: true,`);
+      lines.push(`\t\tdefault: "data",`);
+      lines.push(`\t\tdescription: 'Name of the binary property containing the avatar image. Use a previous node (e.g. HTTP Request, Read Binary File) to load the image.',`);
+      lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
+      lines.push(`\t},`);
+    }
+
     for (const field of requiredFields) {
       lines.push(generateFieldProperty(field, resource, op, allResourceValues, allOpValues, true));
     }
@@ -2484,6 +2498,7 @@ function getSpecialHandler(resource: string, v2Op: string): string | null {
   if (resource === 'bot' && v2Op === 'update') return 'botWebhook';
   if (resource === 'user' && v2Op === 'getAll') return 'userGetAllFilters';
   if (resource === 'export' && v2Op === 'get') return 'exportDownload';
+  if ((resource === 'profile' || resource === 'user') && v2Op === 'updateAvatar') return 'avatarUpload';
   return null;
 }
 
@@ -2547,8 +2562,8 @@ function buildRouteEntry(resource: string, op: OperationInfo): string {
   const special = getSpecialHandler(resource, v2Op);
   if (special) parts.push(`special: '${special}'`);
 
-  // For file upload, skip body/query — handled entirely by special handler
-  if (special === 'fileUpload') {
+  // For file upload / avatar upload, skip body/query — handled entirely by special handler
+  if (special === 'fileUpload' || special === 'avatarUpload') {
     return `\t\t${v2Op}: {\n\t\t\t${parts.join(',\n\t\t\t')},\n\t\t}`;
   }
 
@@ -2769,6 +2784,7 @@ import {
 \tcleanFileAttachments,
 \tresolveFormBlocksFromParams,
 \tuploadFileToS3,
+\tuploadAvatar,
 \tsplitAndValidateCommaList,
 \tsimplifyItem,
 \tFORM_TEMPLATES,
@@ -2926,6 +2942,15 @@ async function executeRoute(
 \t\t\treturn [{ json: resp.body as IDataObject }];
 \t\t}
 \t\treturn [{ json: { id: exportId, success: true } as unknown as IDataObject }];
+\t}
+\tif (route.special === 'avatarUpload') {
+\t\tlet avatarUrl = route.path;
+\t\tfor (const pp of route.pathParams ?? []) {
+\t\t\tconst value = this.getNodeParameter(pp.n8n, i) as number;
+\t\t\tavatarUrl = avatarUrl.replace(\`{\${pp.api}}\`, String(value));
+\t\t}
+\t\tconst result = await uploadAvatar(this, i, avatarUrl);
+\t\treturn [{ json: result }];
 \t}
 \t// === Build URL with path params ===
 \tlet url = route.path;

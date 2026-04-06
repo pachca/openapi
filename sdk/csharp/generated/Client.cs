@@ -196,7 +196,8 @@ public sealed class ChatsService
     }
 
     public async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
-        SortOrder? sortId = null,
+        ChatSortField? sort = null,
+        SortOrder? order = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
@@ -206,8 +207,10 @@ public sealed class ChatsService
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
-        if (sortId != null)
-            queryParts.Add($"sort[id]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sortId.Value))}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
+        if (order != null)
+            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
         if (availability != null)
             queryParts.Add($"availability={Uri.EscapeDataString(PachcaUtils.EnumToApiString(availability.Value))}");
         if (lastMessageAtAfter != null)
@@ -236,7 +239,8 @@ public sealed class ChatsService
     }
 
     public async System.Threading.Tasks.Task<List<Chat>> ListChatsAllAsync(
-        SortOrder? sortId = null,
+        ChatSortField? sort = null,
+        SortOrder? order = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
@@ -248,7 +252,7 @@ public sealed class ChatsService
         string? cursor = null;
         do
         {
-            var response = await ListChatsAsync(sortId: sortId, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListChatsAsync(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
@@ -830,15 +834,18 @@ public sealed class MessagesService
 
     public async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
         int chatId,
-        SortOrder? sortId = null,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
         queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString()!)}");
-        if (sortId != null)
-            queryParts.Add($"sort[id]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sortId.Value))}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
+        if (order != null)
+            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
         if (limit != null)
             queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
@@ -860,7 +867,8 @@ public sealed class MessagesService
 
     public async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
         int chatId,
-        SortOrder? sortId = null,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -868,7 +876,7 @@ public sealed class MessagesService
         string? cursor = null;
         do
         {
-            var response = await ListChatMessagesAsync(chatId: chatId, sortId: sortId, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListChatMessagesAsync(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
@@ -1264,6 +1272,26 @@ public sealed class ProfileService
         }
     }
 
+    public async System.Threading.Tasks.Task<AvatarData> UpdateProfileAvatarAsync(byte[] image, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/profile/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public async System.Threading.Tasks.Task<UserStatus> UpdateStatusAsync(StatusUpdateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
@@ -1275,6 +1303,23 @@ public sealed class ProfileService
         {
             case 200:
                 return PachcaUtils.Deserialize<UserStatusDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public async System.Threading.Tasks.Task DeleteProfileAvatarAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/profile/avatar";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1773,6 +1818,29 @@ public sealed class UsersService
         }
     }
 
+    public async System.Threading.Tasks.Task<AvatarData> UpdateUserAvatarAsync(
+        int userId,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/users/{userId}/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public async System.Threading.Tasks.Task<UserStatus> UpdateUserStatusAsync(
         int userId,
         StatusUpdateRequest request,
@@ -1797,6 +1865,23 @@ public sealed class UsersService
     public async System.Threading.Tasks.Task DeleteUserAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public async System.Threading.Tasks.Task DeleteUserAvatarAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/users/{userId}/avatar";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

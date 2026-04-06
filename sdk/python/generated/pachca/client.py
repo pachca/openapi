@@ -17,6 +17,7 @@ from .models import (
     ListChatsParams,
     ListChatsResponse,
     Chat,
+    ChatSortField,
     SortOrder,
     ChatAvailability,
     ChatCreateRequest,
@@ -42,6 +43,7 @@ from .models import (
     ListChatMessagesParams,
     ListChatMessagesResponse,
     Message,
+    MessageSortField,
     MessageCreateRequest,
     MessageUpdateRequest,
     LinkPreviewsRequest,
@@ -53,6 +55,7 @@ from .models import (
     ListReadMembersParams,
     Thread,
     AccessTokenInfo,
+    AvatarData,
     StatusUpdateRequest,
     UserStatus,
     SearchChatsParams,
@@ -220,8 +223,10 @@ class ChatsService:
         params: ListChatsParams | None = None,
     ) -> ListChatsResponse:
         query: dict[str, str] = {}
-        if params is not None and params.sort_id is not None:
-            query["sort[id]"] = params.sort_id
+        if params is not None and params.sort is not None:
+            query["sort"] = params.sort
+        if params is not None and params.order is not None:
+            query["order"] = params.order
         if params is not None and params.availability is not None:
             query["availability"] = params.availability
         if params is not None and params.last_message_at_after is not None:
@@ -758,8 +763,10 @@ class MessagesService:
     ) -> ListChatMessagesResponse:
         query: list[tuple[str, str]] = []
         query.append(("chat_id", str(params.chat_id)))
-        if params is not None and params.sort_id is not None:
-            query.append(("sort[id]", params.sort_id))
+        if params is not None and params.sort is not None:
+            query.append(("sort", params.sort))
+        if params is not None and params.order is not None:
+            query.append(("order", params.order))
         if params is not None and params.limit is not None:
             query.append(("limit", str(params.limit)))
         if params is not None and params.cursor is not None:
@@ -1109,6 +1116,25 @@ class ProfileService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def update_profile_avatar(
+        self,
+        image: bytes,
+    ) -> AvatarData:
+        data: dict[str, str] = {}
+        response = await self._client.post(
+            "/profile/avatar",
+            data=data,
+            files={"image": image},
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AvatarData, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def update_status(
         self,
         request: StatusUpdateRequest,
@@ -1125,6 +1151,19 @@ class ProfileService:
                 raise deserialize(OAuthError, body)
             case _:
                 raise deserialize(ApiError, body)
+
+    async def delete_profile_avatar(
+        self) -> None:
+        response = await self._client.delete(
+            "/profile/avatar",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
 
     async def delete_status(
         self) -> None:
@@ -1527,6 +1566,26 @@ class UsersService:
             case _:
                 raise deserialize(ApiError, body)
 
+    async def update_user_avatar(
+        self,
+        user_id: int,
+        image: bytes,
+    ) -> AvatarData:
+        data: dict[str, str] = {}
+        response = await self._client.post(
+            f"/users/{user_id}/avatar",
+            data=data,
+            files={"image": image},
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(AvatarData, body["data"])
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
     async def update_user_status(
         self,
         user_id: int,
@@ -1551,6 +1610,21 @@ class UsersService:
     ) -> None:
         response = await self._client.delete(
             f"/users/{id}",
+        )
+        match response.status_code:
+            case 204:
+                return
+            case 401:
+                raise deserialize(OAuthError, response.json())
+            case _:
+                raise deserialize(ApiError, response.json())
+
+    async def delete_user_avatar(
+        self,
+        user_id: int,
+    ) -> None:
+        response = await self._client.delete(
+            f"/users/{user_id}/avatar",
         )
         match response.status_code:
             case 204:

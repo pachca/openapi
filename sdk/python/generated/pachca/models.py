@@ -69,6 +69,13 @@ class ChatMemberRoleFilter(StrEnum):
     MEMBER = "member"  # Участник/подписчик
 
 
+class ChatSortField(StrEnum):
+    """Поле сортировки чатов"""
+
+    ID = "id"  # По идентификатору чата
+    LAST_MESSAGE_AT = "last_message_at"  # По дате и времени создания последнего сообщения
+
+
 class ChatSubtype(StrEnum):
     """Тип чата"""
 
@@ -114,6 +121,10 @@ class MessageEntityType(StrEnum):
     USER = "user"  # Пользователь
 
 
+class MessageSortField(StrEnum):
+    ID = "id"  # По идентификатору сообщения
+
+
 class OAuthScope(StrEnum):
     """Скоуп доступа OAuth токена"""
 
@@ -146,8 +157,10 @@ class OAuthScope(StrEnum):
     PROFILE_READ = "profile:read"  # Просмотр информации о своем профиле
     PROFILE_STATUS_READ = "profile_status:read"  # Просмотр статуса профиля
     PROFILE_STATUS_WRITE = "profile_status:write"  # Изменение и удаление статуса профиля
+    PROFILE_AVATAR_WRITE = "profile_avatar:write"  # Изменение и удаление аватара профиля
     USER_STATUS_READ = "user_status:read"  # Просмотр статуса сотрудника
     USER_STATUS_WRITE = "user_status:write"  # Изменение и удаление статуса сотрудника
+    USER_AVATAR_WRITE = "user_avatar:write"  # Изменение и удаление аватара сотрудника
     CUSTOM_PROPERTIES_READ = "custom_properties:read"  # Просмотр дополнительных полей
     AUDIT_EVENTS_READ = "audit_events:read"  # Просмотр журнала аудита
     TASKS_READ = "tasks:read"  # Просмотр задач
@@ -425,6 +438,11 @@ class AuditEvent:
     details: AuditEventDetailsUnion
     ip_address: str
     user_agent: str
+
+
+@dataclass
+class AvatarData:
+    image_url: str
 
 
 @dataclass
@@ -1157,6 +1175,16 @@ class WebhookMessageThread:
     message_chat_id: int
 
 
+@dataclass
+class UpdateProfileAvatarRequest:
+    image: bytes
+
+
+@dataclass
+class UpdateUserAvatarRequest:
+    image: bytes
+
+
 AuditEventDetailsUnion = Union[AuditDetailsEmpty, AuditDetailsUserUpdated, AuditDetailsRoleChanged, AuditDetailsTagName, AuditDetailsInitiator, AuditDetailsInviter, AuditDetailsChatRenamed, AuditDetailsChatPermission, AuditDetailsTagChat, AuditDetailsChatId, AuditDetailsTokenScopes, AuditDetailsKms, AuditDetailsDlp, AuditDetailsSearch]
 
 
@@ -1181,7 +1209,8 @@ class GetAuditEventsParams:
 
 @dataclass
 class ListChatsParams:
-    sort_id: SortOrder | None = None
+    sort: ChatSortField | None = None
+    order: SortOrder | None = None
     availability: ChatAvailability | None = None
     last_message_at_after: str | None = None
     last_message_at_before: str | None = None
@@ -1218,7 +1247,8 @@ class GetTagUsersParams:
 @dataclass
 class ListChatMessagesParams:
     chat_id: int
-    sort_id: SortOrder | None = None
+    sort: MessageSortField | None = None
+    order: SortOrder | None = None
     limit: int | None = None
     cursor: str | None = None
 

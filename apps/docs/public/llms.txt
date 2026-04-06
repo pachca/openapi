@@ -68,6 +68,8 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 ## Profile
 - [Информация о токене](https://dev.pachca.com/api/profile/get-info.md): GET /oauth/token/info
 - [Информация о профиле](https://dev.pachca.com/api/profile/get.md): GET /profile
+- [Загрузка аватара](https://dev.pachca.com/api/profile/update-avatar.md): PUT /profile/avatar
+- [Удаление аватара](https://dev.pachca.com/api/profile/delete-avatar.md): DELETE /profile/avatar
 - [Текущий статус](https://dev.pachca.com/api/profile/get-status.md): GET /profile/status
 - [Новый статус](https://dev.pachca.com/api/profile/update-status.md): PUT /profile/status
 - [Удаление статуса](https://dev.pachca.com/api/profile/delete-status.md): DELETE /profile/status
@@ -78,6 +80,8 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [Информация о сотруднике](https://dev.pachca.com/api/users/get.md): GET /users/{id}
 - [Редактирование сотрудника](https://dev.pachca.com/api/users/update.md): PUT /users/{id}
 - [Удаление сотрудника](https://dev.pachca.com/api/users/delete.md): DELETE /users/{id}
+- [Загрузка аватара сотрудника](https://dev.pachca.com/api/users/update-avatar.md): PUT /users/{user_id}/avatar
+- [Удаление аватара сотрудника](https://dev.pachca.com/api/users/remove-avatar.md): DELETE /users/{user_id}/avatar
 - [Статус сотрудника](https://dev.pachca.com/api/users/get-status.md): GET /users/{user_id}/status
 - [Новый статус сотрудника](https://dev.pachca.com/api/users/update-status.md): PUT /users/{user_id}/status
 - [Удаление статуса сотрудника](https://dev.pachca.com/api/users/remove-status.md): DELETE /users/{user_id}/status

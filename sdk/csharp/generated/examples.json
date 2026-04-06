@@ -29,10 +29,11 @@
     "usage": "await client.Bots.DeleteWebhookEventAsync(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\");"
   },
   "ChatOperations_listChats": {
-    "usage": "var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "usage": "var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "SortOrder"
     ]
   },
@@ -152,9 +153,10 @@
     "usage": "await client.GroupTags.DeleteTagAsync(9111);"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "var response = await client.Messages.ListChatMessagesAsync(198, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "usage": "var response = await client.Messages.ListChatMessagesAsync(198, MessageSortField.Id, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta)",
     "imports": [
+      "MessageSortField",
       "SortOrder"
     ]
   },
@@ -239,6 +241,10 @@
     "usage": "var response = await client.Profile.GetStatusAsync();",
     "output": "object"
   },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "var response = await client.Profile.UpdateProfileAvatarAsync(Array.Empty<byte>());",
+    "output": "AvatarData(ImageUrl: string)"
+  },
   "ProfileOperations_updateStatus": {
     "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = DateTimeOffset.Parse(\"2024-04-08T10:00:00.000Z\"),\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Profile.UpdateStatusAsync(request);",
     "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)",
@@ -246,6 +252,9 @@
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
+  },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "await client.Profile.DeleteProfileAvatarAsync();"
   },
   "ProfileOperations_deleteStatus": {
     "usage": "await client.Profile.DeleteStatusAsync();"
@@ -338,6 +347,10 @@
       "UserUpdateRequestUser"
     ]
   },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "var response = await client.Users.UpdateUserAvatarAsync(12, Array.Empty<byte>());",
+    "output": "AvatarData(ImageUrl: string)"
+  },
   "UserStatusOperations_updateUserStatus": {
     "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = DateTimeOffset.Parse(\"2024-04-08T10:00:00.000Z\"),\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Users.UpdateUserStatusAsync(12, request);",
     "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)",
@@ -348,6 +361,9 @@
   },
   "UserOperations_deleteUser": {
     "usage": "await client.Users.DeleteUserAsync(12);"
+  },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "await client.Users.DeleteUserAvatarAsync(12);"
   },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "await client.Users.DeleteUserStatusAsync(12);"

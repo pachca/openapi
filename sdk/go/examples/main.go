@@ -35,6 +35,15 @@ func main() {
 	client := pachca.NewPachcaClient(token)
 	ctx := context.Background()
 
+	// ── Step 0: GET — Fetch chat (verifies datetime deserialization) ─
+	fmt.Println("0. Fetching chat...")
+	chat, err := client.Chats.GetChat(ctx, int32(chatID))
+	if err != nil {
+		log.Fatalf("GetChat failed: %v", err)
+	}
+	fmt.Printf("   Chat: %s, createdAt=%v (%T), lastMessageAt=%v (%T)\n",
+		chat.Name, chat.CreatedAt, chat.CreatedAt, chat.LastMessageAt, chat.LastMessageAt)
+
 	// ── Step 1: POST — Create a message ──────────────────────────────
 	fmt.Println("1. Creating message...")
 	created, err := client.Messages.CreateMessage(ctx, pachca.MessageCreateRequest{

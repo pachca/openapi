@@ -76,7 +76,9 @@ jobs:
 
       - name: Build n8n node
         working-directory: integrations/n8n
-        run: bun run tsc
+        run: |
+          bun run tsc
+          find . \( -name '*.png' -o -name '*.svg' \) -not -path './dist/*' -not -path './node_modules/*' | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
   publish:
     if: github.event_name == 'push'
@@ -159,7 +161,9 @@ jobs:
       - name: Build n8n node
         if: steps.changes.outputs.changed == 'true'
         working-directory: integrations/n8n
-        run: bun run tsc
+        run: |
+          bun run tsc
+          find . \( -name '*.png' -o -name '*.svg' \) -not -path './dist/*' -not -path './node_modules/*' | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
       - name: Scan community package
         if: steps.changes.outputs.changed == 'true'

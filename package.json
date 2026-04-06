@@ -13,5 +13,10 @@
     "turbo": "^2.8.1",
     "@playwright/test": "^1.50.0"
   },
-  "trustedDependencies": []
+  "trustedDependencies": [
+    "esbuild",
+    "sharp",
+    "unrs-resolver",
+    "vue-demi"
+  ]
 }

@@ -8,6 +8,7 @@ REST API Пачки позволяет автоматизировать рабо
 - [Модели API](/api/models)
 - [CLI](/guides/cli)
 - [SDK](/guides/sdk/overview)
+- [n8n](/guides/n8n/overview)
 
 **Отправка сообщения**
 

@@ -92,7 +92,7 @@ function PrevButton({ item }: { item: NavigationItem }) {
         <span className="text-[13px]">Назад</span>
       </div>
       <span className="text-[14px] font-medium text-text-primary transition-colors duration-200 truncate text-ellipsis overflow-hidden block w-full">
-        {item.title}
+        {item.sectionTitle ? `${item.sectionTitle}: ${item.title}` : item.title}
       </span>
     </Link>
   );
@@ -112,7 +112,7 @@ function NextButton({ item }: { item: NavigationItem }) {
         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <ChevronRight size={16} />}
       </div>
       <span className="text-[14px] font-medium text-text-primary transition-colors duration-200 truncate text-ellipsis overflow-hidden block w-full">
-        {item.title}
+        {item.sectionTitle ? `${item.sectionTitle}: ${item.title}` : item.title}
       </span>
     </Link>
   );

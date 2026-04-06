@@ -50,7 +50,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += '## Руководства\n';
   for (const guide of guidePages) {
     const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
-    content += `- [${guide.title}](${SITE_URL}${mdPath}): ${guide.description}\n`;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    content += `- [${displayTitle}](${SITE_URL}${mdPath}): ${guide.description}\n`;
   }
   content += '\n';
 
@@ -131,11 +132,12 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content += '## Содержание\n\n';
   content += '### Руководства\n';
   for (const guide of guidePages) {
-    const anchor = guide.title
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    const anchor = displayTitle
       .toLowerCase()
       .replace(/[#?&=]/g, '')
       .replace(/\s+/g, '-');
-    content += `- [${guide.title}](#${anchor})\n`;
+    content += `- [${displayTitle}](#${anchor})\n`;
   }
   content += '\n';
 
@@ -397,7 +399,8 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   let guides = '## Guides\n\nDetailed documentation on specific topics is available at:\n\n';
   for (const guide of guidePages) {
     if (guide.path === '/') continue;
-    guides += `- [${guide.title}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    guides += `- [${displayTitle}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
   }
 
   return [

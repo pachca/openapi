@@ -46,7 +46,7 @@
       "cache": true
     },
     "generate-n8n": {
-      "dependsOn": ["@pachca/spec#generate", "@pachca/spec#overlay:apply"],
+      "dependsOn": ["^build", "@pachca/spec#generate", "@pachca/spec#overlay:apply"],
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "../../packages/spec/openapi.en.yaml",

@@ -7,6 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: sdk-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   generate-and-build:
     name: Generate and build
@@ -28,6 +32,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -178,6 +184,8 @@ jobs:
         with:
           ref: v${{ needs.generate-and-build.outputs.version }}
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -203,7 +211,7 @@ jobs:
           if npm view "@pachca/sdk@${VERSION}" version 2>/dev/null; then
             echo "Version ${VERSION} already published, skipping"
           else
-            npm publish --access public
+            npm publish --access public --provenance
           fi
 
   publish-cli:
@@ -221,6 +229,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.4
       - uses: actions/setup-node@v4
         with:
           node-version: 20

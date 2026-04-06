@@ -78,7 +78,7 @@ jobs:
         working-directory: integrations/n8n
         run: |
           bun run tsc
-          find . \( -name '*.png' -o -name '*.svg' \) -not -path './dist/*' -not -path './node_modules/*' | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
+          find nodes icons credentials \( -name '*.png' -o -name '*.svg' \) | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
   publish:
     if: github.event_name == 'push'
@@ -163,7 +163,7 @@ jobs:
         working-directory: integrations/n8n
         run: |
           bun run tsc
-          find . \( -name '*.png' -o -name '*.svg' \) -not -path './dist/*' -not -path './node_modules/*' | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
+          find nodes icons credentials \( -name '*.png' -o -name '*.svg' \) | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
       - name: Scan community package
         if: steps.changes.outputs.changed == 'true'

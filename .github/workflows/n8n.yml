@@ -76,7 +76,7 @@ jobs:
 
       - name: Build n8n node
         working-directory: integrations/n8n
-        run: bun run build
+        run: bun run tsc
 
   publish:
     if: github.event_name == 'push'
@@ -159,7 +159,7 @@ jobs:
       - name: Build n8n node
         if: steps.changes.outputs.changed == 'true'
         working-directory: integrations/n8n
-        run: bun run build
+        run: bun run tsc
 
       - name: Scan community package
         if: steps.changes.outputs.changed == 'true'

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Union
@@ -308,11 +309,11 @@ class AccessTokenInfo:
     token: str
     user_id: int
     scopes: list[OAuthScope]
-    created_at: str
+    created_at: datetime
     name: str | None = None
-    revoked_at: str | None = None
+    revoked_at: datetime | None = None
     expires_in: int | None = None
-    last_used_at: str | None = None
+    last_used_at: datetime | None = None
 
 
 @dataclass
@@ -429,7 +430,7 @@ class AuditDetailsUserUpdated:
 @dataclass
 class AuditEvent:
     id: str
-    created_at: str
+    created_at: datetime
     event_key: AuditEventKey
     entity_id: str
     entity_type: str
@@ -494,14 +495,14 @@ class ButtonWebhookPayload:
 class Chat:
     id: int
     name: str
-    created_at: str
+    created_at: datetime
     owner_id: int
     member_ids: list[int]
     group_tag_ids: list[int]
     channel: bool
     personal: bool
     public: bool
-    last_message_at: str
+    last_message_at: datetime
     meet_room_url: str
 
 
@@ -525,7 +526,7 @@ class ChatMemberWebhookPayload:
     event: MemberEventType
     chat_id: int
     user_ids: list[int]
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
     thread_id: int | None = None
 
@@ -546,7 +547,7 @@ class CompanyMemberWebhookPayload:
     type: str  # literal "company_member"
     event: UserEventType
     user_ids: list[int]
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
 
 
@@ -603,7 +604,7 @@ class Forwarding:
     original_message_id: int
     original_chat_id: int
     author_id: int
-    original_created_at: str
+    original_created_at: datetime
     original_thread_id: int | None = None
     original_thread_message_id: int | None = None
     original_thread_parent_chat_id: int | None = None
@@ -654,7 +655,7 @@ class LinkSharedWebhookPayload:
     message_id: int
     links: list[WebhookLink]
     user_id: int
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
 
 
@@ -673,7 +674,7 @@ class Message:
     root_chat_id: int
     content: str
     user_id: int
-    created_at: str
+    created_at: datetime
     url: str
     files: list[File]
     buttons: list[list[Button]] | None = None
@@ -682,8 +683,8 @@ class Message:
     parent_message_id: int | None = None
     display_avatar_url: str | None = None
     display_name: str | None = None
-    changed_at: str | None = None
-    deleted_at: str | None = None
+    changed_at: datetime | None = None
+    deleted_at: datetime | None = None
 
 
 @dataclass
@@ -748,7 +749,7 @@ class MessageWebhookPayload:
     entity_id: int
     content: str
     user_id: int
-    created_at: str
+    created_at: datetime
     url: str
     chat_id: int
     webhook_timestamp: int
@@ -792,7 +793,7 @@ class PaginationMeta:
 @dataclass
 class Reaction:
     user_id: int
-    created_at: str
+    created_at: datetime
     code: str
     name: str | None = None
 
@@ -811,7 +812,7 @@ class ReactionWebhookPayload:
     code: str
     name: str
     user_id: int
-    created_at: str
+    created_at: datetime
     webhook_timestamp: int
 
 
@@ -830,7 +831,7 @@ class SearchPaginationMeta:
 class StatusUpdateRequestStatus:
     emoji: str
     title: str
-    expires_at: str | None = None
+    expires_at: datetime | None = None
     is_away: bool | None = None
     away_message: str | None = None
 
@@ -848,11 +849,11 @@ class Task:
     priority: int
     user_id: int
     status: TaskStatus
-    created_at: str
+    created_at: datetime
     performer_ids: list[int]
     all_day: bool
     custom_properties: list[CustomProperty]
-    due_at: str | None = None
+    due_at: datetime | None = None
     chat_id: int | None = None
 
 
@@ -866,7 +867,7 @@ class TaskCreateRequestCustomProperty:
 class TaskCreateRequestTask:
     kind: TaskKind
     content: str | None = None
-    due_at: str | None = None
+    due_at: datetime | None = None
     priority: int | None = 1
     performer_ids: list[int] | None = None
     chat_id: int | None = None
@@ -889,12 +890,12 @@ class TaskUpdateRequestCustomProperty:
 class TaskUpdateRequestTask:
     kind: TaskKind | None = None
     content: str | None = None
-    due_at: str | None = None
+    due_at: datetime | None = None
     priority: int | None = None
     performer_ids: list[int] | None = None
     status: TaskStatus | None = None
     all_day: bool | None = None
-    done_at: str | None = None
+    done_at: datetime | None = None
     custom_properties: list[TaskUpdateRequestCustomProperty] | None = None
 
 
@@ -909,7 +910,7 @@ class Thread:
     chat_id: int
     message_id: int
     message_chat_id: int
-    updated_at: str
+    updated_at: datetime
 
 
 @dataclass
@@ -947,8 +948,8 @@ class User:
     custom_properties: list[CustomProperty]
     bot: bool
     sso: bool
-    created_at: str
-    last_activity_at: str
+    created_at: datetime
+    last_activity_at: datetime
     time_zone: str
     user_status: UserStatus | None = None
     image_url: str | None = None
@@ -991,7 +992,7 @@ class UserStatus:
     emoji: str
     title: str
     is_away: bool
-    expires_at: str | None = None
+    expires_at: datetime | None = None
     away_message: UserStatusAwayMessage | None = None
 
 
@@ -1027,7 +1028,7 @@ class ViewBlock:
     text: str | None = None
     name: str | None = None
     label: str | None = None
-    initial_date: str | None = None
+    initial_date: datetime | None = None
 
 
 @dataclass
@@ -1160,7 +1161,7 @@ class WebhookEvent:
     id: str
     event_type: str
     payload: WebhookPayloadUnion
-    created_at: str
+    created_at: datetime
 
 
 @dataclass
@@ -1196,8 +1197,8 @@ WebhookPayloadUnion = Union[MessageWebhookPayload, ReactionWebhookPayload, Butto
 
 @dataclass
 class GetAuditEventsParams:
-    start_time: str | None = None
-    end_time: str | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
     event_key: AuditEventKey | None = None
     actor_id: str | None = None
     actor_type: str | None = None
@@ -1212,8 +1213,8 @@ class ListChatsParams:
     sort: ChatSortField | None = None
     order: SortOrder | None = None
     availability: ChatAvailability | None = None
-    last_message_at_after: str | None = None
-    last_message_at_before: str | None = None
+    last_message_at_after: datetime | None = None
+    last_message_at_before: datetime | None = None
     personal: bool | None = None
     limit: int | None = None
     cursor: str | None = None
@@ -1277,8 +1278,8 @@ class SearchChatsParams:
     limit: int | None = None
     cursor: str | None = None
     order: SortOrder | None = None
-    created_from: str | None = None
-    created_to: str | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
     active: bool | None = None
     chat_subtype: ChatSubtype | None = None
     personal: bool | None = None
@@ -1290,8 +1291,8 @@ class SearchMessagesParams:
     limit: int | None = None
     cursor: str | None = None
     order: SortOrder | None = None
-    created_from: str | None = None
-    created_to: str | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
     chat_ids: list[int] | None = None
     user_ids: list[int] | None = None
     active: bool | None = None
@@ -1304,8 +1305,8 @@ class SearchUsersParams:
     cursor: str | None = None
     sort: SearchSortOrder | None = None
     order: SortOrder | None = None
-    created_from: str | None = None
-    created_to: str | None = None
+    created_from: datetime | None = None
+    created_to: datetime | None = None
     company_roles: list[UserRole] | None = None
 
 

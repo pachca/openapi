@@ -17,8 +17,8 @@ public struct SecurityService {
     public func getAuditEvents(startTime: String? = nil, endTime: String? = nil, eventKey: AuditEventKey? = nil, actorId: String? = nil, actorType: String? = nil, entityId: String? = nil, entityType: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> GetAuditEventsResponse {
         var components = URLComponents(string: "\(baseURL)/audit_events")!
         var queryItems: [URLQueryItem] = []
-        if let startTime { queryItems.append(URLQueryItem(name: "start_time", value: startTime)) }
-        if let endTime { queryItems.append(URLQueryItem(name: "end_time", value: endTime)) }
+        if let startTime { queryItems.append(URLQueryItem(name: "start_time", value: String(startTime))) }
+        if let endTime { queryItems.append(URLQueryItem(name: "end_time", value: String(endTime))) }
         if let eventKey { queryItems.append(URLQueryItem(name: "event_key", value: eventKey.rawValue)) }
         if let actorId { queryItems.append(URLQueryItem(name: "actor_id", value: String(actorId))) }
         if let actorType { queryItems.append(URLQueryItem(name: "actor_type", value: String(actorType))) }
@@ -149,8 +149,8 @@ public struct ChatsService {
         if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
         if let availability { queryItems.append(URLQueryItem(name: "availability", value: availability.rawValue)) }
-        if let lastMessageAtAfter { queryItems.append(URLQueryItem(name: "last_message_at_after", value: lastMessageAtAfter)) }
-        if let lastMessageAtBefore { queryItems.append(URLQueryItem(name: "last_message_at_before", value: lastMessageAtBefore)) }
+        if let lastMessageAtAfter { queryItems.append(URLQueryItem(name: "last_message_at_after", value: String(lastMessageAtAfter))) }
+        if let lastMessageAtBefore { queryItems.append(URLQueryItem(name: "last_message_at_before", value: String(lastMessageAtBefore))) }
         if let personal { queryItems.append(URLQueryItem(name: "personal", value: String(personal))) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
@@ -1166,8 +1166,8 @@ public struct SearchService {
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
-        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
-        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
+        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String(createdFrom))) }
+        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String(createdTo))) }
         if let active { queryItems.append(URLQueryItem(name: "active", value: String(active))) }
         if let chatSubtype { queryItems.append(URLQueryItem(name: "chat_subtype", value: chatSubtype.rawValue)) }
         if let personal { queryItems.append(URLQueryItem(name: "personal", value: String(personal))) }
@@ -1205,8 +1205,8 @@ public struct SearchService {
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
-        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
-        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
+        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String(createdFrom))) }
+        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String(createdTo))) }
         if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
         if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) } }
         if let active { queryItems.append(URLQueryItem(name: "active", value: String(active))) }
@@ -1245,8 +1245,8 @@ public struct SearchService {
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
         if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
         if let order { queryItems.append(URLQueryItem(name: "order", value: order.rawValue)) }
-        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
-        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
+        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String(createdFrom))) }
+        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String(createdTo))) }
         if let companyRoles { companyRoles.forEach { queryItems.append(URLQueryItem(name: "company_roles[]", value: $0.rawValue)) } }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)

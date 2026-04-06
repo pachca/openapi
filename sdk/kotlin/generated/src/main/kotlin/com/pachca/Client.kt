@@ -13,14 +13,15 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
+import java.time.OffsetDateTime
 
 class SecurityService internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) {
     suspend fun getAuditEvents(
-        startTime: String? = null,
-        endTime: String? = null,
+        startTime: OffsetDateTime? = null,
+        endTime: OffsetDateTime? = null,
         eventKey: AuditEventKey? = null,
         actorId: String? = null,
         actorType: String? = null,
@@ -30,8 +31,8 @@ class SecurityService internal constructor(
         cursor: String? = null,
     ): GetAuditEventsResponse {
         val response = client.get("$baseUrl/audit_events") {
-            startTime?.let { parameter("start_time", it) }
-            endTime?.let { parameter("end_time", it) }
+            startTime?.let { parameter("start_time", it.toString()) }
+            endTime?.let { parameter("end_time", it.toString()) }
             eventKey?.let { parameter("event_key", it.value) }
             actorId?.let { parameter("actor_id", it) }
             actorType?.let { parameter("actor_type", it) }
@@ -48,8 +49,8 @@ class SecurityService internal constructor(
     }
 
     suspend fun getAuditEventsAll(
-        startTime: String? = null,
-        endTime: String? = null,
+        startTime: OffsetDateTime? = null,
+        endTime: OffsetDateTime? = null,
         eventKey: AuditEventKey? = null,
         actorId: String? = null,
         actorType: String? = null,
@@ -137,8 +138,8 @@ class ChatsService internal constructor(
         sort: ChatSortField? = null,
         order: SortOrder? = null,
         availability: ChatAvailability? = null,
-        lastMessageAtAfter: String? = null,
-        lastMessageAtBefore: String? = null,
+        lastMessageAtAfter: OffsetDateTime? = null,
+        lastMessageAtBefore: OffsetDateTime? = null,
         personal: Boolean? = null,
         limit: Int? = null,
         cursor: String? = null,
@@ -147,8 +148,8 @@ class ChatsService internal constructor(
             sort?.let { parameter("sort", it.value) }
             order?.let { parameter("order", it.value) }
             availability?.let { parameter("availability", it.value) }
-            lastMessageAtAfter?.let { parameter("last_message_at_after", it) }
-            lastMessageAtBefore?.let { parameter("last_message_at_before", it) }
+            lastMessageAtAfter?.let { parameter("last_message_at_after", it.toString()) }
+            lastMessageAtBefore?.let { parameter("last_message_at_before", it.toString()) }
             personal?.let { parameter("personal", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
@@ -164,8 +165,8 @@ class ChatsService internal constructor(
         sort: ChatSortField? = null,
         order: SortOrder? = null,
         availability: ChatAvailability? = null,
-        lastMessageAtAfter: String? = null,
-        lastMessageAtBefore: String? = null,
+        lastMessageAtAfter: OffsetDateTime? = null,
+        lastMessageAtBefore: OffsetDateTime? = null,
         personal: Boolean? = null,
         limit: Int? = null,
     ): List<Chat> {
@@ -846,8 +847,8 @@ class SearchService internal constructor(
         limit: Int? = null,
         cursor: String? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         active: Boolean? = null,
         chatSubtype: ChatSubtype? = null,
         personal: Boolean? = null,
@@ -857,8 +858,8 @@ class SearchService internal constructor(
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
             order?.let { parameter("order", it.value) }
-            createdFrom?.let { parameter("created_from", it) }
-            createdTo?.let { parameter("created_to", it) }
+            createdFrom?.let { parameter("created_from", it.toString()) }
+            createdTo?.let { parameter("created_to", it.toString()) }
             active?.let { parameter("active", it) }
             chatSubtype?.let { parameter("chat_subtype", it.value) }
             personal?.let { parameter("personal", it) }
@@ -874,8 +875,8 @@ class SearchService internal constructor(
         query: String? = null,
         limit: Int? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         active: Boolean? = null,
         chatSubtype: ChatSubtype? = null,
         personal: Boolean? = null,
@@ -906,8 +907,8 @@ class SearchService internal constructor(
         limit: Int? = null,
         cursor: String? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
         active: Boolean? = null,
@@ -917,8 +918,8 @@ class SearchService internal constructor(
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
             order?.let { parameter("order", it.value) }
-            createdFrom?.let { parameter("created_from", it) }
-            createdTo?.let { parameter("created_to", it) }
+            createdFrom?.let { parameter("created_from", it.toString()) }
+            createdTo?.let { parameter("created_to", it.toString()) }
             chatIds?.forEach { parameter("chat_ids[]", it) }
             userIds?.forEach { parameter("user_ids[]", it) }
             active?.let { parameter("active", it) }
@@ -934,8 +935,8 @@ class SearchService internal constructor(
         query: String? = null,
         limit: Int? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
         active: Boolean? = null,
@@ -967,8 +968,8 @@ class SearchService internal constructor(
         cursor: String? = null,
         sort: SearchSortOrder? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         companyRoles: List<UserRole>? = null,
     ): SearchUsersResponse {
         val response = client.get("$baseUrl/search/users") {
@@ -977,8 +978,8 @@ class SearchService internal constructor(
             cursor?.let { parameter("cursor", it) }
             sort?.let { parameter("sort", it.value) }
             order?.let { parameter("order", it.value) }
-            createdFrom?.let { parameter("created_from", it) }
-            createdTo?.let { parameter("created_to", it) }
+            createdFrom?.let { parameter("created_from", it.toString()) }
+            createdTo?.let { parameter("created_to", it.toString()) }
             companyRoles?.forEach { parameter("company_roles[]", it.value) }
         }
         return when (response.status.value) {
@@ -993,8 +994,8 @@ class SearchService internal constructor(
         limit: Int? = null,
         sort: SearchSortOrder? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         companyRoles: List<UserRole>? = null,
     ): List<User> {
         val items = mutableListOf<User>()

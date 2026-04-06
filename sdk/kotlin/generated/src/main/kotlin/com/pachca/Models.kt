@@ -1,8 +1,21 @@
 package com.pachca.sdk
 
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+
+object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
+    override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+    override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+}
 
 /** Тип аудит-события */
 @Serializable
@@ -730,7 +743,7 @@ data class MessageWebhookPayload(
     @SerialName("entity_id") val entityId: Int,
     val content: String,
     @SerialName("user_id") val userId: Int,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     val url: String,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
@@ -747,7 +760,7 @@ data class ReactionWebhookPayload(
     val code: String,
     val name: String,
     @SerialName("user_id") val userId: Int,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
 
@@ -782,7 +795,7 @@ data class ChatMemberWebhookPayload(
     @SerialName("chat_id") val chatId: Int,
     @SerialName("thread_id") val threadId: Int? = null,
     @SerialName("user_ids") val userIds: List<Int>,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
 
@@ -792,7 +805,7 @@ data class CompanyMemberWebhookPayload(
     override val type: String = "company_member",
     val event: UserEventType,
     @SerialName("user_ids") val userIds: List<Int>,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
 
@@ -804,7 +817,7 @@ data class LinkSharedWebhookPayload(
     @SerialName("message_id") val messageId: Int,
     val links: List<WebhookLink>,
     @SerialName("user_id") val userId: Int,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
 ) : WebhookPayloadUnion
 
@@ -815,10 +828,10 @@ data class AccessTokenInfo(
     val name: String? = null,
     @SerialName("user_id") val userId: Long,
     val scopes: List<OAuthScope>,
-    @SerialName("created_at") val createdAt: String,
-    @SerialName("revoked_at") val revokedAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("revoked_at") val revokedAt: OffsetDateTime? = null,
     @SerialName("expires_in") val expiresIn: Int? = null,
-    @SerialName("last_used_at") val lastUsedAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_used_at") val lastUsedAt: OffsetDateTime? = null,
 )
 
 @Serializable
@@ -849,7 +862,7 @@ data class ApiErrorItem(
 @Serializable
 data class AuditEvent(
     val id: String,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("event_key") val eventKey: AuditEventKey,
     @SerialName("entity_id") val entityId: String,
     @SerialName("entity_type") val entityType: String,
@@ -902,14 +915,14 @@ data class Button(
 data class Chat(
     val id: Int,
     val name: String,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("owner_id") val ownerId: Int,
     @SerialName("member_ids") val memberIds: List<Int>,
     @SerialName("group_tag_ids") val groupTagIds: List<Int>,
     val channel: Boolean,
     val personal: Boolean,
     val public: Boolean,
-    @SerialName("last_message_at") val lastMessageAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_message_at") val lastMessageAt: OffsetDateTime,
     @SerialName("meet_room_url") val meetRoomUrl: String,
 )
 
@@ -991,7 +1004,7 @@ data class Forwarding(
     @SerialName("original_message_id") val originalMessageId: Int,
     @SerialName("original_chat_id") val originalChatId: Int,
     @SerialName("author_id") val authorId: Int,
-    @SerialName("original_created_at") val originalCreatedAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("original_created_at") val originalCreatedAt: OffsetDateTime,
     @SerialName("original_thread_id") val originalThreadId: Int? = null,
     @SerialName("original_thread_message_id") val originalThreadMessageId: Int? = null,
     @SerialName("original_thread_parent_chat_id") val originalThreadParentChatId: Int? = null,
@@ -1049,7 +1062,7 @@ data class Message(
     @SerialName("root_chat_id") val rootChatId: Int,
     val content: String,
     @SerialName("user_id") val userId: Int,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     val url: String,
     val files: List<File>,
     val buttons: List<List<Button>>? = null,
@@ -1058,8 +1071,8 @@ data class Message(
     @SerialName("parent_message_id") val parentMessageId: Int? = null,
     @SerialName("display_avatar_url") val displayAvatarUrl: String? = null,
     @SerialName("display_name") val displayName: String? = null,
-    @SerialName("changed_at") val changedAt: String? = null,
-    @SerialName("deleted_at") val deletedAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("changed_at") val changedAt: OffsetDateTime? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("deleted_at") val deletedAt: OffsetDateTime? = null,
 )
 
 @Serializable
@@ -1151,7 +1164,7 @@ data class PaginationMeta(
 @Serializable
 data class Reaction(
     @SerialName("user_id") val userId: Int,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     val code: String,
     val name: String? = null,
 )
@@ -1177,7 +1190,7 @@ data class SearchPaginationMeta(
 data class StatusUpdateRequestStatus(
     val emoji: String,
     val title: String,
-    @SerialName("expires_at") val expiresAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime? = null,
     @SerialName("is_away") val isAway: Boolean? = null,
     @SerialName("away_message") val awayMessage: String? = null,
 )
@@ -1192,12 +1205,12 @@ data class Task(
     val id: Int,
     val kind: TaskKind,
     val content: String,
-    @SerialName("due_at") val dueAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("due_at") val dueAt: OffsetDateTime? = null,
     val priority: Int,
     @SerialName("user_id") val userId: Int,
     @SerialName("chat_id") val chatId: Int? = null,
     val status: TaskStatus,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("performer_ids") val performerIds: List<Int>,
     @SerialName("all_day") val allDay: Boolean,
     @SerialName("custom_properties") val customProperties: List<CustomProperty>,
@@ -1213,7 +1226,7 @@ data class TaskCreateRequestCustomProperty(
 data class TaskCreateRequestTask(
     val kind: TaskKind,
     val content: String? = null,
-    @SerialName("due_at") val dueAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("due_at") val dueAt: OffsetDateTime? = null,
     val priority: Int? = 1,
     @SerialName("performer_ids") val performerIds: List<Int>? = null,
     @SerialName("chat_id") val chatId: Int? = null,
@@ -1236,12 +1249,12 @@ data class TaskUpdateRequestCustomProperty(
 data class TaskUpdateRequestTask(
     val kind: TaskKind? = null,
     val content: String? = null,
-    @SerialName("due_at") val dueAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("due_at") val dueAt: OffsetDateTime? = null,
     val priority: Int? = null,
     @SerialName("performer_ids") val performerIds: List<Int>? = null,
     val status: TaskStatus? = null,
     @SerialName("all_day") val allDay: Boolean? = null,
-    @SerialName("done_at") val doneAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("done_at") val doneAt: OffsetDateTime? = null,
     @SerialName("custom_properties") val customProperties: List<TaskUpdateRequestCustomProperty>? = null,
 )
 
@@ -1256,7 +1269,7 @@ data class Thread(
     @SerialName("chat_id") val chatId: Long,
     @SerialName("message_id") val messageId: Long,
     @SerialName("message_chat_id") val messageChatId: Long,
-    @SerialName("updated_at") val updatedAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("updated_at") val updatedAt: OffsetDateTime,
 )
 
 @Serializable
@@ -1295,8 +1308,8 @@ data class User(
     @SerialName("user_status") val userStatus: UserStatus? = null,
     val bot: Boolean,
     val sso: Boolean,
-    @SerialName("created_at") val createdAt: String,
-    @SerialName("last_activity_at") val lastActivityAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("last_activity_at") val lastActivityAt: OffsetDateTime,
     @SerialName("time_zone") val timeZone: String,
     @SerialName("image_url") val imageUrl: String? = null,
 )
@@ -1337,7 +1350,7 @@ data class UserStatusAwayMessage(
 data class UserStatus(
     val emoji: String,
     val title: String,
-    @SerialName("expires_at") val expiresAt: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("expires_at") val expiresAt: OffsetDateTime? = null,
     @SerialName("is_away") val isAway: Boolean,
     @SerialName("away_message") val awayMessage: UserStatusAwayMessage? = null,
 )
@@ -1374,7 +1387,7 @@ data class ViewBlock(
     val text: String? = null,
     val name: String? = null,
     val label: String? = null,
-    @SerialName("initial_date") val initialDate: String? = null,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("initial_date") val initialDate: OffsetDateTime? = null,
 )
 
 @Serializable
@@ -1398,7 +1411,7 @@ data class WebhookEvent(
     val id: String,
     @SerialName("event_type") val eventType: String,
     val payload: WebhookPayloadUnion,
-    @SerialName("created_at") val createdAt: String,
+    @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
 )
 
 @Serializable

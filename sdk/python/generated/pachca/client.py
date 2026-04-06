@@ -89,9 +89,9 @@ class SecurityService:
     ) -> GetAuditEventsResponse:
         query: dict[str, str] = {}
         if params is not None and params.start_time is not None:
-            query["start_time"] = params.start_time
+            query["start_time"] = params.start_time.isoformat()
         if params is not None and params.end_time is not None:
-            query["end_time"] = params.end_time
+            query["end_time"] = params.end_time.isoformat()
         if params is not None and params.event_key is not None:
             query["event_key"] = params.event_key
         if params is not None and params.actor_id is not None:
@@ -230,9 +230,9 @@ class ChatsService:
         if params is not None and params.availability is not None:
             query["availability"] = params.availability
         if params is not None and params.last_message_at_after is not None:
-            query["last_message_at_after"] = params.last_message_at_after
+            query["last_message_at_after"] = params.last_message_at_after.isoformat()
         if params is not None and params.last_message_at_before is not None:
-            query["last_message_at_before"] = params.last_message_at_before
+            query["last_message_at_before"] = params.last_message_at_before.isoformat()
         if params is not None and params.personal is not None:
             query["personal"] = str(params.personal).lower()
         if params is not None and params.limit is not None:
@@ -1197,9 +1197,9 @@ class SearchService:
         if params is not None and params.order is not None:
             query["order"] = params.order
         if params is not None and params.created_from is not None:
-            query["created_from"] = params.created_from
+            query["created_from"] = params.created_from.isoformat()
         if params is not None and params.created_to is not None:
-            query["created_to"] = params.created_to
+            query["created_to"] = params.created_to.isoformat()
         if params is not None and params.active is not None:
             query["active"] = str(params.active).lower()
         if params is not None and params.chat_subtype is not None:
@@ -1250,9 +1250,9 @@ class SearchService:
         if params is not None and params.order is not None:
             query.append(("order", params.order))
         if params is not None and params.created_from is not None:
-            query.append(("created_from", params.created_from))
+            query.append(("created_from", params.created_from.isoformat()))
         if params is not None and params.created_to is not None:
-            query.append(("created_to", params.created_to))
+            query.append(("created_to", params.created_to.isoformat()))
         if params is not None and params.chat_ids is not None:
             for v in params.chat_ids:
                 query.append(("chat_ids[]", str(v)))
@@ -1307,9 +1307,9 @@ class SearchService:
         if params is not None and params.order is not None:
             query.append(("order", params.order))
         if params is not None and params.created_from is not None:
-            query.append(("created_from", params.created_from))
+            query.append(("created_from", params.created_from.isoformat()))
         if params is not None and params.created_to is not None:
-            query.append(("created_to", params.created_to))
+            query.append(("created_to", params.created_to.isoformat()))
         if params is not None and params.company_roles is not None:
             for v in params.company_roles:
                 query.append(("company_roles[]", str(v)))

@@ -441,12 +441,12 @@ public struct AccessTokenInfo: Codable {
     public let name: String?
     public let userId: Int64
     public let scopes: [OAuthScope]
-    public let createdAt: Date
+    public let createdAt: String
     public let revokedAt: String?
     public let expiresIn: Int?
     public let lastUsedAt: String?
 
-    public init(id: Int64, token: String, name: String? = nil, userId: Int64, scopes: [OAuthScope], createdAt: Date, revokedAt: String? = nil, expiresIn: Int? = nil, lastUsedAt: String? = nil) {
+    public init(id: Int64, token: String, name: String? = nil, userId: Int64, scopes: [OAuthScope], createdAt: String, revokedAt: String? = nil, expiresIn: Int? = nil, lastUsedAt: String? = nil) {
         self.id = id
         self.token = token
         self.name = name
@@ -723,7 +723,7 @@ public struct AuditDetailsUserUpdated: Codable {
 
 public struct AuditEvent: Codable {
     public let id: String
-    public let createdAt: Date
+    public let createdAt: String
     public let eventKey: AuditEventKey
     public let entityId: String
     public let entityType: String
@@ -733,7 +733,7 @@ public struct AuditEvent: Codable {
     public let ipAddress: String
     public let userAgent: String
 
-    public init(id: String, createdAt: Date, eventKey: AuditEventKey, entityId: String, entityType: String, actorId: String, actorType: String, details: AuditEventDetailsUnion, ipAddress: String, userAgent: String) {
+    public init(id: String, createdAt: String, eventKey: AuditEventKey, entityId: String, entityType: String, actorId: String, actorType: String, details: AuditEventDetailsUnion, ipAddress: String, userAgent: String) {
         self.id = id
         self.createdAt = createdAt
         self.eventKey = eventKey
@@ -870,17 +870,17 @@ public struct ButtonWebhookPayload: Codable {
 public struct Chat: Codable {
     public let id: Int
     public let name: String
-    public let createdAt: Date
+    public let createdAt: String
     public let ownerId: Int
     public let memberIds: [Int]
     public let groupTagIds: [Int]
     public let channel: Bool
     public let personal: Bool
     public let `public`: Bool
-    public let lastMessageAt: Date
+    public let lastMessageAt: String
     public let meetRoomUrl: String
 
-    public init(id: Int, name: String, createdAt: Date, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: Date, meetRoomUrl: String) {
+    public init(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: [Int], groupTagIds: [Int], channel: Bool, personal: Bool, `public`: Bool, lastMessageAt: String, meetRoomUrl: String) {
         self.id = id
         self.name = name
         self.createdAt = createdAt
@@ -947,10 +947,10 @@ public struct ChatMemberWebhookPayload: Codable {
     public let chatId: Int
     public let threadId: Int?
     public let userIds: [Int]
-    public let createdAt: Date
+    public let createdAt: String
     public let webhookTimestamp: Int
 
-    public init(type: String, event: MemberEventType, chatId: Int, threadId: Int? = nil, userIds: [Int], createdAt: Date, webhookTimestamp: Int) {
+    public init(type: String, event: MemberEventType, chatId: Int, threadId: Int? = nil, userIds: [Int], createdAt: String, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.chatId = chatId
@@ -998,10 +998,10 @@ public struct CompanyMemberWebhookPayload: Codable {
     public let type: String
     public let event: UserEventType
     public let userIds: [Int]
-    public let createdAt: Date
+    public let createdAt: String
     public let webhookTimestamp: Int
 
-    public init(type: String, event: UserEventType, userIds: [Int], createdAt: Date, webhookTimestamp: Int) {
+    public init(type: String, event: UserEventType, userIds: [Int], createdAt: String, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.userIds = userIds
@@ -1151,12 +1151,12 @@ public struct Forwarding: Codable {
     public let originalMessageId: Int
     public let originalChatId: Int
     public let authorId: Int
-    public let originalCreatedAt: Date
+    public let originalCreatedAt: String
     public let originalThreadId: Int?
     public let originalThreadMessageId: Int?
     public let originalThreadParentChatId: Int?
 
-    public init(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: Date, originalThreadId: Int? = nil, originalThreadMessageId: Int? = nil, originalThreadParentChatId: Int? = nil) {
+    public init(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int? = nil, originalThreadMessageId: Int? = nil, originalThreadParentChatId: Int? = nil) {
         self.originalMessageId = originalMessageId
         self.originalChatId = originalChatId
         self.authorId = authorId
@@ -1267,10 +1267,10 @@ public struct LinkSharedWebhookPayload: Codable {
     public let messageId: Int
     public let links: [WebhookLink]
     public let userId: Int
-    public let createdAt: Date
+    public let createdAt: String
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], userId: Int, createdAt: Date, webhookTimestamp: Int) {
+    public init(type: String, event: String, chatId: Int, messageId: Int, links: [WebhookLink], userId: Int, createdAt: String, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.chatId = chatId
@@ -1316,7 +1316,7 @@ public struct Message: Codable {
     public let rootChatId: Int
     public let content: String
     public let userId: Int
-    public let createdAt: Date
+    public let createdAt: String
     public let url: String
     public let files: [File]
     public let buttons: [[Button]]?
@@ -1328,7 +1328,7 @@ public struct Message: Codable {
     public let changedAt: String?
     public let deletedAt: String?
 
-    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: Date, url: String, files: [File], buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil) {
+    public init(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: [File], buttons: [[Button]]? = nil, thread: MessageThread? = nil, forwarding: Forwarding? = nil, parentMessageId: Int? = nil, displayAvatarUrl: String? = nil, displayName: String? = nil, changedAt: String? = nil, deletedAt: String? = nil) {
         self.id = id
         self.entityType = entityType
         self.entityId = entityId
@@ -1516,14 +1516,14 @@ public struct MessageWebhookPayload: Codable {
     public let entityId: Int
     public let content: String
     public let userId: Int
-    public let createdAt: Date
+    public let createdAt: String
     public let url: String
     public let chatId: Int
     public let parentMessageId: Int?
     public let thread: WebhookMessageThread?
     public let webhookTimestamp: Int
 
-    public init(type: String, id: Int, event: WebhookEventType, entityType: MessageEntityType, entityId: Int, content: String, userId: Int, createdAt: Date, url: String, chatId: Int, parentMessageId: Int? = nil, thread: WebhookMessageThread? = nil, webhookTimestamp: Int) {
+    public init(type: String, id: Int, event: WebhookEventType, entityType: MessageEntityType, entityId: Int, content: String, userId: Int, createdAt: String, url: String, chatId: Int, parentMessageId: Int? = nil, thread: WebhookMessageThread? = nil, webhookTimestamp: Int) {
         self.type = type
         self.id = id
         self.event = event
@@ -1638,11 +1638,11 @@ public struct PaginationMeta: Codable {
 
 public struct Reaction: Codable {
     public let userId: Int
-    public let createdAt: Date
+    public let createdAt: String
     public let code: String
     public let name: String?
 
-    public init(userId: Int, createdAt: Date, code: String, name: String? = nil) {
+    public init(userId: Int, createdAt: String, code: String, name: String? = nil) {
         self.userId = userId
         self.createdAt = createdAt
         self.code = code
@@ -1674,10 +1674,10 @@ public struct ReactionWebhookPayload: Codable {
     public let code: String
     public let name: String
     public let userId: Int
-    public let createdAt: Date
+    public let createdAt: String
     public let webhookTimestamp: Int
 
-    public init(type: String, event: ReactionEventType, messageId: Int, code: String, name: String, userId: Int, createdAt: Date, webhookTimestamp: Int) {
+    public init(type: String, event: ReactionEventType, messageId: Int, code: String, name: String, userId: Int, createdAt: String, webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.messageId = messageId
@@ -1763,12 +1763,12 @@ public struct Task: Codable {
     public let userId: Int
     public let chatId: Int?
     public let status: TaskStatus
-    public let createdAt: Date
+    public let createdAt: String
     public let performerIds: [Int]
     public let allDay: Bool
     public let customProperties: [CustomProperty]
 
-    public init(id: Int, kind: TaskKind, content: String, dueAt: String? = nil, priority: Int, userId: Int, chatId: Int? = nil, status: TaskStatus, createdAt: Date, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty]) {
+    public init(id: Int, kind: TaskKind, content: String, dueAt: String? = nil, priority: Int, userId: Int, chatId: Int? = nil, status: TaskStatus, createdAt: String, performerIds: [Int], allDay: Bool, customProperties: [CustomProperty]) {
         self.id = id
         self.kind = kind
         self.content = content
@@ -1909,9 +1909,9 @@ public struct Thread: Codable {
     public let chatId: Int64
     public let messageId: Int64
     public let messageChatId: Int64
-    public let updatedAt: Date
+    public let updatedAt: String
 
-    public init(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: Date) {
+    public init(id: Int64, chatId: Int64, messageId: Int64, messageChatId: Int64, updatedAt: String) {
         self.id = id
         self.chatId = chatId
         self.messageId = messageId
@@ -1989,12 +1989,12 @@ public struct User: Codable {
     public let userStatus: UserStatus?
     public let bot: Bool
     public let sso: Bool
-    public let createdAt: Date
-    public let lastActivityAt: Date
+    public let createdAt: String
+    public let lastActivityAt: String
     public let timeZone: String
     public let imageUrl: String?
 
-    public init(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: Date, lastActivityAt: Date, timeZone: String, imageUrl: String? = nil) {
+    public init(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String? = nil) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName
@@ -2501,9 +2501,9 @@ public struct WebhookEvent: Codable {
     public let id: String
     public let eventType: String
     public let payload: WebhookPayloadUnion
-    public let createdAt: Date
+    public let createdAt: String
 
-    public init(id: String, eventType: String, payload: WebhookPayloadUnion, createdAt: Date) {
+    public init(id: String, eventType: String, payload: WebhookPayloadUnion, createdAt: String) {
         self.id = id
         self.eventType = eventType
         self.payload = payload

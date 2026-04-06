@@ -75,7 +75,7 @@
     ]
   },
   "ExportOperations_requestExport": {
-    "usage": "var request = new ExportRequest\n{\n    StartAt = DateOnly.Parse(\"2025-03-20\"),\n    EndAt = DateOnly.Parse(\"2025-03-20\"),\n    WebhookUrl = \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    ChatIds = new List<int> { 123 },\n    SkipChatsFile = false\n};\nawait client.Common.RequestExportAsync(request);",
+    "usage": "var request = new ExportRequest\n{\n    StartAt = \"2025-03-20\",\n    EndAt = \"2025-03-20\",\n    WebhookUrl = \"https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2\",\n    ChatIds = new List<int> { 123 },\n    SkipChatsFile = false\n};\nawait client.Common.RequestExportAsync(request);",
     "imports": [
       "ExportRequest"
     ]

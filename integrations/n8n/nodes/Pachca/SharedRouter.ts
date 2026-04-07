@@ -36,6 +36,7 @@ interface FieldMap {
 	arrayType?: 'int' | 'string';
 	locator?: boolean;
 	subKey?: string;
+	default?: unknown;
 }
 
 interface QueryMap {
@@ -656,7 +657,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			special: 'formBlocks',
 			bodyMap: [
 				{ api: 'title', n8n: 'formTitle' },
-				{ api: 'type', n8n: 'type' },
+				{ api: 'type', n8n: 'type', default: 'modal' },
 				{ api: 'trigger_id', n8n: 'triggerId' },
 			],
 			optionalBodyMap: [
@@ -829,6 +830,8 @@ async function executeRoute(
 		let raw: unknown;
 		if (fm.locator) {
 			raw = resolveResourceLocator(this, fm.n8n, i);
+		} else if (fm.default !== undefined) {
+			try { raw = this.getNodeParameter(fm.n8n, i); } catch { raw = fm.default; }
 		} else {
 			raw = this.getNodeParameter(fm.n8n, i);
 		}

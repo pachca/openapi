@@ -2492,6 +2492,11 @@ function buildFieldMapStr(resource: string, op: OperationInfo, f: BodyField): st
     parts.push(`subKey: '${subKey}'`);
   }
 
+  // v1 compat: form.type didn't exist in v1 — default to 'modal'
+  if (resource === 'form' && f.name === 'type') {
+    parts.push(`default: 'modal'`);
+  }
+
   return `{ ${parts.join(', ')} }`;
 }
 
@@ -2776,6 +2781,7 @@ interface FieldMap {
 \tarrayType?: 'int' | 'string';
 \tlocator?: boolean;
 \tsubKey?: string;
+\tdefault?: unknown;
 }
 
 interface QueryMap {
@@ -2943,6 +2949,8 @@ async function executeRoute(
 \t\tlet raw: unknown;
 \t\tif (fm.locator) {
 \t\t\traw = resolveResourceLocator(this, fm.n8n, i);
+\t\t} else if (fm.default !== undefined) {
+\t\t\ttry { raw = this.getNodeParameter(fm.n8n, i); } catch { raw = fm.default; }
 \t\t} else {
 \t\t\traw = this.getNodeParameter(fm.n8n, i);
 \t\t}

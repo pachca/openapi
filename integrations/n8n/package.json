@@ -31,7 +31,9 @@
     "directory": "integrations/n8n"
   },
   "files": [
-    "dist/",
+    "dist/nodes/",
+    "dist/credentials/",
+    "dist/icons/",
     "index.js",
     "icons/",
     "docs/",
@@ -70,7 +72,6 @@
   "devDependencies": {
     "@n8n/node-cli": "^0.23.0",
     "eslint": "^9.0.0",
-    "@pachca/openapi-parser": "workspace:*",
     "n8n-workflow": "*",
     "typescript": "^5.9.0",
     "tsx": "^4.0.0",

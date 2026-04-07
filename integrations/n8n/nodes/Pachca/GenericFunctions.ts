@@ -12,7 +12,7 @@ import type {
   IN8nHttpFullResponse,
   JsonObject,
 } from 'n8n-workflow';
-import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeOperationError, sleep } from 'n8n-workflow';
 import * as crypto from 'crypto';
 
 // ============================================================================
@@ -421,8 +421,7 @@ export async function makeApiRequestAllPages(
           totalRetries++;
           const retryAfter = (err as NodeApiError & { retryAfter?: number })?.retryAfter;
           const waitSec = retryAfter ?? (code === '429' ? 2 : 1);
-          // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
-          await new Promise(r => setTimeout(r, waitSec * 1000));
+          await sleep(waitSec * 1000);
           continue;
         }
         throw error;

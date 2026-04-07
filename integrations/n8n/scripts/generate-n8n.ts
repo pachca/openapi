@@ -2492,9 +2492,12 @@ function buildFieldMapStr(resource: string, op: OperationInfo, f: BodyField): st
     parts.push(`subKey: '${subKey}'`);
   }
 
-  // v1 compat: form.type didn't exist in v1 — default to 'modal'
+  // v1 compat: form fields that may be missing in v1 JSON mode or v1 workflows
   if (resource === 'form' && f.name === 'type') {
     parts.push(`default: 'modal'`);
+  }
+  if (resource === 'form' && f.name === 'title') {
+    parts.push(`default: ''`);
   }
 
   return `{ ${parts.join(', ')} }`;
@@ -3036,6 +3039,21 @@ async function executeRoute(
 \tif (route.special === 'formBlocks') {
 \t\tconst blocks = resolveFormBlocksFromParams(this, i);
 \t\tif (blocks.length) body.blocks = blocks;
+\t\t// v1 compat: in JSON mode, title/close_text/submit_text may be inside the JSON
+\t\t// Override empty body fields with values from parsed JSON
+\t\tlet rawJson = '';
+\t\ttry { rawJson = this.getNodeParameter('formBlocks', i, '') as string; } catch { /* */ }
+\t\tif (!rawJson) { try { rawJson = this.getNodeParameter('customFormJson', i, '') as string; } catch { /* */ } }
+\t\tif (rawJson) {
+\t\t\ttry {
+\t\t\t\tconst parsed = JSON.parse(rawJson);
+\t\t\t\tif (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+\t\t\t\t\tif (!body.title && parsed.title) body.title = parsed.title;
+\t\t\t\t\tif (!body.close_text && parsed.close_text) body.close_text = parsed.close_text;
+\t\t\t\t\tif (!body.submit_text && parsed.submit_text) body.submit_text = parsed.submit_text;
+\t\t\t\t}
+\t\t\t} catch { /* not valid JSON or not an object */ }
+\t\t}
 \t}
 \tif (route.special === 'unfurlLinkPreviews') {
 \t\t// v1 compat: linkPreviews was a fixedCollection { preview: [{ url, title, description, imageUrl }] }

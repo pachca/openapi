@@ -8,9 +8,9 @@
 [![PyPI](https://img.shields.io/pypi/v/pachca-sdk)](https://pypi.org/project/pachca-sdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec + workflows.ts) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, agent skills, LLM context.
+Unified Developer Experience Platform для [Pachca API](https://dev.pachca.com) — API корпоративного мессенджера Пачка. Один источник (TypeSpec + workflows.ts + examples.ts) генерирует артефакты для всех каналов: web docs, CLI, SDK, n8n node, agent skills, LLM context.
 
-**Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/guides/authorization · **Changelog**: https://dev.pachca.com/guides/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
+**Документация**: https://dev.pachca.com · **OpenAPI**: https://dev.pachca.com/openapi.yaml · **Авторизация**: https://dev.pachca.com/api/authorization · **Changelog**: https://dev.pachca.com/updates · **Postman/Bruno**: https://dev.pachca.com/pachca.postman_collection.json
 
 ## CLI
 
@@ -57,8 +57,6 @@ npx skills add pachca/openapi
 | `pachca-users` | Сотрудники и теги (группы) |
 | `pachca-chats` | Каналы, беседы, участники, экспорт |
 | `pachca-messages` | Сообщения, файлы, реакции, кнопки |
-| `pachca-threads` | Треды (комментарии к сообщениям) |
-| `pachca-read-members` | Прочтение сообщений |
 | `pachca-bots` | Боты, вебхуки, unfurling |
 | `pachca-forms` | Интерактивные формы |
 | `pachca-tasks` | Напоминания (задачи) |
@@ -89,7 +87,7 @@ npx skills add pachca/openapi
 
 ## n8n
 
-Community node для [n8n](https://n8n.io/) — 18 ресурсов, 60+ операций, Pachca Trigger с авторегистрацией вебхука.
+Community node для [n8n](https://n8n.io/) — 18 ресурсов, 65+ операций, Pachca Trigger с авторегистрацией вебхука.
 
 ```bash
 # В n8n: Settings > Community Nodes > n8n-nodes-pachca
@@ -105,11 +103,11 @@ npm install n8n-nodes-pachca
 | Язык | Пакет | Реестр |
 |------|-------|--------|
 | [TypeScript](sdk/typescript/README.md) | `@pachca/sdk` | npm |
-| [Python](sdk/python/README.md) | `pachca` | PyPI |
+| [Python](sdk/python/generated/README.md) | `pachca-sdk` | PyPI |
 | [Go](sdk/go/README.md) | `github.com/pachca/go-sdk` | Go modules |
 | [Kotlin](sdk/kotlin/README.md) | `com.pachca:sdk` | JitPack |
 | [Swift](sdk/swift/README.md) | `PachcaSDK` | SPM |
-| [C#](sdk/csharp/README.md) | `Pachca.Sdk` | NuGet |
+| [C#](sdk/csharp/generated/README.md) | `Pachca.Sdk` | NuGet |
 
 Все SDK следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.
 
@@ -163,7 +161,7 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 | [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: все endpoint'ы со ссылками |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Полная документация: гайды + endpoint'ы с параметрами |
 | [`/skill.md`](https://dev.pachca.com/skill.md) | AI-agent skill: workflows, capabilities, ссылки |
-| `/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
+| `/api/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
 
 [Context7](https://context7.com/pachca/openapi) — AI-native document discovery.
 
@@ -186,6 +184,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 |----------|---------|------------|
 | `check.yml` | PR в `main` | `bun turbo check` |
 | `sdk.yml` | Push в `main` | Генерация SDK → коммит → теги → публикация |
+| `generator.yml` | Push в `main` | Snapshot-тесты + npm publish `@pachca/generator` |
 | `n8n.yml` | Push/PR в `main` | Генерация n8n node → тест → npm publish → GitHub Release |
 | `deploy.yml` | Push в `main` | Docker build → GitLab registry → SSH deploy |
 | `gitlab.yml` | Push в `main` | Зеркало в GitLab |
@@ -206,7 +205,7 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── apps/
 │   └── docs/              # Next.js 16 сайт документации (@pachca/docs)
 ├── packages/
-│   ├── spec/              # TypeSpec спецификация + workflows.ts (@pachca/spec)
+│   ├── spec/              # TypeSpec спецификация + workflows.ts + examples.ts (@pachca/spec)
 │   ├── generator/         # SDK код-генератор для 6 языков (@pachca/generator)
 │   ├── openapi-parser/    # Парсер OpenAPI-спеки (@pachca/openapi-parser)
 │   └── cli/               # CLI для работы с API (@pachca/cli)
@@ -220,13 +219,13 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── integrations/
 │   └── n8n/               # n8n community node (генерируется из OpenAPI)
 ├── skills/                # Agent Skills (генерируются → apps/docs/public/.well-known/skills/)
-├── .github/workflows/     # CI/CD (check, sdk, n8n, deploy, gitlab)
+├── .github/workflows/     # CI/CD (check, sdk, generator, n8n, deploy, gitlab)
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)
 ├── jitpack.yml            # JitPack конфиг для Kotlin (JDK 17)
 ├── Dockerfile             # Multi-stage Docker-сборка docs
 ├── context7.json          # Context7 AI document discovery
 ├── turbo.json             # Turborepo пайплайн
-└── package.json           # Корневой (workspaces: apps/*, packages/*, sdk/*)
+└── package.json           # Корневой (workspaces: apps/*, apps/*/*, packages/*, sdk/*, integrations/*)
 ```
 
 ## Пайплайн данных
@@ -236,37 +235,53 @@ typespec.tsp (packages/spec)
     │
     │ tsp compile
     ▼
-openapi.yaml ──────────────────────────┐
-    │                                  │
-    ▼                                  ▼
-apps/docs                           sdk/* (6 языков)
-    │                                  │
-    │ generate-llms                    │ CI: generate + publish
-    │ next build                       ▼
-    ▼                                npm, PyPI, JitPack, SPM, Go modules
+openapi.yaml ──────────────────────────┬──────────────────────┐
+    │                                  │                      │
+    │ overlay:apply                    ▼                      ▼
+    ▼                               sdk/* (6 языков)     integrations/n8n
+openapi.en.yaml                        │                      │
+    │                                  │ CI: generate         │ generate-n8n
+    │                                  │ + publish            ▼
+    │                                  ▼                   npm (n8n-nodes-pachca)
+    │                                npm, PyPI, JitPack,
+    │                                SPM, Go modules
+    ▼
+apps/docs
+    │
+    │ generate-llms, generate-cli, next build
+    ▼
   Сайт + llms.txt + llms-full.txt
   + skill.md + per-endpoint .md
   + Agent Skills (skills/, AGENTS.md, .well-known/)
+  + scenarios.json + pachca.postman_collection.json
   + CLI examples (10-й код-генератор)
-  + pachca.postman_collection.json
   + OG-изображения + sitemap + RSS
 
-workflows.ts (packages/spec — единый источник сценариев)
+workflows.ts + examples.ts (packages/spec — единый источник сценариев)
     │
     ├──→ Web (страница сценариев с поиском)
     ├──→ CLI (pachca guide)
-    └──→ Skills (CLI-сценарии в SKILL.md)
+    ├──→ Skills (CLI-сценарии в SKILL.md)
+    └──→ n8n (примеры значений в нодах)
 ```
 
 ## Turborepo пайплайн
 
 | Задача | Зависит от | Кешируется |
 |--------|------------|------------|
+| `setup` | — | нет |
 | `generate` | `setup` | да (inputs: tsp + yaml config → outputs: openapi.yaml, generated/) |
+| `overlay:apply` | `@pachca/spec#generate` | да (→ openapi.en.yaml) |
+| `overlay:validate` | `@pachca/spec#generate`, `overlay:apply` | да |
 | `generate-llms` | `@pachca/spec#generate` | да (→ llms.txt, llms-full.txt, skill.md, *.md, Agent Skills) |
-| `build` | `@pachca/spec#generate`, `generate-llms` | да (→ .next/) |
+| `generate-cli` | `@pachca/spec#generate` | да (→ CLI commands, data/*.json) |
+| `generate-n8n` | `@pachca/spec#generate`, `overlay:apply` | да (→ n8n nodes, credentials) |
+| `test` | `generate-cli`, `generate-n8n` | да |
+| `build` | `generate`, `overlay:apply`, `generate-llms`, `generate-cli`, `generate-n8n` | да (→ .next/, dist/) |
 | `dev` | `@pachca/spec#generate`, `generate-llms` | нет (persistent) |
-| `check` | `lint`, `typecheck`, `knip`, `format:check` | нет |
+| `check` | `lint`, `typecheck`, `knip`, `format:check`, `test`, `overlay:validate` | нет |
+| `check-urls` | `@pachca/spec#generate` | да |
+| `start` | `build` | нет (persistent) |
 
 ## Архитектура docs (apps/docs)
 
@@ -292,8 +307,12 @@ Next.js 16 (App Router, Turbopack) + MDX + FlexSearch (+ русские сино
 |-----|----------|
 | `/` | `content/home.mdx` |
 | `/guides/{slug}` | `content/guides/{slug}.mdx` |
-| `/{section}/{action}` | OpenAPI endpoint (динамически из тегов и путей) |
-| `/{section}/{action}.md` | Статический markdown для endpoint'а |
+| `/guides/{category}/{slug}` | `content/guides/{category}/{slug}.mdx` |
+| `/api/{slug}` | `content/api/{slug}.mdx` (авторизация, пагинация и др.) |
+| `/api/{section}/{action}` | OpenAPI endpoint (динамически из тегов и путей) |
+| `/api/{section}/{action}.md` | Статический markdown для endpoint'а |
+| `/updates` | `content/updates.mdx` |
+| `/updates/{date}` | Обновление за конкретную дату |
 | `/guides/{slug}.md` | Статический markdown для гайда |
 | `/.md` | Rewrite → `/index.md` |
 | `/api/og` | Генерация OG-изображений |
@@ -307,13 +326,13 @@ Next.js 16 (App Router, Turbopack) + MDX + FlexSearch (+ русские сино
 
 | Паттерн | URL | Пример |
 |---------|-----|--------|
-| `GET /items` | `/{section}/list` | `/messages/list` |
-| `POST /items` | `/{section}/create` | `/messages/create` |
-| `GET /items/{id}` | `/{section}/get` | `/users/get` |
-| `PUT /items/{id}` | `/{section}/update` | `/chats/update` |
-| `DELETE /items/{id}` | `/{section}/delete` | `/chats/delete` |
-| Sub-resources | `/{section}/list-{sub}` | `/messages/list-reactions` |
-| Специальные | По действию | `/messages/pin`, `/messages/unpin` |
+| `GET /items` | `/api/{section}/list` | `/api/messages/list` |
+| `POST /items` | `/api/{section}/create` | `/api/messages/create` |
+| `GET /items/{id}` | `/api/{section}/get` | `/api/users/get` |
+| `PUT /items/{id}` | `/api/{section}/update` | `/api/chats/update` |
+| `DELETE /items/{id}` | `/api/{section}/delete` | `/api/chats/delete` |
+| Sub-resources | `/api/{section}/list-{sub}` | `/api/messages/list-reactions` |
+| Специальные | По действию | `/api/messages/pin`, `/api/messages/unpin` |
 
 Секция определяется из OpenAPI-тега через `tagToUrlSegment()`. Скрипт `check-url-conflicts.mjs` проверяет конфликты.
 
@@ -360,7 +379,7 @@ FlexSearch с `tokenize: 'forward'`. Русский язык: синонимы (
 
 ### Как добавить новый гайд
 
-Создайте `content/guides/{slug}.mdx` с frontmatter:
+Создайте `content/guides/{slug}.mdx` (или `content/guides/{category}/{slug}.mdx`, `content/api/{slug}.mdx`) с frontmatter:
 
 ```mdx
 ---
@@ -369,11 +388,11 @@ description: Краткое описание для SEO
 ---
 ```
 
-Добавьте путь в `lib/guides-config.ts` → гайд появится в навигации, поиске, llms.txt, RSS и получит `.md`-файл.
+Добавьте путь в `lib/tabs-config.ts` → гайд появится в навигации, поиске, llms.txt, RSS и получит `.md`-файл.
 
 ### Обновление API (changelog)
 
-В `content/guides/updates.mdx`:
+В `content/updates.mdx`:
 
 ```md
 <!-- update:2025-12-01 -->
@@ -395,6 +414,6 @@ Badge «Новое» показывается < 7 дней. Попадает в 
 
 ### Безопасность (next.config.ts)
 
-HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`.
+HSTS (2 года, preload), X-Frame-Options: DENY, nosniff, Permissions-Policy. CORS разрешён для `llms.txt`, `llms-full.txt`, `skill.md`, `*.md`, `/.well-known/skills/*`, `openapi.yaml`, `pachca.postman_collection.json`, `scenarios.json`.
 
 </details>

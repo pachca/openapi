@@ -8,7 +8,7 @@ export default class MembersAdd extends BaseCommand {
 
   static override examples = [
       "Подписаться на тред сообщения:\n  $ pachca members add",
-      "Упомянуть пользователя по имени:\n  $ pachca members list",
+      "Упомянуть пользователя:\n  $ pachca members list",
       "Создать канал и пригласить участников:\n  $ pachca members add"
   ];
 

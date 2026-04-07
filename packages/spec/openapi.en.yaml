@@ -6261,7 +6261,7 @@ components:
               example: 334
             content:
               type: string
-              description: Message text
+              description: 'Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).'
               example: Yesterday we sold 756 t-shirts (10% more than last Sunday)
             files:
               type: array
@@ -6374,7 +6374,7 @@ components:
           properties:
             content:
               type: string
-              description: Message text
+              description: 'Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).'
               example: >-
                 Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur,
                 liaison, necessary, surveillance, questionnaire.

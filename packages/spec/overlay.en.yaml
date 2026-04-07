@@ -1812,7 +1812,7 @@ actions:
       description: Entity ID
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.content
     update:
-      description: Message text
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`)."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files
     update:
       description: Files to attach
@@ -1871,7 +1871,7 @@ actions:
       description: Message parameters object to update
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.content
     update:
-      description: Message text
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`)."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files
     update:
       description: Files to attach

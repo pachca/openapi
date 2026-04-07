@@ -6140,7 +6140,7 @@ components:
               example: 334
             content:
               type: string
-              description: Текст сообщения
+              description: 'Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).'
               example: Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)
             files:
               type: array
@@ -6251,7 +6251,7 @@ components:
           properties:
             content:
               type: string
-              description: Текст сообщения
+              description: 'Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).'
               example: 'Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.'
             files:
               type: array

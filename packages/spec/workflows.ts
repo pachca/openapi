@@ -336,15 +336,21 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       notesEn: 'POST /messages/{id}/thread is idempotent — safe to call repeatedly.',
     },
     {
-      title: 'Упомянуть пользователя по имени',
-      titleEn: 'Mention user by name',
+      title: 'Упомянуть пользователя',
+      titleEn: 'Mention user',
       inline: false,
       steps: [
         {
           description:
-            'Определи поисковый запрос — используй фамилию (она уникальнее). Имена не склоняются в API, приводи к именительному падежу',
+            'Если знаешь `user_id` — вставь `<@user_id>` в текст сообщения (например `<@123>`). Бэкенд автоматически преобразует в `@nickname`. Дальнейшие шаги не нужны',
           descriptionEn:
-            'Determine search query — use last name (more unique). Names are not declined in API, use nominative case',
+            'If you know the `user_id` — insert `<@user_id>` into the message text (e.g. `<@123>`). Backend automatically converts to `@nickname`. No further steps needed',
+        },
+        {
+          description:
+            'Если знаешь только имя — определи поисковый запрос, используй фамилию (она уникальнее). Имена не склоняются в API, приводи к именительному падежу',
+          descriptionEn:
+            'If you only know the name — determine search query, use last name (more unique). Names are not declined in API, use nominative case',
         },
         {
           description: 'Ищи среди участников целевого чата',
@@ -374,13 +380,14 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
           descriptionEn: 'One result → use `nickname`. Multiple → ask user to clarify',
         },
         {
-          description: 'Вставь `@nickname` в текст сообщения',
-          descriptionEn: 'Insert `@nickname` into message text',
+          description: 'Вставь `@nickname` или `<@user_id>` в текст сообщения',
+          descriptionEn: 'Insert `@nickname` or `<@user_id>` into message text',
         },
       ],
-      notes: 'Поиск среди участников чата точнее — пользователь явно связан с контекстом.',
+      notes:
+        'Если `user_id` известен, используй `<@user_id>` — это проще и не требует поиска. Поиск среди участников чата точнее — пользователь явно связан с контекстом.',
       notesEn:
-        'Searching among chat members is more precise — user is explicitly linked to context.',
+        'If `user_id` is known, use `<@user_id>` — simpler and requires no lookup. Searching among chat members is more precise — user is explicitly linked to context.',
     },
     {
       title: 'Отредактировать сообщение',

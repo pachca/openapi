@@ -296,6 +296,6 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 For advanced workflows, read the files in references/:
   references/reply-to-user-who-messaged-the-bot.md — Reply to user who messaged the bot
   references/send-message-with-files.md — Send message with files
-  references/mention-user-by-name.md — Mention user by name
+  references/mention-user.md — Mention user
 
 > If unsure how to complete a task, read the corresponding file from references/.

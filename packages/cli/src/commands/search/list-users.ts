@@ -7,7 +7,7 @@ export default class SearchListUsers extends BaseCommand {
 
   static override examples = [
       "Отправить личное сообщение пользователю:\n  $ pachca search list-users",
-      "Упомянуть пользователя по имени:\n  $ pachca search list-users",
+      "Упомянуть пользователя:\n  $ pachca search list-users",
       "Найти сотрудника по имени:\n  $ pachca search list-users"
   ];
 

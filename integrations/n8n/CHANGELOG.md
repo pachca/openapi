@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.2 (2026-04-07)
+
+### Bug Fixes
+
+- Fix Form JSON mode crash — `formTitle` hidden in JSON mode but required by bodyMap; now extracts `title`, `close_text`, `submit_text` from JSON payload
+
 ## 2.0.1 (2026-04-07)
 
 ### Bug Fixes

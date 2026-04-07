@@ -656,7 +656,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			siblingFields: ['type', 'trigger_id', 'private_metadata', 'callback_id'],
 			special: 'formBlocks',
 			bodyMap: [
-				{ api: 'title', n8n: 'formTitle' },
+				{ api: 'title', n8n: 'formTitle', default: '' },
 				{ api: 'type', n8n: 'type', default: 'modal' },
 				{ api: 'trigger_id', n8n: 'triggerId' },
 			],
@@ -917,6 +917,21 @@ async function executeRoute(
 	if (route.special === 'formBlocks') {
 		const blocks = resolveFormBlocksFromParams(this, i);
 		if (blocks.length) body.blocks = blocks;
+		// v1 compat: in JSON mode, title/close_text/submit_text may be inside the JSON
+		// Override empty body fields with values from parsed JSON
+		let rawJson = '';
+		try { rawJson = this.getNodeParameter('formBlocks', i, '') as string; } catch { /* */ }
+		if (!rawJson) { try { rawJson = this.getNodeParameter('customFormJson', i, '') as string; } catch { /* */ } }
+		if (rawJson) {
+			try {
+				const parsed = JSON.parse(rawJson);
+				if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+					if (!body.title && parsed.title) body.title = parsed.title;
+					if (!body.close_text && parsed.close_text) body.close_text = parsed.close_text;
+					if (!body.submit_text && parsed.submit_text) body.submit_text = parsed.submit_text;
+				}
+			} catch { /* not valid JSON or not an object */ }
+		}
 	}
 	if (route.special === 'unfurlLinkPreviews') {
 		// v1 compat: linkPreviews was a fixedCollection { preview: [{ url, title, description, imageUrl }] }

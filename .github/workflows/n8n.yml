@@ -81,7 +81,7 @@ jobs:
           find nodes icons credentials \( -name '*.png' -o -name '*.svg' \) | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
   publish:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: generate-and-build
     runs-on: ubuntu-latest
     concurrency:
@@ -119,6 +119,12 @@ jobs:
       - name: Check for publishable changes
         id: changes
         run: |
+          # workflow_dispatch always publishes (manual trigger = intentional)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Manual dispatch — forcing publish"
+            exit 0
+          fi
           # Check committed source changes (exclude tests, scripts, docs, config)
           COMMITTED=$(git diff --name-only HEAD~1 HEAD -- integrations/n8n/ \
             | grep -v -E '^integrations/n8n/(tests/|scripts/|docs/|e2e/|eslint|tsconfig|\.gitignore|\.npmrc|vitest)' \

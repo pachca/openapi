@@ -31,7 +31,9 @@
     "directory": "integrations/n8n"
   },
   "files": [
-    "dist/",
+    "dist/nodes/",
+    "dist/credentials/",
+    "dist/icons/",
     "index.js",
     "icons/",
     "docs/",

@@ -171,11 +171,6 @@ jobs:
           bun run tsc
           find nodes icons credentials \( -name '*.png' -o -name '*.svg' \) | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
-      - name: Scan community package
-        if: steps.changes.outputs.changed == 'true'
-        working-directory: integrations/n8n
-        run: bun x @n8n/scan-community-package .
-
       - name: Publish to npm
         if: steps.changes.outputs.changed == 'true'
         working-directory: integrations/n8n
@@ -191,6 +186,10 @@ jobs:
               exit $CODE
             fi
           }
+
+      - name: Scan community package
+        if: steps.changes.outputs.changed == 'true'
+        run: npx @n8n/scan-community-package n8n-nodes-pachca@${{ steps.version.outputs.version }}
 
       - name: Create GitHub Release
         if: steps.changes.outputs.changed == 'true'

@@ -1214,7 +1214,27 @@ function generateResourceDescription(
       lines.push(`\t\t\tname: 'block',`);
       lines.push(`\t\t\tdisplayName: 'Block',`);
       lines.push(`\t\t\tvalues: [`);
-      // Fields in alphabetical order by displayName (required by n8n eslint rule)
+      // Block type selector — MUST be first because other fields reference it via displayOptions.show.type
+      lines.push(`\t\t\t\t{`);
+      lines.push(`\t\t\t\t\tdisplayName: 'Type',`);
+      lines.push(`\t\t\t\t\tname: 'type',`);
+      lines.push(`\t\t\t\t\ttype: 'options',`);
+      lines.push(`\t\t\t\t\toptions: [`);
+      lines.push(`\t\t\t\t\t\t{ name: '☑️ Checkboxes', value: 'checkbox' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '➖ Divider', value: 'divider' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '📄 Plain Text', value: 'plain_text' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '📅 Date Picker', value: 'date' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '📋 Select Dropdown', value: 'select' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '📎 File Upload', value: 'file_input' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '📝 Header', value: 'header' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '📝 Markdown', value: 'markdown' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '📝 Text Input', value: 'input' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '🔘 Radio Buttons', value: 'radio' },`);
+      lines.push(`\t\t\t\t\t\t{ name: '🕐 Time Picker', value: 'time' },`);
+      lines.push(`\t\t\t\t\t],`);
+      lines.push(`\t\t\t\t\tdefault: 'input',`);
+      lines.push(`\t\t\t\t},`);
+      // Remaining fields in alphabetical order by displayName
       // Allowed File Types (file_input only)
       lines.push(`\t\t\t\t{`);
       lines.push(`\t\t\t\t\tdisplayName: 'Allowed File Types',`);
@@ -1351,26 +1371,6 @@ function generateResourceDescription(
       lines.push(`\t\t\t\t\ttype: 'string',`);
       lines.push(`\t\t\t\t\tdefault: '',`);
       lines.push(`\t\t\t\t\tdisplayOptions: { show: { type: ['header', 'plain_text', 'markdown'] } },`);
-      lines.push(`\t\t\t\t},`);
-      // Block type selector
-      lines.push(`\t\t\t\t{`);
-      lines.push(`\t\t\t\t\tdisplayName: 'Type',`);
-      lines.push(`\t\t\t\t\tname: 'type',`);
-      lines.push(`\t\t\t\t\ttype: 'options',`);
-      lines.push(`\t\t\t\t\toptions: [`);
-      lines.push(`\t\t\t\t\t\t{ name: '☑️ Checkboxes', value: 'checkbox' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '➖ Divider', value: 'divider' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📄 Plain Text', value: 'plain_text' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📅 Date Picker', value: 'date' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📋 Select Dropdown', value: 'select' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📎 File Upload', value: 'file_input' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📝 Header', value: 'header' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📝 Markdown', value: 'markdown' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📝 Text Input', value: 'input' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '🔘 Radio Buttons', value: 'radio' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '🕐 Time Picker', value: 'time' },`);
-      lines.push(`\t\t\t\t\t],`);
-      lines.push(`\t\t\t\t\tdefault: 'input',`);
       lines.push(`\t\t\t\t},`);
       lines.push(`\t\t\t],`);
       lines.push(`\t\t}],`);

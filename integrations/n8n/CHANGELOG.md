@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1 (2026-04-07)
+
+### Bug Fixes
+
+- Fix Form Visual Builder "Could not get parameter" error — `Type` field must be first in `fixedCollection` values so other fields can reference it via `displayOptions.show.type`
+- Fix README archive installation URL (use tag-specific URL instead of unreliable `/releases/latest/`)
+
 ## 2.0.0 (2026-04-03)
 
 ### New

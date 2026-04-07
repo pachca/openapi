@@ -17,6 +17,14 @@ export default [
 		},
 	},
 	{
+		files: ['nodes/Pachca/V2/FormDescription.ts'],
+		rules: {
+			// Type field must be first in form block values (other fields reference it via displayOptions.show.type).
+			// The alphabetical sort autofix moves Type last AND strips displayOptions, breaking the visual builder.
+			'n8n-nodes-base/node-param-fixed-collection-type-unsorted-items': 'off',
+		},
+	},
+	{
 		files: ['credentials/**/*.ts'],
 		rules: {
 			// tokenType is a dropdown (options), not a secret — false positive on "token" in name

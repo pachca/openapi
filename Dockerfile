@@ -12,7 +12,7 @@ RUN bun install
 
 COPY . .
 
-RUN bun x turbo check
+RUN bun x turbo check --filter=@pachca/docs
 RUN bun x turbo build --filter=@pachca/docs
 
 FROM oven/bun:1.3.4 AS runner

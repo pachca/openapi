@@ -176,7 +176,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          OUTPUT=$(npm publish --access public --provenance 2>&1) || {
+          OUTPUT=$(npm publish --access public --provenance --ignore-scripts 2>&1) || {
             CODE=$?
             if echo "$OUTPUT" | grep -q "E409\|already exists"; then
               echo "Version ${{ steps.version.outputs.version }} already published, skipping"
@@ -192,7 +192,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm pack
+          npm pack --ignore-scripts
           mkdir n8n-nodes-pachca
           tar -xzf n8n-nodes-pachca-*.tgz --strip-components=1 -C n8n-nodes-pachca
           rm n8n-nodes-pachca-*.tgz

@@ -472,7 +472,7 @@ npx skills add pachca/openapi
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.10 · 21 марта 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.4.0 · 7 апреля 2026
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
@@ -1609,7 +1609,7 @@ client = PachcaClient("YOUR_TOKEN")
 ```python
 # Получение профиля
 response = await client.profile.get_profile()
-# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: str, last_activity_at: str, time_zone: str, image_url: str | None)
+# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime, time_zone: str, image_url: str | None)
 ```
 
 
@@ -1727,8 +1727,8 @@ params = ListChatsParams(
     sort=ChatSortField.ID,
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
-    last_message_at_after="2025-01-01T00:00:00.000Z",
-    last_message_at_before="2025-02-01T00:00:00.000Z",
+    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
+    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
     limit=1,
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
@@ -1754,7 +1754,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -1763,7 +1763,7 @@ response = await client.chats.create_chat(request=request)
 ```python
 # Получение чата
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -1935,7 +1935,7 @@ request = MessageCreateRequest(
     link_preview=False
 )
 response = await client.messages.create_message(request=request)
-# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
 
 # Список сотрудников
 params = ListUsersParams(
@@ -1951,7 +1951,7 @@ request = TaskCreateRequest(
     task=TaskCreateRequestTask(
         kind=TaskKind.REMINDER,
         content="Забрать со склада 21 заказ",
-        due_at="2020-06-05T12:00:00.000+03:00",
+        due_at=datetime.fromisoformat("2020-06-05T12:00:00.000+03:00"),
         priority=2,
         performer_ids=[123],
         chat_id=456,
@@ -1960,7 +1960,7 @@ request = TaskCreateRequest(
     )
 )
 response = await client.tasks.create_task(request=request)
-# → Task(id: int, kind: TaskKind, content: str, due_at: str | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: str, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
 ```
 
 
@@ -2423,7 +2423,7 @@ val client = PachcaClient("YOUR_TOKEN")
 ```kotlin
 // Получение профиля
 val response = client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)
+// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)
 ```
 
 
@@ -2545,7 +2545,9 @@ import com.pachca.sdk.ChatSortField
 import com.pachca.sdk.SortOrder
 
 // Список чатов
-val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = "2025-01-01T00:00:00.000Z", lastMessageAtBefore = "2025-02-01T00:00:00.000Z", personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+val lastMessageAtAfter = OffsetDateTime.parse("2025-01-01T00:00:00.000Z")
+val lastMessageAtBefore = OffsetDateTime.parse("2025-02-01T00:00:00.000Z")
+val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: List<Chat>, meta: PaginationMeta)
 ```
 
@@ -2567,7 +2569,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -2576,7 +2578,7 @@ val response = client.chats.createChat(request = request)
 ```kotlin
 // Получение чата
 val response = client.chats.getChat(id = 334)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -2764,7 +2766,7 @@ val request = MessageCreateRequest(
     linkPreview = false
 )
 val response = client.messages.createMessage(request = request)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
 
 // Список сотрудников
 val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
@@ -2775,7 +2777,7 @@ val request = TaskCreateRequest(
     task = TaskCreateRequestTask(
         kind = TaskKind.REMINDER,
         content = "Забрать со склада 21 заказ",
-        dueAt = "2020-06-05T12:00:00.000+03:00",
+        dueAt = OffsetDateTime.parse("2020-06-05T12:00:00.000+03:00"),
         priority = 2,
         performerIds = listOf(123),
         chatId = 456,
@@ -2784,7 +2786,7 @@ val request = TaskCreateRequest(
     )
 )
 val response = client.tasks.createTask(request = request)
-// → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)
+// → Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)
 ```
 
 
@@ -7186,7 +7188,7 @@ Albato — платформа для интеграции различных с�
 > Автоматически отслеживайте обновления: подпишитесь на [RSS-ленту](/feed.xml) или используйте [markdown-версию этой страницы](/updates.md) для интеграции с инструментами и AI-агентами.
 
 
-<!-- update:2026-04-06 -->
+<!-- update:2026-04-07 -->
 
 ## Аватары, сортировка и n8n Node v2
 

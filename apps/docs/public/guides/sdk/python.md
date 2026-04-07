@@ -32,7 +32,7 @@ client = PachcaClient("YOUR_TOKEN")
 ```python
 # Получение профиля
 response = await client.profile.get_profile()
-# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: str | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: str, last_activity_at: str, time_zone: str, image_url: str | None)
+# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime, time_zone: str, image_url: str | None)
 ```
 
 
@@ -150,8 +150,8 @@ params = ListChatsParams(
     sort=ChatSortField.ID,
     order=SortOrder.DESC,
     availability=ChatAvailability.IS_MEMBER,
-    last_message_at_after="2025-01-01T00:00:00.000Z",
-    last_message_at_before="2025-02-01T00:00:00.000Z",
+    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
+    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
     personal=False,
     limit=1,
     cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
@@ -177,7 +177,7 @@ request = ChatCreateRequest(
     )
 )
 response = await client.chats.create_chat(request=request)
-# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -186,7 +186,7 @@ response = await client.chats.create_chat(request=request)
 ```python
 # Получение чата
 response = await client.chats.get_chat(id=334)
-# → Chat(id: int, name: str, created_at: str, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: str, meet_room_url: str)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
 ```
 
 
@@ -358,7 +358,7 @@ request = MessageCreateRequest(
     link_preview=False
 )
 response = await client.messages.create_message(request=request)
-# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: str, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: str, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: str | None, deleted_at: str | None)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
 
 # Список сотрудников
 params = ListUsersParams(
@@ -374,7 +374,7 @@ request = TaskCreateRequest(
     task=TaskCreateRequestTask(
         kind=TaskKind.REMINDER,
         content="Забрать со склада 21 заказ",
-        due_at="2020-06-05T12:00:00.000+03:00",
+        due_at=datetime.fromisoformat("2020-06-05T12:00:00.000+03:00"),
         priority=2,
         performer_ids=[123],
         chat_id=456,
@@ -383,7 +383,7 @@ request = TaskCreateRequest(
     )
 )
 response = await client.tasks.create_task(request=request)
-# → Task(id: int, kind: TaskKind, content: str, due_at: str | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: str, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
 ```
 
 

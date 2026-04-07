@@ -36,7 +36,7 @@ val client = PachcaClient("YOUR_TOKEN")
 ```kotlin
 // Получение профиля
 val response = client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)
+// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)
 ```
 
 
@@ -158,7 +158,9 @@ import com.pachca.sdk.ChatSortField
 import com.pachca.sdk.SortOrder
 
 // Список чатов
-val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = "2025-01-01T00:00:00.000Z", lastMessageAtBefore = "2025-02-01T00:00:00.000Z", personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+val lastMessageAtAfter = OffsetDateTime.parse("2025-01-01T00:00:00.000Z")
+val lastMessageAtBefore = OffsetDateTime.parse("2025-02-01T00:00:00.000Z")
+val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
 // → ListChatsResponse(data: List<Chat>, meta: PaginationMeta)
 ```
 
@@ -180,7 +182,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -189,7 +191,7 @@ val response = client.chats.createChat(request = request)
 ```kotlin
 // Получение чата
 val response = client.chats.getChat(id = 334)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -377,7 +379,7 @@ val request = MessageCreateRequest(
     linkPreview = false
 )
 val response = client.messages.createMessage(request = request)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
 
 // Список сотрудников
 val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
@@ -388,7 +390,7 @@ val request = TaskCreateRequest(
     task = TaskCreateRequestTask(
         kind = TaskKind.REMINDER,
         content = "Забрать со склада 21 заказ",
-        dueAt = "2020-06-05T12:00:00.000+03:00",
+        dueAt = OffsetDateTime.parse("2020-06-05T12:00:00.000+03:00"),
         priority = 2,
         performerIds = listOf(123),
         chatId = 456,
@@ -397,7 +399,7 @@ val request = TaskCreateRequest(
     )
 )
 val response = client.tasks.createTask(request = request)
-// → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)
+// → Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)
 ```
 
 

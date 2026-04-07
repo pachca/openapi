@@ -176,7 +176,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          OUTPUT=$(npm publish --access public --provenance 2>&1) || {
+          OUTPUT=$(npm publish --access public --provenance --ignore-scripts 2>&1) || {
             CODE=$?
             if echo "$OUTPUT" | grep -q "E409\|already exists"; then
               echo "Version ${{ steps.version.outputs.version }} already published, skipping"

@@ -1367,6 +1367,36 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
       ],
     },
+    {
+      title: 'Загрузить аватар сотрудника',
+      titleEn: 'Upload employee avatar',
+      steps: [
+        {
+          description: 'Загрузи аватар сотруднику',
+          descriptionEn: 'Upload avatar for employee',
+          command: 'pachca users update-avatar <user_id> --file=<путь_к_файлу>',
+          apiMethod: 'PUT',
+          apiPath: '/users/{user_id}/avatar',
+          notes: 'Требует прав администратора. Файл передается в формате multipart/form-data',
+          notesEn: 'Requires admin access. File is sent in multipart/form-data format',
+        },
+      ],
+    },
+    {
+      title: 'Удалить аватар сотрудника',
+      titleEn: 'Delete employee avatar',
+      steps: [
+        {
+          description: 'Удали аватар сотрудника',
+          descriptionEn: 'Delete employee avatar',
+          command: 'pachca users remove-avatar <user_id> --force',
+          apiMethod: 'DELETE',
+          apiPath: '/users/{user_id}/avatar',
+          notes: 'Требует прав администратора',
+          notesEn: 'Requires admin access',
+        },
+      ],
+    },
   ],
   'pachca-tasks': [
     {
@@ -1574,6 +1604,34 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       ],
       notes: 'Кастомные поля настраиваются администратором пространства.',
       notesEn: 'Custom fields are configured by workspace admin.',
+    },
+    {
+      title: 'Загрузить аватар профиля',
+      titleEn: 'Upload profile avatar',
+      steps: [
+        {
+          description: 'Загрузи аватар из файла',
+          descriptionEn: 'Upload avatar from file',
+          command: 'pachca profile update-avatar --file=<путь_к_файлу>',
+          apiMethod: 'PUT',
+          apiPath: '/profile/avatar',
+          notes: 'Файл изображения передается в формате multipart/form-data',
+          notesEn: 'Image file is sent in multipart/form-data format',
+        },
+      ],
+    },
+    {
+      title: 'Удалить аватар профиля',
+      titleEn: 'Delete profile avatar',
+      steps: [
+        {
+          description: 'Удали аватар',
+          descriptionEn: 'Delete avatar',
+          command: 'pachca profile delete-avatar --force',
+          apiMethod: 'DELETE',
+          apiPath: '/profile/avatar',
+        },
+      ],
     },
   ],
   'pachca-search': [

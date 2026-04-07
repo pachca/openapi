@@ -6,15 +6,15 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "val response = client.security.getAuditEvents(startTime = \"2025-05-01T09:11:00Z\", endTime = \"2025-05-02T09:11:00Z\", eventKey = AuditEventKey.USER_LOGIN, actorId = \"98765\", actorType = \"User\", entityId = \"98765\", entityType = \"User\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetAuditEventsResponse(data: List<AuditEvent>, meta: PaginationMeta?)",
+    "usage": "val startTime = OffsetDateTime.parse(\"2025-05-01T09:11:00Z\")\nval endTime = OffsetDateTime.parse(\"2025-05-02T09:11:00Z\")\nval response = client.security.getAuditEvents(startTime = startTime, endTime = endTime, eventKey = AuditEventKey.USER_LOGIN, actorId = \"98765\", actorType = \"User\", entityId = \"98765\", entityType = \"User\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "GetAuditEventsResponse(data: List<AuditEvent>, meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"
     ]
   },
   "BotOperations_getWebhookEvents": {
     "usage": "val response = client.bots.getWebhookEvents(limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetWebhookEventsResponse(data: List<WebhookEvent>, meta: PaginationMeta?)"
+    "output": "GetWebhookEventsResponse(data: List<WebhookEvent>, meta: PaginationMeta)"
   },
   "BotOperations_updateBot": {
     "usage": "val request = BotUpdateRequest(bot = BotUpdateRequestBot(webhook = BotUpdateRequestBotWebhook(outgoingUrl = \"https://www.website.com/tasks/new\")))\nval response = client.bots.updateBot(id = 1738816, request = request)",
@@ -29,20 +29,21 @@
     "usage": "client.bots.deleteWebhookEvent(id = \"01KAJZ2XDSS2S3DSW9EXJZ0TBV\")"
   },
   "ChatOperations_listChats": {
-    "usage": "val response = client.chats.listChats(sortId = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = \"2025-01-01T00:00:00.000Z\", lastMessageAtBefore = \"2025-02-01T00:00:00.000Z\", personal = false, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)",
+    "usage": "val lastMessageAtAfter = OffsetDateTime.parse(\"2025-01-01T00:00:00.000Z\")\nval lastMessageAtBefore = OffsetDateTime.parse(\"2025-02-01T00:00:00.000Z\")\nval response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListChatsResponse(data: List<Chat>, meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "SortOrder"
     ]
   },
   "ChatOperations_getChat": {
     "usage": "val response = client.chats.getChat(id = 334)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)"
+    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)"
   },
   "ChatOperations_createChat": {
     "usage": "val request = ChatCreateRequest(\n    chat = ChatCreateRequestChat(\n        name = \"🤿 aqua\",\n        memberIds = listOf(123),\n        groupTagIds = listOf(123),\n        channel = true,\n        public = false\n    )\n)\nval response = client.chats.createChat(request = request)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)",
+    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -50,7 +51,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "val request = ChatUpdateRequest(chat = ChatUpdateRequestChat(name = \"Бассейн\", public = true))\nval response = client.chats.updateChat(id = 334, request = request)",
-    "output": "Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)",
+    "output": "Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"
@@ -91,7 +92,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "val response = client.members.listMembers(id = 334, role = ChatMemberRoleFilter.ALL, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListMembersResponse(data: List<User>, meta: PaginationMeta?)",
+    "output": "ListMembersResponse(data: List<User>, meta: PaginationMeta)",
     "imports": [
       "ChatMemberRoleFilter"
     ]
@@ -121,11 +122,8 @@
     "usage": "client.members.removeMember(id = 334, userId = 186)"
   },
   "GroupTagOperations_listTags": {
-    "usage": "val names = TagNamesFilter()\nval response = client.groupTags.listTags(names = names, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListTagsResponse(data: List<GroupTag>, meta: PaginationMeta?)",
-    "imports": [
-      "TagNamesFilter"
-    ]
+    "usage": "val names = listOf(\"example\")\nval response = client.groupTags.listTags(names = names, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListTagsResponse(data: List<GroupTag>, meta: PaginationMeta)"
   },
   "GroupTagOperations_getTag": {
     "usage": "val response = client.groupTags.getTag(id = 9111)",
@@ -133,7 +131,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "val response = client.groupTags.getTagUsers(id = 9111, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "GetTagUsersResponse(data: List<User>, meta: PaginationMeta?)"
+    "output": "GetTagUsersResponse(data: List<User>, meta: PaginationMeta)"
   },
   "GroupTagOperations_createTag": {
     "usage": "val request = GroupTagRequest(groupTag = GroupTagRequestGroupTag(name = \"Новое название тега\"))\nval response = client.groupTags.createTag(request = request)",
@@ -155,19 +153,20 @@
     "usage": "client.groupTags.deleteTag(id = 9111)"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "val response = client.messages.listChatMessages(chatId = 198, sortId = SortOrder.DESC, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta?)",
+    "usage": "val response = client.messages.listChatMessages(chatId = 198, sort = MessageSortField.ID, order = SortOrder.DESC, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
+    "output": "ListChatMessagesResponse(data: List<Message>, meta: PaginationMeta)",
     "imports": [
+      "MessageSortField",
       "SortOrder"
     ]
   },
   "MessageOperations_getMessage": {
     "usage": "val response = client.messages.getMessage(id = 194275)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)"
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)"
   },
   "MessageOperations_createMessage": {
     "usage": "val request = MessageCreateRequest(\n    message = MessageCreateRequestMessage(\n        entityType = MessageEntityType.DISCUSSION,\n        entityId = 334,\n        content = \"Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)\",\n        files = listOf(MessageCreateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = FileType.IMAGE,\n            size = 12345,\n            width = 800,\n            height = 600\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        parentMessageId = 194270,\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\",\n        skipInviteMentions = false\n    ),\n    linkPreview = false\n)\nval response = client.messages.createMessage(request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)",
     "imports": [
       "Button",
       "FileType",
@@ -182,7 +181,7 @@
   },
   "MessageOperations_updateMessage": {
     "usage": "val request = MessageUpdateRequest(\n    message = MessageUpdateRequestMessage(\n        content = \"Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.\",\n        files = listOf(MessageUpdateRequestFile(\n            key = \"attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png\",\n            name = \"logo.png\",\n            fileType = \"image\",\n            size = 12345,\n            width = 800,\n            height = 600\n        )),\n        buttons = listOf(listOf(Button(\n            text = \"Подробнее\",\n            url = \"https://example.com/details\",\n            data = \"awesome\"\n        ))),\n        displayAvatarUrl = \"https://example.com/avatar.png\",\n        displayName = \"Бот Поддержки\"\n    )\n)\nval response = client.messages.updateMessage(id = 194275, request = request)",
-    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)",
+    "output": "Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)",
     "imports": [
       "Button",
       "MessageUpdateRequest",
@@ -206,11 +205,11 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "val response = client.reactions.listReactions(id = 194275, limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListReactionsResponse(data: List<Reaction>, meta: PaginationMeta?)"
+    "output": "ListReactionsResponse(data: List<Reaction>, meta: PaginationMeta)"
   },
   "ReactionOperations_addReaction": {
     "usage": "val request = ReactionRequest(code = \"👍\", name = \":+1:\")\nval response = client.reactions.addReaction(id = 7231942, request = request)",
-    "output": "Reaction(userId: Int, createdAt: String, code: String, name: String?)",
+    "output": "Reaction(userId: Int, createdAt: OffsetDateTime, code: String, name: String?)",
     "imports": [
       "ReactionRequest"
     ]
@@ -224,37 +223,44 @@
   },
   "ThreadOperations_getThread": {
     "usage": "val response = client.threads.getThread(id = 265142)",
-    "output": "Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)"
+    "output": "Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: OffsetDateTime)"
   },
   "ThreadOperations_createThread": {
     "usage": "val response = client.threads.createThread(id = 154332686)",
-    "output": "Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: String)"
+    "output": "Thread(id: Long, chatId: Long, messageId: Long, messageChatId: Long, updatedAt: OffsetDateTime)"
   },
   "OAuthOperations_getTokenInfo": {
     "usage": "val response = client.profile.getTokenInfo()",
-    "output": "AccessTokenInfo(id: Long, token: String, name: String?, userId: Long, scopes: List<OAuthScope>, createdAt: String, revokedAt: String?, expiresIn: Int?, lastUsedAt: String?)"
+    "output": "AccessTokenInfo(id: Long, token: String, name: String?, userId: Long, scopes: List<OAuthScope>, createdAt: OffsetDateTime, revokedAt: OffsetDateTime?, expiresIn: Int?, lastUsedAt: OffsetDateTime?)"
   },
   "ProfileOperations_getProfile": {
     "usage": "val response = client.profile.getProfile()",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)"
   },
   "ProfileOperations_getStatus": {
     "usage": "val response = client.profile.getStatus()",
     "output": "Any"
   },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "val image = ByteArray(0)\nval response = client.profile.updateProfileAvatar(image = image)",
+    "output": "AvatarData(imageUrl: String)"
+  },
   "ProfileOperations_updateStatus": {
-    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"🎮\",\n        title = \"Очень занят\",\n        expiresAt = \"2024-04-08T10:00:00.000Z\",\n        isAway = true,\n        awayMessage = \"Вернусь после 15:00\"\n    )\n)\nval response = client.profile.updateStatus(request = request)",
-    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"🎮\",\n        title = \"Очень занят\",\n        expiresAt = OffsetDateTime.parse(\"2024-04-08T10:00:00.000Z\"),\n        isAway = true,\n        awayMessage = \"Вернусь после 15:00\"\n    )\n)\nval response = client.profile.updateStatus(request = request)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
     "imports": [
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
   },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "client.profile.deleteProfileAvatar()"
+  },
   "ProfileOperations_deleteStatus": {
     "usage": "client.profile.deleteStatus()"
   },
   "SearchOperations_searchChats": {
-    "usage": "val response = client.search.searchChats(query = \"Разработка\", limit = 10, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order = SortOrder.DESC, createdFrom = \"2025-01-01T00:00:00.000Z\", createdTo = \"2025-02-01T00:00:00.000Z\", active = true, chatSubtype = ChatSubtype.DISCUSSION, personal = false)",
+    "usage": "val createdFrom = OffsetDateTime.parse(\"2025-01-01T00:00:00.000Z\")\nval createdTo = OffsetDateTime.parse(\"2025-02-01T00:00:00.000Z\")\nval response = client.search.searchChats(query = \"Разработка\", limit = 10, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order = SortOrder.DESC, createdFrom = createdFrom, createdTo = createdTo, active = true, chatSubtype = ChatSubtype.DISCUSSION, personal = false)",
     "output": "SearchChatsResponse(data: List<Chat>, meta: SearchPaginationMeta)",
     "imports": [
       "ChatSubtype",
@@ -262,14 +268,14 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "val chatIds = listOf(123)\nval userIds = listOf(123)\nval response = client.search.searchMessages(query = \"футболки\", limit = 10, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order = SortOrder.DESC, createdFrom = \"2025-01-01T00:00:00.000Z\", createdTo = \"2025-02-01T00:00:00.000Z\", chatIds = chatIds, userIds = userIds, active = true)",
+    "usage": "val createdFrom = OffsetDateTime.parse(\"2025-01-01T00:00:00.000Z\")\nval createdTo = OffsetDateTime.parse(\"2025-02-01T00:00:00.000Z\")\nval chatIds = listOf(123)\nval userIds = listOf(123)\nval response = client.search.searchMessages(query = \"футболки\", limit = 10, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", order = SortOrder.DESC, createdFrom = createdFrom, createdTo = createdTo, chatIds = chatIds, userIds = userIds, active = true)",
     "output": "SearchMessagesResponse(data: List<Message>, meta: SearchPaginationMeta)",
     "imports": [
       "SortOrder"
     ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "val companyRoles = listOf(UserRole.ADMIN)\nval response = client.search.searchUsers(query = \"Олег\", limit = 10, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", sort = SearchSortOrder.BY_SCORE, order = SortOrder.DESC, createdFrom = \"2025-01-01T00:00:00.000Z\", createdTo = \"2025-02-01T00:00:00.000Z\", companyRoles = companyRoles)",
+    "usage": "val createdFrom = OffsetDateTime.parse(\"2025-01-01T00:00:00.000Z\")\nval createdTo = OffsetDateTime.parse(\"2025-02-01T00:00:00.000Z\")\nval companyRoles = listOf(UserRole.ADMIN)\nval response = client.search.searchUsers(query = \"Олег\", limit = 10, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", sort = SearchSortOrder.BY_SCORE, order = SortOrder.DESC, createdFrom = createdFrom, createdTo = createdTo, companyRoles = companyRoles)",
     "output": "SearchUsersResponse(data: List<User>, meta: SearchPaginationMeta)",
     "imports": [
       "SearchSortOrder",
@@ -279,15 +285,15 @@
   },
   "TaskOperations_listTasks": {
     "usage": "val response = client.tasks.listTasks(limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListTasksResponse(data: List<Task>, meta: PaginationMeta?)"
+    "output": "ListTasksResponse(data: List<Task>, meta: PaginationMeta)"
   },
   "TaskOperations_getTask": {
     "usage": "val response = client.tasks.getTask(id = 22283)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)"
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)"
   },
   "TaskOperations_createTask": {
-    "usage": "val request = TaskCreateRequest(\n    task = TaskCreateRequestTask(\n        kind = TaskKind.REMINDER,\n        content = \"Забрать со склада 21 заказ\",\n        dueAt = \"2020-06-05T12:00:00.000+03:00\",\n        priority = 2,\n        performerIds = listOf(123),\n        chatId = 456,\n        allDay = false,\n        customProperties = listOf(TaskCreateRequestCustomProperty(id = 78, value = \"Синий склад\"))\n    )\n)\nval response = client.tasks.createTask(request = request)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
+    "usage": "val request = TaskCreateRequest(\n    task = TaskCreateRequestTask(\n        kind = TaskKind.REMINDER,\n        content = \"Забрать со склада 21 заказ\",\n        dueAt = OffsetDateTime.parse(\"2020-06-05T12:00:00.000+03:00\"),\n        priority = 2,\n        performerIds = listOf(123),\n        chatId = 456,\n        allDay = false,\n        customProperties = listOf(TaskCreateRequestCustomProperty(id = 78, value = \"Синий склад\"))\n    )\n)\nval response = client.tasks.createTask(request = request)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
     "imports": [
       "TaskCreateRequest",
       "TaskCreateRequestCustomProperty",
@@ -296,8 +302,8 @@
     ]
   },
   "TaskOperations_updateTask": {
-    "usage": "val request = TaskUpdateRequest(\n    task = TaskUpdateRequestTask(\n        kind = TaskKind.REMINDER,\n        content = \"Забрать со склада 21 заказ\",\n        dueAt = \"2020-06-05T12:00:00.000+03:00\",\n        priority = 2,\n        performerIds = listOf(123),\n        status = TaskStatus.DONE,\n        allDay = false,\n        doneAt = \"2020-06-05T12:00:00.000Z\",\n        customProperties = listOf(TaskUpdateRequestCustomProperty(id = 78, value = \"Синий склад\"))\n    )\n)\nval response = client.tasks.updateTask(id = 22283, request = request)",
-    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
+    "usage": "val request = TaskUpdateRequest(\n    task = TaskUpdateRequestTask(\n        kind = TaskKind.REMINDER,\n        content = \"Забрать со склада 21 заказ\",\n        dueAt = OffsetDateTime.parse(\"2020-06-05T12:00:00.000+03:00\"),\n        priority = 2,\n        performerIds = listOf(123),\n        status = TaskStatus.DONE,\n        allDay = false,\n        doneAt = OffsetDateTime.parse(\"2020-06-05T12:00:00.000Z\"),\n        customProperties = listOf(TaskUpdateRequestCustomProperty(id = 78, value = \"Синий склад\"))\n    )\n)\nval response = client.tasks.updateTask(id = 22283, request = request)",
+    "output": "Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)",
     "imports": [
       "TaskKind",
       "TaskStatus",
@@ -311,11 +317,11 @@
   },
   "UserOperations_listUsers": {
     "usage": "val response = client.users.listUsers(query = \"Олег\", limit = 1, cursor = \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\")",
-    "output": "ListUsersResponse(data: List<User>, meta: PaginationMeta?)"
+    "output": "ListUsersResponse(data: List<User>, meta: PaginationMeta)"
   },
   "UserOperations_getUser": {
     "usage": "val response = client.users.getUser(id = 12)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "val response = client.users.getUserStatus(userId = 12)",
@@ -323,7 +329,7 @@
   },
   "UserOperations_createUser": {
     "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegp@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Продукт\",\n        title = \"CIO\",\n        role = UserRoleInput.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    ),\n    skipEmailNotify = true\n)\nval response = client.users.createUser(request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -333,7 +339,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "val request = UserUpdateRequest(\n    user = UserUpdateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegpetrov@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Отдел разработки\",\n        title = \"Старший разработчик\",\n        role = UserRoleInput.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserUpdateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    )\n)\nval response = client.users.updateUser(id = 12, request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",
@@ -341,9 +347,13 @@
       "UserUpdateRequestUser"
     ]
   },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "val image = ByteArray(0)\nval response = client.users.updateUserAvatar(userId = 12, image = image)",
+    "output": "AvatarData(imageUrl: String)"
+  },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"🎮\",\n        title = \"Очень занят\",\n        expiresAt = \"2024-04-08T10:00:00.000Z\",\n        isAway = true,\n        awayMessage = \"Вернусь после 15:00\"\n    )\n)\nval response = client.users.updateUserStatus(userId = 12, request = request)",
-    "output": "UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
+    "usage": "val request = StatusUpdateRequest(\n    status = StatusUpdateRequestStatus(\n        emoji = \"🎮\",\n        title = \"Очень занят\",\n        expiresAt = OffsetDateTime.parse(\"2024-04-08T10:00:00.000Z\"),\n        isAway = true,\n        awayMessage = \"Вернусь после 15:00\"\n    )\n)\nval response = client.users.updateUserStatus(userId = 12, request = request)",
+    "output": "UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)",
     "imports": [
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
@@ -351,6 +361,9 @@
   },
   "UserOperations_deleteUser": {
     "usage": "client.users.deleteUser(id = 12)"
+  },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "client.users.deleteUserAvatar(userId = 12)"
   },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "client.users.deleteUserStatus(userId = 12)"

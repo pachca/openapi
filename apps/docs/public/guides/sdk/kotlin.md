@@ -15,7 +15,7 @@
 
 ```kotlin
 dependencies {
-    implementation("com.pachca:pachca-sdk:1.0.1")
+    implementation("com.pachca:pachca-sdk:latest.release")
 }
 ```
 
@@ -36,7 +36,7 @@ val client = PachcaClient("YOUR_TOKEN")
 ```kotlin
 // Получение профиля
 val response = client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)
+// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)
 ```
 
 
@@ -84,15 +84,19 @@ client.close()
 | `client.profile.getTokenInfo()` | [Информация о токене](/api/profile/get-info) |
 | `client.profile.getProfile()` | [Информация о профиле](/api/profile/get) |
 | `client.profile.getStatus()` | [Текущий статус](/api/profile/get-status) |
+| `client.profile.updateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.profile.updateStatus()` | [Новый статус](/api/profile/update-status) |
+| `client.profile.deleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.profile.deleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.users.createUser()` | [Создать сотрудника](/api/users/create) |
 | `client.users.listUsers()` | [Список сотрудников](/api/users/list) |
 | `client.users.getUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.users.getUserStatus()` | [Статус сотрудника](/api/users/get-status) |
 | `client.users.updateUser()` | [Редактирование сотрудника](/api/users/update) |
+| `client.users.updateUserAvatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.users.updateUserStatus()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.users.deleteUser()` | [Удаление сотрудника](/api/users/delete) |
+| `client.users.deleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.users.deleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.groupTags.createTag()` | [Новый тег](/api/group-tags/create) |
 | `client.groupTags.listTags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -150,11 +154,14 @@ client.close()
 
 ```kotlin
 import com.pachca.sdk.ChatAvailability
+import com.pachca.sdk.ChatSortField
 import com.pachca.sdk.SortOrder
 
 // Список чатов
-val response = client.chats.listChats(sortId = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = "2025-01-01T00:00:00.000Z", lastMessageAtBefore = "2025-02-01T00:00:00.000Z", personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListChatsResponse(data: List<Chat>, meta: PaginationMeta?)
+val lastMessageAtAfter = OffsetDateTime.parse("2025-01-01T00:00:00.000Z")
+val lastMessageAtBefore = OffsetDateTime.parse("2025-02-01T00:00:00.000Z")
+val response = client.chats.listChats(sort = ChatSortField.ID, order = SortOrder.DESC, availability = ChatAvailability.IS_MEMBER, lastMessageAtAfter = lastMessageAtAfter, lastMessageAtBefore = lastMessageAtBefore, personal = false, limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+// → ListChatsResponse(data: List<Chat>, meta: PaginationMeta)
 ```
 
 
@@ -175,7 +182,7 @@ val request = ChatCreateRequest(
     )
 )
 val response = client.chats.createChat(request = request)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
@@ -184,25 +191,26 @@ val response = client.chats.createChat(request = request)
 ```kotlin
 // Получение чата
 val response = client.chats.getChat(id = 334)
-// → Chat(id: Int, name: String, createdAt: String, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: String, meetRoomUrl: String)
+// → Chat(id: Int, name: String, createdAt: OffsetDateTime, ownerId: Int, memberIds: List<Int>, groupTagIds: List<Int>, channel: Boolean, personal: Boolean, public: Boolean, lastMessageAt: OffsetDateTime, meetRoomUrl: String)
 ```
 
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta?.paginate?.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
 ```kotlin
 var cursor: String? = null
-do {
+while (true) {
     val response = client.users.listUsers(limit = 50, cursor = cursor)
+    if (response.data.isEmpty()) break
     for (user in response.data) {
         println("${user.firstName} ${user.lastName}")
     }
-    cursor = response.meta?.paginate?.nextPage
-} while (cursor != null)
+    cursor = response.meta.paginate.nextPage
+}
 ```
 
 ### Автопагинация
@@ -281,12 +289,13 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` или серверной ошибки (`5xx`):
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — линейный backoff: 1 сек, 2 сек, 3 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff с jitter
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Реализовано через плагин Ktor `HttpRequestRetry`
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 
@@ -370,18 +379,18 @@ val request = MessageCreateRequest(
     linkPreview = false
 )
 val response = client.messages.createMessage(request = request)
-// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: String, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: String, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: String?, deletedAt: String?)
+// → Message(id: Int, entityType: MessageEntityType, entityId: Int, chatId: Int, rootChatId: Int, content: String, userId: Int, createdAt: OffsetDateTime, url: String, files: List<File(id: Int, key: String, name: String, fileType: FileType, url: String, width: Int?, height: Int?)>, buttons: List<List<Button(text: String, url: String?, data: String?)>>?, thread: MessageThread(id: Long, chatId: Long)?, forwarding: Forwarding(originalMessageId: Int, originalChatId: Int, authorId: Int, originalCreatedAt: OffsetDateTime, originalThreadId: Int?, originalThreadMessageId: Int?, originalThreadParentChatId: Int?)?, parentMessageId: Int?, displayAvatarUrl: String?, displayName: String?, changedAt: OffsetDateTime?, deletedAt: OffsetDateTime?)
 
 // Список сотрудников
 val response = client.users.listUsers(query = "Олег", limit = 1, cursor = "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
-// → ListUsersResponse(data: List<User>, meta: PaginationMeta?)
+// → ListUsersResponse(data: List<User>, meta: PaginationMeta)
 
 // Создание задачи
 val request = TaskCreateRequest(
     task = TaskCreateRequestTask(
         kind = TaskKind.REMINDER,
         content = "Забрать со склада 21 заказ",
-        dueAt = "2020-06-05T12:00:00.000+03:00",
+        dueAt = OffsetDateTime.parse("2020-06-05T12:00:00.000+03:00"),
         priority = 2,
         performerIds = listOf(123),
         chatId = 456,
@@ -390,7 +399,7 @@ val request = TaskCreateRequest(
     )
 )
 val response = client.tasks.createTask(request = request)
-// → Task(id: Int, kind: TaskKind, content: String, dueAt: String?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: String, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)
+// → Task(id: Int, kind: TaskKind, content: String, dueAt: OffsetDateTime?, priority: Int, userId: Int, chatId: Int?, status: TaskStatus, createdAt: OffsetDateTime, performerIds: List<Int>, allDay: Boolean, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>)
 ```
 
 

@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "SearchOperations_searchMessages": {
+    "usage": "var chatIds = new List<int> { 123 };\nvar userIds = new List<int> { 123 };\nvar response = await client.Search.SearchMessagesAsync(\"example\", chatIds, userIds, 123, \"example\");",
+    "output": "SearchMessagesResponse(Data: List<MessageResult>, Meta: PaginationMeta)"
+  }
+}

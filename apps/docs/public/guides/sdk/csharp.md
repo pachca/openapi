@@ -1,5 +1,5 @@
 
-# CSharp
+# C#
 
 [Pachca.Sdk](https://www.nuget.org/packages/Pachca.Sdk) NuGet
 
@@ -69,15 +69,19 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 | `client.Profile.GetTokenInfoAsync()` | [Информация о токене](/api/profile/get-info) |
 | `client.Profile.GetProfileAsync()` | [Информация о профиле](/api/profile/get) |
 | `client.Profile.GetStatusAsync()` | [Текущий статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfileAvatarAsync()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.Profile.UpdateStatusAsync()` | [Новый статус](/api/profile/update-status) |
+| `client.Profile.DeleteProfileAvatarAsync()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.Profile.DeleteStatusAsync()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.Users.CreateUserAsync()` | [Создать сотрудника](/api/users/create) |
 | `client.Users.ListUsersAsync()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUserAsync()` | [Информация о сотруднике](/api/users/get) |
 | `client.Users.GetUserStatusAsync()` | [Статус сотрудника](/api/users/get-status) |
 | `client.Users.UpdateUserAsync()` | [Редактирование сотрудника](/api/users/update) |
+| `client.Users.UpdateUserAvatarAsync()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.Users.UpdateUserStatusAsync()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.Users.DeleteUserAsync()` | [Удаление сотрудника](/api/users/delete) |
+| `client.Users.DeleteUserAvatarAsync()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.Users.DeleteUserStatusAsync()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.GroupTags.CreateTagAsync()` | [Новый тег](/api/group-tags/create) |
 | `client.GroupTags.ListTagsAsync()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -137,8 +141,8 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 using Pachca.Sdk;
 
 // Список чатов
-var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, "2025-01-01T00:00:00.000Z", "2025-02-01T00:00:00.000Z", false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
-// → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta?)
+var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse("2025-01-01T00:00:00.000Z"), DateTimeOffset.Parse("2025-02-01T00:00:00.000Z"), false, 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
+// → ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)
 ```
 
 
@@ -177,7 +181,7 @@ var response = await client.Chats.GetChatAsync(334);
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `Data`.
 
 ### Ручная пагинация
 
@@ -185,12 +189,13 @@ var response = await client.Chats.GetChatAsync(334);
 var chats = new List<Chat>();
 string? cursor = null;
 
-do
+while (true)
 {
     var response = await client.Chats.ListChatsAsync(cursor: cursor);
+    if (response.Data.Count == 0) break;
     chats.AddRange(response.Data);
-    cursor = response.Meta?.Paginate?.NextPage;
-} while (cursor != null);
+    cursor = response.Meta.Paginate.NextPage;
+}
 ```
 
 ### Автопагинация
@@ -275,11 +280,11 @@ catch (OAuthError e)
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Отмена запросов
@@ -406,7 +411,7 @@ var response = await client.Messages.CreateMessageAsync(request);
 
 // Список сотрудников
 var response = await client.Users.ListUsersAsync("Олег", 1, "eyJpZCI6MTAsImRpciI6ImFzYyJ9");
-// → ListUsersResponse(Data: List<User>, Meta: PaginationMeta?)
+// → ListUsersResponse(Data: List<User>, Meta: PaginationMeta)
 
 // Создание задачи
 var request = new TaskCreateRequest
@@ -415,7 +420,7 @@ var request = new TaskCreateRequest
     {
         Kind = TaskKind.Reminder,
         Content = "Забрать со склада 21 заказ",
-        DueAt = "2020-06-05T12:00:00.000+03:00",
+        DueAt = DateTimeOffset.Parse("2020-06-05T12:00:00.000+03:00"),
         Priority = 2,
         PerformerIds = new List<int> { 123 },
         ChatId = 456,

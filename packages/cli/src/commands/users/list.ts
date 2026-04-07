@@ -49,7 +49,7 @@ export default class UsersList extends BaseCommand {
       const seenCursors = new Set<string>();
 
       while (pages < 500) {
-        const query: Record<string, string | number | boolean | undefined> = {
+        const query: Record<string, string | number | boolean | string[] | undefined> = {
         query: flags['query'],
         limit: flags.limit,
           cursor: nextCursor,
@@ -58,6 +58,7 @@ export default class UsersList extends BaseCommand {
         const body = response.data as Record<string, unknown>;
         const items = body.data as unknown[];
         if (items) allData.push(...items);
+        if (!items || items.length === 0) break;
         const meta = body.meta as Record<string, unknown> | undefined;
         const paginate = meta?.paginate as Record<string, unknown> | undefined;
         nextCursor = paginate?.next_page as string | undefined;

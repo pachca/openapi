@@ -34,7 +34,7 @@ public sealed class ChatsService
         if (availability != null)
             queryParts.Add($"availability={Uri.EscapeDataString(PachcaUtils.EnumToApiString(availability.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (sortField != null)
@@ -69,6 +69,7 @@ public sealed class ChatsService
         {
             var response = await ListChatsAsync(availability: availability, limit: limit, cursor: cursor, sortField: sortField, sortOrder: sortOrder, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
             cursor = response.Meta?.Paginate?.NextPage;
         } while (cursor != null);
         return items;

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from dataclasses import dataclass
 
 @dataclass
@@ -26,7 +27,7 @@ class Chat:
     name: str
     is_channel: bool
     is_public: bool
-    created_at: str
+    created_at: datetime
 
 
 @dataclass

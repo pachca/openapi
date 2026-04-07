@@ -18,19 +18,15 @@ on:
 
 concurrency:
   group: generator-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   snapshot-tests:
     name: Snapshot tests
     runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.check.outputs.changed }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -48,15 +44,8 @@ jobs:
         working-directory: packages/generator
         run: bun test
 
-      - name: Check for generator changes
-        if: github.event_name == 'push'
-        id: check
-        run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/generator/ packages/openapi-parser/ | grep -q . && echo true || echo false)
-          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
-
   publish-generator:
-    if: github.event_name == 'push' && needs.snapshot-tests.outputs.changed == 'true'
+    if: github.event_name == 'push'
     needs: snapshot-tests
     runs-on: ubuntu-latest
     concurrency:
@@ -84,14 +73,40 @@ jobs:
         working-directory: packages/generator
         run: bun run build
 
+      - name: Set version (auto-increment patch)
+        id: version
+        working-directory: packages/generator
+        run: |
+          VERSION=$(node -e "
+            const { execSync } = require('child_process');
+            const base = require('./package.json').version.split('.').slice(0, 2).join('.');
+            let versions = [];
+            try {
+              const raw = execSync('npm view @pachca/generator versions --json', { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
+              const parsed = JSON.parse(raw);
+              versions = Array.isArray(parsed) ? parsed : [parsed];
+            } catch {}
+            const matching = versions.filter(v => v.startsWith(base + '.'));
+            const lastPatch = matching.length > 0
+              ? Math.max(...matching.map(v => parseInt(v.split('.')[2])))
+              : -1;
+            console.log(base + '.' + (lastPatch + 1));
+          ")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='$VERSION';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          echo "Publishing @pachca/generator@$VERSION"
+
       - name: Publish to npm
         working-directory: packages/generator
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          VERSION=$(node -e "console.log(require('./package.json').version)")
-          if npm view "@pachca/generator@${VERSION}" version 2>/dev/null; then
-            echo "Version ${VERSION} already published, skipping"
-          else
-            npm publish --access public --provenance
-          fi
+          OUTPUT=$(npm publish --access public --provenance 2>&1) || {
+            CODE=$?
+            if echo "$OUTPUT" | grep -q "E409\|already exists"; then
+              echo "Version ${{ steps.version.outputs.version }} already published, skipping"
+            else
+              echo "$OUTPUT"
+              exit $CODE
+            fi
+          }

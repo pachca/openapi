@@ -360,28 +360,31 @@ describe('generated commands — functional tests', () => {
     });
   });
 
-  // ----- Composite query params (chats list) -----
+  // ----- Sort query params (chats list) -----
 
   describe('chats list', () => {
-    it('--sort last-message-at --order desc → query sort[last_message_at]=desc', async () => {
+    it('--sort last_message_at --order desc → query sort=last_message_at&order=desc', async () => {
       mockFetchForEndpoint('/chats', 'GET');
-      const { stdout, stderr, error } = await runCommand(['chats', 'list', '--sort', 'last-message-at', '--order', 'desc'], { root: CLI_ROOT });
+      const { stdout, stderr, error } = await runCommand(['chats', 'list', '--sort', 'last_message_at', '--order', 'desc'], { root: CLI_ROOT });
       expect(error).toBeUndefined();
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;
-      expect(url).toContain('sort%5Blast_message_at%5D=desc');
+      expect(url).toContain('sort=last_message_at');
+      expect(url).toContain('order=desc');
     });
   });
 
   // ----- Array query (search list-messages) -----
 
   describe('search list-messages', () => {
-    it('--chat-ids 1,2,3 → query chat_ids', async () => {
+    it('--chat-ids 1,2,3 → query chat_ids[] repeated', async () => {
       mockFetchForEndpoint('/search/messages', 'GET');
       await runCommand(['search', 'list-messages', '--chat-ids', '1,2,3'], { root: CLI_ROOT });
       expect(fetchCalls().length).toBeGreaterThan(0);
       const url = fetchCalls()[0][0] as string;
-      expect(url).toContain('chat_ids=');
+      expect(url).toContain('chat_ids%5B%5D=1');
+      expect(url).toContain('chat_ids%5B%5D=2');
+      expect(url).toContain('chat_ids%5B%5D=3');
     });
   });
 });

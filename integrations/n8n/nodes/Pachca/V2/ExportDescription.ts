@@ -1,0 +1,110 @@
+import type { INodeProperties } from 'n8n-workflow';
+
+export const exportOperations: INodeProperties[] = [
+	{
+		displayName: 'Operation',
+		name: 'operation',
+		type: 'options',
+		noDataExpression: true,
+		displayOptions: { show: { resource: ['export'] } },
+		options: [
+			{
+				name: 'Create',
+				value: 'create',
+				action: 'Create a chat export',
+			},
+			{
+				name: 'Get',
+				value: 'get',
+				action: 'Get a chat export',
+			},
+		],
+		default: 'create',
+	},
+];
+
+export const exportFields: INodeProperties[] = [
+	{
+		displayName: 'Requires owner role and the "Corporation" plan',
+		name: 'exportCreateNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
+	},
+	{
+		displayName: 'Start At',
+		name: 'startAt',
+		type: 'string',
+		required: true,
+		default: "",
+		description: 'Export start date (ISO-8601, UTC+0) in YYYY-MM-DD format',
+		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
+		placeholder: '2025-03-20',
+		routing: { send: { type: 'body', property: 'start_at' } },
+	},
+	{
+		displayName: 'End At',
+		name: 'endAt',
+		type: 'string',
+		required: true,
+		default: "",
+		description: 'Export end date (ISO-8601, UTC+0) in YYYY-MM-DD format',
+		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
+		placeholder: '2025-03-20',
+		routing: { send: { type: 'body', property: 'end_at' } },
+	},
+	{
+		displayName: 'Webhook URL',
+		name: 'webhookUrl',
+		type: 'string',
+		required: true,
+		default: "",
+		description: 'URL to receive a webhook when the export is complete',
+		hint: 'Set this to a Webhook node URL in another workflow to receive the export-ready notification',
+		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
+		placeholder: 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
+		routing: { send: { type: 'body', property: 'webhook_url' } },
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
+		options: [
+			{
+				displayName: 'Chat IDs',
+				name: 'chatIds',
+				type: 'string',
+				default: "",
+				description: 'Array of chat IDs. Specify to export messages from specific chats only.',
+				placeholder: '1381521',
+			},
+			{
+				displayName: 'Skip Chats File',
+				name: 'skipChatsFile',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to skip generating the chat list file (chats.JSON)',
+				routing: { send: { type: 'body', property: 'skip_chats_file' } },
+			},
+		],
+	},
+	{
+		displayName: 'ID',
+		name: 'id',
+		type: 'number',
+		required: true,
+		default: 0,
+		displayOptions: { show: { resource: ['export'], operation: ['get'] } },
+		description: 'Export ID',
+	},
+	{
+		displayName: 'Requires owner role and the "Corporation" plan',
+		name: 'exportGetNotice',
+		type: 'notice',
+		default: '',
+		displayOptions: { show: { resource: ['export'], operation: ['get'] } },
+	},
+];

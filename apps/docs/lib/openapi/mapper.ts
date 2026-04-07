@@ -1,5 +1,5 @@
 import type { Endpoint } from './types';
-import { toSlug } from '@/lib/utils/transliterate';
+import { toSlug } from '../utils/transliterate';
 
 // Overrides for auto-generated command URLs that produce ugly names.
 // Key: "METHOD /path", value: "/section/action" for the CLI URL.

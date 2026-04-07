@@ -76,8 +76,10 @@ func (s *EventsService) ListEvents(ctx context.Context, params *ListEventsParams
 	if params != nil && params.IsActive != nil {
 		q.Set("is_active", fmt.Sprintf("%v", *params.IsActive))
 	}
-	if params != nil && params.Scopes != nil {
-		q.Set("scopes", fmt.Sprintf("%v", params.Scopes))
+	if params != nil {
+		for _, v := range params.Scopes {
+			q.Add("scopes[]", fmt.Sprintf("%v", v))
+		}
 	}
 	if params != nil && params.Filter != nil {
 		q.Set("filter", fmt.Sprintf("%v", *params.Filter))

@@ -153,6 +153,8 @@ export interface NavigationItem {
   children?: NavigationItem[];
   /** Original (untranslated) title shown next to the translated one */
   originalTitle?: string;
+  /** Parent section/group title for context (e.g. "SDK" for child page "Обзор") */
+  sectionTitle?: string;
   /** External link (opens in new tab) */
   external?: boolean;
 }

@@ -64,9 +64,11 @@ Thumbs.db
 # Evals
 evals/results/
 
-# Agent-specific local skills (installed via `npx skills add`)
-.claude/skills/
+# Agent / AI tooling
+.claude/
 .cursor/
+.mcp.json
+.playwright-mcp/
 
 # C# / .NET
 bin/

@@ -62,12 +62,13 @@ var message = await client.Messages.CreateMessageAsync(...); // Message, не Me
 // Вручную
 var chats = new List<Chat>();
 string? cursor = null;
-do
+while (true)
 {
     var response = await client.Chats.ListChatsAsync(cursor: cursor);
+    if (response.Data.Count == 0) break;
     chats.AddRange(response.Data);
-    cursor = response.Meta?.Paginate?.NextPage;
-} while (cursor != null);
+    cursor = response.Meta.Paginate.NextPage;
+}
 
 // Автоматически
 var allChats = await client.Chats.ListChatsAllAsync();

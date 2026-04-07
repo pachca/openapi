@@ -12,8 +12,16 @@ import { getGuideData } from './content-loader';
  * Get all ordered guide pages (for generators/sitemap).
  * Returns pages from all guide sections + API guide pages + home.
  */
-export function getOrderedPages(): { path: string; title: string; description: string }[] {
-  const pages: { path: string; title: string; description: string }[] = [];
+export interface OrderedPage {
+  path: string;
+  title: string;
+  description: string;
+  /** Parent section/group title (e.g. "SDK" for child page "Обзор") */
+  sectionTitle?: string;
+}
+
+export function getOrderedPages(): OrderedPage[] {
+  const pages: OrderedPage[] = [];
 
   // Home page
   const homeData = getGuideData('home');
@@ -30,7 +38,7 @@ export function getOrderedPages(): { path: string; title: string; description: s
     for (const item of section.items) {
       if (item.children) {
         for (const child of item.children) {
-          addPage(pages, child, '/guides/');
+          addPage(pages, child, '/guides/', item.title);
         }
       } else {
         addPage(pages, item, '/guides/');
@@ -59,6 +67,7 @@ export function getOrderedPages(): { path: string; title: string; description: s
         path: item.path,
         title: data.frontmatter.title || item.title,
         description: data.frontmatter.description || '',
+        sectionTitle: 'Основы API',
       });
     } else {
       // Dynamic pages without MDX (e.g. /api/models)
@@ -66,6 +75,7 @@ export function getOrderedPages(): { path: string; title: string; description: s
         path: item.path,
         title: item.title,
         description: '',
+        sectionTitle: 'Основы API',
       });
     }
   }
@@ -74,9 +84,10 @@ export function getOrderedPages(): { path: string; title: string; description: s
 }
 
 function addPage(
-  pages: { path: string; title: string; description: string }[],
+  pages: OrderedPage[],
   item: SidebarPageItem,
-  prefix: string
+  prefix: string,
+  sectionTitle?: string
 ) {
   const data = getGuideData(item.path.replace(prefix, ''));
   if (data) {
@@ -84,6 +95,7 @@ function addPage(
       path: item.path,
       title: data.frontmatter.title || item.title,
       description: data.frontmatter.description || '',
+      sectionTitle,
     });
   }
 }

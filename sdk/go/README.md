@@ -5,7 +5,7 @@ Go клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-go get github.com/pachca/openapi/sdk/go/generated@v1.0.1
+go get github.com/pachca/openapi/sdk/go/generated@latest
 ```
 
 ## Использование
@@ -68,11 +68,10 @@ var cursor *string
 for {
     result, err := client.Chats.ListChats(ctx, &pachca.ListChatsParams{Cursor: cursor})
     if err != nil { break }
+    if len(result.Data) == 0 { break }
     chats = append(chats, result.Data...)
-    if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
-        break
-    }
-    cursor = result.Meta.Paginate.NextPage
+    nextPage := result.Meta.Paginate.NextPage
+    cursor = &nextPage
 }
 
 // Автоматически

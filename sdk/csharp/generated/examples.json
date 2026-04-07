@@ -6,15 +6,15 @@
     ]
   },
   "SecurityOperations_getAuditEvents": {
-    "usage": "var response = await client.Security.GetAuditEventsAsync(\"2025-05-01T09:11:00Z\", \"2025-05-02T09:11:00Z\", AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "GetAuditEventsResponse(Data: List<AuditEvent>, Meta: PaginationMeta?)",
+    "usage": "var response = await client.Security.GetAuditEventsAsync(DateTimeOffset.Parse(\"2025-05-01T09:11:00Z\"), DateTimeOffset.Parse(\"2025-05-02T09:11:00Z\"), AuditEventKey.UserLogin, \"98765\", \"User\", \"98765\", \"User\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "GetAuditEventsResponse(Data: List<AuditEvent>, Meta: PaginationMeta)",
     "imports": [
       "AuditEventKey"
     ]
   },
   "BotOperations_getWebhookEvents": {
     "usage": "var response = await client.Bots.GetWebhookEventsAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta?)"
+    "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta)"
   },
   "BotOperations_updateBot": {
     "usage": "var request = new BotUpdateRequest { Bot = new BotUpdateRequestBot { Webhook = new BotUpdateRequestBotWebhook { OutgoingUrl = \"https://www.website.com/tasks/new\" } } };\nvar response = await client.Bots.UpdateBotAsync(1738816, request);",
@@ -29,10 +29,11 @@
     "usage": "await client.Bots.DeleteWebhookEventAsync(\"01KAJZ2XDSS2S3DSW9EXJZ0TBV\");"
   },
   "ChatOperations_listChats": {
-    "usage": "var response = await client.Chats.ListChatsAsync(SortOrder.Desc, ChatAvailability.IsMember, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta?)",
+    "usage": "var response = await client.Chats.ListChatsAsync(ChatSortField.Id, SortOrder.Desc, ChatAvailability.IsMember, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), false, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListChatsResponse(Data: List<Chat>, Meta: PaginationMeta)",
     "imports": [
       "ChatAvailability",
+      "ChatSortField",
       "SortOrder"
     ]
   },
@@ -91,7 +92,7 @@
   },
   "ChatMemberOperations_listMembers": {
     "usage": "var response = await client.Members.ListMembersAsync(334, ChatMemberRoleFilter.All, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListMembersResponse(Data: List<User>, Meta: PaginationMeta?)",
+    "output": "ListMembersResponse(Data: List<User>, Meta: PaginationMeta)",
     "imports": [
       "ChatMemberRoleFilter"
     ]
@@ -121,11 +122,8 @@
     "usage": "await client.Members.RemoveMemberAsync(334, 186);"
   },
   "GroupTagOperations_listTags": {
-    "usage": "var names = new TagNamesFilter();\nvar response = await client.GroupTags.ListTagsAsync(names, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListTagsResponse(Data: List<GroupTag>, Meta: PaginationMeta?)",
-    "imports": [
-      "TagNamesFilter"
-    ]
+    "usage": "var names = new List<string> { \"example\" };\nvar response = await client.GroupTags.ListTagsAsync(names, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListTagsResponse(Data: List<GroupTag>, Meta: PaginationMeta)"
   },
   "GroupTagOperations_getTag": {
     "usage": "var response = await client.GroupTags.GetTagAsync(9111);",
@@ -133,7 +131,7 @@
   },
   "GroupTagOperations_getTagUsers": {
     "usage": "var response = await client.GroupTags.GetTagUsersAsync(9111, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "GetTagUsersResponse(Data: List<User>, Meta: PaginationMeta?)"
+    "output": "GetTagUsersResponse(Data: List<User>, Meta: PaginationMeta)"
   },
   "GroupTagOperations_createTag": {
     "usage": "var request = new GroupTagRequest { GroupTag = new GroupTagRequestGroupTag { Name = \"Новое название тега\" } };\nvar response = await client.GroupTags.CreateTagAsync(request);",
@@ -155,9 +153,10 @@
     "usage": "await client.GroupTags.DeleteTagAsync(9111);"
   },
   "ChatMessageOperations_listChatMessages": {
-    "usage": "var response = await client.Messages.ListChatMessagesAsync(198, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta?)",
+    "usage": "var response = await client.Messages.ListChatMessagesAsync(198, MessageSortField.Id, SortOrder.Desc, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListChatMessagesResponse(Data: List<Message>, Meta: PaginationMeta)",
     "imports": [
+      "MessageSortField",
       "SortOrder"
     ]
   },
@@ -206,7 +205,7 @@
   },
   "ReactionOperations_listReactions": {
     "usage": "var response = await client.Reactions.ListReactionsAsync(194275, 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListReactionsResponse(Data: List<Reaction>, Meta: PaginationMeta?)"
+    "output": "ListReactionsResponse(Data: List<Reaction>, Meta: PaginationMeta)"
   },
   "ReactionOperations_addReaction": {
     "usage": "var request = new ReactionRequest { Code = \"👍\", Name = \":+1:\" };\nvar response = await client.Reactions.AddReactionAsync(7231942, request);",
@@ -242,19 +241,26 @@
     "usage": "var response = await client.Profile.GetStatusAsync();",
     "output": "object"
   },
+  "ProfileAvatarOperations_updateProfileAvatar": {
+    "usage": "var response = await client.Profile.UpdateProfileAvatarAsync(Array.Empty<byte>());",
+    "output": "AvatarData(ImageUrl: string)"
+  },
   "ProfileOperations_updateStatus": {
-    "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = \"2024-04-08T10:00:00.000Z\",\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Profile.UpdateStatusAsync(request);",
+    "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = DateTimeOffset.Parse(\"2024-04-08T10:00:00.000Z\"),\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Profile.UpdateStatusAsync(request);",
     "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)",
     "imports": [
       "StatusUpdateRequest",
       "StatusUpdateRequestStatus"
     ]
   },
+  "ProfileAvatarOperations_deleteProfileAvatar": {
+    "usage": "await client.Profile.DeleteProfileAvatarAsync();"
+  },
   "ProfileOperations_deleteStatus": {
     "usage": "await client.Profile.DeleteStatusAsync();"
   },
   "SearchOperations_searchChats": {
-    "usage": "var response = await client.Search.SearchChatsAsync(\"Разработка\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SortOrder.Desc, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", true, ChatSubtype.Discussion, false);",
+    "usage": "var response = await client.Search.SearchChatsAsync(\"Разработка\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SortOrder.Desc, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), true, ChatSubtype.Discussion, false);",
     "output": "SearchChatsResponse(Data: List<Chat>, Meta: SearchPaginationMeta)",
     "imports": [
       "ChatSubtype",
@@ -262,14 +268,14 @@
     ]
   },
   "SearchOperations_searchMessages": {
-    "usage": "var chatIds = new List<int> { 123 };\nvar userIds = new List<int> { 123 };\nvar response = await client.Search.SearchMessagesAsync(\"футболки\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SortOrder.Desc, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", chatIds, userIds, true);",
+    "usage": "var chatIds = new List<int> { 123 };\nvar userIds = new List<int> { 123 };\nvar response = await client.Search.SearchMessagesAsync(\"футболки\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SortOrder.Desc, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), chatIds, userIds, true);",
     "output": "SearchMessagesResponse(Data: List<Message>, Meta: SearchPaginationMeta)",
     "imports": [
       "SortOrder"
     ]
   },
   "SearchOperations_searchUsers": {
-    "usage": "var companyRoles = new List<UserRole> { UserRole.Admin };\nvar response = await client.Search.SearchUsersAsync(\"Олег\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SearchSortOrder.ByScore, SortOrder.Desc, \"2025-01-01T00:00:00.000Z\", \"2025-02-01T00:00:00.000Z\", companyRoles);",
+    "usage": "var companyRoles = new List<UserRole> { UserRole.Admin };\nvar response = await client.Search.SearchUsersAsync(\"Олег\", 10, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\", SearchSortOrder.ByScore, SortOrder.Desc, DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), companyRoles);",
     "output": "SearchUsersResponse(Data: List<User>, Meta: SearchPaginationMeta)",
     "imports": [
       "SearchSortOrder",
@@ -279,14 +285,14 @@
   },
   "TaskOperations_listTasks": {
     "usage": "var response = await client.Tasks.ListTasksAsync(1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta?)"
+    "output": "ListTasksResponse(Data: List<Task>, Meta: PaginationMeta)"
   },
   "TaskOperations_getTask": {
     "usage": "var response = await client.Tasks.GetTaskAsync(22283);",
     "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)"
   },
   "TaskOperations_createTask": {
-    "usage": "var request = new TaskCreateRequest\n{\n    Task = new TaskCreateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = \"2020-06-05T12:00:00.000+03:00\",\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        ChatId = 456,\n        AllDay = false,\n        CustomProperties = new List<TaskCreateRequestCustomProperty> { new TaskCreateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.CreateTaskAsync(request);",
+    "usage": "var request = new TaskCreateRequest\n{\n    Task = new TaskCreateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000+03:00\"),\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        ChatId = 456,\n        AllDay = false,\n        CustomProperties = new List<TaskCreateRequestCustomProperty> { new TaskCreateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.CreateTaskAsync(request);",
     "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)",
     "imports": [
       "TaskCreateRequest",
@@ -296,7 +302,7 @@
     ]
   },
   "TaskOperations_updateTask": {
-    "usage": "var request = new TaskUpdateRequest\n{\n    Task = new TaskUpdateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = \"2020-06-05T12:00:00.000+03:00\",\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        Status = TaskStatus.Done,\n        AllDay = false,\n        DoneAt = \"2020-06-05T12:00:00.000Z\",\n        CustomProperties = new List<TaskUpdateRequestCustomProperty> { new TaskUpdateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.UpdateTaskAsync(22283, request);",
+    "usage": "var request = new TaskUpdateRequest\n{\n    Task = new TaskUpdateRequestTask\n    {\n        Kind = TaskKind.Reminder,\n        Content = \"Забрать со склада 21 заказ\",\n        DueAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000+03:00\"),\n        Priority = 2,\n        PerformerIds = new List<int> { 123 },\n        Status = TaskStatus.Done,\n        AllDay = false,\n        DoneAt = DateTimeOffset.Parse(\"2020-06-05T12:00:00.000Z\"),\n        CustomProperties = new List<TaskUpdateRequestCustomProperty> { new TaskUpdateRequestCustomProperty { Id = 78, Value = \"Синий склад\" } }\n    }\n};\nvar response = await client.Tasks.UpdateTaskAsync(22283, request);",
     "output": "Task(Id: int, Kind: TaskKind, Content: string, DueAt: DateTimeOffset?, Priority: int, UserId: int, ChatId: int?, Status: TaskStatus, CreatedAt: DateTimeOffset, PerformerIds: List<int>, AllDay: bool, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>)",
     "imports": [
       "TaskKind",
@@ -311,7 +317,7 @@
   },
   "UserOperations_listUsers": {
     "usage": "var response = await client.Users.ListUsersAsync(\"Олег\", 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
-    "output": "ListUsersResponse(Data: List<User>, Meta: PaginationMeta?)"
+    "output": "ListUsersResponse(Data: List<User>, Meta: PaginationMeta)"
   },
   "UserOperations_getUser": {
     "usage": "var response = await client.Users.GetUserAsync(12);",
@@ -341,8 +347,12 @@
       "UserUpdateRequestUser"
     ]
   },
+  "UserAvatarOperations_updateUserAvatar": {
+    "usage": "var response = await client.Users.UpdateUserAvatarAsync(12, Array.Empty<byte>());",
+    "output": "AvatarData(ImageUrl: string)"
+  },
   "UserStatusOperations_updateUserStatus": {
-    "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = \"2024-04-08T10:00:00.000Z\",\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Users.UpdateUserStatusAsync(12, request);",
+    "usage": "var request = new StatusUpdateRequest\n{\n    Status = new StatusUpdateRequestStatus\n    {\n        Emoji = \"🎮\",\n        Title = \"Очень занят\",\n        ExpiresAt = DateTimeOffset.Parse(\"2024-04-08T10:00:00.000Z\"),\n        IsAway = true,\n        AwayMessage = \"Вернусь после 15:00\"\n    }\n};\nvar response = await client.Users.UpdateUserStatusAsync(12, request);",
     "output": "UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)",
     "imports": [
       "StatusUpdateRequest",
@@ -352,11 +362,14 @@
   "UserOperations_deleteUser": {
     "usage": "await client.Users.DeleteUserAsync(12);"
   },
+  "UserAvatarOperations_deleteUserAvatar": {
+    "usage": "await client.Users.DeleteUserAvatarAsync(12);"
+  },
   "UserStatusOperations_deleteUserStatus": {
     "usage": "await client.Users.DeleteUserStatusAsync(12);"
   },
   "FormOperations_openView": {
-    "usage": "var request = new OpenViewRequest\n{\n    Type = \"modal\",\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\"timeoff_id\":4378}\",\n    CallbackId = \"timeoff_reguest_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Type = \"header\", Text = \"Основная информация\" } }\n    }\n};\nawait client.Views.OpenViewAsync(request);",
+    "usage": "var request = new OpenViewRequest\n{\n    TriggerId = \"791a056b-006c-49dd-834b-c633fde52fe8\",\n    PrivateMetadata = \"{\\\"timeoff_id\\\":4378}\",\n    CallbackId = \"timeoff_reguest_form\",\n    View = new OpenViewRequestView\n    {\n        Title = \"Уведомление об отпуске\",\n        CloseText = \"Закрыть\",\n        SubmitText = \"Отправить заявку\",\n        Blocks = new List<ViewBlockUnion> { new ViewBlockHeader { Text = \"Основная информация\" } }\n    }\n};\nawait client.Views.OpenViewAsync(request);",
     "imports": [
       "OpenViewRequest",
       "OpenViewRequestView",

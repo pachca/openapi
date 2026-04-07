@@ -1,0 +1,3169 @@
+overlay: 1.0.0
+info:
+  title: Pachca API — English translations
+  version: 1.0.0
+actions:
+  - target: $.paths['/audit_events'].get
+    update:
+      description: |-
+        Audit event log
+
+        Retrieve event logs based on the specified filters.
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='start_time')]
+    update:
+      description: Start timestamp (inclusive)
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='end_time')]
+    update:
+      description: End timestamp (exclusive)
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='event_key')]
+    update:
+      description: Filter by specific event type
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='actor_id')]
+    update:
+      description: ID of the user who performed the action
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='actor_type')]
+    update:
+      description: Actor type
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='entity_id')]
+    update:
+      description: ID of the affected entity
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='entity_type')]
+    update:
+      description: Entity type
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return
+  - target: $.paths['/audit_events'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/bots/{id}'].put
+    update:
+      description: >-
+        Edit bot
+
+
+        Edit a bot's settings.
+
+
+        To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters
+        are specified in the request body. You can find the bot's `user_id` in the bot settings under the "API" tab.
+
+
+        You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located
+        on the "General" tab in the bot settings).
+  - target: $.paths['/bots/{id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: Bot ID
+  - target: $.paths['/chats'].post
+    update:
+      description: |-
+        New chat
+
+        Create a new chat.
+
+        To create a one-on-one direct message with a user, use the [New message](POST /messages) method.
+
+        When creating a chat, you automatically become a member.
+  - target: $.paths['/chats'].get
+    update:
+      description: |-
+        List chats
+
+        Retrieve a list of chats based on the specified parameters.
+  - target: $.paths['/chats'].get.parameters[?(@.name=='sort')]
+    update:
+      description: Sort field
+  - target: $.paths['/chats'].get.parameters[?(@.name=='order')]
+    update:
+      description: Sort direction
+  - target: $.paths['/chats'].get.parameters[?(@.name=='availability')]
+    update:
+      description: Parameter that controls chat availability and filtering for the user
+  - target: $.paths['/chats'].get.parameters[?(@.name=='last_message_at_after')]
+    update:
+      description: >-
+        Filter by last message creation time. Returns chats where the last message was created no earlier than the
+        specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+  - target: $.paths['/chats'].get.parameters[?(@.name=='last_message_at_before')]
+    update:
+      description: >-
+        Filter by last message creation time. Returns chats where the last message was created no later than the
+        specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+  - target: $.paths['/chats'].get.parameters[?(@.name=='personal')]
+    update:
+      description: Filter by direct and group chats. If not specified, all chats are returned.
+  - target: $.paths['/chats'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/chats'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/chats/exports'].post
+    update:
+      description: |-
+        Export messages
+
+        Request a message export for the specified time period.
+  - target: $.paths['/chats/exports/{id}'].get
+    update:
+      description: >-
+        Download export archive
+
+
+        Download a completed message export archive.
+
+
+        To download the archive you need to know its `id` and specify it in the request `URL`.
+
+
+        The server will respond with `302 Found` and a `Location` header containing a temporary download link. Most HTTP
+        clients automatically follow the redirect and download the file.
+  - target: $.paths['/chats/exports/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: Export ID
+  - target: $.paths['/chats/{id}'].get
+    update:
+      description: |-
+        Chat info
+
+        Retrieve information about a chat.
+
+        To get a chat you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/chats/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}'].put
+    update:
+      description: >-
+        Update chat
+
+
+        Update chat parameters.
+
+
+        To update a chat you need to know its `id` and specify it in the `URL`. All updatable fields are passed in the
+        request body.
+  - target: $.paths['/chats/{id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/archive'].put
+    update:
+      description: |-
+        Archive chat
+
+        Archive a chat.
+
+        To archive a chat you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/chats/{id}/archive'].put.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/group_tags'].post
+    update:
+      description: >-
+        Add tags
+
+
+        Add tags to the member list of a conversation or channel.
+
+
+        After adding a tag, all its members automatically become members of the chat. The tag and chat member lists are
+        synchronized automatically: when a new member is added to the tag, they immediately appear in the chat; when
+        removed from the tag, they are removed from the chat.
+  - target: $.paths['/chats/{id}/group_tags'].post.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/group_tags/{tag_id}'].delete
+    update:
+      description: |-
+        Remove tag
+
+        Remove a tag from the member list of a conversation or channel.
+
+        To remove a tag you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/chats/{id}/group_tags/{tag_id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/group_tags/{tag_id}'].delete.parameters[?(@.name=='tag_id')]
+    update:
+      description: Tag ID
+  - target: $.paths['/chats/{id}/leave'].delete
+    update:
+      description: |-
+        Leave conversation or channel
+
+        Leave a conversation or channel on your own.
+  - target: $.paths['/chats/{id}/leave'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/members'].get
+    update:
+      description: >-
+        List chat members
+
+
+        Retrieve the current list of chat members.
+
+
+        The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve
+        the member list of chats they belong to (or that are public).
+  - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='role')]
+    update:
+      description: Role in the chat
+  - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/chats/{id}/members'].post
+    update:
+      description: |-
+        Add users
+
+        Add users to the member list of a conversation, channel, or thread.
+  - target: $.paths['/chats/{id}/members'].post.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID (conversation, channel, or thread chat)
+  - target: $.paths['/chats/{id}/members/{user_id}'].delete
+    update:
+      description: >-
+        Remove user
+
+
+        Remove a user from the member list of a conversation or channel.
+
+
+        If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the
+        [Leave conversation or channel](DELETE /chats/{id}/leave) method.
+  - target: $.paths['/chats/{id}/members/{user_id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/members/{user_id}'].delete.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/chats/{id}/members/{user_id}'].put
+    update:
+      description: >-
+        Edit role
+
+
+        Edit a user's or bot's role in a conversation or channel.
+
+
+        To edit a role in a conversation or channel you need to know the `id` of the chat and the user (or bot) and
+        specify them in the request `URL`. All editable role parameters are specified in the request body.
+
+
+        The chat owner's role cannot be changed. They always have Admin privileges in the chat.
+  - target: $.paths['/chats/{id}/members/{user_id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/chats/{id}/members/{user_id}'].put.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/chats/{id}/unarchive'].put
+    update:
+      description: |-
+        Unarchive chat
+
+        Restore a chat from the archive.
+
+        To unarchive a chat you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/chats/{id}/unarchive'].put.parameters[?(@.name=='id')]
+    update:
+      description: Chat ID
+  - target: $.paths['/custom_properties'].get
+    update:
+      description: >-
+        List custom properties
+
+
+        Working with "File" type custom properties is currently unavailable.
+
+
+        Retrieve the current list of custom properties for employees and tasks in your workspace.
+
+
+        By default, all entities in your workspace only have basic fields. However, your workspace administrator can
+        add, edit, and delete custom properties. If you use custom properties that are no longer current (deleted or
+        non-existent) when creating employees (or tasks), you will receive an error.
+  - target: $.paths['/custom_properties'].get.parameters[?(@.name=='entity_type')]
+    update:
+      description: Entity type
+  - target: $.paths['/direct_url'].post
+    update:
+      description: >-
+        Upload file
+
+
+        Upload a file to the server using `multipart/form-data` format. Upload parameters are obtained via the [Get
+        signature, key and other parameters](POST /uploads) method.
+  - target: $.paths['/group_tags'].post
+    update:
+      description: |-
+        New tag
+
+        Create a new tag.
+  - target: $.paths['/group_tags'].get
+    update:
+      description: |-
+        List employee tags
+
+        Retrieve the current list of employee tags. Tag names are unique within the workspace.
+  - target: $.paths['/group_tags'].get.parameters[?(@.name=='names')]
+    update:
+      description: Array of tag names to filter by
+  - target: $.paths['/group_tags'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/group_tags'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/group_tags/{id}'].get
+    update:
+      description: |-
+        Tag info
+
+        Retrieve information about a tag. Tag names are unique within the workspace.
+
+        To get a tag you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/group_tags/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: Tag ID
+  - target: $.paths['/group_tags/{id}'].put
+    update:
+      description: >-
+        Edit tag
+
+
+        Edit a tag.
+
+
+        To edit a tag you need to know its `id` and specify it in the request `URL`. All editable tag parameters are
+        specified in the request body.
+  - target: $.paths['/group_tags/{id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: Tag ID
+  - target: $.paths['/group_tags/{id}'].delete
+    update:
+      description: |-
+        Delete tag
+
+        Delete a tag.
+
+        To delete a tag you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/group_tags/{id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Tag ID
+  - target: $.paths['/group_tags/{id}/users'].get
+    update:
+      description: |-
+        List tag employees
+
+        Retrieve the current list of employees in a tag.
+  - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='id')]
+    update:
+      description: Tag ID
+  - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/messages'].post
+    update:
+      description: >-
+        New message
+
+
+        Send a message to a conversation or channel, a direct message to a user, or a comment to a thread.
+
+
+        When using `entity_type: "discussion"` (or simply without specifying `entity_type`), any `chat_id` can be passed
+        in the `entity_id` field. This means you can send a message knowing only the chat ID. Additionally, you can send
+        a message to a thread by its ID or a direct message by the user's ID.
+
+
+        To send a direct message to a user, you do not need to create a chat. Simply specify `entity_type: "user"` and
+        the user's ID. A chat will be created automatically if there has been no prior conversation between you. Only
+        one direct chat can exist between two users.
+  - target: $.paths['/messages'].get
+    update:
+      description: >-
+        List chat messages
+
+
+        Retrieve a list of messages from conversations, channels, threads, and direct messages.
+
+
+        To retrieve messages you need to know the `chat_id` of the required conversation, channel, thread, or direct
+        message, and specify it in the request `URL`. Messages are returned in descending order by send date (i.e., the
+        most recent messages come first). To retrieve earlier messages, use the `limit` and `cursor` parameters.
+  - target: $.paths['/messages'].get.parameters[?(@.name=='chat_id')]
+    update:
+      description: Chat ID (conversation, channel, direct message, or thread chat)
+  - target: $.paths['/messages'].get.parameters[?(@.name=='sort')]
+    update:
+      description: Sort field
+  - target: $.paths['/messages'].get.parameters[?(@.name=='order')]
+    update:
+      description: Sort direction
+  - target: $.paths['/messages'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/messages'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/messages/{id}'].get
+    update:
+      description: |-
+        Message info
+
+        Retrieve information about a message.
+
+        To get a message you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/messages/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}'].put
+    update:
+      description: >-
+        Edit message
+
+
+        Edit a message or comment.
+
+
+        To edit a message you need to know its `id` and specify it in the request `URL`. All editable message parameters
+        are specified in the request body.
+  - target: $.paths['/messages/{id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}'].delete
+    update:
+      description: >-
+        Delete message
+
+
+        Delete a message.
+
+
+        Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are
+        editors. There are no time restrictions on message deletion.
+
+
+        To delete a message you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/messages/{id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/link_previews'].post
+    update:
+      description: |-
+        Unfurl (link previews)
+
+        Create link previews in messages. Only available for Unfurl bots.
+  - target: $.paths['/messages/{id}/link_previews'].post.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/pin'].post
+    update:
+      description: |-
+        Pin message
+
+        Pin a message in a chat.
+
+        To pin a message you need to know the message `id` and specify it in the request `URL`.
+  - target: $.paths['/messages/{id}/pin'].post.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/pin'].delete
+    update:
+      description: |-
+        Unpin message
+
+        Unpin a message from a chat.
+
+        To unpin a message you need to know the message `id` and specify it in the request `URL`.
+  - target: $.paths['/messages/{id}/pin'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/reactions'].post
+    update:
+      description: >-
+        Add reaction
+
+
+        Add a reaction to a message.
+
+
+        To add a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are
+        sent as `Emoji` characters. If the user has already added the same reaction, it will not be duplicated. To
+        remove a reaction, use the [Delete reaction](DELETE /messages/{id}/reactions) method.
+
+
+        **Reaction limits:**
+
+
+        - Each user can add no more than **20 unique** reactions
+
+        - A message can have no more than **30 unique** reactions
+
+        - The total number of reactions on a message cannot exceed **1000**
+  - target: $.paths['/messages/{id}/reactions'].post.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/reactions'].delete
+    update:
+      description: >-
+        Delete reaction
+
+
+        Remove a reaction from a message.
+
+
+        To remove a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions
+        are stored as `Emoji` characters.
+
+
+        You can only remove reactions that were added by the authenticated user.
+  - target: $.paths['/messages/{id}/reactions'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/reactions'].delete.parameters[?(@.name=='code')]
+    update:
+      description: Emoji character of the reaction
+  - target: $.paths['/messages/{id}/reactions'].delete.parameters[?(@.name=='name')]
+    update:
+      description: Text name of the emoji (used for custom emoji)
+  - target: $.paths['/messages/{id}/reactions'].get
+    update:
+      description: |-
+        List reactions
+
+        Retrieve the current list of reactions on a message.
+  - target: $.paths['/messages/{id}/reactions'].get.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/reactions'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/messages/{id}/reactions'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/messages/{id}/read_member_ids'].get
+    update:
+      description: |-
+        List users who read the message
+
+        Retrieve the current list of users who have read the message.
+  - target: $.paths['/messages/{id}/read_member_ids'].get.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/messages/{id}/read_member_ids'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/messages/{id}/read_member_ids'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/messages/{id}/thread'].post
+    update:
+      description: >-
+        New thread
+
+
+        Create a new thread on a message.
+
+
+        If a thread has already been created for the message, the response will return information about the previously
+        created thread.
+  - target: $.paths['/messages/{id}/thread'].post.parameters[?(@.name=='id')]
+    update:
+      description: Message ID
+  - target: $.paths['/oauth/token/info'].get
+    update:
+      description: >-
+        Token info
+
+
+        Retrieve information about the current OAuth token, including its scopes, creation date, and last usage date.
+        The token in the response is masked — only the first 8 and last 4 characters are visible.
+  - target: $.paths['/profile'].get
+    update:
+      description: |-
+        Profile info
+
+        Retrieve information about your own profile.
+  - target: $.paths['/profile/status'].get
+    update:
+      description: |-
+        Current status
+
+        Retrieve information about your current status.
+  - target: $.paths['/profile/status'].put
+    update:
+      description: |-
+        New status
+
+        Set a new status for yourself.
+  - target: $.paths['/profile/status'].delete
+    update:
+      description: |-
+        Delete status
+
+        Delete your current status.
+  - target: $.paths['/profile/avatar'].put
+    update:
+      description: |-
+        Upload avatar
+
+        Upload or update your profile avatar. The file is sent in `multipart/form-data` format.
+  - target: $.paths['/profile/avatar'].put.requestBody.properties.image
+    update:
+      description: Avatar image file
+  - target: $.paths['/profile/avatar'].delete
+    update:
+      description: |-
+        Delete avatar
+
+        Delete your profile avatar.
+  - target: $.paths['/search/chats'].get
+    update:
+      description: |-
+        Search chats
+
+        Full-text search for channels and conversations.
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='query')]
+    update:
+      description: Search query text
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of results to return per request
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='order')]
+    update:
+      description: Sort direction
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='created_from')]
+    update:
+      description: Filter by creation date (from)
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='created_to')]
+    update:
+      description: Filter by creation date (to)
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='active')]
+    update:
+      description: Filter by chat activity
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='chat_subtype')]
+    update:
+      description: Filter by chat type
+  - target: $.paths['/search/chats'].get.parameters[?(@.name=='personal')]
+    update:
+      description: Filter by direct chats
+  - target: $.paths['/search/messages'].get
+    update:
+      description: |-
+        Search messages
+
+        Full-text search for messages.
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='query')]
+    update:
+      description: Search query text
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of results to return per request
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='order')]
+    update:
+      description: Sort direction
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='created_from')]
+    update:
+      description: Filter by creation date (from)
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='created_to')]
+    update:
+      description: Filter by creation date (to)
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='chat_ids')]
+    update:
+      description: Filter by chat IDs
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='user_ids')]
+    update:
+      description: Filter by message author IDs
+  - target: $.paths['/search/messages'].get.parameters[?(@.name=='active')]
+    update:
+      description: Filter by chat activity
+  - target: $.paths['/search/users'].get
+    update:
+      description: |-
+        Search employees
+
+        Full-text search for employees by name, email, position, and other fields.
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='query')]
+    update:
+      description: Search query text
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of results to return per request
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='sort')]
+    update:
+      description: Sort results by
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='order')]
+    update:
+      description: Sort direction
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='created_from')]
+    update:
+      description: Filter by creation date (from)
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='created_to')]
+    update:
+      description: Filter by creation date (to)
+  - target: $.paths['/search/users'].get.parameters[?(@.name=='company_roles')]
+    update:
+      description: Filter by employee roles
+  - target: $.paths['/tasks'].post
+    update:
+      description: >-
+        New task
+
+
+        Create a new task.
+
+
+        When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No
+        additional description is needed — you simply create a task with the corresponding text. If you specify a task
+        description, it will become the task's text.
+
+
+        A task must have assignees; if none are specified, you are assigned as the responsible person.
+
+
+        Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current
+        employee list using the [List employees](GET /users) method.
+
+
+        A task can be linked to a chat by specifying `chat_id`. To link to a chat, you must be a member of that chat.
+  - target: $.paths['/tasks'].get
+    update:
+      description: |-
+        List tasks
+
+        Retrieve a list of tasks.
+  - target: $.paths['/tasks'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/tasks'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/tasks/{id}'].get
+    update:
+      description: |-
+        Task info
+
+        Retrieve information about a task.
+
+        To get a task you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/tasks/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: Task ID
+  - target: $.paths['/tasks/{id}'].put
+    update:
+      description: >-
+        Edit task
+
+
+        Edit a task.
+
+
+        To edit a task you need to know its `id` and specify it in the request `URL`. All editable task parameters are
+        specified in the request body.
+  - target: $.paths['/tasks/{id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: Task ID
+  - target: $.paths['/tasks/{id}'].delete
+    update:
+      description: |-
+        Delete task
+
+        Delete a task.
+
+        To delete a task you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/tasks/{id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Task ID
+  - target: $.paths['/threads/{id}'].get
+    update:
+      description: |-
+        Thread info
+
+        Retrieve information about a thread.
+
+        To get a thread you need to know its `id` and specify it in the request `URL`.
+  - target: $.paths['/threads/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: Thread ID
+  - target: $.paths['/uploads'].post
+    update:
+      description: |-
+        Get signature, key and other parameters
+
+        Retrieve the signature, key, and other parameters required for file upload.
+
+        This method must be used for each file upload.
+  - target: $.paths['/users'].post
+    update:
+      description: >-
+        Create employee
+
+
+        Create a new employee in your workspace.
+
+
+        You can fill in custom properties for the employee that have been created in your workspace. You can get the
+        current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
+  - target: $.paths['/users'].get
+    update:
+      description: |-
+        List employees
+
+        Retrieve the current list of employees in your workspace.
+  - target: $.paths['/users'].get.parameters[?(@.name=='query')]
+    update:
+      description: >-
+        Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`, `email`,
+        `phone_number`, and `nickname`.
+  - target: $.paths['/users'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/users'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/users/{id}'].get
+    update:
+      description: |-
+        Employee info
+
+        Retrieve information about an employee.
+
+        To get an employee you need to know their `id` and specify it in the request `URL`.
+  - target: $.paths['/users/{id}'].get.parameters[?(@.name=='id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{id}'].put
+    update:
+      description: >-
+        Edit employee
+
+
+        Edit an employee.
+
+
+        To edit an employee you need to know their `id` and specify it in the request `URL`. All editable employee
+        parameters are specified in the request body. You can get the current list of employee custom property IDs using
+        the [List custom properties](GET /custom_properties) method.
+  - target: $.paths['/users/{id}'].put.parameters[?(@.name=='id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{id}'].delete
+    update:
+      description: |-
+        Delete employee
+
+        Delete an employee.
+
+        To delete an employee you need to know their `id` and specify it in the request `URL`.
+  - target: $.paths['/users/{id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{user_id}/status'].get
+    update:
+      description: |-
+        Employee status
+
+        Retrieve information about an employee's status.
+  - target: $.paths['/users/{user_id}/status'].get.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{user_id}/status'].put
+    update:
+      description: |-
+        New employee status
+
+        Set a new status for an employee.
+  - target: $.paths['/users/{user_id}/status'].put.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{user_id}/status'].delete
+    update:
+      description: |-
+        Delete employee status
+
+        Delete an employee's status.
+  - target: $.paths['/users/{user_id}/status'].delete.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{user_id}/avatar'].put
+    update:
+      description: |-
+        Upload employee avatar
+
+        Upload or update an employee's avatar. The file is sent in `multipart/form-data` format.
+  - target: $.paths['/users/{user_id}/avatar'].put.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/users/{user_id}/avatar'].put.requestBody.properties.image
+    update:
+      description: Avatar image file
+  - target: $.paths['/users/{user_id}/avatar'].delete
+    update:
+      description: |-
+        Delete employee avatar
+
+        Delete an employee's avatar.
+  - target: $.paths['/users/{user_id}/avatar'].delete.parameters[?(@.name=='user_id')]
+    update:
+      description: User ID
+  - target: $.paths['/views/open'].post
+    update:
+      description: |-
+        Open view
+
+        Open a modal window with a view for the user.
+
+        To open a modal window with a view, your application must have a valid, non-expired `trigger_id`.
+  - target: $.paths['/webhooks/events'].get
+    update:
+      description: >-
+        Event history
+
+
+        Retrieve the history of a bot's recent events. This method is useful if you cannot receive events in real time
+        at your `URL`, but need to process all events you have subscribed to.
+
+
+        Event history is only saved when the "Save event history" option is enabled in the "Outgoing webhook" tab of the
+        bot settings. Specifying a "Webhook `URL`" is not required.
+
+
+        To retrieve the event history of a specific bot, you need to know its `access_token` and use it in the request.
+        Each event is a webhook `JSON` object.
+  - target: $.paths['/webhooks/events'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/webhooks/events'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page`)
+  - target: $.paths['/webhooks/events/{id}'].delete
+    update:
+      description: |-
+        Delete event
+
+        This method is only available with a bot's `access_token`.
+
+        Delete an event from the bot's event history.
+
+        To delete an event you need to know the bot's `access_token` that owns the event and the event `id`.
+  - target: $.paths['/webhooks/events/{id}'].delete.parameters[?(@.name=='id')]
+    update:
+      description: Event ID
+  - target: $.components.schemas.AccessTokenInfo
+    update:
+      description: Access token
+  - target: $.components.schemas.AccessTokenInfo.properties.id
+    update:
+      description: Token ID
+  - target: $.components.schemas.AccessTokenInfo.properties.token
+    update:
+      description: Masked token (first 8 and last 4 characters visible)
+  - target: $.components.schemas.AccessTokenInfo.properties.name
+    update:
+      description: User-defined token name
+  - target: $.components.schemas.AccessTokenInfo.properties.user_id
+    update:
+      description: Token owner ID
+  - target: $.components.schemas.AccessTokenInfo.properties.scopes
+    update:
+      description: List of token scopes
+  - target: $.components.schemas.AccessTokenInfo.properties.created_at
+    update:
+      description: Token creation date
+  - target: $.components.schemas.AccessTokenInfo.properties.revoked_at
+    update:
+      description: Token revocation date
+  - target: $.components.schemas.AccessTokenInfo.properties.expires_in
+    update:
+      description: Token lifetime in seconds
+  - target: $.components.schemas.AccessTokenInfo.properties.last_used_at
+    update:
+      description: Token last used date
+  - target: $.components.schemas.AddMembersRequest
+    update:
+      description: Request to add members to a chat
+  - target: $.components.schemas.AddMembersRequest.properties.member_ids
+    update:
+      description: Array of user IDs who will become members
+  - target: $.components.schemas.AddMembersRequest.properties.silent
+    update:
+      description: Do not create a system message in the chat about adding a member
+  - target: $.components.schemas.AddTagsRequest
+    update:
+      description: Request to add tags to a chat
+  - target: $.components.schemas.AddTagsRequest.properties.group_tag_ids
+    update:
+      description: Array of tag IDs to be added as members
+  - target: $.components.schemas.ApiError
+    update:
+      description: API error (used for 400, 402, 403, 404, 409, 410, 422)
+  - target: $.components.schemas.ApiError.properties.errors
+    update:
+      description: Array of errors
+  - target: $.components.schemas.ApiErrorItem
+    update:
+      description: Detailed error information
+  - target: $.components.schemas.ApiErrorItem.properties.key
+    update:
+      description: Error field key
+  - target: $.components.schemas.ApiErrorItem.properties.value
+    update:
+      description: Field value that caused the error
+  - target: $.components.schemas.ApiErrorItem.properties.message
+    update:
+      description: Error message
+  - target: $.components.schemas.ApiErrorItem.properties.code
+    update:
+      description: Error code
+  - target: $.components.schemas.ApiErrorItem.properties.payload
+    update:
+      description: >-
+        Additional error data. Content depends on the error code: `{id: number}` — for custom property errors (property
+        ID), `{record: {type: string, id: number}, query: string}` — for authorization errors. In most cases `null`
+  - target: $.components.schemas.AuditDetailsChatId
+    update:
+      description: 'For: tag_removed_from_chat'
+  - target: $.components.schemas.AuditDetailsChatId.properties.chat_id
+    update:
+      description: Chat ID
+  - target: $.components.schemas.AuditDetailsChatPermission
+    update:
+      description: 'For: chat_permission_changed'
+  - target: $.components.schemas.AuditDetailsChatPermission.properties.public_access
+    update:
+      description: Public access
+  - target: $.components.schemas.AuditDetailsChatRenamed
+    update:
+      description: 'For: chat_renamed'
+  - target: $.components.schemas.AuditDetailsChatRenamed.properties.old_name
+    update:
+      description: Previous chat name
+  - target: $.components.schemas.AuditDetailsChatRenamed.properties.new_name
+    update:
+      description: New chat name
+  - target: $.components.schemas.AuditDetailsDlp
+    update:
+      description: 'For: dlp_violation_detected'
+  - target: $.components.schemas.AuditDetailsDlp.properties.dlp_rule_id
+    update:
+      description: DLP rule ID
+  - target: $.components.schemas.AuditDetailsDlp.properties.dlp_rule_name
+    update:
+      description: DLP rule name
+  - target: $.components.schemas.AuditDetailsDlp.properties.message_id
+    update:
+      description: Message ID
+  - target: $.components.schemas.AuditDetailsDlp.properties.chat_id
+    update:
+      description: Chat ID
+  - target: $.components.schemas.AuditDetailsDlp.properties.user_id
+    update:
+      description: User ID
+  - target: $.components.schemas.AuditDetailsDlp.properties.action_message
+    update:
+      description: Action description
+  - target: $.components.schemas.AuditDetailsDlp.properties.conditions_matched
+    update:
+      description: Rule conditions check result (true — conditions matched)
+  - target: $.components.schemas.AuditDetailsEmpty
+    update:
+      description: >-
+        Empty details. For: user_login, user_logout, user_2fa_fail, user_2fa_success, user_created, user_deleted,
+        chat_created, message_created, message_updated, message_deleted, reaction_created, reaction_deleted,
+        thread_created, audit_events_accessed
+  - target: $.components.schemas.AuditDetailsInitiator
+    update:
+      description: 'For: user_added_to_tag, user_removed_from_tag, user_chat_leave'
+  - target: $.components.schemas.AuditDetailsInitiator.properties.initiator_id
+    update:
+      description: Action initiator ID
+  - target: $.components.schemas.AuditDetailsInviter
+    update:
+      description: 'For: user_chat_join'
+  - target: $.components.schemas.AuditDetailsInviter.properties.inviter_id
+    update:
+      description: Inviter ID
+  - target: $.components.schemas.AuditDetailsKms
+    update:
+      description: 'For: kms_encrypt, kms_decrypt'
+  - target: $.components.schemas.AuditDetailsKms.properties.chat_id
+    update:
+      description: Chat ID
+  - target: $.components.schemas.AuditDetailsKms.properties.message_id
+    update:
+      description: Message ID
+  - target: $.components.schemas.AuditDetailsKms.properties.reason
+    update:
+      description: Operation reason
+  - target: $.components.schemas.AuditDetailsRoleChanged
+    update:
+      description: 'For: user_role_changed'
+  - target: $.components.schemas.AuditDetailsRoleChanged.properties.new_company_role
+    update:
+      description: New role
+  - target: $.components.schemas.AuditDetailsRoleChanged.properties.previous_company_role
+    update:
+      description: Previous role
+  - target: $.components.schemas.AuditDetailsRoleChanged.properties.initiator_id
+    update:
+      description: Initiator ID
+  - target: $.components.schemas.AuditDetailsSearch
+    update:
+      description: 'For: search_users_api, search_chats_api, search_messages_api'
+  - target: $.components.schemas.AuditDetailsSearch.properties.search_type
+    update:
+      description: Search type
+  - target: $.components.schemas.AuditDetailsSearch.properties.query_present
+    update:
+      description: Whether a search query was specified
+  - target: $.components.schemas.AuditDetailsSearch.properties.cursor_present
+    update:
+      description: Whether a cursor was used
+  - target: $.components.schemas.AuditDetailsSearch.properties.limit
+    update:
+      description: Number of returned results
+  - target: $.components.schemas.AuditDetailsSearch.properties.filters
+    update:
+      description: >-
+        Applied filters. Possible keys depend on the search type: order, sort, created_from, created_to, company_roles
+        (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
+  - target: $.components.schemas.AuditDetailsTagChat
+    update:
+      description: 'For: tag_added_to_chat'
+  - target: $.components.schemas.AuditDetailsTagChat.properties.chat_id
+    update:
+      description: Chat ID
+  - target: $.components.schemas.AuditDetailsTagChat.properties.tag_name
+    update:
+      description: Tag name
+  - target: $.components.schemas.AuditDetailsTagName
+    update:
+      description: 'For: tag_created, tag_deleted'
+  - target: $.components.schemas.AuditDetailsTagName.properties.name
+    update:
+      description: Tag name
+  - target: $.components.schemas.AuditDetailsTokenScopes
+    update:
+      description: 'For: access_token_created, access_token_updated, access_token_destroy'
+  - target: $.components.schemas.AuditDetailsTokenScopes.properties.scopes
+    update:
+      description: Token scopes
+  - target: $.components.schemas.AuditDetailsUserUpdated
+    update:
+      description: 'For: user_updated'
+  - target: $.components.schemas.AuditDetailsUserUpdated.properties.changed_attrs
+    update:
+      description: List of changed fields
+  - target: $.components.schemas.AuditEvent
+    update:
+      description: Audit event
+  - target: $.components.schemas.AuditEvent.properties.id
+    update:
+      description: Unique event ID
+  - target: $.components.schemas.AuditEvent.properties.created_at
+    update:
+      description: Event creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.AuditEvent.properties.event_key
+    update:
+      description: Event type key
+  - target: $.components.schemas.AuditEvent.properties.entity_id
+    update:
+      description: Affected entity ID
+  - target: $.components.schemas.AuditEvent.properties.entity_type
+    update:
+      description: Affected entity type
+  - target: $.components.schemas.AuditEvent.properties.actor_id
+    update:
+      description: ID of the user who performed the action
+  - target: $.components.schemas.AuditEvent.properties.actor_type
+    update:
+      description: Actor type
+  - target: $.components.schemas.AuditEvent.properties.details
+    update:
+      description: >-
+        Additional event details. Structure depends on the event_key value — see event_key field value descriptions. For
+        events without details, an empty object is returned
+  - target: $.components.schemas.AuditEvent.properties.ip_address
+    update:
+      description: IP address from which the action was performed
+  - target: $.components.schemas.AuditEvent.properties.user_agent
+    update:
+      description: Client user agent
+  - target: $.components.schemas.AuditEventDetailsUnion
+    update:
+      description: Additional audit event details. Structure depends on the event_key value
+  - target: $.components.schemas.AuditEventKey
+    update:
+      description: Audit event type
+  - target: $.components.schemas.AuditEventKey
+    update:
+      x-enum-descriptions:
+        user_login: User logged in successfully
+        user_logout: User logged out
+        user_2fa_fail: Failed two-factor authentication attempt
+        user_2fa_success: Successful two-factor authentication
+        user_created: New user account created
+        user_deleted: User account deleted
+        user_role_changed: User role changed
+        user_updated: User data updated
+        tag_created: New tag created
+        tag_deleted: Tag deleted
+        user_added_to_tag: User added to tag
+        user_removed_from_tag: User removed from tag
+        chat_created: New chat created
+        chat_renamed: Chat renamed
+        chat_permission_changed: Chat access permissions changed
+        user_chat_join: User joined the chat
+        user_chat_leave: User left the chat
+        tag_added_to_chat: Tag added to chat
+        tag_removed_from_chat: Tag removed from chat
+        message_updated: Message edited
+        message_deleted: Message deleted
+        message_created: Message created
+        reaction_created: Reaction added
+        reaction_deleted: Reaction removed
+        thread_created: Thread created
+        access_token_created: New access token created
+        access_token_updated: Access token updated
+        access_token_destroy: Access token deleted
+        kms_encrypt: Data encrypted
+        kms_decrypt: Data decrypted
+        audit_events_accessed: Audit logs accessed
+        dlp_violation_detected: DLP rule violation detected
+        search_users_api: Employee search via API
+        search_chats_api: Chat search via API
+        search_messages_api: Message search via API
+  - target: $.components.schemas.AvatarData
+    update:
+      description: Avatar data
+  - target: $.components.schemas.AvatarData.properties.image_url
+    update:
+      description: Avatar URL
+  - target: $.components.schemas.BotResponse
+    update:
+      description: Bot parameters
+  - target: $.components.schemas.BotResponse.properties.id
+    update:
+      description: Bot ID
+  - target: $.components.schemas.BotResponse.properties.webhook
+    update:
+      description: Webhook parameters object
+  - target: $.components.schemas.BotResponse.properties.webhook.properties.outgoing_url
+    update:
+      description: Outgoing webhook URL
+  - target: $.components.schemas.BotUpdateRequest
+    update:
+      description: Bot update request
+  - target: $.components.schemas.BotUpdateRequest.properties.bot
+    update:
+      description: Bot parameters object to update
+  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook
+    update:
+      description: Webhook parameters object
+  - target: $.components.schemas.BotUpdateRequest.properties.bot.properties.webhook.properties.outgoing_url
+    update:
+      description: Outgoing webhook URL
+  - target: $.components.schemas.Button
+    update:
+      description: Button
+  - target: $.components.schemas.Button.properties.text
+    update:
+      description: Text displayed on the button
+  - target: $.components.schemas.Button.properties.url
+    update:
+      description: URL that will be opened when the button is clicked
+  - target: $.components.schemas.Button.properties.data
+    update:
+      description: Data that will be sent in the outgoing webhook when the button is clicked
+  - target: $.components.schemas.ButtonWebhookPayload
+    update:
+      description: Outgoing webhook payload for button click
+  - target: $.components.schemas.ButtonWebhookPayload.properties.type
+    update:
+      description: Object type
+  - target: $.components.schemas.ButtonWebhookPayload.properties.type
+    update:
+      x-enum-descriptions:
+        button: Always button for buttons
+  - target: $.components.schemas.ButtonWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.ButtonWebhookPayload.properties.event
+    update:
+      x-enum-descriptions:
+        click: Button click
+  - target: $.components.schemas.ButtonWebhookPayload.properties.message_id
+    update:
+      description: ID of the message the button belongs to
+  - target: $.components.schemas.ButtonWebhookPayload.properties.trigger_id
+    update:
+      description: Unique event identifier. Lifetime — 3 seconds. Can be used, for example, to open a view for the user
+  - target: $.components.schemas.ButtonWebhookPayload.properties.data
+    update:
+      description: Clicked button data
+  - target: $.components.schemas.ButtonWebhookPayload.properties.user_id
+    update:
+      description: ID of the user who clicked the button
+  - target: $.components.schemas.ButtonWebhookPayload.properties.chat_id
+    update:
+      description: ID of the chat where the button was clicked
+  - target: $.components.schemas.ButtonWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.Chat
+    update:
+      description: Chat
+  - target: $.components.schemas.Chat.properties.id
+    update:
+      description: Created chat ID
+  - target: $.components.schemas.Chat.properties.name
+    update:
+      description: Name
+  - target: $.components.schemas.Chat.properties.created_at
+    update:
+      description: Chat creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Chat.properties.owner_id
+    update:
+      description: ID of the user who created the chat
+  - target: $.components.schemas.Chat.properties.member_ids
+    update:
+      description: Array of member user IDs
+  - target: $.components.schemas.Chat.properties.group_tag_ids
+    update:
+      description: Array of member tag IDs
+  - target: $.components.schemas.Chat.properties.channel
+    update:
+      description: Whether this is a channel
+  - target: $.components.schemas.Chat.properties.personal
+    update:
+      description: Whether this is a direct message
+  - target: $.components.schemas.Chat.properties.public
+    update:
+      description: Publicly accessible
+  - target: $.components.schemas.Chat.properties.last_message_at
+    update:
+      description: Date and time of the last message in the chat (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Chat.properties.meet_room_url
+    update:
+      description: Video chat link
+  - target: $.components.schemas.ChatAvailability
+    update:
+      description: Chat availability for the user
+  - target: $.components.schemas.ChatAvailability
+    update:
+      x-enum-descriptions:
+        is_member: Chats where the user is a member
+        public: All public chats in the workspace, regardless of user membership
+  - target: $.components.schemas.ChatCreateRequest
+    update:
+      description: Chat creation request
+  - target: $.components.schemas.ChatCreateRequest.properties.chat
+    update:
+      description: Chat parameters object to create
+  - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.name
+    update:
+      description: Name
+  - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.member_ids
+    update:
+      description: Array of user IDs who will become members
+  - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.group_tag_ids
+    update:
+      description: Array of tag IDs to be added as members
+  - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.channel
+    update:
+      description: Whether this is a channel
+  - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.public
+    update:
+      description: Publicly accessible
+  - target: $.components.schemas.ChatMemberRole
+    update:
+      description: Chat member role
+  - target: $.components.schemas.ChatMemberRole
+    update:
+      x-enum-descriptions:
+        admin: Admin
+        editor: Editor (available for channels only)
+        member: Member or subscriber
+  - target: $.components.schemas.ChatMemberRoleFilter
+    update:
+      description: Chat member role (with all filter)
+  - target: $.components.schemas.ChatMemberRoleFilter
+    update:
+      x-enum-descriptions:
+        all: Any role
+        owner: Owner
+        admin: Admin
+        editor: Editor
+        member: Member/subscriber
+  - target: $.components.schemas.ChatMemberWebhookPayload
+    update:
+      description: Outgoing webhook payload for chat members
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.type
+    update:
+      description: Object type
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.type
+    update:
+      x-enum-descriptions:
+        chat_member: Always chat_member for chat members
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.chat_id
+    update:
+      description: ID of the chat where membership changed
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.thread_id
+    update:
+      description: Thread ID
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.user_ids
+    update:
+      description: Array of user IDs affected by the event
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.created_at
+    update:
+      description: Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.ChatMemberWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.ChatSortField
+    update:
+      description: Chat sort field
+  - target: $.components.schemas.ChatSortField
+    update:
+      x-enum-descriptions:
+        id: By chat ID
+        last_message_at: By last message date and time
+  - target: $.components.schemas.ChatSubtype
+    update:
+      description: Chat type
+  - target: $.components.schemas.ChatSubtype
+    update:
+      x-enum-descriptions:
+        discussion: Channel or conversation
+        thread: Thread
+  - target: $.components.schemas.ChatUpdateRequest
+    update:
+      description: Chat update request
+  - target: $.components.schemas.ChatUpdateRequest.properties.chat
+    update:
+      description: Chat parameters object to update
+  - target: $.components.schemas.ChatUpdateRequest.properties.chat.properties.name
+    update:
+      description: Name
+  - target: $.components.schemas.ChatUpdateRequest.properties.chat.properties.public
+    update:
+      description: Publicly accessible
+  - target: $.components.schemas.CompanyMemberWebhookPayload
+    update:
+      description: Outgoing webhook payload for workspace members
+  - target: $.components.schemas.CompanyMemberWebhookPayload.properties.type
+    update:
+      description: Object type
+  - target: $.components.schemas.CompanyMemberWebhookPayload.properties.type
+    update:
+      x-enum-descriptions:
+        company_member: Always company_member for workspace members
+  - target: $.components.schemas.CompanyMemberWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.CompanyMemberWebhookPayload.properties.user_ids
+    update:
+      description: Array of user IDs affected by the event
+  - target: $.components.schemas.CompanyMemberWebhookPayload.properties.created_at
+    update:
+      description: Event date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.CompanyMemberWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.CustomProperty
+    update:
+      description: Custom property
+  - target: $.components.schemas.CustomProperty.properties.id
+    update:
+      description: Property ID
+  - target: $.components.schemas.CustomProperty.properties.name
+    update:
+      description: Property name
+  - target: $.components.schemas.CustomProperty.properties.data_type
+    update:
+      description: Property type
+  - target: $.components.schemas.CustomProperty.properties.value
+    update:
+      description: Value
+  - target: $.components.schemas.CustomPropertyDataType
+    update:
+      description: Custom property data type
+  - target: $.components.schemas.CustomPropertyDataType
+    update:
+      x-enum-descriptions:
+        string: String value
+        number: Number value
+        date: Date
+        link: Link
+  - target: $.components.schemas.CustomPropertyDefinition
+    update:
+      description: Custom property
+  - target: $.components.schemas.CustomPropertyDefinition.properties.id
+    update:
+      description: Property ID
+  - target: $.components.schemas.CustomPropertyDefinition.properties.name
+    update:
+      description: Property name
+  - target: $.components.schemas.CustomPropertyDefinition.properties.data_type
+    update:
+      description: Property type
+  - target: $.components.schemas.ExportRequest
+    update:
+      description: Message export request
+  - target: $.components.schemas.ExportRequest.properties.start_at
+    update:
+      description: Export start date (ISO-8601, UTC+0) in YYYY-MM-DD format
+  - target: $.components.schemas.ExportRequest.properties.end_at
+    update:
+      description: Export end date (ISO-8601, UTC+0) in YYYY-MM-DD format
+  - target: $.components.schemas.ExportRequest.properties.webhook_url
+    update:
+      description: URL to receive a webhook when the export is complete
+  - target: $.components.schemas.ExportRequest.properties.chat_ids
+    update:
+      description: Array of chat IDs. Specify to export messages from specific chats only.
+  - target: $.components.schemas.ExportRequest.properties.skip_chats_file
+    update:
+      description: Skip generating the chat list file (chats.json)
+  - target: $.components.schemas.File
+    update:
+      description: File
+  - target: $.components.schemas.File.properties.id
+    update:
+      description: File ID
+  - target: $.components.schemas.File.properties.key
+    update:
+      description: File path
+  - target: $.components.schemas.File.properties.name
+    update:
+      description: File name with extension
+  - target: $.components.schemas.File.properties.file_type
+    update:
+      description: File type
+  - target: $.components.schemas.File.properties.url
+    update:
+      description: Direct file download URL
+  - target: $.components.schemas.File.properties.width
+    update:
+      description: Image width in pixels
+  - target: $.components.schemas.File.properties.height
+    update:
+      description: Image height in pixels
+  - target: $.components.schemas.FileType
+    update:
+      description: File type
+  - target: $.components.schemas.FileType
+    update:
+      x-enum-descriptions:
+        file: Regular file
+        image: Image
+  - target: $.components.schemas.FileUploadRequest.properties.Content-Disposition
+    update:
+      description: >-
+        Content-Disposition parameter received in the response to [Get signature, key and other parameters](POST
+        /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.acl
+    update:
+      description: acl parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.policy
+    update:
+      description: policy parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.x-amz-credential
+    update:
+      description: x-amz-credential parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.x-amz-algorithm
+    update:
+      description: x-amz-algorithm parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.x-amz-date
+    update:
+      description: x-amz-date parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.x-amz-signature
+    update:
+      description: x-amz-signature parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.key
+    update:
+      description: key parameter received in the response to [Get signature, key and other parameters](POST /uploads)
+  - target: $.components.schemas.FileUploadRequest.properties.file
+    update:
+      description: File to upload
+  - target: $.components.schemas.Forwarding
+    update:
+      description: Forwarded message information
+  - target: $.components.schemas.Forwarding.properties.original_message_id
+    update:
+      description: Original message ID
+  - target: $.components.schemas.Forwarding.properties.original_chat_id
+    update:
+      description: ID of the chat containing the original message
+  - target: $.components.schemas.Forwarding.properties.author_id
+    update:
+      description: ID of the user who created the original message
+  - target: $.components.schemas.Forwarding.properties.original_created_at
+    update:
+      description: Original message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Forwarding.properties.original_thread_id
+    update:
+      description: ID of the thread containing the original message
+  - target: $.components.schemas.Forwarding.properties.original_thread_message_id
+    update:
+      description: ID of the message that the thread containing the original message was created for
+  - target: $.components.schemas.Forwarding.properties.original_thread_parent_chat_id
+    update:
+      description: ID of the chat of the message that the thread containing the original message was created for
+  - target: $.components.schemas.GroupTag
+    update:
+      description: Group tag
+  - target: $.components.schemas.GroupTag.properties.id
+    update:
+      description: Tag ID
+  - target: $.components.schemas.GroupTag.properties.name
+    update:
+      description: Tag name
+  - target: $.components.schemas.GroupTag.properties.users_count
+    update:
+      description: Number of employees who have this tag
+  - target: $.components.schemas.GroupTagRequest
+    update:
+      description: Request to create or update a tag
+  - target: $.components.schemas.GroupTagRequest.properties.group_tag.properties.name
+    update:
+      description: Tag name
+  - target: $.components.schemas.InviteStatus
+    update:
+      description: User invitation status
+  - target: $.components.schemas.InviteStatus
+    update:
+      x-enum-descriptions:
+        confirmed: Confirmed
+        sent: Sent
+  - target: $.components.schemas.LinkPreview
+    update:
+      description: Link preview data
+  - target: $.components.schemas.LinkPreview.properties.title
+    update:
+      description: Title
+  - target: $.components.schemas.LinkPreview.properties.description
+    update:
+      description: Description
+  - target: $.components.schemas.LinkPreview.properties.image_url
+    update:
+      description: Public image URL (if you want to upload an image file to Pachca, use the image parameter)
+  - target: $.components.schemas.LinkPreview.properties.image
+    update:
+      description: Image
+  - target: $.components.schemas.LinkPreview.properties.image.properties.key
+    update:
+      description: Image path obtained from [file upload](POST /direct_url)
+  - target: $.components.schemas.LinkPreview.properties.image.properties.name
+    update:
+      description: Image name (recommended to include the file extension)
+  - target: $.components.schemas.LinkPreview.properties.image.properties.size
+    update:
+      description: Image size in bytes
+  - target: $.components.schemas.LinkPreviewsRequest
+    update:
+      description: Link unfurling request
+  - target: $.components.schemas.LinkPreviewsRequest.properties.link_previews
+    update:
+      description: '`JSON` map of link previews, where each key is a `URL` received in the outgoing webhook about a new message.'
+  - target: $.components.schemas.LinkSharedWebhookPayload
+    update:
+      description: Outgoing webhook payload for link unfurling
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.type
+    update:
+      description: Object type
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.type
+    update:
+      x-enum-descriptions:
+        message: Always message for link unfurling
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.event
+    update:
+      x-enum-descriptions:
+        link_shared: Link to a monitored domain detected
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.chat_id
+    update:
+      description: ID of the chat where the link was found
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.message_id
+    update:
+      description: ID of the message containing the link
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.links
+    update:
+      description: Array of detected links to monitored domains
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.user_id
+    update:
+      description: Message sender ID
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.created_at
+    update:
+      description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.MemberEventType
+    update:
+      description: Webhook event type for members
+  - target: $.components.schemas.MemberEventType
+    update:
+      x-enum-descriptions:
+        add: Addition
+        remove: Deleted
+  - target: $.components.schemas.Message
+    update:
+      description: Message
+  - target: $.components.schemas.Message.properties.id
+    update:
+      description: Message ID
+  - target: $.components.schemas.Message.properties.entity_type
+    update:
+      description: Entity type the message belongs to
+  - target: $.components.schemas.Message.properties.entity_id
+    update:
+      description: ID of the entity the message belongs to (chat/channel, thread, or user)
+  - target: $.components.schemas.Message.properties.chat_id
+    update:
+      description: ID of the chat containing the message
+  - target: $.components.schemas.Message.properties.root_chat_id
+    update:
+      description: >-
+        Root chat ID. For messages in threads — the ID of the chat where the thread was created. For regular messages,
+        equals `chat_id`.
+  - target: $.components.schemas.Message.properties.content
+    update:
+      description: Message text
+  - target: $.components.schemas.Message.properties.user_id
+    update:
+      description: ID of the user who created the message
+  - target: $.components.schemas.Message.properties.created_at
+    update:
+      description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Message.properties.url
+    update:
+      description: Direct link to the message
+  - target: $.components.schemas.Message.properties.files
+    update:
+      description: Attached files
+  - target: $.components.schemas.Message.properties.buttons
+    update:
+      description: Array of rows, each represented as an array of buttons
+  - target: $.components.schemas.Message.properties.thread
+    update:
+      description: Message thread
+  - target: $.components.schemas.Message.properties.thread.properties.id
+    update:
+      description: Thread ID
+  - target: $.components.schemas.Message.properties.thread.properties.chat_id
+    update:
+      description: Thread chat ID
+  - target: $.components.schemas.Message.properties.forwarding
+    update:
+      description: Forwarded message information
+  - target: $.components.schemas.Message.properties.parent_message_id
+    update:
+      description: ID of the message being replied to
+  - target: $.components.schemas.Message.properties.display_avatar_url
+    update:
+      description: Message sender avatar URL
+  - target: $.components.schemas.Message.properties.display_name
+    update:
+      description: Message sender full name
+  - target: $.components.schemas.Message.properties.changed_at
+    update:
+      description: Message last edit date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Message.properties.deleted_at
+    update:
+      description: Message deletion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.MessageCreateRequest
+    update:
+      description: Message creation request
+  - target: $.components.schemas.MessageCreateRequest.properties.message
+    update:
+      description: Message parameters object to create
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.entity_type
+    update:
+      description: Entity type
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.entity_id
+    update:
+      description: Entity ID
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.content
+    update:
+      description: Message text
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files
+    update:
+      description: Files to attach
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.key
+    update:
+      description: File path obtained from [file upload](POST /direct_url)
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.name
+    update:
+      description: File name to display to the user (recommended to include the file extension)
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.file_type
+    update:
+      description: File type
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.size
+    update:
+      description: File size in bytes, displayed to the user
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.width
+    update:
+      description: Image width in px (used when file_type is set to image)
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files.items.properties.height
+    update:
+      description: Image height in px (used when file_type is set to image)
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.buttons
+    update:
+      description: >-
+        Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per
+        row.
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.parent_message_id
+    update:
+      description: Message ID. Specify when sending a reply to another message.
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.display_avatar_url
+    update:
+      description: Custom sender avatar URL for this message. This field can only be used with a bot access_token.
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.display_name
+    update:
+      description: Custom sender display name for this message. This field can only be used with a bot access_token.
+  - target: $.components.schemas.MessageCreateRequest.properties.message.properties.skip_invite_mentions
+    update:
+      description: Skip adding mentioned users to the thread. Only works when sending a message to a thread.
+  - target: $.components.schemas.MessageCreateRequest.properties.link_preview
+    update:
+      description: Display a preview of the first link found in the message text
+  - target: $.components.schemas.MessageEntityType
+    update:
+      description: Entity type for messages
+  - target: $.components.schemas.MessageEntityType
+    update:
+      x-enum-descriptions:
+        discussion: Conversation or channel
+        thread: Thread
+        user: User
+  - target: $.components.schemas.MessageUpdateRequest
+    update:
+      description: Message update request
+  - target: $.components.schemas.MessageUpdateRequest.properties.message
+    update:
+      description: Message parameters object to update
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.content
+    update:
+      description: Message text
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files
+    update:
+      description: Files to attach
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.key
+    update:
+      description: File path obtained from [file upload](POST /direct_url)
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.name
+    update:
+      description: File name to display to the user (recommended to include the file extension)
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.file_type
+    update:
+      description: 'File type: file (file), image (image)'
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.size
+    update:
+      description: File size in bytes, displayed to the user
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.width
+    update:
+      description: Image width in px (used when file_type is set to image)
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files.items.properties.height
+    update:
+      description: Image height in px (used when file_type is set to image)
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.buttons
+    update:
+      description: >-
+        Array of rows, each represented as an array of buttons. Maximum 100 buttons per message, up to 8 buttons per
+        row. To remove buttons, send an empty array.
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.display_avatar_url
+    update:
+      description: Custom sender avatar URL for this message. This field can only be used with a bot access_token.
+  - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.display_name
+    update:
+      description: Custom sender display name for this message. This field can only be used with a bot access_token.
+  - target: $.components.schemas.MessageWebhookPayload
+    update:
+      description: Outgoing webhook payload for messages
+  - target: $.components.schemas.MessageWebhookPayload.properties.type
+    update:
+      description: Object type
+  - target: $.components.schemas.MessageWebhookPayload.properties.type
+    update:
+      x-enum-descriptions:
+        message: Always message for messages
+  - target: $.components.schemas.MessageWebhookPayload.properties.id
+    update:
+      description: Message ID
+  - target: $.components.schemas.MessageWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.MessageWebhookPayload.properties.entity_type
+    update:
+      description: Entity type the message belongs to
+  - target: $.components.schemas.MessageWebhookPayload.properties.entity_id
+    update:
+      description: ID of the entity the message belongs to
+  - target: $.components.schemas.MessageWebhookPayload.properties.content
+    update:
+      description: Message text
+  - target: $.components.schemas.MessageWebhookPayload.properties.user_id
+    update:
+      description: Message sender ID
+  - target: $.components.schemas.MessageWebhookPayload.properties.created_at
+    update:
+      description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.MessageWebhookPayload.properties.url
+    update:
+      description: Direct link to the message
+  - target: $.components.schemas.MessageWebhookPayload.properties.chat_id
+    update:
+      description: ID of the chat containing the message
+  - target: $.components.schemas.MessageWebhookPayload.properties.parent_message_id
+    update:
+      description: ID of the message being replied to
+  - target: $.components.schemas.MessageWebhookPayload.properties.thread
+    update:
+      description: Thread parameters object
+  - target: $.components.schemas.MessageWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.OAuthError
+    update:
+      description: OAuth authorization error (used for 401 and 403)
+  - target: $.components.schemas.OAuthError.properties.error
+    update:
+      description: Error code
+  - target: $.components.schemas.OAuthError.properties.error_description
+    update:
+      description: Error description
+  - target: $.components.schemas.OAuthScope
+    update:
+      description: OAuth token access scope
+  - target: $.components.schemas.OAuthScope
+    update:
+      x-enum-descriptions:
+        chats_read: View chats and chat list
+        chats_create: Create new chats
+        chats_update: Update chat settings
+        chats_archive: Archive and unarchive chats
+        chats_leave: Leave chats
+        chat_members_read: View chat members
+        chat_members_write: Add, update, and remove chat members
+        chat_exports_read: Download chat exports
+        chat_exports_write: Create chat exports
+        messages_read: View messages in chats
+        messages_create: Send messages
+        messages_update: Edit messages
+        messages_delete: Delete messages
+        reactions_read: View message reactions
+        reactions_write: Add and remove reactions
+        pins_write: Pin and unpin messages
+        threads_read: View threads (comments)
+        threads_create: Create threads (comments)
+        link_previews_write: Unfurl (link previews)
+        views_write: Open forms (views)
+        users_read: View employee information and employee list
+        users_create: Create new employees
+        users_update: Edit employee data
+        users_delete: Delete employees
+        group_tags_read: View tags
+        group_tags_write: Create, edit, and delete tags
+        bots_write: Update bot settings
+        profile_read: View own profile information
+        profile_status_read: View profile status
+        profile_status_write: Update and delete profile status
+        user_status_read: View employee status
+        user_status_write: Update and delete employee status
+        custom_properties_read: View custom properties
+        audit_events_read: View audit log
+        tasks_read: View tasks
+        tasks_create: Create tasks
+        tasks_update: Update task
+        tasks_delete: Delete task
+        files_read: Download files
+        files_write: Upload files
+        uploads_write: Get file upload data
+        webhooks_read: View webhooks
+        webhooks_write: Create and manage webhooks
+        webhooks_events_read: View webhook logs
+        webhooks_events_delete: Delete webhook log entry
+        search_users: Search employees
+        search_chats: Search chats
+        search_messages: Search messages
+  - target: $.components.schemas.OpenViewRequest
+    update:
+      description: View
+  - target: $.components.schemas.OpenViewRequest.properties.type
+    update:
+      description: View opening method
+  - target: $.components.schemas.OpenViewRequest.properties.type
+    update:
+      x-enum-descriptions:
+        modal: Modal window
+  - target: $.components.schemas.OpenViewRequest.properties.trigger_id
+    update:
+      description: Unique event identifier (received, for example, in the outgoing webhook for a button click)
+  - target: $.components.schemas.OpenViewRequest.properties.private_metadata
+    update:
+      description: >-
+        Optional string that will be sent to your application when the user submits the form. Use this field, for
+        example, to pass additional information in `JSON` format along with the form data.
+  - target: $.components.schemas.OpenViewRequest.properties.callback_id
+    update:
+      description: >-
+        Optional identifier for recognizing this view, which will be sent to your application when the user submits the
+        form. Use this field, for example, to determine which form the user was supposed to fill out.
+  - target: $.components.schemas.OpenViewRequest.properties.view
+    update:
+      description: View object
+  - target: $.components.schemas.OpenViewRequest.properties.view.properties.title
+    update:
+      description: View title
+  - target: $.components.schemas.OpenViewRequest.properties.view.properties.close_text
+    update:
+      description: Close button text
+  - target: $.components.schemas.OpenViewRequest.properties.view.properties.submit_text
+    update:
+      description: Submit button text
+  - target: $.components.schemas.OpenViewRequest.properties.view.properties.blocks
+    update:
+      description: Array of view blocks
+  - target: $.components.schemas.PaginationMeta
+    update:
+      description: Pagination metadata
+  - target: $.components.schemas.PaginationMeta.properties.paginate
+    update:
+      description: Helper information
+  - target: $.components.schemas.PaginationMeta.properties.paginate.properties.next_page
+    update:
+      description: Next page pagination cursor
+  - target: $.components.schemas.Reaction
+    update:
+      description: Message reaction
+  - target: $.components.schemas.Reaction.properties.user_id
+    update:
+      description: ID of the user who added the reaction
+  - target: $.components.schemas.Reaction.properties.created_at
+    update:
+      description: Reaction creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Reaction.properties.code
+    update:
+      description: Reaction emoji character
+  - target: $.components.schemas.Reaction.properties.name
+    update:
+      description: Reaction emoji name
+  - target: $.components.schemas.ReactionEventType
+    update:
+      description: Webhook event type for reactions
+  - target: $.components.schemas.ReactionEventType
+    update:
+      x-enum-descriptions:
+        new: Created
+        delete: Deleted
+  - target: $.components.schemas.ReactionRequest
+    update:
+      description: Reaction creation request
+  - target: $.components.schemas.ReactionRequest.properties.code
+    update:
+      description: Reaction emoji character
+  - target: $.components.schemas.ReactionRequest.properties.name
+    update:
+      description: Emoji text name (used for custom emoji)
+  - target: $.components.schemas.ReactionWebhookPayload
+    update:
+      description: Outgoing webhook payload for reactions
+  - target: $.components.schemas.ReactionWebhookPayload.properties.type
+    update:
+      description: Object type
+  - target: $.components.schemas.ReactionWebhookPayload.properties.type
+    update:
+      x-enum-descriptions:
+        reaction: Always reaction for reactions
+  - target: $.components.schemas.ReactionWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.ReactionWebhookPayload.properties.message_id
+    update:
+      description: ID of the message the reaction belongs to
+  - target: $.components.schemas.ReactionWebhookPayload.properties.code
+    update:
+      description: Reaction emoji character
+  - target: $.components.schemas.ReactionWebhookPayload.properties.name
+    update:
+      description: Reaction name
+  - target: $.components.schemas.ReactionWebhookPayload.properties.user_id
+    update:
+      description: ID of the user who added or removed the reaction
+  - target: $.components.schemas.ReactionWebhookPayload.properties.created_at
+    update:
+      description: Message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.ReactionWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.SearchEntityType
+    update:
+      description: Entity type for search
+  - target: $.components.schemas.SearchEntityType
+    update:
+      x-enum-descriptions:
+        User: User
+        Task: Task
+  - target: $.components.schemas.SearchPaginationMeta
+    update:
+      description: Pagination metadata for search results
+  - target: $.components.schemas.SearchPaginationMeta.properties.total
+    update:
+      description: Total number of results found
+  - target: $.components.schemas.SearchPaginationMeta.properties.paginate
+    update:
+      description: Helper information
+  - target: $.components.schemas.SearchPaginationMeta.properties.paginate.properties.next_page
+    update:
+      description: Next page pagination cursor
+  - target: $.components.schemas.SearchSortOrder
+    update:
+      description: Search results sort order
+  - target: $.components.schemas.SearchSortOrder
+    update:
+      x-enum-descriptions:
+        by_score: By relevance
+        alphabetical: Alphabetically
+  - target: $.components.schemas.SortOrder
+    update:
+      description: Sort order
+  - target: $.components.schemas.SortOrder
+    update:
+      x-enum-descriptions:
+        asc: Ascending
+        desc: Descending
+  - target: $.components.schemas.StatusUpdateRequest
+    update:
+      description: Status update request
+  - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.emoji
+    update:
+      description: Status emoji character
+  - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.title
+    update:
+      description: Status text
+  - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.expires_at
+    update:
+      description: Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.is_away
+    update:
+      description: '"Away" mode'
+  - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.away_message
+    update:
+      description: '"Away" mode message text. Displayed in the profile and in direct messages/mentions.'
+  - target: $.components.schemas.TagNamesFilter
+    update:
+      description: Array of tag names
+  - target: $.components.schemas.Task
+    update:
+      description: Task
+  - target: $.components.schemas.Task.properties.id
+    update:
+      description: Task ID
+  - target: $.components.schemas.Task.properties.kind
+    update:
+      description: Kind
+  - target: $.components.schemas.Task.properties.content
+    update:
+      description: Description
+  - target: $.components.schemas.Task.properties.due_at
+    update:
+      description: Task due date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Task.properties.priority
+    update:
+      description: Priority
+  - target: $.components.schemas.Task.properties.user_id
+    update:
+      description: ID of the user who created the task
+  - target: $.components.schemas.Task.properties.chat_id
+    update:
+      description: ID of the chat the task is linked to
+  - target: $.components.schemas.Task.properties.status
+    update:
+      description: Task status
+  - target: $.components.schemas.Task.properties.created_at
+    update:
+      description: Task creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Task.properties.performer_ids
+    update:
+      description: Array of user IDs assigned to the task as performers
+  - target: $.components.schemas.Task.properties.all_day
+    update:
+      description: All-day task (without specific time)
+  - target: $.components.schemas.Task.properties.custom_properties
+    update:
+      description: Task custom properties
+  - target: $.components.schemas.TaskCreateRequest
+    update:
+      description: Task creation request
+  - target: $.components.schemas.TaskCreateRequest.properties.task
+    update:
+      description: Task parameters object to create
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.kind
+    update:
+      description: Kind
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.content
+    update:
+      description: Description (defaults to the kind name)
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.due_at
+    update:
+      description: >-
+        Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the task will
+        be created as an all-day task (without specific time).
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.priority
+    update:
+      description: 'Priority: 1, 2 (important), or 3 (very important).'
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.performer_ids
+    update:
+      description: Array of user IDs to assign as task performers (defaults to you)
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.chat_id
+    update:
+      description: ID of the chat to link the task to
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.all_day
+    update:
+      description: All-day task (without specific time)
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.custom_properties
+    update:
+      description: Custom properties to set
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.custom_properties.items.properties.id
+    update:
+      description: Property ID
+  - target: $.components.schemas.TaskCreateRequest.properties.task.properties.custom_properties.items.properties.value
+    update:
+      description: Value to set
+  - target: $.components.schemas.TaskKind
+    update:
+      description: Task kind
+  - target: $.components.schemas.TaskKind
+    update:
+      x-enum-descriptions:
+        call: Call a contact
+        meeting: Meeting
+        reminder: Simple reminder
+        event: Event
+        email: Send an email
+  - target: $.components.schemas.TaskStatus
+    update:
+      description: Task status
+  - target: $.components.schemas.TaskStatus
+    update:
+      x-enum-descriptions:
+        done: Done
+        undone: Active
+  - target: $.components.schemas.TaskUpdateRequest
+    update:
+      description: Task update request
+  - target: $.components.schemas.TaskUpdateRequest.properties.task
+    update:
+      description: Task parameters object to update
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.kind
+    update:
+      description: Kind
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.content
+    update:
+      description: Description
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.due_at
+    update:
+      description: >-
+        Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the task will
+        be created as an all-day task (without specific time).
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.priority
+    update:
+      description: 'Priority: 1, 2 (important), or 3 (very important).'
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.performer_ids
+    update:
+      description: Array of user IDs to assign as task performers
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.status
+    update:
+      description: Status
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.all_day
+    update:
+      description: All-day task (without specific time)
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.done_at
+    update:
+      description: Task completion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.custom_properties
+    update:
+      description: Custom properties to set
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.custom_properties.items.properties.id
+    update:
+      description: Property ID
+  - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.custom_properties.items.properties.value
+    update:
+      description: Value to set
+  - target: $.components.schemas.Thread
+    update:
+      description: Thread
+  - target: $.components.schemas.Thread.properties.id
+    update:
+      description: Created thread ID (used to send [new comments](POST /messages) to the thread)
+  - target: $.components.schemas.Thread.properties.chat_id
+    update:
+      description: >-
+        Thread chat ID (used to send [new comments](POST /messages) to the thread and to get the [list of comments](GET
+        /messages))
+  - target: $.components.schemas.Thread.properties.message_id
+    update:
+      description: ID of the message the thread was created for
+  - target: $.components.schemas.Thread.properties.message_chat_id
+    update:
+      description: Message chat ID
+  - target: $.components.schemas.Thread.properties.updated_at
+    update:
+      description: Thread update date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.UpdateMemberRoleRequest
+    update:
+      description: Member role update request
+  - target: $.components.schemas.UpdateMemberRoleRequest.properties.role
+    update:
+      description: Role
+  - target: $.components.schemas.UploadParams
+    update:
+      description: File upload parameters
+  - target: $.components.schemas.UploadParams.properties.Content-Disposition
+    update:
+      description: Header used (attachment for this request)
+  - target: $.components.schemas.UploadParams.properties.acl
+    update:
+      description: Security level (private for this request)
+  - target: $.components.schemas.UploadParams.properties.policy
+    update:
+      description: Unique policy for file upload
+  - target: $.components.schemas.UploadParams.properties.x-amz-credential
+    update:
+      description: x-amz-credential for file upload
+  - target: $.components.schemas.UploadParams.properties.x-amz-algorithm
+    update:
+      description: Algorithm used (AWS4-HMAC-SHA256 for this request)
+  - target: $.components.schemas.UploadParams.properties.x-amz-date
+    update:
+      description: Unique x-amz-date for file upload
+  - target: $.components.schemas.UploadParams.properties.x-amz-signature
+    update:
+      description: Unique signature for file upload
+  - target: $.components.schemas.UploadParams.properties.key
+    update:
+      description: Unique key for file upload
+  - target: $.components.schemas.UploadParams.properties.direct_url
+    update:
+      description: File upload URL
+  - target: $.components.schemas.User
+    update:
+      description: Employee
+  - target: $.components.schemas.User.properties.id
+    update:
+      description: User ID
+  - target: $.components.schemas.User.properties.first_name
+    update:
+      description: First name
+  - target: $.components.schemas.User.properties.last_name
+    update:
+      description: Last name
+  - target: $.components.schemas.User.properties.nickname
+    update:
+      description: Username
+  - target: $.components.schemas.User.properties.email
+    update:
+      description: Email
+  - target: $.components.schemas.User.properties.phone_number
+    update:
+      description: Phone number
+  - target: $.components.schemas.User.properties.department
+    update:
+      description: Department
+  - target: $.components.schemas.User.properties.title
+    update:
+      description: Job title
+  - target: $.components.schemas.User.properties.role
+    update:
+      description: Access level
+  - target: $.components.schemas.User.properties.suspended
+    update:
+      description: User deactivated
+  - target: $.components.schemas.User.properties.invite_status
+    update:
+      description: Invitation status
+  - target: $.components.schemas.User.properties.list_tags
+    update:
+      description: Array of tags assigned to the employee
+  - target: $.components.schemas.User.properties.custom_properties
+    update:
+      description: Employee custom properties
+  - target: $.components.schemas.User.properties.user_status
+    update:
+      description: Status
+  - target: $.components.schemas.User.properties.bot
+    update:
+      description: Whether this is a bot
+  - target: $.components.schemas.User.properties.sso
+    update:
+      description: Whether the user uses SSO
+  - target: $.components.schemas.User.properties.created_at
+    update:
+      description: Creation date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.User.properties.last_activity_at
+    update:
+      description: User last activity date (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.User.properties.time_zone
+    update:
+      description: User time zone
+  - target: $.components.schemas.User.properties.image_url
+    update:
+      description: User avatar download URL
+  - target: $.components.schemas.UserCreateRequest
+    update:
+      description: Employee creation request
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.first_name
+    update:
+      description: First name
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.last_name
+    update:
+      description: Last name
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.email
+    update:
+      description: Email
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.phone_number
+    update:
+      description: Phone number
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.nickname
+    update:
+      description: Username
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.department
+    update:
+      description: Department
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.title
+    update:
+      description: Job title
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.role
+    update:
+      description: Access level
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.suspended
+    update:
+      description: User deactivated
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.list_tags
+    update:
+      description: Array of tags to assign to the employee
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.custom_properties
+    update:
+      description: Custom properties to set
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.custom_properties.items.properties.id
+    update:
+      description: Property ID
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.custom_properties.items.properties.value
+    update:
+      description: Value to set
+  - target: $.components.schemas.UserCreateRequest.properties.skip_email_notify
+    update:
+      description: >-
+        Skip sending an invitation to the employee. The employee will not receive an email invitation to create an
+        account. Useful when pre-creating accounts before SSO login.
+  - target: $.components.schemas.UserEventType
+    update:
+      description: Webhook event type for users
+  - target: $.components.schemas.UserEventType
+    update:
+      x-enum-descriptions:
+        invite: Invitation
+        confirm: Confirmation
+        update: Update
+        suspend: Suspension
+        activate: Activation
+        delete: Deleted
+  - target: $.components.schemas.UserRole
+    update:
+      description: User role in the system
+  - target: $.components.schemas.UserRole
+    update:
+      x-enum-descriptions:
+        admin: Administrator
+        user: Employee
+        multi_guest: Multi-guest
+        guest: Guest
+  - target: $.components.schemas.UserRoleInput
+    update:
+      description: User role allowed for creation and editing. The `guest` role cannot be set via API.
+  - target: $.components.schemas.UserRoleInput
+    update:
+      x-enum-descriptions:
+        admin: Administrator
+        user: Employee
+        multi_guest: Multi-guest
+  - target: $.components.schemas.UserStatus
+    update:
+      description: User status
+  - target: $.components.schemas.UserStatus.properties.emoji
+    update:
+      description: Status emoji character
+  - target: $.components.schemas.UserStatus.properties.title
+    update:
+      description: Status text
+  - target: $.components.schemas.UserStatus.properties.expires_at
+    update:
+      description: Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.UserStatus.properties.is_away
+    update:
+      description: '"Away" mode'
+  - target: $.components.schemas.UserStatus.properties.away_message
+    update:
+      description: >-
+        "Away" mode message. Displayed in the user profile, as well as when sending a direct message or mentioning them
+        in a chat.
+  - target: $.components.schemas.UserStatus.properties.away_message.properties.text
+    update:
+      description: Message text
+  - target: $.components.schemas.UserUpdateRequest
+    update:
+      description: Employee update request
+  - target: $.components.schemas.UserUpdateRequest.properties.user
+    update:
+      description: Employee parameters object to update
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.first_name
+    update:
+      description: First name
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.last_name
+    update:
+      description: Last name
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.email
+    update:
+      description: Email
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.phone_number
+    update:
+      description: Phone number
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.nickname
+    update:
+      description: Username
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.department
+    update:
+      description: Department
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.title
+    update:
+      description: Job title
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.role
+    update:
+      description: Access level
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.suspended
+    update:
+      description: User deactivated
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.list_tags
+    update:
+      description: Array of tags to assign to the employee
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.custom_properties
+    update:
+      description: Custom properties to set
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.custom_properties.items.properties.id
+    update:
+      description: Property ID
+  - target: $.components.schemas.UserUpdateRequest.properties.user.properties.custom_properties.items.properties.value
+    update:
+      description: Value to set
+  - target: $.components.schemas.ValidationErrorCode
+    update:
+      description: Validation error codes
+  - target: $.components.schemas.ValidationErrorCode
+    update:
+      x-enum-descriptions:
+        blank: Required field (cannot be empty)
+        too_long: Value is too long (details provided in the message field)
+        invalid: Field does not match the rules (details provided in the message field)
+        inclusion: Field has an unexpected value
+        exclusion: Field has a forbidden value
+        taken: Name for this field already exists
+        wrong_emoji: Status emoji cannot contain values other than an emoji character
+        not_found: Object not found
+        already_exists: Object already exists (details provided in the message field)
+        personal_chat: Direct message error (details provided in the message field)
+        displayed_error: Displayed error (details provided in the message field)
+        not_authorized: Action forbidden
+        invalid_date_range: Selected date range is too large
+        invalid_webhook_url: Invalid webhook URL
+        rate_limit: Rate limit reached
+        licenses_limit: Active employee limit exceeded (details provided in the message field)
+        user_limit: User reaction limit exceeded (20 unique reactions)
+        unique_limit: Unique reaction limit per message exceeded (30 unique reactions)
+        general_limit: Reaction limit per message exceeded (1000 reactions)
+        unhandled: Request execution error (details provided in the message field)
+        trigger_not_found: Event identifier not found
+        trigger_expired: Event identifier has expired
+        required: Required parameter not provided
+        in: Invalid value (not in the list of allowed values)
+        not_applicable: Value not applicable in this context (details provided in the message field)
+        self_update: Cannot modify your own data
+        owner_protected: Cannot modify owner data
+        already_assigned: Value already assigned
+        forbidden: Insufficient permissions to perform the action (details provided in the message field)
+        permission_denied: Access denied (insufficient permissions)
+        access_denied: Access denied
+        wrong_params: Invalid request parameters (details provided in the message field)
+        payment_required: Payment required
+        min_length: Value is too short (details provided in the message field)
+        max_length: Value is too long (details provided in the message field)
+        use_of_system_words: Reserved system word used (here, all)
+  - target: $.components.schemas.ViewBlock
+    update:
+      description: View block for forms (base model, use specific block types)
+  - target: $.components.schemas.ViewBlock.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlock.properties.text
+    update:
+      description: Block text
+  - target: $.components.schemas.ViewBlock.properties.name
+    update:
+      description: Field name
+  - target: $.components.schemas.ViewBlock.properties.label
+    update:
+      description: Field label
+  - target: $.components.schemas.ViewBlock.properties.initial_date
+    update:
+      description: Initial date
+  - target: $.components.schemas.ViewBlockCheckbox
+    update:
+      description: Checkbox block — checkboxes
+  - target: $.components.schemas.ViewBlockCheckbox.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockCheckbox.properties.type
+    update:
+      x-enum-descriptions:
+        checkbox: Always checkbox for checkboxes
+  - target: $.components.schemas.ViewBlockCheckbox.properties.name
+    update:
+      description: Name that will be sent to your application as the key for the user-selected choice
+  - target: $.components.schemas.ViewBlockCheckbox.properties.label
+    update:
+      description: Checkbox group label
+  - target: $.components.schemas.ViewBlockCheckbox.properties.options
+    update:
+      description: Array of checkboxes
+  - target: $.components.schemas.ViewBlockCheckbox.properties.required
+    update:
+      description: Required
+  - target: $.components.schemas.ViewBlockCheckbox.properties.hint
+    update:
+      description: Hint displayed below the checkbox group in gray
+  - target: $.components.schemas.ViewBlockCheckboxOption.properties.text
+    update:
+      description: Display text
+  - target: $.components.schemas.ViewBlockCheckboxOption.properties.value
+    update:
+      description: Unique string value that will be sent to your application when this item is selected
+  - target: $.components.schemas.ViewBlockCheckboxOption.properties.description
+    update:
+      description: Description displayed in gray below the display text for this item
+  - target: $.components.schemas.ViewBlockCheckboxOption.properties.checked
+    update:
+      description: Initially selected item
+  - target: $.components.schemas.ViewBlockDate
+    update:
+      description: Date block — date picker
+  - target: $.components.schemas.ViewBlockDate.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockDate.properties.type
+    update:
+      x-enum-descriptions:
+        date: Always date for date picker
+  - target: $.components.schemas.ViewBlockDate.properties.name
+    update:
+      description: Name that will be sent to your application as the key for the user-specified value
+  - target: $.components.schemas.ViewBlockDate.properties.label
+    update:
+      description: Field label
+  - target: $.components.schemas.ViewBlockDate.properties.initial_date
+    update:
+      description: Initial field value in YYYY-MM-DD format
+  - target: $.components.schemas.ViewBlockDate.properties.required
+    update:
+      description: Required
+  - target: $.components.schemas.ViewBlockDate.properties.hint
+    update:
+      description: Hint displayed below the field in gray
+  - target: $.components.schemas.ViewBlockDivider
+    update:
+      description: Divider block — separator
+  - target: $.components.schemas.ViewBlockDivider.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockDivider.properties.type
+    update:
+      x-enum-descriptions:
+        divider: Always divider for separators
+  - target: $.components.schemas.ViewBlockFileInput
+    update:
+      description: File input block — file upload
+  - target: $.components.schemas.ViewBlockFileInput.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockFileInput.properties.type
+    update:
+      x-enum-descriptions:
+        file_input: Always file_input for file upload
+  - target: $.components.schemas.ViewBlockFileInput.properties.name
+    update:
+      description: Name that will be sent to your application as the key for the user-specified value
+  - target: $.components.schemas.ViewBlockFileInput.properties.label
+    update:
+      description: Field label
+  - target: $.components.schemas.ViewBlockFileInput.properties.filetypes
+    update:
+      description: >-
+        Array of allowed file extensions as strings (e.g., ["png","jpg","gif"]). If this field is not specified, all
+        file extensions will be accepted.
+  - target: $.components.schemas.ViewBlockFileInput.properties.max_files
+    update:
+      description: Maximum number of files the user can upload to this field.
+  - target: $.components.schemas.ViewBlockFileInput.properties.required
+    update:
+      description: Required
+  - target: $.components.schemas.ViewBlockFileInput.properties.hint
+    update:
+      description: Hint displayed below the field in gray
+  - target: $.components.schemas.ViewBlockHeader
+    update:
+      description: Header block — heading
+  - target: $.components.schemas.ViewBlockHeader.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockHeader.properties.type
+    update:
+      x-enum-descriptions:
+        header: Always header for headings
+  - target: $.components.schemas.ViewBlockHeader.properties.text
+    update:
+      description: Header text
+  - target: $.components.schemas.ViewBlockInput
+    update:
+      description: Input block — text input field
+  - target: $.components.schemas.ViewBlockInput.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockInput.properties.type
+    update:
+      x-enum-descriptions:
+        input: Always input for text fields
+  - target: $.components.schemas.ViewBlockInput.properties.name
+    update:
+      description: Name that will be sent to your application as the key for the user-specified value
+  - target: $.components.schemas.ViewBlockInput.properties.label
+    update:
+      description: Field label
+  - target: $.components.schemas.ViewBlockInput.properties.placeholder
+    update:
+      description: Placeholder text inside the input field while it is empty
+  - target: $.components.schemas.ViewBlockInput.properties.multiline
+    update:
+      description: Multiline field
+  - target: $.components.schemas.ViewBlockInput.properties.initial_value
+    update:
+      description: Initial field value
+  - target: $.components.schemas.ViewBlockInput.properties.min_length
+    update:
+      description: Minimum text length the user must enter. If the user enters less, they will receive an error.
+  - target: $.components.schemas.ViewBlockInput.properties.max_length
+    update:
+      description: Maximum text length the user can enter. If the user enters more, they will receive an error.
+  - target: $.components.schemas.ViewBlockInput.properties.required
+    update:
+      description: Required
+  - target: $.components.schemas.ViewBlockInput.properties.hint
+    update:
+      description: Hint displayed below the field in gray
+  - target: $.components.schemas.ViewBlockMarkdown
+    update:
+      description: Markdown block — formatted text
+  - target: $.components.schemas.ViewBlockMarkdown.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockMarkdown.properties.type
+    update:
+      x-enum-descriptions:
+        markdown: Always markdown for formatted text
+  - target: $.components.schemas.ViewBlockMarkdown.properties.text
+    update:
+      description: Text
+  - target: $.components.schemas.ViewBlockPlainText
+    update:
+      description: Plain text block — plain text
+  - target: $.components.schemas.ViewBlockPlainText.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockPlainText.properties.type
+    update:
+      x-enum-descriptions:
+        plain_text: Always plain_text for plain text
+  - target: $.components.schemas.ViewBlockPlainText.properties.text
+    update:
+      description: Text
+  - target: $.components.schemas.ViewBlockRadio
+    update:
+      description: Radio block — radio buttons
+  - target: $.components.schemas.ViewBlockRadio.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockRadio.properties.type
+    update:
+      x-enum-descriptions:
+        radio: Always radio for radio buttons
+  - target: $.components.schemas.ViewBlockRadio.properties.name
+    update:
+      description: Name that will be sent to your application as the key for the user-selected choice
+  - target: $.components.schemas.ViewBlockRadio.properties.label
+    update:
+      description: Radio button group label
+  - target: $.components.schemas.ViewBlockRadio.properties.options
+    update:
+      description: Array of radio buttons
+  - target: $.components.schemas.ViewBlockRadio.properties.required
+    update:
+      description: Required
+  - target: $.components.schemas.ViewBlockRadio.properties.hint
+    update:
+      description: Hint displayed below the radio button group in gray
+  - target: $.components.schemas.ViewBlockSelect
+    update:
+      description: Select block — dropdown
+  - target: $.components.schemas.ViewBlockSelect.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockSelect.properties.type
+    update:
+      x-enum-descriptions:
+        select: Always select for dropdowns
+  - target: $.components.schemas.ViewBlockSelect.properties.name
+    update:
+      description: Name that will be sent to your application as the key for the user-selected choice
+  - target: $.components.schemas.ViewBlockSelect.properties.label
+    update:
+      description: Dropdown label
+  - target: $.components.schemas.ViewBlockSelect.properties.options
+    update:
+      description: Array of available items in the dropdown
+  - target: $.components.schemas.ViewBlockSelect.properties.required
+    update:
+      description: Required
+  - target: $.components.schemas.ViewBlockSelect.properties.hint
+    update:
+      description: Hint displayed below the dropdown in gray
+  - target: $.components.schemas.ViewBlockSelectableOption
+    update:
+      description: Option for select, radio, and checkbox blocks
+  - target: $.components.schemas.ViewBlockSelectableOption.properties.text
+    update:
+      description: Display text
+  - target: $.components.schemas.ViewBlockSelectableOption.properties.value
+    update:
+      description: Unique string value that will be sent to your application when this item is selected
+  - target: $.components.schemas.ViewBlockSelectableOption.properties.description
+    update:
+      description: Description displayed in gray below the display text for this item
+  - target: $.components.schemas.ViewBlockSelectableOption.properties.selected
+    update:
+      description: Initially selected item. Only one item can be selected.
+  - target: $.components.schemas.ViewBlockTime
+    update:
+      description: Time block — time picker
+  - target: $.components.schemas.ViewBlockTime.properties.type
+    update:
+      description: Block type
+  - target: $.components.schemas.ViewBlockTime.properties.type
+    update:
+      x-enum-descriptions:
+        time: Always time for time picker
+  - target: $.components.schemas.ViewBlockTime.properties.name
+    update:
+      description: Name that will be sent to your application as the key for the user-specified value
+  - target: $.components.schemas.ViewBlockTime.properties.label
+    update:
+      description: Field label
+  - target: $.components.schemas.ViewBlockTime.properties.initial_time
+    update:
+      description: Initial field value in HH:mm format
+  - target: $.components.schemas.ViewBlockTime.properties.required
+    update:
+      description: Required
+  - target: $.components.schemas.ViewBlockTime.properties.hint
+    update:
+      description: Hint displayed below the field in gray
+  - target: $.components.schemas.ViewBlockUnion
+    update:
+      description: Union type for all possible view blocks
+  - target: $.components.schemas.ViewSubmitWebhookPayload
+    update:
+      description: Outgoing webhook payload for form submission
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.type
+    update:
+      description: Object type
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.type
+    update:
+      x-enum-descriptions:
+        view: Always view for forms
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.event
+    update:
+      description: Event type
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.event
+    update:
+      x-enum-descriptions:
+        submit: Form submission
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.callback_id
+    update:
+      description: Callback ID specified when opening the view
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.private_metadata
+    update:
+      description: Private metadata specified when opening the view
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.user_id
+    update:
+      description: ID of the user who submitted the form
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.data
+    update:
+      description: Submitted view field data. Key — field `action_id`, value — entered data
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.webhook_timestamp
+    update:
+      description: Webhook send date and time (UTC+0) in UNIX format
+  - target: $.components.schemas.WebhookEvent
+    update:
+      description: Outgoing webhook event
+  - target: $.components.schemas.WebhookEvent.properties.id
+    update:
+      description: Event ID
+  - target: $.components.schemas.WebhookEvent.properties.event_type
+    update:
+      description: Event type
+  - target: $.components.schemas.WebhookEvent.properties.payload
+    update:
+      description: Webhook object
+  - target: $.components.schemas.WebhookEvent.properties.created_at
+    update:
+      description: Event creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.WebhookEventType
+    update:
+      description: Webhook event type
+  - target: $.components.schemas.WebhookEventType
+    update:
+      x-enum-descriptions:
+        new: Created
+        update: Update
+        delete: Deleted
+  - target: $.components.schemas.WebhookLink
+    update:
+      description: Link object in the link unfurling webhook
+  - target: $.components.schemas.WebhookLink.properties.url
+    update:
+      description: Link URL
+  - target: $.components.schemas.WebhookLink.properties.domain
+    update:
+      description: Link domain
+  - target: $.components.schemas.WebhookMessageThread
+    update:
+      description: Thread object in the message webhook
+  - target: $.components.schemas.WebhookMessageThread.properties.message_id
+    update:
+      description: ID of the message the thread was created for
+  - target: $.components.schemas.WebhookMessageThread.properties.message_chat_id
+    update:
+      description: ID of the chat of the message the thread was created for
+  - target: $.components.schemas.WebhookPayloadUnion
+    update:
+      description: Union of all webhook payload types
+  # ApiError nested items
+  - target: $.components.schemas.ApiError.properties.errors.items.properties.key
+    update:
+      description: Field key that caused the error
+  - target: $.components.schemas.ApiError.properties.errors.items.properties.value
+    update:
+      description: Field value that caused the error
+  - target: $.components.schemas.ApiError.properties.errors.items.properties.message
+    update:
+      description: Error message
+  - target: $.components.schemas.ApiError.properties.errors.items.properties.code
+    update:
+      description: Error code
+  - target: $.components.schemas.ApiError.properties.errors.items.properties.payload
+    update:
+      description: >-
+        Additional error data. Content depends on the error code:
+        `{id: number}` for custom property errors, `{type: string}` for type mismatch errors
+
+  # LinkSharedWebhookPayload nested items
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.links.items.properties.url
+    update:
+      description: Link URL
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.links.items.properties.domain
+    update:
+      description: Link domain
+
+  # Message.files nested items
+  - target: $.components.schemas.Message.properties.files.items.properties.id
+    update:
+      description: File ID
+  - target: $.components.schemas.Message.properties.files.items.properties.key
+    update:
+      description: File path
+  - target: $.components.schemas.Message.properties.files.items.properties.name
+    update:
+      description: File name with extension
+  - target: $.components.schemas.Message.properties.files.items.properties.file_type
+    update:
+      description: "File type"
+  - target: $.components.schemas.Message.properties.files.items.properties.url
+    update:
+      description: Direct file download URL
+  - target: $.components.schemas.Message.properties.files.items.properties.width
+    update:
+      description: Image width in pixels
+  - target: $.components.schemas.Message.properties.files.items.properties.height
+    update:
+      description: Image height in pixels
+
+  # Message.forwarding nested properties
+  - target: $.components.schemas.Message.properties.forwarding.properties.original_message_id
+    update:
+      description: Original message ID
+  - target: $.components.schemas.Message.properties.forwarding.properties.original_chat_id
+    update:
+      description: ID of the chat containing the original message
+  - target: $.components.schemas.Message.properties.forwarding.properties.author_id
+    update:
+      description: ID of the user who created the original message
+  - target: $.components.schemas.Message.properties.forwarding.properties.original_created_at
+    update:
+      description: Original message creation date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
+  - target: $.components.schemas.Message.properties.forwarding.properties.original_thread_id
+    update:
+      description: ID of the thread containing the original message
+  - target: $.components.schemas.Message.properties.forwarding.properties.original_thread_message_id
+    update:
+      description: ID of the message that the thread was created from, which contains the original message
+  - target: $.components.schemas.Message.properties.forwarding.properties.original_thread_parent_chat_id
+    update:
+      description: ID of the chat of the message that the thread was created from, which contains the original message
+
+  # MessageWebhookPayload.thread nested properties
+  - target: $.components.schemas.MessageWebhookPayload.properties.thread.properties.message_id
+    update:
+      description: Thread parent message ID
+  - target: $.components.schemas.MessageWebhookPayload.properties.thread.properties.message_chat_id
+    update:
+      description: Chat ID of the thread parent message
+  - target: $.components.schemas.MessageSortField
+    update:
+      description: Message sort field
+  - target: $.components.schemas.MessageSortField
+    update:
+      x-enum-descriptions:
+        id: By message ID
+
+  # Task.custom_properties nested items
+  - target: $.components.schemas.Task.properties.custom_properties.items.properties.id
+    update:
+      description: Custom property ID
+  - target: $.components.schemas.Task.properties.custom_properties.items.properties.name
+    update:
+      description: Custom property name
+  - target: $.components.schemas.Task.properties.custom_properties.items.properties.data_type
+    update:
+      description: Custom property data type
+  - target: $.components.schemas.Task.properties.custom_properties.items.properties.value
+    update:
+      description: Custom property value
+
+  # User.custom_properties nested items
+  - target: $.components.schemas.User.properties.custom_properties.items.properties.id
+    update:
+      description: Custom property ID
+  - target: $.components.schemas.User.properties.custom_properties.items.properties.name
+    update:
+      description: Custom property name
+  - target: $.components.schemas.User.properties.custom_properties.items.properties.data_type
+    update:
+      description: Custom property data type
+  - target: $.components.schemas.User.properties.custom_properties.items.properties.value
+    update:
+      description: Custom property value
+
+  # User.user_status nested properties
+  - target: $.components.schemas.User.properties.user_status.properties.emoji
+    update:
+      description: Status emoji
+  - target: $.components.schemas.User.properties.user_status.properties.title
+    update:
+      description: Status text
+  - target: $.components.schemas.User.properties.user_status.properties.expires_at
+    update:
+      description: Status expiration date and time (ISO-8601, UTC+0)
+  - target: $.components.schemas.User.properties.user_status.properties.is_away
+    update:
+      description: Whether the user is marked as away
+  - target: $.components.schemas.User.properties.user_status.properties.away_message
+    update:
+      description: Away message
+  - target: $.components.schemas.User.properties.user_status.properties.away_message.properties.text
+    update:
+      description: Away message text
+
+  # ViewBlockCheckbox.options nested items
+  - target: $.components.schemas.ViewBlockCheckbox.properties.options.items.properties.text
+    update:
+      description: Checkbox option label text
+  - target: $.components.schemas.ViewBlockCheckbox.properties.options.items.properties.value
+    update:
+      description: Checkbox option value
+  - target: $.components.schemas.ViewBlockCheckbox.properties.options.items.properties.description
+    update:
+      description: Checkbox option description
+  - target: $.components.schemas.ViewBlockCheckbox.properties.options.items.properties.checked
+    update:
+      description: Whether the checkbox is checked by default
+
+  # ViewBlockRadio.options nested items
+  - target: $.components.schemas.ViewBlockRadio.properties.options.items.properties.text
+    update:
+      description: Radio option label text
+  - target: $.components.schemas.ViewBlockRadio.properties.options.items.properties.value
+    update:
+      description: Radio option value
+  - target: $.components.schemas.ViewBlockRadio.properties.options.items.properties.description
+    update:
+      description: Radio option description
+  - target: $.components.schemas.ViewBlockRadio.properties.options.items.properties.selected
+    update:
+      description: Whether this radio option is selected by default
+
+  # ViewBlockSelect.options nested items
+  - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.text
+    update:
+      description: Select option label text
+  - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.value
+    update:
+      description: Select option value
+  - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.description
+    update:
+      description: Select option description
+  - target: $.components.schemas.ViewBlockSelect.properties.options.items.properties.selected
+    update:
+      description: Whether this select option is selected by default

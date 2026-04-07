@@ -18,10 +18,9 @@ export function CopiedTooltip({ children, open }: CopiedTooltipProps) {
           align="center"
           sideOffset={2}
           collisionPadding={8}
-          className="z-50 pointer-events-none animate-tooltip bg-text-primary text-background text-[12px] font-semibold rounded-md px-2.5 py-1.5 whitespace-nowrap shadow-xl"
+          className="z-50 pointer-events-none animate-tooltip rounded-lg px-2.5 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md text-text-primary text-[12px] font-semibold whitespace-nowrap"
         >
           Скопировано
-          <Tooltip.Arrow className="fill-text-primary" width={8} height={4} />
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>

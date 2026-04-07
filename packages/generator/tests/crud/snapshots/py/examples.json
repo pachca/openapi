@@ -16,11 +16,11 @@
   },
   "ChatOperations_getChat": {
     "usage": "response = await client.chats.get_chat(id=123)",
-    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)"
+    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: datetime, member_ids: list[int] | None)"
   },
   "ChatOperations_createChat": {
     "usage": "request = ChatCreateRequest(\n    chat=ChatCreateRequestChat(\n        name=\"example\",\n        channel=True,\n        public=True,\n        member_ids=[123]\n    )\n)\nresponse = await client.chats.create_chat(request=request)",
-    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)",
+    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: datetime, member_ids: list[int] | None)",
     "imports": [
       "ChatCreateRequest",
       "ChatCreateRequestChat"
@@ -28,7 +28,7 @@
   },
   "ChatOperations_updateChat": {
     "usage": "request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name=\"example\", public=True))\nresponse = await client.chats.update_chat(id=123, request=request)",
-    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: str, member_ids: list[int] | None)",
+    "output": "Chat(id: int, name: str, is_channel: bool, is_public: bool, created_at: datetime, member_ids: list[int] | None)",
     "imports": [
       "ChatUpdateRequest",
       "ChatUpdateRequestChat"

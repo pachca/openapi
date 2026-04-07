@@ -61,6 +61,8 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ### Profile
 - `GET /oauth/token/info` — Get token info
 - `GET /profile` — Get profile
+- `PUT /profile/avatar` — Update profile avatar
+- `DELETE /profile/avatar` — Delete profile avatar
 - `GET /profile/status` — Get status
 - `PUT /profile/status` — Update status
 - `DELETE /profile/status` — Delete status
@@ -71,6 +73,8 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - `GET /users/{id}` — Get user
 - `PUT /users/{id}` — Update user
 - `DELETE /users/{id}` — Delete user
+- `PUT /users/{user_id}/avatar` — Update user avatar
+- `DELETE /users/{user_id}/avatar` — Delete user avatar
 - `GET /users/{user_id}/status` — Get user status
 - `PUT /users/{user_id}/status` — Update user status
 - `DELETE /users/{user_id}/status` — Delete user status
@@ -218,34 +222,41 @@ Detailed documentation on specific topics is available at:
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
 - [CLI](https://dev.pachca.com/guides/cli) — Управление Пачкой из терминала — все API-методы одной командой
-- [Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные клиентские библиотеки и генератор для Pachca API
-- [TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript с автодополнением и автопагинацией
-- [Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python с httpx
-- [Go](https://dev.pachca.com/guides/sdk/go) — Типизированный клиент для Pachca API на Go с контекстами и автопагинацией
-- [Kotlin](https://dev.pachca.com/guides/sdk/kotlin) — Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
-- [Swift](https://dev.pachca.com/guides/sdk/swift) — Типизированный клиент для Pachca API на Swift с async/await и Codable
-- [CSharp](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C# с async/await и автопагинацией
+- [SDK: Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные клиентские библиотеки и генератор для Pachca API
+- [SDK: TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript с автодополнением и автопагинацией
+- [SDK: Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python с httpx
+- [SDK: Go](https://dev.pachca.com/guides/sdk/go) — Типизированный клиент для Pachca API на Go с контекстами и автопагинацией
+- [SDK: Kotlin](https://dev.pachca.com/guides/sdk/kotlin) — Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
+- [SDK: Swift](https://dev.pachca.com/guides/sdk/swift) — Типизированный клиент для Pachca API на Swift с async/await и Codable
+- [SDK: C#](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C# с async/await и автопагинацией
 - [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API
 - [Боты](https://dev.pachca.com/guides/bots) — Создание, настройка и возможности ботов в Пачке
 - [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Отправка сообщений от имени бота без использования API
 - [Исходящие вебхуки](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
 - [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons) — Интерактивные кнопки в сообщениях ботов для навигации и обработки действий
-- [Обзор](https://dev.pachca.com/guides/forms/overview) — Модальные формы ботов: поля ввода, жизненный цикл и валидация
-- [Блоки представления](https://dev.pachca.com/guides/forms/blocks) — 10 типов блоков для построения форм в Пачке
-- [Обработка форм](https://dev.pachca.com/guides/forms/handling) — Открытие представлений, получение результатов и валидация
+- [Формы: Обзор](https://dev.pachca.com/guides/forms/overview) — Модальные формы ботов: поля ввода, жизненный цикл и валидация
+- [Формы: Блоки представления](https://dev.pachca.com/guides/forms/blocks) — 10 типов блоков для построения форм в Пачке
+- [Формы: Обработка форм](https://dev.pachca.com/guides/forms/handling) — Открытие представлений, получение результатов и валидация
 - [Разворачивание ссылок](https://dev.pachca.com/guides/link-previews) — Создание превью ссылок из внутренних сервисов прямо в чате
 - [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов: запрос, скачивание и структура архива
 - [DLP-система](https://dev.pachca.com/guides/dlp) — Создание правил DLP: условия, контексты и действия
 - [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов
-- [n8n](https://dev.pachca.com/guides/n8n) — Автоматизации в Пачке через платформу n8n без программирования
+- [n8n: Обзор](https://dev.pachca.com/guides/n8n/overview) — Автоматизации в Пачке через платформу n8n — 18 ресурсов, триггер, AI-агент
+- [n8n: Начало работы](https://dev.pachca.com/guides/n8n/setup) — Установка n8n, расширения Пачки, настройка Credentials и первый workflow
+- [n8n: Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources) — Все 18 ресурсов и более 60 операций расширения Пачки для n8n
+- [n8n: Триггер](https://dev.pachca.com/guides/n8n/trigger) — Pachca Trigger: 16 типов событий, авторегистрация вебхука, проверка подписи
+- [n8n: Примеры workflow](https://dev.pachca.com/guides/n8n/workflows) — Готовые сценарии автоматизации Пачки в n8n: приветствие, пересылка, задачи, согласование, мониторинг, заявки на отпуск
+- [n8n: Продвинутые функции](https://dev.pachca.com/guides/n8n/advanced) — Экспорт сообщений, загрузка файлов, кнопки, формы, AI-агент, разворачивание ссылок, журнал безопасности
+- [n8n: Устранение ошибок](https://dev.pachca.com/guides/n8n/troubleshooting) — Частые ошибки при работе с Пачкой в n8n: неверный токен, 403, 429, вебхук не приходит
+- [n8n: Миграция с v1](https://dev.pachca.com/guides/n8n/migration) — Обновление с v1 на v2: таблицы переименований, новые ресурсы, полная обратная совместимость
 - [Albato](https://dev.pachca.com/guides/albato) — Интеграция Пачки с Albato — подключение сотен сервисов без кода
 - [Последние обновления](https://dev.pachca.com/updates) — История изменений и новые возможности API
-- [Авторизация](https://dev.pachca.com/api/authorization) — Типы токенов, скоупы и настройка доступа к API
-- [Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов, тестирование API
-- [Пагинация](https://dev.pachca.com/api/pagination) — Cursor-based pagination в API Пачки
-- [Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговый процесс загрузки файлов через presigned URL
-- [Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP и rate limits
-- [Модели](https://dev.pachca.com/api/models) — Справочник всех моделей данных Pachca API — объекты, возвращаемые в ответах методов.
+- [Основы API: Авторизация](https://dev.pachca.com/api/authorization) — Типы токенов, скоупы и настройка доступа к API
+- [Основы API: Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов, тестирование API
+- [Основы API: Пагинация](https://dev.pachca.com/api/pagination) — Cursor-based pagination в API Пачки
+- [Основы API: Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговый процесс загрузки файлов через presigned URL
+- [Основы API: Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP и rate limits
+- [Основы API: Модели](https://dev.pachca.com/api/models) — Справочник всех моделей данных Pachca API — объекты, возвращаемые в ответах методов.
 
 
 ## Modular Skills

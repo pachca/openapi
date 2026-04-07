@@ -76,15 +76,19 @@ user, err := client.Profile.GetProfile(ctx)
 | `client.Profile.GetTokenInfo()` | [Информация о токене](/api/profile/get-info) |
 | `client.Profile.GetProfile()` | [Информация о профиле](/api/profile/get) |
 | `client.Profile.GetStatus()` | [Текущий статус](/api/profile/get-status) |
+| `client.Profile.UpdateProfileAvatar()` | [Загрузка аватара](/api/profile/update-avatar) |
 | `client.Profile.UpdateStatus()` | [Новый статус](/api/profile/update-status) |
+| `client.Profile.DeleteProfileAvatar()` | [Удаление аватара](/api/profile/delete-avatar) |
 | `client.Profile.DeleteStatus()` | [Удаление статуса](/api/profile/delete-status) |
 | `client.Users.CreateUser()` | [Создать сотрудника](/api/users/create) |
 | `client.Users.ListUsers()` | [Список сотрудников](/api/users/list) |
 | `client.Users.GetUser()` | [Информация о сотруднике](/api/users/get) |
 | `client.Users.GetUserStatus()` | [Статус сотрудника](/api/users/get-status) |
 | `client.Users.UpdateUser()` | [Редактирование сотрудника](/api/users/update) |
+| `client.Users.UpdateUserAvatar()` | [Загрузка аватара сотрудника](/api/users/update-avatar) |
 | `client.Users.UpdateUserStatus()` | [Новый статус сотрудника](/api/users/update-status) |
 | `client.Users.DeleteUser()` | [Удаление сотрудника](/api/users/delete) |
+| `client.Users.DeleteUserAvatar()` | [Удаление аватара сотрудника](/api/users/remove-avatar) |
 | `client.Users.DeleteUserStatus()` | [Удаление статуса сотрудника](/api/users/remove-status) |
 | `client.GroupTags.CreateTag()` | [Новый тег](/api/group-tags/create) |
 | `client.GroupTags.ListTags()` | [Список тегов сотрудников](/api/group-tags/list) |
@@ -145,7 +149,8 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Список чатов
 params := &ListChatsParams{
-	SortID: Ptr(SortOrderDesc),
+	Sort: Ptr(ChatSortFieldID),
+	Order: Ptr(SortOrderDesc),
 	Availability: Ptr(ChatAvailabilityIsMember),
 	LastMessageAtAfter: Ptr("2025-01-01T00:00:00.000Z"),
 	LastMessageAtBefore: Ptr("2025-02-01T00:00:00.000Z"),
@@ -154,7 +159,7 @@ params := &ListChatsParams{
 	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Chats.ListChats(ctx, params)
-// → ListChatsResponse{Data: []Chat, Meta: *PaginationMeta}
+// → ListChatsResponse{Data: []Chat, Meta: PaginationMeta}
 ```
 
 
@@ -204,7 +209,7 @@ request := pachca.ChatUpdateRequest{
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `Meta.Paginate.NextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `Meta.Paginate.NextPage` — курсор для следующей страницы. Курсор никогда не бывает пустым — конец данных определяется по пустому слайсу `Data`.
 
 ### Ручная пагинация
 
@@ -216,13 +221,14 @@ for {
     if err != nil {
         log.Fatal(err)
     }
+    if len(response.Data) == 0 {
+        break
+    }
     for _, user := range response.Data {
         fmt.Println(user.FirstName, user.LastName)
     }
-    if response.Meta == nil || response.Meta.Paginate == nil || response.Meta.Paginate.NextPage == nil {
-        break
-    }
-    cursor = response.Meta.Paginate.NextPage
+    nextPage := response.Meta.Paginate.NextPage
+    cursor = &nextPage
 }
 ```
 
@@ -305,12 +311,13 @@ if err != nil {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Тело запроса пересоздаётся через `req.GetBody()` при каждой попытке
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 
@@ -383,7 +390,7 @@ params := &ListUsersParams{
 	Cursor: Ptr("eyJpZCI6MTAsImRpciI6ImFzYyJ9"),
 }
 response, err := client.Users.ListUsers(ctx, params)
-// → ListUsersResponse{Data: []User, Meta: *PaginationMeta}
+// → ListUsersResponse{Data: []User, Meta: PaginationMeta}
 
 // Создание задачи
 request := TaskCreateRequest{

@@ -4,6 +4,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: gitlab-sync
+  cancel-in-progress: false
+
 jobs:
   sync_gitlab:
     name: push github/main to gitlab/main

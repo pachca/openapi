@@ -27,6 +27,10 @@ chat_id = int(os.environ["PACHCA_CHAT_ID"])
 async def main():
     client = PachcaClient(token)
 
+    # 0. Get chat (verifies datetime deserialization)
+    chat = await client.chats.get_chat(chat_id)
+    print(f"0. Chat: {chat.name}, created_at={chat.created_at} ({type(chat.created_at).__name__}), last_message_at={chat.last_message_at} ({type(chat.last_message_at).__name__})")
+
     # 1. Create message
     msg = await client.messages.create_message(
         MessageCreateRequest(

@@ -15,7 +15,8 @@
 ### Query параметры
 
 - `chat_id: integer, int32` (required) — Идентификатор чата (беседа, канал, диалог или чат треда)
-- `sort[{field}]: string` (default: desc) — Составной параметр сортировки сущностей выборки
+- `sort: string` (default: id) — Поле сортировки
+- `order: string` (default: desc) — Направление сортировки
 - `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
 - `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 
@@ -24,7 +25,7 @@
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort[id]=desc&limit=1" \
+curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort=id&order=desc&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -71,9 +72,9 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort[id]=desc&li
   - `display_name: string` (required) — Полное имя отправителя сообщения
   - `changed_at: date-time` (required) — Дата и время последнего редактирования сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `deleted_at: date-time` (required) — Дата и время удаления сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

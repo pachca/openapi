@@ -21,16 +21,16 @@ class SearchService:
     ) -> SearchMessagesResponse:
         query: list[tuple[str, str]] = []
         query.append(("query", params.query))
-        if params.chat_ids is not None:
+        if params is not None and params.chat_ids is not None:
             for v in params.chat_ids:
                 query.append(("chat_ids[]", str(v)))
-        if params.user_ids is not None:
+        if params is not None and params.user_ids is not None:
             for v in params.user_ids:
                 query.append(("user_ids[]", str(v)))
         if params is not None and params.created_from is not None:
-            query.append(("created_from", params.created_from))
+            query.append(("created_from", params.created_from.isoformat()))
         if params is not None and params.created_to is not None:
-            query.append(("created_to", params.created_to))
+            query.append(("created_to", params.created_to.isoformat()))
         if params is not None and params.sort is not None:
             query.append(("sort", params.sort))
         if params is not None and params.limit is not None:
@@ -64,9 +64,9 @@ class SearchService:
             params.cursor = cursor
             response = await self.search_messages(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-            if not cursor:
+            if not response.data:
                 break
+            cursor = response.meta.paginate.next_page
         return items
 
 

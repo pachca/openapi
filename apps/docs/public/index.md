@@ -8,6 +8,7 @@ REST API Пачки позволяет автоматизировать рабо
 - [Модели API](/api/models)
 - [CLI](/guides/cli)
 - [SDK](/guides/sdk/overview)
+- [n8n](/guides/n8n/overview)
 
 **Отправка сообщения**
 
@@ -68,7 +69,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 Подключайте Пачку к внешним сервисам без написания кода.
 
-- [n8n](/guides/n8n) — Визуальные автоматизации
+- [n8n](/guides/n8n/overview) — Визуальные автоматизации
 - [Albato](/guides/albato) — Подключение 250+ сервисов
 
 

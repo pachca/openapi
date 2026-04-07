@@ -111,7 +111,9 @@ func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessage
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
@@ -131,10 +133,11 @@ func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMes
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 

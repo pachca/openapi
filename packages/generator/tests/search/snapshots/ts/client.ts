@@ -46,8 +46,9 @@ class SearchService {
     do {
       const response = await this.searchMessages({ ...params, cursor } as SearchMessagesParams);
       items.push(...response.data);
-      cursor = response.meta?.paginate?.nextPage;
-    } while (cursor);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+    } while (true);
     return items;
   }
 }

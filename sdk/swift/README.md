@@ -12,7 +12,7 @@ Swift клиент для [Pachca API](https://dev.pachca.com).
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
 ]
 ```
 
@@ -70,9 +70,10 @@ var chats: [Chat] = []
 var cursor: String? = nil
 repeat {
     let response = try await pachca.chats.listChats(cursor: cursor)
+    if response.data.isEmpty { break }
     chats.append(contentsOf: response.data)
-    cursor = response.meta?.paginate?.nextPage
-} while cursor != nil
+    cursor = response.meta.paginate.nextPage
+} while true
 
 // Автоматически
 let allChats = try await pachca.chats.listChatsAll()

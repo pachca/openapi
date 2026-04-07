@@ -355,6 +355,24 @@ function generateCommandCode(p: CommandGenParams): string {
     }),`;
   });
 
+  // For list commands with a single required ID query param, add it as an optional positional arg
+  // e.g., `pachca messages list 36988817` as a shortcut for `--chat-id=36988817`
+  let shortcutArg: { paramName: string; flagName: string; argType: string } | null = null;
+  if (p.isList && requiredQueryFlags.length === 1 && requiredQueryFlags[0].flagName.endsWith('-id')) {
+    const param = p.queryParams.find((q) => q.required && toKebabCase(q.name) === requiredQueryFlags[0].flagName);
+    if (param) {
+      shortcutArg = {
+        paramName: param.name,
+        flagName: requiredQueryFlags[0].flagName,
+        argType: getOclifArgType(param.schema),
+      };
+      argsCode.push(`    ${param.name}: Args.${shortcutArg.argType}({
+      description: ${JSON.stringify(param.description || param.name)},
+      required: false,
+    }),`);
+    }
+  }
+
   // Build flags for query params
   const queryFlagLines: string[] = [];
   for (const param of p.queryParams) {
@@ -383,12 +401,15 @@ function generateCommandCode(p: CommandGenParams): string {
     }
 
     const flagName = toKebabCase(param.name);
-    const flagType = getOclifFlagType(param.schema);
+    // Resolve allOf to get enum/type/default from $ref schemas (e.g., SortOrder, ChatSortField)
+    const resolvedParamSchema = resolveAllOf(param.schema);
+    const flagType = getOclifFlagType(resolvedParamSchema);
     const extras: string[] = [];
-    if (param.schema.enum) extras.push(`      options: ${JSON.stringify(param.schema.enum)},`);
+    if (resolvedParamSchema.enum) extras.push(`      options: ${JSON.stringify(resolvedParamSchema.enum)},`);
+    if (resolvedParamSchema.default !== undefined) extras.push(`      default: ${JSON.stringify(resolvedParamSchema.default)},`);
     if (flagType === 'boolean') extras.push(`      allowNo: true,`);
     const extrasStr = extras.length > 0 ? '\n' + extras.join('\n') : '';
-    const arrayHint = param.schema.type === 'array' ? ' (через запятую)' : '';
+    const arrayHint = resolvedParamSchema.type === 'array' ? ' (через запятую)' : '';
     queryFlagLines.push(`    '${flagName}': Flags.${flagType}({
       description: ${JSON.stringify(param.description || param.name)}${arrayHint ? ` + ${JSON.stringify(arrayHint)}` : ''},${extrasStr}
     }),`);
@@ -473,6 +494,14 @@ function generateCommandCode(p: CommandGenParams): string {
   // Parse args and flags
   runBodyLines.push(`    const { args, flags } = await this.parse(${p.className});`);
   runBodyLines.push(`    this.parsedFlags = flags;`);
+
+  // Populate flag from positional arg shortcut (e.g., `messages list 123` → --chat-id=123)
+  if (shortcutArg) {
+    runBodyLines.push('');
+    runBodyLines.push(`    if (args.${shortcutArg.paramName} !== undefined && (flags as Record<string, unknown>)['${shortcutArg.flagName}'] === undefined) {`);
+    runBodyLines.push(`      (flags as Record<string, unknown>)['${shortcutArg.flagName}'] = args.${shortcutArg.paramName};`);
+    runBodyLines.push(`    }`);
+  }
 
   // Stdin support for text fields
   if (p.stdinField) {
@@ -583,11 +612,11 @@ function generateCommandCode(p: CommandGenParams): string {
       continue;
     }
     const flagName = toKebabCase(param.name);
-    if (flagName !== param.name) {
-      queryEntries.push(`      '${param.name}': flags['${flagName}'],`);
-    } else {
-      queryEntries.push(`      ${param.name}: flags['${param.name}'],`);
-    }
+    const isArrayParam = param.schema.type === 'array';
+    const flagRef = flagName !== param.name ? `flags['${flagName}']` : `flags['${param.name}']`;
+    const value = isArrayParam ? `${flagRef}?.split(',')` : flagRef;
+    const key = flagName !== param.name ? `'${param.name}'` : param.name;
+    queryEntries.push(`      ${key}: ${value},`);
   }
   if (p.hasPagination) {
     queryEntries.push(`      limit: flags.limit,`);
@@ -629,7 +658,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`      const seenCursors = new Set<string>();`);
     runBodyLines.push('');
     runBodyLines.push(`      while (pages < 500) {`);
-    runBodyLines.push(`        const query: Record<string, string | number | boolean | undefined> = {`);
+    runBodyLines.push(`        const query: Record<string, string | number | boolean | string[] | undefined> = {`);
     for (const entry of queryEntries) {
       if (!entry.includes('cursor:')) runBodyLines.push(`  ${entry}`);
     }
@@ -639,6 +668,7 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const body = response.data as Record<string, unknown>;`);
     runBodyLines.push(`        const items = body.data as unknown[];`);
     runBodyLines.push(`        if (items) allData.push(...items);`);
+    runBodyLines.push(`        if (!items || items.length === 0) break;`);
     runBodyLines.push(`        const meta = body.meta as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        const paginate = meta?.paginate as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        nextCursor = paginate?.next_page as string | undefined;`);

@@ -599,6 +599,28 @@
     ]
   },
   {
+    "title": "Загрузить аватар сотрудника",
+    "skill": "pachca-users",
+    "steps": [
+      {
+        "description": "Загрузи аватар сотруднику",
+        "command": "pachca users update-avatar <user_id> --file=<путь_к_файлу>",
+        "notes": "Требует прав администратора. Файл передается в формате multipart/form-data"
+      }
+    ]
+  },
+  {
+    "title": "Удалить аватар сотрудника",
+    "skill": "pachca-users",
+    "steps": [
+      {
+        "description": "Удали аватар сотрудника",
+        "command": "pachca users remove-avatar <user_id> --force",
+        "notes": "Требует прав администратора"
+      }
+    ]
+  },
+  {
     "title": "Создать напоминание",
     "skill": "pachca-tasks",
     "steps": [
@@ -724,6 +746,27 @@
       {
         "description": "Получи профиль — в `custom_properties` содержатся значения полей",
         "command": "pachca profile get"
+      }
+    ]
+  },
+  {
+    "title": "Загрузить аватар профиля",
+    "skill": "pachca-profile",
+    "steps": [
+      {
+        "description": "Загрузи аватар из файла",
+        "command": "pachca profile update-avatar --file=<путь_к_файлу>",
+        "notes": "Файл изображения передается в формате multipart/form-data"
+      }
+    ]
+  },
+  {
+    "title": "Удалить аватар профиля",
+    "skill": "pachca-profile",
+    "steps": [
+      {
+        "description": "Удали аватар",
+        "command": "pachca profile delete-avatar --force"
       }
     ]
   },

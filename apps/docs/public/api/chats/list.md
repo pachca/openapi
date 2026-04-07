@@ -12,7 +12,8 @@
 
 ### Query параметры
 
-- `sort[{field}]: string` (default: desc) — Составной параметр сортировки сущностей выборки
+- `sort: string` (default: id) — Поле сортировки
+- `order: string` (default: desc) — Направление сортировки
 - `availability: string` (default: is_member) — Параметр, который отвечает за доступность и выборку чатов для пользователя
 - `last_message_at_after: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
 - `last_message_at_before: date-time` — Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
@@ -25,7 +26,7 @@
 
 ```bash
 # Для получения следующей страницы используйте cursor из meta.paginate.next_page
-curl "https://api.pachca.com/api/shared/v1/chats?sort[id]=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
+curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability=is_member&last_message_at_after=2025-01-01T00:00:00.000Z&last_message_at_before=2025-02-01T00:00:00.000Z&personal=false&limit=1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -47,9 +48,9 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort[id]=desc&availability=is_m
   - `public: boolean` (required) — Открытый доступ
   - `last_message_at: date-time` (required) — Дата и время создания последнего сообщения в чате (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `meet_room_url: string` (required) — Ссылка на Видеочат
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

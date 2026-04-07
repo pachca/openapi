@@ -246,8 +246,9 @@ export function parseOpenAPI(): Endpoint[] {
 
 export function resolveAllOf(schema: Schema): Schema {
   if (!schema.allOf || schema.allOf.length === 0) return schema;
+  const { allOf, ...siblings } = schema;
   let merged: Schema = {};
-  for (const sub of schema.allOf) {
+  for (const sub of allOf) {
     const resolved = resolveAllOf(sub);
     merged = {
       ...merged,
@@ -256,7 +257,7 @@ export function resolveAllOf(schema: Schema): Schema {
       required: [...(merged.required || []), ...(resolved.required || [])],
     };
   }
-  return merged;
+  return { ...merged, ...siblings };
 }
 
 export function getSchemaType(schema: Schema): string {

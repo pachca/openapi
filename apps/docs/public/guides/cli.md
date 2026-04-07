@@ -1,7 +1,7 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.3.10 · 21 марта 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.4.0 · 7 апреля 2026
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
@@ -132,15 +132,19 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca profile get-info` | Информация о токене |
 | `pachca profile get` | Информация о профиле |
 | `pachca profile get-status` | Текущий статус |
+| `pachca profile update-avatar` | Загрузка аватара |
 | `pachca profile update-status` | Новый статус |
+| `pachca profile delete-avatar` | Удаление аватара |
 | `pachca profile delete-status` | Удаление статуса |
 | `pachca users create` | Создать сотрудника |
 | `pachca users list` | Список сотрудников |
 | `pachca users get` | Информация о сотруднике |
 | `pachca users get-status` | Статус сотрудника |
 | `pachca users update` | Редактирование сотрудника |
+| `pachca users update-avatar` | Загрузка аватара сотрудника |
 | `pachca users update-status` | Новый статус сотрудника |
 | `pachca users delete` | Удаление сотрудника |
+| `pachca users remove-avatar` | Удаление аватара сотрудника |
 | `pachca users remove-status` | Удаление статуса сотрудника |
 | `pachca group-tags create` | Новый тег |
 | `pachca group-tags list` | Список тегов сотрудников |

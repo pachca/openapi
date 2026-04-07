@@ -51,7 +51,7 @@ public sealed class SecurityService
         if (entityType != null)
             queryParts.Add($"entity_type={Uri.EscapeDataString(entityType)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/audit_events" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -86,8 +86,9 @@ public sealed class SecurityService
         {
             var response = await GetAuditEventsAsync(startTime: startTime, endTime: endTime, eventKey: eventKey, actorId: actorId, actorType: actorType, entityId: entityId, entityType: entityType, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 }
@@ -110,7 +111,7 @@ public sealed class BotsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/webhooks/events" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -138,8 +139,9 @@ public sealed class BotsService
         {
             var response = await GetWebhookEventsAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -194,7 +196,8 @@ public sealed class ChatsService
     }
 
     public async System.Threading.Tasks.Task<ListChatsResponse> ListChatsAsync(
-        SortOrder? sortId = null,
+        ChatSortField? sort = null,
+        SortOrder? order = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
@@ -204,8 +207,10 @@ public sealed class ChatsService
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
-        if (sortId != null)
-            queryParts.Add($"sort[{{field}}]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sortId.Value))}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
+        if (order != null)
+            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
         if (availability != null)
             queryParts.Add($"availability={Uri.EscapeDataString(PachcaUtils.EnumToApiString(availability.Value))}");
         if (lastMessageAtAfter != null)
@@ -215,7 +220,7 @@ public sealed class ChatsService
         if (personal != null)
             queryParts.Add($"personal={Uri.EscapeDataString((personal.Value ? "true" : "false"))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/chats" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -234,7 +239,8 @@ public sealed class ChatsService
     }
 
     public async System.Threading.Tasks.Task<List<Chat>> ListChatsAllAsync(
-        SortOrder? sortId = null,
+        ChatSortField? sort = null,
+        SortOrder? order = null,
         ChatAvailability? availability = null,
         DateTimeOffset? lastMessageAtAfter = null,
         DateTimeOffset? lastMessageAtBefore = null,
@@ -246,10 +252,11 @@ public sealed class ChatsService
         string? cursor = null;
         do
         {
-            var response = await ListChatsAsync(sortId: sortId, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListChatsAsync(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -480,7 +487,7 @@ public sealed class MembersService
         if (role != null)
             queryParts.Add($"role={Uri.EscapeDataString(PachcaUtils.EnumToApiString(role.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/chats/{id}/members" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -510,8 +517,9 @@ public sealed class MembersService
         {
             var response = await ListMembersAsync(id, role: role, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -651,16 +659,17 @@ public sealed class GroupTagsService
     }
 
     public async System.Threading.Tasks.Task<ListTagsResponse> ListTagsAsync(
-        TagNamesFilter? names = null,
+        List<string>? names = null,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
         if (names != null)
-            queryParts.Add($"names={Uri.EscapeDataString(names.ToString())}");
+            foreach (var item in names)
+                queryParts.Add($"names[]={Uri.EscapeDataString(item.ToString()!)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/group_tags" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -679,7 +688,7 @@ public sealed class GroupTagsService
     }
 
     public async System.Threading.Tasks.Task<List<GroupTag>> ListTagsAllAsync(
-        TagNamesFilter? names = null,
+        List<string>? names = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -689,8 +698,9 @@ public sealed class GroupTagsService
         {
             var response = await ListTagsAsync(names: names, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -711,7 +721,7 @@ public sealed class GroupTagsService
         }
     }
 
-    public async System.Threading.Tasks.Task<ListMembersResponse> GetTagUsersAsync(
+    public async System.Threading.Tasks.Task<GetTagUsersResponse> GetTagUsersAsync(
         int id,
         int? limit = null,
         string? cursor = null,
@@ -719,7 +729,7 @@ public sealed class GroupTagsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/group_tags/{id}/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -729,7 +739,7 @@ public sealed class GroupTagsService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListMembersResponse>(json);
+                return PachcaUtils.Deserialize<GetTagUsersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -748,8 +758,9 @@ public sealed class GroupTagsService
         {
             var response = await GetTagUsersAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -823,17 +834,20 @@ public sealed class MessagesService
 
     public async System.Threading.Tasks.Task<ListChatMessagesResponse> ListChatMessagesAsync(
         int chatId,
-        SortOrder? sortId = null,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
         int? limit = null,
         string? cursor = null,
         CancellationToken cancellationToken = default)
     {
         var queryParts = new List<string>();
-        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString())}");
-        if (sortId != null)
-            queryParts.Add($"sort[{{field}}]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sortId.Value))}");
+        queryParts.Add($"chat_id={Uri.EscapeDataString(chatId.ToString()!)}");
+        if (sort != null)
+            queryParts.Add($"sort={Uri.EscapeDataString(PachcaUtils.EnumToApiString(sort.Value))}");
+        if (order != null)
+            queryParts.Add($"order={Uri.EscapeDataString(PachcaUtils.EnumToApiString(order.Value))}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -853,7 +867,8 @@ public sealed class MessagesService
 
     public async System.Threading.Tasks.Task<List<Message>> ListChatMessagesAllAsync(
         int chatId,
-        SortOrder? sortId = null,
+        MessageSortField? sort = null,
+        SortOrder? order = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -861,10 +876,11 @@ public sealed class MessagesService
         string? cursor = null;
         do
         {
-            var response = await ListChatMessagesAsync(chatId: chatId, sortId: sortId, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await ListChatMessagesAsync(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -1028,7 +1044,7 @@ public sealed class ReactionsService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages/{id}/reactions" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1057,8 +1073,9 @@ public sealed class ReactionsService
         {
             var response = await ListReactionsAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -1128,7 +1145,7 @@ public sealed class ReadMembersService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/messages/{id}/read_member_ids" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1255,6 +1272,26 @@ public sealed class ProfileService
         }
     }
 
+    public async System.Threading.Tasks.Task<AvatarData> UpdateProfileAvatarAsync(byte[] image, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/profile/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public async System.Threading.Tasks.Task<UserStatus> UpdateStatusAsync(StatusUpdateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/profile/status";
@@ -1266,6 +1303,23 @@ public sealed class ProfileService
         {
             case 200:
                 return PachcaUtils.Deserialize<UserStatusDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public async System.Threading.Tasks.Task DeleteProfileAvatarAsync(CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/profile/avatar";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1302,7 +1356,7 @@ public sealed class SearchService
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListChatsResponse> SearchChatsAsync(
+    public async System.Threading.Tasks.Task<SearchChatsResponse> SearchChatsAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1318,7 +1372,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (order != null)
@@ -1340,7 +1394,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListChatsResponse>(json);
+                return PachcaUtils.Deserialize<SearchChatsResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1365,12 +1419,13 @@ public sealed class SearchService
         {
             var response = await SearchChatsAsync(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, active: active, chatSubtype: chatSubtype, personal: personal, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
-    public async System.Threading.Tasks.Task<ListChatMessagesResponse> SearchMessagesAsync(
+    public async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1386,7 +1441,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (order != null)
@@ -1396,9 +1451,11 @@ public sealed class SearchService
         if (createdTo != null)
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (chatIds != null)
-            queryParts.Add($"chat_ids={Uri.EscapeDataString(chatIds.ToString())}");
+            foreach (var item in chatIds)
+                queryParts.Add($"chat_ids[]={Uri.EscapeDataString(item.ToString()!)}");
         if (userIds != null)
-            queryParts.Add($"user_ids={Uri.EscapeDataString(userIds.ToString())}");
+            foreach (var item in userIds)
+                queryParts.Add($"user_ids[]={Uri.EscapeDataString(item.ToString()!)}");
         if (active != null)
             queryParts.Add($"active={Uri.EscapeDataString((active.Value ? "true" : "false"))}");
         var url = $"{_baseUrl}/search/messages" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1408,7 +1465,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListChatMessagesResponse>(json);
+                return PachcaUtils.Deserialize<SearchMessagesResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1433,12 +1490,13 @@ public sealed class SearchService
         {
             var response = await SearchMessagesAsync(query: query, limit: limit, cursor: cursor, order: order, createdFrom: createdFrom, createdTo: createdTo, chatIds: chatIds, userIds: userIds, active: active, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
-    public async System.Threading.Tasks.Task<ListMembersResponse> SearchUsersAsync(
+    public async System.Threading.Tasks.Task<SearchUsersResponse> SearchUsersAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1453,7 +1511,7 @@ public sealed class SearchService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         if (sort != null)
@@ -1465,7 +1523,8 @@ public sealed class SearchService
         if (createdTo != null)
             queryParts.Add($"created_to={Uri.EscapeDataString(createdTo.Value.ToString("o"))}");
         if (companyRoles != null)
-            queryParts.Add($"company_roles={Uri.EscapeDataString(companyRoles.ToString())}");
+            foreach (var item in companyRoles)
+                queryParts.Add($"company_roles[]={Uri.EscapeDataString(PachcaUtils.EnumToApiString(item))}");
         var url = $"{_baseUrl}/search/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
@@ -1473,7 +1532,7 @@ public sealed class SearchService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListMembersResponse>(json);
+                return PachcaUtils.Deserialize<SearchUsersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1497,8 +1556,9 @@ public sealed class SearchService
         {
             var response = await SearchUsersAsync(query: query, limit: limit, cursor: cursor, sort: sort, order: order, createdFrom: createdFrom, createdTo: createdTo, companyRoles: companyRoles, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 }
@@ -1521,7 +1581,7 @@ public sealed class TasksService
     {
         var queryParts = new List<string>();
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/tasks" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1549,8 +1609,9 @@ public sealed class TasksService
         {
             var response = await ListTasksAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -1639,7 +1700,7 @@ public sealed class UsersService
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListMembersResponse> ListUsersAsync(
+    public async System.Threading.Tasks.Task<ListUsersResponse> ListUsersAsync(
         string? query = null,
         int? limit = null,
         string? cursor = null,
@@ -1649,7 +1710,7 @@ public sealed class UsersService
         if (query != null)
             queryParts.Add($"query={Uri.EscapeDataString(query)}");
         if (limit != null)
-            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString())}");
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
         if (cursor != null)
             queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
         var url = $"{_baseUrl}/users" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
@@ -1659,7 +1720,7 @@ public sealed class UsersService
         switch ((int)response.StatusCode)
         {
             case 200:
-                return PachcaUtils.Deserialize<ListMembersResponse>(json);
+                return PachcaUtils.Deserialize<ListUsersResponse>(json);
             case 401:
                 throw PachcaUtils.Deserialize<OAuthError>(json);
             default:
@@ -1678,8 +1739,9 @@ public sealed class UsersService
         {
             var response = await ListUsersAsync(query: query, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
-            cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+        } while (true);
         return items;
     }
 
@@ -1756,6 +1818,29 @@ public sealed class UsersService
         }
     }
 
+    public async System.Threading.Tasks.Task<AvatarData> UpdateUserAvatarAsync(
+        int userId,
+        byte[] image,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/users/{userId}/avatar";
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(image), "image", "image");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, url);
+        httpRequest.Content = content;
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, httpRequest, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<AvatarDataDataWrapper>(json).Data;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
     public async System.Threading.Tasks.Task<UserStatus> UpdateUserStatusAsync(
         int userId,
         StatusUpdateRequest request,
@@ -1780,6 +1865,23 @@ public sealed class UsersService
     public async System.Threading.Tasks.Task DeleteUserAsync(int id, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/users/{id}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 204:
+                return;
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public async System.Threading.Tasks.Task DeleteUserAvatarAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}/users/{userId}/avatar";
         using var request = new HttpRequestMessage(HttpMethod.Delete, url);
         using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
         var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

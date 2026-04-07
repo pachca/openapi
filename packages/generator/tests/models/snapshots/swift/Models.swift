@@ -23,13 +23,13 @@ public struct User: Codable {
     public let role: UserRole
     public let isActive: Bool
     public let botId: Int64?
-    public let createdAt: Date
+    public let createdAt: String
     public let birthday: String?
     public let tagIds: [Int]
     public let customProperties: [CustomProperty]?
     public let status: UserStatus?
 
-    public init(id: Int, firstName: String, lastName: String, email: String, phoneNumber: String? = nil, role: UserRole, isActive: Bool, botId: Int64? = nil, createdAt: Date, birthday: String? = nil, tagIds: [Int], customProperties: [CustomProperty]? = nil, status: UserStatus? = nil) {
+    public init(id: Int, firstName: String, lastName: String, email: String, phoneNumber: String? = nil, role: UserRole, isActive: Bool, botId: Int64? = nil, createdAt: String, birthday: String? = nil, tagIds: [Int], customProperties: [CustomProperty]? = nil, status: UserStatus? = nil) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName

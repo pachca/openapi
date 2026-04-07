@@ -34,9 +34,37 @@
       "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "!src/data/changelog.json", "README.md"],
       "cache": true
     },
+    "overlay:apply": {
+      "dependsOn": ["@pachca/spec#generate"],
+      "inputs": ["overlay.en.yaml", "openapi.yaml", "scripts/apply-overlay.ts"],
+      "outputs": ["openapi.en.yaml"],
+      "cache": true
+    },
+    "overlay:validate": {
+      "dependsOn": ["@pachca/spec#generate", "@pachca/spec#overlay:apply"],
+      "inputs": ["overlay.en.yaml", "openapi.yaml", "scripts/validate-overlay.ts"],
+      "cache": true
+    },
+    "generate-n8n": {
+      "dependsOn": ["^build", "@pachca/spec#generate", "@pachca/spec#overlay:apply"],
+      "inputs": [
+        "../../packages/spec/openapi.yaml",
+        "../../packages/spec/openapi.en.yaml",
+        "../../packages/spec/workflows.ts",
+        "../../packages/spec/examples.ts",
+        "../../packages/openapi-parser/src/**",
+        "../../packages/generator/src/naming.ts",
+        "../../apps/docs/lib/openapi/mapper.ts",
+        "../../apps/docs/lib/openapi/example-generator.ts",
+        "../../apps/docs/scripts/skills/config.ts",
+        "scripts/**"
+      ],
+      "outputs": ["nodes/**/*.ts", "credentials/**/*.ts"],
+      "cache": true
+    },
     "build": {
-      "dependsOn": ["^build", "generate", "generate-llms", "generate-cli"],
-      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json"],
+      "dependsOn": ["^build", "generate", "overlay:apply", "generate-llms", "generate-cli", "generate-n8n"],
+      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json", "generated/bin/**", "generated/obj/**"],
       "cache": true
     },
     "dev": {
@@ -58,7 +86,7 @@
       "cache": true
     },
     "check": {
-      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test"],
+      "dependsOn": ["lint", "typecheck", "knip", "format:check", "test", "@pachca/spec#overlay:validate"],
       "cache": false
     },
     "check-urls": {
@@ -66,7 +94,7 @@
       "cache": true
     },
     "test": {
-      "dependsOn": ["^build", "generate-cli"],
+      "dependsOn": ["^build", "generate-cli", "generate-n8n"],
       "inputs": ["src/**", "tests/**"],
       "cache": true
     },

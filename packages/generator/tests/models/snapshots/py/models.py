@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -20,7 +21,7 @@ class User:
     email: str
     role: UserRole
     is_active: bool
-    created_at: str
+    created_at: datetime
     tag_ids: list[int]
     phone_number: str | None = None
     bot_id: int | None = None
@@ -33,7 +34,7 @@ class User:
 class UserStatus:
     emoji: str | None = None
     title: str | None = None
-    expires_at: str | None = None
+    expires_at: datetime | None = None
 
 
 @dataclass

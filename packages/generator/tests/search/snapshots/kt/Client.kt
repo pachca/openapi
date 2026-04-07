@@ -12,6 +12,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
+import java.time.OffsetDateTime
 
 class SearchService internal constructor(
     private val baseUrl: String,
@@ -21,8 +22,8 @@ class SearchService internal constructor(
         query: String,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         sort: SearchSort? = null,
         limit: Int? = null,
         cursor: String? = null,
@@ -31,8 +32,8 @@ class SearchService internal constructor(
             parameter("query", query)
             chatIds?.forEach { parameter("chat_ids[]", it) }
             userIds?.forEach { parameter("user_ids[]", it) }
-            createdFrom?.let { parameter("created_from", it) }
-            createdTo?.let { parameter("created_to", it) }
+            createdFrom?.let { parameter("created_from", it.toString()) }
+            createdTo?.let { parameter("created_to", it.toString()) }
             sort?.let { parameter("sort", it.value) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
@@ -48,8 +49,8 @@ class SearchService internal constructor(
         query: String,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         sort: SearchSort? = null,
         limit: Int? = null,
     ): List<MessageSearchResult> {
@@ -67,8 +68,9 @@ class SearchService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 }

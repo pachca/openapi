@@ -156,15 +156,14 @@ describe('generate-cli', () => {
       expect(content).not.toMatch(/'xAmz\w+':\s*Flags/);
     });
 
-    it('should generate --sort and --order flags for composite sort params', () => {
+    it('should generate --sort and --order flags for sort params', () => {
       const content = fs.readFileSync(
         path.join(COMMANDS_DIR, 'chats', 'list.ts'),
         'utf-8',
       );
-      // sort[{field}] with x-param-names → --sort with options + --order with asc/desc
-      expect(content).toContain('sort: Flags.string(');
-      expect(content).toContain('order: Flags.string(');
-      expect(content).toContain('"last-message-at"');
+      // sort and order are separate query params
+      expect(content).toContain("'sort': Flags.string(");
+      expect(content).toContain("'order': Flags.string(");
       expect(content).not.toMatch(/'sort-id':\s*Flags/);
       expect(content).not.toMatch(/'sort-last-message-at':\s*Flags/);
     });

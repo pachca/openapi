@@ -39,9 +39,9 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/reactions?limit=1" \
   - `created_at: date-time` (required) — Дата и время добавления реакции (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
   - `code: string` (required) — Emoji символ реакции
   - `name: string` (required) — Название emoji реакции
-- `meta: object` — Метаданные пагинации
-  - `paginate: object` — Вспомогательная информация
-    - `next_page: string` — Курсор пагинации следующей страницы
+- `meta: object` (required) — Метаданные пагинации
+  - `paginate: object` (required) — Вспомогательная информация
+    - `next_page: string` (required) — Курсор пагинации следующей страницы
 
 **Пример ответа:**
 

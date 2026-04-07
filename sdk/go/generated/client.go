@@ -120,11 +120,15 @@ func (s *SecurityService) GetAuditEvents(ctx context.Context, params *GetAuditEv
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -142,10 +146,11 @@ func (s *SecurityService) GetAuditEventsAll(ctx context.Context, params *GetAudi
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -185,11 +190,15 @@ func (s *BotsService) GetWebhookEvents(ctx context.Context, params *GetWebhookEv
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -207,10 +216,11 @@ func (s *BotsService) GetWebhookEventsAll(ctx context.Context, params *GetWebhoo
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -240,11 +250,15 @@ func (s *BotsService) UpdateBot(ctx context.Context, id int32, request BotUpdate
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -264,11 +278,15 @@ func (s *BotsService) DeleteWebhookEvent(ctx context.Context, id string) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -284,8 +302,11 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 		return nil, err
 	}
 	q := u.Query()
-	if params != nil && params.SortID != nil {
-		q.Set("sort[{field}]", string(*params.SortID))
+	if params != nil && params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
+	}
+	if params != nil && params.Order != nil {
+		q.Set("order", string(*params.Order))
 	}
 	if params != nil && params.Availability != nil {
 		q.Set("availability", string(*params.Availability))
@@ -324,11 +345,15 @@ func (s *ChatsService) ListChats(ctx context.Context, params *ListChatsParams) (
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -346,10 +371,11 @@ func (s *ChatsService) ListChatsAll(ctx context.Context, params *ListChatsParams
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -374,11 +400,15 @@ func (s *ChatsService) GetChat(ctx context.Context, id int32) (*Chat, error) {
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -409,11 +439,15 @@ func (s *ChatsService) CreateChat(ctx context.Context, request ChatCreateRequest
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -444,11 +478,15 @@ func (s *ChatsService) UpdateChat(ctx context.Context, id int32, request ChatUpd
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -468,11 +506,15 @@ func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -492,11 +534,15 @@ func (s *ChatsService) UnarchiveChat(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -525,11 +571,15 @@ func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, e
 		return location, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return "", &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return "", &e
 	}
 }
@@ -560,11 +610,15 @@ func (s *CommonService) ListProperties(ctx context.Context, params ListPropertie
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -589,11 +643,15 @@ func (s *CommonService) RequestExport(ctx context.Context, request ExportRequest
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -637,7 +695,9 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 		return nil
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -661,11 +721,15 @@ func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, err
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -709,11 +773,15 @@ func (s *MembersService) ListMembers(ctx context.Context, id int32, params *List
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -731,10 +799,11 @@ func (s *MembersService) ListMembersAll(ctx context.Context, id int32, params *L
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -758,11 +827,15 @@ func (s *MembersService) AddTags(ctx context.Context, id int32, groupTagIds []in
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -787,11 +860,15 @@ func (s *MembersService) AddMembers(ctx context.Context, id int32, request AddMe
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -816,11 +893,15 @@ func (s *MembersService) UpdateMemberRole(ctx context.Context, id int32, userId 
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -840,11 +921,15 @@ func (s *MembersService) RemoveTag(ctx context.Context, id int32, tagId int32) e
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -864,11 +949,15 @@ func (s *MembersService) LeaveChat(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -888,11 +977,15 @@ func (s *MembersService) RemoveMember(ctx context.Context, id int32, userId int3
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -908,8 +1001,10 @@ func (s *GroupTagsService) ListTags(ctx context.Context, params *ListTagsParams)
 		return nil, err
 	}
 	q := u.Query()
-	if params != nil && params.Names != nil {
-		q.Set("names", fmt.Sprintf("%v", *params.Names))
+	if params != nil {
+		for _, v := range params.Names {
+			q.Add("names[]", fmt.Sprintf("%v", v))
+		}
 	}
 	if params != nil && params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -936,11 +1031,15 @@ func (s *GroupTagsService) ListTags(ctx context.Context, params *ListTagsParams)
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -958,10 +1057,11 @@ func (s *GroupTagsService) ListTagsAll(ctx context.Context, params *ListTagsPara
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -986,16 +1086,20 @@ func (s *GroupTagsService) GetTag(ctx context.Context, id int32) (*GroupTag, err
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
 
-func (s *GroupTagsService) GetTagUsers(ctx context.Context, id int32, params *GetTagUsersParams) (*ListMembersResponse, error) {
+func (s *GroupTagsService) GetTagUsers(ctx context.Context, id int32, params *GetTagUsersParams) (*GetTagUsersResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/group_tags/%v/users", s.baseURL, id))
 	if err != nil {
 		return nil, err
@@ -1019,18 +1123,22 @@ func (s *GroupTagsService) GetTagUsers(ctx context.Context, id int32, params *Ge
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result ListMembersResponse
+		var result GetTagUsersResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1048,10 +1156,11 @@ func (s *GroupTagsService) GetTagUsersAll(ctx context.Context, id int32, params 
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -1081,11 +1190,15 @@ func (s *GroupTagsService) CreateTag(ctx context.Context, request GroupTagReques
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1116,11 +1229,15 @@ func (s *GroupTagsService) UpdateTag(ctx context.Context, id int32, request Grou
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1140,11 +1257,15 @@ func (s *GroupTagsService) DeleteTag(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -1161,8 +1282,11 @@ func (s *MessagesService) ListChatMessages(ctx context.Context, params ListChatM
 	}
 	q := u.Query()
 	q.Set("chat_id", fmt.Sprintf("%v", params.ChatID))
-	if params.SortID != nil {
-		q.Set("sort[{field}]", string(*params.SortID))
+	if params.Sort != nil {
+		q.Set("sort", string(*params.Sort))
+	}
+	if params.Order != nil {
+		q.Set("order", string(*params.Order))
 	}
 	if params.Limit != nil {
 		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
@@ -1189,11 +1313,15 @@ func (s *MessagesService) ListChatMessages(ctx context.Context, params ListChatM
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1211,10 +1339,11 @@ func (s *MessagesService) ListChatMessagesAll(ctx context.Context, params *ListC
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -1239,11 +1368,15 @@ func (s *MessagesService) GetMessage(ctx context.Context, id int32) (*Message, e
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1274,11 +1407,15 @@ func (s *MessagesService) CreateMessage(ctx context.Context, request MessageCrea
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1298,11 +1435,15 @@ func (s *MessagesService) PinMessage(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -1333,11 +1474,15 @@ func (s *MessagesService) UpdateMessage(ctx context.Context, id int32, request M
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1357,11 +1502,15 @@ func (s *MessagesService) DeleteMessage(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -1381,11 +1530,15 @@ func (s *MessagesService) UnpinMessage(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -1415,11 +1568,15 @@ func (s *LinkPreviewsService) CreateLinkPreviews(ctx context.Context, id int32, 
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -1460,11 +1617,15 @@ func (s *ReactionsService) ListReactions(ctx context.Context, id int32, params *
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1482,10 +1643,11 @@ func (s *ReactionsService) ListReactionsAll(ctx context.Context, id int32, param
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -1513,11 +1675,15 @@ func (s *ReactionsService) AddReaction(ctx context.Context, id int32, request Re
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1547,11 +1713,15 @@ func (s *ReactionsService) RemoveReaction(ctx context.Context, id int32, params 
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -1592,11 +1762,15 @@ func (s *ReadMembersService) ListReadMembers(ctx context.Context, id int32, para
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1627,11 +1801,15 @@ func (s *ThreadsService) GetThread(ctx context.Context, id int32) (*Thread, erro
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1657,11 +1835,15 @@ func (s *ThreadsService) CreateThread(ctx context.Context, id int32) (*Thread, e
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1692,11 +1874,15 @@ func (s *ProfileService) GetTokenInfo(ctx context.Context) (*AccessTokenInfo, er
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1722,11 +1908,15 @@ func (s *ProfileService) GetProfile(ctx context.Context) (*User, error) {
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1750,11 +1940,65 @@ func (s *ProfileService) GetStatus(ctx context.Context) (*any, error) {
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *ProfileService) UpdateProfileAvatar(ctx context.Context, image io.Reader) (*AvatarData, error) {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		part, err := writer.CreateFormFile("image", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, image); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/profile/avatar", s.baseURL), pr)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AvatarData `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1785,12 +2029,44 @@ func (s *ProfileService) UpdateStatus(ctx context.Context, request StatusUpdateR
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
+	}
+}
+
+func (s *ProfileService) DeleteProfileAvatar(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/profile/avatar", s.baseURL), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
 	}
 }
 
@@ -1809,11 +2085,15 @@ func (s *ProfileService) DeleteStatus(ctx context.Context) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -1823,7 +2103,7 @@ type SearchService struct {
 	client  *http.Client
 }
 
-func (s *SearchService) SearchChats(ctx context.Context, params *SearchChatsParams) (*ListChatsResponse, error) {
+func (s *SearchService) SearchChats(ctx context.Context, params *SearchChatsParams) (*SearchChatsResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/search/chats", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -1868,18 +2148,22 @@ func (s *SearchService) SearchChats(ctx context.Context, params *SearchChatsPara
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result ListChatsResponse
+		var result SearchChatsResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1897,14 +2181,15 @@ func (s *SearchService) SearchChatsAll(ctx context.Context, params *SearchChatsP
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
-func (s *SearchService) SearchMessages(ctx context.Context, params *SearchMessagesParams) (*ListChatMessagesResponse, error) {
+func (s *SearchService) SearchMessages(ctx context.Context, params *SearchMessagesParams) (*SearchMessagesResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -1928,11 +2213,15 @@ func (s *SearchService) SearchMessages(ctx context.Context, params *SearchMessag
 	if params != nil && params.CreatedTo != nil {
 		q.Set("created_to", params.CreatedTo.Format(time.RFC3339))
 	}
-	if params != nil && params.ChatIDs != nil {
-		q.Set("chat_ids", fmt.Sprintf("%v", params.ChatIDs))
+	if params != nil {
+		for _, v := range params.ChatIDs {
+			q.Add("chat_ids[]", fmt.Sprintf("%v", v))
+		}
 	}
-	if params != nil && params.UserIDs != nil {
-		q.Set("user_ids", fmt.Sprintf("%v", params.UserIDs))
+	if params != nil {
+		for _, v := range params.UserIDs {
+			q.Add("user_ids[]", fmt.Sprintf("%v", v))
+		}
 	}
 	if params != nil && params.Active != nil {
 		q.Set("active", fmt.Sprintf("%v", *params.Active))
@@ -1949,18 +2238,22 @@ func (s *SearchService) SearchMessages(ctx context.Context, params *SearchMessag
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result ListChatMessagesResponse
+		var result SearchMessagesResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -1978,14 +2271,15 @@ func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMes
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
-func (s *SearchService) SearchUsers(ctx context.Context, params *SearchUsersParams) (*ListMembersResponse, error) {
+func (s *SearchService) SearchUsers(ctx context.Context, params *SearchUsersParams) (*SearchUsersResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/search/users", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -2012,8 +2306,10 @@ func (s *SearchService) SearchUsers(ctx context.Context, params *SearchUsersPara
 	if params != nil && params.CreatedTo != nil {
 		q.Set("created_to", params.CreatedTo.Format(time.RFC3339))
 	}
-	if params != nil && params.CompanyRoles != nil {
-		q.Set("company_roles", fmt.Sprintf("%v", params.CompanyRoles))
+	if params != nil {
+		for _, v := range params.CompanyRoles {
+			q.Add("company_roles[]", fmt.Sprintf("%v", v))
+		}
 	}
 	u.RawQuery = q.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
@@ -2027,18 +2323,22 @@ func (s *SearchService) SearchUsers(ctx context.Context, params *SearchUsersPara
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result ListMembersResponse
+		var result SearchUsersResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2056,10 +2356,11 @@ func (s *SearchService) SearchUsersAll(ctx context.Context, params *SearchUsersP
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -2099,11 +2400,15 @@ func (s *TasksService) ListTasks(ctx context.Context, params *ListTasksParams) (
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2121,10 +2426,11 @@ func (s *TasksService) ListTasksAll(ctx context.Context, params *ListTasksParams
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -2149,11 +2455,15 @@ func (s *TasksService) GetTask(ctx context.Context, id int32) (*Task, error) {
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2184,11 +2494,15 @@ func (s *TasksService) CreateTask(ctx context.Context, request TaskCreateRequest
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2219,11 +2533,15 @@ func (s *TasksService) UpdateTask(ctx context.Context, id int32, request TaskUpd
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2243,11 +2561,15 @@ func (s *TasksService) DeleteTask(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -2257,7 +2579,7 @@ type UsersService struct {
 	client  *http.Client
 }
 
-func (s *UsersService) ListUsers(ctx context.Context, params *ListUsersParams) (*ListMembersResponse, error) {
+func (s *UsersService) ListUsers(ctx context.Context, params *ListUsersParams) (*ListUsersResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/users", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -2284,18 +2606,22 @@ func (s *UsersService) ListUsers(ctx context.Context, params *ListUsersParams) (
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
-		var result ListMembersResponse
+		var result ListUsersResponse
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			return nil, err
 		}
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2313,10 +2639,11 @@ func (s *UsersService) ListUsersAll(ctx context.Context, params *ListUsersParams
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if result.Meta == nil || result.Meta.Paginate == nil || result.Meta.Paginate.NextPage == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
-		cursor = result.Meta.Paginate.NextPage
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
 	}
 }
 
@@ -2341,11 +2668,15 @@ func (s *UsersService) GetUser(ctx context.Context, id int32) (*User, error) {
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2369,11 +2700,15 @@ func (s *UsersService) GetUserStatus(ctx context.Context, userId int32) (*any, e
 		return &result, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2404,11 +2739,15 @@ func (s *UsersService) CreateUser(ctx context.Context, request UserCreateRequest
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2439,11 +2778,65 @@ func (s *UsersService) UpdateUser(ctx context.Context, id int32, request UserUpd
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *UsersService) UpdateUserAvatar(ctx context.Context, userId int32, image io.Reader) (*AvatarData, error) {
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		defer pw.Close()
+		defer writer.Close()
+		part, err := writer.CreateFormFile("image", "upload")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := io.Copy(part, image); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+	}()
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/users/%v/avatar", s.baseURL, userId), pr)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result struct {
+			Data AvatarData `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result.Data, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2474,11 +2867,15 @@ func (s *UsersService) UpdateUserStatus(ctx context.Context, userId int32, reque
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return nil, &e
 	}
 }
@@ -2498,11 +2895,43 @@ func (s *UsersService) DeleteUser(ctx context.Context, id int32) error {
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return &e
+	}
+}
+
+func (s *UsersService) DeleteUserAvatar(ctx context.Context, userId int32) error {
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/users/%v/avatar", s.baseURL, userId), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -2522,11 +2951,15 @@ func (s *UsersService) DeleteUserStatus(ctx context.Context, userId int32) error
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }
@@ -2556,11 +2989,15 @@ func (s *ViewsService) OpenView(ctx context.Context, request OpenViewRequest) er
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return &e
 	}
 }

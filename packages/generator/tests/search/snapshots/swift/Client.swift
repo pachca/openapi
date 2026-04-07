@@ -20,8 +20,8 @@ public struct SearchService {
         queryItems.append(URLQueryItem(name: "query", value: String(query)))
         if let chatIds { chatIds.forEach { queryItems.append(URLQueryItem(name: "chat_ids[]", value: String($0))) } }
         if let userIds { userIds.forEach { queryItems.append(URLQueryItem(name: "user_ids[]", value: String($0))) } }
-        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: createdFrom)) }
-        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: createdTo)) }
+        if let createdFrom { queryItems.append(URLQueryItem(name: "created_from", value: String(createdFrom))) }
+        if let createdTo { queryItems.append(URLQueryItem(name: "created_to", value: String(createdTo))) }
         if let sort { queryItems.append(URLQueryItem(name: "sort", value: sort.rawValue)) }
         if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
         if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
@@ -46,8 +46,9 @@ public struct SearchService {
         repeat {
             let response = try await searchMessages(query: query, chatIds: chatIds, userIds: userIds, createdFrom: createdFrom, createdTo: createdTo, sort: sort, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while cursor != nil
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+        } while true
         return items
     }
 }

@@ -18,7 +18,7 @@ public struct EventsService {
         var components = URLComponents(string: "\(baseURL)/events")!
         var queryItems: [URLQueryItem] = []
         if let isActive { queryItems.append(URLQueryItem(name: "is_active", value: String(isActive))) }
-        if let scopes { scopes.forEach { queryItems.append(URLQueryItem(name: "scopes", value: $0.rawValue)) } }
+        if let scopes { scopes.forEach { queryItems.append(URLQueryItem(name: "scopes[]", value: $0.rawValue)) } }
         if let filter { queryItems.append(URLQueryItem(name: "filter", value: String(data: try serialize(filter), encoding: .utf8)!)) }
         if !queryItems.isEmpty { components.queryItems = queryItems }
         var request = URLRequest(url: components.url!)
@@ -38,7 +38,7 @@ public struct EventsService {
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["scope": scope])
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["scope": scope.rawValue])
         let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
         let statusCode = (urlResponse as! HTTPURLResponse).statusCode
         switch statusCode {

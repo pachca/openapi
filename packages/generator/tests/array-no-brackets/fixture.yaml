@@ -1,0 +1,109 @@
+openapi: 3.0.0
+info:
+  title: Test API — Array Params Without Brackets
+  version: 1.0.0
+servers:
+  - url: https://api.pachca.com/api/shared/v1
+tags:
+  - name: Search
+paths:
+  /search/messages:
+    get:
+      operationId: SearchOperations_searchMessages
+      description: Поиск сообщений с array-фильтрами без скобок в имени
+      x-paginated: true
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Поисковый запрос
+          schema:
+            type: string
+        - name: chat_ids
+          in: query
+          required: true
+          description: Фильтр по чатам (required, без скобок в имени)
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: user_ids
+          in: query
+          required: false
+          description: Фильтр по авторам (без скобок в имени)
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int32
+        - name: limit
+          in: query
+          required: false
+          description: Количество записей
+          schema:
+            type: integer
+            format: int32
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор пагинации
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MessageResult'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+      tags:
+        - Search
+components:
+  schemas:
+    MessageResult:
+      type: object
+      required:
+        - id
+        - content
+      properties:
+        id:
+          type: integer
+          format: int32
+        content:
+          type: string
+
+    PaginationMeta:
+      type: object
+      required:
+        - paginate
+      properties:
+        paginate:
+          type: object
+          required:
+            - next_page
+          properties:
+            next_page:
+              type: string
+
+    OAuthError:
+      type: object
+      properties:
+        error:
+          type: string

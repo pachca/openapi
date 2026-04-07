@@ -20,7 +20,7 @@ description: Типизированный клиент для Pachca API на Sw
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/pachca/openapi", from: "1.0.1")
+    .package(url: "https://github.com/pachca/openapi", from: "1.0.0")
 ]
 ```
 
@@ -90,7 +90,7 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta?.paginate?.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `nil` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
@@ -98,11 +98,12 @@ let client = PachcaClient(token: "YOUR_TOKEN", baseURL: "https://custom-api.exam
 var cursor: String? = nil
 repeat {
     let response = try await client.users.listUsers(limit: 50, cursor: cursor)
+    if response.data.isEmpty { break }
     for user in response.data {
         print("\(user.firstName) \(user.lastName)")
     }
-    cursor = response.meta?.paginate?.nextPage
-} while cursor != nil
+    cursor = response.meta.paginate.nextPage
+} while true
 ```
 
 ### Автопагинация
@@ -177,12 +178,13 @@ do {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Ожидание через `Task.sleep(nanoseconds:)` — не блокирует поток
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 

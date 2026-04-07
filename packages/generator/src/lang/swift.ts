@@ -35,7 +35,6 @@ function swiftType(ft: IRFieldType, opts: { nullable?: boolean } = {}): string {
       else if (ft.primitive === 'number') base = 'Double';
       else if (ft.primitive === 'boolean') base = 'Bool';
       else if (ft.primitive === 'any') base = 'AnyCodable';
-      else if (ft.format === 'date' || ft.format === 'date-time') base = opts.nullable ? 'String' : 'Date';
       else base = 'String';
       break;
     case 'enum':
@@ -249,7 +248,7 @@ function opReturn(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'String';
   if (!op.successResponse.hasBody) return 'Void';
   if (op.successResponse.isList) {
-    const rt = ir.responses.find((r) => r.dataRef === op.successResponse.dataRef && r.dataIsArray);
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'String';
   }
   return op.successResponse.dataRef ?? 'String';
@@ -278,18 +277,18 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   if (op.deprecated) lines.push('    @available(*, deprecated)');
   lines.push(`    public func ${op.methodName}(${args.join(', ')}) async throws -> ${opReturn(op, ir)} {`);
   if (op.queryParams.length > 0) {
-    const swiftUrlBase = op.externalUrl ? `\\(${op.externalUrl})` : `\\(baseURL)${op.path}`;
+    let swiftUrlBase = op.externalUrl ? `\\(${op.externalUrl})` : `\\(baseURL)${op.path}`;
+    for (const p of op.pathParams) {
+      swiftUrlBase = swiftUrlBase.replace(`{${p.name}}`, `\\(${snakeToCamel(p.sdkName)})`);
+    }
     lines.push(`        var components = URLComponents(string: "${swiftUrlBase}")!`);
     lines.push('        var queryItems: [URLQueryItem] = []');
     for (const q of op.queryParams) {
       const n = snakeToCamel(q.sdkName);
       const isEnum = q.type.kind === 'enum';
-      const isDate = q.type.kind === 'primitive' && (q.type.format === 'date' || q.type.format === 'date-time');
       const isModel = q.type.kind === 'model' || q.type.kind === 'record';
       function valueExpr(varName: string): string {
         if (isEnum) return `${varName}.rawValue`;
-         if (isDate && q.required) return `ISO8601DateFormatter().string(from: ${varName})`;
-        if (isDate) return varName; // optional dates are typed as String
         if (isModel) return `String(data: try serialize(${varName}), encoding: .utf8)!`;
         return `String(${varName})`;
       }
@@ -330,7 +329,14 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('        request.setValue("application/json", forHTTPHeaderField: "Content-Type")');
     if (shouldUnwrapBody(rb)) {
       const f = rb.unwrapField!;
-      lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${swiftIdentifier(f.name)}])`);
+      const varName = swiftIdentifier(f.name);
+      let valueExpr = varName;
+      if (f.type.kind === 'enum') {
+        valueExpr = `${varName}.rawValue`;
+      } else if (f.type.kind === 'array' && f.type.items?.kind === 'enum') {
+        valueExpr = `${varName}.map { $0.rawValue }`;
+      }
+      lines.push(`        request.httpBody = try JSONSerialization.data(withJSONObject: [${JSON.stringify(f.name)}: ${valueExpr}])`);
     } else {
       lines.push('        request.httpBody = try serialize(body)');
     }
@@ -346,19 +352,22 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     lines.push('            data.append("\\(value)\\r\\n".data(using: .utf8)!)');
     lines.push('        }');
     const req = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
+    const isUnwrapped = shouldUnwrapBody(op.requestBody!);
     if (req) {
       for (const f of req.fields.filter((x) => x.type.kind !== 'binary')) {
         const n = swiftIdentifier(f.name);
-        if (isOptionalField(f)) lines.push(`        if let v = body.${n} { appendField(${JSON.stringify(f.name)}, String(describing: v)) }`);
-        else lines.push(`        appendField(${JSON.stringify(f.name)}, String(describing: body.${n}))`);
+        const ref = isUnwrapped ? n : `body.${n}`;
+        if (isOptionalField(f)) lines.push(`        if let v = ${ref} { appendField(${JSON.stringify(f.name)}, String(describing: v)) }`);
+        else lines.push(`        appendField(${JSON.stringify(f.name)}, String(describing: ${ref}))`);
       }
       const bin = req.fields.find((x) => x.type.kind === 'binary');
       if (bin) {
         const n = swiftIdentifier(bin.name);
+        const binRef = isUnwrapped ? n : `body.${n}`;
         lines.push('        data.append("--\\(boundary)\\r\\n".data(using: .utf8)!)');
         lines.push(`        data.append("Content-Disposition: form-data; name=\\"${bin.name}\\"; filename=\\"upload\\"\\r\\n".data(using: .utf8)!)`);
         lines.push('        data.append("Content-Type: application/octet-stream\\r\\n\\r\\n".data(using: .utf8)!)');
-        lines.push(`        data.append(body.${n})`);
+        lines.push(`        data.append(${binRef})`);
         lines.push('        data.append("\\r\\n".data(using: .utf8)!)');
       }
     }
@@ -452,10 +461,13 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     }
   }
 
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
   lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
   lines.push('            items.append(contentsOf: response.data)');
-  lines.push('            cursor = response.meta?.paginate?.nextPage');
-  lines.push('        } while cursor != nil');
+  lines.push('            if response.data.isEmpty { break }');
+  lines.push(`            cursor = ${metaAccess}`);
+  lines.push(rt?.metaIsRequired ? '        } while true' : '        } while cursor != nil');
   lines.push('        return items');
   lines.push('    }');
 }
@@ -526,13 +538,11 @@ function generateUtils(ir: IR): string {
     '',
     'let pachcaDecoder: JSONDecoder = {',
     '    let decoder = JSONDecoder()',
-    '    decoder.dateDecodingStrategy = .iso8601',
     '    return decoder',
     '}()',
     '',
     'let pachcaEncoder: JSONEncoder = {',
     '    let encoder = JSONEncoder()',
-    '    encoder.dateEncodingStrategy = .iso8601',
     '    return encoder',
     '}()',
     '',

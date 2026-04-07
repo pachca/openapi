@@ -83,11 +83,15 @@ func (s *CommonService) DownloadExport(ctx context.Context, id int32) (string, e
 		return location, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return "", &e
 	default:
 		var e ApiError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return "", fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
 		return "", &e
 	}
 }

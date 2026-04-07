@@ -84,20 +84,21 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `meta.paginate.nextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит поле `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `data`.
 
 ### Ручная пагинация
 
 ```typescript
 let cursor: string | undefined
 
-do {
+for (;;) {
   const response = await client.users.listUsers({ limit: 50, cursor })
+  if (response.data.length === 0) break
   for (const user of response.data) {
     console.log(user.firstName, user.lastName)
   }
-  cursor = response.meta?.paginate?.nextPage
-} while (cursor)
+  cursor = response.meta.paginate.nextPage
+}
 ```
 
 ### Автопагинация
@@ -179,12 +180,12 @@ try {
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
-- Все остальные ошибки возвращаются сразу без retry
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Сериализация
 

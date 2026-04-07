@@ -1,0 +1,132 @@
+---
+title: Начало работы
+description: Установка n8n, расширения Пачки, настройка Credentials и первый workflow
+---
+
+# Начало работы
+
+## Установка
+
+<Steps>
+  <Step title="Установка n8n">
+    Два способа установки:
+
+    **С помощью команды** (требуется Node.js 22+):
+
+    ```bash
+    npx n8n
+    ```
+
+    **С помощью Docker:**
+
+    ```bash
+    docker volume create n8n_data
+
+    docker run -it --rm \
+      --name n8n \
+      -p 5678:5678 \
+      -e GENERIC_TIMEZONE="Europe/Moscow" \
+      -e TZ="Europe/Moscow" \
+      -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
+      -e N8N_RUNNERS_ENABLED=true \
+      -v n8n_data:/home/node/.n8n \
+      docker.n8n.io/n8nio/n8n
+    ```
+
+    Подробные инструкции — в [официальной документации n8n](https://docs.n8n.io/hosting/) и на [GitHub](https://github.com/n8n-io/n8n).
+
+    После запуска откройте `http://localhost:5678` и настройте аккаунт владельца (Owner Account), указав почту, имя и пароль.
+
+    <ImageCard src="/images/n8n/owner-account.avif" alt="Настройка аккаунта владельца n8n" caption="Настройка Owner Account" maxWidth={960} />
+
+    После входа вы увидите главный экран n8n с пустым списком workflow.
+
+    <ImageCard src="/images/n8n/main-dashboard.avif" alt="Главная страница n8n после авторизации" caption="Главная страница n8n" maxWidth={960} />
+  </Step>
+  <Step title="Установка расширения Пачки">
+    Расширение доступно на [npm](https://www.npmjs.com/package/n8n-nodes-pachca) и [GitHub](https://github.com/pachca/openapi/tree/main/integrations/n8n).
+
+    Три способа установки:
+
+    1. Зайти в **Settings** > **Community nodes** и добавить `n8n-nodes-pachca` (рекомендуется)
+    2. Выполнить команду `npm i n8n-nodes-pachca` в директории n8n
+    3. Следовать README-инструкции на [GitHub](https://github.com/pachca/openapi/tree/main/integrations/n8n)
+  </Step>
+</Steps>
+
+## Настройка Credentials
+
+<Steps>
+  <Step title="Создание Credentials">
+    Credentials — данные для авторизации. Перейдите в **Credentials** и нажмите **Add Credential**.
+
+    <ImageCard src="/images/n8n/credentials-list.avif" alt="Список Credentials в n8n" caption="Список Credentials" maxWidth={960} />
+
+    Найдите **Pachca API** в списке и заполните поля:
+
+    <ImageCard src="/images/n8n/credentials-search.avif" alt="Поиск Pachca API в списке Credentials" caption="Поиск Pachca API в списке Credentials" maxWidth={960} />
+
+    | Поле | Обязательное | Описание |
+    |------|:---:|----------|
+    | **Base URL** | нет | Базовый URL API. По умолчанию `https://api.pachca.com/api/shared/v1`. Менять только для on-premise |
+    | **Access Token** | да | Токен доступа к API |
+    | **Bot ID** | нет | ID бота — нужен для авторегистрации вебхука в [Pachca Trigger](/guides/n8n/trigger). Автоопределяется из токена бота |
+    | **Signing Secret** | нет | Секрет для верификации входящих webhook-запросов (HMAC-SHA256) |
+    | **Webhook Allowed IPs** | нет | Список IP-адресов через запятую, с которых разрешены входящие вебхуки. Пачка отправляет с `37.200.70.177`. Пустое поле — разрешить все |
+
+    <ImageCard src="/images/n8n/credentials-v2.avif" alt="Форма Credentials для Пачки в n8n" caption="Форма Pachca API Credentials" maxWidth={960} />
+  </Step>
+  <Step title="Где получить токен">
+    В Пачке доступны два типа токенов:
+
+    - **Персональный токен** — доступен в разделе **Автоматизации** > **Интеграции** > **API**
+    - **Токен бота** — доступен в настройках бота на вкладке **API**
+
+    Доступные операции зависят от [скоупов](/api/authorization#skoupy) токена, а не от его типа. Подробнее — в разделе [Авторизация](/api/authorization).
+
+    После заполнения полей нажмите **Test** — n8n проверит подключение вызовом [Информация о токене](GET /oauth/token/info). При успехе вы увидите подтверждение.
+
+    <ImageCard src="/images/n8n/credentials-test.avif" alt="Успешная проверка Credentials" caption="Connection tested successfully" maxWidth={960} />
+
+    <Info>Если тест не проходит — проверьте правильность токена и доступность API. Подробнее — в разделе [Устранение ошибок](/guides/n8n/troubleshooting).</Info>
+  </Step>
+</Steps>
+
+## Первый workflow
+
+<Steps>
+  <Step title="Создание workflow">
+    Workflow — визуальный редактор, в котором выстраиваются цепочки триггеров и действий. Создайте новый workflow и добавьте триггер **Manual Trigger** для ручного запуска.
+
+    Нажмите **+** на выходе триггера и найдите **Pachca** в списке узлов.
+
+    <ImageCard src="/images/n8n/workflow-add-node.avif" alt="Поиск Pachca в списке узлов n8n" caption="Поиск узла Pachca" maxWidth={960} />
+
+    После добавления узла на канвасе появится цепочка: Manual Trigger → Pachca.
+
+    <ImageCard src="/images/n8n/workflow-pachca-node.avif" alt="Узел Pachca на канвасе workflow" caption="Pachca на канвасе" maxWidth={960} />
+  </Step>
+  <Step title="Настройка и запуск">
+    Дважды кликните на узел **Pachca** и настройте:
+
+    - **Credential:** выберите созданный Pachca API
+    - **Resource:** Message
+    - **Operation:** Create
+    - **Entity ID:** ID чата (число)
+    - **Content:** текст сообщения
+
+    <ImageCard src="/images/n8n/node-message-create.avif" alt="Настройка отправки сообщения в узле Pachca" caption="Настройка Message → Create" maxWidth={960} />
+
+    <Warning>Перед отправкой сообщения [добавьте бота в чат](/guides/bots#dostupy-bota-k-chatam-i-soobscheniyam).</Warning>
+
+    Закройте панель настроек и нажмите **Execute Workflow**. При успехе узлы подсветятся зелёным и покажут количество обработанных элементов.
+
+    <ImageCard src="/images/n8n/workflow-execute-success.avif" alt="Успешное выполнение workflow" caption="Workflow выполнен" maxWidth={960} />
+
+    Откройте узел Pachca, чтобы увидеть ответ API с данными созданного сообщения.
+
+    <ImageCard src="/images/n8n/workflow-output-data.avif" alt="Данные ответа API после выполнения" caption="Ответ API в панели Output" maxWidth={960} />
+
+    Больше примеров — в разделе [Примеры workflow](/guides/n8n/workflows).
+  </Step>
+</Steps>

@@ -73,6 +73,13 @@ const (
 	ChatMemberRoleFilterMember ChatMemberRoleFilter = "member" // Участник/подписчик
 )
 
+type ChatSortField string
+
+const (
+	ChatSortFieldID            ChatSortField = "id" // По идентификатору чата
+	ChatSortFieldLastMessageAt ChatSortField = "last_message_at" // По дате и времени создания последнего сообщения
+)
+
 type ChatSubtype string
 
 const (
@@ -118,6 +125,12 @@ const (
 	MessageEntityTypeUser       MessageEntityType = "user" // Пользователь
 )
 
+type MessageSortField string
+
+const (
+	MessageSortFieldID MessageSortField = "id" // По идентификатору сообщения
+)
+
 type OAuthScope string
 
 const (
@@ -150,8 +163,10 @@ const (
 	OAuthScopeProfileRead          OAuthScope = "profile:read" // Просмотр информации о своем профиле
 	OAuthScopeProfileStatusRead    OAuthScope = "profile_status:read" // Просмотр статуса профиля
 	OAuthScopeProfileStatusWrite   OAuthScope = "profile_status:write" // Изменение и удаление статуса профиля
+	OAuthScopeProfileAvatarWrite   OAuthScope = "profile_avatar:write" // Изменение и удаление аватара профиля
 	OAuthScopeUserStatusRead       OAuthScope = "user_status:read" // Просмотр статуса сотрудника
 	OAuthScopeUserStatusWrite      OAuthScope = "user_status:write" // Изменение и удаление статуса сотрудника
+	OAuthScopeUserAvatarWrite      OAuthScope = "user_avatar:write" // Изменение и удаление аватара сотрудника
 	OAuthScopeCustomPropertiesRead OAuthScope = "custom_properties:read" // Просмотр дополнительных полей
 	OAuthScopeAuditEventsRead      OAuthScope = "audit_events:read" // Просмотр журнала аудита
 	OAuthScopeTasksRead            OAuthScope = "tasks:read" // Просмотр задач
@@ -424,6 +439,10 @@ type AuditEvent struct {
 	UserAgent  string                 `json:"user_agent"`
 }
 
+type AvatarData struct {
+	ImageURL string `json:"image_url"`
+}
+
 type BotResponseWebhook struct {
 	OutgoingURL string `json:"outgoing_url"`
 }
@@ -529,11 +548,11 @@ type CustomPropertyDefinition struct {
 }
 
 type ExportRequest struct {
-	StartAt       time.Time `json:"start_at"`
-	EndAt         time.Time `json:"end_at"`
-	WebhookURL    string    `json:"webhook_url"`
-	ChatIDs       []int32   `json:"chat_ids,omitempty"`
-	SkipChatsFile *bool     `json:"skip_chats_file,omitempty"`
+	StartAt       string  `json:"start_at"`
+	EndAt         string  `json:"end_at"`
+	WebhookURL    string  `json:"webhook_url"`
+	ChatIDs       []int32 `json:"chat_ids,omitempty"`
+	SkipChatsFile *bool   `json:"skip_chats_file,omitempty"`
 }
 
 type File struct {
@@ -727,11 +746,11 @@ type OpenViewRequest struct {
 }
 
 type PaginationMetaPaginate struct {
-	NextPage *string `json:"next_page,omitempty"`
+	NextPage string `json:"next_page"`
 }
 
 type PaginationMeta struct {
-	Paginate *PaginationMetaPaginate `json:"paginate,omitempty"`
+	Paginate PaginationMetaPaginate `json:"paginate"`
 }
 
 type Reaction struct {
@@ -776,9 +795,6 @@ type StatusUpdateRequestStatus struct {
 
 type StatusUpdateRequest struct {
 	Status StatusUpdateRequestStatus `json:"status"`
-}
-
-type TagNamesFilter struct {
 }
 
 type Task struct {
@@ -968,12 +984,12 @@ type ViewBlockCheckboxOption struct {
 }
 
 type ViewBlockDate struct {
-	Type        string     `json:"type"` // always "date"
-	Name        string     `json:"name"`
-	Label       string     `json:"label"`
-	InitialDate *time.Time `json:"initial_date,omitempty"`
-	Required    *bool      `json:"required,omitempty"`
-	Hint        *string    `json:"hint,omitempty"`
+	Type        string  `json:"type"` // always "date"
+	Name        string  `json:"name"`
+	Label       string  `json:"label"`
+	InitialDate *string `json:"initial_date,omitempty"`
+	Required    *bool   `json:"required,omitempty"`
+	Hint        *string `json:"hint,omitempty"`
 }
 
 type ViewBlockDivider struct {
@@ -1052,6 +1068,16 @@ type ViewBlockTime struct {
 	Hint        *string `json:"hint,omitempty"`
 }
 
+type ViewSubmitWebhookPayload struct {
+	Type             string            `json:"type"` // always "view"
+	Event            string            `json:"event"` // always "submit"
+	UserID           int32             `json:"user_id"`
+	Data             map[string]string `json:"data"`
+	WebhookTimestamp int32             `json:"webhook_timestamp"`
+	CallbackID       *string           `json:"callback_id"`
+	PrivateMetadata  *string           `json:"private_metadata"`
+}
+
 type WebhookEvent struct {
 	ID        string              `json:"id"`
 	EventType string              `json:"event_type"`
@@ -1067,6 +1093,14 @@ type WebhookLink struct {
 type WebhookMessageThread struct {
 	MessageID     int32 `json:"message_id"`
 	MessageChatID int32 `json:"message_chat_id"`
+}
+
+type UpdateProfileAvatarRequest struct {
+	Image io.Reader `json:"image"`
+}
+
+type UpdateUserAvatarRequest struct {
+	Image io.Reader `json:"image"`
 }
 
 type AuditEventDetailsUnion struct {
@@ -1288,6 +1322,7 @@ type WebhookPayloadUnion struct {
 	MessageWebhookPayload       *MessageWebhookPayload
 	ReactionWebhookPayload      *ReactionWebhookPayload
 	ButtonWebhookPayload        *ButtonWebhookPayload
+	ViewSubmitWebhookPayload    *ViewSubmitWebhookPayload
 	ChatMemberWebhookPayload    *ChatMemberWebhookPayload
 	CompanyMemberWebhookPayload *CompanyMemberWebhookPayload
 	LinkSharedWebhookPayload    *LinkSharedWebhookPayload
@@ -1310,6 +1345,9 @@ func (u *WebhookPayloadUnion) UnmarshalJSON(data []byte) error {
 	case "button":
 		u.ButtonWebhookPayload = &ButtonWebhookPayload{}
 		return json.Unmarshal(data, u.ButtonWebhookPayload)
+	case "view":
+		u.ViewSubmitWebhookPayload = &ViewSubmitWebhookPayload{}
+		return json.Unmarshal(data, u.ViewSubmitWebhookPayload)
 	case "chat_member":
 		u.ChatMemberWebhookPayload = &ChatMemberWebhookPayload{}
 		return json.Unmarshal(data, u.ChatMemberWebhookPayload)
@@ -1330,6 +1368,9 @@ func (u WebhookPayloadUnion) MarshalJSON() ([]byte, error) {
 	}
 	if u.ButtonWebhookPayload != nil {
 		return json.Marshal(u.ButtonWebhookPayload)
+	}
+	if u.ViewSubmitWebhookPayload != nil {
+		return json.Marshal(u.ViewSubmitWebhookPayload)
 	}
 	if u.ChatMemberWebhookPayload != nil {
 		return json.Marshal(u.ChatMemberWebhookPayload)
@@ -1356,7 +1397,8 @@ type GetAuditEventsParams struct {
 }
 
 type ListChatsParams struct {
-	SortID              *SortOrder
+	Sort                *ChatSortField
+	Order               *SortOrder
 	Availability        *ChatAvailability
 	LastMessageAtAfter  *time.Time
 	LastMessageAtBefore *time.Time
@@ -1376,7 +1418,7 @@ type ListPropertiesParams struct {
 }
 
 type ListTagsParams struct {
-	Names  *TagNamesFilter
+	Names  []string
 	Limit  *int32
 	Cursor *string
 }
@@ -1388,7 +1430,8 @@ type GetTagUsersParams struct {
 
 type ListChatMessagesParams struct {
 	ChatID int32
-	SortID *SortOrder
+	Sort   *MessageSortField
+	Order  *SortOrder
 	Limit  *int32
 	Cursor *string
 }
@@ -1460,18 +1503,18 @@ type GetWebhookEventsParams struct {
 }
 
 type GetAuditEventsResponse struct {
-	Data []AuditEvent    `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []AuditEvent   `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListChatsResponse struct {
-	Data []Chat          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Chat         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListMembersResponse struct {
-	Data []User          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListPropertiesResponse struct {
@@ -1479,23 +1522,23 @@ type ListPropertiesResponse struct {
 }
 
 type ListTagsResponse struct {
-	Data []GroupTag      `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []GroupTag     `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type GetTagUsersResponse struct {
-	Data []User          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListChatMessagesResponse struct {
-	Data []Message       `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Message      `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListReactionsResponse struct {
-	Data []Reaction      `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Reaction     `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type SearchChatsResponse struct {
@@ -1514,16 +1557,16 @@ type SearchUsersResponse struct {
 }
 
 type ListTasksResponse struct {
-	Data []Task          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []Task         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type ListUsersResponse struct {
-	Data []User          `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []User         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }
 
 type GetWebhookEventsResponse struct {
-	Data []WebhookEvent  `json:"data"`
-	Meta *PaginationMeta `json:"meta,omitempty"`
+	Data []WebhookEvent `json:"data"`
+	Meta PaginationMeta `json:"meta"`
 }

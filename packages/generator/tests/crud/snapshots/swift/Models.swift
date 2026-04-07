@@ -20,10 +20,10 @@ public struct Chat: Codable {
     public let name: String
     public let isChannel: Bool
     public let isPublic: Bool
-    public let createdAt: Date
+    public let createdAt: String
     public let memberIds: [Int]?
 
-    public init(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: Date, memberIds: [Int]? = nil) {
+    public init(id: Int, name: String, isChannel: Bool, isPublic: Bool, createdAt: String, memberIds: [Int]? = nil) {
         self.id = id
         self.name = name
         self.isChannel = isChannel

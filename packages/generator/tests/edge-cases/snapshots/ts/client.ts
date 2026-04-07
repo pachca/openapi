@@ -16,7 +16,9 @@ class EventsService {
   async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
     const query = new URLSearchParams();
     if (params?.isActive !== undefined) query.set("is_active", String(params.isActive));
-    if (params?.scopes !== undefined) query.set("scopes", String(params.scopes));
+    if (params?.scopes !== undefined) {
+      params.scopes.forEach((v) => query.append("scopes[]", String(v)));
+    }
     if (params?.filter !== undefined) query.set("filter", String(params.filter));
     const url = `${this.baseUrl}/events${query.toString() ? `?${query}` : ""}`;
     const response = await fetchWithRetry(url, {

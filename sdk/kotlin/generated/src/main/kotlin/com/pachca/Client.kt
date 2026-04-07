@@ -13,14 +13,15 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
+import java.time.OffsetDateTime
 
 class SecurityService internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) {
     suspend fun getAuditEvents(
-        startTime: String? = null,
-        endTime: String? = null,
+        startTime: OffsetDateTime? = null,
+        endTime: OffsetDateTime? = null,
         eventKey: AuditEventKey? = null,
         actorId: String? = null,
         actorType: String? = null,
@@ -30,8 +31,8 @@ class SecurityService internal constructor(
         cursor: String? = null,
     ): GetAuditEventsResponse {
         val response = client.get("$baseUrl/audit_events") {
-            startTime?.let { parameter("start_time", it) }
-            endTime?.let { parameter("end_time", it) }
+            startTime?.let { parameter("start_time", it.toString()) }
+            endTime?.let { parameter("end_time", it.toString()) }
             eventKey?.let { parameter("event_key", it.value) }
             actorId?.let { parameter("actor_id", it) }
             actorType?.let { parameter("actor_type", it) }
@@ -48,8 +49,8 @@ class SecurityService internal constructor(
     }
 
     suspend fun getAuditEventsAll(
-        startTime: String? = null,
-        endTime: String? = null,
+        startTime: OffsetDateTime? = null,
+        endTime: OffsetDateTime? = null,
         eventKey: AuditEventKey? = null,
         actorId: String? = null,
         actorType: String? = null,
@@ -72,8 +73,9 @@ class SecurityService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 }
@@ -100,8 +102,9 @@ class BotsService internal constructor(
         do {
             val response = getWebhookEvents(limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -132,19 +135,21 @@ class ChatsService internal constructor(
     private val client: HttpClient,
 ) {
     suspend fun listChats(
-        sortId: SortOrder? = null,
+        sort: ChatSortField? = null,
+        order: SortOrder? = null,
         availability: ChatAvailability? = null,
-        lastMessageAtAfter: String? = null,
-        lastMessageAtBefore: String? = null,
+        lastMessageAtAfter: OffsetDateTime? = null,
+        lastMessageAtBefore: OffsetDateTime? = null,
         personal: Boolean? = null,
         limit: Int? = null,
         cursor: String? = null,
     ): ListChatsResponse {
         val response = client.get("$baseUrl/chats") {
-            sortId?.let { parameter("sort[{field}]", it.value) }
+            sort?.let { parameter("sort", it.value) }
+            order?.let { parameter("order", it.value) }
             availability?.let { parameter("availability", it.value) }
-            lastMessageAtAfter?.let { parameter("last_message_at_after", it) }
-            lastMessageAtBefore?.let { parameter("last_message_at_before", it) }
+            lastMessageAtAfter?.let { parameter("last_message_at_after", it.toString()) }
+            lastMessageAtBefore?.let { parameter("last_message_at_before", it.toString()) }
             personal?.let { parameter("personal", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
@@ -157,10 +162,11 @@ class ChatsService internal constructor(
     }
 
     suspend fun listChatsAll(
-        sortId: SortOrder? = null,
+        sort: ChatSortField? = null,
+        order: SortOrder? = null,
         availability: ChatAvailability? = null,
-        lastMessageAtAfter: String? = null,
-        lastMessageAtBefore: String? = null,
+        lastMessageAtAfter: OffsetDateTime? = null,
+        lastMessageAtBefore: OffsetDateTime? = null,
         personal: Boolean? = null,
         limit: Int? = null,
     ): List<Chat> {
@@ -168,7 +174,8 @@ class ChatsService internal constructor(
         var cursor: String? = null
         do {
             val response = listChats(
-                sortId = sortId,
+                sort = sort,
+                order = order,
                 availability = availability,
                 lastMessageAtAfter = lastMessageAtAfter,
                 lastMessageAtBefore = lastMessageAtBefore,
@@ -177,8 +184,9 @@ class ChatsService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -343,8 +351,9 @@ class MembersService internal constructor(
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -421,12 +430,12 @@ class GroupTagsService internal constructor(
     private val client: HttpClient,
 ) {
     suspend fun listTags(
-        names: TagNamesFilter? = null,
+        names: List<String>? = null,
         limit: Int? = null,
         cursor: String? = null,
     ): ListTagsResponse {
         val response = client.get("$baseUrl/group_tags") {
-            names?.let { parameter("names", it) }
+            names?.forEach { parameter("names[]", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
         }
@@ -437,14 +446,15 @@ class GroupTagsService internal constructor(
         }
     }
 
-    suspend fun listTagsAll(names: TagNamesFilter? = null, limit: Int? = null): List<GroupTag> {
+    suspend fun listTagsAll(names: List<String>? = null, limit: Int? = null): List<GroupTag> {
         val items = mutableListOf<GroupTag>()
         var cursor: String? = null
         do {
             val response = listTags(names = names, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -461,7 +471,7 @@ class GroupTagsService internal constructor(
         id: Int,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListMembersResponse {
+    ): GetTagUsersResponse {
         val response = client.get("$baseUrl/group_tags/$id/users") {
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
@@ -479,8 +489,9 @@ class GroupTagsService internal constructor(
         do {
             val response = getTagUsers(id = id, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -524,13 +535,15 @@ class MessagesService internal constructor(
 ) {
     suspend fun listChatMessages(
         chatId: Int,
-        sortId: SortOrder? = null,
+        sort: MessageSortField? = null,
+        order: SortOrder? = null,
         limit: Int? = null,
         cursor: String? = null,
     ): ListChatMessagesResponse {
         val response = client.get("$baseUrl/messages") {
             parameter("chat_id", chatId)
-            sortId?.let { parameter("sort[{field}]", it.value) }
+            sort?.let { parameter("sort", it.value) }
+            order?.let { parameter("order", it.value) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
         }
@@ -543,7 +556,8 @@ class MessagesService internal constructor(
 
     suspend fun listChatMessagesAll(
         chatId: Int,
-        sortId: SortOrder? = null,
+        sort: MessageSortField? = null,
+        order: SortOrder? = null,
         limit: Int? = null,
     ): List<Message> {
         val items = mutableListOf<Message>()
@@ -551,13 +565,15 @@ class MessagesService internal constructor(
         do {
             val response = listChatMessages(
                 chatId = chatId,
-                sortId = sortId,
+                sort = sort,
+                order = order,
                 limit = limit,
                 cursor = cursor,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -665,8 +681,9 @@ class ReactionsService internal constructor(
         do {
             val response = listReactions(id = id, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -774,6 +791,22 @@ class ProfileService internal constructor(
         }
     }
 
+    suspend fun updateProfileAvatar(image: ByteArray): AvatarData {
+        val response = client.submitFormWithBinaryData(
+            "$baseUrl/profile/avatar",
+            formData {
+                append("image", image, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"image\"")
+                })
+            },
+        )
+        return when (response.status.value) {
+            200 -> response.body<AvatarDataDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     suspend fun updateStatus(request: StatusUpdateRequest): UserStatus {
         val response = client.put("$baseUrl/profile/status") {
             contentType(ContentType.Application.Json)
@@ -781,6 +814,15 @@ class ProfileService internal constructor(
         }
         return when (response.status.value) {
             200 -> response.body<UserStatusDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    suspend fun deleteProfileAvatar() {
+        val response = client.delete("$baseUrl/profile/avatar")
+        when (response.status.value) {
+            204 -> return
             401 -> throw response.body<OAuthError>()
             else -> throw response.body<ApiError>()
         }
@@ -805,19 +847,19 @@ class SearchService internal constructor(
         limit: Int? = null,
         cursor: String? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         active: Boolean? = null,
         chatSubtype: ChatSubtype? = null,
         personal: Boolean? = null,
-    ): ListChatsResponse {
+    ): SearchChatsResponse {
         val response = client.get("$baseUrl/search/chats") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
             order?.let { parameter("order", it.value) }
-            createdFrom?.let { parameter("created_from", it) }
-            createdTo?.let { parameter("created_to", it) }
+            createdFrom?.let { parameter("created_from", it.toString()) }
+            createdTo?.let { parameter("created_to", it.toString()) }
             active?.let { parameter("active", it) }
             chatSubtype?.let { parameter("chat_subtype", it.value) }
             personal?.let { parameter("personal", it) }
@@ -833,8 +875,8 @@ class SearchService internal constructor(
         query: String? = null,
         limit: Int? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         active: Boolean? = null,
         chatSubtype: ChatSubtype? = null,
         personal: Boolean? = null,
@@ -854,8 +896,9 @@ class SearchService internal constructor(
                 personal = personal,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -864,21 +907,21 @@ class SearchService internal constructor(
         limit: Int? = null,
         cursor: String? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
         active: Boolean? = null,
-    ): ListChatMessagesResponse {
+    ): SearchMessagesResponse {
         val response = client.get("$baseUrl/search/messages") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
             order?.let { parameter("order", it.value) }
-            createdFrom?.let { parameter("created_from", it) }
-            createdTo?.let { parameter("created_to", it) }
-            chatIds?.let { parameter("chat_ids", it) }
-            userIds?.let { parameter("user_ids", it) }
+            createdFrom?.let { parameter("created_from", it.toString()) }
+            createdTo?.let { parameter("created_to", it.toString()) }
+            chatIds?.forEach { parameter("chat_ids[]", it) }
+            userIds?.forEach { parameter("user_ids[]", it) }
             active?.let { parameter("active", it) }
         }
         return when (response.status.value) {
@@ -892,8 +935,8 @@ class SearchService internal constructor(
         query: String? = null,
         limit: Int? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
         active: Boolean? = null,
@@ -913,8 +956,9 @@ class SearchService internal constructor(
                 active = active,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -924,19 +968,19 @@ class SearchService internal constructor(
         cursor: String? = null,
         sort: SearchSortOrder? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         companyRoles: List<UserRole>? = null,
-    ): ListMembersResponse {
+    ): SearchUsersResponse {
         val response = client.get("$baseUrl/search/users") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
             cursor?.let { parameter("cursor", it) }
             sort?.let { parameter("sort", it.value) }
             order?.let { parameter("order", it.value) }
-            createdFrom?.let { parameter("created_from", it) }
-            createdTo?.let { parameter("created_to", it) }
-            companyRoles?.let { parameter("company_roles", it) }
+            createdFrom?.let { parameter("created_from", it.toString()) }
+            createdTo?.let { parameter("created_to", it.toString()) }
+            companyRoles?.forEach { parameter("company_roles[]", it.value) }
         }
         return when (response.status.value) {
             200 -> response.body()
@@ -950,8 +994,8 @@ class SearchService internal constructor(
         limit: Int? = null,
         sort: SearchSortOrder? = null,
         order: SortOrder? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
         companyRoles: List<UserRole>? = null,
     ): List<User> {
         val items = mutableListOf<User>()
@@ -968,8 +1012,9 @@ class SearchService internal constructor(
                 companyRoles = companyRoles,
             )
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 }
@@ -996,8 +1041,9 @@ class TasksService internal constructor(
         do {
             val response = listTasks(limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -1052,7 +1098,7 @@ class UsersService internal constructor(
         query: String? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListMembersResponse {
+    ): ListUsersResponse {
         val response = client.get("$baseUrl/users") {
             query?.let { parameter("query", it) }
             limit?.let { parameter("limit", it) }
@@ -1071,8 +1117,9 @@ class UsersService internal constructor(
         do {
             val response = listUsers(query = query, limit = limit, cursor = cursor)
             items.addAll(response.data)
-            cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+        } while (true)
         return items
     }
 
@@ -1118,6 +1165,22 @@ class UsersService internal constructor(
         }
     }
 
+    suspend fun updateUserAvatar(userId: Int, image: ByteArray): AvatarData {
+        val response = client.submitFormWithBinaryData(
+            "$baseUrl/users/$userId/avatar",
+            formData {
+                append("image", image, Headers.build {
+                    append(HttpHeaders.ContentDisposition, "filename=\"image\"")
+                })
+            },
+        )
+        return when (response.status.value) {
+            200 -> response.body<AvatarDataDataWrapper>().data
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
     suspend fun updateUserStatus(userId: Int, request: StatusUpdateRequest): UserStatus {
         val response = client.put("$baseUrl/users/$userId/status") {
             contentType(ContentType.Application.Json)
@@ -1132,6 +1195,15 @@ class UsersService internal constructor(
 
     suspend fun deleteUser(id: Int) {
         val response = client.delete("$baseUrl/users/$id")
+        when (response.status.value) {
+            204 -> return
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    suspend fun deleteUserAvatar(userId: Int) {
+        val response = client.delete("$baseUrl/users/$userId/avatar")
         when (response.status.value) {
             204 -> return
             401 -> throw response.body<OAuthError>()

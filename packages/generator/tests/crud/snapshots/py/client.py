@@ -59,7 +59,9 @@ class ChatsService:
             params.cursor = cursor
             response = await self.list_chats(params=params)
             items.extend(response.data)
-            cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page if response.meta else None
             if not cursor:
                 break
         return items

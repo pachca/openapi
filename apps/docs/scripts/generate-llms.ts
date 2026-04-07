@@ -12,7 +12,6 @@ import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
-import { WORKFLOWS } from '@pachca/spec/workflows';
 
 const SITE_URL = 'https://dev.pachca.com';
 
@@ -51,7 +50,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += '## Руководства\n';
   for (const guide of guidePages) {
     const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
-    content += `- [${guide.title}](${SITE_URL}${mdPath}): ${guide.description}\n`;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    content += `- [${displayTitle}](${SITE_URL}${mdPath}): ${guide.description}\n`;
   }
   content += '\n';
 
@@ -132,11 +132,12 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   content += '## Содержание\n\n';
   content += '### Руководства\n';
   for (const guide of guidePages) {
-    const anchor = guide.title
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    const anchor = displayTitle
       .toLowerCase()
       .replace(/[#?&=]/g, '')
       .replace(/\s+/g, '-');
-    content += `- [${guide.title}](#${anchor})\n`;
+    content += `- [${displayTitle}](#${anchor})\n`;
   }
   content += '\n';
 
@@ -398,7 +399,8 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   let guides = '## Guides\n\nDetailed documentation on specific topics is available at:\n\n';
   for (const guide of guidePages) {
     if (guide.path === '/') continue;
-    guides += `- [${guide.title}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    guides += `- [${displayTitle}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
   }
 
   return [
@@ -431,52 +433,6 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     '',
     generateModularSkillsSection(),
   ].join('\n');
-}
-
-function generateScenariosJson() {
-  const scenarios: {
-    id: string;
-    title: string;
-    skill: string;
-    steps: {
-      description: string;
-      command?: string;
-      apiMethod?: string;
-      apiPath?: string;
-      notes?: string;
-    }[];
-    notes?: string;
-    related?: string[];
-  }[] = [];
-  const skillNames = new Set(SKILL_TAG_MAP.map((c) => c.name));
-
-  for (const [skillName, workflows] of Object.entries(WORKFLOWS)) {
-    if (!skillNames.has(skillName)) continue;
-    for (let i = 0; i < workflows.length; i++) {
-      const wf = workflows[i];
-      scenarios.push({
-        id: `${skillName}-${i}`,
-        title: wf.title,
-        skill: skillName,
-        steps: wf.steps.map((step) => {
-          const s: Record<string, string | undefined> = { description: step.description };
-          if (step.command) s.command = step.command;
-          if (step.apiMethod) s.apiMethod = step.apiMethod;
-          if (step.apiPath) s.apiPath = step.apiPath;
-          if (step.notes) s.notes = step.notes;
-          return s as (typeof scenarios)[0]['steps'][0];
-        }),
-        ...(wf.notes ? { notes: wf.notes } : {}),
-        ...(wf.related?.length ? { related: wf.related } : {}),
-      });
-    }
-  }
-
-  return {
-    $schema: 'https://dev.pachca.com/scenarios.schema.json',
-    version: '1.0',
-    scenarios,
-  };
 }
 
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
@@ -679,9 +635,7 @@ async function main() {
   }
   console.log(`✓ ${skillFiles.length} skill files`);
 
-  const scenarios = generateScenariosJson();
-  writeFile('public/scenarios.json', JSON.stringify(scenarios, null, 2) + '\n');
-  console.log(`✓ public/scenarios.json (${scenarios.scenarios.length} scenarios)`);
+  // scenarios.json removed — its role is covered by the n8n node (n8n-nodes-pachca)
 
   const postmanCollection = generatePostmanCollection(api);
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));

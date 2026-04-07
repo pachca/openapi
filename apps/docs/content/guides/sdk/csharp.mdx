@@ -1,9 +1,9 @@
 ---
-title: CSharp
+title: "C#"
 description: Типизированный клиент для Pachca API на C# с async/await и автопагинацией
 ---
 
-# CSharp
+# C#
 
 <CardRow>
   <Card compact icon="Package" title="Pachca.Sdk" href="https://www.nuget.org/packages/Pachca.Sdk">NuGet</Card>
@@ -84,7 +84,7 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `Data`.
 
 ### Ручная пагинация
 
@@ -92,12 +92,13 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 var chats = new List<Chat>();
 string? cursor = null;
 
-do
+while (true)
 {
     var response = await client.Chats.ListChatsAsync(cursor: cursor);
+    if (response.Data.Count == 0) break;
     chats.AddRange(response.Data);
-    cursor = response.Meta?.Paginate?.NextPage;
-} while (cursor != null);
+    cursor = response.Meta.Paginate.NextPage;
+}
 ```
 
 ### Автопагинация
@@ -182,11 +183,11 @@ catch (OAuthError e)
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Отмена запросов

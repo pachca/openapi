@@ -59,7 +59,6 @@ function csType(ft: IRFieldType): string {
       if (ft.primitive === 'any') return 'object';
       if (ft.primitive === 'string') {
         if (ft.format === 'date-time') return 'DateTimeOffset';
-        if (ft.format === 'date') return 'DateOnly';
       }
       return 'string';
     case 'enum':
@@ -82,7 +81,7 @@ function csType(ft: IRFieldType): string {
 function isValueType(ft: IRFieldType): boolean {
   if (ft.kind === 'primitive') {
     if (ft.primitive === 'integer' || ft.primitive === 'number' || ft.primitive === 'boolean') return true;
-    if (ft.primitive === 'string' && (ft.format === 'date-time' || ft.format === 'date')) return true;
+    if (ft.primitive === 'string' && ft.format === 'date-time') return true;
   }
   if (ft.kind === 'enum') return true;
   return false;
@@ -149,7 +148,7 @@ function queryParamValueExpr(p: IRParam): string {
     return `PachcaUtils.EnumToApiString(${paramName}${valueSuffix})`;
   if (p.type.kind === 'primitive' && p.type.primitive === 'string')
     return paramName;
-  return `${paramName}${valueSuffix}.ToString()`;
+  return `${paramName}${valueSuffix}.ToString()!`;
 }
 
 /** Check if ApiError model exists in IR */
@@ -402,6 +401,7 @@ function generateUtils(): string {
   return `#nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -644,9 +644,12 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   const baseName = `${snakeToPascal(op.methodName)}Async`;
   lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
   lines.push(`${indent2}    items.AddRange(response.Data);`);
-  lines.push(`${indent2}    cursor = response.Meta?.Paginate?.NextPage;`);
-  lines.push(`${indent2}} while (cursor != null);`);
+  lines.push(`${indent2}    if (response.Data.Count == 0) break;`);
+  lines.push(`${indent2}    cursor = ${metaAccess};`);
+  lines.push(rt?.metaIsRequired ? `${indent2}} while (true);` : `${indent2}} while (cursor != null);`);
   lines.push(`${indent2}return items;`);
   lines.push(`${indent}}`);
 }
@@ -695,9 +698,7 @@ function getReturnType(
   if (resp.isRedirect) return 'string';
   if (!resp.hasBody) return null;
   if (resp.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'object';
   }
   if (resp.isUnwrap && resp.dataRef) return csClientTypeRef(resp.dataRef);
@@ -776,13 +777,15 @@ function emitMethodBody(
       // Escape curly braces in param name for C# string interpolation
       const paramKey = p.name.replace(/\{/g, '{{').replace(/\}/g, '}}');
       if (p.isArray) {
+        const itemIsEnum = p.type.kind === 'array' && p.type.items?.kind === 'enum';
+        const itemExpr = itemIsEnum ? 'PachcaUtils.EnumToApiString(item)' : 'item.ToString()!';
         if (p.required) {
           lines.push(`${indent2}foreach (var item in ${paramName})`);
-          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString())}");`);
+          lines.push(`${indent2}    queryParts.Add($"${paramKey}={Uri.EscapeDataString(${itemExpr})}");`);
         } else {
           lines.push(`${indent2}if (${paramName} != null)`);
           lines.push(`${indent2}    foreach (var item in ${paramName})`);
-          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(item.ToString())}");`);
+          lines.push(`${indent2}        queryParts.Add($"${paramKey}={Uri.EscapeDataString(${itemExpr})}");`);
         }
       } else {
         const valueExpr = queryParamValueExpr(p);
@@ -856,6 +859,7 @@ function emitMultipartBody(
 
   const binaryField = reqModel.fields.find((f) => f.type.kind === 'binary');
   const nonBinaryFields = reqModel.fields.filter((f) => f.type.kind !== 'binary');
+  const isUnwrapped = shouldUnwrapBody(op.requestBody!);
 
   if (op.externalUrl) {
     lines.push(`${indent2}var url = ${paramSdkName(op.externalUrl)};`);
@@ -866,19 +870,19 @@ function emitMultipartBody(
   lines.push(`${indent2}using var content = new MultipartFormDataContent();`);
 
   for (const f of nonBinaryFields) {
-    const sdkName = fieldSdkName(f);
+    const sdk = isUnwrapped ? paramSdkName(f.name) : `request.${fieldSdkName(f)}`;
     const isOptional = !f.required || f.nullable;
     if (isOptional) {
-      lines.push(`${indent2}if (request.${sdkName} != null)`);
-      lines.push(`${indent2}    content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
+      lines.push(`${indent2}if (${sdk} != null)`);
+      lines.push(`${indent2}    content.Add(new StringContent($"{${sdk}}"), "${f.name}");`);
     } else {
-      lines.push(`${indent2}content.Add(new StringContent($"{request.${sdkName}}"), "${f.name}");`);
+      lines.push(`${indent2}content.Add(new StringContent($"{${sdk}}"), "${f.name}");`);
     }
   }
 
   if (binaryField) {
-    const sdkName = fieldSdkName(binaryField);
-    lines.push(`${indent2}content.Add(new ByteArrayContent(request.${sdkName}), "${binaryField.name}", "${binaryField.name}");`);
+    const sdk = isUnwrapped ? paramSdkName(binaryField.name) : `request.${fieldSdkName(binaryField)}`;
+    lines.push(`${indent2}content.Add(new ByteArrayContent(${sdk}), "${binaryField.name}", "${binaryField.name}");`);
   }
 
   lines.push(`${indent2}using var httpRequest = new HttpRequestMessage(HttpMethod.${httpMethodName(op.method.toUpperCase())}, url);`);
@@ -915,9 +919,7 @@ function emitResponseHandling(
   } else if (resp.isList) {
     lines.push(`${indent2}    case ${resp.statusCode}:`);
     // Use same lookup as getReturnType for consistency
-    const foundResp = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const foundResp = ir.responses.find((r) => r.name === resp.responseRef);
     const rt = foundResp?.name ?? 'object';
     lines.push(`${indent2}        return PachcaUtils.Deserialize<${rt}>(json);`);
   } else if (resp.isUnwrap && resp.dataRef) {
@@ -1016,7 +1018,10 @@ function csLiteral(
         return `${ft.example}d`;
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return `"${ft.example}"`;
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `DateTimeOffset.Parse(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -1032,7 +1037,6 @@ function csLiteral(
       if (ft.primitive === 'any') return 'new object()';
       if (ft.primitive === 'string') {
         if (ft.format === 'date-time') return 'DateTimeOffset.UtcNow';
-        if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';
     }
@@ -1062,7 +1066,7 @@ function csLiteral(
       return `default(${ft.ref ?? 'object'})!`;
     }
     case 'literal':
-      return `"${ft.literalValue}"`;
+      return JSON.stringify(ft.literalValue);
     case 'binary':
       return 'Array.Empty<byte>()';
   }
@@ -1085,7 +1089,7 @@ function csModelLiteral(
   const isCyclic = (f: IRField) =>
     f.type.kind === 'model' && f.type.ref != null && nextVisited.has(f.type.ref);
   const fields = model.fields.filter(
-    (f) => (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
+    (f) => f.type.kind !== 'literal' && (f.type.kind !== 'binary' || f.required) && !(isCyclic(f) && (!f.required || f.nullable)),
   );
   if (fields.length === 0) return `new ${modelName}()`;
 

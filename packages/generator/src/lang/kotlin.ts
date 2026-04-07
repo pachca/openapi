@@ -36,6 +36,7 @@ function ktType(ft: IRFieldType): string {
       if (ft.primitive === 'number') return 'Double';
       if (ft.primitive === 'boolean') return 'Boolean';
       if (ft.primitive === 'any') return 'Any';
+      if (ft.primitive === 'string' && ft.format === 'date-time') return 'OffsetDateTime';
       return 'String';
     case 'enum':
     case 'model':
@@ -150,11 +151,30 @@ function generateModels(ir: IR): string {
   lines.push('package com.pachca.sdk');
   lines.push('');
 
+  const needDateTime = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time'))
+    || ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+
   const imports: string[] = [];
+  if (needDateTime) imports.push('import java.time.OffsetDateTime');
+  if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
+  if (needDateTime) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
+  if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
+  if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
+  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Encoder');
   lines.push(imports.join('\n'));
+
+  if (needDateTime) {
+    lines.push('');
+    lines.push('object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {');
+    lines.push('    override val descriptor = PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)');
+    lines.push('    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))');
+    lines.push('    override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)');
+    lines.push('}');
+  }
 
   // Enums
   for (const e of ir.enums) {
@@ -250,8 +270,10 @@ function emitUnion(
       const isOpt = !f.required;
       const fullType = isOpt ? `${typeName}?` : typeName;
       const default_ = isOpt ? ' = null' : '';
+      const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
+      const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
       const serialName =
-        needsSerialName(f) ? `@SerialName("${f.name}") ` : '';
+        needsSerialName(f) ? `${dtAnnotation}@SerialName("${f.name}") ` : dtAnnotation;
       lines.push(`    ${serialName}val ${sdkName}: ${fullType}${default_},`);
     }
     lines.push(`) : ${u.name}`);
@@ -315,11 +337,13 @@ function emitModel(
       default_ = '';
     }
 
+    const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
+    const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
     const annotation = isBinary
       ? '@Transient '
       : needsSerialName(f)
-        ? `@SerialName("${f.name}") `
-        : '';
+        ? `${dtAnnotation}@SerialName("${f.name}") `
+        : dtAnnotation;
 
     lines.push(`    ${annotation}val ${sdkName}: ${fullType}${default_},`);
   }
@@ -375,6 +399,10 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.serialization.kotlinx.json.*');
   lines.push('import kotlinx.serialization.json.Json');
   lines.push('import java.io.Closeable');
+  const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+  if (clientNeedDateTime) {
+    lines.push('import java.time.OffsetDateTime');
+  }
 
   // Services
   for (const svc of ir.services) {
@@ -458,9 +486,12 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     ? `${op.methodName}(${callArgs.join(', ')})`
     : `${op.methodName}(\n${callArgs.map(a => `${indent2}        ${a},`).join('\n')}\n${indent2}    )`;
   lines.push(`${indent2}    val response = ${callStr}`);
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
   lines.push(`${indent2}    items.addAll(response.data)`);
-  lines.push(`${indent2}    cursor = response.meta?.paginate?.nextPage`);
-  lines.push(`${indent2}} while (cursor != null)`);
+  lines.push(`${indent2}    if (response.data.isEmpty()) break`);
+  lines.push(`${indent2}    cursor = ${metaAccess}`);
+  lines.push(rt?.metaIsRequired ? `${indent2}} while (true)` : `${indent2}} while (cursor != null)`);
   lines.push(`${indent2}return items`);
   lines.push(`${indent}}`);
 }
@@ -510,9 +541,7 @@ function getReturnType(
   if (resp.isRedirect) return 'String';
   if (!resp.hasBody) return null;
   if (resp.isList) {
-    const rt = ir.responses.find(
-      (r) => r.dataRef === resp.dataRef && r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === resp.responseRef);
     return rt?.name ?? 'Any';
   }
   if (resp.isUnwrap && resp.dataRef) return resp.dataRef;
@@ -593,21 +622,26 @@ function emitMethodBody(
     );
     for (const p of op.queryParams) {
       if (p.isArray) {
+        const itemIsEnum = p.type.kind === 'array' && p.type.items?.kind === 'enum';
+        const itemExpr = itemIsEnum ? 'it.value' : 'it';
         if (p.required) {
           lines.push(
-            `${indent3}${p.sdkName}.forEach { parameter("${p.name}", it) }`,
+            `${indent3}${p.sdkName}.forEach { parameter("${p.name}", ${itemExpr}) }`,
           );
         } else {
           lines.push(
-            `${indent3}${p.sdkName}?.forEach { parameter("${p.name}", it) }`,
+            `${indent3}${p.sdkName}?.forEach { parameter("${p.name}", ${itemExpr}) }`,
           );
         }
       } else {
-        const valueExpr = p.type.kind === 'enum' ? 'it.value' : 'it';
+        const isDateTime = p.type.kind === 'primitive' && p.type.primitive === 'string' && p.type.format === 'date-time';
+        const valueExpr = p.type.kind === 'enum' ? 'it.value' : isDateTime ? 'it.toString()' : 'it';
         if (p.required) {
           const reqExpr = p.type.kind === 'enum'
             ? `${p.sdkName}.value`
-            : p.sdkName;
+            : isDateTime
+              ? `${p.sdkName}.toString()`
+              : p.sdkName;
           lines.push(`${indent3}parameter("${p.name}", ${reqExpr})`);
         } else {
           lines.push(
@@ -678,29 +712,34 @@ function emitMultipartBody(
     (f) => f.type.kind !== 'binary',
   );
 
+  const isUnwrapped = shouldUnwrapBody(op.requestBody!);
+
   // Optional fields first (in schema order)
   for (const f of nonBinaryFields) {
     const sdkName = fieldSdkName(f);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     const isOptional = !f.required || f.nullable;
     if (isOptional) {
       lines.push(
-        `${indent4}request.${sdkName}?.let { append("${f.name}", it) }`,
+        `${indent4}${ref}?.let { append("${f.name}", it) }`,
       );
     }
   }
   // Required fields
   for (const f of nonBinaryFields) {
     const sdkName = fieldSdkName(f);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     const isOptional = !f.required || f.nullable;
     if (!isOptional) {
-      lines.push(`${indent4}append("${f.name}", request.${sdkName})`);
+      lines.push(`${indent4}append("${f.name}", ${ref})`);
     }
   }
   // Binary field
   if (binaryField) {
     const sdkName = fieldSdkName(binaryField);
+    const ref = isUnwrapped ? sdkName : `request.${sdkName}`;
     lines.push(
-      `${indent4}append("${binaryField.name}", request.${sdkName}, Headers.build {`,
+      `${indent4}append("${binaryField.name}", ${ref}, Headers.build {`,
     );
     lines.push(
       `${indent4}    append(HttpHeaders.ContentDisposition, "filename=\\"${binaryField.name}\\"")`,
@@ -844,7 +883,10 @@ function ktLiteral(
         return String(ft.example);
       }
       if (ft.primitive === 'boolean' && typeof ft.example === 'boolean') return String(ft.example);
-      if (ft.primitive === 'string' && typeof ft.example === 'string') return JSON.stringify(ft.example);
+      if (ft.primitive === 'string' && typeof ft.example === 'string') {
+        if (ft.format === 'date-time') return `OffsetDateTime.parse(${JSON.stringify(ft.example)})`;
+        return JSON.stringify(ft.example);
+      }
     }
     if (ft.kind === 'enum' && typeof ft.example === 'string') {
       const e = ir.enums.find((en) => en.name === ft.ref);
@@ -860,7 +902,7 @@ function ktLiteral(
       if (ft.primitive === 'any') return 'mapOf<String, Any>()';
       // string with format variants
       if (ft.primitive === 'string') {
-        if (ft.format === 'date-time') return '"2024-01-01T00:00:00Z"';
+        if (ft.format === 'date-time') return 'OffsetDateTime.parse("2024-01-01T00:00:00Z")';
         if (ft.format === 'date') return '"2024-01-01"';
       }
       return '"example"';

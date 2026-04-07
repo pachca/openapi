@@ -104,7 +104,9 @@ func (s *CommonService) UploadFile(ctx context.Context, directUrl string, reques
 		return nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return &e
 	default:
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
@@ -132,7 +134,9 @@ func (s *CommonService) GetUploadParams(ctx context.Context) (*UploadParams, err
 		return &result.Data, nil
 	case http.StatusUnauthorized:
 		var e OAuthError
-		json.NewDecoder(resp.Body).Decode(&e)
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
 		return nil, &e
 	default:
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)

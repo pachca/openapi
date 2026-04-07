@@ -339,11 +339,7 @@ function responseTypeName(op: IROperation, ir: IR): string {
   if (op.successResponse.isRedirect) return 'string';
   if (!op.successResponse.hasBody) return 'void';
   if (op.successResponse.isList) {
-    const rt = ir.responses.find(
-      (r) =>
-        r.dataRef === op.successResponse.dataRef &&
-        r.dataIsArray,
-    );
+    const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
     return rt?.name ?? 'unknown';
   }
   return op.successResponse.dataRef ?? 'unknown';
@@ -515,28 +511,32 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
   if (op.requestBody?.contentType === 'multipart') {
     lines.push('    const form = new FormData();');
     const reqModel = ir.models.find((m) => m.name === op.requestBody!.schemaRef);
+    const isUnwrapped = shouldUnwrapBody(op.requestBody);
     if (reqModel) {
       const nonBinary = reqModel.fields.filter((f) => f.type.kind !== 'binary');
       const binary = reqModel.fields.find((f) => f.type.kind === 'binary');
       for (const f of nonBinary) {
         const sdk = fieldSdkName(f);
+        const ref = isUnwrapped ? sdk : `request.${sdk}`;
         const optional = !f.required || f.nullable;
         if (optional) {
           lines.push(
-            `    if (request.${sdk} !== undefined) form.set(${JSON.stringify(f.name)}, request.${sdk});`,
+            `    if (${ref} !== undefined) form.set(${JSON.stringify(f.name)}, ${ref});`,
           );
         }
       }
       for (const f of nonBinary) {
         const sdk = fieldSdkName(f);
+        const ref = isUnwrapped ? sdk : `request.${sdk}`;
         const optional = !f.required || f.nullable;
         if (!optional) {
-          lines.push(`    form.set(${JSON.stringify(f.name)}, request.${sdk});`);
+          lines.push(`    form.set(${JSON.stringify(f.name)}, ${ref});`);
         }
       }
       if (binary) {
         const sdk = fieldSdkName(binary);
-        lines.push(`    form.set(${JSON.stringify(binary.name)}, request.${sdk}, "upload");`);
+        const ref = isUnwrapped ? sdk : `request.${sdk}`;
+        lines.push(`    form.set(${JSON.stringify(binary.name)}, ${ref}, "upload");`);
       }
     }
     const fetchUrl = op.externalUrl
@@ -547,7 +547,9 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
     if (!op.noAuth) lines.push('      headers: this.headers,');
     lines.push('      body: form,');
     lines.push('    });');
-    emitResponseSwitch(lines, op, ir, false);
+    const preloadBody = op.successResponse.hasBody && !op.successResponse.isRedirect;
+    if (preloadBody) lines.push('    const body = await response.json();');
+    emitResponseSwitch(lines, op, ir, preloadBody);
     lines.push('  }');
     return;
   }
@@ -656,9 +658,16 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   for (const p of op.pathParams) callArgs.push(p.sdkName);
   if (paramsType) callArgs.push('{ ...params, cursor } as ' + paramsType);
   lines.push(`      const response = await this.${op.methodName}(${callArgs.join(', ')});`);
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
   lines.push('      items.push(...response.data);');
-  lines.push('      cursor = response.meta?.paginate?.nextPage;');
-  lines.push('    } while (cursor);');
+  lines.push('      if (response.data.length === 0) break;');
+  lines.push(`      cursor = ${metaAccess};`);
+  if (rt?.metaIsRequired) {
+    lines.push('    } while (true);');
+  } else {
+    lines.push('    } while (cursor);');
+  }
   lines.push('    return items;');
   lines.push('  }');
 }

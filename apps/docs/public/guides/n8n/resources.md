@@ -1,0 +1,363 @@
+
+# Ресурсы и операции
+
+В расширении Пачки каждый узел **Pachca** работает по модели **Resource → Operation**: вы выбираете ресурс (например, Message) и операцию над ним (например, Create).
+
+![Выпадающий список ресурсов в узле Pachca](/images/n8n/resource-dropdown.avif)
+
+*Выбор ресурса в узле Pachca*
+
+
+Для каждого ресурса доступен свой набор операций.
+
+![Выпадающий список операций для ресурса Message](/images/n8n/operation-dropdown.avif)
+
+*Операции для ресурса Message*
+
+
+## Список ресурсов
+
+| # | Ресурс | Операций | Описание | Только v2 |
+|---|--------|:---:|----------|:---:|
+| 1 | [Message](#message) | 7 | Сообщения: создание, редактирование, удаление, закрепление | |
+| 2 | [Chat](#chat) | 6 | Чаты: создание, обновление, архивация | |
+| 3 | [Chat Member](#chat-member) | 7 | Участники чата: добавление, удаление, роли, теги | да |
+| 4 | [User](#user) | 10 | Сотрудники: CRUD, аватар, статус | |
+| 5 | [Group Tag](#group-tag) | 6 | Теги сотрудников: CRUD, список пользователей | |
+| 6 | [Thread](#thread) | 2 | Треды: создание, получение | |
+| 7 | [Reaction](#reaction) | 3 | Реакции: создание, удаление, список | |
+| 8 | [Profile](#profile) | 7 | Мой профиль: информация, аватар, статус | |
+| 9 | [Task](#task) | 5 | Задачи: полный CRUD | |
+| 10 | [Bot](#bot) | 3 | Боты: обновление, события, удаление событий | |
+| 11 | [File](#file) | 1 | Загрузка файлов через S3 | |
+| 12 | [Form](#form) | 1 | Модальные формы | |
+| 13 | [Custom Property](#custom-property) | 1 | Дополнительные поля | да |
+| 14 | [Read Member](#read-member) | 1 | Список прочитавших сообщение | да |
+| 15 | [Link Preview](#link-preview) | 1 | Разворачивание ссылок | да |
+| 16 | [Search](#search) | 3 | Полнотекстовый поиск | да |
+| 17 | [Chat Export](#chat-export) | 2 | Экспорт сообщений из чатов | да |
+| 18 | [Security](#security) | 1 | Журнал безопасности | да |
+
+> **Внимание:** Для некоторых операций требуются скоупы, которые доступны только определённым ролям (администратор, владелец). При создании персонального токена отображаются только скоупы, доступные вашей роли. Подробнее — в разделе [Авторизация](/api/authorization).
+
+
+---
+
+## Message
+
+Сообщения: создание, получение, редактирование, удаление, закрепление и открепление.
+
+| Операция | API |
+|----------|-----|
+| Create | [Создание сообщения](POST /messages) |
+| Get Many | [Список сообщений чата](GET /messages) |
+| Get | [Информация о сообщении](GET /messages/{id}) |
+| Update | [Редактирование сообщения](PUT /messages/{id}) |
+| Delete | [Удаление сообщения](DELETE /messages/{id}) |
+| Pin | [Закрепление сообщения](POST /messages/{id}/pin) |
+| Unpin | [Открепление сообщения](DELETE /messages/{id}/pin) |
+
+**Ключевые параметры Create:** `entityId` (ID чата или пользователя), `content` (текст, Markdown), `entityType` (discussion, user, thread), `files`, `buttons`, `parentMessageId`.
+
+**Сортировка в Get Many:** параметры `sort` (по умолчанию `id`) и `order` (`asc` / `desc`) определяют порядок выдачи сообщений.
+
+![Настройка Message Get Many с Entity ID и Return All](/images/n8n/message-get-many.avif)
+
+*Настройка Message → Get Many*
+
+
+---
+
+## Chat
+
+Чаты: создание, получение, обновление, архивация и разархивация.
+
+| Операция | API |
+|----------|-----|
+| Create | [Создание чата](POST /chats) |
+| Get Many | [Список чатов](GET /chats) |
+| Get | [Информация о чате](GET /chats/{id}) |
+| Update | [Обновление чата](PUT /chats/{id}) |
+| Archive | [Архивация чата](PUT /chats/{id}/archive) |
+| Unarchive | [Разархивация чата](PUT /chats/{id}/unarchive) |
+
+**Сортировка в Get Many:** параметры `sort` (`id` или `last_message_at`) и `order` (`asc` / `desc`). Также доступны фильтры `availability`, `lastMessageAtAfter`, `lastMessageAtBefore`.
+
+---
+
+## Chat Member
+
+Управление участниками чата: добавление, удаление, изменение ролей, управление тегами.
+
+> В v1 эти операции были частью ресурса Chat. В v2 они выделены в отдельный ресурс Chat Member.
+
+
+| Операция | API |
+|----------|-----|
+| Get Many | [Список участников чата](GET /chats/{id}/members) |
+| Create | [Добавление пользователей в чат](POST /chats/{id}/members) |
+| Delete | [Удаление пользователя из чата](DELETE /chats/{id}/members/{user_id}) |
+| Update | [Изменение роли участника](PUT /chats/{id}/members/{user_id}) |
+| Leave | [Выход из чата](DELETE /chats/{id}/leave) |
+| Add Group Tags | [Добавление тегов к чату](POST /chats/{id}/group_tags) |
+| Remove Group Tags | [Удаление тегов из чата](DELETE /chats/{id}/group_tags/{tag_id}) |
+
+---
+
+## User
+
+Сотрудники: полный CRUD, получение и управление статусом.
+
+| Операция | API |
+|----------|-----|
+| Create | [Создание сотрудника](POST /users) |
+| Get Many | [Список сотрудников](GET /users) |
+| Get | [Информация о сотруднике](GET /users/{id}) |
+| Update | [Обновление сотрудника](PUT /users/{id}) |
+| Delete | [Удаление сотрудника](DELETE /users/{id}) |
+| Update Avatar | [Обновление аватара](PUT /users/{user_id}/avatar) |
+| Delete Avatar | [Удаление аватара](DELETE /users/{user_id}/avatar) |
+| Get Status | [Получение статуса](GET /users/{user_id}/status) |
+| Update Status | [Обновление статуса](PUT /users/{user_id}/status) |
+| Delete Status | [Удаление статуса](DELETE /users/{user_id}/status) |
+
+---
+
+## Group Tag
+
+Теги (группы) сотрудников: создание, обновление, удаление, список пользователей.
+
+| Операция | API |
+|----------|-----|
+| Create | [Создание тега](POST /group_tags) |
+| Get Many | [Список тегов](GET /group_tags) |
+| Get | [Информация о теге](GET /group_tags/{id}) |
+| Update | [Обновление тега](PUT /group_tags/{id}) |
+| Delete | [Удаление тега](DELETE /group_tags/{id}) |
+| Get Many Users | [Список пользователей тега](GET /group_tags/{id}/users) |
+
+---
+
+## Thread
+
+Треды (комментарии к сообщениям): создание и получение.
+
+| Операция | API |
+|----------|-----|
+| Create | [Создание треда](POST /messages/{id}/thread) |
+| Get | [Информация о треде](GET /threads/{id}) |
+
+---
+
+## Reaction
+
+Реакции на сообщения: создание, удаление, список.
+
+| Операция | API |
+|----------|-----|
+| Create | [Добавление реакции](POST /messages/{id}/reactions) |
+| Delete | [Удаление реакции](DELETE /messages/{id}/reactions) |
+| Get Many | [Список реакций](GET /messages/{id}/reactions) |
+
+---
+
+## Profile
+
+Профиль текущего пользователя: информация, статус, информация о токене.
+
+| Операция | API |
+|----------|-----|
+| Get | [Информация о профиле](GET /profile) |
+| Get Info | [Информация о токене](GET /oauth/token/info) |
+| Update Avatar | [Обновление аватара](PUT /profile/avatar) |
+| Delete Avatar | [Удаление аватара](DELETE /profile/avatar) |
+| Get Status | [Получение статуса](GET /profile/status) |
+| Update Status | [Обновление статуса](PUT /profile/status) |
+| Delete Status | [Удаление статуса](DELETE /profile/status) |
+
+**Загрузка аватара:** операция Update Avatar принимает бинарные данные из предыдущего узла (например, HTTP Request или Read Binary File). В поле **Input Binary Field** укажите имя бинарного свойства (по умолчанию `data`).
+
+---
+
+## Task
+
+Задачи (напоминания): полный CRUD.
+
+| Операция | API |
+|----------|-----|
+| Create | [Создание задачи](POST /tasks) |
+| Get Many | [Список задач](GET /tasks) |
+| Get | [Информация о задаче](GET /tasks/{id}) |
+| Update | [Обновление задачи](PUT /tasks/{id}) |
+| Delete | [Удаление задачи](DELETE /tasks/{id}) |
+
+**Типы задач:** `call`, `email`, `event`, `meeting`, `reminder`.
+
+---
+
+## Bot
+
+Управление ботами: обновление настроек, получение и удаление событий.
+
+| Операция | API |
+|----------|-----|
+| Update | [Обновление бота](PUT /bots/{id}) |
+| Get Many Events | [Список событий бота](GET /webhooks/events) |
+| Remove Events | [Удаление событий](DELETE /webhooks/events/{id}) |
+
+---
+
+## File
+
+Загрузка файлов через двухшаговый S3 upload.
+
+| Операция | API |
+|----------|-----|
+| Create | [Загрузка файла](POST /uploads) |
+
+Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#zagruzka-fajlov).
+
+---
+
+## Form
+
+Модальные формы (представления).
+
+| Операция | API |
+|----------|-----|
+| Create | [Открытие представления](POST /views/open) |
+
+Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#formy) и в [документации форм](/guides/forms/overview).
+
+---
+
+## Custom Property
+
+Дополнительные поля пространства.
+
+| Операция | API |
+|----------|-----|
+| Get | [Список дополнительных полей](GET /custom_properties) |
+
+---
+
+## Read Member
+
+Список пользователей, прочитавших сообщение.
+
+| Операция | API |
+|----------|-----|
+| Get Many | [Список прочитавших](GET /messages/{id}/read_member_ids) |
+
+---
+
+## Link Preview
+
+Разворачивание ссылок в сообщениях.
+
+| Операция | API |
+|----------|-----|
+| Create | [Создание превью ссылки](POST /messages/{id}/link_previews) |
+
+Подробнее — в [документации разворачивания ссылок](/guides/link-previews).
+
+---
+
+## Search
+
+Полнотекстовый поиск по сообщениям, чатам и пользователям.
+
+| Операция | API |
+|----------|-----|
+| Get Many Chats | [Поиск чатов](GET /search/chats) |
+| Get Many Messages | [Поиск сообщений](GET /search/messages) |
+| Get Many Users | [Поиск пользователей](GET /search/users) |
+
+**Обязательный параметр:** `query` — строка поиска.
+
+---
+
+## Chat Export
+
+Экспорт сообщений из чатов: запрос экспорта и скачивание архива.
+
+| Операция | API |
+|----------|-----|
+| Create | [Запрос экспорта](POST /chats/exports) |
+| Get | [Скачивание архива](GET /chats/exports/{id}) |
+
+**Ключевые параметры Create:** `startAt` (дата начала, YYYY-MM-DD), `endAt` (дата окончания), `webhookUrl` (URL для уведомления о готовности).
+
+**Дополнительные параметры:** `chatIds` (экспорт конкретных чатов, до 50), `skipChatsFile` (не создавать chats.json).
+
+Экспорт выполняется асинхронно. После завершения Пачка отправит вебхук на указанный `webhookUrl` с `export_id`. Используйте операцию **Get** для скачивания готового архива.
+
+Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#eksport-soobshhenij) и в [документации экспорта](/guides/export).
+
+---
+
+## Security
+
+Журнал безопасности: отслеживание действий пользователей.
+
+| Операция | API |
+|----------|-----|
+| Get Many | [Список событий аудита](GET /audit_events) |
+
+**Фильтры:** `eventKey`, `actorId`, `actorType`, `entityId`, `entityType`, `startTime`, `endTime`.
+
+Подробнее — в [документации журнала аудита](/guides/audit-events).
+
+---
+
+## Пагинация
+
+Все операции Get Many поддерживают автоматическую курсорную пагинацию:
+
+- **Return All** = `true` — получить все результаты автоматически, переключаясь между страницами
+- **Return All** = `false` — получить не более **Limit** результатов (по умолчанию 50)
+
+![Переключатель Return All и поле Limit в узле Pachca](/images/n8n/return-all.avif)
+
+*Return All и Limit для операции Get Many*
+
+
+n8n автоматически отправляет повторные запросы с курсором до получения всех данных.
+
+> Для операций со списками (Get Many) рекомендуется использовать **Return All = false** с разумным **Limit**, чтобы избежать долгих запросов при большом объёме данных.
+
+
+---
+
+## Simplify
+
+Операции получения данных (Get, Get Many) поддерживают переключатель **Simplify** (включён по умолчанию). Когда Simplify включён, из ответа API возвращаются только ключевые поля — остальные отбрасываются.
+
+| Ресурс | Ключевые поля |
+|--------|---------------|
+| Message | `id`, `entity_id`, `chat_id`, `content`, `user_id`, `created_at` |
+| Chat | `id`, `name`, `channel`, `public`, `members_count`, `created_at` |
+| User | `id`, `first_name`, `last_name`, `nickname`, `email`, `role`, `suspended` |
+| Task | `id`, `content`, `kind`, `status`, `priority`, `due_at`, `created_at` |
+| Bot | `id`, `name`, `created_at` |
+| Group Tag | `id`, `name`, `users_count` |
+| Reaction | `id`, `code`, `user_id`, `created_at` |
+| Chat Export | `id`, `status`, `created_at` |
+
+Чтобы получить все поля ответа — выключите **Simplify**.
+
+> Simplify доступен только в v2. В v1 workflow всегда возвращают полный ответ API.
+
+
+---
+
+## Поисковые выпадающие списки
+
+![Поисковый выпадающий список Chat ID в узле Pachca](/images/n8n/searchable-dropdown.avif)
+
+*Поиск чата по имени в поле Chat ID*
+
+
+Для поля **Chat ID** доступен поиск по имени: начните вводить текст, и n8n покажет подходящие результаты из вашего пространства Пачки.
+
+Поиск вызывает API-эндпоинт [Поиск чатов](GET /search/chats) и работает только с валидным `Access Token` в Credentials.

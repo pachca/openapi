@@ -171,6 +171,8 @@ pachca guide            # список всех сценариев
 |---------|---------|
 | `pachca profile get-info` | Информация о токене |
 | `pachca profile get` | Информация о профиле |
+| `pachca profile update-avatar` | Загрузка аватара |
+| `pachca profile delete-avatar` | Удаление аватара |
 | `pachca profile get-status` | Текущий статус |
 | `pachca profile update-status` | Новый статус |
 | `pachca profile delete-status` | Удаление статуса |
@@ -202,6 +204,8 @@ pachca guide            # список всех сценариев
 | `pachca users get` | Информация о сотруднике |
 | `pachca users update` | Редактирование сотрудника |
 | `pachca users delete` | Удаление сотрудника |
+| `pachca users update-avatar` | Загрузка аватара сотрудника |
+| `pachca users remove-avatar` | Удаление аватара сотрудника |
 | `pachca users get-status` | Статус сотрудника |
 | `pachca users update-status` | Новый статус сотрудника |
 | `pachca users remove-status` | Удаление статуса сотрудника |

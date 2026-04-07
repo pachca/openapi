@@ -90,7 +90,7 @@ await client.close()
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ содержит `meta.paginate.next_page` — курсор для следующей страницы.
+Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.next_page` — курсор для следующей страницы. Курсор никогда не бывает `None` — конец данных определяется по пустому списку `data`.
 
 ### Ручная пагинация
 
@@ -100,10 +100,10 @@ from pachca.models import ListUsersParams
 cursor = None
 while True:
     response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
+    if not response.data:
+        break
     for user in response.data:
         print(user.first_name, user.last_name)
-    if not response.meta or not response.meta.paginate or not response.meta.paginate.next_page:
-        break
     cursor = response.meta.paginate.next_page
 ```
 
@@ -180,12 +180,13 @@ except OAuthError as error:
 
 ## Повторные запросы
 
-SDK автоматически повторяет запрос при получении `429 Too Many Requests`:
+SDK автоматически повторяет запрос при получении `429 Too Many Requests` и ошибок сервера `5xx` (`500`, `502`, `503`, `504`):
 
 - До **3 повторов** на каждый запрос
-- Если сервер вернул заголовок `Retry-After` — ждёт указанное время
-- Иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **429:** если сервер вернул заголовок `Retry-After` — ждёт указанное время, иначе — экспоненциальный backoff: 1 сек, 2 сек, 4 сек
+- **5xx:** экспоненциальный backoff с jitter: ~10 сек, ~20 сек, ~40 сек
 - Реализовано через `RetryTransport` — обёртку над httpx-транспортом
+- Ошибки клиента (4xx, кроме 429) возвращаются сразу без повторов
 
 ## Типы
 

@@ -1,0 +1,150 @@
+---
+title: Триггер
+description: "Pachca Trigger: 16 типов событий, авторегистрация вебхука, проверка подписи"
+---
+
+# Триггер
+
+Узел **Pachca Trigger** запускает workflow при наступлении события в Пачке — новое сообщение, нажатие кнопки, отправка формы, изменение состава команды и др.
+
+## Поддерживаемые события
+
+### Сообщения и чаты
+
+| Событие | Значение | Описание |
+|---------|----------|----------|
+| Новое сообщение | `new_message` | Создание сообщения в чате |
+| Сообщение изменено | `message_updated` | Редактирование существующего сообщения |
+| Сообщение удалено | `message_deleted` | Удаление сообщения |
+| Новая реакция | `new_reaction` | Добавление реакции к сообщению |
+| Реакция удалена | `reaction_deleted` | Удаление реакции с сообщения |
+| Участник добавлен | `chat_member_added` | Добавление участника в чат |
+| Участник удалён | `chat_member_removed` | Удаление участника из чата |
+
+### Интерактивные элементы
+
+| Событие | Значение | Описание |
+|---------|----------|----------|
+| Нажатие кнопки | `button_pressed` | Клик по Data-кнопке в сообщении |
+| Отправка формы | `form_submitted` | Отправка модальной формы |
+| Ссылка отправлена | `link_shared` | Бот может развернуть превью ссылки |
+
+### Сотрудники
+
+| Событие | Значение | Описание |
+|---------|----------|----------|
+| Приглашение сотрудника | `company_member_invite` | Отправлено приглашение новому сотруднику |
+| Подтверждение регистрации | `company_member_confirm` | Сотрудник подтвердил регистрацию |
+| Активация сотрудника | `company_member_activate` | Сотрудник активирован |
+| Обновление сотрудника | `company_member_update` | Изменение данных сотрудника |
+| Приостановка сотрудника | `company_member_suspend` | Сотрудник приостановлен |
+| Удаление сотрудника | `company_member_delete` | Сотрудник удалён |
+
+### Wildcard
+
+| Событие | Значение | Описание |
+|---------|----------|----------|
+| Все события | `*` | Получать все типы событий |
+
+<ImageCard src="/images/n8n/trigger-events.avif" alt="Типы событий Pachca Trigger" caption="16 типов событий в Pachca Trigger" maxWidth={960} />
+
+<Warning>Бот получает события только из чатов, в которых он состоит. Убедитесь, что бот добавлен в нужные чаты.</Warning>
+
+## Настройка
+
+Добавьте узел **Pachca Trigger** в workflow — найдите его через поиск в панели узлов.
+
+<ImageCard src="/images/n8n/trigger-add.avif" alt="Поиск Pachca Trigger в панели узлов" caption="Поиск Pachca Trigger" maxWidth={960} />
+
+### Автоматический режим (рекомендуется)
+
+<ImageCard src="/images/n8n/trigger-node.avif" alt="Конфигурация Pachca Trigger с выбором события" caption="Настройка Pachca Trigger" maxWidth={960} />
+
+При наличии **Bot ID** в [Credentials](/guides/n8n/setup#sozdanie-credentials) вебхук регистрируется автоматически:
+
+<Steps>
+  <Step title="Укажите Bot ID в Credentials">
+    Откройте Pachca API Credentials и заполните поле **Bot ID** — это ID вашего бота в Пачке.
+  </Step>
+  <Step title="Добавьте Pachca Trigger">
+    Создайте новый workflow и добавьте узел **Pachca Trigger**. Выберите нужный тип события.
+  </Step>
+  <Step title="Активируйте workflow">
+    Нажмите **Activate**. n8n автоматически вызовет [Обновление бота](PUT /bots/{id}) и зарегистрирует webhook URL в настройках бота.
+  </Step>
+</Steps>
+
+При деактивации workflow вебхук автоматически удаляется.
+
+<Mermaid
+  title="Автоматическая регистрация вебхука"
+  chart={`sequenceDiagram
+    participant n8n
+    participant Pachca as Pachca API
+    participant Bot as Бот в Пачке
+
+    Note over n8n: Активация workflow
+    n8n->>Pachca: PUT /bots/{id}<br/>webhook_url=n8n_url
+    Pachca->>Bot: Webhook зарегистрирован
+
+    Note over Bot: Событие в чате
+    Bot->>Pachca: Новое сообщение
+    Pachca->>n8n: POST webhook_url<br/>+ payload + signature
+    Note over n8n: Проверка подписи
+    n8n->>n8n: Запуск workflow
+
+    Note over n8n: Деактивация workflow
+    n8n->>Pachca: PUT /bots/{id}<br/>webhook_url=null
+    Pachca->>Bot: Webhook удалён`}
+/>
+
+### Ручной режим
+
+Если **Bot ID** не указан в Credentials:
+
+1. Добавьте узел **Pachca Trigger** в workflow
+2. Скопируйте сгенерированный **Webhook URL** из настроек узла
+3. Вставьте URL в настройки бота в Пачке (раздел **Webhook URL**)
+4. Активируйте workflow
+
+## Безопасность
+
+### Проверка подписи
+
+Для защиты от поддельных запросов добавьте **Signing Secret** бота в [Credentials](/guides/n8n/setup#sozdanie-credentials). Trigger автоматически проверяет HMAC-SHA256 подпись каждого входящего запроса через заголовок `pachca-signature` и отклоняет невалидные.
+
+Подробнее о механизме подписи — в разделе [Исходящие вебхуки](/guides/webhook#bezopasnost).
+
+<Info>Рекомендуется всегда использовать Signing Secret в продакшене для защиты от несанкционированных запросов.</Info>
+
+### Ограничение по IP
+
+Укажите **Webhook Allowed IPs** в [Credentials](/guides/n8n/setup#sozdanie-credentials) — через запятую список IP-адресов, с которых принимаются вебхуки. Пачка отправляет вебхуки с IP `37.200.70.177`.
+
+Если поле пустое — проверка IP отключена и запросы принимаются с любого адреса.
+
+<Warning>Ограничение по IP — дополнительная мера. Заголовок `x-forwarded-for` может быть подменён, если n8n не стоит за доверенным reverse proxy. Используйте вместе с Signing Secret.</Warning>
+
+### Защита от повторов
+
+Trigger автоматически отклоняет события старше **5 минут** (по полю `webhook_timestamp` в теле запроса). Это защищает от replay-атак — повторной отправки перехваченного запроса.
+
+## Фильтрация событий
+
+Выберите конкретный тип события для фильтрации — workflow будет запускаться только при совпадении. Можно выбрать только один тип события на один узел Trigger.
+
+<Info>Используйте **All Events** (`*`) и фильтруйте в последующих узлах (например, через IF или Switch), если нужна сложная логика маршрутизации по типу события или обработка нескольких типов в одном workflow.</Info>
+
+## Пример: бот-эхо
+
+<ImageCard src="/images/n8n/workflow-trigger-example.avif" alt="Пример workflow с Pachca Trigger" caption="Workflow с триггером и действием Pachca" maxWidth={960} />
+
+Простой workflow, который отвечает на каждое новое сообщение:
+
+1. **Pachca Trigger** — событие `New Message`
+2. **IF** — условие: `message.user_id` не равен ID бота (чтобы бот не отвечал сам себе)
+3. **Pachca** — операция `Message > Create`, `entityId` = ID чата из триггера, `content` = текст ответа
+
+<Info>ID бота — это `user_id` из ответа [Информация о профиле](GET /profile) при авторизации токеном бота.</Info>
+
+Больше готовых сценариев — в разделе [Примеры workflow](/guides/n8n/workflows).

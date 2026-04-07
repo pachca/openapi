@@ -43,7 +43,8 @@ public struct ChatsService {
         repeat {
             let response = try await listChats(availability: availability, limit: limit, cursor: cursor, sortField: sortField, sortOrder: sortOrder)
             items.append(contentsOf: response.data)
-            cursor = response.meta?.paginate?.nextPage
+            if response.data.isEmpty { break }
+            cursor = response.meta?.paginate.nextPage
         } while cursor != nil
         return items
     }

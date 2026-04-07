@@ -1,5 +1,41 @@
 [
   {
+    "version": "2026.4.0",
+    "date": "7 апреля 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "profile update-avatar",
+        "description": "Загрузка аватара профиля"
+      },
+      {
+        "type": "+",
+        "command": "profile delete-avatar",
+        "description": "Удаление аватара профиля"
+      },
+      {
+        "type": "+",
+        "command": "users update-avatar",
+        "description": "Загрузка аватара сотрудника"
+      },
+      {
+        "type": "+",
+        "command": "users remove-avatar",
+        "description": "Удаление аватара сотрудника"
+      },
+      {
+        "type": "~",
+        "command": "chats list, messages list",
+        "description": "Исправлена сортировка: --order без --sort теперь корректно работает (sort по умолчанию id, order по умолчанию desc)"
+      },
+      {
+        "type": "~",
+        "command": "messages list",
+        "description": "chat_id можно передать первым аргументом: pachca messages list 12345"
+      }
+    ]
+  },
+  {
     "version": "2026.3.10",
     "date": "21 марта 2026",
     "changes": [

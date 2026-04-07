@@ -10,7 +10,7 @@ function camelToSnake(str: string): string {
     .toLowerCase();
 }
 
-const RECORD_KEYS = new Set(["payload", "filters", "link_previews", "linkPreviews"]);
+const RECORD_KEYS = new Set(["payload", "filters", "link_previews", "linkPreviews", "data"]);
 
 function deserializeRecord(obj: unknown): unknown {
   if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {

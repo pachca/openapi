@@ -156,9 +156,11 @@ function flattenItems(sections: NavigationSection[]): NavigationItem[] {
   for (const section of sections) {
     for (const item of section.items) {
       if (item.children) {
-        result.push(...item.children);
+        for (const child of item.children) {
+          result.push({ ...child, sectionTitle: child.sectionTitle || item.title });
+        }
       } else {
-        result.push(item);
+        result.push({ ...item, sectionTitle: item.sectionTitle || section.title });
       }
     }
   }

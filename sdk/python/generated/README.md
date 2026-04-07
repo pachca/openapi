@@ -5,7 +5,7 @@ Python клиент для [Pachca API](https://dev.pachca.com).
 ## Установка
 
 ```bash
-pip install pachca-sdk==1.0.1
+pip install pachca-sdk
 ```
 
 ## Использование
@@ -61,10 +61,10 @@ chats = []
 cursor = None
 while True:
     response = await client.chats.list_chats(cursor=cursor)
-    chats.extend(response.data)
-    cursor = response.meta.paginate.next_page if response.meta and response.meta.paginate else None
-    if not cursor:
+    if not response.data:
         break
+    chats.extend(response.data)
+    cursor = response.meta.paginate.next_page
 
 # Автоматически
 all_chats = await client.chats.list_chats_all()

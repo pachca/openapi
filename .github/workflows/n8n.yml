@@ -193,7 +193,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm pack
-          mv n8n-nodes-pachca-*.tgz n8n-nodes-pachca.tgz
+          mkdir n8n-nodes-pachca
+          tar -xzf n8n-nodes-pachca-*.tgz --strip-components=1 -C n8n-nodes-pachca
+          rm n8n-nodes-pachca-*.tgz
+          tar -czf n8n-nodes-pachca.tgz n8n-nodes-pachca
           gh release create "n8n-v${{ steps.version.outputs.version }}" \
             n8n-nodes-pachca.tgz \
             --title "n8n-nodes-pachca v${{ steps.version.outputs.version }}" \

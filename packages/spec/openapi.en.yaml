@@ -4854,7 +4854,7 @@ components:
             - 187
         silent:
           type: boolean
-          description: Do not create a system message in the chat about adding a member
+          description: Whether to skip creating a system message about adding members
           example: true
       description: Request to add members to a chat
     AddTagsRequest:
@@ -5470,7 +5470,7 @@ components:
           example: false
         public:
           type: boolean
-          description: Publicly accessible
+          description: Whether the chat is publicly accessible
           example: false
         last_message_at:
           type: string
@@ -5528,7 +5528,7 @@ components:
               default: false
             public:
               type: boolean
-              description: Publicly accessible
+              description: Whether the chat is publicly accessible
               example: false
               default: false
           required:
@@ -5647,7 +5647,7 @@ components:
               example: Pool
             public:
               type: boolean
-              description: Publicly accessible
+              description: Whether the chat is publicly accessible
               example: true
           description: Chat parameters object to update
       description: Chat update request
@@ -6261,7 +6261,7 @@ components:
               example: 334
             content:
               type: string
-              description: Message text
+              description: 'Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).'
               example: Yesterday we sold 756 t-shirts (10% more than last Sunday)
             files:
               type: array
@@ -6374,7 +6374,7 @@ components:
           properties:
             content:
               type: string
-              description: Message text
+              description: 'Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`).'
               example: >-
                 Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur,
                 liaison, necessary, surveillance, questionnaire.
@@ -7124,7 +7124,7 @@ components:
               example: '2024-04-08T10:00:00.000Z'
             is_away:
               type: boolean
-              description: '"Away" mode'
+              description: Whether to enable "Away" mode
               example: true
             away_message:
               type: string
@@ -7215,7 +7215,7 @@ components:
             - 12
         all_day:
           type: boolean
-          description: All-day task (without specific time)
+          description: Whether this is an all-day task (without specific time)
           example: false
         custom_properties:
           type: array
@@ -7269,7 +7269,7 @@ components:
               example: 456
             all_day:
               type: boolean
-              description: All-day task (without specific time)
+              description: Whether this is an all-day task (without specific time)
               example: false
             custom_properties:
               type: array
@@ -7361,7 +7361,7 @@ components:
               example: done
             all_day:
               type: boolean
-              description: All-day task (without specific time)
+              description: Whether this is an all-day task (without specific time)
               example: false
             done_at:
               type: string
@@ -7551,7 +7551,7 @@ components:
           example: admin
         suspended:
           type: boolean
-          description: User deactivated
+          description: Whether the user is deactivated
           example: false
         invite_status:
           allOf:
@@ -7648,7 +7648,7 @@ components:
               example: user
             suspended:
               type: boolean
-              description: User deactivated
+              description: Whether the user is deactivated
               example: false
             list_tags:
               type: array
@@ -7751,7 +7751,7 @@ components:
           example: '2024-04-08T10:00:00.000Z'
         is_away:
           type: boolean
-          description: '"Away" mode'
+          description: Whether to enable "Away" mode
           example: false
         away_message:
           type: object
@@ -7810,7 +7810,7 @@ components:
               example: user
             suspended:
               type: boolean
-              description: User deactivated
+              description: Whether the user is deactivated
               example: false
             list_tags:
               type: array

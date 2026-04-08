@@ -79,7 +79,6 @@ export const userFields: INodeProperties[] = [
 		default: "",
 		displayOptions: { show: { resource: ['user'], operation: ['create'] } },
 		placeholder: 'olegp@example.com',
-		routing: { send: { type: 'body', property: 'email' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -117,7 +116,6 @@ export const userFields: INodeProperties[] = [
 				}],
 				default: [],
 				description: 'Custom properties to set',
-				routing: { send: { type: 'body', property: 'custom_properties' } },
 			},
 			{
 				displayName: 'Department',
@@ -125,7 +123,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'Product',
-				routing: { send: { type: 'body', property: 'department' } },
 			},
 			{
 				displayName: 'First Name',
@@ -133,7 +130,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'Oleg',
-				routing: { send: { type: 'body', property: 'first_name' } },
 			},
 			{
 				displayName: 'Last Name',
@@ -141,7 +137,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'Petrov',
-				routing: { send: { type: 'body', property: 'last_name' } },
 			},
 			{
 				displayName: 'List Tags',
@@ -158,7 +153,6 @@ export const userFields: INodeProperties[] = [
 				default: "",
 				description: 'Username',
 				placeholder: 'olegpetrov',
-				routing: { send: { type: 'body', property: 'nickname' } },
 			},
 			{
 				displayName: 'Phone Number',
@@ -166,7 +160,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: '+79001234567',
-				routing: { send: { type: 'body', property: 'phone_number' } },
 			},
 			{
 				displayName: 'Role',
@@ -177,7 +170,6 @@ export const userFields: INodeProperties[] = [
 { name: 'User', value: 'user', description: 'Employee' }],
 				default: "user",
 				description: 'Access level',
-				routing: { send: { type: 'body', property: 'role' } },
 			},
 			{
 				displayName: 'Skip Email Notify',
@@ -185,15 +177,13 @@ export const userFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether to skip sending an invitation to the employee. The employee will not receive an email invitation to create an account. Useful when pre-creating accounts before SSO login.',
-				routing: { send: { type: 'body', property: 'skip_email_notify' } },
 			},
 			{
 				displayName: 'Suspended',
 				name: 'suspended',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to user deactivated',
-				routing: { send: { type: 'body', property: 'suspended' } },
+				description: 'Whether the user is deactivated',
 			},
 			{
 				displayName: 'Title',
@@ -202,7 +192,6 @@ export const userFields: INodeProperties[] = [
 				default: "",
 				description: 'Job title',
 				placeholder: 'CIO',
-				routing: { send: { type: 'body', property: 'title' } },
 			},
 		],
 	},
@@ -239,7 +228,6 @@ export const userFields: INodeProperties[] = [
 		description: 'Search phrase to filter results. Search works on the following fields: `first_name`, `last_name`, `email`, `phone_number`, and `nickname`.',
 		placeholder: 'Oleg',
 		displayOptions: { show: { resource: ['user'], operation: ['getAll'] } },
-		routing: { send: { type: 'query', property: 'query' } },
 	},
 	{
 		displayName: 'ID',
@@ -354,7 +342,6 @@ export const userFields: INodeProperties[] = [
 				}],
 				default: [],
 				description: 'Custom properties to set',
-				routing: { send: { type: 'body', property: 'custom_properties' } },
 			},
 			{
 				displayName: 'Department',
@@ -362,7 +349,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'Engineering',
-				routing: { send: { type: 'body', property: 'department' } },
 			},
 			{
 				displayName: 'Email',
@@ -370,7 +356,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'olegpetrov@example.com',
-				routing: { send: { type: 'body', property: 'email' } },
 			},
 			{
 				displayName: 'First Name',
@@ -378,7 +363,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'Oleg',
-				routing: { send: { type: 'body', property: 'first_name' } },
 			},
 			{
 				displayName: 'Last Name',
@@ -386,7 +370,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'Petrov',
-				routing: { send: { type: 'body', property: 'last_name' } },
 			},
 			{
 				displayName: 'List Tags',
@@ -403,7 +386,6 @@ export const userFields: INodeProperties[] = [
 				default: "",
 				description: 'Username',
 				placeholder: 'olegpetrov',
-				routing: { send: { type: 'body', property: 'nickname' } },
 			},
 			{
 				displayName: 'Phone Number',
@@ -411,7 +393,6 @@ export const userFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: '+79001234567',
-				routing: { send: { type: 'body', property: 'phone_number' } },
 			},
 			{
 				displayName: 'Role',
@@ -422,15 +403,13 @@ export const userFields: INodeProperties[] = [
 { name: 'User', value: 'user', description: 'Employee' }],
 				default: "user",
 				description: 'Access level',
-				routing: { send: { type: 'body', property: 'role' } },
 			},
 			{
 				displayName: 'Suspended',
 				name: 'suspended',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to user deactivated',
-				routing: { send: { type: 'body', property: 'suspended' } },
+				description: 'Whether the user is deactivated',
 			},
 			{
 				displayName: 'Title',
@@ -439,7 +418,6 @@ export const userFields: INodeProperties[] = [
 				default: "",
 				description: 'Job title',
 				placeholder: 'Senior Developer',
-				routing: { send: { type: 'body', property: 'title' } },
 			},
 		],
 	},
@@ -567,7 +545,6 @@ export const userFields: INodeProperties[] = [
 		description: 'Status emoji character',
 		displayOptions: { show: { resource: ['user'], operation: ['updateStatus'] } },
 		placeholder: '🎮',
-		routing: { send: { type: 'body', property: 'emoji' } },
 	},
 	{
 		displayName: 'Title',
@@ -578,7 +555,6 @@ export const userFields: INodeProperties[] = [
 		description: 'Status text',
 		displayOptions: { show: { resource: ['user'], operation: ['updateStatus'] } },
 		placeholder: 'Very busy',
-		routing: { send: { type: 'body', property: 'title' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -595,7 +571,6 @@ export const userFields: INodeProperties[] = [
 				default: "",
 				description: 'Away mode message text. Displayed in the profile and in direct messages/mentions.',
 				placeholder: 'Back after 3 PM',
-				routing: { send: { type: 'body', property: 'away_message' } },
 			},
 			{
 				displayName: 'Expires At',
@@ -604,15 +579,13 @@ export const userFields: INodeProperties[] = [
 				default: "",
 				description: 'Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format',
 				placeholder: '2024-04-08T10:00:00.000Z',
-				routing: { send: { type: 'body', property: 'expires_at' } },
 			},
 			{
 				displayName: 'Is Away',
 				name: 'isAway',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to "Away" mode',
-				routing: { send: { type: 'body', property: 'is_away' } },
+				description: 'Whether to enable "Away" mode',
 			},
 		],
 	},

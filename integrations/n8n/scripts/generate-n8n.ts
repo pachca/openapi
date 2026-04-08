@@ -205,13 +205,14 @@ const V1_ALIAS_ROUTING: Record<string, Record<string, { method: string; url: str
 type AliasFieldDef = {
   name: string;
   displayName: string;
-  type: 'number' | 'string' | 'boolean' | 'options';
+  type: 'number' | 'string' | 'boolean' | 'options' | 'json';
   required?: boolean;
   default?: unknown;
   description?: string;
   placeholder?: string;
   options?: { name: string; value: string }[];
-  routing?: { send: { type: 'body' | 'query'; property: string } };
+  /** API property name for SharedRouter bodyMap (when different from `name`) */
+  apiProperty?: string;
 };
 
 const V1_ALIAS_FIELDS: Record<string, Record<string, { fields: AliasFieldDef[]; pagination?: boolean }>> = {
@@ -226,7 +227,7 @@ const V1_ALIAS_FIELDS: Record<string, Record<string, { fields: AliasFieldDef[]; 
       fields: [
         { name: 'chatId', displayName: 'Chat ID', type: 'number', required: true, default: 0, description: 'ID of the chat' },
         { name: 'memberIds', displayName: 'Member IDs', type: 'string', required: true, default: '', description: 'Comma-separated list of user IDs to add', placeholder: '186,187' },
-        { name: 'silent', displayName: 'Silent', type: 'boolean', default: false, description: 'Whether to skip creating a system message about adding members', routing: { send: { type: 'body', property: 'silent' } } },
+        { name: 'silent', displayName: 'Silent', type: 'boolean', default: false, description: 'Whether to skip creating a system message about adding members', apiProperty: 'silent' },
       ],
     },
     removeUser: {
@@ -240,8 +241,7 @@ const V1_ALIAS_FIELDS: Record<string, Record<string, { fields: AliasFieldDef[]; 
         { name: 'chatId', displayName: 'Chat ID', type: 'number', required: true, default: 0, description: 'ID of the chat' },
         { name: 'userId', displayName: 'User ID', type: 'number', required: true, default: 0, description: 'ID of the user' },
         { name: 'newRole', displayName: 'Role', type: 'options', required: true, default: 'member',
-          options: [{ name: 'Admin', value: 'admin' }, { name: 'Editor', value: 'editor' }, { name: 'Member', value: 'member' }],
-          routing: { send: { type: 'body', property: 'role' } } },
+          options: [{ name: 'Admin', value: 'admin' }, { name: 'Editor', value: 'editor' }, { name: 'Member', value: 'member' }], apiProperty: 'role' },
       ],
     },
     leaveChat: {
@@ -262,8 +262,7 @@ const V1_ALIAS_FIELDS: Record<string, Record<string, { fields: AliasFieldDef[]; 
         { name: 'messageId', displayName: 'Message ID', type: 'number', required: true, default: 0, description: 'ID of the message' },
         { name: 'linkPreviews', displayName: 'Link Previews', type: 'json', required: true, default: '',
           description: 'JSON map of link previews where each key is a URL',
-          placeholder: '{"https://example.com":{"title":"Example","description":"Desc"}}',
-          routing: { send: { type: 'body', property: 'link_previews' } } },
+          placeholder: '{"https://example.com":{"title":"Example","description":"Desc"}}', apiProperty: 'link_previews' },
       ],
     },
   },
@@ -741,11 +740,17 @@ function quote(s: string): string {
   return `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 }
 
+/** Display name overrides for enum values (when formatDisplayName isn't sufficient) */
+const ENUM_DISPLAY_OVERRIDES: Record<string, string> = {
+  asc: 'Ascending',
+  desc: 'Descending',
+};
+
 function generateEnumOptions(values: unknown[], enumDescriptions?: Record<string, string>): string {
   return values
     .map(v => {
       const val = String(v);
-      const name = formatDisplayName(val);
+      const name = ENUM_DISPLAY_OVERRIDES[val] ?? formatDisplayName(val);
       const desc = enumDescriptions?.[val];
       if (desc && desc.toLowerCase() !== name.toLowerCase()) {
         return { name, val, str: `{ name: ${quote(name)}, value: ${quote(val)}, description: ${quote(desc)} }` };
@@ -1076,7 +1081,6 @@ function generateResourceDescription(
         }
         lines.push(`\t\t],`);
         lines.push(`\t\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
-        lines.push(`\t\trouting: { send: { type: 'query', property: ${quote(param.name)} } },`);
         lines.push(`\t},`);
 
         continue;
@@ -1220,17 +1224,17 @@ function generateResourceDescription(
       lines.push(`\t\t\t\t\tname: 'type',`);
       lines.push(`\t\t\t\t\ttype: 'options',`);
       lines.push(`\t\t\t\t\toptions: [`);
-      lines.push(`\t\t\t\t\t\t{ name: '☑️ Checkboxes', value: 'checkbox' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '➖ Divider', value: 'divider' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📄 Plain Text', value: 'plain_text' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📅 Date Picker', value: 'date' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📋 Select Dropdown', value: 'select' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📎 File Upload', value: 'file_input' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📝 Header', value: 'header' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📝 Markdown', value: 'markdown' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '📝 Text Input', value: 'input' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '🔘 Radio Buttons', value: 'radio' },`);
-      lines.push(`\t\t\t\t\t\t{ name: '🕐 Time Picker', value: 'time' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Checkboxes', value: 'checkbox' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Date Picker', value: 'date' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Divider', value: 'divider' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'File Upload', value: 'file_input' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Header', value: 'header' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Markdown', value: 'markdown' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Plain Text', value: 'plain_text' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Radio Buttons', value: 'radio' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Select Dropdown', value: 'select' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Text Input', value: 'input' },`);
+      lines.push(`\t\t\t\t\t\t{ name: 'Time Picker', value: 'time' },`);
       lines.push(`\t\t\t\t\t],`);
       lines.push(`\t\t\t\t\tdefault: 'input',`);
       lines.push(`\t\t\t\t},`);
@@ -1488,7 +1492,6 @@ function generateFieldProperty(
     }
     lines.push(`${tab}\t],`);
     lines.push(`${tab}\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
-    lines.push(`${tab}\trouting: { send: { type: 'body', property: ${quote(field.name)} } },`);
     lines.push(`${tab}},`);
     return lines.join('\n');
   }
@@ -1604,12 +1607,8 @@ function generateFieldProperty(
     }
   }
 
-  // routing.send
-  if (n8nType === 'fixedCollection') {
-    // fixedCollection fields need routing on the collection itself
-    lines.push(`${tab}\trouting: { send: { type: 'body', property: ${quote(field.name)} } },`);
-  } else if (isPrimitiveArray(field)) {
-    // Primitive arrays: routing handled by splitCommaToArray preSend, not inline routing
+  // Primitive arrays: add placeholder for comma-separated input
+  if (isPrimitiveArray(field)) {
     const example = field.schema?.example;
     const placeholder = getPlaceholder(example) ?? FIELD_PLACEHOLDERS[field.name];
     if (placeholder) {
@@ -1618,9 +1617,6 @@ function generateFieldProperty(
       const arrayItemType = getArrayItemType(field);
       lines.push(`${tab}\tplaceholder: ${quote(arrayItemType === 'int' ? '1,2,3' : 'tag1,tag2')},`);
     }
-    // No routing here — splitCommaToArray preSend handles it
-  } else {
-    lines.push(`${tab}\trouting: { send: { type: 'body', property: ${quote(field.name)} } },`);
   }
 
   lines.push(`${tab}},`);
@@ -1667,7 +1663,6 @@ function generateQueryParamField(
   if (!isInsideCollection) {
     lines.push(`${tab}\tdisplayOptions: { show: { resource: [${allResourceValues.map(quote).join(', ')}], operation: [${allOpValues.map(quote).join(', ')}] } },`);
   }
-  lines.push(`${tab}\trouting: { send: { type: 'query', property: ${quote(param.name)} } },`);
   lines.push(`${tab}},`);
   return lines.join('\n');
 }
@@ -1767,6 +1762,9 @@ function formatDisplayName(name: string): string {
  */
 function sanitizeDescription(desc: string): string {
   let result = desc;
+  // Encode angle brackets — n8n lint: node-param-description-unencoded-angle-brackets
+  // Skip <a href="..."> tags which are valid HTML in n8n descriptions
+  result = result.replace(/<(?!\/?a[\s>])/g, '&lt;').replace(/(?<!["=])>/g, '&gt;');
   // Uppercase all occurrences of "json" (any case) to "JSON" — n8n lint requires uppercase
   result = result.replace(/\bjson\b/gi, 'JSON');
   // Strip leading quoted/backticked word so description starts with a letter (n8n lint)
@@ -2686,7 +2684,7 @@ function buildAliasRouteEntry(
   const aliasSpecial = V1_ALIAS_SPECIALS[resource]?.[aliasOp];
   if (aliasSpecial) parts.push(`special: '${aliasSpecial}'`);
 
-  // Collect body fields from splitComma + V1_ALIAS_FIELDS routing
+  // Collect body fields from splitComma + V1_ALIAS_FIELDS apiProperty
   const bodyEntries: string[] = [];
   const optBodyEntries: string[] = [];
   if (routing.splitComma) {
@@ -2697,8 +2695,8 @@ function buildAliasRouteEntry(
   const aliasFieldDefs = V1_ALIAS_FIELDS[resource]?.[aliasOp];
   if (aliasFieldDefs) {
     for (const f of aliasFieldDefs.fields) {
-      if (f.routing) {
-        const entry = `{ api: '${f.routing.send.property}', n8n: '${f.name}' }`;
+      if (f.apiProperty) {
+        const entry = `{ api: '${f.apiProperty}', n8n: '${f.name}' }`;
         if (f.required) {
           bodyEntries.push(entry);
         } else {
@@ -3328,7 +3326,6 @@ async function main() {
   // Generate Codex files for node discoverability
   const codex = {
     categories: ['Communication'],
-    subcategories: { Communication: ['Team Messaging'] },
     resources: { primaryDocumentation: [{ url: 'https://dev.pachca.com/guides/n8n/overview' }] },
     alias: ['pachca', 'messenger', 'chat', 'team', 'corporate messenger'],
   };

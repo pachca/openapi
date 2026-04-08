@@ -40,7 +40,6 @@ export const exportFields: INodeProperties[] = [
 		description: 'Export start date (ISO-8601, UTC+0) in YYYY-MM-DD format',
 		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
 		placeholder: '2025-03-20',
-		routing: { send: { type: 'body', property: 'start_at' } },
 	},
 	{
 		displayName: 'End At',
@@ -51,7 +50,6 @@ export const exportFields: INodeProperties[] = [
 		description: 'Export end date (ISO-8601, UTC+0) in YYYY-MM-DD format',
 		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
 		placeholder: '2025-03-20',
-		routing: { send: { type: 'body', property: 'end_at' } },
 	},
 	{
 		displayName: 'Webhook URL',
@@ -63,7 +61,6 @@ export const exportFields: INodeProperties[] = [
 		hint: 'Set this to a Webhook node URL in another workflow to receive the export-ready notification',
 		displayOptions: { show: { resource: ['export'], operation: ['create'] } },
 		placeholder: 'https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2',
-		routing: { send: { type: 'body', property: 'webhook_url' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -87,7 +84,6 @@ export const exportFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether to skip generating the chat list file (chats.JSON)',
-				routing: { send: { type: 'body', property: 'skip_chats_file' } },
 			},
 		],
 	},

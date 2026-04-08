@@ -36,6 +36,5 @@ export const customPropertyFields: INodeProperties[] = [
 { name: 'User', value: 'User' }],
 		default: "",
 		displayOptions: { show: { resource: ['customProperty'], operation: ['get'] } },
-		routing: { send: { type: 'query', property: 'entity_type' } },
 	},
 ];

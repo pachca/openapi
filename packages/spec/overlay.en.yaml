@@ -1008,7 +1008,7 @@ actions:
       description: Array of user IDs who will become members
   - target: $.components.schemas.AddMembersRequest.properties.silent
     update:
-      description: Do not create a system message in the chat about adding a member
+      description: Whether to skip creating a system message about adding members
   - target: $.components.schemas.AddTagsRequest
     update:
       description: Request to add tags to a chat
@@ -1360,7 +1360,7 @@ actions:
       description: Whether this is a direct message
   - target: $.components.schemas.Chat.properties.public
     update:
-      description: Publicly accessible
+      description: Whether the chat is publicly accessible
   - target: $.components.schemas.Chat.properties.last_message_at
     update:
       description: Date and time of the last message in the chat (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
@@ -1395,7 +1395,7 @@ actions:
       description: Whether this is a channel
   - target: $.components.schemas.ChatCreateRequest.properties.chat.properties.public
     update:
-      description: Publicly accessible
+      description: Whether the chat is publicly accessible
   - target: $.components.schemas.ChatMemberRole
     update:
       description: Chat member role
@@ -1471,7 +1471,7 @@ actions:
       description: Name
   - target: $.components.schemas.ChatUpdateRequest.properties.chat.properties.public
     update:
-      description: Publicly accessible
+      description: Whether the chat is publicly accessible
   - target: $.components.schemas.CompanyMemberWebhookPayload
     update:
       description: Outgoing webhook payload for workspace members
@@ -1812,7 +1812,7 @@ actions:
       description: Entity ID
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.content
     update:
-      description: Message text
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`)."
   - target: $.components.schemas.MessageCreateRequest.properties.message.properties.files
     update:
       description: Files to attach
@@ -1871,7 +1871,7 @@ actions:
       description: Message parameters object to update
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.content
     update:
-      description: Message text
+      description: "Message text. Supports mentions: `@nickname` or `<@user_id>` (automatically converted to `@nickname`)."
   - target: $.components.schemas.MessageUpdateRequest.properties.message.properties.files
     update:
       description: Files to attach
@@ -2173,7 +2173,7 @@ actions:
       description: Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
   - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.is_away
     update:
-      description: '"Away" mode'
+      description: Whether to enable "Away" mode
   - target: $.components.schemas.StatusUpdateRequest.properties.status.properties.away_message
     update:
       description: '"Away" mode message text. Displayed in the profile and in direct messages/mentions.'
@@ -2215,7 +2215,7 @@ actions:
       description: Array of user IDs assigned to the task as performers
   - target: $.components.schemas.Task.properties.all_day
     update:
-      description: All-day task (without specific time)
+      description: Whether this is an all-day task (without specific time)
   - target: $.components.schemas.Task.properties.custom_properties
     update:
       description: Task custom properties
@@ -2247,7 +2247,7 @@ actions:
       description: ID of the chat to link the task to
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.all_day
     update:
-      description: All-day task (without specific time)
+      description: Whether this is an all-day task (without specific time)
   - target: $.components.schemas.TaskCreateRequest.properties.task.properties.custom_properties
     update:
       description: Custom properties to set
@@ -2304,7 +2304,7 @@ actions:
       description: Status
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.all_day
     update:
-      description: All-day task (without specific time)
+      description: Whether this is an all-day task (without specific time)
   - target: $.components.schemas.TaskUpdateRequest.properties.task.properties.done_at
     update:
       description: Task completion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
@@ -2405,7 +2405,7 @@ actions:
       description: Access level
   - target: $.components.schemas.User.properties.suspended
     update:
-      description: User deactivated
+      description: Whether the user is deactivated
   - target: $.components.schemas.User.properties.invite_status
     update:
       description: Invitation status
@@ -2465,7 +2465,7 @@ actions:
       description: Access level
   - target: $.components.schemas.UserCreateRequest.properties.user.properties.suspended
     update:
-      description: User deactivated
+      description: Whether the user is deactivated
   - target: $.components.schemas.UserCreateRequest.properties.user.properties.list_tags
     update:
       description: Array of tags to assign to the employee
@@ -2528,7 +2528,7 @@ actions:
       description: Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format
   - target: $.components.schemas.UserStatus.properties.is_away
     update:
-      description: '"Away" mode'
+      description: Whether to enable "Away" mode
   - target: $.components.schemas.UserStatus.properties.away_message
     update:
       description: >-
@@ -2569,7 +2569,7 @@ actions:
       description: Access level
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.suspended
     update:
-      description: User deactivated
+      description: Whether the user is deactivated
   - target: $.components.schemas.UserUpdateRequest.properties.user.properties.list_tags
     update:
       description: Array of tags to assign to the employee

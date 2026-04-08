@@ -24,7 +24,7 @@
   - `entity_type: string` — Тип сущности
     Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
   - `entity_id: integer, int32` (required) — Идентификатор сущности
-  - `content: string` (required) — Текст сообщения
+  - `content: string` (required) — Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`).
   - `files: array of object` — Прикрепляемые файлы
     - `key: string` (required) — Путь к файлу, полученный в результате [загрузки файла](POST /direct_url)
     - `name: string` (required) — Название файла, которое вы хотите отображать пользователю (рекомендуется писать вместе с расширением)

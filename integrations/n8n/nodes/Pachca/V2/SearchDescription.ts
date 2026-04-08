@@ -62,7 +62,6 @@ export const searchFields: INodeProperties[] = [
 		description: 'Search query text',
 		placeholder: 'Development',
 		displayOptions: { show: { resource: ['search'], operation: ['getAllChats'] } },
-		routing: { send: { type: 'query', property: 'query' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -78,7 +77,6 @@ export const searchFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether to filter by chat activity',
-				routing: { send: { type: 'query', property: 'active' } },
 			},
 			{
 				displayName: 'Chat Subtype',
@@ -88,7 +86,6 @@ export const searchFields: INodeProperties[] = [
 { name: 'Thread', value: 'thread' }],
 				default: "",
 				description: 'Filter by chat type',
-				routing: { send: { type: 'query', property: 'chat_subtype' } },
 			},
 			{
 				displayName: 'Created From',
@@ -97,7 +94,6 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by creation date (from)',
 				placeholder: '2025-01-01T00:00:00.000Z',
-				routing: { send: { type: 'query', property: 'created_from' } },
 			},
 			{
 				displayName: 'Created To',
@@ -106,17 +102,15 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by creation date (to)',
 				placeholder: '2025-02-01T00:00:00.000Z',
-				routing: { send: { type: 'query', property: 'created_to' } },
 			},
 			{
 				displayName: 'Order',
 				name: 'order',
 				type: 'options',
-				options: [{ name: 'Asc', value: 'asc', description: 'Ascending' },
-{ name: 'Desc', value: 'desc', description: 'Descending' }],
+				options: [{ name: 'Ascending', value: 'asc' },
+{ name: 'Descending', value: 'desc' }],
 				default: "",
 				description: 'Sort direction',
-				routing: { send: { type: 'query', property: 'order' } },
 			},
 			{
 				displayName: 'Personal',
@@ -124,7 +118,6 @@ export const searchFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether to filter by direct chats',
-				routing: { send: { type: 'query', property: 'personal' } },
 			},
 		],
 	},
@@ -161,7 +154,6 @@ export const searchFields: INodeProperties[] = [
 		description: 'Search query text',
 		placeholder: 't-shirts',
 		displayOptions: { show: { resource: ['search'], operation: ['getAllMessages'] } },
-		routing: { send: { type: 'query', property: 'query' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -177,7 +169,6 @@ export const searchFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether to filter by chat activity',
-				routing: { send: { type: 'query', property: 'active' } },
 			},
 			{
 				displayName: 'Chat IDs',
@@ -186,7 +177,6 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by chat IDs',
 				placeholder: '198,334',
-				routing: { send: { type: 'query', property: 'chat_ids' } },
 			},
 			{
 				displayName: 'Created From',
@@ -195,7 +185,6 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by creation date (from)',
 				placeholder: '2025-01-01T00:00:00.000Z',
-				routing: { send: { type: 'query', property: 'created_from' } },
 			},
 			{
 				displayName: 'Created To',
@@ -204,17 +193,15 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by creation date (to)',
 				placeholder: '2025-02-01T00:00:00.000Z',
-				routing: { send: { type: 'query', property: 'created_to' } },
 			},
 			{
 				displayName: 'Order',
 				name: 'order',
 				type: 'options',
-				options: [{ name: 'Asc', value: 'asc', description: 'Ascending' },
-{ name: 'Desc', value: 'desc', description: 'Descending' }],
+				options: [{ name: 'Ascending', value: 'asc' },
+{ name: 'Descending', value: 'desc' }],
 				default: "",
 				description: 'Sort direction',
-				routing: { send: { type: 'query', property: 'order' } },
 			},
 			{
 				displayName: 'User IDs',
@@ -223,7 +210,6 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by message author IDs',
 				placeholder: '12,185',
-				routing: { send: { type: 'query', property: 'user_ids' } },
 			},
 		],
 	},
@@ -260,7 +246,6 @@ export const searchFields: INodeProperties[] = [
 		description: 'Search query text',
 		placeholder: 'Oleg',
 		displayOptions: { show: { resource: ['search'], operation: ['getAllUsers'] } },
-		routing: { send: { type: 'query', property: 'query' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -277,7 +262,6 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by employee roles',
 				placeholder: 'admin,user',
-				routing: { send: { type: 'query', property: 'company_roles' } },
 			},
 			{
 				displayName: 'Created From',
@@ -286,7 +270,6 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by creation date (from)',
 				placeholder: '2025-01-01T00:00:00.000Z',
-				routing: { send: { type: 'query', property: 'created_from' } },
 			},
 			{
 				displayName: 'Created To',
@@ -295,17 +278,15 @@ export const searchFields: INodeProperties[] = [
 				default: "",
 				description: 'Filter by creation date (to)',
 				placeholder: '2025-02-01T00:00:00.000Z',
-				routing: { send: { type: 'query', property: 'created_to' } },
 			},
 			{
 				displayName: 'Order',
 				name: 'order',
 				type: 'options',
-				options: [{ name: 'Asc', value: 'asc', description: 'Ascending' },
-{ name: 'Desc', value: 'desc', description: 'Descending' }],
+				options: [{ name: 'Ascending', value: 'asc' },
+{ name: 'Descending', value: 'desc' }],
 				default: "",
 				description: 'Sort direction',
-				routing: { send: { type: 'query', property: 'order' } },
 			},
 			{
 				displayName: 'Sort',
@@ -315,7 +296,6 @@ export const searchFields: INodeProperties[] = [
 { name: 'By Score', value: 'by_score', description: 'By relevance' }],
 				default: "",
 				description: 'Sort results by',
-				routing: { send: { type: 'query', property: 'sort' } },
 			},
 		],
 	},

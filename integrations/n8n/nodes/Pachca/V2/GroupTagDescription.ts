@@ -60,7 +60,6 @@ export const groupTagFields: INodeProperties[] = [
 		description: 'Tag name',
 		displayOptions: { show: { resource: ['groupTag'], operation: ['create'] } },
 		placeholder: 'New tag name',
-		routing: { send: { type: 'body', property: 'name' } },
 	},
 	{
 		displayName: 'Requires admin permissions',
@@ -102,7 +101,6 @@ export const groupTagFields: INodeProperties[] = [
 		description: 'Array of tag names to filter by',
 		placeholder: 'Design,Product',
 		displayOptions: { show: { resource: ['groupTag'], operation: ['getAll'] } },
-		routing: { send: { type: 'query', property: 'names' } },
 	},
 	{
 		displayName: 'ID',
@@ -153,7 +151,6 @@ export const groupTagFields: INodeProperties[] = [
 		description: 'Tag name',
 		displayOptions: { show: { resource: ['groupTag'], operation: ['update'] } },
 		placeholder: 'New tag name',
-		routing: { send: { type: 'body', property: 'name' } },
 	},
 	{
 		displayName: 'ID',

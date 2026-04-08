@@ -51,7 +51,6 @@ export const taskFields: INodeProperties[] = [
 { name: 'Reminder', value: 'reminder', description: 'Simple reminder' }],
 		default: "call",
 		displayOptions: { show: { resource: ['task'], operation: ['create'] } },
-		routing: { send: { type: 'body', property: 'kind' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -66,8 +65,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'allDay',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to all-day task (without specific time)',
-				routing: { send: { type: 'body', property: 'all_day' } },
+				description: 'Whether this is an all-day task (without specific time)',
 			},
 			{
 				displayName: 'Chat ID',
@@ -76,7 +74,6 @@ export const taskFields: INodeProperties[] = [
 				default: 0,
 				description: 'ID of the chat to link the task to',
 				placeholder: '456',
-				routing: { send: { type: 'body', property: 'chat_id' } },
 			},
 			{
 				displayName: 'Content',
@@ -86,7 +83,6 @@ export const taskFields: INodeProperties[] = [
 				default: "",
 				description: 'Description (defaults to the kind name)',
 				placeholder: 'Pick up 21 orders from the warehouse',
-				routing: { send: { type: 'body', property: 'content' } },
 			},
 			{
 				displayName: 'Custom Properties',
@@ -116,7 +112,6 @@ export const taskFields: INodeProperties[] = [
 				}],
 				default: [],
 				description: 'Custom properties to set',
-				routing: { send: { type: 'body', property: 'custom_properties' } },
 			},
 			{
 				displayName: 'Due At',
@@ -125,7 +120,6 @@ export const taskFields: INodeProperties[] = [
 				default: "",
 				description: 'Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the task will be created as an all-day task (without specific time).',
 				placeholder: '2020-06-05T12:00:00.000+03:00',
-				routing: { send: { type: 'body', property: 'due_at' } },
 			},
 			{
 				displayName: 'Performer IDs',
@@ -146,7 +140,6 @@ export const taskFields: INodeProperties[] = [
 				default: 0,
 				description: 'Priority: 1, 2 (important), or 3 (very important)',
 				placeholder: '2',
-				routing: { send: { type: 'body', property: 'priority' } },
 			},
 		],
 	},
@@ -214,8 +207,7 @@ export const taskFields: INodeProperties[] = [
 				name: 'allDay',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to all-day task (without specific time)',
-				routing: { send: { type: 'body', property: 'all_day' } },
+				description: 'Whether this is an all-day task (without specific time)',
 			},
 			{
 				displayName: 'Content',
@@ -225,7 +217,6 @@ export const taskFields: INodeProperties[] = [
 				default: "",
 				description: 'Description',
 				placeholder: 'Pick up 21 orders from the warehouse',
-				routing: { send: { type: 'body', property: 'content' } },
 			},
 			{
 				displayName: 'Custom Properties',
@@ -255,7 +246,6 @@ export const taskFields: INodeProperties[] = [
 				}],
 				default: [],
 				description: 'Custom properties to set',
-				routing: { send: { type: 'body', property: 'custom_properties' } },
 			},
 			{
 				displayName: 'Done At',
@@ -264,7 +254,6 @@ export const taskFields: INodeProperties[] = [
 				default: "",
 				description: 'Task completion date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format',
 				placeholder: '2020-06-05T12:00:00.000Z',
-				routing: { send: { type: 'body', property: 'done_at' } },
 			},
 			{
 				displayName: 'Due At',
@@ -273,7 +262,6 @@ export const taskFields: INodeProperties[] = [
 				default: "",
 				description: 'Task due date (ISO-8601) in YYYY-MM-DDThh:mm:ss.sssTZD format. If the time is set to 23:59:59.000, the task will be created as an all-day task (without specific time).',
 				placeholder: '2020-06-05T12:00:00.000+03:00',
-				routing: { send: { type: 'body', property: 'due_at' } },
 			},
 			{
 				displayName: 'Kind',
@@ -285,7 +273,6 @@ export const taskFields: INodeProperties[] = [
 { name: 'Meeting', value: 'meeting' },
 { name: 'Reminder', value: 'reminder', description: 'Simple reminder' }],
 				default: "call",
-				routing: { send: { type: 'body', property: 'kind' } },
 			},
 			{
 				displayName: 'Performer IDs',
@@ -306,7 +293,6 @@ export const taskFields: INodeProperties[] = [
 				default: 0,
 				description: 'Priority: 1, 2 (important), or 3 (very important)',
 				placeholder: '2',
-				routing: { send: { type: 'body', property: 'priority' } },
 			},
 			{
 				displayName: 'Status',
@@ -315,7 +301,6 @@ export const taskFields: INodeProperties[] = [
 				options: [{ name: 'Done', value: 'done' },
 { name: 'Undone', value: 'undone', description: 'Active' }],
 				default: "done",
-				routing: { send: { type: 'body', property: 'status' } },
 			},
 		],
 	},

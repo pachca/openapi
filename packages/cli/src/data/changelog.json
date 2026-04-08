@@ -1,5 +1,16 @@
 [
   {
+    "version": "2026.4.1",
+    "date": "8 апреля 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "messages create, messages update",
+        "description": "Поддержка упоминаний по ID: `<@user_id>` в тексте сообщения автоматически преобразуется в `@nickname`"
+      }
+    ]
+  },
+  {
     "version": "2026.4.0",
     "date": "7 апреля 2026",
     "changes": [

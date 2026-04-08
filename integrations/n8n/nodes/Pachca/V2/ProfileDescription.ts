@@ -91,7 +91,6 @@ export const profileFields: INodeProperties[] = [
 		description: 'Status emoji character',
 		displayOptions: { show: { resource: ['profile'], operation: ['updateStatus'] } },
 		placeholder: '🎮',
-		routing: { send: { type: 'body', property: 'emoji' } },
 	},
 	{
 		displayName: 'Title',
@@ -102,7 +101,6 @@ export const profileFields: INodeProperties[] = [
 		description: 'Status text',
 		displayOptions: { show: { resource: ['profile'], operation: ['updateStatus'] } },
 		placeholder: 'Very busy',
-		routing: { send: { type: 'body', property: 'title' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -119,7 +117,6 @@ export const profileFields: INodeProperties[] = [
 				default: "",
 				description: 'Away mode message text. Displayed in the profile and in direct messages/mentions.',
 				placeholder: 'Back after 3 PM',
-				routing: { send: { type: 'body', property: 'away_message' } },
 			},
 			{
 				displayName: 'Expires At',
@@ -128,15 +125,13 @@ export const profileFields: INodeProperties[] = [
 				default: "",
 				description: 'Status expiration date and time (ISO-8601, UTC+0) in YYYY-MM-DDThh:mm:ss.sssZ format',
 				placeholder: '2024-04-08T10:00:00.000Z',
-				routing: { send: { type: 'body', property: 'expires_at' } },
 			},
 			{
 				displayName: 'Is Away',
 				name: 'isAway',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to "Away" mode',
-				routing: { send: { type: 'body', property: 'is_away' } },
+				description: 'Whether to enable "Away" mode',
 			},
 		],
 	},

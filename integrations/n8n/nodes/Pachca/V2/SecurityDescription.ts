@@ -66,7 +66,6 @@ export const securityFields: INodeProperties[] = [
 				default: "",
 				description: 'ID of the user who performed the action',
 				placeholder: '98765',
-				routing: { send: { type: 'query', property: 'actor_id' } },
 			},
 			{
 				displayName: 'Actor Type',
@@ -74,7 +73,6 @@ export const securityFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'User',
-				routing: { send: { type: 'query', property: 'actor_type' } },
 			},
 			{
 				displayName: 'End Time',
@@ -83,7 +81,6 @@ export const securityFields: INodeProperties[] = [
 				default: "",
 				description: 'End timestamp (exclusive)',
 				placeholder: '2025-05-02T09:11:00Z',
-				routing: { send: { type: 'query', property: 'end_time' } },
 			},
 			{
 				displayName: 'Entity ID',
@@ -92,7 +89,6 @@ export const securityFields: INodeProperties[] = [
 				default: "",
 				description: 'ID of the affected entity',
 				placeholder: '98765',
-				routing: { send: { type: 'query', property: 'entity_id' } },
 			},
 			{
 				displayName: 'Entity Type',
@@ -100,7 +96,6 @@ export const securityFields: INodeProperties[] = [
 				type: 'string',
 				default: "",
 				placeholder: 'User',
-				routing: { send: { type: 'query', property: 'entity_type' } },
 			},
 			{
 				displayName: 'Event Key',
@@ -143,7 +138,6 @@ export const securityFields: INodeProperties[] = [
 { name: 'User Updated', value: 'user_updated', description: 'User data updated' }],
 				default: "",
 				description: 'Filter by specific event type',
-				routing: { send: { type: 'query', property: 'event_key' } },
 			},
 			{
 				displayName: 'Start Time',
@@ -152,7 +146,6 @@ export const securityFields: INodeProperties[] = [
 				default: "",
 				description: 'Start timestamp (inclusive)',
 				placeholder: '2025-05-01T09:11:00Z',
-				routing: { send: { type: 'query', property: 'start_time' } },
 			},
 		],
 	},

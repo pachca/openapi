@@ -47,7 +47,6 @@ export const reactionFields: INodeProperties[] = [
 		description: 'Reaction emoji character',
 		displayOptions: { show: { resource: ['reaction'], operation: ['create'] } },
 		placeholder: '👍',
-		routing: { send: { type: 'body', property: 'code' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -64,7 +63,6 @@ export const reactionFields: INodeProperties[] = [
 				default: "",
 				description: 'Emoji text name (used for custom emoji)',
 				placeholder: ':+1:',
-				routing: { send: { type: 'body', property: 'name' } },
 			},
 		],
 	},
@@ -86,7 +84,6 @@ export const reactionFields: INodeProperties[] = [
 		description: 'Emoji character of the reaction',
 		placeholder: '👍',
 		displayOptions: { show: { resource: ['reaction'], operation: ['delete'] } },
-		routing: { send: { type: 'query', property: 'code' } },
 	},
 	{
 		displayName: 'Name',
@@ -96,7 +93,6 @@ export const reactionFields: INodeProperties[] = [
 		description: 'Text name of the emoji (used for custom emoji)',
 		placeholder: ':+1:',
 		displayOptions: { show: { resource: ['reaction'], operation: ['delete'] } },
-		routing: { send: { type: 'query', property: 'name' } },
 	},
 	{
 		displayName: 'ID',

@@ -44,9 +44,24 @@ jobs:
         working-directory: packages/generator
         run: bun test
 
-  publish-generator:
+  check-changes:
     if: github.event_name == 'push'
-    needs: snapshot-tests
+    runs-on: ubuntu-latest
+    outputs:
+      generator_changed: ${{ steps.check.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for generator/parser changes
+        id: check
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/generator/ packages/openapi-parser/ | grep -q . && echo true || echo false)
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+
+  publish-generator:
+    if: github.event_name == 'push' && needs.check-changes.outputs.generator_changed == 'true'
+    needs: [snapshot-tests, check-changes]
     runs-on: ubuntu-latest
     concurrency:
       group: publish-generator

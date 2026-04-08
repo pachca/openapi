@@ -228,7 +228,6 @@ export const memberFields: INodeProperties[] = [
 		default: "all",
 		description: 'Role in the chat',
 		displayOptions: { show: { resource: ['member'], operation: ['getAll'] } },
-		routing: { send: { type: 'query', property: 'role' } },
 	},
 	{
 		displayName: 'ID',
@@ -284,8 +283,7 @@ export const memberFields: INodeProperties[] = [
 				name: 'silent',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to do not create a system message in the chat about adding a member',
-				routing: { send: { type: 'body', property: 'silent' } },
+				description: 'Whether to skip creating a system message about adding members',
 			},
 		],
 	},
@@ -421,6 +419,5 @@ export const memberFields: INodeProperties[] = [
 { name: 'Member', value: 'member', description: 'Member or subscriber' }],
 		default: "member",
 		displayOptions: { show: { resource: ['member'], operation: ['update'] } },
-		routing: { send: { type: 'body', property: 'role' } },
 	},
 ];

@@ -1762,6 +1762,9 @@ function formatDisplayName(name: string): string {
  */
 function sanitizeDescription(desc: string): string {
   let result = desc;
+  // Encode angle brackets — n8n lint: node-param-description-unencoded-angle-brackets
+  // Skip <a href="..."> tags which are valid HTML in n8n descriptions
+  result = result.replace(/<(?!\/?a[\s>])/g, '&lt;').replace(/(?<!["=])>/g, '&gt;');
   // Uppercase all occurrences of "json" (any case) to "JSON" — n8n lint requires uppercase
   result = result.replace(/\bjson\b/gi, 'JSON');
   // Strip leading quoted/backticked word so description starts with a letter (n8n lint)

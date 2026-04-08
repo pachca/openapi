@@ -132,6 +132,64 @@ export function getSdkExampleForLang(
   return parts.join('\n\n');
 }
 
+/**
+ * Build-time validation: returns all valid SDK symbols (service.method pairs and import names)
+ * extracted from examples.json for a given language.
+ */
+export function getValidSdkSymbols(lang: string): {
+  methods: Map<string, Set<string>>;
+  imports: Set<string>;
+} {
+  const all = loadAll();
+  const sdkLang = lang as SdkLanguage;
+  const langData = all[sdkLang];
+  if (!langData) return { methods: new Map(), imports: new Set() };
+
+  const methods = new Map<string, Set<string>>();
+  const imports = new Set<string>();
+  const methodRegex = /client\.(\w+)\.(\w+)\s*\(/g;
+
+  for (const [opId, entry] of Object.entries(langData)) {
+    if (opId === 'Client_Init') continue;
+
+    // Extract service.method pairs from usage code
+    let match;
+    while ((match = methodRegex.exec(entry.usage)) !== null) {
+      const [, service, method] = match;
+      if (!methods.has(service)) methods.set(service, new Set());
+      methods.get(service)!.add(method);
+    }
+    methodRegex.lastIndex = 0;
+
+    if (entry.imports) {
+      for (const imp of entry.imports) {
+        imports.add(imp);
+      }
+    }
+  }
+
+  // Client_Init imports (PachcaClient etc.)
+  const initEntry = langData['Client_Init'];
+  if (initEntry?.imports) {
+    for (const imp of initEntry.imports) {
+      imports.add(imp);
+    }
+  }
+
+  // Add *All / *_all pagination variants (auto-generated wrappers not in examples.json)
+  for (const methodSet of methods.values()) {
+    const variants: string[] = [];
+    for (const method of methodSet) {
+      variants.push(lang === 'python' ? method + '_all' : method + 'All');
+    }
+    for (const v of variants) {
+      methodSet.add(v);
+    }
+  }
+
+  return { methods, imports };
+}
+
 export function getSdkExamples(operationId: string): Record<string, string> {
   const all = loadAll();
   const result: Record<string, string> = {};

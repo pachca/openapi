@@ -71,59 +71,115 @@ pachca messages create --entity-id 12345 \
 | Файл | `file` | — |
 | Изображение | `image` | `width`, `height` — размеры в пикселях |
 
-## Полный пример
+## Примеры полного цикла
 
-```javascript title="Node.js: загрузка и отправка файла"
-const fs = require('node:fs');
-const path = require('node:path');
+### TypeScript SDK
 
-const TOKEN = 'ваш_токен';
-const BASE = 'https://api.pachca.com/api/shared/v1';
-const headers = { Authorization: `Bearer ${TOKEN}` };
+```typescript
+import { PachcaClient, FileUploadRequest, FileType } from "@pachca/sdk"
+import fs from "fs"
+import path from "path"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const filePath = "./report.pdf"
+const fileName = path.basename(filePath)
+const fileBuffer = fs.readFileSync(filePath)
 
 // Шаг 1: Получить параметры загрузки
-const { data: params } = await fetch(`${BASE}/uploads`, {
-  method: 'POST', headers
-}).then(r => r.json());
+const params = await client.common.getUploadParams()
 
-// Шаг 2: Загрузить файл
-const filePath = './report.pdf';
-const fileName = path.basename(filePath);
-const fileBuffer = fs.readFileSync(filePath);
-
-const form = new FormData();
-form.append('Content-Disposition', params['Content-Disposition']);
-form.append('acl', params.acl);
-form.append('policy', params.policy);
-form.append('x-amz-credential', params['x-amz-credential']);
-form.append('x-amz-algorithm', params['x-amz-algorithm']);
-form.append('x-amz-date', params['x-amz-date']);
-form.append('x-amz-signature', params['x-amz-signature']);
-form.append('key', params.key);
-form.append('file', new File([fileBuffer], fileName));
-
-await fetch(params.direct_url, { method: 'POST', body: form });
+// Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
+await client.common.uploadFile(params.directUrl, {
+  contentDisposition: params.contentDisposition,
+  acl: params.acl,
+  policy: params.policy,
+  xAmzCredential: params.xAmzCredential,
+  xAmzAlgorithm: params.xAmzAlgorithm,
+  xAmzDate: params.xAmzDate,
+  xAmzSignature: params.xAmzSignature,
+  key: params.key,
+  file: new File([fileBuffer], fileName)
+})
 
 // Шаг 3: Отправить сообщение с файлом
-const fileKey = params.key.replace('${filename}', fileName);
-await fetch(`${BASE}/messages`, {
-  method: 'POST',
-  headers: { ...headers, 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    message: {
-      entity_type: 'discussion',
-      entity_id: 12345,
-      content: 'Отчёт прикреплён',
-      files: [{ key: fileKey, name: fileName, file_type: 'file', size: fileBuffer.length }]
-    }
-  })
-});
+const fileKey = params.key.replace("${filename}", fileName)
+await client.messages.createMessage({
+  message: {
+    entityType: "discussion",
+    entityId: 12345,
+    content: "Отчёт прикреплён",
+    files: [{ key: fileKey, name: fileName, fileType: FileType.File, size: fileBuffer.length }]
+  }
+})
 ```
+
+### Python SDK
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import FileUploadRequest, MessageCreateRequest, MessageCreateRequestMessage, MessageCreateRequestFile, FileType
+import os
+
+client = PachcaClient("YOUR_TOKEN")
+
+file_path = "report.pdf"
+file_name = os.path.basename(file_path)
+
+# Шаг 1: Получить параметры загрузки
+params = await client.common.get_upload_params()
+
+# Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
+with open(file_path, "rb") as f:
+    await client.common.upload_file(
+        direct_url=params.direct_url,
+        request=FileUploadRequest(
+            content_disposition=params.content_disposition,
+            acl=params.acl,
+            policy=params.policy,
+            x_amz_credential=params.x_amz_credential,
+            x_amz_algorithm=params.x_amz_algorithm,
+            x_amz_date=params.x_amz_date,
+            x_amz_signature=params.x_amz_signature,
+            key=params.key,
+            file=f.read()
+        )
+    )
+
+# Шаг 3: Отправить сообщение с файлом
+file_key = params.key.replace("${filename}", file_name)
+await client.messages.create_message(MessageCreateRequest(
+    message=MessageCreateRequestMessage(
+        entity_type="discussion",
+        entity_id=12345,
+        content="Отчёт прикреплён",
+        files=[MessageCreateRequestFile(key=file_key, name=file_name, file_type=FileType.FILE, size=os.path.getsize(file_path))]
+    )
+))
+```
+
+## Поля multipart-формы для S3
+
+Все поля из ответа [Получение подписи](POST /uploads) передаются на S3 **как есть** в multipart-форме:
+
+| Поле | Описание |
+|------|----------|
+| `Content-Disposition` | Заголовок для скачивания |
+| `acl` | Права доступа S3 |
+| `policy` | Base64-кодированная политика загрузки |
+| `x-amz-credential` | AWS credential |
+| `x-amz-algorithm` | Всегда `AWS4-HMAC-SHA256` |
+| `x-amz-date` | Дата подписи |
+| `x-amz-signature` | Подпись запроса |
+| `key` | Путь файла на S3 (содержит `${filename}` — заменить на реальное имя) |
+| `file` | Сам файл — **обязательно последнее поле** |
+
+<Warning>`direct_url` — это внешний presigned URL от S3. Он **не** является эндпоинтом Пачки, не требует заголовка `Authorization` и имеет ограниченное время действия.</Warning>
 
 ## Частые ошибки
 
 | Ошибка | Причина | Решение |
 |--------|---------|---------|
-| `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через `POST /uploads` |
+| `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через [Получение подписи](POST /uploads) |
 | `400 Bad Request` | Неправильный Content-Type | Убедитесь, что запрос отправляется как `multipart/form-data`, а не `application/json` |
 | Файл не отображается | Неверный `key` | Проверьте, что `${filename}` в ключе заменён на реальное имя файла |

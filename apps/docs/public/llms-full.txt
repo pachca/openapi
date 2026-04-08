@@ -65,17 +65,92 @@
 - [Bots](#api-bots)
 - [Security](#api-security)
 
-### SDK
-- [SDK](#sdk)
+
+## Document Map
+
+| Section | Description | Lines |
+|---------|-------------|-------|
+| LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 80–162 |
+| How-to Guides | Step-by-step solutions with TypeScript + Python code | 163–622 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 623–9745 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 9746–24664 |
 
 ---
 
-# SDK
+# LIBRARY RULES
 
-Типизированные клиенты для 6 языков. Единый паттерн: `PachcaClient(token)` → `client.service.method(request)`.
+## Authentication
+- All requests require Bearer token in Authorization header: `Authorization: Bearer <TOKEN>`
+- Token types: **admin** (full access — manage users, tags, delete messages), **bot** (send messages with custom name/avatar, receive webhooks), **user** (limited access)
+- Get admin token: Settings → Automations → API. Get bot token: per-bot in Settings → Automations → Integrations
+- Tokens are long-lived and do not expire. Can be reset by admin in Settings
+- TypeScript SDK: `const client = new PachcaClient("YOUR_TOKEN")`
+- Python SDK: `client = PachcaClient("YOUR_TOKEN")`
 
-| Язык | Пакет | Установка |
-|------|-------|----------|
+## Pagination
+- Cursor-based: use `limit` (1–50, default 50) and `cursor` query parameters
+- Response includes `meta.paginate.next_page` — cursor for next page
+- End of data: when `data` array is empty (cursor is never null)
+- TypeScript auto-pagination: `client.users.listUsersAll()` returns flat array of all results
+- Python auto-pagination: `await client.users.list_users_all()` returns list of all results
+- Available for: users, chats, messages, members, tags, reactions, tasks, search results, audit events, webhook events
+
+## Rate Limiting
+- Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
+- Message read (GET /messages): ~10 req/sec
+- Other endpoints: ~50 req/sec
+- On `429 Too Many Requests`: respect `Retry-After` header value (seconds)
+- Recommended retry strategy: exponential backoff with jitter — base delay × 2^attempt × random(0.5–1.5)
+- SDK (@pachca/sdk, pachca-sdk) handles retry automatically: 3 retries, respects Retry-After, exponential backoff for 5xx
+
+## Webhooks (Real-time Events)
+- Create a bot in Pachca: Automations → Integrations → Bots
+- Set webhook URL in bot settings → Outgoing Webhook tab
+- Events: `new_message`, `edit_message`, `delete_message`, `new_reaction`, `delete_reaction`, `button_pressed`, `view_submit`, `chat_member_changed`, `company_member_changed`, `link_shared`
+- Verify: HMAC-SHA256 of raw body with bot's Signing Secret
+- Header: `Pachca-Signature` contains hex digest
+- Replay protection: check `webhook_timestamp` within ±60 seconds of current time
+- Alternative to webhooks: polling via GET /webhooks/events (enable "Save event history" in bot settings)
+- IP whitelist: Pachca webhook IP is `37.200.70.177`
+
+## File Uploads (3-step process)
+- Step 1: POST /uploads → get S3 presigned params (`direct_url`, `key`, `policy`, `x-amz-signature`, etc.)
+- Step 2: POST to `direct_url` (external S3 URL, NOT a Pachca API endpoint) with multipart/form-data — all params + `file` as LAST field
+- Step 3: Replace `${filename}` in `key` with actual filename, include in message `files` array
+- Note: `direct_url` is an external S3 presigned URL and does not require Authorization header
+
+## User Status
+- Get any user's status: GET /users/{id}/status → `{ emoji, title, expires_at, is_away, away_message }`
+- Set own status: PUT /profile/status `{ status: { emoji, title, expires_at, is_away, away_message } }`
+- Clear own status: DELETE /profile/status
+- Admin can manage any user: PUT /users/{id}/status, DELETE /users/{id}/status
+- No real-time presence webhooks — use polling with ≥60s interval for monitoring status changes
+
+## Error Handling
+- `400`: validation errors — `{ errors: [{ key, value, message, code }] }` with codes: `blank`, `invalid`, `taken`, `too_short`, `too_long`, `not_a_number`
+- `401`: unauthorized — `{ error, error_description }` (OAuthError)
+- `403`: forbidden — insufficient permissions. May return ApiError (business logic) or OAuthError (`insufficient_scope`)
+- `404`: not found
+- `409`: conflict (duplicate)
+- `422`: unprocessable — `{ errors: [{ key, value, message, code }] }`
+- `429`: rate limited — respect `Retry-After` header, use exponential backoff with jitter
+- SDK auto-retries `429` and `5xx` errors (3 attempts with exponential backoff)
+
+## Idempotency and Reliability
+- Pachca API operations are NOT idempotent by default — duplicate POST requests create duplicate resources
+- Client-side deduplication: track request IDs, check before sending, store results with TTL
+- Webhooks use at-least-once delivery — handlers MUST be idempotent (dedup by event fields: id + type + event)
+- For multi-step operations: implement compensating actions (saga pattern) for failure recovery
+- Separate critical operations (create chat) from non-critical (send welcome message) with independent error handling
+
+## SDK (Typed Clients for 6 Languages)
+- Unified pattern: `PachcaClient(token)` → `client.service.method(request)`
+- **Input**: path params and body fields (≤2) expand to method arguments; otherwise a single request object
+- **Output**: if API response has a single `data` field, SDK returns its contents directly
+- Service, method, and field names match operationId and parameters from OpenAPI
+
+| Language | Package | Install |
+|----------|---------|---------|
 | TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
 | Python | `pachca-sdk` | `pip install pachca-sdk` |
 | Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
@@ -83,57 +158,465 @@
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
-## Конвенции SDK
+---
 
-- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
-- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
-- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.
+# How-to Guides
 
-### Примеры вызова по языкам
+## How to authenticate with the API
 
-**TypeScript:**
+All API requests require a Bearer token in the Authorization header.
+
+### curl
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" https://api.pachca.com/api/shared/v1/users
+```
+
+### TypeScript SDK
 ```typescript
-import { PachcaClient } from "@pachca/sdk";
-const pachca = new PachcaClient("YOUR_TOKEN");
-const users = await pachca.users.listUsers();
-await pachca.reactions.addReaction(messageId, { code: "👍" });
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+const profile = await client.profile.getProfile()
+console.log(profile.id, profile.firstName)
 ```
 
-**Python:**
+### Python SDK
 ```python
-from pachca import PachcaClient
+from pachca.client import PachcaClient
+
 client = PachcaClient("YOUR_TOKEN")
-users = await client.users.list_users()
-await client.reactions.add_reaction(message_id, ReactionRequest(code="👍"))
+profile = await client.profile.get_profile()
+print(profile.id, profile.first_name)
 ```
 
-**Go:**
-```go
-client := pachca.NewPachcaClient("YOUR_TOKEN")
-users, err := client.Users.ListUsers(ctx, nil)
-reaction, err := client.Reactions.AddReaction(ctx, messageId, pachca.ReactionRequest{Code: "👍"})
+Token types: **admin** (full access, get in Settings → Automations → API), **bot** (messaging + webhooks, per-bot in Integrations), **user** (limited).
+
+## How to paginate through results
+
+### TypeScript SDK — auto-pagination
+```typescript
+// Returns all results as a flat array (handles cursors automatically)
+const allUsers = await client.users.listUsersAll()
+console.log(`Total: ${allUsers.length}`)
+
+// Manual pagination with cursor control
+let cursor: string | undefined
+for (;;) {
+  const response = await client.users.listUsers({ limit: 50, cursor })
+  if (response.data.length === 0) break
+  for (const user of response.data) {
+    console.log(user.firstName, user.lastName)
+  }
+  cursor = response.meta.paginate.nextPage
+}
 ```
 
-**Kotlin:**
-```kotlin
-val pachca = PachcaClient("YOUR_TOKEN")
-val users = pachca.users.listUsers()
-pachca.reactions.addReaction(messageId, ReactionRequest(code = "👍"))
+### Python SDK — auto-pagination
+```python
+# Returns all results as a list (handles cursors automatically)
+all_users = await client.users.list_users_all()
+print(f"Total: {len(all_users)}")
+
+# Manual pagination with cursor control
+from pachca.models import ListUsersParams
+
+cursor = None
+while True:
+    response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
+    if not response.data:
+        break
+    for user in response.data:
+        print(user.first_name, user.last_name)
+    cursor = response.meta.paginate.next_page
 ```
 
-**Swift:**
-```swift
-let pachca = PachcaClient(token: "YOUR_TOKEN")
-let users = try await pachca.users.listUsers()
-try await pachca.reactions.addReaction(messageId, ReactionRequest(code: "👍"))
+Auto-pagination methods: `listUsersAll()`, `listChatsAll()`, `listChatMessagesAll()`, `listMembersAll()`, `listTagsAll()`, `listTasksAll()`, `searchMessagesAll()`, `searchChatsAll()`, `searchUsersAll()`, `listReactionsAll()`, `getAuditEventsAll()`, `getWebhookEventsAll()`.
+
+## How to create chats and manage members
+
+### TypeScript SDK
+```typescript
+import { PachcaClient, MessageEntityType } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Create a group chat with initial members
+const chat = await client.chats.createChat({
+  chat: { name: "Project Discussion", memberIds: [1, 2, 3], channel: false, public: false }
+})
+console.log("Created chat:", chat.id, chat.name)
+
+// Add more members later
+await client.members.addMembers(chat.id, { memberIds: [4, 5] })
+
+// Remove a member
+await client.members.removeMember(chat.id, 5)
+
+// List current members
+const members = await client.members.listMembersAll(chat.id)
+console.log("Members:", members.map(m => m.firstName))
+
+// Send a message to the chat
+await client.messages.createMessage({
+  message: { entityType: MessageEntityType.Discussion, entityId: chat.id, content: "Welcome everyone!" }
+})
 ```
 
-**C#:**
-```csharp
-using var client = new PachcaClient("YOUR_TOKEN");
-var users = await client.Users.ListUsersAsync();
-await client.Reactions.AddReactionAsync(messageId, new ReactionRequest { Code = "👍" });
+### Python SDK
+```python
+from pachca.client import PachcaClient
+from pachca.models import ChatCreateRequest, ChatCreateRequestChat, MessageCreateRequest, MessageCreateRequestMessage, AddMembersRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+# Create a group chat with initial members
+chat = await client.chats.create_chat(ChatCreateRequest(
+    chat=ChatCreateRequestChat(name="Project Discussion", member_ids=[1, 2, 3], channel=False, public=False)
+))
+print("Created chat:", chat.id, chat.name)
+
+# Add more members later
+await client.members.add_members(chat.id, AddMembersRequest(member_ids=[4, 5]))
+
+# List current members
+members = await client.members.list_members_all(chat.id)
+
+# Send a message to the chat
+await client.messages.create_message(MessageCreateRequest(
+    message=MessageCreateRequestMessage(entity_type="discussion", entity_id=chat.id, content="Welcome everyone!")
+))
 ```
+
+Chat types: `channel: true` creates a channel (one-way announcements), `channel: false` creates a group chat (everyone can write). `public: true` makes it visible to all workspace members.
+
+## How to set up webhooks for real-time updates
+
+### Step-by-step setup
+1. Create a bot in Pachca: **Automations** → **Integrations** → **Bots**
+2. In bot settings, go to **Outgoing Webhook** tab and set your HTTPS URL
+3. Copy the **Signing Secret** for signature verification
+4. Select event types: new messages, reactions, button presses, form submissions, etc.
+5. Add the bot to chats where you want to receive events (global events like company member changes work without adding to chat)
+
+### TypeScript webhook handler (Express.js)
+```typescript
+import express from "express"
+import crypto from "crypto"
+
+const SIGNING_SECRET = "your_signing_secret" // From bot settings → Outgoing Webhook
+const app = express()
+
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // Step 1: Verify HMAC-SHA256 signature
+  const signature = crypto.createHmac("sha256", SIGNING_SECRET)
+    .update(req.body).digest("hex")
+  if (signature !== req.headers["pachca-signature"]) {
+    return res.status(401).send("Invalid signature")
+  }
+
+  // Step 2: Check timestamp for replay protection (±60 seconds)
+  const event = JSON.parse(req.body.toString())
+  if (Math.abs(Date.now() / 1000 - event.webhook_timestamp) > 60) {
+    return res.status(401).send("Expired event")
+  }
+
+  // Step 3: Process event by type
+  switch (event.type) {
+    case "message":
+      if (event.event === "new") console.log("New message:", event.content, "from user:", event.user_id)
+      if (event.event === "update") console.log("Message edited:", event.id)
+      if (event.event === "delete") console.log("Message deleted:", event.id)
+      break
+    case "reaction":
+      console.log(event.event === "new" ? "Reaction added:" : "Reaction removed:", event.emoji)
+      break
+    case "button":
+      console.log("Button pressed:", event.data, "by user:", event.user_id)
+      // Use event.trigger_id within 3 seconds to open a form
+      break
+    case "view_submit":
+      console.log("Form submitted:", event.payload)
+      break
+  }
+
+  res.status(200).send("OK")
+})
+app.listen(3000)
+```
+
+### Python webhook handler (Flask)
+```python
+import hmac, hashlib, json, time
+from flask import Flask, request, abort
+
+SIGNING_SECRET = "your_signing_secret"  # From bot settings → Outgoing Webhook
+app = Flask(__name__)
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    raw_body = request.get_data()
+
+    # Step 1: Verify HMAC-SHA256 signature
+    expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    if expected != request.headers.get("Pachca-Signature"):
+        abort(401)
+
+    # Step 2: Check timestamp for replay protection
+    event = json.loads(raw_body)
+    if abs(time.time() - event["webhook_timestamp"]) > 60:
+        abort(401)
+
+    # Step 3: Process event by type
+    if event["type"] == "message" and event["event"] == "new":
+        print("New message:", event["content"], "from user:", event["user_id"])
+    elif event["type"] == "button":
+        print("Button pressed:", event["data"])
+
+    return "OK", 200
+```
+
+### Webhook event types
+| Event type | Description | Fields |
+|-----------|-------------|--------|
+| message (new) | New message in chat | id, content, user_id, chat_id, entity_type, entity_id, created_at, url |
+| message (update) | Message edited | id, content, user_id, chat_id |
+| message (delete) | Message deleted | id, user_id, chat_id |
+| reaction (new/delete) | Reaction added/removed | message_id, user_id, emoji, chat_id |
+| button | Button pressed | message_id, user_id, data, trigger_id, chat_id |
+| view_submit | Form submitted | payload (form field values), user_id, trigger_id |
+| chat_member (new/delete) | Member added/removed from chat | chat_id, user_id, event |
+| company_member (new/update/delete) | Workspace member changes | user_id, event (no chat needed) |
+| link_shared | URL shared (unfurl bots) | url, message_id, chat_id |
+
+### Alternative: Polling (when webhook URL is not available)
+Enable "Save event history" in bot settings, then poll:
+```typescript
+// Poll for events periodically
+const events = await client.bots.getWebhookEvents()
+for (const event of events.data) {
+  processEvent(event)
+  await client.bots.deleteWebhookEvent(event.id) // Remove processed event
+}
+```
+
+## How to handle rate limits and implement retry logic
+
+Both SDKs handle retry automatically — 3 retries with exponential backoff for `429` and `5xx` errors. No extra code needed:
+
+### TypeScript SDK
+```typescript
+import { PachcaClient, ApiError } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+// Just call methods normally — retries are transparent
+const users = await client.users.listUsersAll()
+
+// If all retries are exhausted, ApiError is thrown
+try {
+  await client.messages.createMessage({
+    message: { entityId: 12345, content: "Hello" }
+  })
+} catch (error) {
+  if (error instanceof ApiError) {
+    // After 3 retries, the error is surfaced — check error.errors for details
+    for (const e of error.errors ?? []) {
+      console.error(e.key, e.message)
+    }
+  }
+}
+```
+
+### Python SDK
+```python
+from pachca.client import PachcaClient
+from pachca.models import ApiError
+
+client = PachcaClient("YOUR_TOKEN")
+
+# SDK retries 429 and 5xx automatically (3 attempts, exponential backoff)
+# Just call methods normally — retries are transparent
+users = await client.users.list_users_all()
+
+# If all retries are exhausted, ApiError is raised
+try:
+    await client.messages.create_message(request)
+except ApiError as e:
+    # After 3 retries, the error is surfaced — check e.errors for details
+    for err in e.errors:
+        print(err.key, err.message)
+```
+
+Rate limits by endpoint category:
+- Messages send/edit/delete: ~4 req/sec per chat (burst: 30/sec for 5s)
+- Messages read: ~10 req/sec per token
+- All other endpoints: ~50 req/sec per token
+- On 429: SDK respects `Retry-After` header automatically
+
+## How to upload files and attach to messages
+
+File upload is a 3-step process: get presigned params → upload to S3 → attach to message.
+
+### TypeScript SDK
+```typescript
+import { PachcaClient, FileType } from "@pachca/sdk"
+import fs from "fs"
+import path from "path"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const filePath = "./report.pdf"
+const fileName = path.basename(filePath)
+const fileBuffer = fs.readFileSync(filePath)
+
+// Step 1: Get S3 presigned upload parameters
+const params = await client.common.getUploadParams()
+
+// Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+await client.common.uploadFile(params.directUrl, {
+  contentDisposition: params.contentDisposition,
+  acl: params.acl,
+  policy: params.policy,
+  xAmzCredential: params.xAmzCredential,
+  xAmzAlgorithm: params.xAmzAlgorithm,
+  xAmzDate: params.xAmzDate,
+  xAmzSignature: params.xAmzSignature,
+  key: params.key,
+  file: new File([fileBuffer], fileName)
+})
+
+// Step 3: Attach file to message (replace ${filename} in key with actual name)
+const fileKey = params.key.replace("${filename}", fileName)
+await client.messages.createMessage({
+  message: {
+    entityId: 12345,
+    content: "Report attached",
+    files: [{ key: fileKey, name: fileName, fileType: FileType.File, size: fileBuffer.length }]
+  }
+})
+```
+
+### Python SDK
+```python
+from pachca.client import PachcaClient
+from pachca.models import (
+    FileUploadRequest, MessageCreateRequest, MessageCreateRequestMessage,
+    MessageCreateRequestFile, FileType
+)
+import os
+
+client = PachcaClient("YOUR_TOKEN")
+
+file_path = "report.pdf"
+file_name = os.path.basename(file_path)
+
+# Step 1: Get S3 presigned upload parameters
+params = await client.common.get_upload_params()
+
+# Step 2: Upload file to S3 (direct_url is an external presigned URL, not Pachca API)
+with open(file_path, "rb") as f:
+    await client.common.upload_file(
+        direct_url=params.direct_url,
+        request=FileUploadRequest(
+            content_disposition=params.content_disposition,
+            acl=params.acl,
+            policy=params.policy,
+            x_amz_credential=params.x_amz_credential,
+            x_amz_algorithm=params.x_amz_algorithm,
+            x_amz_date=params.x_amz_date,
+            x_amz_signature=params.x_amz_signature,
+            key=params.key,
+            file=f.read()
+        )
+    )
+
+# Step 3: Attach file to message (replace ${filename} in key with actual name)
+file_key = params.key.replace("${filename}", file_name)
+await client.messages.create_message(MessageCreateRequest(
+    message=MessageCreateRequestMessage(
+        entity_id=12345,
+        content="Report attached",
+        files=[MessageCreateRequestFile(key=file_key, name=file_name, file_type=FileType.FILE, size=os.path.getsize(file_path))]
+    )
+))
+```
+
+File types: `FileType.File` / `FileType.FILE` (any file), `FileType.Image` / `FileType.IMAGE` (add `width` and `height`).
+
+## How to monitor user status and presence
+
+### TypeScript SDK
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Get any user's status
+const status = await client.users.getUserStatus(userId)
+console.log(status.emoji, status.title, status.isAway, status.awayMessage)
+
+// Set your own status
+await client.profile.updateStatus({
+  status: { emoji: "🏖️", title: "On vacation", isAway: true, awayMessage: "Back on Monday" }
+})
+
+// Set status with expiration
+await client.profile.updateStatus({
+  status: { emoji: "🍽️", title: "Lunch break", expiresAt: new Date(Date.now() + 3600000).toISOString() }
+})
+
+// Clear your status
+await client.profile.deleteStatus()
+```
+
+### Python SDK
+```python
+from pachca.client import PachcaClient
+from pachca.models import StatusUpdateRequest, StatusUpdateRequestStatus
+
+client = PachcaClient("YOUR_TOKEN")
+
+# Get any user's status
+status = await client.users.get_user_status(user_id)
+print(status.emoji, status.title, status.is_away, status.away_message)
+
+# Set your own status
+await client.profile.update_status(StatusUpdateRequest(
+    status=StatusUpdateRequestStatus(emoji="🏖️", title="On vacation", is_away=True, away_message="Back on Monday")
+))
+
+# Clear your status
+await client.profile.delete_status()
+```
+
+### Polling pattern for monitoring status changes
+Pachca does not provide real-time webhooks for status/presence changes. Use polling with caching:
+
+```typescript
+const cache = new Map<number, { status: any; fetchedAt: number }>()
+const CACHE_TTL = 60_000 // Minimum 60 seconds between polls per user
+
+async function getUserPresence(userId: number) {
+  const cached = cache.get(userId)
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) return cached.status
+  const status = await client.users.getUserStatus(userId)
+  cache.set(userId, { status, fetchedAt: Date.now() })
+  return status
+}
+
+// Batch refresh for a team
+async function refreshTeamPresences(userIds: number[]) {
+  const results = []
+  for (const id of userIds) {
+    cache.delete(id)
+    results.push(await getUserPresence(id))
+  }
+  return results
+}
+```
+
+Status fields: `emoji` (string), `title` (string), `expires_at` (ISO datetime or null), `is_away` (boolean), `away_message` (string). Admin can manage any user's status via PUT/DELETE /users/{id}/status.
 
 ---
 
@@ -4646,6 +5129,130 @@ content-length: 358
     IP-адрес Пачки: `37.200.70.177`
 
 
+## Реализация webhook handler
+
+Полный пример обработки вебхуков на TypeScript (Express.js) и Python (Flask) с проверкой подписи, защитой от replay-атак и обработкой всех типов событий.
+
+### TypeScript (Express.js)
+
+```typescript
+import express from "express"
+import crypto from "crypto"
+
+const SIGNING_SECRET = "your_signing_secret" // Из настроек бота → Исходящий Webhook → Signing Secret
+const app = express()
+
+// Важно: используем express.raw для получения сырого тела запроса (для корректной проверки HMAC)
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // 1. Проверка подписи HMAC-SHA256
+  const signature = crypto.createHmac("sha256", SIGNING_SECRET)
+    .update(req.body).digest("hex")
+  if (signature !== req.headers["pachca-signature"]) {
+    return res.status(401).send("Invalid signature")
+  }
+
+  // 2. Защита от replay-атак (±60 секунд)
+  const event = JSON.parse(req.body.toString())
+  if (Math.abs(Date.now() / 1000 - event.webhook_timestamp) > 60) {
+    return res.status(401).send("Expired event")
+  }
+
+  // 3. Обработка события по типу
+  switch (event.type) {
+    case "message":
+      if (event.event === "new") {
+        console.log(`Новое сообщение от ${event.user_id}: ${event.content}`)
+      } else if (event.event === "update") {
+        console.log(`Сообщение ${event.id} отредактировано`)
+      } else if (event.event === "delete") {
+        console.log(`Сообщение ${event.id} удалено`)
+      }
+      break
+    case "reaction":
+      console.log(`${event.event === "new" ? "Добавлена" : "Удалена"} реакция ${event.emoji}`)
+      break
+    case "button":
+      console.log(`Нажата кнопка: ${event.data}`)
+      // trigger_id доступен 3 секунды — используйте его для открытия формы
+      break
+    case "view_submit":
+      console.log(`Форма заполнена:`, event.payload)
+      break
+  }
+
+  res.status(200).send("OK")
+})
+app.listen(3000)
+```
+
+### Python (Flask)
+
+```python
+import hmac, hashlib, json, time
+from flask import Flask, request, abort
+
+SIGNING_SECRET = "your_signing_secret"  # Из настроек бота → Исходящий Webhook → Signing Secret
+app = Flask(__name__)
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    raw_body = request.get_data()
+
+    # 1. Проверка подписи HMAC-SHA256
+    expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    if expected != request.headers.get("Pachca-Signature"):
+        abort(401)
+
+    # 2. Защита от replay-атак (±60 секунд)
+    event = json.loads(raw_body)
+    if abs(time.time() - event["webhook_timestamp"]) > 60:
+        abort(401)
+
+    # 3. Обработка события
+    if event["type"] == "message" and event["event"] == "new":
+        print(f"Новое сообщение от {event['user_id']}: {event['content']}")
+    elif event["type"] == "button":
+        print(f"Нажата кнопка: {event['data']}")
+    elif event["type"] == "view_submit":
+        print(f"Форма заполнена: {event['payload']}")
+
+    return "OK", 200
+```
+
+### Идемпотентная обработка
+
+Пачка использует **at-least-once delivery** — один и тот же вебхук может прийти повторно. Обработчик должен быть идемпотентным:
+
+```typescript
+// Дедупликация по уникальным полям события
+const processed = new Set<string>()
+
+function getEventKey(event: any): string {
+  // Уникальный ключ: тип + событие + id объекта
+  return `${event.type}:${event.event}:${event.id || event.message_id || ""}`
+}
+
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // ... проверка подписи ...
+  const event = JSON.parse(req.body.toString())
+  const key = getEventKey(event)
+  if (processed.has(key)) {
+    return res.status(200).send("Already processed")
+  }
+  processed.add(key)
+  processEvent(event) // Ваша логика обработки
+  res.status(200).send("OK")
+})
+```
+
+### Обработка ошибок доставки
+
+Если ваш сервер не ответил `2xx` в течение таймаута, Пачка повторит попытку доставки. Рекомендации:
+
+- Отвечайте `200 OK` как можно быстрее — выносите тяжёлую обработку в фоновую очередь
+- При временных ошибках отвечайте `503` — Пачка повторит позже
+- При постоянных ошибках (невалидные данные) — `200 OK` чтобы избежать бесконечных повторов
+
 ## Поллинг
 
 Если у вас нет возможности принимать входящие HTTP-запросы (локальная разработка, жёсткие firewall-правила), используйте **поллинг** — получение событий через API.
@@ -4657,6 +5264,26 @@ content-length: 358
 
 > Периодически запрашивайте список событий, обрабатывайте каждое и удаляйте обработанные.
 
+
+### Пример поллинга (TypeScript)
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_BOT_TOKEN")
+
+async function pollEvents() {
+  const events = await client.bots.getWebhookEvents()
+  for (const event of events.data) {
+    console.log("Событие:", event.type, event.event)
+    // Обработать событие...
+    await client.bots.deleteWebhookEvent(event.id) // Удалить из очереди
+  }
+}
+
+// Запускать каждые 5 секунд
+setInterval(pollEvents, 5000)
+```
 
 ---
 
@@ -8263,60 +8890,117 @@ pachca messages create --entity-id 12345 \
 | Файл | `file` | — |
 | Изображение | `image` | `width`, `height` — размеры в пикселях |
 
-## Полный пример
+## Примеры полного цикла
 
-```javascript title="Node.js: загрузка и отправка файла"
-const fs = require('node:fs');
-const path = require('node:path');
+### TypeScript SDK
 
-const TOKEN = 'ваш_токен';
-const BASE = 'https://api.pachca.com/api/shared/v1';
-const headers = { Authorization: `Bearer ${TOKEN}` };
+```typescript
+import { PachcaClient, FileUploadRequest, FileType } from "@pachca/sdk"
+import fs from "fs"
+import path from "path"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const filePath = "./report.pdf"
+const fileName = path.basename(filePath)
+const fileBuffer = fs.readFileSync(filePath)
 
 // Шаг 1: Получить параметры загрузки
-const { data: params } = await fetch(`${BASE}/uploads`, {
-  method: 'POST', headers
-}).then(r => r.json());
+const params = await client.common.getUploadParams()
 
-// Шаг 2: Загрузить файл
-const filePath = './report.pdf';
-const fileName = path.basename(filePath);
-const fileBuffer = fs.readFileSync(filePath);
-
-const form = new FormData();
-form.append('Content-Disposition', params['Content-Disposition']);
-form.append('acl', params.acl);
-form.append('policy', params.policy);
-form.append('x-amz-credential', params['x-amz-credential']);
-form.append('x-amz-algorithm', params['x-amz-algorithm']);
-form.append('x-amz-date', params['x-amz-date']);
-form.append('x-amz-signature', params['x-amz-signature']);
-form.append('key', params.key);
-form.append('file', new File([fileBuffer], fileName));
-
-await fetch(params.direct_url, { method: 'POST', body: form });
+// Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
+await client.common.uploadFile(params.directUrl, {
+  contentDisposition: params.contentDisposition,
+  acl: params.acl,
+  policy: params.policy,
+  xAmzCredential: params.xAmzCredential,
+  xAmzAlgorithm: params.xAmzAlgorithm,
+  xAmzDate: params.xAmzDate,
+  xAmzSignature: params.xAmzSignature,
+  key: params.key,
+  file: new File([fileBuffer], fileName)
+})
 
 // Шаг 3: Отправить сообщение с файлом
-const fileKey = params.key.replace('${filename}', fileName);
-await fetch(`${BASE}/messages`, {
-  method: 'POST',
-  headers: { ...headers, 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    message: {
-      entity_type: 'discussion',
-      entity_id: 12345,
-      content: 'Отчёт прикреплён',
-      files: [{ key: fileKey, name: fileName, file_type: 'file', size: fileBuffer.length }]
-    }
-  })
-});
+const fileKey = params.key.replace("${filename}", fileName)
+await client.messages.createMessage({
+  message: {
+    entityType: "discussion",
+    entityId: 12345,
+    content: "Отчёт прикреплён",
+    files: [{ key: fileKey, name: fileName, fileType: FileType.File, size: fileBuffer.length }]
+  }
+})
 ```
+
+### Python SDK
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import FileUploadRequest, MessageCreateRequest, MessageCreateRequestMessage, MessageCreateRequestFile, FileType
+import os
+
+client = PachcaClient("YOUR_TOKEN")
+
+file_path = "report.pdf"
+file_name = os.path.basename(file_path)
+
+# Шаг 1: Получить параметры загрузки
+params = await client.common.get_upload_params()
+
+# Шаг 2: Загрузить файл на S3 (direct_url — внешний presigned URL)
+with open(file_path, "rb") as f:
+    await client.common.upload_file(
+        direct_url=params.direct_url,
+        request=FileUploadRequest(
+            content_disposition=params.content_disposition,
+            acl=params.acl,
+            policy=params.policy,
+            x_amz_credential=params.x_amz_credential,
+            x_amz_algorithm=params.x_amz_algorithm,
+            x_amz_date=params.x_amz_date,
+            x_amz_signature=params.x_amz_signature,
+            key=params.key,
+            file=f.read()
+        )
+    )
+
+# Шаг 3: Отправить сообщение с файлом
+file_key = params.key.replace("${filename}", file_name)
+await client.messages.create_message(MessageCreateRequest(
+    message=MessageCreateRequestMessage(
+        entity_type="discussion",
+        entity_id=12345,
+        content="Отчёт прикреплён",
+        files=[MessageCreateRequestFile(key=file_key, name=file_name, file_type=FileType.FILE, size=os.path.getsize(file_path))]
+    )
+))
+```
+
+## Поля multipart-формы для S3
+
+Все поля из ответа [Получение подписи](POST /uploads) передаются на S3 **как есть** в multipart-форме:
+
+| Поле | Описание |
+|------|----------|
+| `Content-Disposition` | Заголовок для скачивания |
+| `acl` | Права доступа S3 |
+| `policy` | Base64-кодированная политика загрузки |
+| `x-amz-credential` | AWS credential |
+| `x-amz-algorithm` | Всегда `AWS4-HMAC-SHA256` |
+| `x-amz-date` | Дата подписи |
+| `x-amz-signature` | Подпись запроса |
+| `key` | Путь файла на S3 (содержит `${filename}` — заменить на реальное имя) |
+| `file` | Сам файл — **обязательно последнее поле** |
+
+> **Внимание:** `direct_url` — это внешний presigned URL от S3. Он **не** является эндпоинтом Пачки, не требует заголовка `Authorization` и имеет ограниченное время действия.
+
 
 ## Частые ошибки
 
 | Ошибка | Причина | Решение |
 |--------|---------|---------|
-| `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через `POST /uploads` |
+| `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через [Получение подписи](POST /uploads) |
 | `400 Bad Request` | Неправильный Content-Type | Убедитесь, что запрос отправляется как `multipart/form-data`, а не `application/json` |
 | Файл не отображается | Неверный `key` | Проверьте, что `${filename}` в ключе заменён на реальное имя файла |
 
@@ -8424,6 +9108,87 @@ await fetch(`${BASE}/messages`, {
 - **Лимиты гибкие:** они ориентировочные и могут меняться, чтобы всё работало гладко;
 - **Должно хватать на всё:** мы настроили их так, чтобы вам было комфортно в любых сценариях;
 - **Если упёрлись в лимит:** при ошибке `429` смотрите заголовок `Retry-After` — он подскажет, через сколько секунд повторить запрос (или используйте экспоненциальный `backoff`, если хотите перестраховаться).
+
+## Повторные запросы (Retry)
+
+[SDK](/guides/sdk/overview) ([TypeScript](/guides/sdk/typescript), [Python](/guides/sdk/python)) уже включают автоматический retry с экспоненциальным backoff. Ниже — реализация для кастомных HTTP-клиентов.
+
+### TypeScript
+
+```typescript
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error: any) {
+      // 429 Too Many Requests — ждём Retry-After или backoff
+      if (error.status === 429) {
+        const retryAfter = error.headers?.["retry-after"]
+        const delay = retryAfter
+          ? parseInt(retryAfter) * 1000
+          : Math.pow(2, attempt) * 1000 * (0.5 + Math.random())
+        await new Promise(r => setTimeout(r, delay))
+        continue
+      }
+      // 5xx — серверная ошибка, backoff с jitter
+      if (error.status >= 500 && attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000 * (0.5 + Math.random())
+        await new Promise(r => setTimeout(r, delay))
+        continue
+      }
+      // 4xx (кроме 429) — не повторяем
+      throw error
+    }
+  }
+  throw new Error("Max retries exceeded")
+}
+
+// Использование
+const users = await withRetry(() => client.users.listUsers())
+```
+
+### Python
+
+```python
+import time, random
+
+async def with_retry(fn, max_retries=3):
+    for attempt in range(max_retries + 1):
+        try:
+            return await fn()
+        except Exception as e:
+            status = getattr(e, "status_code", getattr(e, "status", 0))
+            headers = getattr(e, "headers", {})
+            # 429 Too Many Requests
+            if status == 429:
+                retry_after = headers.get("Retry-After")
+                delay = int(retry_after) if retry_after else (2 ** attempt) * (0.5 + random.random())
+                time.sleep(delay)
+                continue
+            # 5xx — серверная ошибка
+            if status >= 500 and attempt < max_retries:
+                time.sleep((2 ** attempt) * (0.5 + random.random()))
+                continue
+            raise
+    raise Exception("Max retries exceeded")
+
+# Использование
+users = await with_retry(lambda: client.users.list_users())
+```
+
+### Стратегия повторов
+
+| Код | Действие | Задержка |
+|-----|----------|----------|
+| `429` | Повторить | `Retry-After` header или exponential backoff: 1с, 2с, 4с × jitter |
+| `500`, `502`, `503`, `504` | Повторить | Exponential backoff с jitter: ~1с, ~2с, ~4с |
+| `400`, `401`, `403`, `404`, `422` | **Не повторять** | Ошибка клиента — нужно исправить запрос |
+
+> Максимум **3 повтора** на каждый запрос. Jitter (случайный множитель 0.5–1.5) предотвращает «thundering herd» при массовых 429.
+
 
 ---
 
@@ -9156,6 +9921,43 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { ExportRequest, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: ExportRequest = {
+  startAt: "2025-03-20",
+  endAt: "2025-03-20",
+  webhookUrl: "https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
+  chatIds: [123],
+  skipChatsFile: false
+}
+client.common.requestExport(request)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ExportRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = ExportRequest(
+    start_at="2025-03-20",
+    end_at="2025-03-20",
+    webhook_url="https://webhook.site/9227d3b8-6e82-4e64-bf5d-ad972ad270f2",
+    chat_ids=[123],
+    skip_chats_file=False
+)
+await client.common.request_export(request=request)
+```
+
 ---
 
 # Скачать архив экспорта
@@ -9258,6 +10060,30 @@ curl "https://api.pachca.com/api/shared/v1/chats/exports/22322" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.common.downloadExport(22322)
+// → string
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.common.download_export(id=22322)
+# → str
+```
 
 ---
 
@@ -9439,6 +10265,32 @@ curl "https://api.pachca.com/api/shared/v1/custom_properties?entity_type=User" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, SearchEntityType } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.common.listProperties({ entityType: SearchEntityType.User })
+// → ListPropertiesResponse({ data: CustomPropertyDefinition[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListPropertiesParams, SearchEntityType
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListPropertiesParams(entity_type=SearchEntityType.USER)
+response = await client.common.list_properties(params=params)
+# → ListPropertiesResponse(data: list[CustomPropertyDefinition])
+```
+
 ---
 
 # Загрузка файла
@@ -9474,6 +10326,51 @@ curl "$DIRECT_URL" \
 
 ### 204: There is no content to send for this request, but the headers may be useful. 
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { FileUploadRequest, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: FileUploadRequest = {
+  contentDisposition: "example",
+  acl: "example",
+  policy: "example",
+  xAmzCredential: "example",
+  xAmzAlgorithm: "example",
+  xAmzDate: "example",
+  xAmzSignature: "example",
+  key: "example",
+  file: new Blob([])
+}
+client.common.uploadFile("https://example.com", request)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import FileUploadRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = FileUploadRequest(
+    content_disposition="example",
+    acl="example",
+    policy="example",
+    x_amz_credential="example",
+    x_amz_algorithm="example",
+    x_amz_date="example",
+    x_amz_signature="example",
+    key="example",
+    file=b""
+)
+await client.common.upload_file(direct_url="https://example.com", request=request)
+```
 
 ---
 
@@ -9591,6 +10488,30 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.common.getUploadParams()
+// → UploadParams({ contentDisposition: string, acl: string, policy: string, xAmzCredential: string, xAmzAlgorithm: string, xAmzDate: string, xAmzSignature: string, key: string, directUrl: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.common.get_upload_params()
+# → UploadParams(content_disposition: str, acl: str, policy: str, x_amz_credential: str, x_amz_algorithm: str, x_amz_date: str, x_amz_signature: str, key: str, direct_url: str)
+```
+
 ---
 
 ## API: Profile
@@ -9664,6 +10585,30 @@ curl "https://api.pachca.com/api/shared/v1/oauth/token/info" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.profile.getTokenInfo()
+// → AccessTokenInfo({ id: number, token: string, name: string | null, userId: number, scopes: OAuthScope[], createdAt: string, revokedAt: string | null, expiresIn: number | null, lastUsedAt: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.profile.get_token_info()
+# → AccessTokenInfo(id: int, token: str, name: str | None, user_id: int, scopes: list[OAuthScope], created_at: datetime, revoked_at: datetime | None, expires_in: int | None, last_used_at: datetime | None)
+```
 
 ---
 
@@ -9804,6 +10749,30 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.profile.getProfile()
+// → User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.profile.get_profile()
+# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime, time_zone: str, image_url: str | None)
+```
 
 ---
 
@@ -9960,6 +10929,31 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/profile/avatar" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const image = new Blob([])
+const response = client.profile.updateProfileAvatar(image)
+// → AvatarData({ imageUrl: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.profile.update_profile_avatar(image=b"")
+# → AvatarData(image_url: str)
+```
+
 ---
 
 # Удаление аватара
@@ -10066,6 +11060,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/avatar" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.profile.deleteProfileAvatar()
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.profile.delete_profile_avatar()
+```
+
 ---
 
 # Текущий статус
@@ -10147,6 +11163,30 @@ curl "https://api.pachca.com/api/shared/v1/profile/status" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.profile.getStatus()
+// → unknown
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.profile.get_status()
+# → object
+```
 
 ---
 
@@ -10329,6 +11369,49 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/profile/status" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, StatusUpdateRequest, StatusUpdateRequestStatus } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: StatusUpdateRequest = {
+  status: {
+    emoji: "🎮",
+    title: "Очень занят",
+    expiresAt: "2024-04-08T10:00:00.000Z",
+    isAway: true,
+    awayMessage: "Вернусь после 15:00"
+  }
+}
+const response = client.profile.updateStatus(request)
+// → UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import StatusUpdateRequest, StatusUpdateRequestStatus
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = StatusUpdateRequest(
+    status=StatusUpdateRequestStatus(
+        emoji="🎮",
+        title="Очень занят",
+        expires_at=datetime.fromisoformat("2024-04-08T10:00:00.000Z"),
+        is_away=True,
+        away_message="Вернусь после 15:00"
+    )
+)
+response = await client.profile.update_status(request=request)
+# → UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)
+```
+
 ---
 
 # Удаление статуса
@@ -10384,6 +11467,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/profile/status" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.profile.deleteStatus()
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.profile.delete_status()
+```
 
 ---
 
@@ -10698,6 +11803,63 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, UserCreateRequest, UserCreateRequestCustomProperty, UserCreateRequestUser, UserRoleInput } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: UserCreateRequest = {
+  user: {
+    firstName: "Олег",
+    lastName: "Петров",
+    email: "olegp@example.com",
+    phoneNumber: "+79001234567",
+    nickname: "olegpetrov",
+    department: "Продукт",
+    title: "CIO",
+    role: UserRoleInput.User,
+    suspended: false,
+    listTags: ["example"],
+    customProperties: [{ id: 1678, value: "Санкт-Петербург" }]
+  },
+  skipEmailNotify: true
+}
+const response = client.users.createUser(request)
+// → User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import UserCreateRequest, UserCreateRequestCustomProperty, UserCreateRequestUser, UserRoleInput
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = UserCreateRequest(
+    user=UserCreateRequestUser(
+        first_name="Олег",
+        last_name="Петров",
+        email="olegp@example.com",
+        phone_number="+79001234567",
+        nickname="olegpetrov",
+        department="Продукт",
+        title="CIO",
+        role=UserRoleInput.USER,
+        suspended=False,
+        list_tags=["example"],
+        custom_properties=[UserCreateRequestCustomProperty(id=1678, value="Санкт-Петербург")]
+    ),
+    skip_email_notify=True
+)
+response = await client.users.create_user(request=request)
+# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime, time_zone: str, image_url: str | None)
+```
+
 ---
 
 # Список сотрудников
@@ -10948,6 +12110,40 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.users.listUsers({
+  query: "Олег",
+  limit: 1,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+})
+// → ListUsersResponse({ data: User[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListUsersParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListUsersParams(
+    query="Олег",
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.users.list_users(params=params)
+# → ListUsersResponse(data: list[User], meta: PaginationMeta)
+```
+
 ---
 
 # Информация о сотруднике
@@ -11156,6 +12352,30 @@ curl "https://api.pachca.com/api/shared/v1/users/12" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.users.getUser(12)
+// → User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.users.get_user(id=12)
+# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime, time_zone: str, image_url: str | None)
+```
 
 ---
 
@@ -11500,6 +12720,61 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, UserRoleInput, UserUpdateRequest, UserUpdateRequestCustomProperty, UserUpdateRequestUser } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: UserUpdateRequest = {
+  user: {
+    firstName: "Олег",
+    lastName: "Петров",
+    email: "olegpetrov@example.com",
+    phoneNumber: "+79001234567",
+    nickname: "olegpetrov",
+    department: "Отдел разработки",
+    title: "Старший разработчик",
+    role: UserRoleInput.User,
+    suspended: false,
+    listTags: ["example"],
+    customProperties: [{ id: 1678, value: "Санкт-Петербург" }]
+  }
+}
+const response = client.users.updateUser(12, request)
+// → User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import UserRoleInput, UserUpdateRequest, UserUpdateRequestCustomProperty, UserUpdateRequestUser
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = UserUpdateRequest(
+    user=UserUpdateRequestUser(
+        first_name="Олег",
+        last_name="Петров",
+        email="olegpetrov@example.com",
+        phone_number="+79001234567",
+        nickname="olegpetrov",
+        department="Отдел разработки",
+        title="Старший разработчик",
+        role=UserRoleInput.USER,
+        suspended=False,
+        list_tags=["example"],
+        custom_properties=[UserUpdateRequestCustomProperty(id=1678, value="Санкт-Петербург")]
+    )
+)
+response = await client.users.update_user(id=12, request=request)
+# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime, time_zone: str, image_url: str | None)
+```
+
 ---
 
 # Удаление сотрудника
@@ -11624,6 +12899,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.users.deleteUser(12)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.users.delete_user(id=12)
+```
 
 ---
 
@@ -11817,6 +13114,31 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12/avatar" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const image = new Blob([])
+const response = client.users.updateUserAvatar(12, image)
+// → AvatarData({ imageUrl: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.users.update_user_avatar(user_id=12, image=b"")
+# → AvatarData(image_url: str)
+```
+
 ---
 
 # Удаление аватара сотрудника
@@ -11960,6 +13282,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12/avatar" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.users.deleteUserAvatar(12)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.users.delete_user_avatar(user_id=12)
+```
+
 ---
 
 # Статус сотрудника
@@ -12078,6 +13422,30 @@ curl "https://api.pachca.com/api/shared/v1/users/12/status" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.users.getUserStatus(12)
+// → unknown
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.users.get_user_status(user_id=12)
+# → object
+```
 
 ---
 
@@ -12297,6 +13665,49 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/users/12/status" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, StatusUpdateRequest, StatusUpdateRequestStatus } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: StatusUpdateRequest = {
+  status: {
+    emoji: "🎮",
+    title: "Очень занят",
+    expiresAt: "2024-04-08T10:00:00.000Z",
+    isAway: true,
+    awayMessage: "Вернусь после 15:00"
+  }
+}
+const response = client.users.updateUserStatus(12, request)
+// → UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import StatusUpdateRequest, StatusUpdateRequestStatus
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = StatusUpdateRequest(
+    status=StatusUpdateRequestStatus(
+        emoji="🎮",
+        title="Очень занят",
+        expires_at=datetime.fromisoformat("2024-04-08T10:00:00.000Z"),
+        is_away=True,
+        away_message="Вернусь после 15:00"
+    )
+)
+response = await client.users.update_user_status(user_id=12, request=request)
+# → UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None)
+```
+
 ---
 
 # Удаление статуса сотрудника
@@ -12389,6 +13800,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/users/12/status" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.users.deleteUserStatus(12)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.users.delete_user_status(user_id=12)
+```
 
 ---
 
@@ -12584,6 +14017,33 @@ curl "https://api.pachca.com/api/shared/v1/group_tags" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { GroupTagRequest, GroupTagRequestGroupTag, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: GroupTagRequest = { groupTag: { name: "Новое название тега" } }
+const response = client.groupTags.createTag(request)
+// → GroupTag({ id: number, name: string, usersCount: number })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import GroupTagRequest, GroupTagRequestGroupTag
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = GroupTagRequest(group_tag=GroupTagRequestGroupTag(name="Новое название тега"))
+response = await client.group_tags.create_tag(request=request)
+# → GroupTag(id: int, name: str, users_count: int)
+```
+
 ---
 
 # Список тегов сотрудников
@@ -12769,6 +14229,40 @@ curl "https://api.pachca.com/api/shared/v1/group_tags?names[]=Design&names[]=Pro
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.groupTags.listTags({
+  names: ["example"],
+  limit: 1,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+})
+// → ListTagsResponse({ data: GroupTag[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListTagsParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListTagsParams(
+    names=["example"],
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.group_tags.list_tags(params=params)
+# → ListTagsResponse(data: list[GroupTag], meta: PaginationMeta)
+```
+
 ---
 
 # Информация о теге
@@ -12912,6 +14406,30 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/9111" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.groupTags.getTag(9111)
+// → GroupTag({ id: number, name: string, usersCount: number })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.group_tags.get_tag(id=9111)
+# → GroupTag(id: int, name: str, users_count: int)
+```
 
 ---
 
@@ -13144,6 +14662,33 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/group_tags/9111" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { GroupTagRequest, GroupTagRequestGroupTag, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: GroupTagRequest = { groupTag: { name: "Новое название тега" } }
+const response = client.groupTags.updateTag(9111, request)
+// → GroupTag({ id: number, name: string, usersCount: number })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import GroupTagRequest, GroupTagRequestGroupTag
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = GroupTagRequest(group_tag=GroupTagRequestGroupTag(name="Новое название тега"))
+response = await client.group_tags.update_tag(id=9111, request=request)
+# → GroupTag(id: int, name: str, users_count: int)
+```
+
 ---
 
 # Удаление тега
@@ -13268,6 +14813,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/group_tags/9111" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.groupTags.deleteTag(9111)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.group_tags.delete_tag(id=9111)
+```
 
 ---
 
@@ -13552,6 +15119,32 @@ curl "https://api.pachca.com/api/shared/v1/group_tags/9111/users?limit=1" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.groupTags.getTagUsers(9111, { limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9" })
+// → GetTagUsersResponse({ data: User[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import GetTagUsersParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = GetTagUsersParams(limit=1, cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+response = await client.group_tags.get_tag_users(id=9111, params=params)
+# → GetTagUsersResponse(data: list[User], meta: PaginationMeta)
+```
+
 ---
 
 ## API: Chats
@@ -13796,6 +15389,49 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { ChatCreateRequest, ChatCreateRequestChat, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: ChatCreateRequest = {
+  chat: {
+    name: "🤿 aqua",
+    memberIds: [123],
+    groupTagIds: [123],
+    channel: true,
+    public: false
+  }
+}
+const response = client.chats.createChat(request)
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ChatCreateRequest, ChatCreateRequestChat
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = ChatCreateRequest(
+    chat=ChatCreateRequestChat(
+        name="🤿 aqua",
+        member_ids=[123],
+        group_tag_ids=[123],
+        channel=True,
+        public=False
+    )
+)
+response = await client.chats.create_chat(request=request)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+```
+
 ---
 
 # Список чатов
@@ -14008,6 +15644,50 @@ curl "https://api.pachca.com/api/shared/v1/chats?sort=id&order=desc&availability
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { ChatAvailability, ChatSortField, PachcaClient, SortOrder } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.chats.listChats({
+  sort: ChatSortField.Id,
+  order: SortOrder.Desc,
+  availability: ChatAvailability.IsMember,
+  lastMessageAtAfter: "2025-01-01T00:00:00.000Z",
+  lastMessageAtBefore: "2025-02-01T00:00:00.000Z",
+  personal: false,
+  limit: 1,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+})
+// → ListChatsResponse({ data: Chat[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ChatAvailability, ChatSortField, ListChatsParams, SortOrder
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListChatsParams(
+    sort=ChatSortField.ID,
+    order=SortOrder.DESC,
+    availability=ChatAvailability.IS_MEMBER,
+    last_message_at_after=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
+    last_message_at_before=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    personal=False,
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.chats.list_chats(params=params)
+# → ListChatsResponse(data: list[Chat], meta: PaginationMeta)
+```
+
 ---
 
 # Информация о чате
@@ -14173,6 +15853,30 @@ curl "https://api.pachca.com/api/shared/v1/chats/334" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.chats.getChat(334)
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.chats.get_chat(id=334)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+```
 
 ---
 
@@ -14430,6 +16134,33 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { ChatUpdateRequest, ChatUpdateRequestChat, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: ChatUpdateRequest = { chat: { name: "Бассейн", public: true } }
+const response = client.chats.updateChat(334, request)
+// → Chat({ id: number, name: string, createdAt: string, ownerId: number, memberIds: number[], groupTagIds: number[], channel: boolean, personal: boolean, public: boolean, lastMessageAt: string, meetRoomUrl: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ChatUpdateRequest, ChatUpdateRequestChat
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = ChatUpdateRequest(chat=ChatUpdateRequestChat(name="Бассейн", public=True))
+response = await client.chats.update_chat(id=334, request=request)
+# → Chat(id: int, name: str, created_at: datetime, owner_id: int, member_ids: list[int], group_tag_ids: list[int], channel: bool, personal: bool, public: bool, last_message_at: datetime, meet_room_url: str)
+```
+
 ---
 
 # Архивация чата
@@ -14525,6 +16256,28 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334/archive" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.chats.archiveChat(334)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.chats.archive_chat(id=334)
+```
+
 ---
 
 # Разархивация чата
@@ -14619,6 +16372,28 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334/unarchive" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.chats.unarchiveChat(334)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.chats.unarchive_chat(id=334)
+```
 
 ---
 
@@ -14805,6 +16580,30 @@ curl "https://api.pachca.com/api/shared/v1/chats/334/group_tags" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const groupTagIds = [123]
+client.members.addTags(334, groupTagIds)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+group_tag_ids = [123]
+await client.members.add_tags(id=334, group_tag_ids=group_tag_ids)
+```
+
 ---
 
 # Исключение тега
@@ -14900,6 +16699,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/334/group_tags/86" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.members.removeTag(334, 86)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.members.remove_tag(id=334, tag_id=86)
+```
 
 ---
 
@@ -15053,6 +16874,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/334/leave" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.members.leaveChat(334)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.members.leave_chat(id=334)
+```
 
 ---
 
@@ -15310,6 +17153,40 @@ curl "https://api.pachca.com/api/shared/v1/chats/334/members?role=all&limit=1" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { ChatMemberRoleFilter, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.members.listMembers(334, {
+  role: ChatMemberRoleFilter.All,
+  limit: 1,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+})
+// → ListMembersResponse({ data: User[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ChatMemberRoleFilter, ListMembersParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListMembersParams(
+    role=ChatMemberRoleFilter.ALL,
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.members.list_members(id=334, params=params)
+# → ListMembersResponse(data: list[User], meta: PaginationMeta)
+```
+
 ---
 
 # Добавление пользователей
@@ -15494,6 +17371,31 @@ curl "https://api.pachca.com/api/shared/v1/chats/334/members" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { AddMembersRequest, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: AddMembersRequest = { memberIds: [123], silent: true }
+client.members.addMembers(334, request)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import AddMembersRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = AddMembersRequest(member_ids=[123], silent=True)
+await client.members.add_members(id=334, request=request)
+```
+
 ---
 
 # Исключение пользователя
@@ -15589,6 +17491,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/chats/334/members/186" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.members.removeMember(334, 186)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.members.remove_member(id=334, user_id=186)
+```
 
 ---
 
@@ -15771,6 +17695,29 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/chats/334/members/186" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { ChatMemberRole, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.members.updateMemberRole(334, 186, ChatMemberRole.Admin)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ChatMemberRole
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.members.update_member_role(id=334, user_id=186, role=ChatMemberRole.ADMIN)
+```
+
 ---
 
 ## API: Threads
@@ -15890,6 +17837,30 @@ curl -X POST "https://api.pachca.com/api/shared/v1/messages/154332686/thread" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.threads.createThread(154332686)
+// → Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.threads.create_thread(id=154332686)
+# → Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: datetime)
+```
 
 ---
 
@@ -16038,6 +18009,30 @@ curl "https://api.pachca.com/api/shared/v1/threads/265142" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.threads.getThread(265142)
+// → Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.threads.get_thread(id=265142)
+# → Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: datetime)
+```
 
 ---
 
@@ -16389,6 +18384,81 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { Button, FileType, MessageCreateRequest, MessageCreateRequestFile, MessageCreateRequestMessage, MessageEntityType, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: MessageCreateRequest = {
+  message: {
+    entityType: MessageEntityType.Discussion,
+    entityId: 334,
+    content: "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+    files: [{
+      key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+      name: "logo.png",
+      fileType: FileType.Image,
+      size: 12345,
+      width: 800,
+      height: 600
+    }],
+    buttons: [[{
+      text: "Подробнее",
+      url: "https://example.com/details",
+      data: "awesome"
+    }]],
+    parentMessageId: 194270,
+    displayAvatarUrl: "https://example.com/avatar.png",
+    displayName: "Бот Поддержки",
+    skipInviteMentions: false
+  },
+  linkPreview: false
+}
+const response = client.messages.createMessage(request)
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import Button, FileType, MessageCreateRequest, MessageCreateRequestFile, MessageCreateRequestMessage, MessageEntityType
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = MessageCreateRequest(
+    message=MessageCreateRequestMessage(
+        entity_type=MessageEntityType.DISCUSSION,
+        entity_id=334,
+        content="Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
+        files=[MessageCreateRequestFile(
+            key="attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+            name="logo.png",
+            file_type=FileType.IMAGE,
+            size=12345,
+            width=800,
+            height=600
+        )],
+        buttons=[[Button(
+            text="Подробнее",
+            url="https://example.com/details",
+            data="awesome"
+        )]],
+        parent_message_id=194270,
+        display_avatar_url="https://example.com/avatar.png",
+        display_name="Бот Поддержки",
+        skip_invite_mentions=False
+    ),
+    link_preview=False
+)
+response = await client.messages.create_message(request=request)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
+```
+
 ---
 
 # Список сообщений чата
@@ -16683,6 +18753,44 @@ curl "https://api.pachca.com/api/shared/v1/messages?chat_id=198&sort=id&order=de
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { MessageSortField, PachcaClient, SortOrder } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.messages.listChatMessages({
+  chatId: 198,
+  sort: MessageSortField.Id,
+  order: SortOrder.Desc,
+  limit: 1,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+})
+// → ListChatMessagesResponse({ data: Message[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListChatMessagesParams, MessageSortField, SortOrder
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListChatMessagesParams(
+    chat_id=198,
+    sort=MessageSortField.ID,
+    order=SortOrder.DESC,
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.messages.list_chat_messages(params=params)
+# → ListChatMessagesResponse(data: list[Message], meta: PaginationMeta)
+```
+
 ---
 
 # Информация о сообщении
@@ -16903,6 +19011,30 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.messages.getMessage(194275)
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.messages.get_message(id=194275)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
+```
 
 ---
 
@@ -17262,6 +19394,71 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/messages/194275" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { Button, MessageUpdateRequest, MessageUpdateRequestFile, MessageUpdateRequestMessage, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: MessageUpdateRequest = {
+  message: {
+    content: "Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
+    files: [{
+      key: "attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+      name: "logo.png",
+      fileType: "image",
+      size: 12345,
+      width: 800,
+      height: 600
+    }],
+    buttons: [[{
+      text: "Подробнее",
+      url: "https://example.com/details",
+      data: "awesome"
+    }]],
+    displayAvatarUrl: "https://example.com/avatar.png",
+    displayName: "Бот Поддержки"
+  }
+}
+const response = client.messages.updateMessage(194275, request)
+// → Message({ id: number, entityType: MessageEntityType, entityId: number, chatId: number, rootChatId: number, content: string, userId: number, createdAt: string, url: string, files: File({ id: number, key: string, name: string, fileType: FileType, url: string, width?: number | null, height?: number | null })[], buttons: Button({ text: string, url?: string, data?: string })[][] | null, thread: MessageThread({ id: number, chatId: number }) | null, forwarding: Forwarding({ originalMessageId: number, originalChatId: number, authorId: number, originalCreatedAt: string, originalThreadId: number | null, originalThreadMessageId: number | null, originalThreadParentChatId: number | null }) | null, parentMessageId: number | null, displayAvatarUrl: string | null, displayName: string | null, changedAt: string | null, deletedAt: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import Button, MessageUpdateRequest, MessageUpdateRequestFile, MessageUpdateRequestMessage
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = MessageUpdateRequest(
+    message=MessageUpdateRequestMessage(
+        content="Вот попробуйте написать правильно это с первого раза: Будущий, Полощи, Прийти, Грейпфрут, Мозаика, Бюллетень, Дуршлаг, Винегрет.",
+        files=[MessageUpdateRequestFile(
+            key="attaches/files/93746/e354fd79-4f3e-4b5a-9c8d-1a2b3c4d5e6f/logo.png",
+            name="logo.png",
+            file_type="image",
+            size=12345,
+            width=800,
+            height=600
+        )],
+        buttons=[[Button(
+            text="Подробнее",
+            url="https://example.com/details",
+            data="awesome"
+        )]],
+        display_avatar_url="https://example.com/avatar.png",
+        display_name="Бот Поддержки"
+    )
+)
+response = await client.messages.update_message(id=194275, request=request)
+# → Message(id: int, entity_type: MessageEntityType, entity_id: int, chat_id: int, root_chat_id: int, content: str, user_id: int, created_at: datetime, url: str, files: list[File(id: int, key: str, name: str, file_type: FileType, url: str, width: int | None, height: int | None)], buttons: list[list[Button(text: str, url: str | None, data: str | None)]] | None, thread: MessageThread(id: int, chat_id: int) | None, forwarding: Forwarding(original_message_id: int, original_chat_id: int, author_id: int, original_created_at: datetime, original_thread_id: int | None, original_thread_message_id: int | None, original_thread_parent_chat_id: int | None) | None, parent_message_id: int | None, display_avatar_url: str | None, display_name: str | None, changed_at: datetime | None, deleted_at: datetime | None)
+```
+
 ---
 
 # Удаление сообщения
@@ -17389,6 +19586,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/194275" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.messages.deleteMessage(194275)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.messages.delete_message(id=194275)
+```
+
 ---
 
 # Закрепление сообщения
@@ -17486,6 +19705,28 @@ curl -X POST "https://api.pachca.com/api/shared/v1/messages/194275/pin" \
 ### 422: Client error
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.messages.pinMessage(194275)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.messages.pin_message(id=194275)
+```
+
 ---
 
 # Открепление сообщения
@@ -17580,6 +19821,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/194275/pin" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.messages.unpinMessage(194275)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.messages.unpin_message(id=194275)
+```
 
 ---
 
@@ -17794,6 +20057,32 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/read_member_ids?limit
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.readMembers.listReadMembers(194275, { limit: 300, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9" })
+// → unknown
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListReadMembersParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListReadMembersParams(limit=300, cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+response = await client.read_members.list_read_members(id=194275, params=params)
+# → object
+```
+
 ---
 
 ## API: Reactions
@@ -18000,6 +20289,33 @@ curl "https://api.pachca.com/api/shared/v1/messages/7231942/reactions" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, ReactionRequest } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: ReactionRequest = { code: "👍", name: ":+1:" }
+const response = client.reactions.addReaction(7231942, request)
+// → Reaction({ userId: number, createdAt: string, code: string, name: string | null })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ReactionRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = ReactionRequest(code="👍", name=":+1:")
+response = await client.reactions.add_reaction(id=7231942, request=request)
+# → Reaction(user_id: int, created_at: datetime, code: str, name: str | None)
+```
+
 ---
 
 # Удаление реакции
@@ -18161,6 +20477,30 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/messages/7231942/reactions?
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.reactions.removeReaction(7231942, { code: "👍", name: ":+1:" })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import RemoveReactionParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = RemoveReactionParams(code="👍", name=":+1:")
+await client.reactions.remove_reaction(id=7231942, params=params)
+```
 
 ---
 
@@ -18351,6 +20691,32 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/reactions?limit=1" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.reactions.listReactions(194275, { limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9" })
+// → ListReactionsResponse({ data: Reaction[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListReactionsParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListReactionsParams(limit=1, cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+response = await client.reactions.list_reactions(id=194275, params=params)
+# → ListReactionsResponse(data: list[Reaction], meta: PaginationMeta)
+```
 
 ---
 
@@ -18559,6 +20925,53 @@ curl "https://api.pachca.com/api/shared/v1/messages/194275/link_previews" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { LinkPreview, LinkPreviewImage, LinkPreviewsRequest, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: LinkPreviewsRequest = {
+  linkPreviews: { key: {
+    title: "Статья: Отправка файлов",
+    description: "Пример отправки файлов на удаленный сервер",
+    imageUrl: "https://website.com/img/landing.png",
+    image: {
+      key: "attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
+      name: "files-to-server.jpg",
+      size: 695604
+    }
+  } }
+}
+client.linkPreviews.createLinkPreviews(194275, request)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import LinkPreview, LinkPreviewImage, LinkPreviewsRequest
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = LinkPreviewsRequest(
+    link_previews={"key": LinkPreview(
+        title="Статья: Отправка файлов",
+        description="Пример отправки файлов на удаленный сервер",
+        image_url="https://website.com/img/landing.png",
+        image=LinkPreviewImage(
+            key="attaches/files/93746/e354fd79-9jh6-f2hd-fj83-709dae24c763/${filename}",
+            name="files-to-server.jpg",
+            size=695604
+        )
+    )}
+)
+await client.link_previews.create_link_previews(id=194275, request=request)
+```
+
 ---
 
 ## API: Search
@@ -18747,6 +21160,52 @@ curl "https://api.pachca.com/api/shared/v1/search/chats?query=Разработк
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { ChatSubtype, PachcaClient, SortOrder } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.search.searchChats({
+  query: "Разработка",
+  limit: 10,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9",
+  order: SortOrder.Desc,
+  createdFrom: "2025-01-01T00:00:00.000Z",
+  createdTo: "2025-02-01T00:00:00.000Z",
+  active: true,
+  chatSubtype: ChatSubtype.Discussion,
+  personal: false
+})
+// → SearchChatsResponse({ data: Chat[], meta: SearchPaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ChatSubtype, SearchChatsParams, SortOrder
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = SearchChatsParams(
+    query="Разработка",
+    limit=10,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9",
+    order=SortOrder.DESC,
+    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
+    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    active=True,
+    chat_subtype=ChatSubtype.DISCUSSION,
+    personal=False
+)
+response = await client.search.search_chats(params=params)
+# → SearchChatsResponse(data: list[Chat], meta: SearchPaginationMeta)
+```
 
 ---
 
@@ -18987,6 +21446,52 @@ curl "https://api.pachca.com/api/shared/v1/search/messages?query=футболк�
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, SortOrder } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.search.searchMessages({
+  query: "футболки",
+  limit: 10,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9",
+  order: SortOrder.Desc,
+  createdFrom: "2025-01-01T00:00:00.000Z",
+  createdTo: "2025-02-01T00:00:00.000Z",
+  chatIds: [123],
+  userIds: [123],
+  active: true
+})
+// → SearchMessagesResponse({ data: Message[], meta: SearchPaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import SearchMessagesParams, SortOrder
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = SearchMessagesParams(
+    query="футболки",
+    limit=10,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9",
+    order=SortOrder.DESC,
+    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
+    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    chat_ids=[123],
+    user_ids=[123],
+    active=True
+)
+response = await client.search.search_messages(params=params)
+# → SearchMessagesResponse(data: list[Message], meta: SearchPaginationMeta)
+```
+
 ---
 
 # Поиск сотрудников
@@ -19215,6 +21720,50 @@ curl "https://api.pachca.com/api/shared/v1/search/users?query=Олег&limit=10&
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, SearchSortOrder, SortOrder, UserRole } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.search.searchUsers({
+  query: "Олег",
+  limit: 10,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9",
+  sort: SearchSortOrder.ByScore,
+  order: SortOrder.Desc,
+  createdFrom: "2025-01-01T00:00:00.000Z",
+  createdTo: "2025-02-01T00:00:00.000Z",
+  companyRoles: [UserRole.Admin]
+})
+// → SearchUsersResponse({ data: User[], meta: SearchPaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import SearchSortOrder, SearchUsersParams, SortOrder, UserRole
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = SearchUsersParams(
+    query="Олег",
+    limit=10,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9",
+    sort=SearchSortOrder.BY_SCORE,
+    order=SortOrder.DESC,
+    created_from=datetime.fromisoformat("2025-01-01T00:00:00.000Z"),
+    created_to=datetime.fromisoformat("2025-02-01T00:00:00.000Z"),
+    company_roles=[UserRole.ADMIN]
+)
+response = await client.search.search_users(params=params)
+# → SearchUsersResponse(data: list[User], meta: SearchPaginationMeta)
+```
 
 ---
 
@@ -19522,6 +22071,55 @@ curl "https://api.pachca.com/api/shared/v1/tasks" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, TaskCreateRequest, TaskCreateRequestCustomProperty, TaskCreateRequestTask, TaskKind } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: TaskCreateRequest = {
+  task: {
+    kind: TaskKind.Reminder,
+    content: "Забрать со склада 21 заказ",
+    dueAt: "2020-06-05T12:00:00.000+03:00",
+    priority: 2,
+    performerIds: [123],
+    chatId: 456,
+    allDay: false,
+    customProperties: [{ id: 78, value: "Синий склад" }]
+  }
+}
+const response = client.tasks.createTask(request)
+// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import TaskCreateRequest, TaskCreateRequestCustomProperty, TaskCreateRequestTask, TaskKind
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = TaskCreateRequest(
+    task=TaskCreateRequestTask(
+        kind=TaskKind.REMINDER,
+        content="Забрать со склада 21 заказ",
+        due_at=datetime.fromisoformat("2020-06-05T12:00:00.000+03:00"),
+        priority=2,
+        performer_ids=[123],
+        chat_id=456,
+        all_day=False,
+        custom_properties=[TaskCreateRequestCustomProperty(id=78, value="Синий склад")]
+    )
+)
+response = await client.tasks.create_task(request=request)
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+```
+
 ---
 
 # Список напоминаний
@@ -19710,6 +22308,32 @@ curl "https://api.pachca.com/api/shared/v1/tasks?limit=1" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.tasks.listTasks({ limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9" })
+// → ListTasksResponse({ data: Task[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import ListTasksParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = ListTasksParams(limit=1, cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+response = await client.tasks.list_tasks(params=params)
+# → ListTasksResponse(data: list[Task], meta: PaginationMeta)
+```
+
 ---
 
 # Информация о напоминании
@@ -19887,6 +22511,30 @@ curl "https://api.pachca.com/api/shared/v1/tasks/22283" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.tasks.getTask(22283)
+// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+response = await client.tasks.get_task(id=22283)
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+```
 
 ---
 
@@ -20195,6 +22843,57 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/tasks/22283" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient, TaskKind, TaskStatus, TaskUpdateRequest, TaskUpdateRequestCustomProperty, TaskUpdateRequestTask } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: TaskUpdateRequest = {
+  task: {
+    kind: TaskKind.Reminder,
+    content: "Забрать со склада 21 заказ",
+    dueAt: "2020-06-05T12:00:00.000+03:00",
+    priority: 2,
+    performerIds: [123],
+    status: TaskStatus.Done,
+    allDay: false,
+    doneAt: "2020-06-05T12:00:00.000Z",
+    customProperties: [{ id: 78, value: "Синий склад" }]
+  }
+}
+const response = client.tasks.updateTask(22283, request)
+// → Task({ id: number, kind: TaskKind, content: string, dueAt: string | null, priority: number, userId: number, chatId: number | null, status: TaskStatus, createdAt: string, performerIds: number[], allDay: boolean, customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[] })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import TaskKind, TaskStatus, TaskUpdateRequest, TaskUpdateRequestCustomProperty, TaskUpdateRequestTask
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = TaskUpdateRequest(
+    task=TaskUpdateRequestTask(
+        kind=TaskKind.REMINDER,
+        content="Забрать со склада 21 заказ",
+        due_at=datetime.fromisoformat("2020-06-05T12:00:00.000+03:00"),
+        priority=2,
+        performer_ids=[123],
+        status=TaskStatus.DONE,
+        all_day=False,
+        done_at=datetime.fromisoformat("2020-06-05T12:00:00.000Z"),
+        custom_properties=[TaskUpdateRequestCustomProperty(id=78, value="Синий склад")]
+    )
+)
+response = await client.tasks.update_task(id=22283, request=request)
+# → Task(id: int, kind: TaskKind, content: str, due_at: datetime | None, priority: int, user_id: int, chat_id: int | None, status: TaskStatus, created_at: datetime, performer_ids: list[int], all_day: bool, custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)])
+```
+
 ---
 
 # Удаление напоминания
@@ -20319,6 +23018,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/tasks/22283" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.tasks.deleteTask(22283)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.tasks.delete_task(id=22283)
+```
 
 ---
 
@@ -20843,6 +23564,53 @@ curl "https://api.pachca.com/api/shared/v1/views/open" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { OpenViewRequest, OpenViewRequestView, PachcaClient, ViewBlockUnion } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: OpenViewRequest = {
+  type: "modal",
+  triggerId: "791a056b-006c-49dd-834b-c633fde52fe8",
+  privateMetadata: "{\"timeoff_id\":4378}",
+  callbackId: "timeoff_reguest_form",
+  view: {
+    title: "Уведомление об отпуске",
+    closeText: "Закрыть",
+    submitText: "Отправить заявку",
+    blocks: [{ type: "header", text: "Основная информация" }]
+  }
+}
+client.views.openView(request)
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import OpenViewRequest, OpenViewRequestView, ViewBlockUnion
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = OpenViewRequest(
+    type="modal",
+    trigger_id="791a056b-006c-49dd-834b-c633fde52fe8",
+    private_metadata="{\"timeoff_id\":4378}",
+    callback_id="timeoff_reguest_form",
+    view=OpenViewRequestView(
+        title="Уведомление об отпуске",
+        close_text="Закрыть",
+        submit_text="Отправить заявку",
+        blocks=[ViewBlockHeader(type="header", text="Основная информация")]
+    )
+)
+await client.views.open_view(request=request)
+```
+
 ---
 
 ## API: Bots
@@ -21083,6 +23851,33 @@ curl -X PUT "https://api.pachca.com/api/shared/v1/bots/1738816" \
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { BotUpdateRequest, BotUpdateRequestBot, BotUpdateRequestBotWebhook, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const request: BotUpdateRequest = { bot: { webhook: { outgoingUrl: "https://www.website.com/tasks/new" } } }
+const response = client.bots.updateBot(1738816, request)
+// → BotResponse({ id: number, webhook: BotResponseWebhook({ outgoingUrl: string }) })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import BotUpdateRequest, BotUpdateRequestBot, BotUpdateRequestBotWebhook
+
+client = PachcaClient("YOUR_TOKEN")
+
+request = BotUpdateRequest(bot=BotUpdateRequestBot(webhook=BotUpdateRequestBotWebhook(outgoing_url="https://www.website.com/tasks/new")))
+response = await client.bots.update_bot(id=1738816, request=request)
+# → BotResponse(id: int, webhook: BotResponseWebhook(outgoing_url: str))
+```
 
 ---
 
@@ -21377,6 +24172,32 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 ```
 
 
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.bots.getWebhookEvents({ limit: 1, cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9" })
+// → GetWebhookEventsResponse({ data: WebhookEvent[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import GetWebhookEventsParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = GetWebhookEventsParams(limit=1, cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+response = await client.bots.get_webhook_events(params=params)
+# → GetWebhookEventsResponse(data: list[WebhookEvent], meta: PaginationMeta)
+```
+
 ---
 
 # Удаление события
@@ -21503,6 +24324,28 @@ curl -X DELETE "https://api.pachca.com/api/shared/v1/webhooks/events/01KAJZ2XDSS
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+client.bots.deleteWebhookEvent("01KAJZ2XDSS2S3DSW9EXJZ0TBV")
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+
+client = PachcaClient("YOUR_TOKEN")
+
+await client.bots.delete_webhook_event(id="01KAJZ2XDSS2S3DSW9EXJZ0TBV")
+```
 
 ---
 
@@ -21761,6 +24604,52 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 }
 ```
 
+
+## SDK примеры
+
+### TypeScript
+
+```typescript
+import { AuditEventKey, PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+const response = client.security.getAuditEvents({
+  startTime: "2025-05-01T09:11:00Z",
+  endTime: "2025-05-02T09:11:00Z",
+  eventKey: AuditEventKey.UserLogin,
+  actorId: "98765",
+  actorType: "User",
+  entityId: "98765",
+  entityType: "User",
+  limit: 1,
+  cursor: "eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+})
+// → GetAuditEventsResponse({ data: AuditEvent[], meta: PaginationMeta })
+```
+
+### Python
+
+```python
+from pachca.client import PachcaClient
+from pachca.models import AuditEventKey, GetAuditEventsParams
+
+client = PachcaClient("YOUR_TOKEN")
+
+params = GetAuditEventsParams(
+    start_time=datetime.fromisoformat("2025-05-01T09:11:00Z"),
+    end_time=datetime.fromisoformat("2025-05-02T09:11:00Z"),
+    event_key=AuditEventKey.USER_LOGIN,
+    actor_id="98765",
+    actor_type="User",
+    entity_id="98765",
+    entity_type="User",
+    limit=1,
+    cursor="eyJpZCI6MTAsImRpciI6ImFzYyJ9"
+)
+response = await client.security.get_audit_events(params=params)
+# → GetAuditEventsResponse(data: list[AuditEvent], meta: PaginationMeta)
+```
 
 ---
 

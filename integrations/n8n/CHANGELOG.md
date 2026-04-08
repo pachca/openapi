@@ -5,7 +5,7 @@
 
 ### Bug Fixes
 
-- Fix file upload 403 error — `Content-Type` was sent as an S3 form field but not included in the presigned policy, causing Selectel S3 to reject the upload with "Extra input fields: content-type"
+- Fix file upload 403 error
 
 ## 2.0.3 (2026-04-08)
 

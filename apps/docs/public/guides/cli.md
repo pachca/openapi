@@ -1,7 +1,7 @@
 
 # CLI
 
-[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) 2026.4.0 · 7 апреля 2026
+[@pachca/cli](https://www.npmjs.com/package/@pachca/cli) npm
 
 
 Официальный CLI для работы с Pachca API из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.

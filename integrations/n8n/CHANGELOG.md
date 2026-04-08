@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD024 -->
 # Changelog
 
 ## 2.0.3 (2026-04-08)
@@ -5,6 +6,7 @@
 ### Improvements
 
 - Message `content` field now documents mention syntax: `@nickname` or `<@user_id>`
+- Clean up node code and UI labels per n8n community node review guidelines
 
 ## 2.0.2 (2026-04-07)
 

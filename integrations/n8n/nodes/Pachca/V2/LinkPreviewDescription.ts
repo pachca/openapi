@@ -36,6 +36,5 @@ export const linkPreviewFields: INodeProperties[] = [
 		default: "{}",
 		description: 'JSON map of link previews, where each key is a `URL` received in the outgoing webhook about a new message',
 		displayOptions: { show: { resource: ['linkPreview'], operation: ['create'] } },
-		routing: { send: { type: 'body', property: 'link_previews' } },
 	},
 ];

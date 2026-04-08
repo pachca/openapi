@@ -59,7 +59,6 @@ export const messageFields: INodeProperties[] = [
 { name: 'User', value: 'user' }],
 		default: "discussion",
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
-		routing: { send: { type: 'body', property: 'entity_type' } },
 	},
 	{
 		displayName: 'Entity ID',
@@ -82,7 +81,6 @@ export const messageFields: INodeProperties[] = [
 			},
 		],
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
-		routing: { send: { type: 'body', property: 'entity_id' } },
 	},
 	{
 		displayName: 'Content',
@@ -94,7 +92,6 @@ export const messageFields: INodeProperties[] = [
 		description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`).',
 		displayOptions: { show: { resource: ['message'], operation: ['create'] } },
 		placeholder: 'Yesterday we sold 756 t-shirts (10% more than last Sunday)',
-		routing: { send: { type: 'body', property: 'content' } },
 	},
 	{
 		displayName: 'Additional Fields',
@@ -111,7 +108,6 @@ export const messageFields: INodeProperties[] = [
 				default: "",
 				description: 'Custom sender avatar URL for this message. This field can only be used with a bot access_token.',
 				placeholder: 'https://example.com/avatar.png',
-				routing: { send: { type: 'body', property: 'display_avatar_url' } },
 			},
 			{
 				displayName: 'Display Name',
@@ -120,7 +116,6 @@ export const messageFields: INodeProperties[] = [
 				default: "",
 				description: 'Custom sender display name for this message. This field can only be used with a bot access_token.',
 				placeholder: 'Support Bot',
-				routing: { send: { type: 'body', property: 'display_name' } },
 			},
 			{
 				displayName: 'Files',
@@ -179,7 +174,6 @@ export const messageFields: INodeProperties[] = [
 				default: [],
 				description: 'Files to attach',
 				hint: 'Upload a file first using File > Create, then use the returned key here',
-				routing: { send: { type: 'body', property: 'files' } },
 			},
 			{
 				displayName: 'Link Preview',
@@ -187,7 +181,6 @@ export const messageFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether to display a preview of the first link found in the message text',
-				routing: { send: { type: 'body', property: 'link_preview' } },
 			},
 			{
 				displayName: 'Parent Message ID',
@@ -196,7 +189,6 @@ export const messageFields: INodeProperties[] = [
 				default: 0,
 				description: 'Message ID. Specify when sending a reply to another message.',
 				placeholder: '194270',
-				routing: { send: { type: 'body', property: 'parent_message_id' } },
 			},
 			{
 				displayName: 'Skip Invite Mentions',
@@ -204,7 +196,6 @@ export const messageFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether to skip adding mentioned users to the thread. Only works when sending a message to a thread.',
-				routing: { send: { type: 'body', property: 'skip_invite_mentions' } },
 			},
 		],
 	},
@@ -338,7 +329,6 @@ export const messageFields: INodeProperties[] = [
 			},
 		],
 		displayOptions: { show: { resource: ['message'], operation: ['getAll'] } },
-		routing: { send: { type: 'query', property: 'chat_id' } },
 	},
 	{
 		displayName: 'Sort',
@@ -348,18 +338,16 @@ export const messageFields: INodeProperties[] = [
 		default: "id",
 		description: 'Sort field',
 		displayOptions: { show: { resource: ['message'], operation: ['getAll'] } },
-		routing: { send: { type: 'query', property: 'sort' } },
 	},
 	{
 		displayName: 'Order',
 		name: 'order',
 		type: 'options',
-		options: [{ name: 'Asc', value: 'asc', description: 'Ascending' },
-{ name: 'Desc', value: 'desc', description: 'Descending' }],
+		options: [{ name: 'Ascending', value: 'asc' },
+{ name: 'Descending', value: 'desc' }],
 		default: "desc",
 		description: 'Sort direction',
 		displayOptions: { show: { resource: ['message'], operation: ['getAll'] } },
-		routing: { send: { type: 'query', property: 'order' } },
 	},
 	{
 		displayName: 'ID',
@@ -403,7 +391,6 @@ export const messageFields: INodeProperties[] = [
 				default: "",
 				description: 'Message text. Supports mentions: `@nickname` or `&lt;@user_id&gt;` (automatically converted to `@nickname`).',
 				placeholder: 'Try to spell these correctly on the first attempt: bureaucracy, accommodate, definitely, entrepreneur, liaison, necessary, surveillance, questionnaire.',
-				routing: { send: { type: 'body', property: 'content' } },
 			},
 			{
 				displayName: 'Display Avatar URL',
@@ -412,7 +399,6 @@ export const messageFields: INodeProperties[] = [
 				default: "",
 				description: 'Custom sender avatar URL for this message. This field can only be used with a bot access_token.',
 				placeholder: 'https://example.com/avatar.png',
-				routing: { send: { type: 'body', property: 'display_avatar_url' } },
 			},
 			{
 				displayName: 'Display Name',
@@ -421,7 +407,6 @@ export const messageFields: INodeProperties[] = [
 				default: "",
 				description: 'Custom sender display name for this message. This field can only be used with a bot access_token.',
 				placeholder: 'Support Bot',
-				routing: { send: { type: 'body', property: 'display_name' } },
 			},
 			{
 				displayName: 'Files',
@@ -479,7 +464,6 @@ export const messageFields: INodeProperties[] = [
 				default: [],
 				description: 'Files to attach',
 				hint: 'Upload a file first using File > Create, then use the returned key here',
-				routing: { send: { type: 'body', property: 'files' } },
 			},
 		],
 	},

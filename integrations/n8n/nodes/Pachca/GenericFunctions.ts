@@ -293,49 +293,60 @@ export async function makeApiRequest(
     ignoreHttpStatusErrors: true,
   };
 
-  const response = (await this.helpers.httpRequestWithAuthentication.call(
-    this, 'pachcaApi', options,
-  )) as IN8nHttpFullResponse;
+  const MAX_RETRIES = 3;
+  for (let attempt = 0; ; attempt++) {
+    const response = (await this.helpers.httpRequestWithAuthentication.call(
+      this, 'pachcaApi', options,
+    )) as IN8nHttpFullResponse;
 
-  // Handle empty/null body (e.g. 204 No Content)
-  if (!response.body || typeof response.body !== 'object') {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return { success: true } as unknown as IDataObject;
+    // Handle empty/null body (e.g. 204 No Content)
+    if (!response.body || typeof response.body !== 'object') {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return { success: true } as unknown as IDataObject;
+      }
     }
+
+    // Auto-retry on 429 (rate limit) and 5xx (server errors)
+    if ((response.statusCode === 429 || response.statusCode >= 500) && attempt < MAX_RETRIES) {
+      const respHeaders = response.headers as Record<string, string> | undefined;
+      const retryAfter = parseInt(respHeaders?.['retry-after'] ?? '', 10);
+      const delaySec = retryAfter || Math.pow(2, attempt) * (0.5 + Math.random());
+      await sleep(delaySec * 1000);
+      continue;
+    }
+
+    if (response.statusCode >= 400) {
+      const resBody = (response.body ?? {}) as IDataObject;
+      const errors = resBody.errors as Array<{ key: string; value: string }> | undefined;
+
+      let message: string;
+      if (errors?.length) {
+        message = errors.map(e => {
+          const displayName = FIELD_DISPLAY_NAMES[e.key] || e.key;
+          return `${displayName}: ${e.value}`;
+        }).join('; ');
+      } else {
+        message = ((resBody.message || resBody.error || `Request failed with status ${response.statusCode}`) as string);
+      }
+
+      const hint = STATUS_HINTS[response.statusCode];
+      const description = hint ? `${hint}\n${message}` : message;
+
+      const apiError = new NodeApiError(this.getNode(), resBody as JsonObject, {
+        message,
+        httpCode: String(response.statusCode),
+        description,
+        itemIndex,
+      });
+      const respHeaders = response.headers as Record<string, string> | undefined;
+      if (respHeaders?.['retry-after']) {
+        (apiError as NodeApiError & { retryAfter?: number }).retryAfter = parseInt(respHeaders['retry-after'], 10) || 2;
+      }
+      throw apiError;
+    }
+
+    return response.body as IDataObject;
   }
-
-  if (response.statusCode >= 400) {
-    const resBody = (response.body ?? {}) as IDataObject;
-    const errors = resBody.errors as Array<{ key: string; value: string }> | undefined;
-
-    let message: string;
-    if (errors?.length) {
-      message = errors.map(e => {
-        const displayName = FIELD_DISPLAY_NAMES[e.key] || e.key;
-        return `${displayName}: ${e.value}`;
-      }).join('; ');
-    } else {
-      message = ((resBody.message || resBody.error || `Request failed with status ${response.statusCode}`) as string);
-    }
-
-    const hint = STATUS_HINTS[response.statusCode];
-    const description = hint ? `${hint}\n${message}` : message;
-
-    const apiError = new NodeApiError(this.getNode(), resBody as JsonObject, {
-      message,
-      httpCode: String(response.statusCode),
-      description,
-      itemIndex,
-    });
-    // Attach Retry-After for pagination retry logic
-    const headers = response.headers as Record<string, string> | undefined;
-    if (headers?.['retry-after']) {
-      (apiError as NodeApiError & { retryAfter?: number }).retryAfter = parseInt(headers['retry-after'], 10) || 2;
-    }
-    throw apiError;
-  }
-
-  return response.body as IDataObject;
 }
 
 /**
@@ -396,8 +407,6 @@ export async function makeApiRequestAllPages(
   const limit = returnAll ? 0 : ((this.getNodeParameter('limit', itemIndex, 50) as number) || 50);
   const results: IDataObject[] = [];
   let cursor: string | undefined;
-  let totalRetries = 0;
-  const MAX_RETRIES = 5;
   const MAX_PAGES = 1000;
   let pageCount = 0;
 
@@ -406,27 +415,8 @@ export async function makeApiRequestAllPages(
     const pageQs: IDataObject = { ...qs, limit: perPage };
     if (cursor) pageQs.cursor = cursor;
 
-    // Inner retry loop: avoids `continue` on the outer do-while, which
-    // would re-evaluate `while(cursor && ...)` and exit prematurely when
-    // cursor is undefined (e.g. 429 on the very first page).
-    let response: IDataObject;
-    for (;;) {
-      try {
-        response = await makeApiRequest.call(this, method, endpoint, undefined, pageQs, itemIndex);
-        break;
-      } catch (error: unknown) {
-        const err = error instanceof NodeApiError ? error : null;
-        const code = err?.httpCode;
-        if ((code === '429' || code === '502' || code === '503') && totalRetries < MAX_RETRIES) {
-          totalRetries++;
-          const retryAfter = (err as NodeApiError & { retryAfter?: number })?.retryAfter;
-          const waitSec = retryAfter ?? (code === '429' ? 2 : 1);
-          await sleep(waitSec * 1000);
-          continue;
-        }
-        throw error;
-      }
-    }
+    // Retry logic (429/5xx) is handled inside makeApiRequest.
+    const response = await makeApiRequest.call(this, method, endpoint, undefined, pageQs, itemIndex);
 
     const items = (response.data as IDataObject[]) ?? [];
     results.push(...items);
@@ -510,15 +500,17 @@ export function resolveResourceLocator(
 export function buildButtonRows(
   ctx: IExecuteFunctions,
   itemIndex: number,
-): IDataObject[][] {
+): IDataObject[][] | null {
   let buttonLayout: string;
-  try { buttonLayout = ctx.getNodeParameter('buttonLayout', itemIndex, 'none') as string; } catch { return []; }
-  if (buttonLayout === 'none') return [];
+  try { buttonLayout = ctx.getNodeParameter('buttonLayout', itemIndex, 'none') as string; } catch { return null; }
+  if (buttonLayout === 'none') return null;
 
   if (buttonLayout === 'raw_json') {
     let rawJson: string;
-    try { rawJson = ctx.getNodeParameter('rawJsonButtons', itemIndex, '') as string; } catch { return []; }
-    if (!rawJson || rawJson.trim() === '' || rawJson.trim() === '[]') return [];
+    try { rawJson = ctx.getNodeParameter('rawJsonButtons', itemIndex, '') as string; } catch { return null; }
+    if (!rawJson || rawJson.trim() === '') return null;
+    // [] means "remove all buttons" — send empty array so the API clears them
+    if (rawJson.trim() === '[]') return [];
 
     let parsed: unknown;
     try { parsed = JSON.parse(rawJson); } catch {
@@ -538,9 +530,9 @@ export function buildButtonRows(
 
   // Visual mode (single_row / multiple_rows)
   let buttonsParam: { button?: IDataObject[]; buttonRow?: IDataObject[] } | undefined;
-  try { buttonsParam = ctx.getNodeParameter('buttons', itemIndex, {}) as typeof buttonsParam; } catch { return []; }
+  try { buttonsParam = ctx.getNodeParameter('buttons', itemIndex, {}) as typeof buttonsParam; } catch { return null; }
   const items = buttonsParam?.button ?? buttonsParam?.buttonRow ?? [];
-  if (items.length === 0) return [];
+  if (items.length === 0) return null;
 
   if (buttonLayout === 'single_row') {
     return [items.map(btn => buildButton(btn))];
@@ -568,10 +560,15 @@ export function cleanFileAttachments(
   itemIndex: number,
 ): IDataObject[] {
   let filesRaw: unknown;
+  // v2: files inside additionalFields
   try {
     const additional = ctx.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
     filesRaw = additional.files;
-  } catch { return []; }
+  } catch { /* no additionalFields */ }
+  // v1 compat: files as top-level parameter
+  if (!filesRaw) {
+    try { filesRaw = ctx.getNodeParameter('files', itemIndex, undefined); } catch { /* not present */ }
+  }
   if (!filesRaw) return [];
 
   let files: IDataObject[];

@@ -236,14 +236,14 @@ describe('resolveResourceLocator', () => {
 // ============================================================================
 
 describe('buildButtonRows', () => {
-  it('should return empty array when buttonLayout is none', () => {
+  it('should return null when buttonLayout is none', () => {
     const ctx = createMockCtx({ buttonLayout: 'none' });
-    expect(buildButtonRows(ctx, 0)).toEqual([]);
+    expect(buildButtonRows(ctx, 0)).toBeNull();
   });
 
-  it('should return empty array when buttonLayout param is missing', () => {
+  it('should return null when buttonLayout param is missing', () => {
     const ctx = createMockCtx({});
-    expect(buildButtonRows(ctx, 0)).toEqual([]);
+    expect(buildButtonRows(ctx, 0)).toBeNull();
   });
 
   it('should build a single row from visual builder', () => {

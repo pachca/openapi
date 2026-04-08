@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock sleep to avoid real delays in retry tests
+vi.mock('n8n-workflow', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('n8n-workflow')>();
+	return { ...actual, sleep: vi.fn(async () => {}) };
+});
+
 import { router } from '../nodes/Pachca/SharedRouter';
 import * as GenericFunctions from '../nodes/Pachca/GenericFunctions';
 
@@ -1040,14 +1047,15 @@ describe('Multi-item processing', () => {
 		});
 		ctx.helpers.httpRequestWithAuthentication.mockImplementation(async () => {
 			callCount++;
-			if (callCount === 1) {
+			// First 4 calls (1 initial + 3 retries) return 500 for item 1
+			if (callCount <= 4) {
 				return { statusCode: 500, body: { message: 'Internal error' } };
 			}
 			return { statusCode: 200, body: { data: { id: 1 } } };
 		});
 		const result = await runRouter(ctx);
 		expect(result[0]).toHaveLength(2);
-		expect(result[0][0].json).toHaveProperty('error'); // first failed
+		expect(result[0][0].json).toHaveProperty('error'); // first failed after retries
 		expect(result[0][1].json).toHaveProperty('id', 1); // second succeeded
 	});
 });

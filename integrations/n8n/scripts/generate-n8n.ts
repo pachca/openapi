@@ -3030,7 +3030,7 @@ async function executeRoute(
 \t// === Special handlers ===
 \tif (route.special === 'messageButtons') {
 \t\tconst buttons = buildButtonRows(this, i);
-\t\tif (buttons.length) body.buttons = buttons;
+\t\tif (buttons !== null) body.buttons = buttons;
 \t\tconst files = cleanFileAttachments(this, i);
 \t\tif (files.length) body.files = files;
 \t}

@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { IDataObject, IExecuteFunctions, IHookFunctions, INode } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+
+// Mock sleep to avoid real delays in retry tests
+vi.mock('n8n-workflow', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('n8n-workflow')>();
+  return { ...actual, sleep: vi.fn(async () => {}) };
+});
+
 import {
   makeApiRequest,
   makeApiRequestAllPages,
@@ -137,7 +144,7 @@ describe('makeApiRequest error paths', () => {
     }
   });
 
-  it('should attach Retry-After header to error', async () => {
+  it('should retry on 429 and attach Retry-After header to error after exhausting retries', async () => {
     const ctx = createExecCtx({
       httpResponse: {
         statusCode: 429,
@@ -152,6 +159,8 @@ describe('makeApiRequest error paths', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(NodeApiError);
       expect((error as NodeApiError & { retryAfter?: number }).retryAfter).toBe(5);
+      // Should have retried 3 times + 1 final attempt = 4 total calls
+      expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(4);
     }
   });
 
@@ -168,7 +177,7 @@ describe('makeApiRequest error paths', () => {
     expect(result).toEqual({ success: true });
   });
 
-  it('should handle 500 with generic error message', async () => {
+  it('should retry on 500 and throw after exhausting retries', async () => {
     const ctx = createExecCtx({
       httpResponse: {
         statusCode: 500,
@@ -183,6 +192,8 @@ describe('makeApiRequest error paths', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(NodeApiError);
       expect((error as NodeApiError).message).toContain('500');
+      // Should have retried 3 times + 1 final attempt = 4 total calls
+      expect(ctx.helpers.httpRequestWithAuthentication).toHaveBeenCalledTimes(4);
     }
   });
 
@@ -285,17 +296,17 @@ describe('makeApiRequestAllPages error paths', () => {
       headers: { 'retry-after': '1' },
     };
 
-    // initial + 5 retries = 6 calls, then 7th throws
+    // Retry is handled inside makeApiRequest: 1 initial + 3 retries = 4 calls
     const ctx = createExecCtx({
-      httpResponses: Array(7).fill(rateLimitResponse),
+      httpResponses: Array(5).fill(rateLimitResponse),
       params: { returnAll: false, limit: 10 },
     });
 
     await expect(
       makeApiRequestAllPages.call(ctx, 'GET', '/users', {}, 0, 'user', 2),
     ).rejects.toThrow(NodeApiError);
-    // 6 calls total: 1 initial + 5 retries, 6th exceeds MAX_RETRIES
-    expect((ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(6);
+    // 4 calls total: 1 initial + 3 retries inside makeApiRequest
+    expect((ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(4);
   });
 
   it('should throw non-retryable errors immediately (e.g. 403)', async () => {
@@ -381,7 +392,10 @@ describe('makeApiRequestAllPages error paths', () => {
     expect(results).toEqual([]);
   });
 
-  it('should pass Retry-After value to setTimeout', async () => {
+  it('should pass Retry-After value to sleep', async () => {
+    const { sleep: mockSleep } = await import('n8n-workflow');
+    (mockSleep as ReturnType<typeof vi.fn>).mockClear();
+
     const rateLimitResponse = {
       statusCode: 429,
       body: { error: 'Rate limited' },
@@ -398,12 +412,11 @@ describe('makeApiRequestAllPages error paths', () => {
       params: { returnAll: false, limit: 10 },
     });
 
-    const setTimeoutSpy = globalThis.setTimeout as unknown as ReturnType<typeof vi.fn>;
     const results = await makeApiRequestAllPages.call(ctx, 'GET', '/users', {}, 0, 'user', 2);
 
     expect(results).toEqual([{ json: { id: 1 } }]);
-    // Retry-After: 3 → retryAfter = parseInt('3') || 2 = 3 → setTimeout(fn, 3000)
-    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 3000);
+    // Retry-After: 3 → sleep(3000)
+    expect(mockSleep).toHaveBeenCalledWith(3000);
   });
 });
 

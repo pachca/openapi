@@ -743,7 +743,6 @@ export async function uploadFileToS3(
   const MAX_RETRIES = 3;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const s3Fields: Record<string, string> = {
-      'Content-Type': contentType,
       'Content-Disposition': String(presigned['Content-Disposition']),
       acl: String(presigned.acl),
       policy: String(presigned.policy),

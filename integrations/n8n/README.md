@@ -24,7 +24,7 @@ Or install from archive (Docker, custom n8n images):
 # Download from GitHub Releases
 # Find the latest n8n-nodes-pachca.tgz at:
 # https://github.com/pachca/openapi/releases?q=n8n
-wget https://github.com/pachca/openapi/releases/download/n8n-v2.0.2/n8n-nodes-pachca.tgz
+wget https://github.com/pachca/openapi/releases/download/n8n-v2.0.4/n8n-nodes-pachca.tgz
 
 # Via npm (recommended)
 cd ~/.n8n/nodes && npm install ./n8n-nodes-pachca.tgz

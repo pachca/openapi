@@ -1,6 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.4 (2026-04-08)
+
+### Bug Fixes
+
+- Fix file upload 403 error
+
 ## 2.0.3 (2026-04-08)
 
 ### Improvements

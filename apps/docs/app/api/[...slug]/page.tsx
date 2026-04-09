@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     `${endpoint.method} ${endpoint.path}` + (descriptionBody ? `\n${descriptionBody}` : '');
 
   return {
-    title: endpoint.title,
+    title: { absolute: `${endpoint.title} | Документация API` },
     description,
     alternates: {
       canonical: path,

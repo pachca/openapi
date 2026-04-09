@@ -151,6 +151,23 @@ export function getActiveTab(pathname: string): TabId | null {
 }
 
 /**
+ * Get the parent item title for a nested page (e.g. "n8n" for /guides/n8n/advanced).
+ * Returns null for top-level pages. Used to disambiguate shared child titles like "Обзор".
+ */
+export function getNestedParentTitle(pathname: string): string | null {
+  for (const section of GUIDE_SECTIONS) {
+    for (const item of section.items) {
+      if (!item.children) continue;
+      if (item.path === pathname) return item.title;
+      for (const child of item.children) {
+        if (child.path === pathname) return item.title;
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Get the section title for a given pathname (for breadcrumb labels).
  */
 export function getSectionTitle(pathname: string): string | null {

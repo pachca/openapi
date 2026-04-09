@@ -28,13 +28,11 @@ export async function generateMetadata({
 
   const firstParagraph = extractFirstParagraph(data.content);
   const pageTitle = data.frontmatter.title;
-  const section = getSectionTitle(`/api/${slug}`);
-  const title = section ? `${section}: ${pageTitle}` : pageTitle;
   const description: string | undefined = data.frontmatter.description || firstParagraph;
   const ogImage = `/api/og?type=guide&slug=api/${slug}`;
 
   return {
-    title,
+    title: { absolute: `${pageTitle} | Документация API` },
     description,
     alternates: {
       canonical: `/api/${slug}`,

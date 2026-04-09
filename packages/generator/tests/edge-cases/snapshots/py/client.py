@@ -13,6 +13,21 @@ from .models import (
 from .utils import deserialize, RetryTransport
 
 class EventsService:
+    async def list_events(
+        self,
+        params: ListEventsParams | None = None,
+    ) -> ListEventsResponse:
+        raise NotImplementedError("Events.listEvents is not implemented")
+
+    async def publish_event(
+        self,
+        id: int,
+        scope: OAuthScope,
+    ) -> Event:
+        raise NotImplementedError("Events.publishEvent is not implemented")
+
+
+class EventsServiceImpl(EventsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -61,6 +76,14 @@ class EventsService:
 
 
 class UploadsService:
+    async def create_upload(
+        self,
+        request: UploadRequest,
+    ) -> None:
+        raise NotImplementedError("Uploads.createUpload is not implemented")
+
+
+class UploadsServiceImpl(UploadsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -85,14 +108,39 @@ class UploadsService:
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str) -> None:
+    def __init__(self, token: str, base_url: str, events: EventsService | None = None, uploads: UploadsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.events = EventsService(self._client)
-        self.uploads = UploadsService(self._client)
+        self.events: EventsService = events or EventsServiceImpl(self._client)
+        self.uploads: UploadsService = uploads or UploadsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        events: EventsService | None = None,
+        uploads: UploadsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.events: EventsService = events or EventsServiceImpl(client)
+        self.uploads: UploadsService = uploads or UploadsServiceImpl(client)
+        return self
+
+    @classmethod
+    def stub(
+        cls,
+        events: EventsService | None = None,
+        uploads: UploadsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.events = events or EventsService()
+        self.uploads = uploads or UploadsService()
+        return self

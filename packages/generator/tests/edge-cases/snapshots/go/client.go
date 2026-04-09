@@ -6,11 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -24,50 +22,27 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-const maxRetries = 3
-
-var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
-
-func jitter(d time.Duration) time.Duration {
-	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
+type EventsService interface {
+	ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error)
+	PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error)
 }
 
-func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
-	for attempt := 0; ; attempt++ {
-		if attempt > 0 && req.GetBody != nil {
-			req.Body, _ = req.GetBody()
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			resp.Body.Close()
-			delay := time.Duration(1<<uint(attempt)) * time.Second
-			if ra := resp.Header.Get("Retry-After"); ra != "" {
-				if secs, err := strconv.Atoi(ra); err == nil {
-					delay = time.Duration(secs) * time.Second
-				}
-			}
-			time.Sleep(delay)
-			continue
-		}
-		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
-			resp.Body.Close()
-			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
-			time.Sleep(delay)
-			continue
-		}
-		return resp, nil
-	}
+type EventsServiceStub struct{}
+
+func (s *EventsServiceStub) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
+	return nil, NotImplementedError{Method: "Events.listEvents"}
 }
 
-type EventsService struct {
+func (s *EventsServiceStub) PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error) {
+	return nil, NotImplementedError{Method: "Events.publishEvent"}
+}
+
+type EventsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *EventsService) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
+func (s *EventsServiceImpl) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/events", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -106,7 +81,7 @@ func (s *EventsService) ListEvents(ctx context.Context, params *ListEventsParams
 	}
 }
 
-func (s *EventsService) PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error) {
+func (s *EventsServiceImpl) PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error) {
 	body, err := json.Marshal(map[string]any{"scope": scope})
 	if err != nil {
 		return nil, err
@@ -135,12 +110,22 @@ func (s *EventsService) PublishEvent(ctx context.Context, id int32, scope OAuthS
 	}
 }
 
-type UploadsService struct {
+type UploadsService interface {
+	CreateUpload(ctx context.Context, request UploadRequest) error
+}
+
+type UploadsServiceStub struct{}
+
+func (s *UploadsServiceStub) CreateUpload(ctx context.Context, request UploadRequest) error {
+	return NotImplementedError{Method: "Uploads.createUpload"}
+}
+
+type UploadsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *UploadsService) CreateUpload(ctx context.Context, request UploadRequest) error {
+func (s *UploadsServiceImpl) CreateUpload(ctx context.Context, request UploadRequest) error {
 	pr, pw := io.Pipe()
 	writer := multipart.NewWriter(pw)
 	go func() {
@@ -176,18 +161,101 @@ func (s *UploadsService) CreateUpload(ctx context.Context, request UploadRequest
 }
 
 type PachcaClient struct {
-	Events  *EventsService
-	Uploads *UploadsService
+	Events  EventsService
+	Uploads UploadsService
 }
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := ""
-	if len(baseURL) > 0 { url = baseURL[0] }
+type clientConfig struct {
+	baseURL string
+	events EventsService
+	uploads UploadsService
+}
+
+type ClientOption func(*clientConfig)
+
+type stubClientConfig struct {
+	events EventsService
+	uploads UploadsService
+}
+
+type StubClientOption func(*stubClientConfig)
+
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithEvents(service EventsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.events = service }
+}
+
+func WithUploads(service UploadsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.uploads = service }
+}
+
+func WithStubEvents(service EventsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.events = service }
+}
+
+func WithStubUploads(service UploadsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.uploads = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var events EventsService = &EventsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.events != nil {
+		events = cfg.events
+	}
+	var uploads UploadsService = &UploadsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.uploads != nil {
+		uploads = cfg.uploads
+	}
 	return &PachcaClient{
-		Events : &EventsService{baseURL: url, client: client},
-		Uploads: &UploadsService{baseURL: url, client: client},
+		Events : events,
+		Uploads: uploads,
+	}
+}
+
+func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: baseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var events EventsService = &EventsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.events != nil {
+		events = cfg.events
+	}
+	var uploads UploadsService = &UploadsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.uploads != nil {
+		uploads = cfg.uploads
+	}
+	return &PachcaClient{
+		Events : events,
+		Uploads: uploads,
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var events EventsService = &EventsServiceStub{}
+	if cfg.events != nil {
+		events = cfg.events
+	}
+	var uploads UploadsService = &UploadsServiceStub{}
+	if cfg.uploads != nil {
+		uploads = cfg.uploads
+	}
+	return &PachcaClient{
+		Events : events,
+		Uploads: uploads,
 	}
 }

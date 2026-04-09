@@ -17,6 +17,7 @@ import {
   snakeToUpperSnake,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const KOTLIN_KEYWORDS = new Set([
@@ -194,10 +195,10 @@ function generateModels(ir: IR): string {
     // Emit inline objects before parent
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
     }
     lines.push('');
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
   }
 
   // Response types
@@ -283,6 +284,7 @@ function emitUnion(
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   const fields = m.fields;
 
@@ -350,6 +352,34 @@ function emitModel(
 
   const ext = m.isError ? ' : Exception()' : '';
   lines.push(`)${ext}`);
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push(' {');
+      lines.push('    override val message: String');
+      lines.push('        get() = when {');
+      lines.push('            errors.isEmpty() -> "api error"');
+      lines.push('            errors.size == 1 -> errors[0].message');
+      lines.push('            else -> "Errors: " + errors.joinToString("; ") { it.message }');
+      lines.push('        }');
+      lines.push('}');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push(' {');
+      lines.push(`    override val message: String get() = ${fieldSdkName(errField)}`);
+      lines.push('}');
+    }
+  }
 }
 
 function emitResponseType(lines: string[], rt: IRResponseType): void {
@@ -425,11 +455,23 @@ function emitService(
   globalHasApiError: boolean,
 ): void {
   const serviceName = tagToServiceName(svc.tag);
+  const implName = serviceToImplName(serviceName);
 
-  lines.push(`class ${serviceName} internal constructor(`);
+  lines.push(`interface ${serviceName} {`);
+  for (let i = 0; i < svc.operations.length; i++) {
+    if (i > 0) lines.push('');
+    emitInterfaceOperation(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitInterfacePaginationMethod(lines, svc.operations[i], ir);
+    }
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`class ${implName} internal constructor(`);
   lines.push('    private val baseUrl: String,');
   lines.push('    private val client: HttpClient,');
-  lines.push(') {');
+  lines.push(`) : ${serviceName} {`);
 
   for (let i = 0; i < svc.operations.length; i++) {
     if (i > 0) lines.push('');
@@ -441,6 +483,58 @@ function emitService(
   }
 
   lines.push('}');
+}
+
+function emitInterfaceOperation(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const returnType = getReturnType(op, ir);
+  const returnSuffix = returnType ? `: ${returnType}` : '';
+  const params = buildMethodParams(op, ir);
+
+  if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
+  if (params.length === 0) {
+    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
+  } else if (params.length === 1) {
+    lines.push(`${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`);
+  } else if (params.length <= 2) {
+    lines.push(`${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`);
+  } else {
+    lines.push(`${indent}suspend fun ${op.methodName}(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent})${returnSuffix} {`);
+  }
+  lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+  lines.push(`${indent}}`);
+}
+
+function emitInterfacePaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const itemType = op.successResponse.dataRef ?? 'Any';
+  const params: string[] = [];
+  if (op.externalUrl) params.push(`${op.externalUrl}: String`);
+  for (const p of op.pathParams) params.push(`${p.sdkName}: ${ktType(p.type)}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') continue;
+    const typeName = ktType(p.type);
+    params.push(p.required ? `${p.sdkName}: ${typeName}` : `${p.sdkName}: ${typeName}? = null`);
+  }
+
+  if (params.length <= 2) {
+    lines.push(`${indent}suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> {`);
+  } else {
+    lines.push(`${indent}suspend fun ${op.methodName}All(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent}): List<${itemType}> {`);
+  }
+  lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
+  lines.push(`${indent}}`);
+}
+
+function stripKotlinDefaultValue(param: string): string {
+  const index = param.indexOf(' = ');
+  return index === -1 ? param : param.slice(0, index);
 }
 
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
@@ -457,12 +551,13 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
     const typeName = ktType(p.type);
     params.push(p.required ? `${p.sdkName}: ${typeName}` : `${p.sdkName}: ${typeName}? = null`);
   }
+  const overrideParams = params.map(stripKotlinDefaultValue);
 
-  if (params.length <= 2) {
-    lines.push(`${indent}suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> {`);
+  if (overrideParams.length <= 2) {
+    lines.push(`${indent}override suspend fun ${op.methodName}All(${overrideParams.join(', ')}): List<${itemType}> {`);
   } else {
-    lines.push(`${indent}suspend fun ${op.methodName}All(`);
-    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent}override suspend fun ${op.methodName}All(`);
+    for (const p of overrideParams) lines.push(`${indent2}${p},`);
     lines.push(`${indent}): List<${itemType}> {`);
   }
 
@@ -507,21 +602,21 @@ function emitOperation(
 
   const returnType = getReturnType(op, ir);
   const returnSuffix = returnType ? `: ${returnType}` : '';
-  const params = buildMethodParams(op, ir);
+  const params = buildMethodParams(op, ir).map(stripKotlinDefaultValue);
 
   if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
   if (params.length === 0) {
-    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
+    lines.push(`${indent}override suspend fun ${op.methodName}()${returnSuffix} {`);
   } else if (params.length === 1) {
     lines.push(
-      `${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`,
+      `${indent}override suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`,
     );
   } else if (params.length <= 2) {
     lines.push(
-      `${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`,
+      `${indent}override suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`,
     );
   } else {
-    lines.push(`${indent}suspend fun ${op.methodName}(`);
+    lines.push(`${indent}override suspend fun ${op.methodName}(`);
     for (const p of params) {
       lines.push(`${indent2}${p},`);
     }
@@ -817,38 +912,11 @@ function emitPachcaClient(
   ir: IR,
   hasRedirect: boolean,
 ): void {
-  const ktDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`class PachcaClient(token: String, baseUrl: String${ktDefault}) : Closeable {`);
-  lines.push('    private val client = HttpClient {');
-  lines.push('        expectSuccess = false');
-  if (hasRedirect) {
-    lines.push('        followRedirects = false');
+  if (ir.baseUrl) {
+    lines.push(`const val PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
   }
-  lines.push('        install(ContentNegotiation) {');
-  lines.push('            json(Json { explicitNulls = false })');
-  lines.push('        }');
-  lines.push('        install(HttpRequestRetry) {');
-  lines.push('            maxRetries = 3');
-  lines.push('            retryIf { _, response ->');
-  lines.push('                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)');
-  lines.push('            }');
-  lines.push('            delayMillis { retry ->');
-  lines.push('                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()');
-  lines.push('                if (retryAfter != null && response?.status?.value == 429) {');
-  lines.push('                    retryAfter * 1000L');
-  lines.push('                } else {');
-  lines.push('                    val base = 10_000L * (1L shl retry)');
-  lines.push('                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5');
-  lines.push('                    (base * jitter).toLong()');
-  lines.push('                }');
-  lines.push('            }');
-  lines.push('        }');
-  lines.push('        defaultRequest {');
-  lines.push('            bearerAuth(token)');
-  lines.push('        }');
-  lines.push('    }');
-  lines.push('');
-
+  const ktDefault = ir.baseUrl ? ' = PACHCA_API_URL' : '';
   const serviceEntries = ir.services
     .map((svc) => ({
       propName: tagToProperty(svc.tag),
@@ -856,13 +924,107 @@ function emitPachcaClient(
     }))
     .sort((a, b) => a.propName.localeCompare(b.propName));
 
-  for (const s of serviceEntries) {
-    lines.push(`    val ${s.propName} = ${s.className}(baseUrl, client)`);
+  // Private constructor taking nullable client + all services
+  lines.push('class PachcaClient private constructor(');
+  lines.push('    private val _client: HttpClient?,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`    val ${s.propName}: ${s.className}${suffix}`);
   }
+  lines.push(') : Closeable {');
+  lines.push('');
+  lines.push('    companion object {');
 
+  // operator fun invoke - creates HttpClient and real services
+  const invokeArgs = [`token: String`, `baseUrl: String${ktDefault}`];
+  for (const s of serviceEntries) {
+    invokeArgs.push(`${s.propName}: ${s.className}? = null`);
+  }
+  lines.push('        operator fun invoke(');
+  for (let i = 0; i < invokeArgs.length; i++) {
+    const suffix = i < invokeArgs.length - 1 ? ',' : '';
+    lines.push(`            ${invokeArgs[i]}${suffix}`);
+  }
+  lines.push('        ): PachcaClient {');
+  lines.push('            val client = createClient(token)');
+  lines.push('            return PachcaClient(');
+  lines.push('                _client = client,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`                ${s.propName} = ${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)${suffix}`);
+  }
+  lines.push('            )');
+  lines.push('        }');
+  lines.push('');
+
+  // fun stub - creates client without HttpClient
+  lines.push('        fun stub(');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`            ${s.propName}: ${s.className} = object : ${s.className} {}${suffix}`);
+  }
+  lines.push('        ): PachcaClient = PachcaClient(');
+  lines.push('            _client = null,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`            ${s.propName} = ${s.propName}${suffix}`);
+  }
+  lines.push('        )');
+  lines.push('');
+
+  // private fun createClient
+  lines.push('        private fun createClient(token: String): HttpClient = HttpClient {');
+  lines.push('            expectSuccess = false');
+  if (hasRedirect) {
+    lines.push('            followRedirects = false');
+  }
+  lines.push('            install(ContentNegotiation) { json(Json { explicitNulls = false }) }');
+  lines.push('            install(HttpRequestRetry) {');
+  lines.push('                maxRetries = 3');
+  lines.push('                retryIf { _, response ->');
+  lines.push('                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)');
+  lines.push('                }');
+  lines.push('                delayMillis { retry ->');
+  lines.push('                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()');
+  lines.push('                    if (retryAfter != null && response?.status?.value == 429) {');
+  lines.push('                        retryAfter * 1000L');
+  lines.push('                    } else {');
+  lines.push('                        val base = 10_000L * (1L shl retry)');
+  lines.push('                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5');
+  lines.push('                        (base * jitter).toLong()');
+  lines.push('                    }');
+  lines.push('                }');
+  lines.push('            }');
+  lines.push('            defaultRequest { bearerAuth(token) }');
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+
+  // Secondary constructor from pre-configured HttpClient
+  const secondaryArgs = [`client: HttpClient`, `baseUrl: String${ktDefault}`];
+  for (const s of serviceEntries) {
+    secondaryArgs.push(`${s.propName}: ${s.className}? = null`);
+  }
+  lines.push(`    constructor(`);
+  for (let i = 0; i < secondaryArgs.length; i++) {
+    const suffix = i < secondaryArgs.length - 1 ? ',' : '';
+    lines.push(`        ${secondaryArgs[i]}${suffix}`);
+  }
+  lines.push('    ) : this(');
+  lines.push('        _client = client,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`        ${s.propName} = ${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)${suffix}`);
+  }
+  lines.push('    )');
   lines.push('');
   lines.push('    override fun close() {');
-  lines.push('        client.close()');
+  lines.push('        _client?.close()');
   lines.push('    }');
   lines.push('}');
 }

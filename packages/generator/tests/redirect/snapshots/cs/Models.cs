@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -25,4 +26,6 @@ public class OAuthError : Exception
 {
     [JsonPropertyName("error")]
     public string? Error { get; set; }
+
+    public override string Message => Error ?? "oauth error";
 }

@@ -11,6 +11,20 @@ from .models import (
 from .utils import deserialize, RetryTransport
 
 class SearchService:
+    async def search_messages(
+        self,
+        params: SearchMessagesParams,
+    ) -> SearchMessagesResponse:
+        raise NotImplementedError("Search.searchMessages is not implemented")
+
+    async def search_messages_all(
+        self,
+        params: SearchMessagesParams,
+    ) -> list[MessageResult]:
+        raise NotImplementedError("Search.searchMessagesAll is not implemented")
+
+
+class SearchServiceImpl(SearchService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -63,14 +77,38 @@ class SearchService:
         return items
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, search: SearchService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.search = SearchService(self._client)
+        self.search: SearchService = search or SearchServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        search: SearchService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.search: SearchService = search or SearchServiceImpl(client)
+        return self
+
+    @classmethod
+    def stub(
+        cls,
+        search: SearchService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.search = search or SearchService()
+        return self

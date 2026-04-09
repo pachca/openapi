@@ -16,6 +16,51 @@ from .models import (
 from .utils import deserialize, serialize, RetryTransport
 
 class ChatsService:
+    async def list_chats(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> ListChatsResponse:
+        raise NotImplementedError("Chats.listChats is not implemented")
+
+    async def list_chats_all(
+        self,
+        params: ListChatsParams | None = None,
+    ) -> list[Chat]:
+        raise NotImplementedError("Chats.listChatsAll is not implemented")
+
+    async def get_chat(
+        self,
+        id: int,
+    ) -> Chat:
+        raise NotImplementedError("Chats.getChat is not implemented")
+
+    async def create_chat(
+        self,
+        request: ChatCreateRequest,
+    ) -> Chat:
+        raise NotImplementedError("Chats.createChat is not implemented")
+
+    async def update_chat(
+        self,
+        id: int,
+        request: ChatUpdateRequest,
+    ) -> Chat:
+        raise NotImplementedError("Chats.updateChat is not implemented")
+
+    async def archive_chat(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Chats.archiveChat is not implemented")
+
+    async def delete_chat(
+        self,
+        id: int,
+    ) -> None:
+        raise NotImplementedError("Chats.deleteChat is not implemented")
+
+
+class ChatsServiceImpl(ChatsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -148,14 +193,38 @@ class ChatsService:
                 raise deserialize(ApiError, response.json())
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, chats: ChatsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.chats = ChatsService(self._client)
+        self.chats: ChatsService = chats or ChatsServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        chats: ChatsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.chats: ChatsService = chats or ChatsServiceImpl(client)
+        return self
+
+    @classmethod
+    def stub(
+        cls,
+        chats: ChatsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.chats = chats or ChatsService()
+        return self

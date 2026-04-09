@@ -504,6 +504,12 @@ public struct ApiError: Codable, Error {
     public init(errors: [ApiErrorItem]) {
         self.errors = errors
     }
+
+    public var localizedDescription: String {
+        guard !errors.isEmpty else { return "api error" }
+        if errors.count == 1 { return errors[0].message }
+        return "Errors: " + errors.map(\.message).joined(separator: "; ")
+    }
 }
 
 public struct ApiErrorItem: Codable {
@@ -1564,6 +1570,8 @@ public struct OAuthError: Codable, Error {
         self.error = error
         self.errorDescription = errorDescription
     }
+
+    public var localizedDescription: String { error }
 
     enum CodingKeys: String, CodingKey {
         case error

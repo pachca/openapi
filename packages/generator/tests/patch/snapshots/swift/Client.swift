@@ -3,7 +3,19 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct ItemsService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class ItemsService {
+    public init() {}
+
+    open func patchItem(id: Int, request body: ItemPatchRequest) async throws -> Item {
+        throw pachcaNotImplemented("Items.patchItem")
+    }
+}
+
+public final class ItemsServiceImpl: ItemsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -12,9 +24,10 @@ public struct ItemsService {
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
-    public func patchItem(id: Int, request body: ItemPatchRequest) async throws -> Item {
+    public override func patchItem(id: Int, request body: ItemPatchRequest) async throws -> Item {
         var request = URLRequest(url: URL(string: "\(baseURL)/items/\(id)")!)
         request.httpMethod = "PATCH"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -31,11 +44,31 @@ public struct ItemsService {
     }
 }
 
+public let pachcaAPIURL = "https://api.example.com/v1"
+
 public struct PachcaClient {
     public let items: ItemsService
 
-    public init(token: String, baseURL: String = "https://api.example.com/v1") {
+    private init(items: ItemsService) {
+        self.items = items
+    }
+
+    public init(token: String, baseURL: String = pachcaAPIURL, items: ItemsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.items = ItemsService(baseURL: baseURL, headers: headers)
+        self.init(
+            items: items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, items: ItemsService? = nil) {
+        self.init(
+            items: items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers, session: session)
+        )
+    }
+
+    public static func stub(items: ItemsService = ItemsService()) -> PachcaClient {
+        PachcaClient(
+            items: items
+        )
     }
 }

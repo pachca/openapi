@@ -66,11 +66,23 @@ import {
 } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-class SecurityService {
+export class SecurityService {
+  async getAuditEvents(params?: GetAuditEventsParams): Promise<GetAuditEventsResponse> {
+    throw new Error("Security.getAuditEvents is not implemented");
+  }
+
+  async getAuditEventsAll(params?: Omit<GetAuditEventsParams, 'cursor'>): Promise<AuditEvent[]> {
+    throw new Error("Security.getAuditEventsAll is not implemented");
+  }
+}
+
+export class SecurityServiceImpl extends SecurityService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async getAuditEvents(params?: GetAuditEventsParams): Promise<GetAuditEventsResponse> {
     const query = new URLSearchParams();
@@ -111,11 +123,31 @@ class SecurityService {
   }
 }
 
-class BotsService {
+export class BotsService {
+  async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
+    throw new Error("Bots.getWebhookEvents is not implemented");
+  }
+
+  async getWebhookEventsAll(params?: Omit<GetWebhookEventsParams, 'cursor'>): Promise<WebhookEvent[]> {
+    throw new Error("Bots.getWebhookEventsAll is not implemented");
+  }
+
+  async updateBot(id: number, request: BotUpdateRequest): Promise<BotResponse> {
+    throw new Error("Bots.updateBot is not implemented");
+  }
+
+  async deleteWebhookEvent(id: string): Promise<void> {
+    throw new Error("Bots.deleteWebhookEvent is not implemented");
+  }
+}
+
+export class BotsServiceImpl extends BotsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async getWebhookEvents(params?: GetWebhookEventsParams): Promise<GetWebhookEventsResponse> {
     const query = new URLSearchParams();
@@ -181,11 +213,43 @@ class BotsService {
   }
 }
 
-class ChatsService {
+export class ChatsService {
+  async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
+    throw new Error("Chats.listChats is not implemented");
+  }
+
+  async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
+    throw new Error("Chats.listChatsAll is not implemented");
+  }
+
+  async getChat(id: number): Promise<Chat> {
+    throw new Error("Chats.getChat is not implemented");
+  }
+
+  async createChat(request: ChatCreateRequest): Promise<Chat> {
+    throw new Error("Chats.createChat is not implemented");
+  }
+
+  async updateChat(id: number, request: ChatUpdateRequest): Promise<Chat> {
+    throw new Error("Chats.updateChat is not implemented");
+  }
+
+  async archiveChat(id: number): Promise<void> {
+    throw new Error("Chats.archiveChat is not implemented");
+  }
+
+  async unarchiveChat(id: number): Promise<void> {
+    throw new Error("Chats.unarchiveChat is not implemented");
+  }
+}
+
+export class ChatsServiceImpl extends ChatsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
     const query = new URLSearchParams();
@@ -304,11 +368,35 @@ class ChatsService {
   }
 }
 
-class CommonService {
+export class CommonService {
+  async downloadExport(id: number): Promise<string> {
+    throw new Error("Common.downloadExport is not implemented");
+  }
+
+  async listProperties(params: ListPropertiesParams): Promise<ListPropertiesResponse> {
+    throw new Error("Common.listProperties is not implemented");
+  }
+
+  async requestExport(request: ExportRequest): Promise<void> {
+    throw new Error("Common.requestExport is not implemented");
+  }
+
+  async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
+    throw new Error("Common.uploadFile is not implemented");
+  }
+
+  async getUploadParams(): Promise<UploadParams> {
+    throw new Error("Common.getUploadParams is not implemented");
+  }
+}
+
+export class CommonServiceImpl extends CommonService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async downloadExport(id: number): Promise<string> {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/exports/${id}`, {
@@ -403,11 +491,47 @@ class CommonService {
   }
 }
 
-class MembersService {
+export class MembersService {
+  async listMembers(id: number, params?: ListMembersParams): Promise<ListMembersResponse> {
+    throw new Error("Members.listMembers is not implemented");
+  }
+
+  async listMembersAll(id: number, params?: Omit<ListMembersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Members.listMembersAll is not implemented");
+  }
+
+  async addTags(id: number, groupTagIds: number[]): Promise<void> {
+    throw new Error("Members.addTags is not implemented");
+  }
+
+  async addMembers(id: number, request: AddMembersRequest): Promise<void> {
+    throw new Error("Members.addMembers is not implemented");
+  }
+
+  async updateMemberRole(id: number, userId: number, role: ChatMemberRole): Promise<void> {
+    throw new Error("Members.updateMemberRole is not implemented");
+  }
+
+  async removeTag(id: number, tagId: number): Promise<void> {
+    throw new Error("Members.removeTag is not implemented");
+  }
+
+  async leaveChat(id: number): Promise<void> {
+    throw new Error("Members.leaveChat is not implemented");
+  }
+
+  async removeMember(id: number, userId: number): Promise<void> {
+    throw new Error("Members.removeMember is not implemented");
+  }
+}
+
+export class MembersServiceImpl extends MembersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listMembers(id: number, params?: ListMembersParams): Promise<ListMembersResponse> {
     const query = new URLSearchParams();
@@ -535,11 +659,47 @@ class MembersService {
   }
 }
 
-class GroupTagsService {
+export class GroupTagsService {
+  async listTags(params?: ListTagsParams): Promise<ListTagsResponse> {
+    throw new Error("Group tags.listTags is not implemented");
+  }
+
+  async listTagsAll(params?: Omit<ListTagsParams, 'cursor'>): Promise<GroupTag[]> {
+    throw new Error("Group tags.listTagsAll is not implemented");
+  }
+
+  async getTag(id: number): Promise<GroupTag> {
+    throw new Error("Group tags.getTag is not implemented");
+  }
+
+  async getTagUsers(id: number, params?: GetTagUsersParams): Promise<GetTagUsersResponse> {
+    throw new Error("Group tags.getTagUsers is not implemented");
+  }
+
+  async getTagUsersAll(id: number, params?: Omit<GetTagUsersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Group tags.getTagUsersAll is not implemented");
+  }
+
+  async createTag(request: GroupTagRequest): Promise<GroupTag> {
+    throw new Error("Group tags.createTag is not implemented");
+  }
+
+  async updateTag(id: number, request: GroupTagRequest): Promise<GroupTag> {
+    throw new Error("Group tags.updateTag is not implemented");
+  }
+
+  async deleteTag(id: number): Promise<void> {
+    throw new Error("Group tags.deleteTag is not implemented");
+  }
+}
+
+export class GroupTagsServiceImpl extends GroupTagsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listTags(params?: ListTagsParams): Promise<ListTagsResponse> {
     const query = new URLSearchParams();
@@ -671,11 +831,47 @@ class GroupTagsService {
   }
 }
 
-class MessagesService {
+export class MessagesService {
+  async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
+    throw new Error("Messages.listChatMessages is not implemented");
+  }
+
+  async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
+    throw new Error("Messages.listChatMessagesAll is not implemented");
+  }
+
+  async getMessage(id: number): Promise<Message> {
+    throw new Error("Messages.getMessage is not implemented");
+  }
+
+  async createMessage(request: MessageCreateRequest): Promise<Message> {
+    throw new Error("Messages.createMessage is not implemented");
+  }
+
+  async pinMessage(id: number): Promise<void> {
+    throw new Error("Messages.pinMessage is not implemented");
+  }
+
+  async updateMessage(id: number, request: MessageUpdateRequest): Promise<Message> {
+    throw new Error("Messages.updateMessage is not implemented");
+  }
+
+  async deleteMessage(id: number): Promise<void> {
+    throw new Error("Messages.deleteMessage is not implemented");
+  }
+
+  async unpinMessage(id: number): Promise<void> {
+    throw new Error("Messages.unpinMessage is not implemented");
+  }
+}
+
+export class MessagesServiceImpl extends MessagesService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listChatMessages(params: ListChatMessagesParams): Promise<ListChatMessagesResponse> {
     const query = new URLSearchParams();
@@ -805,11 +1001,19 @@ class MessagesService {
   }
 }
 
-class LinkPreviewsService {
+export class LinkPreviewsService {
+  async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
+    throw new Error("Link Previews.createLinkPreviews is not implemented");
+  }
+}
+
+export class LinkPreviewsServiceImpl extends LinkPreviewsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
@@ -828,11 +1032,31 @@ class LinkPreviewsService {
   }
 }
 
-class ReactionsService {
+export class ReactionsService {
+  async listReactions(id: number, params?: ListReactionsParams): Promise<ListReactionsResponse> {
+    throw new Error("Reactions.listReactions is not implemented");
+  }
+
+  async listReactionsAll(id: number, params?: Omit<ListReactionsParams, 'cursor'>): Promise<Reaction[]> {
+    throw new Error("Reactions.listReactionsAll is not implemented");
+  }
+
+  async addReaction(id: number, request: ReactionRequest): Promise<Reaction> {
+    throw new Error("Reactions.addReaction is not implemented");
+  }
+
+  async removeReaction(id: number, params: RemoveReactionParams): Promise<void> {
+    throw new Error("Reactions.removeReaction is not implemented");
+  }
+}
+
+export class ReactionsServiceImpl extends ReactionsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listReactions(id: number, params?: ListReactionsParams): Promise<ListReactionsResponse> {
     const query = new URLSearchParams();
@@ -901,11 +1125,19 @@ class ReactionsService {
   }
 }
 
-class ReadMembersService {
+export class ReadMembersService {
+  async listReadMembers(id: number, params?: ListReadMembersParams): Promise<unknown> {
+    throw new Error("Read members.listReadMembers is not implemented");
+  }
+}
+
+export class ReadMembersServiceImpl extends ReadMembersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listReadMembers(id: number, params?: ListReadMembersParams): Promise<unknown> {
     const query = new URLSearchParams();
@@ -927,11 +1159,23 @@ class ReadMembersService {
   }
 }
 
-class ThreadsService {
+export class ThreadsService {
+  async getThread(id: number): Promise<Thread> {
+    throw new Error("Threads.getThread is not implemented");
+  }
+
+  async createThread(id: number): Promise<Thread> {
+    throw new Error("Threads.createThread is not implemented");
+  }
+}
+
+export class ThreadsServiceImpl extends ThreadsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async getThread(id: number): Promise<Thread> {
     const response = await fetchWithRetry(`${this.baseUrl}/threads/${id}`, {
@@ -965,11 +1209,43 @@ class ThreadsService {
   }
 }
 
-class ProfileService {
+export class ProfileService {
+  async getTokenInfo(): Promise<AccessTokenInfo> {
+    throw new Error("Profile.getTokenInfo is not implemented");
+  }
+
+  async getProfile(): Promise<User> {
+    throw new Error("Profile.getProfile is not implemented");
+  }
+
+  async getStatus(): Promise<unknown> {
+    throw new Error("Profile.getStatus is not implemented");
+  }
+
+  async updateProfileAvatar(image: Blob): Promise<AvatarData> {
+    throw new Error("Profile.updateProfileAvatar is not implemented");
+  }
+
+  async updateStatus(request: StatusUpdateRequest): Promise<UserStatus> {
+    throw new Error("Profile.updateStatus is not implemented");
+  }
+
+  async deleteProfileAvatar(): Promise<void> {
+    throw new Error("Profile.deleteProfileAvatar is not implemented");
+  }
+
+  async deleteStatus(): Promise<void> {
+    throw new Error("Profile.deleteStatus is not implemented");
+  }
+}
+
+export class ProfileServiceImpl extends ProfileService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async getTokenInfo(): Promise<AccessTokenInfo> {
     const response = await fetchWithRetry(`${this.baseUrl}/oauth/token/info`, {
@@ -1083,11 +1359,39 @@ class ProfileService {
   }
 }
 
-class SearchService {
+export class SearchService {
+  async searchChats(params?: SearchChatsParams): Promise<SearchChatsResponse> {
+    throw new Error("Search.searchChats is not implemented");
+  }
+
+  async searchChatsAll(params?: Omit<SearchChatsParams, 'cursor'>): Promise<Chat[]> {
+    throw new Error("Search.searchChatsAll is not implemented");
+  }
+
+  async searchMessages(params?: SearchMessagesParams): Promise<SearchMessagesResponse> {
+    throw new Error("Search.searchMessages is not implemented");
+  }
+
+  async searchMessagesAll(params?: Omit<SearchMessagesParams, 'cursor'>): Promise<Message[]> {
+    throw new Error("Search.searchMessagesAll is not implemented");
+  }
+
+  async searchUsers(params?: SearchUsersParams): Promise<SearchUsersResponse> {
+    throw new Error("Search.searchUsers is not implemented");
+  }
+
+  async searchUsersAll(params?: Omit<SearchUsersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Search.searchUsersAll is not implemented");
+  }
+}
+
+export class SearchServiceImpl extends SearchService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async searchChats(params?: SearchChatsParams): Promise<SearchChatsResponse> {
     const query = new URLSearchParams();
@@ -1209,11 +1513,39 @@ class SearchService {
   }
 }
 
-class TasksService {
+export class TasksService {
+  async listTasks(params?: ListTasksParams): Promise<ListTasksResponse> {
+    throw new Error("Tasks.listTasks is not implemented");
+  }
+
+  async listTasksAll(params?: Omit<ListTasksParams, 'cursor'>): Promise<Task[]> {
+    throw new Error("Tasks.listTasksAll is not implemented");
+  }
+
+  async getTask(id: number): Promise<Task> {
+    throw new Error("Tasks.getTask is not implemented");
+  }
+
+  async createTask(request: TaskCreateRequest): Promise<Task> {
+    throw new Error("Tasks.createTask is not implemented");
+  }
+
+  async updateTask(id: number, request: TaskUpdateRequest): Promise<Task> {
+    throw new Error("Tasks.updateTask is not implemented");
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    throw new Error("Tasks.deleteTask is not implemented");
+  }
+}
+
+export class TasksServiceImpl extends TasksService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listTasks(params?: ListTasksParams): Promise<ListTasksResponse> {
     const query = new URLSearchParams();
@@ -1311,11 +1643,59 @@ class TasksService {
   }
 }
 
-class UsersService {
+export class UsersService {
+  async listUsers(params?: ListUsersParams): Promise<ListUsersResponse> {
+    throw new Error("Users.listUsers is not implemented");
+  }
+
+  async listUsersAll(params?: Omit<ListUsersParams, 'cursor'>): Promise<User[]> {
+    throw new Error("Users.listUsersAll is not implemented");
+  }
+
+  async getUser(id: number): Promise<User> {
+    throw new Error("Users.getUser is not implemented");
+  }
+
+  async getUserStatus(userId: number): Promise<unknown> {
+    throw new Error("Users.getUserStatus is not implemented");
+  }
+
+  async createUser(request: UserCreateRequest): Promise<User> {
+    throw new Error("Users.createUser is not implemented");
+  }
+
+  async updateUser(id: number, request: UserUpdateRequest): Promise<User> {
+    throw new Error("Users.updateUser is not implemented");
+  }
+
+  async updateUserAvatar(userId: number, image: Blob): Promise<AvatarData> {
+    throw new Error("Users.updateUserAvatar is not implemented");
+  }
+
+  async updateUserStatus(userId: number, request: StatusUpdateRequest): Promise<UserStatus> {
+    throw new Error("Users.updateUserStatus is not implemented");
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    throw new Error("Users.deleteUser is not implemented");
+  }
+
+  async deleteUserAvatar(userId: number): Promise<void> {
+    throw new Error("Users.deleteUserAvatar is not implemented");
+  }
+
+  async deleteUserStatus(userId: number): Promise<void> {
+    throw new Error("Users.deleteUserStatus is not implemented");
+  }
+}
+
+export class UsersServiceImpl extends UsersService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listUsers(params?: ListUsersParams): Promise<ListUsersResponse> {
     const query = new URLSearchParams();
@@ -1495,11 +1875,19 @@ class UsersService {
   }
 }
 
-class ViewsService {
+export class ViewsService {
+  async openView(request: OpenViewRequest): Promise<void> {
+    throw new Error("Views.openView is not implemented");
+  }
+}
+
+export class ViewsServiceImpl extends ViewsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async openView(request: OpenViewRequest): Promise<void> {
     const response = await fetchWithRetry(`${this.baseUrl}/views/open`, {
@@ -1517,6 +1905,8 @@ class ViewsService {
     }
   }
 }
+
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
 
 export class PachcaClient {
   readonly bots: BotsService;
@@ -1536,23 +1926,70 @@ export class PachcaClient {
   readonly users: UsersService;
   readonly views: ViewsService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.bots = new BotsService(baseUrl, headers);
-    this.chats = new ChatsService(baseUrl, headers);
-    this.common = new CommonService(baseUrl, headers);
-    this.groupTags = new GroupTagsService(baseUrl, headers);
-    this.linkPreviews = new LinkPreviewsService(baseUrl, headers);
-    this.members = new MembersService(baseUrl, headers);
-    this.messages = new MessagesService(baseUrl, headers);
-    this.profile = new ProfileService(baseUrl, headers);
-    this.reactions = new ReactionsService(baseUrl, headers);
-    this.readMembers = new ReadMembersService(baseUrl, headers);
-    this.search = new SearchService(baseUrl, headers);
-    this.security = new SecurityService(baseUrl, headers);
-    this.tasks = new TasksService(baseUrl, headers);
-    this.threads = new ThreadsService(baseUrl, headers);
-    this.users = new UsersService(baseUrl, headers);
-    this.views = new ViewsService(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.bots = new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.groupTags = new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.linkPreviews = new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.members = new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.messages = new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.profile = new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.reactions = new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.readMembers = new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.search = new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.security = new SecurityServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.tasks = new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.threads = new ThreadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.users = new UsersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.views = new ViewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.bots = tokenOrConfig.bots ?? new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.groupTags = tokenOrConfig.groupTags ?? new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.linkPreviews = tokenOrConfig.linkPreviews ?? new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.members = tokenOrConfig.members ?? new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.messages = tokenOrConfig.messages ?? new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.profile = tokenOrConfig.profile ?? new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.reactions = tokenOrConfig.reactions ?? new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.readMembers = tokenOrConfig.readMembers ?? new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.search = tokenOrConfig.search ?? new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.security = tokenOrConfig.security ?? new SecurityServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.tasks = tokenOrConfig.tasks ?? new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.threads = tokenOrConfig.threads ?? new ThreadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.users = tokenOrConfig.users ?? new UsersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.views = tokenOrConfig.views ?? new ViewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
+  }
+
+  static stub(bots: BotsService = new BotsService(), chats: ChatsService = new ChatsService(), common: CommonService = new CommonService(), groupTags: GroupTagsService = new GroupTagsService(), linkPreviews: LinkPreviewsService = new LinkPreviewsService(), members: MembersService = new MembersService(), messages: MessagesService = new MessagesService(), profile: ProfileService = new ProfileService(), reactions: ReactionsService = new ReactionsService(), readMembers: ReadMembersService = new ReadMembersService(), search: SearchService = new SearchService(), security: SecurityService = new SecurityService(), tasks: TasksService = new TasksService(), threads: ThreadsService = new ThreadsService(), users: UsersService = new UsersService(), views: ViewsService = new ViewsService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.bots = bots;
+    client.chats = chats;
+    client.common = common;
+    client.groupTags = groupTags;
+    client.linkPreviews = linkPreviews;
+    client.members = members;
+    client.messages = messages;
+    client.profile = profile;
+    client.reactions = reactions;
+    client.readMembers = readMembers;
+    client.search = search;
+    client.security = security;
+    client.tasks = tasks;
+    client.threads = threads;
+    client.users = users;
+    client.views = views;
+    return client;
   }
 }

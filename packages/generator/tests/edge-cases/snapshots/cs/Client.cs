@@ -12,18 +12,39 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class EventsService
+public class EventsService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
+        bool? isActive = null,
+        List<OAuthScope>? scopes = null,
+        EventFilter? filter = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Events.listEvents is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Event> PublishEventAsync(
+        int id,
+        OAuthScope scope,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Events.publishEvent is not implemented");
+    }
+}
+
+public sealed class EventsServiceImpl : EventsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal EventsService(string baseUrl, HttpClient client)
+    internal EventsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
+    public override async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
         bool? isActive = null,
         List<OAuthScope>? scopes = null,
         EventFilter? filter = null,
@@ -50,7 +71,7 @@ public sealed class EventsService
         }
     }
 
-    public async System.Threading.Tasks.Task<Event> PublishEventAsync(
+    public override async System.Threading.Tasks.Task<Event> PublishEventAsync(
         int id,
         OAuthScope scope,
         CancellationToken cancellationToken = default)
@@ -71,18 +92,27 @@ public sealed class EventsService
     }
 }
 
-public sealed class UploadsService
+public class UploadsService
+{
+
+    public virtual async System.Threading.Tasks.Task CreateUploadAsync(UploadRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Uploads.createUpload is not implemented");
+    }
+}
+
+public sealed class UploadsServiceImpl : UploadsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal UploadsService(string baseUrl, HttpClient client)
+    internal UploadsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task CreateUploadAsync(UploadRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task CreateUploadAsync(UploadRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/uploads";
         using var content = new MultipartFormDataContent();
@@ -104,24 +134,43 @@ public sealed class UploadsService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public EventsService Events { get; }
     public UploadsService Uploads { get; }
 
-    public PachcaClient(string token, string baseUrl)
+    private PachcaClient(EventsService events, UploadsService uploads)
+    {
+        Events = events;
+        Uploads = uploads;
+    }
+
+    public PachcaClient(string token, string baseUrl, EventsService? events = null, UploadsService? uploads = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Events = new EventsService(baseUrl, _client);
-        Uploads = new UploadsService(baseUrl, _client);
+        Events = events ?? new EventsServiceImpl(baseUrl, _client);
+        Uploads = uploads ?? new UploadsServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, EventsService? events = null, UploadsService? uploads = null)
+    {
+        _client = client;
+
+        Events = events ?? new EventsServiceImpl(baseUrl, _client);
+        Uploads = uploads ?? new UploadsServiceImpl(baseUrl, _client);
+    }
+
+    public static PachcaClient Stub(EventsService? events = null, UploadsService? uploads = null)
+    {
+        return new PachcaClient(events ?? new EventsService(), uploads ?? new UploadsService());
     }
 
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

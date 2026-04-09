@@ -5,9 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -21,50 +19,22 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-const maxRetries = 3
-
-var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
-
-func jitter(d time.Duration) time.Duration {
-	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
+type MembersService interface {
+	AddMembers(ctx context.Context, id int32, memberIds []int32) error
 }
 
-func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
-	for attempt := 0; ; attempt++ {
-		if attempt > 0 && req.GetBody != nil {
-			req.Body, _ = req.GetBody()
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			resp.Body.Close()
-			delay := time.Duration(1<<uint(attempt)) * time.Second
-			if ra := resp.Header.Get("Retry-After"); ra != "" {
-				if secs, err := strconv.Atoi(ra); err == nil {
-					delay = time.Duration(secs) * time.Second
-				}
-			}
-			time.Sleep(delay)
-			continue
-		}
-		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
-			resp.Body.Close()
-			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
-			time.Sleep(delay)
-			continue
-		}
-		return resp, nil
-	}
+type MembersServiceStub struct{}
+
+func (s *MembersServiceStub) AddMembers(ctx context.Context, id int32, memberIds []int32) error {
+	return NotImplementedError{Method: "Members.addMembers"}
 }
 
-type MembersService struct {
+type MembersServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *MembersService) AddMembers(ctx context.Context, id int32, memberIds []int32) error {
+func (s *MembersServiceImpl) AddMembers(ctx context.Context, id int32, memberIds []int32) error {
 	body, err := json.Marshal(map[string]any{"member_ids": memberIds})
 	if err != nil {
 		return err
@@ -97,12 +67,27 @@ func (s *MembersService) AddMembers(ctx context.Context, id int32, memberIds []i
 	}
 }
 
-type ChatsService struct {
+type ChatsService interface {
+	CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error)
+	ArchiveChat(ctx context.Context, id int32) error
+}
+
+type ChatsServiceStub struct{}
+
+func (s *ChatsServiceStub) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+	return nil, NotImplementedError{Method: "Chats.createChat"}
+}
+
+func (s *ChatsServiceStub) ArchiveChat(ctx context.Context, id int32) error {
+	return NotImplementedError{Method: "Chats.archiveChat"}
+}
+
+type ChatsServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *ChatsService) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
+func (s *ChatsServiceImpl) CreateChat(ctx context.Context, request ChatCreateRequest) (*Chat, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -141,7 +126,7 @@ func (s *ChatsService) CreateChat(ctx context.Context, request ChatCreateRequest
 	}
 }
 
-func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
+func (s *ChatsServiceImpl) ArchiveChat(ctx context.Context, id int32) error {
 	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/chats/%v/archive", s.baseURL, id), nil)
 	if err != nil {
 		return err
@@ -170,20 +155,103 @@ func (s *ChatsService) ArchiveChat(ctx context.Context, id int32) error {
 }
 
 type PachcaClient struct {
-	Chats   *ChatsService
-	Members *MembersService
+	Chats   ChatsService
+	Members MembersService
 }
 
-const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
+type clientConfig struct {
+	baseURL string
+	chats ChatsService
+	members MembersService
+}
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+type ClientOption func(*clientConfig)
+
+type stubClientConfig struct {
+	chats ChatsService
+	members MembersService
+}
+
+type StubClientOption func(*stubClientConfig)
+
+const PachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithChats(service ChatsService) ClientOption {
+	return func(cfg *clientConfig) { cfg.chats = service }
+}
+
+func WithMembers(service MembersService) ClientOption {
+	return func(cfg *clientConfig) { cfg.members = service }
+}
+
+func WithStubChats(service ChatsService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.chats = service }
+}
+
+func WithStubMembers(service MembersService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.members = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: PachcaAPIURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var chats ChatsService = &ChatsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
+	var members MembersService = &MembersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.members != nil {
+		members = cfg.members
+	}
 	return &PachcaClient{
-		Chats  : &ChatsService{baseURL: url, client: client},
-		Members: &MembersService{baseURL: url, client: client},
+		Chats  : chats,
+		Members: members,
+	}
+}
+
+func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: baseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var chats ChatsService = &ChatsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
+	var members MembersService = &MembersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.members != nil {
+		members = cfg.members
+	}
+	return &PachcaClient{
+		Chats  : chats,
+		Members: members,
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var chats ChatsService = &ChatsServiceStub{}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
+	var members MembersService = &MembersServiceStub{}
+	if cfg.members != nil {
+		members = cfg.members
+	}
+	return &PachcaClient{
+		Chats  : chats,
+		Members: members,
 	}
 }

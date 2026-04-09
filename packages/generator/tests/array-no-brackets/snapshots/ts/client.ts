@@ -6,11 +6,23 @@ import {
 } from "./types";
 import { deserialize, fetchWithRetry } from "./utils";
 
-class SearchService {
+export class SearchService {
+  async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
+    throw new Error("Search.searchMessages is not implemented");
+  }
+
+  async searchMessagesAll(params: Omit<SearchMessagesParams, 'cursor'>): Promise<MessageResult[]> {
+    throw new Error("Search.searchMessagesAll is not implemented");
+  }
+}
+
+export class SearchServiceImpl extends SearchService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
     const query = new URLSearchParams();
@@ -50,11 +62,30 @@ class SearchService {
   }
 }
 
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
+
 export class PachcaClient {
   readonly search: SearchService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.search = new SearchService(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; search?: SearchService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; search?: SearchService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.search = new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.search = tokenOrConfig.search ?? new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
+  }
+
+  static stub(search: SearchService = new SearchService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.search = search;
+    return client;
   }
 }

@@ -7,11 +7,23 @@ import {
 } from "./types";
 import { deserialize, fetchWithRetry } from "./utils";
 
-class EventsService {
+export class EventsService {
+  async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
+    throw new Error("Events.listEvents is not implemented");
+  }
+
+  async publishEvent(id: number, scope: OAuthScope): Promise<Event> {
+    throw new Error("Events.publishEvent is not implemented");
+  }
+}
+
+export class EventsServiceImpl extends EventsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
     const query = new URLSearchParams();
@@ -49,11 +61,19 @@ class EventsService {
   }
 }
 
-class UploadsService {
+export class UploadsService {
+  async createUpload(request: UploadRequest): Promise<void> {
+    throw new Error("Uploads.createUpload is not implemented");
+  }
+}
+
+export class UploadsServiceImpl extends UploadsService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async createUpload(request: UploadRequest): Promise<void> {
     const form = new FormData();
@@ -77,9 +97,28 @@ export class PachcaClient {
   readonly events: EventsService;
   readonly uploads: UploadsService;
 
-  constructor(token: string, baseUrl: string) {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.events = new EventsService(baseUrl, headers);
-    this.uploads = new UploadsService(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; events?: EventsService; uploads?: UploadsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; events?: EventsService; uploads?: UploadsService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? '';
+      this.events = new EventsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.uploads = new UploadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? '';
+      this.events = tokenOrConfig.events ?? new EventsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.uploads = tokenOrConfig.uploads ?? new UploadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
+  }
+
+  static stub(events: EventsService = new EventsService(), uploads: UploadsService = new UploadsService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.events = events;
+    client.uploads = uploads;
+    return client;
   }
 }

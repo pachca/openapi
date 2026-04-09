@@ -3,7 +3,23 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct EventsService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class EventsService {
+    public init() {}
+
+    open func listEvents(isActive: Bool? = nil, scopes: [OAuthScope]? = nil, filter: EventFilter? = nil) async throws -> ListEventsResponse {
+        throw pachcaNotImplemented("Events.listEvents")
+    }
+
+    open func publishEvent(id: Int, scope: OAuthScope) async throws -> Event {
+        throw pachcaNotImplemented("Events.publishEvent")
+    }
+}
+
+public final class EventsServiceImpl: EventsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -12,9 +28,10 @@ public struct EventsService {
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
-    public func listEvents(isActive: Bool? = nil, scopes: [OAuthScope]? = nil, filter: EventFilter? = nil) async throws -> ListEventsResponse {
+    public override func listEvents(isActive: Bool? = nil, scopes: [OAuthScope]? = nil, filter: EventFilter? = nil) async throws -> ListEventsResponse {
         var components = URLComponents(string: "\(baseURL)/events")!
         var queryItems: [URLQueryItem] = []
         if let isActive { queryItems.append(URLQueryItem(name: "is_active", value: String(isActive))) }
@@ -33,7 +50,7 @@ public struct EventsService {
         }
     }
 
-    public func publishEvent(id: Int, scope: OAuthScope) async throws -> Event {
+    public override func publishEvent(id: Int, scope: OAuthScope) async throws -> Event {
         var request = URLRequest(url: URL(string: "\(baseURL)/events/\(id)/publish")!)
         request.httpMethod = "PUT"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -50,7 +67,15 @@ public struct EventsService {
     }
 }
 
-public struct UploadsService {
+open class UploadsService {
+    public init() {}
+
+    open func createUpload(request body: UploadRequest) async throws -> Void {
+        throw pachcaNotImplemented("Uploads.createUpload")
+    }
+}
+
+public final class UploadsServiceImpl: UploadsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -59,9 +84,10 @@ public struct UploadsService {
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
-    public func createUpload(request body: UploadRequest) async throws -> Void {
+    public override func createUpload(request body: UploadRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/uploads")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -96,9 +122,30 @@ public struct PachcaClient {
     public let events: EventsService
     public let uploads: UploadsService
 
-    public init(token: String, baseURL: String) {
+    private init(events: EventsService, uploads: UploadsService) {
+        self.events = events
+        self.uploads = uploads
+    }
+
+    public init(token: String, baseURL: String, events: EventsService? = nil, uploads: UploadsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.events = EventsService(baseURL: baseURL, headers: headers)
-        self.uploads = UploadsService(baseURL: baseURL, headers: headers)
+        self.init(
+            events: events ?? EventsServiceImpl(baseURL: baseURL, headers: headers),
+            uploads: uploads ?? UploadsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String, headers: [String: String], session: URLSession = .shared, events: EventsService? = nil, uploads: UploadsService? = nil) {
+        self.init(
+            events: events ?? EventsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            uploads: uploads ?? UploadsServiceImpl(baseURL: baseURL, headers: headers, session: session)
+        )
+    }
+
+    public static func stub(events: EventsService = EventsService(), uploads: UploadsService = UploadsService()) -> PachcaClient {
+        PachcaClient(
+            events: events,
+            uploads: uploads
+        )
     }
 }

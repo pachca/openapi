@@ -3,7 +3,19 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct LinkPreviewsService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class LinkPreviewsService {
+    public init() {}
+
+    open func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+        throw pachcaNotImplemented("Link Previews.createLinkPreviews")
+    }
+}
+
+public final class LinkPreviewsServiceImpl: LinkPreviewsService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -12,9 +24,10 @@ public struct LinkPreviewsService {
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
-    public func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
+    public override func createLinkPreviews(id: Int, request body: LinkPreviewsRequest) async throws -> Void {
         var request = URLRequest(url: URL(string: "\(baseURL)/messages/\(id)/link_previews")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -33,11 +46,31 @@ public struct LinkPreviewsService {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let linkPreviews: LinkPreviewsService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
+    private init(linkPreviews: LinkPreviewsService) {
+        self.linkPreviews = linkPreviews
+    }
+
+    public init(token: String, baseURL: String = pachcaAPIURL, linkPreviews: LinkPreviewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.linkPreviews = LinkPreviewsService(baseURL: baseURL, headers: headers)
+        self.init(
+            linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, linkPreviews: LinkPreviewsService? = nil) {
+        self.init(
+            linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers, session: session)
+        )
+    }
+
+    public static func stub(linkPreviews: LinkPreviewsService = LinkPreviewsService()) -> PachcaClient {
+        PachcaClient(
+            linkPreviews: linkPreviews
+        )
     }
 }

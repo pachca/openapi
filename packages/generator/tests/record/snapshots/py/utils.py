@@ -114,11 +114,11 @@ class RetryTransport(httpx.AsyncBaseTransport):
             if response.status_code == 429 and attempt < self._max_retries:
                 retry_after = response.headers.get("retry-after")
                 delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
-                await asyncio.sleep(delay)
+                await asyncio.sleep(_add_jitter(delay))
                 continue
             if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:
-                delay = _jitter(10 * (2 ** attempt))
-                await asyncio.sleep(delay)
+                delay = attempt + 1
+                await asyncio.sleep(_add_jitter(delay))
                 continue
             return response
         return response  # unreachable

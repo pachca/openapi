@@ -30,6 +30,9 @@ class Event:
 class OAuthError(Exception):
     error: str | None = None
 
+    def __str__(self) -> str:
+        return self.error
+
 
 @dataclass
 class ListEventsParams:

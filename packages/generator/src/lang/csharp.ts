@@ -18,6 +18,7 @@ import {
   snakeToUpperSnake,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const CSHARP_KEYWORDS = new Set([
@@ -180,6 +181,7 @@ function generateModels(ir: IR): string {
   lines.push('');
   lines.push('using System;');
   lines.push('using System.Collections.Generic;');
+  lines.push('using System.Linq;');
   lines.push('using System.Text.Json;');
   lines.push('using System.Text.Json.Serialization;');
   lines.push('');
@@ -202,10 +204,10 @@ function generateModels(ir: IR): string {
     if (unionMemberRefs.has(m.name)) continue;
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
     }
     lines.push('');
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
   }
 
   // Response types
@@ -328,6 +330,7 @@ function emitUnion(
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   const fields = m.fields;
   const ext = m.isError ? ' : Exception' : '';
@@ -376,6 +379,30 @@ function emitModel(
           lines.push(`    public ${typeName} ${sdkName} { get; set; } = default!;`);
         }
       }
+    }
+  }
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    public override string Message => Errors is not { Count: > 0 }');
+      lines.push('        ? "api error"');
+      lines.push('        : Errors.Count == 1 ? Errors[0].Message');
+      lines.push('        : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push(`    public override string Message => ${fieldSdkName(errField)} ?? "oauth error";`);
     }
   }
 
@@ -453,7 +480,7 @@ internal static class PachcaUtils
             {
                 var delay = response.Headers.RetryAfter?.Delta
                     ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                await System.Threading.Tasks.Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await System.Threading.Tasks.Task.Delay(AddJitter(delay), cancellationToken).ConfigureAwait(false);
                 response.Dispose();
                 continue;
             }
@@ -561,13 +588,26 @@ function emitService(
   globalHasApiError: boolean,
 ): void {
   const serviceName = tagToServiceName(svc.tag);
+  const implName = serviceToImplName(serviceName);
 
-  lines.push(`public sealed class ${serviceName}`);
+  lines.push(`public class ${serviceName}`);
+  lines.push('{');
+  for (let i = 0; i < svc.operations.length; i++) {
+    lines.push('');
+    emitThrowingOperation(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`public sealed class ${implName} : ${serviceName}`);
   lines.push('{');
   lines.push('    private readonly string _baseUrl;');
   lines.push('    private readonly HttpClient _client;');
   lines.push('');
-  lines.push(`    internal ${serviceName}(string baseUrl, HttpClient client)`);
+  lines.push(`    internal ${implName}(string baseUrl, HttpClient client)`);
   lines.push('    {');
   lines.push('        _baseUrl = baseUrl;');
   lines.push('        _client = client;');
@@ -585,7 +625,7 @@ function emitService(
   lines.push('}');
 }
 
-function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier = 'public override'): void {
   const indent = '    ';
   const indent2 = '        ';
   const itemType = csClientTypeRef(op.successResponse.dataRef ?? 'object');
@@ -607,7 +647,7 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   const methodName = `${snakeToPascal(op.methodName)}AllAsync`;
 
-  lines.push(`${indent}public async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
+  lines.push(`${indent}${modifier} async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
   for (let i = 0; i < params.length; i++) {
     const comma = i < params.length - 1 ? ',' : ')';
     lines.push(`${indent2}${params[i]}${comma}`);
@@ -659,6 +699,7 @@ function emitOperation(
   op: IROperation,
   ir: IR,
   globalHasApiError: boolean,
+  modifier = 'public override',
 ): void {
   const indent = '    ';
   const indent2 = '        ';
@@ -673,11 +714,11 @@ function emitOperation(
   if (op.deprecated) lines.push(`${indent}[Obsolete("This method is deprecated")]`);
 
   if (params.length === 0) {
-    lines.push(`${indent}public async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
   } else if (params.length === 1) {
-    lines.push(`${indent}public async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
   } else {
-    lines.push(`${indent}public async ${taskType} ${methodName}(`);
+    lines.push(`${indent}${modifier} async ${taskType} ${methodName}(`);
     for (const p of params) {
       lines.push(`${indent2}${p},`);
     }
@@ -687,6 +728,52 @@ function emitOperation(
 
   emitMethodBody(lines, op, ir, globalHasApiError);
 
+  lines.push(`${indent}}`);
+}
+
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const returnType = getReturnType(op, ir);
+  const taskType = returnType ? `System.Threading.Tasks.Task<${returnType}>` : 'System.Threading.Tasks.Task';
+  const params = buildMethodParams(op, ir);
+  const methodName = `${snakeToPascal(op.methodName)}Async`;
+  const indent = '    ';
+  const indent2 = '        ';
+  if (op.deprecated) lines.push(`${indent}[Obsolete("This method is deprecated")]`);
+  if (params.length === 0) {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(CancellationToken cancellationToken = default)`);
+  } else if (params.length === 1) {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(${params[0]}, CancellationToken cancellationToken = default)`);
+  } else {
+    lines.push(`${indent}public virtual async ${taskType} ${methodName}(`);
+    for (const p of params) lines.push(`${indent2}${p},`);
+    lines.push(`${indent2}CancellationToken cancellationToken = default)`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent2}throw new NotImplementedException(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)});`);
+  lines.push(`${indent}}`);
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const indent = '    ';
+  const indent2 = '        ';
+  const itemType = csClientTypeRef(op.successResponse.dataRef ?? 'object');
+  const params: string[] = [];
+  if (op.externalUrl) params.push(`string ${paramSdkName(op.externalUrl)}`);
+  for (const p of op.pathParams) params.push(`${csType(p.type)} ${paramSdkName(p.sdkName)}`);
+  for (const p of op.queryParams) {
+    if (p.name === 'cursor') continue;
+    const typeName = csType(p.type);
+    params.push(p.required ? `${typeName} ${paramSdkName(p.sdkName)}` : `${typeName}? ${paramSdkName(p.sdkName)} = null`);
+  }
+  params.push('CancellationToken cancellationToken = default');
+  const methodName = `${snakeToPascal(op.methodName)}AllAsync`;
+  lines.push(`${indent}public virtual async System.Threading.Tasks.Task<List<${itemType}>> ${methodName}(`);
+  for (let i = 0; i < params.length; i++) {
+    const comma = i < params.length - 1 ? ',' : ')';
+    lines.push(`${indent2}${params[i]}${comma}`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent2}throw new NotImplementedException(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)});`);
   lines.push(`${indent}}`);
 }
 
@@ -951,27 +1038,47 @@ function emitPachcaClient(
   ir: IR,
   hasRedirect: boolean,
 ): void {
-  const csDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  if (ir.baseUrl) {
+    lines.push(`public static class PachcaConstants`);
+    lines.push('{');
+    lines.push(`    public const string PachcaApiUrl = ${JSON.stringify(ir.baseUrl)};`);
+    lines.push('}');
+    lines.push('');
+  }
+  const csDefault = ir.baseUrl ? ' = PachcaConstants.PachcaApiUrl' : '';
 
   lines.push('public sealed class PachcaClient : IDisposable');
   lines.push('{');
-  lines.push('    private readonly HttpClient _client;');
+  lines.push('    private readonly HttpClient? _client;');
   lines.push('');
-
-  // Service properties
   const serviceEntries = ir.services
     .map((svc) => ({
       propName: snakeToPascal(tagToProperty(svc.tag)),
+      paramName: tagToProperty(svc.tag),
       className: tagToServiceName(svc.tag),
     }))
     .sort((a, b) => a.propName.localeCompare(b.propName));
-
   for (const s of serviceEntries) {
     lines.push(`    public ${s.className} ${s.propName} { get; }`);
   }
 
+  // Private constructor taking only services
   lines.push('');
-  lines.push(`    public PachcaClient(string token, string baseUrl${csDefault})`);
+  const privateParams = serviceEntries.map((s) => `${s.className} ${s.paramName}`);
+  lines.push(`    private PachcaClient(${privateParams.join(', ')})`);
+  lines.push('    {');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.propName} = ${s.paramName};`);
+  }
+  lines.push('    }');
+
+  // Public constructor with token, baseUrl, and optional service overrides
+  lines.push('');
+  const constructorParams = ['string token', `string baseUrl${csDefault}`];
+  for (const s of serviceEntries) {
+    constructorParams.push(`${s.className}? ${s.paramName} = null`);
+  }
+  lines.push(`    public PachcaClient(${constructorParams.join(', ')})`);
   lines.push('    {');
 
   if (hasRedirect) {
@@ -989,14 +1096,39 @@ function emitPachcaClient(
   lines.push('');
 
   for (const s of serviceEntries) {
-    lines.push(`        ${s.propName} = new ${s.className}(baseUrl, _client);`);
+    lines.push(`        ${s.propName} = ${s.paramName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
   }
 
   lines.push('    }');
+
+  // Public constructor with pre-configured HttpClient
+  lines.push('');
+  const httpConstructorParams = ['string baseUrl', 'HttpClient client'];
+  for (const s of serviceEntries) {
+    httpConstructorParams.push(`${s.className}? ${s.paramName} = null`);
+  }
+  lines.push(`    public PachcaClient(${httpConstructorParams.join(', ')})`);
+  lines.push('    {');
+  lines.push('        _client = client;');
+  lines.push('');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.propName} = ${s.paramName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
+  }
+  lines.push('    }');
+
+  // Static Stub() factory method
+  lines.push('');
+  const stubParams = serviceEntries.map((s) => `${s.className}? ${s.paramName} = null`);
+  lines.push(`    public static PachcaClient Stub(${stubParams.join(', ')})`);
+  lines.push('    {');
+  const stubArgs = serviceEntries.map((s) => `${s.paramName} ?? new ${s.className}()`);
+  lines.push(`        return new PachcaClient(${stubArgs.join(', ')});`);
+  lines.push('    }');
+
   lines.push('');
   lines.push('    public void Dispose()');
   lines.push('    {');
-  lines.push('        _client.Dispose();');
+  lines.push('        _client?.Dispose();');
   lines.push('        GC.SuppressFinalize(this);');
   lines.push('    }');
   lines.push('}');

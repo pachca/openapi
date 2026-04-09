@@ -11,18 +11,30 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class ItemsService
+public class ItemsService
+{
+
+    public virtual async System.Threading.Tasks.Task<Item> PatchItemAsync(
+        int id,
+        ItemPatchRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Items.patchItem is not implemented");
+    }
+}
+
+public sealed class ItemsServiceImpl : ItemsService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ItemsService(string baseUrl, HttpClient client)
+    internal ItemsServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<Item> PatchItemAsync(
+    public override async System.Threading.Tasks.Task<Item> PatchItemAsync(
         int id,
         ItemPatchRequest request,
         CancellationToken cancellationToken = default)
@@ -42,24 +54,46 @@ public sealed class ItemsService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.example.com/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public ItemsService Items { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.example.com/v1")
+    private PachcaClient(ItemsService items)
+    {
+        Items = items;
+    }
+
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, ItemsService? items = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Items = new ItemsService(baseUrl, _client);
+        Items = items ?? new ItemsServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, ItemsService? items = null)
+    {
+        _client = client;
+
+        Items = items ?? new ItemsServiceImpl(baseUrl, _client);
+    }
+
+    public static PachcaClient Stub(ItemsService? items = null)
+    {
+        return new PachcaClient(items ?? new ItemsService());
     }
 
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

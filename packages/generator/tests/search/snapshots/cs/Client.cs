@@ -11,18 +11,49 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class SearchService
+public class SearchService
+{
+
+    public virtual async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
+        string query,
+        List<int>? chatIds = null,
+        List<int>? userIds = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        SearchSort? sort = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchMessages is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<MessageSearchResult>> SearchMessagesAllAsync(
+        string query,
+        List<int>? chatIds = null,
+        List<int>? userIds = null,
+        DateTimeOffset? createdFrom = null,
+        DateTimeOffset? createdTo = null,
+        SearchSort? sort = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Search.searchMessagesAll is not implemented");
+    }
+}
+
+public sealed class SearchServiceImpl : SearchService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal SearchService(string baseUrl, HttpClient client)
+    internal SearchServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
+    public override async System.Threading.Tasks.Task<SearchMessagesResponse> SearchMessagesAsync(
         string query,
         List<int>? chatIds = null,
         List<int>? userIds = null,
@@ -66,7 +97,7 @@ public sealed class SearchService
         }
     }
 
-    public async System.Threading.Tasks.Task<List<MessageSearchResult>> SearchMessagesAllAsync(
+    public override async System.Threading.Tasks.Task<List<MessageSearchResult>> SearchMessagesAllAsync(
         string query,
         List<int>? chatIds = null,
         List<int>? userIds = null,
@@ -89,24 +120,46 @@ public sealed class SearchService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public SearchService Search { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1")
+    private PachcaClient(SearchService search)
+    {
+        Search = search;
+    }
+
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, SearchService? search = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Search = new SearchService(baseUrl, _client);
+        Search = search ?? new SearchServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, SearchService? search = null)
+    {
+        _client = client;
+
+        Search = search ?? new SearchServiceImpl(baseUrl, _client);
+    }
+
+    public static PachcaClient Stub(SearchService? search = null)
+    {
+        return new PachcaClient(search ?? new SearchService());
     }
 
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

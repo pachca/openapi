@@ -76,6 +76,24 @@ all_chats = await client.chats.list_chats_all()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Свой HTTP-клиент
+
+Для настройки прокси, таймаутов и других параметров HTTP используйте `PachcaClient.from_client()` с готовым `httpx.AsyncClient`:
+
+```python
+import httpx
+from pachca import PachcaClient, PACHCA_API_URL
+
+http = httpx.AsyncClient(
+    base_url=PACHCA_API_URL,
+    headers={"Authorization": f"Bearer {token}"},
+    proxy="http://proxy:8080",
+)
+client = PachcaClient.from_client(http)
+```
+
+Полный пример: [`../examples/httpclient.py`](../examples/httpclient.py)
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:
@@ -103,3 +121,30 @@ except OAuthError as e:
 except ApiError as e:
     print(f"Ошибка API: {e.errors}")
 ```
+
+## Тестирование
+
+Для unit-тестов используйте `PachcaClient.stub()` — создаёт клиент без HTTP-подключения.
+
+Методы без переопределения выбрасывают `NotImplementedError("Service.method is not implemented")`:
+
+```python
+from unittest.mock import AsyncMock
+from pachca import PachcaClient, MessagesService, Message
+
+# Мок-сервис
+mock_messages = MessagesService()
+mock_messages.get_message = AsyncMock(return_value=Message(
+    id=1,
+    content="Test message",
+    entity_id=123
+))
+
+# Тест
+client = PachcaClient.stub(messages=mock_messages)
+
+message = await client.messages.get_message(1)
+assert message.content == "Test message"
+```
+
+Полный пример: [`../examples/stub.py`](../examples/stub.py)

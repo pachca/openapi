@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -21,50 +19,27 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-const maxRetries = 3
-
-var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
-
-func jitter(d time.Duration) time.Duration {
-	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
+type SearchService interface {
+	SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error)
+	SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageResult, error)
 }
 
-func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
-	for attempt := 0; ; attempt++ {
-		if attempt > 0 && req.GetBody != nil {
-			req.Body, _ = req.GetBody()
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			resp.Body.Close()
-			delay := time.Duration(1<<uint(attempt)) * time.Second
-			if ra := resp.Header.Get("Retry-After"); ra != "" {
-				if secs, err := strconv.Atoi(ra); err == nil {
-					delay = time.Duration(secs) * time.Second
-				}
-			}
-			time.Sleep(delay)
-			continue
-		}
-		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
-			resp.Body.Close()
-			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
-			time.Sleep(delay)
-			continue
-		}
-		return resp, nil
-	}
+type SearchServiceStub struct{}
+
+func (s *SearchServiceStub) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
+	return nil, NotImplementedError{Method: "Search.searchMessages"}
 }
 
-type SearchService struct {
+func (s *SearchServiceStub) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageResult, error) {
+	return nil, NotImplementedError{Method: "Search.searchMessagesAll"}
+}
+
+type SearchServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
+func (s *SearchServiceImpl) SearchMessages(ctx context.Context, params SearchMessagesParams) (*SearchMessagesResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/search/messages", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -111,7 +86,7 @@ func (s *SearchService) SearchMessages(ctx context.Context, params SearchMessage
 	}
 }
 
-func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageResult, error) {
+func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *SearchMessagesParams) ([]MessageResult, error) {
 	if params == nil {
 		params = &SearchMessagesParams{}
 	}
@@ -133,18 +108,77 @@ func (s *SearchService) SearchMessagesAll(ctx context.Context, params *SearchMes
 }
 
 type PachcaClient struct {
-	Search *SearchService
+	Search SearchService
 }
 
-const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
+type clientConfig struct {
+	baseURL string
+	search SearchService
+}
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+type ClientOption func(*clientConfig)
+
+type stubClientConfig struct {
+	search SearchService
+}
+
+type StubClientOption func(*stubClientConfig)
+
+const PachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithSearch(service SearchService) ClientOption {
+	return func(cfg *clientConfig) { cfg.search = service }
+}
+
+func WithStubSearch(service SearchService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.search = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: PachcaAPIURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var search SearchService = &SearchServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.search != nil {
+		search = cfg.search
+	}
 	return &PachcaClient{
-		Search: &SearchService{baseURL: url, client: client},
+		Search: search,
+	}
+}
+
+func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: baseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var search SearchService = &SearchServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.search != nil {
+		search = cfg.search
+	}
+	return &PachcaClient{
+		Search: search,
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	var search SearchService = &SearchServiceStub{}
+	if cfg.search != nil {
+		search = cfg.search
+	}
+	return &PachcaClient{
+		Search: search,
 	}
 }

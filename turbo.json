@@ -93,6 +93,11 @@
       "dependsOn": ["@pachca/spec#generate"],
       "cache": true
     },
+    "update-snapshots": {
+      "inputs": ["src/**", "tests/**/fixture.yaml"],
+      "outputs": ["tests/**/snapshots/**"],
+      "cache": false
+    },
     "test": {
       "dependsOn": ["^build", "generate-cli", "generate-n8n"],
       "inputs": ["src/**", "tests/**"],

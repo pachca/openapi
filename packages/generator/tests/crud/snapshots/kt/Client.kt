@@ -13,16 +13,57 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-class ChatsService internal constructor(
-    private val baseUrl: String,
-    private val client: HttpClient,
-) {
+interface ChatsService {
     suspend fun listChats(
         availability: ChatAvailability? = null,
         limit: Int? = null,
         cursor: String? = null,
         sortField: String? = null,
         sortOrder: SortOrder? = null,
+    ): ListChatsResponse {
+        throw NotImplementedError("Chats.listChats is not implemented")
+    }
+
+    suspend fun listChatsAll(
+        availability: ChatAvailability? = null,
+        limit: Int? = null,
+        sortField: String? = null,
+        sortOrder: SortOrder? = null,
+    ): List<Chat> {
+        throw NotImplementedError("Chats.listChatsAll is not implemented")
+    }
+
+    suspend fun getChat(id: Int): Chat {
+        throw NotImplementedError("Chats.getChat is not implemented")
+    }
+
+    suspend fun createChat(request: ChatCreateRequest): Chat {
+        throw NotImplementedError("Chats.createChat is not implemented")
+    }
+
+    suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
+        throw NotImplementedError("Chats.updateChat is not implemented")
+    }
+
+    suspend fun archiveChat(id: Int) {
+        throw NotImplementedError("Chats.archiveChat is not implemented")
+    }
+
+    suspend fun deleteChat(id: Int) {
+        throw NotImplementedError("Chats.deleteChat is not implemented")
+    }
+}
+
+class ChatsServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : ChatsService {
+    override suspend fun listChats(
+        availability: ChatAvailability?,
+        limit: Int?,
+        cursor: String?,
+        sortField: String?,
+        sortOrder: SortOrder?,
     ): ListChatsResponse {
         val response = client.get("$baseUrl/chats") {
             availability?.let { parameter("availability", it.value) }
@@ -38,11 +79,11 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun listChatsAll(
-        availability: ChatAvailability? = null,
-        limit: Int? = null,
-        sortField: String? = null,
-        sortOrder: SortOrder? = null,
+    override suspend fun listChatsAll(
+        availability: ChatAvailability?,
+        limit: Int?,
+        sortField: String?,
+        sortOrder: SortOrder?,
     ): List<Chat> {
         val items = mutableListOf<Chat>()
         var cursor: String? = null
@@ -61,7 +102,7 @@ class ChatsService internal constructor(
         return items
     }
 
-    suspend fun getChat(id: Int): Chat {
+    override suspend fun getChat(id: Int): Chat {
         val response = client.get("$baseUrl/chats/$id")
         return when (response.status.value) {
             200 -> response.body<ChatDataWrapper>().data
@@ -70,7 +111,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun createChat(request: ChatCreateRequest): Chat {
+    override suspend fun createChat(request: ChatCreateRequest): Chat {
         val response = client.post("$baseUrl/chats") {
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -82,7 +123,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
+    override suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
         val response = client.put("$baseUrl/chats/$id") {
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -94,7 +135,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun archiveChat(id: Int) {
+    override suspend fun archiveChat(id: Int) {
         val response = client.put("$baseUrl/chats/$id/archive")
         when (response.status.value) {
             204 -> return
@@ -103,7 +144,7 @@ class ChatsService internal constructor(
         }
     }
 
-    suspend fun deleteChat(id: Int) {
+    override suspend fun deleteChat(id: Int) {
         val response = client.delete("$baseUrl/chats/$id")
         when (response.status.value) {
             204 -> return
@@ -113,36 +154,66 @@ class ChatsService internal constructor(
     }
 }
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1") : Closeable {
-    private val client = HttpClient {
-        expectSuccess = false
-        install(ContentNegotiation) {
-            json(Json { explicitNulls = false })
+const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+class PachcaClient private constructor(
+    private val _client: HttpClient?,
+    val chats: ChatsService
+) : Closeable {
+
+    companion object {
+        operator fun invoke(
+            token: String,
+            baseUrl: String = PACHCA_API_URL,
+            chats: ChatsService? = null
+        ): PachcaClient {
+            val client = createClient(token)
+            return PachcaClient(
+                _client = client,
+                chats = chats ?: ChatsServiceImpl(baseUrl, client)
+            )
         }
-        install(HttpRequestRetry) {
-            maxRetries = 3
-            retryIf { _, response ->
-                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
-            }
-            delayMillis { retry ->
-                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
-                if (retryAfter != null && response?.status?.value == 429) {
-                    retryAfter * 1000L
-                } else {
-                    val base = 10_000L * (1L shl retry)
-                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
-                    (base * jitter).toLong()
+
+        fun stub(
+            chats: ChatsService = object : ChatsService {}
+        ): PachcaClient = PachcaClient(
+            _client = null,
+            chats = chats
+        )
+
+        private fun createClient(token: String): HttpClient = HttpClient {
+            expectSuccess = false
+            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                }
+                delayMillis { retry ->
+                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    if (retryAfter != null && response?.status?.value == 429) {
+                        retryAfter * 1000L
+                    } else {
+                        val base = 10_000L * (1L shl retry)
+                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
+                        (base * jitter).toLong()
+                    }
                 }
             }
-        }
-        defaultRequest {
-            bearerAuth(token)
+            defaultRequest { bearerAuth(token) }
         }
     }
 
-    val chats = ChatsService(baseUrl, client)
+    constructor(
+        client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
+        chats: ChatsService? = null
+    ) : this(
+        _client = client,
+        chats = chats ?: ChatsServiceImpl(baseUrl, client)
+    )
 
     override fun close() {
-        client.close()
+        _client?.close()
     }
 }

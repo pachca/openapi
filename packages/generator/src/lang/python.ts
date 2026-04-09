@@ -15,6 +15,7 @@ import {
   camelToSnake,
   snakeToUpperSnake,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 const PYTHON_KEYWORDS = new Set([
@@ -133,6 +134,7 @@ function emitEnum(lines: string[], e: IREnum): void {
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   lines.push('@dataclass');
   if (m.isError) {
@@ -171,6 +173,33 @@ function emitModel(
       lines.push(`    ${name}: ${fullType} = None`);
     } else {
       lines.push(`    ${name}: ${fullType}`);
+    }
+  }
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    def __str__(self) -> str:');
+      lines.push('        if not self.errors:');
+      lines.push('            return "api error"');
+      lines.push('        if len(self.errors) == 1:');
+      lines.push('            return self.errors[0].message');
+      lines.push('        return "Errors: " + "; ".join(e.message for e in self.errors)');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push('    def __str__(self) -> str:');
+      lines.push(`        return self.${pyFieldName(errField)}`);
     }
   }
 }
@@ -245,17 +274,17 @@ function generateModels(ir: IR): string {
 
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
       lines.push('');
       lines.push('');
     }
     if (unionMembers.has(m.name)) {
-      emitModel(lines, m);
+      emitModel(lines, m, ir.models);
       lines.push('');
       lines.push('');
       continue;
     }
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
     lines.push('');
     lines.push('');
   }
@@ -654,6 +683,59 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('        return items');
 }
 
+function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
+  for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
+
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) {
+      const f = rb.unwrapField!;
+      args.push(`${pyFieldName(f)}: ${pyType(f.type)}`);
+    } else if (rb.schemaRef) {
+      args.push(`request: ${rb.schemaRef}`);
+    }
+  }
+
+  if (op.queryParams.length > 0) {
+    const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+    const hasRequired = op.queryParams.some((p) => p.required);
+    args.push(hasRequired ? `params: ${pascal}Params` : `params: ${pascal}Params | None = None`);
+  }
+
+  if (op.deprecated) lines.push('    # Deprecated');
+  lines.push(`    async def ${pyMethodName(op)}(`);
+  if (args.length === 0) {
+    lines.push(`        self) -> ${opReturnType(op, ir)}:`);
+  } else {
+    lines.push('        self,');
+    for (const a of args) lines.push(`        ${a},`);
+    lines.push(`    ) -> ${opReturnType(op, ir)}:`);
+  }
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
+  const itemType = op.successResponse.dataRef ?? 'object';
+  const pascal = op.methodName.charAt(0).toUpperCase() + op.methodName.slice(1);
+  const paramsType = op.queryParams.length > 0 ? `${pascal}Params` : null;
+
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
+  for (const p of op.pathParams) args.push(`${pyParamName(p.sdkName)}: ${pyType(p.type)}`);
+  if (paramsType) {
+    const hasRequired = op.queryParams.some((p) => p.required && p.name !== 'cursor');
+    args.push(hasRequired ? `params: ${paramsType}` : `params: ${paramsType} | None = None`);
+  }
+
+  lines.push(`    async def ${pyMethodName(op)}_all(`);
+  lines.push('        self,');
+  for (const a of args) lines.push(`        ${a},`);
+  lines.push(`    ) -> list[${itemType}]:`);
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
+}
+
 function generateClient(ir: IR): { content: string; needUtils: boolean } {
   const lines: string[] = [];
   const needToDict = needsAsdict(ir);
@@ -689,7 +771,20 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
 
   lines.push('');
   for (const svc of ir.services) {
-    lines.push(`class ${tagToServiceName(svc.tag)}:`);
+    const serviceName = tagToServiceName(svc.tag);
+    const implName = serviceToImplName(serviceName);
+    lines.push(`class ${serviceName}:`);
+    for (let i = 0; i < svc.operations.length; i++) {
+      emitThrowingOperation(lines, svc.operations[i], ir);
+      if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+        lines.push('');
+        emitThrowingPaginationMethod(lines, svc.operations[i]);
+      }
+      if (i < svc.operations.length - 1) lines.push('');
+    }
+    lines.push('');
+    lines.push('');
+    lines.push(`class ${implName}(${serviceName}):`);
     lines.push('    def __init__(self, client: httpx.AsyncClient) -> None:');
     lines.push('        self._client = client');
     lines.push('');
@@ -705,23 +800,63 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     lines.push('');
   }
 
+  const serviceEntries = ir.services
+    .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
+    .sort((a, b) => a.prop.localeCompare(b.prop));
+  if (ir.baseUrl) {
+    lines.push(`PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
+    lines.push('');
+  }
   lines.push('class PachcaClient:');
-  const pyDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-  lines.push(`    def __init__(self, token: str, base_url: str${pyDefault}) -> None:`);
+  const pyDefault = ir.baseUrl ? ' = PACHCA_API_URL' : '';
+  const constructorArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} | None = None`);
+  const signature = ['self', `token: str`, `base_url: str${pyDefault}`, ...constructorArgs].join(', ');
+  lines.push(`    def __init__(${signature}) -> None:`);
   lines.push('        self._client = httpx.AsyncClient(');
   lines.push('            base_url=base_url,');
   lines.push('            headers={"Authorization": f"Bearer {token}"},');
   lines.push('            transport=RetryTransport(httpx.AsyncHTTPTransport()),');
   lines.push('        )');
-  const services = ir.services
-    .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
-    .sort((a, b) => a.prop.localeCompare(b.prop));
-  for (const s of services) {
-    lines.push(`        self.${s.prop} = ${s.cls}(self._client)`);
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop}: ${s.cls} = ${s.prop} or ${serviceToImplName(s.cls)}(self._client)`);
   }
   lines.push('');
   lines.push('    async def close(self) -> None:');
   lines.push('        await self._client.aclose()');
+  lines.push('');
+
+  // from_client classmethod
+  lines.push('    @classmethod');
+  lines.push('    def from_client(');
+  lines.push('        cls,');
+  lines.push('        client: httpx.AsyncClient,');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.prop}: ${s.cls} | None = None,`);
+  }
+  lines.push('    ) -> "PachcaClient":');
+  lines.push('        self = cls.__new__(cls)');
+  lines.push('        self._client = client');
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop}: ${s.cls} = ${s.prop} or ${serviceToImplName(s.cls)}(client)`);
+  }
+  lines.push('        return self');
+  lines.push('');
+
+  // stub classmethod
+  lines.push('    @classmethod');
+  lines.push('    def stub(');
+  lines.push('        cls,');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.prop}: ${s.cls} | None = None,`);
+  }
+  lines.push('    ) -> "PachcaClient":');
+  lines.push('        self = cls.__new__(cls)');
+  lines.push('        self._client = None');
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop} = ${s.prop} or ${s.cls}()`);
+  }
+  lines.push('        return self');
 
   while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
   lines.push('');
@@ -846,11 +981,11 @@ function generateUtils(): string {
     '            if response.status_code == 429 and attempt < self._max_retries:',
     '                retry_after = response.headers.get("retry-after")',
     '                delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt',
-    '                await asyncio.sleep(delay)',
+    '                await asyncio.sleep(_add_jitter(delay))',
     '                continue',
     '            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:',
-    '                delay = _jitter(10 * (2 ** attempt))',
-    '                await asyncio.sleep(delay)',
+    '                delay = attempt + 1',
+    '                await asyncio.sleep(_add_jitter(delay))',
     '                continue',
     '            return response',
     '        return response  # unreachable',

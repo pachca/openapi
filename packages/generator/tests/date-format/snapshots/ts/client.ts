@@ -7,11 +7,23 @@ import {
 } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-class ExportService {
+export class ExportService {
+  async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {
+    throw new Error("Export.listEvents is not implemented");
+  }
+
+  async createExport(request: ExportRequest): Promise<Export> {
+    throw new Error("Export.createExport is not implemented");
+  }
+}
+
+export class ExportServiceImpl extends ExportService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {
     const query = new URLSearchParams();
@@ -49,11 +61,30 @@ class ExportService {
   }
 }
 
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
+
 export class PachcaClient {
   readonly export: ExportService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.export = new ExportService(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; export?: ExportService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; export?: ExportService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.export = new ExportServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.export = tokenOrConfig.export ?? new ExportServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
+  }
+
+  static stub(export: ExportService = new ExportService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.export = export;
+    return client;
   }
 }

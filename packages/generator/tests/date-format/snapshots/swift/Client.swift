@@ -3,7 +3,23 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct ExportService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class ExportService {
+    public init() {}
+
+    open func listEvents(dateFrom: String, dateTo: String? = nil, createdAfter: String? = nil, limit: Int? = nil) async throws -> ListEventsResponse {
+        throw pachcaNotImplemented("Export.listEvents")
+    }
+
+    open func createExport(request body: ExportRequest) async throws -> Export {
+        throw pachcaNotImplemented("Export.createExport")
+    }
+}
+
+public final class ExportServiceImpl: ExportService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -12,9 +28,10 @@ public struct ExportService {
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
-    public func listEvents(dateFrom: String, dateTo: String? = nil, createdAfter: String? = nil, limit: Int? = nil) async throws -> ListEventsResponse {
+    public override func listEvents(dateFrom: String, dateTo: String? = nil, createdAfter: String? = nil, limit: Int? = nil) async throws -> ListEventsResponse {
         var components = URLComponents(string: "\(baseURL)/events")!
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "date_from", value: String(dateFrom)))
@@ -34,7 +51,7 @@ public struct ExportService {
         }
     }
 
-    public func createExport(request body: ExportRequest) async throws -> Export {
+    public override func createExport(request body: ExportRequest) async throws -> Export {
         var request = URLRequest(url: URL(string: "\(baseURL)/exports")!)
         request.httpMethod = "POST"
         headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
@@ -53,11 +70,31 @@ public struct ExportService {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let export: ExportService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
+    private init(export: ExportService) {
+        self.export = export
+    }
+
+    public init(token: String, baseURL: String = pachcaAPIURL, export: ExportService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.export = ExportService(baseURL: baseURL, headers: headers)
+        self.init(
+            export: export ?? ExportServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, export: ExportService? = nil) {
+        self.init(
+            export: export ?? ExportServiceImpl(baseURL: baseURL, headers: headers, session: session)
+        )
+    }
+
+    public static func stub(export: ExportService = ExportService()) -> PachcaClient {
+        PachcaClient(
+            export: export
+        )
     }
 }

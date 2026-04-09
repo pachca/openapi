@@ -11,7 +11,7 @@ import {
   type IRResponseType,
 } from '../ir.js';
 import { buildModelIndex, collectTypeRefs, type GeneratedFile, type GenerateOptions, type LanguageGenerator } from './types.js';
-import { snakeToCamel, snakeToPascal, tagToServiceName } from '../naming.js';
+import { snakeToCamel, snakeToPascal, tagToServiceName, serviceToImplName, serviceToStubName } from '../naming.js';
 
 function upperFirst(s: string): string {
   if (!s) return s;
@@ -403,7 +403,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
   }
 
   if (op.deprecated) lines.push(`// Deprecated: ${goMethodName(op)} is deprecated.`);
-  lines.push(`func (s *${tagToServiceName(op.tag)}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
+  lines.push(`func (s *${serviceToImplName(tagToServiceName(op.tag))}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
 
   const { fmt: fmtPath, args: pathArgs } = goPathFormat(op.path, op);
   const urlExpr = op.externalUrl
@@ -600,7 +600,7 @@ function emitOp(lines: string[], op: IROperation, ir: IR): void {
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   const itemType = op.successResponse.dataRef ?? 'any';
   const paramsName = `${upperFirst(op.methodName)}Params`;
-  const svcName = tagToServiceName(op.tag);
+  const svcName = serviceToImplName(tagToServiceName(op.tag));
 
   const args: string[] = ['ctx context.Context'];
   if (op.externalUrl) args.push(`${op.externalUrl} string`);
@@ -648,6 +648,83 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('}');
 }
 
+function emitServiceContract(lines: string[], svc: IRService, ir: IR): void {
+  const serviceName = tagToServiceName(svc.tag);
+  const stubName = serviceToStubName(serviceName);
+  lines.push(`type ${serviceName} interface {`);
+  for (const op of svc.operations) {
+    const args: string[] = ['ctx context.Context'];
+    if (op.externalUrl) args.push(`${op.externalUrl} string`);
+    for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)} ${goType(p.type)}`);
+    if (op.requestBody) {
+      const rb = op.requestBody;
+      if (shouldUnwrapBody(rb)) args.push(`${snakeToCamel(rb.unwrapField!.name)} ${goType(rb.unwrapField!.type)}`);
+      else if (rb.schemaRef) args.push(`request ${rb.schemaRef}`);
+    }
+    if (op.queryParams.length > 0) {
+      const pName = `${upperFirst(op.methodName)}Params`;
+      const hasReq = op.queryParams.some((p) => p.required);
+      args.push(`${snakeToCamel('params')} ${hasReq ? pName : `*${pName}`}`);
+    }
+    lines.push(`\t${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)}`);
+    if (op.isPaginated && op.successResponse.dataRef) {
+      const itemType = op.successResponse.dataRef ?? 'any';
+      const pageArgs: string[] = ['ctx context.Context'];
+      if (op.externalUrl) pageArgs.push(`${op.externalUrl} string`);
+      for (const p of op.pathParams) pageArgs.push(`${snakeToCamel(p.sdkName)} ${goType(p.type)}`);
+      if (op.queryParams.length > 0) pageArgs.push(`params *${upperFirst(op.methodName)}Params`);
+      lines.push(`\t${goMethodName(op)}All(${pageArgs.join(', ')}) ([]${itemType}, error)`);
+    }
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`type ${stubName} struct{}`);
+  lines.push('');
+  for (const op of svc.operations) {
+    emitStubMethod(lines, op, ir);
+    lines.push('');
+    if (op.isPaginated && op.successResponse.dataRef) {
+      emitStubPaginationMethod(lines, op);
+      lines.push('');
+    }
+  }
+}
+
+function emitStubMethod(lines: string[], op: IROperation, ir: IR): void {
+  const stubName = serviceToStubName(tagToServiceName(op.tag));
+  const args: string[] = ['ctx context.Context'];
+  if (op.externalUrl) args.push(`${op.externalUrl} string`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)} ${goType(p.type)}`);
+  if (op.requestBody) {
+    const rb = op.requestBody;
+    if (shouldUnwrapBody(rb)) args.push(`${snakeToCamel(rb.unwrapField!.name)} ${goType(rb.unwrapField!.type)}`);
+    else if (rb.schemaRef) args.push(`request ${rb.schemaRef}`);
+  }
+  if (op.queryParams.length > 0) {
+    const pName = `${upperFirst(op.methodName)}Params`;
+    const hasReq = op.queryParams.some((p) => p.required);
+    args.push(`${snakeToCamel('params')} ${hasReq ? pName : `*${pName}`}`);
+  }
+  const methodRef = JSON.stringify(`${op.tag}.${op.methodName}`);
+  lines.push(`func (s *${stubName}) ${goMethodName(op)}(${args.join(', ')}) ${goReturn(op, ir)} {`);
+  if (op.successResponse.isRedirect) lines.push(`\treturn "", NotImplementedError{Method: ${methodRef}}`);
+  else if (!op.successResponse.hasBody) lines.push(`\treturn NotImplementedError{Method: ${methodRef}}`);
+  else lines.push(`\treturn nil, NotImplementedError{Method: ${methodRef}}`);
+  lines.push('}');
+}
+
+function emitStubPaginationMethod(lines: string[], op: IROperation): void {
+  const stubName = serviceToStubName(tagToServiceName(op.tag));
+  const itemType = op.successResponse.dataRef ?? 'any';
+  const args: string[] = ['ctx context.Context'];
+  if (op.externalUrl) args.push(`${op.externalUrl} string`);
+  for (const p of op.pathParams) args.push(`${snakeToCamel(p.sdkName)} ${goType(p.type)}`);
+  if (op.queryParams.length > 0) args.push(`params *${upperFirst(op.methodName)}Params`);
+  lines.push(`func (s *${stubName}) ${goMethodName(op)}All(${args.join(', ')}) ([]${itemType}, error) {`);
+  lines.push(`\treturn nil, NotImplementedError{Method: ${JSON.stringify(`${op.tag}.${op.methodName}All`)}}`);
+  lines.push('}');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push('package pachca');
@@ -661,7 +738,7 @@ function generateClient(ir: IR): string {
   const needURL = ir.services.some((s) => s.operations.some((o) => o.queryParams.length > 0));
   const needErrors = ir.services.some((s) => s.operations.some((o) => o.successResponse.isRedirect));
   const needMultipart = ir.services.some((s) => s.operations.some((o) => o.requestBody?.contentType === 'multipart'));
-  const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"math/rand"', '"net/http"', '"strconv"', '"time"'];
+  const imports: string[] = ['"context"', '"encoding/json"', '"fmt"', '"net/http"', '"time"'];
   if (needBytes) imports.push('"bytes"');
   if (needURL) imports.push('"net/url"');
   if (needErrors) imports.push('"errors"');
@@ -686,48 +763,12 @@ function generateClient(ir: IR): string {
   lines.push('\treturn t.base.RoundTrip(req)');
   lines.push('}');
   lines.push('');
-  lines.push('const maxRetries = 3');
-  lines.push('');
-  lines.push('var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}');
-  lines.push('');
-  lines.push('func jitter(d time.Duration) time.Duration {');
-  lines.push('\treturn time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))');
-  lines.push('}');
-  lines.push('');
-  lines.push('func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {');
-  lines.push('\tfor attempt := 0; ; attempt++ {');
-  lines.push('\t\tif attempt > 0 && req.GetBody != nil {');
-  lines.push('\t\t\treq.Body, _ = req.GetBody()');
-  lines.push('\t\t}');
-  lines.push('\t\tresp, err := client.Do(req)');
-  lines.push('\t\tif err != nil {');
-  lines.push('\t\t\treturn nil, err');
-  lines.push('\t\t}');
-  lines.push('\t\tif resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {');
-  lines.push('\t\t\tresp.Body.Close()');
-  lines.push('\t\t\tdelay := time.Duration(1<<uint(attempt)) * time.Second');
-  lines.push('\t\t\tif ra := resp.Header.Get("Retry-After"); ra != "" {');
-  lines.push('\t\t\t\tif secs, err := strconv.Atoi(ra); err == nil {');
-  lines.push('\t\t\t\t\tdelay = time.Duration(secs) * time.Second');
-  lines.push('\t\t\t\t}');
-  lines.push('\t\t\t}');
-  lines.push('\t\t\ttime.Sleep(delay)');
-  lines.push('\t\t\tcontinue');
-  lines.push('\t\t}');
-  lines.push('\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {');
-  lines.push('\t\t\tresp.Body.Close()');
-  lines.push('\t\t\tdelay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)');
-  lines.push('\t\t\ttime.Sleep(delay)');
-  lines.push('\t\t\tcontinue');
-  lines.push('\t\t}');
-  lines.push('\t\treturn resp, nil');
-  lines.push('\t}');
-  lines.push('}');
-  lines.push('');
 
   for (const s of ir.services) {
     const cls = tagToServiceName(s.tag);
-    lines.push(`type ${cls} struct {`);
+    const implName = serviceToImplName(cls);
+    emitServiceContract(lines, s, ir);
+    lines.push(`type ${implName} struct {`);
     lines.push('\tbaseURL string');
     lines.push('\tclient  *http.Client');
     lines.push('}');
@@ -746,21 +787,62 @@ function generateClient(ir: IR): string {
   const fields = ir.services
     .map((s) => ({ f: goServiceField(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.f.localeCompare(b.f));
-  const clientRows = fields.map((f) => [f.f, `*${f.cls}`]);
+  const clientRows = fields.map((f) => [f.f, f.cls]);
   for (const line of goAligned(clientRows)) lines.push(line);
   lines.push('}');
   lines.push('');
+  lines.push('type clientConfig struct {');
   if (ir.baseUrl) {
-    lines.push(`const DefaultBaseURL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('\tbaseURL string');
+  } else {
+    lines.push('\tbaseURL string');
+  }
+  for (const f of fields) lines.push(`\t${f.f.charAt(0).toLowerCase() + f.f.slice(1)} ${f.cls}`);
+  lines.push('}');
+  lines.push('');
+  lines.push('type ClientOption func(*clientConfig)');
+  lines.push('');
+
+  // stubClientConfig struct
+  lines.push('type stubClientConfig struct {');
+  for (const f of fields) lines.push(`\t${f.f.charAt(0).toLowerCase() + f.f.slice(1)} ${f.cls}`);
+  lines.push('}');
+  lines.push('');
+  lines.push('type StubClientOption func(*stubClientConfig)');
+  lines.push('');
+
+  if (ir.baseUrl) {
+    lines.push(`const PachcaAPIURL = ${JSON.stringify(ir.baseUrl)}`);
     lines.push('');
   }
-  lines.push('func NewPachcaClient(token string, baseURL ...string) *PachcaClient {');
-  if (ir.baseUrl) {
-    lines.push(`\turl := DefaultBaseURL`);
-  } else {
-    lines.push('\turl := ""');
+  lines.push('func WithBaseURL(baseURL string) ClientOption {');
+  lines.push('\treturn func(cfg *clientConfig) { cfg.baseURL = baseURL }');
+  lines.push('}');
+  lines.push('');
+  for (const f of fields) {
+    lines.push(`func With${f.f}(service ${f.cls}) ClientOption {`);
+    lines.push(`\treturn func(cfg *clientConfig) { cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)} = service }`);
+    lines.push('}');
+    lines.push('');
   }
-  lines.push('\tif len(baseURL) > 0 { url = baseURL[0] }');
+
+  // WithStub* option functions
+  for (const f of fields) {
+    lines.push(`func WithStub${f.f}(service ${f.cls}) StubClientOption {`);
+    lines.push(`\treturn func(cfg *stubClientConfig) { cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)} = service }`);
+    lines.push('}');
+    lines.push('');
+  }
+
+  lines.push('func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {');
+  if (ir.baseUrl) {
+    lines.push(`\tcfg := clientConfig{baseURL: PachcaAPIURL}`);
+  } else {
+    lines.push('\tcfg := clientConfig{}');
+  }
+  lines.push('\tfor _, opt := range opts {');
+  lines.push('\t\topt(&cfg)');
+  lines.push('\t}');
   lines.push('\tclient := &http.Client{');
   lines.push('\t\tTransport: &authTransport{token: token, base: http.DefaultTransport},');
   if (needErrors) {
@@ -769,9 +851,69 @@ function generateClient(ir: IR): string {
     lines.push('\t\t},');
   }
   lines.push('\t}');
-  lines.push('\treturn &PachcaClient{');
   const maxField = Math.max(...fields.map((f) => f.f.length));
-  for (const f of fields) lines.push(`\t\t${f.f.padEnd(maxField)}: &${f.cls}{baseURL: url, client: client},`);
+  for (const f of fields) {
+    const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    const impl = `&${serviceToImplName(f.cls)}{baseURL: cfg.baseURL, client: client}`;
+    lines.push(`\tvar ${varName} ${f.cls} = ${impl}`);
+    lines.push(`\tif ${cfgField} != nil {`);
+    lines.push(`\t\t${varName} = ${cfgField}`);
+    lines.push('\t}');
+  }
+  lines.push('\treturn &PachcaClient{');
+  for (const f of fields) {
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    lines.push(`\t\t${f.f.padEnd(maxField)}: ${varName},`);
+  }
+  lines.push('\t}');
+  lines.push('}');
+  lines.push('');
+
+  // NewPachcaClientWithHTTP function
+  lines.push('func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {');
+  lines.push('\tcfg := clientConfig{baseURL: baseURL}');
+  lines.push('\tfor _, opt := range opts {');
+  lines.push('\t\topt(&cfg)');
+  lines.push('\t}');
+  for (const f of fields) {
+    const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    const impl = `&${serviceToImplName(f.cls)}{baseURL: cfg.baseURL, client: client}`;
+    lines.push(`\tvar ${varName} ${f.cls} = ${impl}`);
+    lines.push(`\tif ${cfgField} != nil {`);
+    lines.push(`\t\t${varName} = ${cfgField}`);
+    lines.push('\t}');
+  }
+  lines.push('\treturn &PachcaClient{');
+  for (const f of fields) {
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    lines.push(`\t\t${f.f.padEnd(maxField)}: ${varName},`);
+  }
+  lines.push('\t}');
+  lines.push('}');
+  lines.push('');
+
+  // NewStubPachcaClient function
+  lines.push('func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {');
+  lines.push('\tcfg := stubClientConfig{}');
+  lines.push('\tfor _, opt := range opts {');
+  lines.push('\t\topt(&cfg)');
+  lines.push('\t}');
+  for (const f of fields) {
+    const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    const stub = `&${serviceToStubName(f.cls)}{}`;
+    lines.push(`\tvar ${varName} ${f.cls} = ${stub}`);
+    lines.push(`\tif ${cfgField} != nil {`);
+    lines.push(`\t\t${varName} = ${cfgField}`);
+    lines.push('\t}');
+  }
+  lines.push('\treturn &PachcaClient{');
+  for (const f of fields) {
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    lines.push(`\t\t${f.f.padEnd(maxField)}: ${varName},`);
+  }
   lines.push('\t}');
   lines.push('}');
   lines.push('');
@@ -782,9 +924,63 @@ function generateUtils(): string {
   return [
     'package pachca',
     '',
+    'import (',
+    '\t"math/rand"',
+    '\t"net/http"',
+    '\t"strconv"',
+    '\t"time"',
+    ')',
+    '',
     '// Ptr returns a pointer to the given value.',
     'func Ptr[T any](v T) *T {',
     '\treturn &v',
+    '}',
+    '',
+    '// NotImplementedError is returned by stub methods that have not been implemented.',
+    'type NotImplementedError struct {',
+    '\tMethod string',
+    '}',
+    '',
+    'func (e NotImplementedError) Error() string {',
+    '\treturn e.Method + " is not implemented"',
+    '}',
+    '',
+    'const maxRetries = 3',
+    '',
+    'var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}',
+    '',
+    'func jitter(d time.Duration) time.Duration {',
+    '\treturn time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))',
+    '}',
+    '',
+    'func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {',
+    '\tfor attempt := 0; ; attempt++ {',
+    '\t\tif attempt > 0 && req.GetBody != nil {',
+    '\t\t\treq.Body, _ = req.GetBody()',
+    '\t\t}',
+    '\t\tresp, err := client.Do(req)',
+    '\t\tif err != nil {',
+    '\t\t\treturn nil, err',
+    '\t\t}',
+    '\t\tif resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {',
+    '\t\t\tresp.Body.Close()',
+    '\t\t\tdelay := time.Duration(1<<uint(attempt)) * time.Second',
+    '\t\t\tif ra := resp.Header.Get("Retry-After"); ra != "" {',
+    '\t\t\t\tif secs, err := strconv.Atoi(ra); err == nil {',
+    '\t\t\t\t\tdelay = time.Duration(secs) * time.Second',
+    '\t\t\t\t}',
+    '\t\t\t}',
+    '\t\t\ttime.Sleep(jitter(delay))',
+    '\t\t\tcontinue',
+    '\t\t}',
+    '\t\tif retryable5xx[resp.StatusCode] && attempt < maxRetries {',
+    '\t\t\tresp.Body.Close()',
+    '\t\t\tdelay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)',
+    '\t\t\ttime.Sleep(delay)',
+    '\t\t\tcontinue',
+    '\t\t}',
+    '\t\treturn resp, nil',
+    '\t}',
     '}',
     '',
   ].join('\n');

@@ -6,6 +6,8 @@ return example switch
 {
     "main" => await MainExample.RunAsync(),
     "upload" => await UploadExample.RunAsync(),
+    "stub" => await StubExample.RunAsync(),
+    "httpclient" => await HttpClientExample.RunAsync(),
     _ => PrintUsage()
 };
 
@@ -16,6 +18,8 @@ static int PrintUsage()
     Console.WriteLine("Examples:");
     Console.WriteLine("  main    - Echo bot (create, read, react, thread, pin, update, unpin)");
     Console.WriteLine("  upload  - File upload (requires PACHCA_FILE_PATH)");
+    Console.WriteLine("  stub    - Stub client with dependency injection");
+    Console.WriteLine("  httpclient - Pre-configured HttpClient");
     Console.WriteLine();
     Console.WriteLine("Environment variables:");
     Console.WriteLine("  PACHCA_TOKEN    - API token (required)");

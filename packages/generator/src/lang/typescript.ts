@@ -18,6 +18,7 @@ import {
   kebabToCamel,
   tagToProperty,
   tagToServiceName,
+  serviceToImplName,
 } from '../naming.js';
 
 function fieldSdkName(field: IRField): string {
@@ -461,18 +462,48 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   }
 
   if (hasServices) {
-    lines.push('export class PachcaClient {');
     const serviceEntries = ir.services
       .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
       .sort((a, b) => a.prop.localeCompare(b.prop));
+    if (ir.baseUrl) {
+      lines.push(`export const PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)};`);
+      lines.push('');
+    }
+    lines.push('export class PachcaClient {');
     for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
     lines.push('');
-    const defaultUrl = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-    lines.push(`  constructor(token: string, baseUrl: string${defaultUrl}) {`);
-    lines.push('    const headers = { Authorization: `Bearer ${token}` };');
+    const defaultUrl = ir.baseUrl ? ' = PACHCA_API_URL' : '';
+    const configFields = ['headers: Record<string, string>', 'baseUrl?: string'];
+    for (const s of serviceEntries) configFields.push(`${s.prop}?: ${s.cls}`);
+    const configType = `{ ${configFields.join('; ')} }`;
+    lines.push(`  constructor(token: string, baseUrl?: string);`);
+    lines.push(`  constructor(config: ${configType});`);
+    lines.push(`  constructor(tokenOrConfig: string | ${configType}, baseUrl?: string) {`);
+    lines.push('    let resolvedHeaders: Record<string, string>;');
+    lines.push('    let resolvedBaseUrl: string;');
+    lines.push(`    if (typeof tokenOrConfig === 'string') {`);
+    lines.push('      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };');
+    lines.push(`      resolvedBaseUrl = baseUrl ?? ${ir.baseUrl ? 'PACHCA_API_URL' : `''`};`);
     for (const s of serviceEntries) {
-      lines.push(`    this.${s.prop} = new ${s.cls}(baseUrl, headers);`);
+      lines.push(`      this.${s.prop} = new ${serviceToImplName(s.cls)}(resolvedBaseUrl, resolvedHeaders);`);
     }
+    lines.push('    } else {');
+    lines.push('      resolvedHeaders = tokenOrConfig.headers;');
+    lines.push(`      resolvedBaseUrl = tokenOrConfig.baseUrl ?? ${ir.baseUrl ? 'PACHCA_API_URL' : `''`};`);
+    for (const s of serviceEntries) {
+      lines.push(`      this.${s.prop} = tokenOrConfig.${s.prop} ?? new ${serviceToImplName(s.cls)}(resolvedBaseUrl, resolvedHeaders);`);
+    }
+    lines.push('    }');
+    lines.push('  }');
+    lines.push('');
+    // Static stub() factory method
+    const stubArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} = new ${s.cls}()`);
+    lines.push(`  static stub(${stubArgs.join(', ')}): PachcaClient {`);
+    lines.push('    const client = Object.create(PachcaClient.prototype);');
+    for (const s of serviceEntries) {
+      lines.push(`    client.${s.prop} = ${s.prop};`);
+    }
+    lines.push('    return client;');
     lines.push('  }');
     lines.push('}');
   }
@@ -484,11 +515,25 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
 
 function emitService(lines: string[], svc: IRService, ir: IR): void {
   const serviceName = tagToServiceName(svc.tag);
-  lines.push(`class ${serviceName} {`);
+  const implName = serviceToImplName(serviceName);
+  lines.push(`export class ${serviceName} {`);
+  for (let i = 0; i < svc.operations.length; i++) {
+    emitThrowingMethod(lines, svc.operations[i], ir);
+    if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
+      lines.push('');
+      emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+    if (i < svc.operations.length - 1) lines.push('');
+  }
+  lines.push('}');
+  lines.push('');
+  lines.push(`export class ${implName} extends ${serviceName} {`);
   lines.push('  constructor(');
   lines.push('    private baseUrl: string,');
   lines.push('    private headers: Record<string, string>,');
-  lines.push('  ) {}');
+  lines.push('  ) {');
+  lines.push('    super();');
+  lines.push('  }');
   lines.push('');
   for (let i = 0; i < svc.operations.length; i++) {
     emitOperation(lines, svc.operations[i], ir);
@@ -499,6 +544,32 @@ function emitService(lines: string[], svc: IRService, ir: IR): void {
     if (i < svc.operations.length - 1) lines.push('');
   }
   lines.push('}');
+}
+
+function emitThrowingMethod(lines: string[], op: IROperation, ir: IR): void {
+  const args = methodArgs(op);
+  const ret = responseTypeName(op, ir);
+  if (op.deprecated) lines.push('  /** @deprecated */');
+  lines.push(`  async ${op.methodName}(${args}): Promise<${ret}> {`);
+  lines.push(`    throw new Error(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)});`);
+  lines.push('  }');
+}
+
+function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
+  const itemType = op.successResponse.dataRef ?? 'unknown';
+  const paramsType = op.queryParams.length > 0 ? irParamTypeName(op) : null;
+  const args: string[] = [];
+  if (op.externalUrl) args.push(`${op.externalUrl}: string`);
+  for (const p of op.pathParams) {
+    args.push(`${p.sdkName}: ${tsType(p.type, { allModels: new Map(), inlineAsObject: new Set() })}`);
+  }
+  if (paramsType) {
+    const hasRequired = op.queryParams.some((q) => q.required && q.name !== 'cursor');
+    args.push(hasRequired ? `params: Omit<${paramsType}, 'cursor'>` : `params?: Omit<${paramsType}, 'cursor'>`);
+  }
+  lines.push(`  async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
+  lines.push(`    throw new Error(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)});`);
+  lines.push('  }');
 }
 
 function emitOperation(lines: string[], op: IROperation, ir: IR): void {
@@ -821,12 +892,12 @@ function generateUtils(ir: IR): string {
     '    if (response.status === 429 && attempt < MAX_RETRIES) {',
     '      const retryAfter = response.headers.get("retry-after");',
     '      const delay = retryAfter ? Number(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);',
-    '      await new Promise((r) => setTimeout(r, delay));',
+    '      await new Promise((r) => setTimeout(r, jitter(delay)));',
     '      continue;',
     '    }',
     '    if (RETRYABLE_5XX.has(response.status) && attempt < MAX_RETRIES) {',
-    '      const delay = jitter(10000 * Math.pow(2, attempt));',
-    '      await new Promise((r) => setTimeout(r, delay));',
+    '      const delay = 1000 * (attempt + 1);',
+    '      await new Promise((r) => setTimeout(r, jitter(delay)));',
     '      continue;',
     '    }',
     '    return response;',

@@ -6,6 +6,31 @@ from .models import Task, TaskUpdateRequest
 from .utils import deserialize, serialize, RetryTransport
 
 class TasksService:
+    async def get_task(
+        self,
+        project_id: int,
+        task_id: int,
+    ) -> Task:
+        raise NotImplementedError("Tasks.getTask is not implemented")
+
+    async def update_task(
+        self,
+        project_id: int,
+        task_id: int,
+        request: TaskUpdateRequest,
+    ) -> Task:
+        raise NotImplementedError("Tasks.updateTask is not implemented")
+
+    async def delete_comment(
+        self,
+        project_id: int,
+        task_id: int,
+        comment_id: int,
+    ) -> None:
+        raise NotImplementedError("Tasks.deleteComment is not implemented")
+
+
+class TasksServiceImpl(TasksService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -63,14 +88,38 @@ class TasksService:
                 )
 
 
+PACHCA_API_URL = "https://api.example.com/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.example.com/v1") -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, tasks: TasksService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.tasks = TasksService(self._client)
+        self.tasks: TasksService = tasks or TasksServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        tasks: TasksService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.tasks: TasksService = tasks or TasksServiceImpl(client)
+        return self
+
+    @classmethod
+    def stub(
+        cls,
+        tasks: TasksService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.tasks = tasks or TasksService()
+        return self

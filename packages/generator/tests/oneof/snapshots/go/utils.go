@@ -25,9 +25,8 @@ const maxRetries = 3
 
 var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
 
-func addJitter(delay time.Duration) time.Duration {
-	factor := 0.5 + rand.Float64()*0.5
-	return time.Duration(float64(delay) * factor)
+func jitter(d time.Duration) time.Duration {
+	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
 }
 
 func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
@@ -47,13 +46,13 @@ func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error)
 					delay = time.Duration(secs) * time.Second
 				}
 			}
-			time.Sleep(addJitter(delay))
+			time.Sleep(jitter(delay))
 			continue
 		}
 		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
 			resp.Body.Close()
-			delay := time.Duration(attempt+1) * time.Second
-			time.Sleep(addJitter(delay))
+			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
+			time.Sleep(delay)
 			continue
 		}
 		return resp, nil

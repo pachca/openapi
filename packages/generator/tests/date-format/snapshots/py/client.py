@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import httpx
 
 from .models import (
@@ -12,6 +14,20 @@ from .models import (
 from .utils import deserialize, serialize, RetryTransport
 
 class ExportService:
+    async def list_events(
+        self,
+        params: ListEventsParams,
+    ) -> ListEventsResponse:
+        raise NotImplementedError("Export.listEvents is not implemented")
+
+    async def create_export(
+        self,
+        request: ExportRequest,
+    ) -> Export:
+        raise NotImplementedError("Export.createExport is not implemented")
+
+
+class ExportServiceImpl(ExportService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
@@ -61,13 +77,23 @@ class ExportService:
 
 
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1") -> None:
+    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", export: ExportService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
             transport=RetryTransport(httpx.AsyncHTTPTransport()),
         )
-        self.export = ExportService(self._client)
+        self.export: ExportService = export or ExportServiceImpl(self._client)
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def stub(
+        cls,
+        export: ExportService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = None
+        self.export = export or ExportService()
+        return self

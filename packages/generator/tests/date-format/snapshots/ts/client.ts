@@ -7,11 +7,23 @@ import {
 } from "./types";
 import { deserialize, serialize, fetchWithRetry } from "./utils";
 
-class ExportService {
+export class ExportService {
+  async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {
+    throw new Error("Export.listEvents is not implemented");
+  }
+
+  async createExport(request: ExportRequest): Promise<Export> {
+    throw new Error("Export.createExport is not implemented");
+  }
+}
+
+export class ExportServiceImpl extends ExportService {
   constructor(
     private baseUrl: string,
     private headers: Record<string, string>,
-  ) {}
+  ) {
+    super();
+  }
 
   async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {
     const query = new URLSearchParams();
@@ -54,6 +66,12 @@ export class PachcaClient {
 
   constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
     const headers = { Authorization: `Bearer ${token}` };
-    this.export = new ExportService(baseUrl, headers);
+    this.export = new ExportServiceImpl(baseUrl, headers);
+  }
+
+  static stub(export: ExportService = new ExportService()): PachcaClient {
+    const client = Object.create(PachcaClient.prototype);
+    client.export = export;
+    return client;
   }
 }

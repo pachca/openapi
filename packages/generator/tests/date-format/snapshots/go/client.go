@@ -5,10 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -22,50 +20,27 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-const maxRetries = 3
-
-var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
-
-func jitter(d time.Duration) time.Duration {
-	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
+type ExportService interface {
+	ListEvents(ctx context.Context, params ListEventsParams) (*ListEventsResponse, error)
+	CreateExport(ctx context.Context, request ExportRequest) (*Export, error)
 }
 
-func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
-	for attempt := 0; ; attempt++ {
-		if attempt > 0 && req.GetBody != nil {
-			req.Body, _ = req.GetBody()
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			resp.Body.Close()
-			delay := time.Duration(1<<uint(attempt)) * time.Second
-			if ra := resp.Header.Get("Retry-After"); ra != "" {
-				if secs, err := strconv.Atoi(ra); err == nil {
-					delay = time.Duration(secs) * time.Second
-				}
-			}
-			time.Sleep(delay)
-			continue
-		}
-		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
-			resp.Body.Close()
-			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
-			time.Sleep(delay)
-			continue
-		}
-		return resp, nil
-	}
+type ExportServiceStub struct{}
+
+func (s *ExportServiceStub) ListEvents(ctx context.Context, params ListEventsParams) (*ListEventsResponse, error) {
+	return nil, NotImplementedError{Method: "Export.listEvents"}
 }
 
-type ExportService struct {
+func (s *ExportServiceStub) CreateExport(ctx context.Context, request ExportRequest) (*Export, error) {
+	return nil, NotImplementedError{Method: "Export.createExport"}
+}
+
+type ExportServiceImpl struct {
 	baseURL string
 	client  *http.Client
 }
 
-func (s *ExportService) ListEvents(ctx context.Context, params ListEventsParams) (*ListEventsResponse, error) {
+func (s *ExportServiceImpl) ListEvents(ctx context.Context, params ListEventsParams) (*ListEventsResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("%s/events", s.baseURL))
 	if err != nil {
 		return nil, err
@@ -103,7 +78,7 @@ func (s *ExportService) ListEvents(ctx context.Context, params ListEventsParams)
 	}
 }
 
-func (s *ExportService) CreateExport(ctx context.Context, request ExportRequest) (*Export, error) {
+func (s *ExportServiceImpl) CreateExport(ctx context.Context, request ExportRequest) (*Export, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
@@ -139,18 +114,55 @@ func (s *ExportService) CreateExport(ctx context.Context, request ExportRequest)
 }
 
 type PachcaClient struct {
-	Export *ExportService
+	Export ExportService
 }
+
+type clientConfig struct {
+	baseURL string
+	export ExportService
+}
+
+type ClientOption func(*clientConfig)
+
+type stubClientConfig struct {
+	export ExportService
+}
+
+type StubClientOption func(*stubClientConfig)
 
 const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
 
-func NewPachcaClient(token string, baseURL ...string) *PachcaClient {
-	url := DefaultBaseURL
-	if len(baseURL) > 0 { url = baseURL[0] }
+func WithBaseURL(baseURL string) ClientOption {
+	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
+}
+
+func WithExport(service ExportService) ClientOption {
+	return func(cfg *clientConfig) { cfg.export = service }
+}
+
+func WithStubExport(service ExportService) StubClientOption {
+	return func(cfg *stubClientConfig) { cfg.export = service }
+}
+
+func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: DefaultBaseURL}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
 	return &PachcaClient{
-		Export: &ExportService{baseURL: url, client: client},
+		Export: func() ExportService { if cfg.export != nil { return cfg.export }; return &ExportServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+	}
+}
+
+func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
+	cfg := stubClientConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return &PachcaClient{
+		Export: func() ExportService { if cfg.export != nil { return cfg.export }; return &ExportServiceStub{} }(),
 	}
 }

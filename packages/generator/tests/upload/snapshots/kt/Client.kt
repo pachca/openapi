@@ -14,20 +14,18 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-open class CommonService {
-    open suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
+interface CommonService {
+    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) =
         throw NotImplementedError("Common.uploadFile is not implemented")
-    }
 
-    open suspend fun getUploadParams(): UploadParams {
+    suspend fun getUploadParams(): UploadParams =
         throw NotImplementedError("Common.getUploadParams is not implemented")
-    }
 }
 
 class CommonServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) : CommonService() {
+) : CommonService {
     override suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         val response = client.submitFormWithBinaryData(
             directUrl,
@@ -64,40 +62,55 @@ class CommonServiceImpl internal constructor(
     }
 }
 
-class PachcaClient(
-    token: String,
-    baseUrl: String = "https://api.pachca.com/api/shared/v1",
-    common: CommonService? = null
+class PachcaClient private constructor(
+    private val client: HttpClient?,
+    val common: CommonService
 ) : Closeable {
-    private val client = HttpClient {
-        expectSuccess = false
-        install(ContentNegotiation) {
-            json(Json { explicitNulls = false })
+
+    companion object {
+        operator fun invoke(
+            token: String,
+            baseUrl: String = "https://api.pachca.com/api/shared/v1",
+            common: CommonService? = null
+        ): PachcaClient {
+            val client = createClient(token)
+            return PachcaClient(
+                client = client,
+                common = common ?: CommonServiceImpl(baseUrl, client)
+            )
         }
-        install(HttpRequestRetry) {
-            maxRetries = 3
-            retryIf { _, response ->
-                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
-            }
-            delayMillis { retry ->
-                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
-                if (retryAfter != null && response?.status?.value == 429) {
-                    retryAfter * 1000L
-                } else {
-                    val base = 10_000L * (1L shl retry)
-                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
-                    (base * jitter).toLong()
+
+        fun stub(
+            common: CommonService = object : CommonService {}
+        ): PachcaClient = PachcaClient(
+            client = null,
+            common = common
+        )
+
+        private fun createClient(token: String): HttpClient = HttpClient {
+            expectSuccess = false
+            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                }
+                delayMillis { retry ->
+                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    if (retryAfter != null && response?.status?.value == 429) {
+                        retryAfter * 1000L
+                    } else {
+                        val base = 10_000L * (1L shl retry)
+                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
+                        (base * jitter).toLong()
+                    }
                 }
             }
-        }
-        defaultRequest {
-            bearerAuth(token)
+            defaultRequest { bearerAuth(token) }
         }
     }
 
-    val common: CommonService = common ?: CommonServiceImpl(baseUrl, client)
-
     override fun close() {
-        client.close()
+        client?.close()
     }
 }

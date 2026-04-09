@@ -14,38 +14,8 @@ import kotlinx.serialization.json.Json
 import java.io.Closeable
 import java.time.OffsetDateTime
 
-abstract class SearchService {
-    open suspend fun searchMessages(
-        query: String,
-        chatIds: List<Int>? = null,
-        userIds: List<Int>? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
-        sort: SearchSort? = null,
-        limit: Int? = null,
-        cursor: String? = null,
-    ): SearchMessagesResponse {
-        throw NotImplementedError("Search.searchMessages is not implemented")
-    }
-
-    open suspend fun searchMessagesAll(
-        query: String,
-        chatIds: List<Int>? = null,
-        userIds: List<Int>? = null,
-        createdFrom: String? = null,
-        createdTo: String? = null,
-        sort: SearchSort? = null,
-        limit: Int? = null,
-    ): List<MessageSearchResult> {
-        throw NotImplementedError("Search.searchMessagesAll is not implemented")
-    }
-}
-
-class SearchServiceImpl internal constructor(
-    private val baseUrl: String,
-    private val client: HttpClient,
-) : SearchService() {
-    override suspend fun searchMessages(
+interface SearchService {
+    suspend fun searchMessages(
         query: String,
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
@@ -54,6 +24,34 @@ class SearchServiceImpl internal constructor(
         sort: SearchSort? = null,
         limit: Int? = null,
         cursor: String? = null,
+    ): SearchMessagesResponse =
+        throw NotImplementedError("Search.searchMessages is not implemented")
+
+    suspend fun searchMessagesAll(
+        query: String,
+        chatIds: List<Int>? = null,
+        userIds: List<Int>? = null,
+        createdFrom: OffsetDateTime? = null,
+        createdTo: OffsetDateTime? = null,
+        sort: SearchSort? = null,
+        limit: Int? = null,
+    ): List<MessageSearchResult> =
+        throw NotImplementedError("Search.searchMessagesAll is not implemented")
+}
+
+class SearchServiceImpl internal constructor(
+    private val baseUrl: String,
+    private val client: HttpClient,
+) : SearchService {
+    override suspend fun searchMessages(
+        query: String,
+        chatIds: List<Int>?,
+        userIds: List<Int>?,
+        createdFrom: OffsetDateTime?,
+        createdTo: OffsetDateTime?,
+        sort: SearchSort?,
+        limit: Int?,
+        cursor: String?,
     ): SearchMessagesResponse {
         val response = client.get("$baseUrl/search/messages") {
             parameter("query", query)
@@ -74,12 +72,12 @@ class SearchServiceImpl internal constructor(
 
     override suspend fun searchMessagesAll(
         query: String,
-        chatIds: List<Int>? = null,
-        userIds: List<Int>? = null,
-        createdFrom: OffsetDateTime? = null,
-        createdTo: OffsetDateTime? = null,
-        sort: SearchSort? = null,
-        limit: Int? = null,
+        chatIds: List<Int>?,
+        userIds: List<Int>?,
+        createdFrom: OffsetDateTime?,
+        createdTo: OffsetDateTime?,
+        sort: SearchSort?,
+        limit: Int?,
     ): List<MessageSearchResult> {
         val items = mutableListOf<MessageSearchResult>()
         var cursor: String? = null
@@ -102,40 +100,55 @@ class SearchServiceImpl internal constructor(
     }
 }
 
-data class PachcaServices(
-    val search: SearchService? = null
-)
+class PachcaClient private constructor(
+    private val client: HttpClient?,
+    val search: SearchService
+) : Closeable {
 
-class PachcaClient(token: String, baseUrl: String = "https://api.pachca.com/api/shared/v1", services: PachcaServices = PachcaServices()) : Closeable {
-    private val client = HttpClient {
-        expectSuccess = false
-        install(ContentNegotiation) {
-            json(Json { explicitNulls = false })
+    companion object {
+        operator fun invoke(
+            token: String,
+            baseUrl: String = "https://api.pachca.com/api/shared/v1",
+            search: SearchService? = null
+        ): PachcaClient {
+            val client = createClient(token)
+            return PachcaClient(
+                client = client,
+                search = search ?: SearchServiceImpl(baseUrl, client)
+            )
         }
-        install(HttpRequestRetry) {
-            maxRetries = 3
-            retryIf { _, response ->
-                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
-            }
-            delayMillis { retry ->
-                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
-                if (retryAfter != null && response?.status?.value == 429) {
-                    retryAfter * 1000L
-                } else {
-                    val base = 10_000L * (1L shl retry)
-                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
-                    (base * jitter).toLong()
+
+        fun stub(
+            search: SearchService = object : SearchService {}
+        ): PachcaClient = PachcaClient(
+            client = null,
+            search = search
+        )
+
+        private fun createClient(token: String): HttpClient = HttpClient {
+            expectSuccess = false
+            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                }
+                delayMillis { retry ->
+                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    if (retryAfter != null && response?.status?.value == 429) {
+                        retryAfter * 1000L
+                    } else {
+                        val base = 10_000L * (1L shl retry)
+                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
+                        (base * jitter).toLong()
+                    }
                 }
             }
-        }
-        defaultRequest {
-            bearerAuth(token)
+            defaultRequest { bearerAuth(token) }
         }
     }
 
-    val search: SearchService = services.search ?: SearchServiceImpl(baseUrl, client)
-
     override fun close() {
-        client.close()
+        client?.close()
     }
 }

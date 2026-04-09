@@ -13,32 +13,29 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-open class TasksService {
-    open suspend fun getTask(projectId: Int, taskId: Int): Task {
+interface TasksService {
+    suspend fun getTask(projectId: Int, taskId: Int): Task =
         throw NotImplementedError("Tasks.getTask is not implemented")
-    }
 
-    open suspend fun updateTask(
+    suspend fun updateTask(
         projectId: Int,
         taskId: Int,
         request: TaskUpdateRequest,
-    ): Task {
+    ): Task =
         throw NotImplementedError("Tasks.updateTask is not implemented")
-    }
 
-    open suspend fun deleteComment(
+    suspend fun deleteComment(
         projectId: Int,
         taskId: Int,
         commentId: Int,
-    ) {
+    ) =
         throw NotImplementedError("Tasks.deleteComment is not implemented")
-    }
 }
 
 class TasksServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) : TasksService() {
+) : TasksService {
     override suspend fun getTask(projectId: Int, taskId: Int): Task {
         val response = client.get("$baseUrl/projects/$projectId/tasks/$taskId")
         return when (response.status.value) {
@@ -75,40 +72,55 @@ class TasksServiceImpl internal constructor(
     }
 }
 
-class PachcaClient(
-    token: String,
-    baseUrl: String = "https://api.example.com/v1",
-    tasks: TasksService? = null
+class PachcaClient private constructor(
+    private val client: HttpClient?,
+    val tasks: TasksService
 ) : Closeable {
-    private val client = HttpClient {
-        expectSuccess = false
-        install(ContentNegotiation) {
-            json(Json { explicitNulls = false })
+
+    companion object {
+        operator fun invoke(
+            token: String,
+            baseUrl: String = "https://api.example.com/v1",
+            tasks: TasksService? = null
+        ): PachcaClient {
+            val client = createClient(token)
+            return PachcaClient(
+                client = client,
+                tasks = tasks ?: TasksServiceImpl(baseUrl, client)
+            )
         }
-        install(HttpRequestRetry) {
-            maxRetries = 3
-            retryIf { _, response ->
-                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
-            }
-            delayMillis { retry ->
-                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
-                if (retryAfter != null && response?.status?.value == 429) {
-                    retryAfter * 1000L
-                } else {
-                    val base = 10_000L * (1L shl retry)
-                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
-                    (base * jitter).toLong()
+
+        fun stub(
+            tasks: TasksService = object : TasksService {}
+        ): PachcaClient = PachcaClient(
+            client = null,
+            tasks = tasks
+        )
+
+        private fun createClient(token: String): HttpClient = HttpClient {
+            expectSuccess = false
+            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                }
+                delayMillis { retry ->
+                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    if (retryAfter != null && response?.status?.value == 429) {
+                        retryAfter * 1000L
+                    } else {
+                        val base = 10_000L * (1L shl retry)
+                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
+                        (base * jitter).toLong()
+                    }
                 }
             }
-        }
-        defaultRequest {
-            bearerAuth(token)
+            defaultRequest { bearerAuth(token) }
         }
     }
 
-    val tasks: TasksService = tasks ?: TasksServiceImpl(baseUrl, client)
-
     override fun close() {
-        client.close()
+        client?.close()
     }
 }

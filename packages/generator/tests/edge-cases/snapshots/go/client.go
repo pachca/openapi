@@ -6,11 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -24,44 +22,6 @@ func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.base.RoundTrip(req)
 }
 
-const maxRetries = 3
-
-var retryable5xx = map[int]bool{500: true, 502: true, 503: true, 504: true}
-
-func jitter(d time.Duration) time.Duration {
-	return time.Duration(float64(d) * (0.5 + rand.Float64()*0.5))
-}
-
-func doWithRetry(client *http.Client, req *http.Request) (*http.Response, error) {
-	for attempt := 0; ; attempt++ {
-		if attempt > 0 && req.GetBody != nil {
-			req.Body, _ = req.GetBody()
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			resp.Body.Close()
-			delay := time.Duration(1<<uint(attempt)) * time.Second
-			if ra := resp.Header.Get("Retry-After"); ra != "" {
-				if secs, err := strconv.Atoi(ra); err == nil {
-					delay = time.Duration(secs) * time.Second
-				}
-			}
-			time.Sleep(delay)
-			continue
-		}
-		if retryable5xx[resp.StatusCode] && attempt < maxRetries {
-			resp.Body.Close()
-			delay := jitter(10 * time.Duration(1<<uint(attempt)) * time.Second)
-			time.Sleep(delay)
-			continue
-		}
-		return resp, nil
-	}
-}
-
 type EventsService interface {
 	ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error)
 	PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error)
@@ -70,11 +30,11 @@ type EventsService interface {
 type EventsServiceStub struct{}
 
 func (s *EventsServiceStub) ListEvents(ctx context.Context, params *ListEventsParams) (*ListEventsResponse, error) {
-	return nil, fmt.Errorf("Events.listEvents is not implemented")
+	return nil, NotImplementedError{Method: "Events.listEvents"}
 }
 
 func (s *EventsServiceStub) PublishEvent(ctx context.Context, id int32, scope OAuthScope) (*Event, error) {
-	return nil, fmt.Errorf("Events.publishEvent is not implemented")
+	return nil, NotImplementedError{Method: "Events.publishEvent"}
 }
 
 type EventsServiceImpl struct {
@@ -157,7 +117,7 @@ type UploadsService interface {
 type UploadsServiceStub struct{}
 
 func (s *UploadsServiceStub) CreateUpload(ctx context.Context, request UploadRequest) error {
-	return fmt.Errorf("Uploads.createUpload is not implemented")
+	return NotImplementedError{Method: "Uploads.createUpload"}
 }
 
 type UploadsServiceImpl struct {

@@ -11,18 +11,37 @@ using System.Threading;
 
 namespace Pachca.Sdk;
 
-public sealed class ExportService
+public class ExportService
+{
+
+    public virtual async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
+        string dateFrom,
+        string? dateTo = null,
+        DateTimeOffset? createdAfter = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Export.listEvents is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<Export> CreateExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Export.createExport is not implemented");
+    }
+}
+
+public sealed class ExportServiceImpl : ExportService
 {
     private readonly string _baseUrl;
     private readonly HttpClient _client;
 
-    internal ExportService(string baseUrl, HttpClient client)
+    internal ExportServiceImpl(string baseUrl, HttpClient client)
     {
         _baseUrl = baseUrl;
         _client = client;
     }
 
-    public async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
+    public override async System.Threading.Tasks.Task<ListEventsResponse> ListEventsAsync(
         string dateFrom,
         string? dateTo = null,
         DateTimeOffset? createdAfter = null,
@@ -50,7 +69,7 @@ public sealed class ExportService
         }
     }
 
-    public async System.Threading.Tasks.Task<Export> CreateExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
+    public override async System.Threading.Tasks.Task<Export> CreateExportAsync(ExportRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"{_baseUrl}/exports";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -71,22 +90,32 @@ public sealed class ExportService
 
 public sealed class PachcaClient : IDisposable
 {
-    private readonly HttpClient _client;
+    private readonly HttpClient? _client;
 
     public ExportService Export { get; }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1")
+    private PachcaClient(ExportService export)
+    {
+        Export = export;
+    }
+
+    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", ExportService? export = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        Export = new ExportService(baseUrl, _client);
+        Export = export ?? new ExportServiceImpl(baseUrl, _client);
+    }
+
+    public static PachcaClient Stub(ExportService? export = null)
+    {
+        return new PachcaClient(export ?? new ExportService());
     }
 
     public void Dispose()
     {
-        _client.Dispose();
+        _client?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

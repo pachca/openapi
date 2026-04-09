@@ -14,24 +14,22 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 
-open class EventsService {
-    open suspend fun listEvents(
+interface EventsService {
+    suspend fun listEvents(
         isActive: Boolean? = null,
         scopes: List<OAuthScope>? = null,
         filter: EventFilter? = null,
-    ): ListEventsResponse {
+    ): ListEventsResponse =
         throw NotImplementedError("Events.listEvents is not implemented")
-    }
 
-    open suspend fun publishEvent(id: Int, scope: OAuthScope): Event {
+    suspend fun publishEvent(id: Int, scope: OAuthScope): Event =
         throw NotImplementedError("Events.publishEvent is not implemented")
-    }
 }
 
 class EventsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) : EventsService() {
+) : EventsService {
     override suspend fun listEvents(
         isActive: Boolean?,
         scopes: List<OAuthScope>?,
@@ -60,16 +58,15 @@ class EventsServiceImpl internal constructor(
     }
 }
 
-open class UploadsService {
-    open suspend fun createUpload(request: UploadRequest) {
+interface UploadsService {
+    suspend fun createUpload(request: UploadRequest) =
         throw NotImplementedError("Uploads.createUpload is not implemented")
-    }
 }
 
 class UploadsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
-) : UploadsService() {
+) : UploadsService {
     override suspend fun createUpload(request: UploadRequest) {
         val response = client.submitFormWithBinaryData(
             "$baseUrl/uploads",
@@ -87,42 +84,60 @@ class UploadsServiceImpl internal constructor(
     }
 }
 
-class PachcaClient(
-    token: String,
-    baseUrl: String,
-    events: EventsService? = null,
-    uploads: UploadsService? = null
+class PachcaClient private constructor(
+    private val client: HttpClient?,
+    val events: EventsService,
+    val uploads: UploadsService
 ) : Closeable {
-    private val client = HttpClient {
-        expectSuccess = false
-        install(ContentNegotiation) {
-            json(Json { explicitNulls = false })
+
+    companion object {
+        operator fun invoke(
+            token: String,
+            baseUrl: String,
+            events: EventsService? = null,
+            uploads: UploadsService? = null
+        ): PachcaClient {
+            val client = createClient(token)
+            return PachcaClient(
+                client = client,
+                events = events ?: EventsServiceImpl(baseUrl, client),
+                uploads = uploads ?: UploadsServiceImpl(baseUrl, client)
+            )
         }
-        install(HttpRequestRetry) {
-            maxRetries = 3
-            retryIf { _, response ->
-                response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
-            }
-            delayMillis { retry ->
-                val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
-                if (retryAfter != null && response?.status?.value == 429) {
-                    retryAfter * 1000L
-                } else {
-                    val base = 10_000L * (1L shl retry)
-                    val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
-                    (base * jitter).toLong()
+
+        fun stub(
+            events: EventsService = object : EventsService {},
+            uploads: UploadsService = object : UploadsService {}
+        ): PachcaClient = PachcaClient(
+            client = null,
+            events = events,
+            uploads = uploads
+        )
+
+        private fun createClient(token: String): HttpClient = HttpClient {
+            expectSuccess = false
+            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(HttpRequestRetry) {
+                maxRetries = 3
+                retryIf { _, response ->
+                    response.status.value == 429 || response.status.value in setOf(500, 502, 503, 504)
+                }
+                delayMillis { retry ->
+                    val retryAfter = response?.headers?.get("Retry-After")?.toLongOrNull()
+                    if (retryAfter != null && response?.status?.value == 429) {
+                        retryAfter * 1000L
+                    } else {
+                        val base = 10_000L * (1L shl retry)
+                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5
+                        (base * jitter).toLong()
+                    }
                 }
             }
-        }
-        defaultRequest {
-            bearerAuth(token)
+            defaultRequest { bearerAuth(token) }
         }
     }
 
-    val events: EventsService = events ?: EventsServiceImpl(baseUrl, client)
-    val uploads: UploadsService = uploads ?: UploadsServiceImpl(baseUrl, client)
-
     override fun close() {
-        client.close()
+        client?.close()
     }
 }

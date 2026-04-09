@@ -799,7 +799,7 @@ class GroupTagsService:
         self,
         id: int,
         params: GetTagUsersParams | None = None,
-    ) -> ListMembersResponse:
+    ) -> GetTagUsersResponse:
         raise NotImplementedError("Group tags.getTagUsers is not implemented")
 
     async def get_tag_users_all(
@@ -1426,11 +1426,21 @@ class ProfileService:
         self) -> object:
         raise NotImplementedError("Profile.getStatus is not implemented")
 
+    async def update_profile_avatar(
+        self,
+        image: bytes,
+    ) -> AvatarData:
+        raise NotImplementedError("Profile.updateProfileAvatar is not implemented")
+
     async def update_status(
         self,
         request: StatusUpdateRequest,
     ) -> UserStatus:
         raise NotImplementedError("Profile.updateStatus is not implemented")
+
+    async def delete_profile_avatar(
+        self) -> None:
+        raise NotImplementedError("Profile.deleteProfileAvatar is not implemented")
 
     async def delete_status(
         self) -> None:
@@ -1550,7 +1560,7 @@ class SearchService:
     async def search_chats(
         self,
         params: SearchChatsParams | None = None,
-    ) -> ListChatsResponse:
+    ) -> SearchChatsResponse:
         raise NotImplementedError("Search.searchChats is not implemented")
 
     async def search_chats_all(
@@ -1562,7 +1572,7 @@ class SearchService:
     async def search_messages(
         self,
         params: SearchMessagesParams | None = None,
-    ) -> ListChatMessagesResponse:
+    ) -> SearchMessagesResponse:
         raise NotImplementedError("Search.searchMessages is not implemented")
 
     async def search_messages_all(
@@ -1574,7 +1584,7 @@ class SearchService:
     async def search_users(
         self,
         params: SearchUsersParams | None = None,
-    ) -> ListMembersResponse:
+    ) -> SearchUsersResponse:
         raise NotImplementedError("Search.searchUsers is not implemented")
 
     async def search_users_all(
@@ -1902,7 +1912,7 @@ class UsersService:
     async def list_users(
         self,
         params: ListUsersParams | None = None,
-    ) -> ListMembersResponse:
+    ) -> ListUsersResponse:
         raise NotImplementedError("Users.listUsers is not implemented")
 
     async def list_users_all(
@@ -1936,6 +1946,13 @@ class UsersService:
     ) -> User:
         raise NotImplementedError("Users.updateUser is not implemented")
 
+    async def update_user_avatar(
+        self,
+        user_id: int,
+        image: bytes,
+    ) -> AvatarData:
+        raise NotImplementedError("Users.updateUserAvatar is not implemented")
+
     async def update_user_status(
         self,
         user_id: int,
@@ -1948,6 +1965,12 @@ class UsersService:
         id: int,
     ) -> None:
         raise NotImplementedError("Users.deleteUser is not implemented")
+
+    async def delete_user_avatar(
+        self,
+        user_id: int,
+    ) -> None:
+        raise NotImplementedError("Users.deleteUserAvatar is not implemented")
 
     async def delete_user_status(
         self,

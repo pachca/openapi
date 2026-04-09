@@ -3,7 +3,23 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public struct SearchService {
+private func pachcaNotImplemented(_ method: String) -> Error {
+    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])
+}
+
+open class SearchService {
+    public init() {}
+
+    open func searchMessages(query: String, chatIds: [Int], userIds: [Int]? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
+        throw pachcaNotImplemented("Search.searchMessages")
+    }
+
+    open func searchMessagesAll(query: String, chatIds: [Int], userIds: [Int]? = nil, limit: Int? = nil) async throws -> [MessageResult] {
+        throw pachcaNotImplemented("Search.searchMessagesAll")
+    }
+}
+
+public final class SearchServiceImpl: SearchService {
     let baseURL: String
     let headers: [String: String]
     let session: URLSession
@@ -12,9 +28,10 @@ public struct SearchService {
         self.baseURL = baseURL
         self.headers = headers
         self.session = session
+        super.init()
     }
 
-    public func searchMessages(query: String, chatIds: [Int], userIds: [Int]? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
+    public override func searchMessages(query: String, chatIds: [Int], userIds: [Int]? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> SearchMessagesResponse {
         var components = URLComponents(string: "\(baseURL)/search/messages")!
         var queryItems: [URLQueryItem] = []
         queryItems.append(URLQueryItem(name: "query", value: String(query)))
@@ -37,7 +54,7 @@ public struct SearchService {
         }
     }
 
-    public func searchMessagesAll(query: String, chatIds: [Int], userIds: [Int]? = nil, limit: Int? = nil) async throws -> [MessageResult] {
+    public override func searchMessagesAll(query: String, chatIds: [Int], userIds: [Int]? = nil, limit: Int? = nil) async throws -> [MessageResult] {
         var items: [MessageResult] = []
         var cursor: String? = nil
         repeat {
@@ -53,8 +70,20 @@ public struct SearchService {
 public struct PachcaClient {
     public let search: SearchService
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1") {
+    private init(search: SearchService) {
+        self.search = search
+    }
+
+    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", search: SearchService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
-        self.search = SearchService(baseURL: baseURL, headers: headers)
+        self.init(
+            search: search ?? SearchServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public static func stub(search: SearchService = SearchService()) -> PachcaClient {
+        PachcaClient(
+            search: search
+        )
     }
 }

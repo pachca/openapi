@@ -960,7 +960,8 @@ function emitPachcaClient(
   lines.push('                    } else {');
   lines.push('                        val base = 10_000L * (1L shl retry)');
   lines.push('                        val jitter = 0.5 + kotlin.random.Random.nextDouble() * 0.5');
-  lines.push('                        (base * jitter).toLong()
+  lines.push('                        (base * jitter).toLong()');
+  lines.push('                    }');
   lines.push('                }');
   lines.push('            }');
   lines.push('            defaultRequest { bearerAuth(token) }');

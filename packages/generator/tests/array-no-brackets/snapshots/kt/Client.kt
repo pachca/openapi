@@ -20,16 +20,18 @@ interface SearchService {
         userIds: List<Int>? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): SearchMessagesResponse =
+    ): SearchMessagesResponse {
         throw NotImplementedError("Search.searchMessages is not implemented")
+    }
 
     suspend fun searchMessagesAll(
         query: String,
         chatIds: List<Int>,
         userIds: List<Int>? = null,
         limit: Int? = null,
-    ): List<MessageResult> =
+    ): List<MessageResult> {
         throw NotImplementedError("Search.searchMessagesAll is not implemented")
+    }
 }
 
 class SearchServiceImpl internal constructor(
@@ -84,7 +86,7 @@ class SearchServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val search: SearchService
 ) : Closeable {
 
@@ -96,7 +98,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 search = search ?: SearchServiceImpl(baseUrl, client)
             )
         }
@@ -104,7 +106,7 @@ class PachcaClient private constructor(
         fun stub(
             search: SearchService = object : SearchService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             search = search
         )
 
@@ -132,15 +134,15 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         search: SearchService? = null
     ) : this(
-        client = client,
+        _client = client,
         search = search ?: SearchServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

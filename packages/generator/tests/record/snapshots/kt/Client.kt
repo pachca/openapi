@@ -14,8 +14,9 @@ import kotlinx.serialization.json.Json
 import java.io.Closeable
 
 interface LinkPreviewsService {
-    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) =
+    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
         throw NotImplementedError("Link Previews.createLinkPreviews is not implemented")
+    }
 }
 
 class LinkPreviewsServiceImpl internal constructor(
@@ -38,7 +39,7 @@ class LinkPreviewsServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val linkPreviews: LinkPreviewsService
 ) : Closeable {
 
@@ -50,7 +51,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client)
             )
         }
@@ -58,7 +59,7 @@ class PachcaClient private constructor(
         fun stub(
             linkPreviews: LinkPreviewsService = object : LinkPreviewsService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             linkPreviews = linkPreviews
         )
 
@@ -86,15 +87,15 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         linkPreviews: LinkPreviewsService? = null
     ) : this(
-        client = client,
+        _client = client,
         linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

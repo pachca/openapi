@@ -14,22 +14,25 @@ import kotlinx.serialization.json.Json
 import java.io.Closeable
 
 interface TasksService {
-    suspend fun getTask(projectId: Int, taskId: Int): Task =
+    suspend fun getTask(projectId: Int, taskId: Int): Task {
         throw NotImplementedError("Tasks.getTask is not implemented")
+    }
 
     suspend fun updateTask(
         projectId: Int,
         taskId: Int,
         request: TaskUpdateRequest,
-    ): Task =
+    ): Task {
         throw NotImplementedError("Tasks.updateTask is not implemented")
+    }
 
     suspend fun deleteComment(
         projectId: Int,
         taskId: Int,
         commentId: Int,
-    ) =
+    ) {
         throw NotImplementedError("Tasks.deleteComment is not implemented")
+    }
 }
 
 class TasksServiceImpl internal constructor(
@@ -75,7 +78,7 @@ class TasksServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.example.com/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val tasks: TasksService
 ) : Closeable {
 
@@ -87,7 +90,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 tasks = tasks ?: TasksServiceImpl(baseUrl, client)
             )
         }
@@ -95,7 +98,7 @@ class PachcaClient private constructor(
         fun stub(
             tasks: TasksService = object : TasksService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             tasks = tasks
         )
 
@@ -123,15 +126,15 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         tasks: TasksService? = null
     ) : this(
-        client = client,
+        _client = client,
         tasks = tasks ?: TasksServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

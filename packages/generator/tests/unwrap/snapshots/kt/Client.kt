@@ -14,8 +14,9 @@ import kotlinx.serialization.json.Json
 import java.io.Closeable
 
 interface MembersService {
-    suspend fun addMembers(id: Int, memberIds: List<Int>) =
+    suspend fun addMembers(id: Int, memberIds: List<Int>) {
         throw NotImplementedError("Members.addMembers is not implemented")
+    }
 }
 
 class MembersServiceImpl internal constructor(
@@ -36,11 +37,13 @@ class MembersServiceImpl internal constructor(
 }
 
 interface ChatsService {
-    suspend fun createChat(request: ChatCreateRequest): Chat =
+    suspend fun createChat(request: ChatCreateRequest): Chat {
         throw NotImplementedError("Chats.createChat is not implemented")
+    }
 
-    suspend fun archiveChat(id: Int) =
+    suspend fun archiveChat(id: Int) {
         throw NotImplementedError("Chats.archiveChat is not implemented")
+    }
 }
 
 class ChatsServiceImpl internal constructor(
@@ -72,7 +75,7 @@ class ChatsServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val chats: ChatsService,
     val members: MembersService
 ) : Closeable {
@@ -86,7 +89,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 chats = chats ?: ChatsServiceImpl(baseUrl, client),
                 members = members ?: MembersServiceImpl(baseUrl, client)
             )
@@ -96,7 +99,7 @@ class PachcaClient private constructor(
             chats: ChatsService = object : ChatsService {},
             members: MembersService = object : MembersService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             chats = chats,
             members = members
         )
@@ -125,17 +128,17 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         chats: ChatsService? = null,
         members: MembersService? = null
     ) : this(
-        client = client,
+        _client = client,
         chats = chats ?: ChatsServiceImpl(baseUrl, client),
         members = members ?: MembersServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

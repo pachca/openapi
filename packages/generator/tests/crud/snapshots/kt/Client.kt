@@ -20,31 +20,38 @@ interface ChatsService {
         cursor: String? = null,
         sortField: String? = null,
         sortOrder: SortOrder? = null,
-    ): ListChatsResponse =
+    ): ListChatsResponse {
         throw NotImplementedError("Chats.listChats is not implemented")
+    }
 
     suspend fun listChatsAll(
         availability: ChatAvailability? = null,
         limit: Int? = null,
         sortField: String? = null,
         sortOrder: SortOrder? = null,
-    ): List<Chat> =
+    ): List<Chat> {
         throw NotImplementedError("Chats.listChatsAll is not implemented")
+    }
 
-    suspend fun getChat(id: Int): Chat =
+    suspend fun getChat(id: Int): Chat {
         throw NotImplementedError("Chats.getChat is not implemented")
+    }
 
-    suspend fun createChat(request: ChatCreateRequest): Chat =
+    suspend fun createChat(request: ChatCreateRequest): Chat {
         throw NotImplementedError("Chats.createChat is not implemented")
+    }
 
-    suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat =
+    suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
         throw NotImplementedError("Chats.updateChat is not implemented")
+    }
 
-    suspend fun archiveChat(id: Int) =
+    suspend fun archiveChat(id: Int) {
         throw NotImplementedError("Chats.archiveChat is not implemented")
+    }
 
-    suspend fun deleteChat(id: Int) =
+    suspend fun deleteChat(id: Int) {
         throw NotImplementedError("Chats.deleteChat is not implemented")
+    }
 }
 
 class ChatsServiceImpl internal constructor(
@@ -150,7 +157,7 @@ class ChatsServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val chats: ChatsService
 ) : Closeable {
 
@@ -162,7 +169,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 chats = chats ?: ChatsServiceImpl(baseUrl, client)
             )
         }
@@ -170,7 +177,7 @@ class PachcaClient private constructor(
         fun stub(
             chats: ChatsService = object : ChatsService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             chats = chats
         )
 
@@ -198,15 +205,15 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         chats: ChatsService? = null
     ) : this(
-        client = client,
+        _client = client,
         chats = chats ?: ChatsServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

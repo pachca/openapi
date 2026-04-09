@@ -14,8 +14,9 @@ import kotlinx.serialization.json.Json
 import java.io.Closeable
 
 interface ItemsService {
-    suspend fun patchItem(id: Int, request: ItemPatchRequest): Item =
+    suspend fun patchItem(id: Int, request: ItemPatchRequest): Item {
         throw NotImplementedError("Items.patchItem is not implemented")
+    }
 }
 
 class ItemsServiceImpl internal constructor(
@@ -37,7 +38,7 @@ class ItemsServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.example.com/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val items: ItemsService
 ) : Closeable {
 
@@ -49,7 +50,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 items = items ?: ItemsServiceImpl(baseUrl, client)
             )
         }
@@ -57,7 +58,7 @@ class PachcaClient private constructor(
         fun stub(
             items: ItemsService = object : ItemsService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             items = items
         )
 
@@ -85,15 +86,15 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         items: ItemsService? = null
     ) : this(
-        client = client,
+        _client = client,
         items = items ?: ItemsServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

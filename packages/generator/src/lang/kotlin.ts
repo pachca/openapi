@@ -494,17 +494,18 @@ function emitInterfaceOperation(lines: string[], op: IROperation, ir: IR): void 
 
   if (op.deprecated) lines.push(`${indent}@Deprecated("This method is deprecated")`);
   if (params.length === 0) {
-    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} =`);
+    lines.push(`${indent}suspend fun ${op.methodName}()${returnSuffix} {`);
   } else if (params.length === 1) {
-    lines.push(`${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} =`);
+    lines.push(`${indent}suspend fun ${op.methodName}(${params[0]})${returnSuffix} {`);
   } else if (params.length <= 2) {
-    lines.push(`${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} =`);
+    lines.push(`${indent}suspend fun ${op.methodName}(${params.join(', ')})${returnSuffix} {`);
   } else {
     lines.push(`${indent}suspend fun ${op.methodName}(`);
     for (const p of params) lines.push(`${indent2}${p},`);
-    lines.push(`${indent})${returnSuffix} =`);
+    lines.push(`${indent})${returnSuffix} {`);
   }
   lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName} is not implemented`)})`);
+  lines.push(`${indent}}`);
 }
 
 function emitInterfacePaginationMethod(lines: string[], op: IROperation, ir: IR): void {
@@ -521,13 +522,14 @@ function emitInterfacePaginationMethod(lines: string[], op: IROperation, ir: IR)
   }
 
   if (params.length <= 2) {
-    lines.push(`${indent}suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> =`);
+    lines.push(`${indent}suspend fun ${op.methodName}All(${params.join(', ')}): List<${itemType}> {`);
   } else {
     lines.push(`${indent}suspend fun ${op.methodName}All(`);
     for (const p of params) lines.push(`${indent2}${p},`);
-    lines.push(`${indent}): List<${itemType}> =`);
+    lines.push(`${indent}): List<${itemType}> {`);
   }
   lines.push(`${indent2}throw NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
+  lines.push(`${indent}}`);
 }
 
 function stripKotlinDefaultValue(param: string): string {
@@ -924,7 +926,7 @@ function emitPachcaClient(
 
   // Private constructor taking nullable client + all services
   lines.push('class PachcaClient private constructor(');
-  lines.push('    private val client: HttpClient?,');
+  lines.push('    private val _client: HttpClient?,');
   for (let i = 0; i < serviceEntries.length; i++) {
     const s = serviceEntries[i];
     const suffix = i < serviceEntries.length - 1 ? ',' : '';
@@ -947,7 +949,7 @@ function emitPachcaClient(
   lines.push('        ): PachcaClient {');
   lines.push('            val client = createClient(token)');
   lines.push('            return PachcaClient(');
-  lines.push('                client = client,');
+  lines.push('                _client = client,');
   for (let i = 0; i < serviceEntries.length; i++) {
     const s = serviceEntries[i];
     const suffix = i < serviceEntries.length - 1 ? ',' : '';
@@ -965,7 +967,7 @@ function emitPachcaClient(
     lines.push(`            ${s.propName}: ${s.className} = object : ${s.className} {}${suffix}`);
   }
   lines.push('        ): PachcaClient = PachcaClient(');
-  lines.push('            client = null,');
+  lines.push('            _client = null,');
   for (let i = 0; i < serviceEntries.length; i++) {
     const s = serviceEntries[i];
     const suffix = i < serviceEntries.length - 1 ? ',' : '';
@@ -1003,7 +1005,7 @@ function emitPachcaClient(
   lines.push('');
 
   // Secondary constructor from pre-configured HttpClient
-  const secondaryArgs = [`baseUrl: String${ktDefault}`, 'client: HttpClient'];
+  const secondaryArgs = [`client: HttpClient`, `baseUrl: String${ktDefault}`];
   for (const s of serviceEntries) {
     secondaryArgs.push(`${s.propName}: ${s.className}? = null`);
   }
@@ -1013,7 +1015,7 @@ function emitPachcaClient(
     lines.push(`        ${secondaryArgs[i]}${suffix}`);
   }
   lines.push('    ) : this(');
-  lines.push('        client = client,');
+  lines.push('        _client = client,');
   for (let i = 0; i < serviceEntries.length; i++) {
     const s = serviceEntries[i];
     const suffix = i < serviceEntries.length - 1 ? ',' : '';
@@ -1022,7 +1024,7 @@ function emitPachcaClient(
   lines.push('    )');
   lines.push('');
   lines.push('    override fun close() {');
-  lines.push('        client?.close()');
+  lines.push('        _client?.close()');
   lines.push('    }');
   lines.push('}');
 }

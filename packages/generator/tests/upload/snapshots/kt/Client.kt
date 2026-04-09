@@ -15,11 +15,13 @@ import kotlinx.serialization.json.Json
 import java.io.Closeable
 
 interface CommonService {
-    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) =
+    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         throw NotImplementedError("Common.uploadFile is not implemented")
+    }
 
-    suspend fun getUploadParams(): UploadParams =
+    suspend fun getUploadParams(): UploadParams {
         throw NotImplementedError("Common.getUploadParams is not implemented")
+    }
 }
 
 class CommonServiceImpl internal constructor(
@@ -65,7 +67,7 @@ class CommonServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val common: CommonService
 ) : Closeable {
 
@@ -77,7 +79,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 common = common ?: CommonServiceImpl(baseUrl, client)
             )
         }
@@ -85,7 +87,7 @@ class PachcaClient private constructor(
         fun stub(
             common: CommonService = object : CommonService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             common = common
         )
 
@@ -113,15 +115,15 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         common: CommonService? = null
     ) : this(
-        client = client,
+        _client = client,
         common = common ?: CommonServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

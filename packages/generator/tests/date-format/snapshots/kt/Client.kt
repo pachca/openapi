@@ -20,11 +20,13 @@ interface ExportService {
         dateTo: String? = null,
         createdAfter: OffsetDateTime? = null,
         limit: Int? = null,
-    ): ListEventsResponse =
+    ): ListEventsResponse {
         throw NotImplementedError("Export.listEvents is not implemented")
+    }
 
-    suspend fun createExport(request: ExportRequest): Export =
+    suspend fun createExport(request: ExportRequest): Export {
         throw NotImplementedError("Export.createExport is not implemented")
+    }
 }
 
 class ExportServiceImpl internal constructor(
@@ -65,7 +67,7 @@ class ExportServiceImpl internal constructor(
 const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val export: ExportService
 ) : Closeable {
 
@@ -77,7 +79,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 export = export ?: ExportServiceImpl(baseUrl, client)
             )
         }
@@ -85,7 +87,7 @@ class PachcaClient private constructor(
         fun stub(
             export: ExportService = object : ExportService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             export = export
         )
 
@@ -113,15 +115,15 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String = PACHCA_API_URL,
         client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
         export: ExportService? = null
     ) : this(
-        client = client,
+        _client = client,
         export = export ?: ExportServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

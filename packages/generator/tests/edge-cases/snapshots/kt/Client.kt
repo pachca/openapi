@@ -19,11 +19,13 @@ interface EventsService {
         isActive: Boolean? = null,
         scopes: List<OAuthScope>? = null,
         filter: EventFilter? = null,
-    ): ListEventsResponse =
+    ): ListEventsResponse {
         throw NotImplementedError("Events.listEvents is not implemented")
+    }
 
-    suspend fun publishEvent(id: Int, scope: OAuthScope): Event =
+    suspend fun publishEvent(id: Int, scope: OAuthScope): Event {
         throw NotImplementedError("Events.publishEvent is not implemented")
+    }
 }
 
 class EventsServiceImpl internal constructor(
@@ -59,8 +61,9 @@ class EventsServiceImpl internal constructor(
 }
 
 interface UploadsService {
-    suspend fun createUpload(request: UploadRequest) =
+    suspend fun createUpload(request: UploadRequest) {
         throw NotImplementedError("Uploads.createUpload is not implemented")
+    }
 }
 
 class UploadsServiceImpl internal constructor(
@@ -85,7 +88,7 @@ class UploadsServiceImpl internal constructor(
 }
 
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val events: EventsService,
     val uploads: UploadsService
 ) : Closeable {
@@ -99,7 +102,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 events = events ?: EventsServiceImpl(baseUrl, client),
                 uploads = uploads ?: UploadsServiceImpl(baseUrl, client)
             )
@@ -109,7 +112,7 @@ class PachcaClient private constructor(
             events: EventsService = object : EventsService {},
             uploads: UploadsService = object : UploadsService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             events = events,
             uploads = uploads
         )
@@ -138,17 +141,17 @@ class PachcaClient private constructor(
     }
 
     constructor(
-        baseUrl: String,
         client: HttpClient,
+        baseUrl: String,
         events: EventsService? = null,
         uploads: UploadsService? = null
     ) : this(
-        client = client,
+        _client = client,
         events = events ?: EventsServiceImpl(baseUrl, client),
         uploads = uploads ?: UploadsServiceImpl(baseUrl, client)
     )
 
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

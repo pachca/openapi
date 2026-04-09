@@ -181,6 +181,7 @@ function generateModels(ir: IR): string {
   lines.push('');
   lines.push('using System;');
   lines.push('using System.Collections.Generic;');
+  lines.push('using System.Linq;');
   lines.push('using System.Text.Json;');
   lines.push('using System.Text.Json.Serialization;');
   lines.push('');
@@ -203,10 +204,10 @@ function generateModels(ir: IR): string {
     if (unionMemberRefs.has(m.name)) continue;
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
     }
     lines.push('');
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
   }
 
   // Response types
@@ -329,6 +330,7 @@ function emitUnion(
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   const fields = m.fields;
   const ext = m.isError ? ' : Exception' : '';
@@ -377,6 +379,30 @@ function emitModel(
           lines.push(`    public ${typeName} ${sdkName} { get; set; } = default!;`);
         }
       }
+    }
+  }
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    public override string Message => Errors is not { Count: > 0 }');
+      lines.push('        ? "api error"');
+      lines.push('        : Errors.Count == 1 ? Errors[0].Message');
+      lines.push('        : $"Errors: {string.Join(\\"; \\", Errors.Select(t => t.Message))}";');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push(`    public override string Message => ${fieldSdkName(errField)} ?? "oauth error";`);
     }
   }
 

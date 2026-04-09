@@ -108,7 +108,7 @@ function isSelfReferencing(m: IRModel): boolean {
   return m.fields.some((f) => fieldRefsModel(f.type, m.name));
 }
 
-function emitModel(lines: string[], m: IRModel): void {
+function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   const proto = m.isError ? 'Codable, Error' : 'Codable';
   const keyword = isSelfReferencing(m) ? 'class' : 'struct';
   lines.push(`public ${keyword} ${m.name}: ${proto} {`);
@@ -136,6 +136,32 @@ function emitModel(lines: string[], m: IRModel): void {
     lines.push(`        self.${fi.name} = ${fi.name}`);
   }
   lines.push('    }');
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    public var localizedDescription: String {');
+      lines.push('        guard !errors.isEmpty else { return "api error" }');
+      lines.push('        if errors.count == 1 { return errors[0].message }');
+      lines.push('        return "Errors: " + errors.map(\\.message).joined(separator: "; ")');
+      lines.push('    }');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push(`    public var localizedDescription: String { ${swiftIdentifier(errField.name)} }`);
+    }
+  }
+
   emitCodingKeys(lines, m.fields);
   lines.push('}');
 }
@@ -210,10 +236,10 @@ function generateModels(ir: IR): string {
   }
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
       lines.push('');
     }
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
     lines.push('');
   }
   for (const u of ir.unions) {

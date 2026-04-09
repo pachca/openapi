@@ -17,3 +17,6 @@ data class ApiError(
 data class OAuthError(
     val error: String? = null,
 ) : Exception()
+ {
+    override val message: String get() = error
+}

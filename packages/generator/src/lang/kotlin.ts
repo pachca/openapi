@@ -195,10 +195,10 @@ function generateModels(ir: IR): string {
     // Emit inline objects before parent
     for (const inl of m.inlineObjects) {
       lines.push('');
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
     }
     lines.push('');
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
   }
 
   // Response types
@@ -284,6 +284,7 @@ function emitUnion(
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   const fields = m.fields;
 
@@ -351,6 +352,34 @@ function emitModel(
 
   const ext = m.isError ? ' : Exception()' : '';
   lines.push(`)${ext}`);
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push(' {');
+      lines.push('    override val message: String');
+      lines.push('        get() = when {');
+      lines.push('            errors.isEmpty() -> "api error"');
+      lines.push('            errors.size == 1 -> errors[0].message');
+      lines.push('            else -> "Errors: " + errors.joinToString("; ") { it.message }');
+      lines.push('        }');
+      lines.push('}');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push(' {');
+      lines.push(`    override val message: String get() = ${fieldSdkName(errField)}`);
+      lines.push('}');
+    }
+  }
 }
 
 function emitResponseType(lines: string[], rt: IRResponseType): void {

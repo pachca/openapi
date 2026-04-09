@@ -331,6 +331,13 @@ class AddTagsRequest:
 class ApiError(Exception):
     errors: list[ApiErrorItem]
 
+    def __str__(self) -> str:
+        if not self.errors:
+            return "api error"
+        if len(self.errors) == 1:
+            return self.errors[0].message
+        return "Errors: " + "; ".join(e.message for e in self.errors)
+
 
 @dataclass
 class ApiErrorItem:
@@ -761,6 +768,9 @@ class MessageWebhookPayload:
 class OAuthError(Exception):
     error: str
     error_description: str
+
+    def __str__(self) -> str:
+        return self.error
 
 
 @dataclass

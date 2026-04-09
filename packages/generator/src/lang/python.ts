@@ -134,6 +134,7 @@ function emitEnum(lines: string[], e: IREnum): void {
 function emitModel(
   lines: string[],
   m: IRModel,
+  allModels: IRModel[],
 ): void {
   lines.push('@dataclass');
   if (m.isError) {
@@ -172,6 +173,33 @@ function emitModel(
       lines.push(`    ${name}: ${fullType} = None`);
     } else {
       lines.push(`    ${name}: ${fullType}`);
+    }
+  }
+
+  if (m.name === 'ApiError') {
+    const errorsField = m.fields.find((f) => f.name === 'errors');
+    const itemsRef = errorsField?.type.kind === 'array' && errorsField.type.items?.kind === 'model'
+      ? errorsField.type.items.ref
+      : undefined;
+    const itemsModel = itemsRef ? allModels.find((am) => am.name === itemsRef) : undefined;
+    const hasMessage = itemsModel?.fields.some((f) => f.name === 'message');
+
+    if (hasMessage) {
+      lines.push('');
+      lines.push('    def __str__(self) -> str:');
+      lines.push('        if not self.errors:');
+      lines.push('            return "api error"');
+      lines.push('        if len(self.errors) == 1:');
+      lines.push('            return self.errors[0].message');
+      lines.push('        return "Errors: " + "; ".join(e.message for e in self.errors)');
+    }
+  }
+  if (m.name === 'OAuthError') {
+    const errField = m.fields.find((f) => f.name === 'error');
+    if (errField) {
+      lines.push('');
+      lines.push('    def __str__(self) -> str:');
+      lines.push(`        return self.${pyFieldName(errField)}`);
     }
   }
 }
@@ -246,17 +274,17 @@ function generateModels(ir: IR): string {
 
   for (const m of ir.models) {
     for (const inl of m.inlineObjects) {
-      emitModel(lines, inl);
+      emitModel(lines, inl, ir.models);
       lines.push('');
       lines.push('');
     }
     if (unionMembers.has(m.name)) {
-      emitModel(lines, m);
+      emitModel(lines, m, ir.models);
       lines.push('');
       lines.push('');
       continue;
     }
-    emitModel(lines, m);
+    emitModel(lines, m, ir.models);
     lines.push('');
     lines.push('');
   }

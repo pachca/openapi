@@ -849,6 +849,14 @@ data class AddTagsRequest(
 data class ApiError(
     val errors: List<ApiErrorItem>,
 ) : Exception()
+ {
+    override val message: String
+        get() = when {
+            errors.isEmpty() -> "api error"
+            errors.size == 1 -> errors[0].message
+            else -> "Errors: " + errors.joinToString("; ") { it.message }
+        }
+}
 
 @Serializable
 data class ApiErrorItem(
@@ -1133,6 +1141,9 @@ data class OAuthError(
     val error: String,
     @SerialName("error_description") val errorDescription: String,
 ) : Exception()
+ {
+    override val message: String get() = error
+}
 
 @Serializable
 data class OpenViewRequestView(

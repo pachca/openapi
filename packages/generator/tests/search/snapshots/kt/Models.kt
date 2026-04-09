@@ -48,6 +48,9 @@ data class SearchPaginationMeta(
 data class OAuthError(
     val error: String? = null,
 ) : Exception()
+ {
+    override val message: String get() = error
+}
 
 @Serializable
 data class SearchMessagesResponse(

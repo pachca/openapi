@@ -26,8 +26,9 @@ interface SecurityService {
         entityType: String? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): GetAuditEventsResponse =
+    ): GetAuditEventsResponse {
         throw NotImplementedError("Security.getAuditEvents is not implemented")
+    }
 
     suspend fun getAuditEventsAll(
         startTime: OffsetDateTime? = null,
@@ -38,8 +39,9 @@ interface SecurityService {
         entityId: String? = null,
         entityType: String? = null,
         limit: Int? = null,
-    ): List<AuditEvent> =
+    ): List<AuditEvent> {
         throw NotImplementedError("Security.getAuditEventsAll is not implemented")
+    }
 }
 
 class SecurityServiceImpl internal constructor(
@@ -108,17 +110,21 @@ class SecurityServiceImpl internal constructor(
 }
 
 interface BotsService {
-    suspend fun getWebhookEvents(limit: Int? = null, cursor: String? = null): GetWebhookEventsResponse =
+    suspend fun getWebhookEvents(limit: Int? = null, cursor: String? = null): GetWebhookEventsResponse {
         throw NotImplementedError("Bots.getWebhookEvents is not implemented")
+    }
 
-    suspend fun getWebhookEventsAll(limit: Int? = null): List<WebhookEvent> =
+    suspend fun getWebhookEventsAll(limit: Int? = null): List<WebhookEvent> {
         throw NotImplementedError("Bots.getWebhookEventsAll is not implemented")
+    }
 
-    suspend fun updateBot(id: Int, request: BotUpdateRequest): BotResponse =
+    suspend fun updateBot(id: Int, request: BotUpdateRequest): BotResponse {
         throw NotImplementedError("Bots.updateBot is not implemented")
+    }
 
-    suspend fun deleteWebhookEvent(id: String) =
+    suspend fun deleteWebhookEvent(id: String) {
         throw NotImplementedError("Bots.deleteWebhookEvent is not implemented")
+    }
 }
 
 class BotsServiceImpl internal constructor(
@@ -181,8 +187,9 @@ interface ChatsService {
         personal: Boolean? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListChatsResponse =
+    ): ListChatsResponse {
         throw NotImplementedError("Chats.listChats is not implemented")
+    }
 
     suspend fun listChatsAll(
         sort: ChatSortField? = null,
@@ -192,23 +199,29 @@ interface ChatsService {
         lastMessageAtBefore: OffsetDateTime? = null,
         personal: Boolean? = null,
         limit: Int? = null,
-    ): List<Chat> =
+    ): List<Chat> {
         throw NotImplementedError("Chats.listChatsAll is not implemented")
+    }
 
-    suspend fun getChat(id: Int): Chat =
+    suspend fun getChat(id: Int): Chat {
         throw NotImplementedError("Chats.getChat is not implemented")
+    }
 
-    suspend fun createChat(request: ChatCreateRequest): Chat =
+    suspend fun createChat(request: ChatCreateRequest): Chat {
         throw NotImplementedError("Chats.createChat is not implemented")
+    }
 
-    suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat =
+    suspend fun updateChat(id: Int, request: ChatUpdateRequest): Chat {
         throw NotImplementedError("Chats.updateChat is not implemented")
+    }
 
-    suspend fun archiveChat(id: Int) =
+    suspend fun archiveChat(id: Int) {
         throw NotImplementedError("Chats.archiveChat is not implemented")
+    }
 
-    suspend fun unarchiveChat(id: Int) =
+    suspend fun unarchiveChat(id: Int) {
         throw NotImplementedError("Chats.unarchiveChat is not implemented")
+    }
 }
 
 class ChatsServiceImpl internal constructor(
@@ -324,20 +337,25 @@ class ChatsServiceImpl internal constructor(
 }
 
 interface CommonService {
-    suspend fun downloadExport(id: Int): String =
+    suspend fun downloadExport(id: Int): String {
         throw NotImplementedError("Common.downloadExport is not implemented")
+    }
 
-    suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse =
+    suspend fun listProperties(entityType: SearchEntityType): ListPropertiesResponse {
         throw NotImplementedError("Common.listProperties is not implemented")
+    }
 
-    suspend fun requestExport(request: ExportRequest) =
+    suspend fun requestExport(request: ExportRequest) {
         throw NotImplementedError("Common.requestExport is not implemented")
+    }
 
-    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) =
+    suspend fun uploadFile(directUrl: String, request: FileUploadRequest) {
         throw NotImplementedError("Common.uploadFile is not implemented")
+    }
 
-    suspend fun getUploadParams(): UploadParams =
+    suspend fun getUploadParams(): UploadParams {
         throw NotImplementedError("Common.getUploadParams is not implemented")
+    }
 }
 
 class CommonServiceImpl internal constructor(
@@ -418,37 +436,45 @@ interface MembersService {
         role: ChatMemberRoleFilter? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListMembersResponse =
+    ): ListMembersResponse {
         throw NotImplementedError("Members.listMembers is not implemented")
+    }
 
     suspend fun listMembersAll(
         id: Int,
         role: ChatMemberRoleFilter? = null,
         limit: Int? = null,
-    ): List<User> =
+    ): List<User> {
         throw NotImplementedError("Members.listMembersAll is not implemented")
+    }
 
-    suspend fun addTags(id: Int, groupTagIds: List<Int>) =
+    suspend fun addTags(id: Int, groupTagIds: List<Int>) {
         throw NotImplementedError("Members.addTags is not implemented")
+    }
 
-    suspend fun addMembers(id: Int, request: AddMembersRequest) =
+    suspend fun addMembers(id: Int, request: AddMembersRequest) {
         throw NotImplementedError("Members.addMembers is not implemented")
+    }
 
     suspend fun updateMemberRole(
         id: Int,
         userId: Int,
         role: ChatMemberRole,
-    ) =
+    ) {
         throw NotImplementedError("Members.updateMemberRole is not implemented")
+    }
 
-    suspend fun removeTag(id: Int, tagId: Int) =
+    suspend fun removeTag(id: Int, tagId: Int) {
         throw NotImplementedError("Members.removeTag is not implemented")
+    }
 
-    suspend fun leaveChat(id: Int) =
+    suspend fun leaveChat(id: Int) {
         throw NotImplementedError("Members.leaveChat is not implemented")
+    }
 
-    suspend fun removeMember(id: Int, userId: Int) =
+    suspend fun removeMember(id: Int, userId: Int) {
         throw NotImplementedError("Members.removeMember is not implemented")
+    }
 }
 
 class MembersServiceImpl internal constructor(
@@ -567,33 +593,41 @@ interface GroupTagsService {
         names: List<String>? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListTagsResponse =
+    ): ListTagsResponse {
         throw NotImplementedError("Group tags.listTags is not implemented")
+    }
 
-    suspend fun listTagsAll(names: List<String>? = null, limit: Int? = null): List<GroupTag> =
+    suspend fun listTagsAll(names: List<String>? = null, limit: Int? = null): List<GroupTag> {
         throw NotImplementedError("Group tags.listTagsAll is not implemented")
+    }
 
-    suspend fun getTag(id: Int): GroupTag =
+    suspend fun getTag(id: Int): GroupTag {
         throw NotImplementedError("Group tags.getTag is not implemented")
+    }
 
     suspend fun getTagUsers(
         id: Int,
         limit: Int? = null,
         cursor: String? = null,
-    ): GetTagUsersResponse =
+    ): GetTagUsersResponse {
         throw NotImplementedError("Group tags.getTagUsers is not implemented")
+    }
 
-    suspend fun getTagUsersAll(id: Int, limit: Int? = null): List<User> =
+    suspend fun getTagUsersAll(id: Int, limit: Int? = null): List<User> {
         throw NotImplementedError("Group tags.getTagUsersAll is not implemented")
+    }
 
-    suspend fun createTag(request: GroupTagRequest): GroupTag =
+    suspend fun createTag(request: GroupTagRequest): GroupTag {
         throw NotImplementedError("Group tags.createTag is not implemented")
+    }
 
-    suspend fun updateTag(id: Int, request: GroupTagRequest): GroupTag =
+    suspend fun updateTag(id: Int, request: GroupTagRequest): GroupTag {
         throw NotImplementedError("Group tags.updateTag is not implemented")
+    }
 
-    suspend fun deleteTag(id: Int) =
+    suspend fun deleteTag(id: Int) {
         throw NotImplementedError("Group tags.deleteTag is not implemented")
+    }
 }
 
 class GroupTagsServiceImpl internal constructor(
@@ -707,34 +741,42 @@ interface MessagesService {
         order: SortOrder? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListChatMessagesResponse =
+    ): ListChatMessagesResponse {
         throw NotImplementedError("Messages.listChatMessages is not implemented")
+    }
 
     suspend fun listChatMessagesAll(
         chatId: Int,
         sort: MessageSortField? = null,
         order: SortOrder? = null,
         limit: Int? = null,
-    ): List<Message> =
+    ): List<Message> {
         throw NotImplementedError("Messages.listChatMessagesAll is not implemented")
+    }
 
-    suspend fun getMessage(id: Int): Message =
+    suspend fun getMessage(id: Int): Message {
         throw NotImplementedError("Messages.getMessage is not implemented")
+    }
 
-    suspend fun createMessage(request: MessageCreateRequest): Message =
+    suspend fun createMessage(request: MessageCreateRequest): Message {
         throw NotImplementedError("Messages.createMessage is not implemented")
+    }
 
-    suspend fun pinMessage(id: Int) =
+    suspend fun pinMessage(id: Int) {
         throw NotImplementedError("Messages.pinMessage is not implemented")
+    }
 
-    suspend fun updateMessage(id: Int, request: MessageUpdateRequest): Message =
+    suspend fun updateMessage(id: Int, request: MessageUpdateRequest): Message {
         throw NotImplementedError("Messages.updateMessage is not implemented")
+    }
 
-    suspend fun deleteMessage(id: Int) =
+    suspend fun deleteMessage(id: Int) {
         throw NotImplementedError("Messages.deleteMessage is not implemented")
+    }
 
-    suspend fun unpinMessage(id: Int) =
+    suspend fun unpinMessage(id: Int) {
         throw NotImplementedError("Messages.unpinMessage is not implemented")
+    }
 }
 
 class MessagesServiceImpl internal constructor(
@@ -847,8 +889,9 @@ class MessagesServiceImpl internal constructor(
 }
 
 interface LinkPreviewsService {
-    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) =
+    suspend fun createLinkPreviews(id: Int, request: LinkPreviewsRequest) {
         throw NotImplementedError("Link Previews.createLinkPreviews is not implemented")
+    }
 }
 
 class LinkPreviewsServiceImpl internal constructor(
@@ -873,21 +916,25 @@ interface ReactionsService {
         id: Int,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListReactionsResponse =
+    ): ListReactionsResponse {
         throw NotImplementedError("Reactions.listReactions is not implemented")
+    }
 
-    suspend fun listReactionsAll(id: Int, limit: Int? = null): List<Reaction> =
+    suspend fun listReactionsAll(id: Int, limit: Int? = null): List<Reaction> {
         throw NotImplementedError("Reactions.listReactionsAll is not implemented")
+    }
 
-    suspend fun addReaction(id: Int, request: ReactionRequest): Reaction =
+    suspend fun addReaction(id: Int, request: ReactionRequest): Reaction {
         throw NotImplementedError("Reactions.addReaction is not implemented")
+    }
 
     suspend fun removeReaction(
         id: Int,
         code: String,
         name: String? = null,
-    ) =
+    ) {
         throw NotImplementedError("Reactions.removeReaction is not implemented")
+    }
 }
 
 class ReactionsServiceImpl internal constructor(
@@ -956,8 +1003,9 @@ interface ReadMembersService {
         id: Int,
         limit: Int? = null,
         cursor: String? = null,
-    ): Any =
+    ): Any {
         throw NotImplementedError("Read members.listReadMembers is not implemented")
+    }
 }
 
 class ReadMembersServiceImpl internal constructor(
@@ -982,11 +1030,13 @@ class ReadMembersServiceImpl internal constructor(
 }
 
 interface ThreadsService {
-    suspend fun getThread(id: Int): Thread =
+    suspend fun getThread(id: Int): Thread {
         throw NotImplementedError("Threads.getThread is not implemented")
+    }
 
-    suspend fun createThread(id: Int): Thread =
+    suspend fun createThread(id: Int): Thread {
         throw NotImplementedError("Threads.createThread is not implemented")
+    }
 }
 
 class ThreadsServiceImpl internal constructor(
@@ -1013,26 +1063,33 @@ class ThreadsServiceImpl internal constructor(
 }
 
 interface ProfileService {
-    suspend fun getTokenInfo(): AccessTokenInfo =
+    suspend fun getTokenInfo(): AccessTokenInfo {
         throw NotImplementedError("Profile.getTokenInfo is not implemented")
+    }
 
-    suspend fun getProfile(): User =
+    suspend fun getProfile(): User {
         throw NotImplementedError("Profile.getProfile is not implemented")
+    }
 
-    suspend fun getStatus(): Any =
+    suspend fun getStatus(): Any {
         throw NotImplementedError("Profile.getStatus is not implemented")
+    }
 
-    suspend fun updateProfileAvatar(image: ByteArray): AvatarData =
+    suspend fun updateProfileAvatar(image: ByteArray): AvatarData {
         throw NotImplementedError("Profile.updateProfileAvatar is not implemented")
+    }
 
-    suspend fun updateStatus(request: StatusUpdateRequest): UserStatus =
+    suspend fun updateStatus(request: StatusUpdateRequest): UserStatus {
         throw NotImplementedError("Profile.updateStatus is not implemented")
+    }
 
-    suspend fun deleteProfileAvatar() =
+    suspend fun deleteProfileAvatar() {
         throw NotImplementedError("Profile.deleteProfileAvatar is not implemented")
+    }
 
-    suspend fun deleteStatus() =
+    suspend fun deleteStatus() {
         throw NotImplementedError("Profile.deleteStatus is not implemented")
+    }
 }
 
 class ProfileServiceImpl internal constructor(
@@ -1124,8 +1181,9 @@ interface SearchService {
         active: Boolean? = null,
         chatSubtype: ChatSubtype? = null,
         personal: Boolean? = null,
-    ): SearchChatsResponse =
+    ): SearchChatsResponse {
         throw NotImplementedError("Search.searchChats is not implemented")
+    }
 
     suspend fun searchChatsAll(
         query: String? = null,
@@ -1136,8 +1194,9 @@ interface SearchService {
         active: Boolean? = null,
         chatSubtype: ChatSubtype? = null,
         personal: Boolean? = null,
-    ): List<Chat> =
+    ): List<Chat> {
         throw NotImplementedError("Search.searchChatsAll is not implemented")
+    }
 
     suspend fun searchMessages(
         query: String? = null,
@@ -1149,8 +1208,9 @@ interface SearchService {
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
         active: Boolean? = null,
-    ): SearchMessagesResponse =
+    ): SearchMessagesResponse {
         throw NotImplementedError("Search.searchMessages is not implemented")
+    }
 
     suspend fun searchMessagesAll(
         query: String? = null,
@@ -1161,8 +1221,9 @@ interface SearchService {
         chatIds: List<Int>? = null,
         userIds: List<Int>? = null,
         active: Boolean? = null,
-    ): List<Message> =
+    ): List<Message> {
         throw NotImplementedError("Search.searchMessagesAll is not implemented")
+    }
 
     suspend fun searchUsers(
         query: String? = null,
@@ -1173,8 +1234,9 @@ interface SearchService {
         createdFrom: OffsetDateTime? = null,
         createdTo: OffsetDateTime? = null,
         companyRoles: List<UserRole>? = null,
-    ): SearchUsersResponse =
+    ): SearchUsersResponse {
         throw NotImplementedError("Search.searchUsers is not implemented")
+    }
 
     suspend fun searchUsersAll(
         query: String? = null,
@@ -1184,8 +1246,9 @@ interface SearchService {
         createdFrom: OffsetDateTime? = null,
         createdTo: OffsetDateTime? = null,
         companyRoles: List<UserRole>? = null,
-    ): List<User> =
+    ): List<User> {
         throw NotImplementedError("Search.searchUsersAll is not implemented")
+    }
 }
 
 class SearchServiceImpl internal constructor(
@@ -1370,23 +1433,29 @@ class SearchServiceImpl internal constructor(
 }
 
 interface TasksService {
-    suspend fun listTasks(limit: Int? = null, cursor: String? = null): ListTasksResponse =
+    suspend fun listTasks(limit: Int? = null, cursor: String? = null): ListTasksResponse {
         throw NotImplementedError("Tasks.listTasks is not implemented")
+    }
 
-    suspend fun listTasksAll(limit: Int? = null): List<Task> =
+    suspend fun listTasksAll(limit: Int? = null): List<Task> {
         throw NotImplementedError("Tasks.listTasksAll is not implemented")
+    }
 
-    suspend fun getTask(id: Int): Task =
+    suspend fun getTask(id: Int): Task {
         throw NotImplementedError("Tasks.getTask is not implemented")
+    }
 
-    suspend fun createTask(request: TaskCreateRequest): Task =
+    suspend fun createTask(request: TaskCreateRequest): Task {
         throw NotImplementedError("Tasks.createTask is not implemented")
+    }
 
-    suspend fun updateTask(id: Int, request: TaskUpdateRequest): Task =
+    suspend fun updateTask(id: Int, request: TaskUpdateRequest): Task {
         throw NotImplementedError("Tasks.updateTask is not implemented")
+    }
 
-    suspend fun deleteTask(id: Int) =
+    suspend fun deleteTask(id: Int) {
         throw NotImplementedError("Tasks.deleteTask is not implemented")
+    }
 }
 
 class TasksServiceImpl internal constructor(
@@ -1465,38 +1534,49 @@ interface UsersService {
         query: String? = null,
         limit: Int? = null,
         cursor: String? = null,
-    ): ListUsersResponse =
+    ): ListUsersResponse {
         throw NotImplementedError("Users.listUsers is not implemented")
+    }
 
-    suspend fun listUsersAll(query: String? = null, limit: Int? = null): List<User> =
+    suspend fun listUsersAll(query: String? = null, limit: Int? = null): List<User> {
         throw NotImplementedError("Users.listUsersAll is not implemented")
+    }
 
-    suspend fun getUser(id: Int): User =
+    suspend fun getUser(id: Int): User {
         throw NotImplementedError("Users.getUser is not implemented")
+    }
 
-    suspend fun getUserStatus(userId: Int): Any =
+    suspend fun getUserStatus(userId: Int): Any {
         throw NotImplementedError("Users.getUserStatus is not implemented")
+    }
 
-    suspend fun createUser(request: UserCreateRequest): User =
+    suspend fun createUser(request: UserCreateRequest): User {
         throw NotImplementedError("Users.createUser is not implemented")
+    }
 
-    suspend fun updateUser(id: Int, request: UserUpdateRequest): User =
+    suspend fun updateUser(id: Int, request: UserUpdateRequest): User {
         throw NotImplementedError("Users.updateUser is not implemented")
+    }
 
-    suspend fun updateUserAvatar(userId: Int, image: ByteArray): AvatarData =
+    suspend fun updateUserAvatar(userId: Int, image: ByteArray): AvatarData {
         throw NotImplementedError("Users.updateUserAvatar is not implemented")
+    }
 
-    suspend fun updateUserStatus(userId: Int, request: StatusUpdateRequest): UserStatus =
+    suspend fun updateUserStatus(userId: Int, request: StatusUpdateRequest): UserStatus {
         throw NotImplementedError("Users.updateUserStatus is not implemented")
+    }
 
-    suspend fun deleteUser(id: Int) =
+    suspend fun deleteUser(id: Int) {
         throw NotImplementedError("Users.deleteUser is not implemented")
+    }
 
-    suspend fun deleteUserAvatar(userId: Int) =
+    suspend fun deleteUserAvatar(userId: Int) {
         throw NotImplementedError("Users.deleteUserAvatar is not implemented")
+    }
 
-    suspend fun deleteUserStatus(userId: Int) =
+    suspend fun deleteUserStatus(userId: Int) {
         throw NotImplementedError("Users.deleteUserStatus is not implemented")
+    }
 }
 
 class UsersServiceImpl internal constructor(
@@ -1631,8 +1711,9 @@ class UsersServiceImpl internal constructor(
 }
 
 interface ViewsService {
-    suspend fun openView(request: OpenViewRequest) =
+    suspend fun openView(request: OpenViewRequest) {
         throw NotImplementedError("Views.openView is not implemented")
+    }
 }
 
 class ViewsServiceImpl internal constructor(
@@ -1652,8 +1733,10 @@ class ViewsServiceImpl internal constructor(
     }
 }
 
+const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
 class PachcaClient private constructor(
-    private val client: HttpClient?,
+    private val _client: HttpClient?,
     val bots: BotsService,
     val chats: ChatsService,
     val common: CommonService,
@@ -1675,7 +1758,7 @@ class PachcaClient private constructor(
     companion object {
         operator fun invoke(
             token: String,
-            baseUrl: String = "https://api.pachca.com/api/shared/v1",
+            baseUrl: String = PACHCA_API_URL,
             bots: BotsService? = null,
             chats: ChatsService? = null,
             common: CommonService? = null,
@@ -1695,7 +1778,7 @@ class PachcaClient private constructor(
         ): PachcaClient {
             val client = createClient(token)
             return PachcaClient(
-                client = client,
+                _client = client,
                 bots = bots ?: BotsServiceImpl(baseUrl, client),
                 chats = chats ?: ChatsServiceImpl(baseUrl, client),
                 common = common ?: CommonServiceImpl(baseUrl, client),
@@ -1733,7 +1816,7 @@ class PachcaClient private constructor(
             users: UsersService = object : UsersService {},
             views: ViewsService = object : ViewsService {}
         ): PachcaClient = PachcaClient(
-            client = null,
+            _client = null,
             bots = bots,
             chats = chats,
             common = common,
@@ -1776,7 +1859,46 @@ class PachcaClient private constructor(
         }
     }
 
+    constructor(
+        client: HttpClient,
+        baseUrl: String = PACHCA_API_URL,
+        bots: BotsService? = null,
+        chats: ChatsService? = null,
+        common: CommonService? = null,
+        groupTags: GroupTagsService? = null,
+        linkPreviews: LinkPreviewsService? = null,
+        members: MembersService? = null,
+        messages: MessagesService? = null,
+        profile: ProfileService? = null,
+        reactions: ReactionsService? = null,
+        readMembers: ReadMembersService? = null,
+        search: SearchService? = null,
+        security: SecurityService? = null,
+        tasks: TasksService? = null,
+        threads: ThreadsService? = null,
+        users: UsersService? = null,
+        views: ViewsService? = null
+    ) : this(
+        _client = client,
+        bots = bots ?: BotsServiceImpl(baseUrl, client),
+        chats = chats ?: ChatsServiceImpl(baseUrl, client),
+        common = common ?: CommonServiceImpl(baseUrl, client),
+        groupTags = groupTags ?: GroupTagsServiceImpl(baseUrl, client),
+        linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client),
+        members = members ?: MembersServiceImpl(baseUrl, client),
+        messages = messages ?: MessagesServiceImpl(baseUrl, client),
+        profile = profile ?: ProfileServiceImpl(baseUrl, client),
+        reactions = reactions ?: ReactionsServiceImpl(baseUrl, client),
+        readMembers = readMembers ?: ReadMembersServiceImpl(baseUrl, client),
+        search = search ?: SearchServiceImpl(baseUrl, client),
+        security = security ?: SecurityServiceImpl(baseUrl, client),
+        tasks = tasks ?: TasksServiceImpl(baseUrl, client),
+        threads = threads ?: ThreadsServiceImpl(baseUrl, client),
+        users = users ?: UsersServiceImpl(baseUrl, client),
+        views = views ?: ViewsServiceImpl(baseUrl, client)
+    )
+
     override fun close() {
-        client?.close()
+        _client?.close()
     }
 }

@@ -2619,6 +2619,11 @@ public sealed class ViewsServiceImpl : ViewsService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient? _client;
@@ -2660,7 +2665,7 @@ public sealed class PachcaClient : IDisposable
         Views = views;
     }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -2669,6 +2674,28 @@ public sealed class PachcaClient : IDisposable
         _client = new HttpClient(handler);
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+
+        Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
+        Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
+        Common = common ?? new CommonServiceImpl(baseUrl, _client);
+        GroupTags = groupTags ?? new GroupTagsServiceImpl(baseUrl, _client);
+        LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
+        Members = members ?? new MembersServiceImpl(baseUrl, _client);
+        Messages = messages ?? new MessagesServiceImpl(baseUrl, _client);
+        Profile = profile ?? new ProfileServiceImpl(baseUrl, _client);
+        Reactions = reactions ?? new ReactionsServiceImpl(baseUrl, _client);
+        ReadMembers = readMembers ?? new ReadMembersServiceImpl(baseUrl, _client);
+        Search = search ?? new SearchServiceImpl(baseUrl, _client);
+        Security = security ?? new SecurityServiceImpl(baseUrl, _client);
+        Tasks = tasks ?? new TasksServiceImpl(baseUrl, _client);
+        Threads = threads ?? new ThreadsServiceImpl(baseUrl, _client);
+        Users = users ?? new UsersServiceImpl(baseUrl, _client);
+        Views = views ?? new ViewsServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, BotsService? bots = null, ChatsService? chats = null, CommonService? common = null, GroupTagsService? groupTags = null, LinkPreviewsService? linkPreviews = null, MembersService? members = null, MessagesService? messages = null, ProfileService? profile = null, ReactionsService? reactions = null, ReadMembersService? readMembers = null, SearchService? search = null, SecurityService? security = null, TasksService? tasks = null, ThreadsService? threads = null, UsersService? users = null, ViewsService? views = null)
+    {
+        _client = client;
 
         Bots = bots ?? new BotsServiceImpl(baseUrl, _client);
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);

@@ -2045,6 +2045,8 @@ private final class RedirectPreventer: NSObject, URLSessionTaskDelegate {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let bots: BotsService
     public let chats: ChatsService
@@ -2082,7 +2084,7 @@ public struct PachcaClient {
         self.views = views
     }
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers),
@@ -2101,6 +2103,27 @@ public struct PachcaClient {
             threads: threads ?? ThreadsServiceImpl(baseURL: baseURL, headers: headers),
             users: users ?? UsersServiceImpl(baseURL: baseURL, headers: headers),
             views: views ?? ViewsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, bots: BotsService? = nil, chats: ChatsService? = nil, common: CommonService? = nil, groupTags: GroupTagsService? = nil, linkPreviews: LinkPreviewsService? = nil, members: MembersService? = nil, messages: MessagesService? = nil, profile: ProfileService? = nil, reactions: ReactionsService? = nil, readMembers: ReadMembersService? = nil, search: SearchService? = nil, security: SecurityService? = nil, tasks: TasksService? = nil, threads: ThreadsService? = nil, users: UsersService? = nil, views: ViewsService? = nil) {
+        self.init(
+            bots: bots ?? BotsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            groupTags: groupTags ?? GroupTagsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            members: members ?? MembersServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            messages: messages ?? MessagesServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            profile: profile ?? ProfileServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            reactions: reactions ?? ReactionsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            readMembers: readMembers ?? ReadMembersServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            search: search ?? SearchServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            security: security ?? SecurityServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            tasks: tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            threads: threads ?? ThreadsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            users: users ?? UsersServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            views: views ?? ViewsServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

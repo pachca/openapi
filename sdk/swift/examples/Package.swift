@@ -22,5 +22,19 @@ let package = Package(
             ],
             path: "Sources/Upload"
         ),
+        .executableTarget(
+            name: "Stub",
+            dependencies: [
+                .product(name: "PachcaSDK", package: "swift"),
+            ],
+            path: "Sources/Stub"
+        ),
+        .executableTarget(
+            name: "HttpClient",
+            dependencies: [
+                .product(name: "PachcaSDK", package: "swift"),
+            ],
+            path: "Sources/HttpClient"
+        ),
     ]
 )

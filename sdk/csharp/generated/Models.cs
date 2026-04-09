@@ -1868,7 +1868,7 @@ public class ApiError : Exception
     public override string Message => Errors is not { Count: > 0 }
         ? "api error"
         : Errors.Count == 1 ? Errors[0].Message
-        : $"Errors: {string.Join(\"; \", Errors.Select(t => t.Message))}";
+        : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";
 }
 
 public class ApiErrorItem

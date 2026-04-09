@@ -2202,8 +2202,11 @@ class ViewsServiceImpl(ViewsService):
                 raise deserialize(ApiError, response.json())
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, bots: BotsService | None = None, chats: ChatsService | None = None, common: CommonService | None = None, group_tags: GroupTagsService | None = None, link_previews: LinkPreviewsService | None = None, members: MembersService | None = None, messages: MessagesService | None = None, profile: ProfileService | None = None, reactions: ReactionsService | None = None, read_members: ReadMembersService | None = None, search: SearchService | None = None, security: SecurityService | None = None, tasks: TasksService | None = None, threads: ThreadsService | None = None, users: UsersService | None = None, views: ViewsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -2228,6 +2231,47 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        bots: BotsService | None = None,
+        chats: ChatsService | None = None,
+        common: CommonService | None = None,
+        group_tags: GroupTagsService | None = None,
+        link_previews: LinkPreviewsService | None = None,
+        members: MembersService | None = None,
+        messages: MessagesService | None = None,
+        profile: ProfileService | None = None,
+        reactions: ReactionsService | None = None,
+        read_members: ReadMembersService | None = None,
+        search: SearchService | None = None,
+        security: SecurityService | None = None,
+        tasks: TasksService | None = None,
+        threads: ThreadsService | None = None,
+        users: UsersService | None = None,
+        views: ViewsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.bots: BotsService = bots or BotsServiceImpl(client)
+        self.chats: ChatsService = chats or ChatsServiceImpl(client)
+        self.common: CommonService = common or CommonServiceImpl(client)
+        self.group_tags: GroupTagsService = group_tags or GroupTagsServiceImpl(client)
+        self.link_previews: LinkPreviewsService = link_previews or LinkPreviewsServiceImpl(client)
+        self.members: MembersService = members or MembersServiceImpl(client)
+        self.messages: MessagesService = messages or MessagesServiceImpl(client)
+        self.profile: ProfileService = profile or ProfileServiceImpl(client)
+        self.reactions: ReactionsService = reactions or ReactionsServiceImpl(client)
+        self.read_members: ReadMembersService = read_members or ReadMembersServiceImpl(client)
+        self.search: SearchService = search or SearchServiceImpl(client)
+        self.security: SecurityService = security or SecurityServiceImpl(client)
+        self.tasks: TasksService = tasks or TasksServiceImpl(client)
+        self.threads: ThreadsService = threads or ThreadsServiceImpl(client)
+        self.users: UsersService = users or UsersServiceImpl(client)
+        self.views: ViewsService = views or ViewsServiceImpl(client)
+        return self
 
     @classmethod
     def stub(

@@ -3509,7 +3509,7 @@ type stubClientConfig struct {
 
 type StubClientOption func(*stubClientConfig)
 
-const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
+const PachcaAPIURL = "https://api.pachca.com/api/shared/v1"
 
 func WithBaseURL(baseURL string) ClientOption {
 	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
@@ -3644,7 +3644,7 @@ func WithStubViews(service ViewsService) StubClientOption {
 }
 
 func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
-	cfg := clientConfig{baseURL: DefaultBaseURL}
+	cfg := clientConfig{baseURL: PachcaAPIURL}
 	for _, opt := range opts {
 		opt(&cfg)
 	}
@@ -3653,6 +3653,95 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+	}
+	var bots BotsService = &BotsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.bots != nil {
+		bots = cfg.bots
+	}
+	var chats ChatsService = &ChatsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
+	var common CommonService = &CommonServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.common != nil {
+		common = cfg.common
+	}
+	var groupTags GroupTagsService = &GroupTagsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.groupTags != nil {
+		groupTags = cfg.groupTags
+	}
+	var linkPreviews LinkPreviewsService = &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.linkPreviews != nil {
+		linkPreviews = cfg.linkPreviews
+	}
+	var members MembersService = &MembersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.members != nil {
+		members = cfg.members
+	}
+	var messages MessagesService = &MessagesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.messages != nil {
+		messages = cfg.messages
+	}
+	var profile ProfileService = &ProfileServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.profile != nil {
+		profile = cfg.profile
+	}
+	var reactions ReactionsService = &ReactionsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.reactions != nil {
+		reactions = cfg.reactions
+	}
+	var readMembers ReadMembersService = &ReadMembersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.readMembers != nil {
+		readMembers = cfg.readMembers
+	}
+	var search SearchService = &SearchServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.search != nil {
+		search = cfg.search
+	}
+	var security SecurityService = &SecurityServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.security != nil {
+		security = cfg.security
+	}
+	var tasks TasksService = &TasksServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.tasks != nil {
+		tasks = cfg.tasks
+	}
+	var threads ThreadsService = &ThreadsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.threads != nil {
+		threads = cfg.threads
+	}
+	var users UsersService = &UsersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.users != nil {
+		users = cfg.users
+	}
+	var views ViewsService = &ViewsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.views != nil {
+		views = cfg.views
+	}
+	return &PachcaClient{
+		Bots        : bots,
+		Chats       : chats,
+		Common      : common,
+		GroupTags   : groupTags,
+		LinkPreviews: linkPreviews,
+		Members     : members,
+		Messages    : messages,
+		Profile     : profile,
+		Reactions   : reactions,
+		ReadMembers : readMembers,
+		Search      : search,
+		Security    : security,
+		Tasks       : tasks,
+		Threads     : threads,
+		Users       : users,
+		Views       : views,
+	}
+}
+
+func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: baseURL}
+	for _, opt := range opts {
+		opt(&cfg)
 	}
 	var bots BotsService = &BotsServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.bots != nil {

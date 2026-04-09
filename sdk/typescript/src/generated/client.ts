@@ -1906,6 +1906,8 @@ export class ViewsServiceImpl extends ViewsService {
   }
 }
 
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
+
 export class PachcaClient {
   readonly bots: BotsService;
   readonly chats: ChatsService;
@@ -1924,24 +1926,50 @@ export class PachcaClient {
   readonly users: UsersService;
   readonly views: ViewsService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.bots = new BotsServiceImpl(baseUrl, headers);
-    this.chats = new ChatsServiceImpl(baseUrl, headers);
-    this.common = new CommonServiceImpl(baseUrl, headers);
-    this.groupTags = new GroupTagsServiceImpl(baseUrl, headers);
-    this.linkPreviews = new LinkPreviewsServiceImpl(baseUrl, headers);
-    this.members = new MembersServiceImpl(baseUrl, headers);
-    this.messages = new MessagesServiceImpl(baseUrl, headers);
-    this.profile = new ProfileServiceImpl(baseUrl, headers);
-    this.reactions = new ReactionsServiceImpl(baseUrl, headers);
-    this.readMembers = new ReadMembersServiceImpl(baseUrl, headers);
-    this.search = new SearchServiceImpl(baseUrl, headers);
-    this.security = new SecurityServiceImpl(baseUrl, headers);
-    this.tasks = new TasksServiceImpl(baseUrl, headers);
-    this.threads = new ThreadsServiceImpl(baseUrl, headers);
-    this.users = new UsersServiceImpl(baseUrl, headers);
-    this.views = new ViewsServiceImpl(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.bots = new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.chats = new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.common = new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.groupTags = new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.linkPreviews = new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.members = new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.messages = new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.profile = new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.reactions = new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.readMembers = new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.search = new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.security = new SecurityServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.tasks = new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.threads = new ThreadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.users = new UsersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.views = new ViewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.bots = tokenOrConfig.bots ?? new BotsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.chats = tokenOrConfig.chats ?? new ChatsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.common = tokenOrConfig.common ?? new CommonServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.groupTags = tokenOrConfig.groupTags ?? new GroupTagsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.linkPreviews = tokenOrConfig.linkPreviews ?? new LinkPreviewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.members = tokenOrConfig.members ?? new MembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.messages = tokenOrConfig.messages ?? new MessagesServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.profile = tokenOrConfig.profile ?? new ProfileServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.reactions = tokenOrConfig.reactions ?? new ReactionsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.readMembers = tokenOrConfig.readMembers ?? new ReadMembersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.search = tokenOrConfig.search ?? new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.security = tokenOrConfig.security ?? new SecurityServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.tasks = tokenOrConfig.tasks ?? new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.threads = tokenOrConfig.threads ?? new ThreadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.users = tokenOrConfig.users ?? new UsersServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.views = tokenOrConfig.views ?? new ViewsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
   }
 
   static stub(bots: BotsService = new BotsService(), chats: ChatsService = new ChatsService(), common: CommonService = new CommonService(), groupTags: GroupTagsService = new GroupTagsService(), linkPreviews: LinkPreviewsService = new LinkPreviewsService(), members: MembersService = new MembersService(), messages: MessagesService = new MessagesService(), profile: ProfileService = new ProfileService(), reactions: ReactionsService = new ReactionsService(), readMembers: ReadMembersService = new ReadMembersService(), search: SearchService = new SearchService(), security: SecurityService = new SecurityService(), tasks: TasksService = new TasksService(), threads: ThreadsService = new ThreadsService(), users: UsersService = new UsersService(), views: ViewsService = new ViewsService()): PachcaClient {

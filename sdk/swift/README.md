@@ -85,6 +85,25 @@ let allChats = try await pachca.chats.listChatsAll()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Свой HTTP-клиент
+
+Для настройки прокси, сертификатов и других параметров HTTP используйте конструктор с заголовками и `URLSession`:
+
+```swift
+let config = URLSessionConfiguration.default
+config.connectionProxyDictionary = [
+    kCFNetworkProxiesHTTPEnable: true,
+    kCFNetworkProxiesHTTPProxy: "proxy.example.com",
+    kCFNetworkProxiesHTTPPort: 8080,
+]
+let session = URLSession(configuration: config)
+
+let headers = ["Authorization": "Bearer \(token)"]
+let client = PachcaClient(headers: headers, session: session)
+```
+
+Полный пример: [`examples/Sources/HttpClient/main.swift`](examples/Sources/HttpClient/main.swift)
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:
@@ -139,3 +158,5 @@ final class MessagesTests: XCTestCase {
     }
 }
 ```
+
+Полный пример: [`examples/Sources/Stub/main.swift`](examples/Sources/Stub/main.swift)

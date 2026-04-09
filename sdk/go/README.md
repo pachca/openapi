@@ -84,6 +84,21 @@ allChats, err := client.Chats.ListChatsAll(ctx, nil)
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Свой HTTP-клиент
+
+Для настройки прокси, TLS и других параметров транспорта используйте `NewPachcaClientWithHTTP()` с готовым `*http.Client`:
+
+```go
+transport := &http.Transport{
+    Proxy: http.ProxyURL(proxyURL),
+}
+httpClient := &http.Client{Transport: transport}
+
+client := pachca.NewPachcaClientWithHTTP(pachca.PachcaAPIURL, httpClient)
+```
+
+Полный пример: [`examples/httpclient.go`](examples/httpclient.go)
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:
@@ -154,3 +169,5 @@ func TestGetMessage(t *testing.T) {
     }
 }
 ```
+
+Полный пример: [`examples/stub.go`](examples/stub.go)

@@ -80,6 +80,26 @@ var allChats = await client.Chats.ListChatsAllAsync();
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Свой HTTP-клиент
+
+Для настройки прокси, сертификатов и других параметров HTTP используйте конструктор с готовым `HttpClient`:
+
+```csharp
+var handler = new HttpClientHandler
+{
+    Proxy = new System.Net.WebProxy("http://proxy:8080"),
+    UseProxy = true,
+};
+
+var http = new HttpClient(handler);
+http.DefaultRequestHeaders.Authorization =
+    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+var client = new PachcaClient(PachcaConstants.PachcaApiUrl, http);
+```
+
+Полный пример: [`../examples/HttpClientExample.cs`](../examples/HttpClientExample.cs)
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:
@@ -145,3 +165,5 @@ var client = PachcaClient.Stub(messages: mockMessages.Object);
 var message = await client.Messages.GetMessageAsync(1);
 Assert.Equal("Test message", message.Content);
 ```
+
+Полный пример: [`../examples/StubExample.cs`](../examples/StubExample.cs)

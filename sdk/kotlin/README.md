@@ -86,6 +86,30 @@ val allChats = pachca.chats.listChatsAll()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Свой HTTP-клиент
+
+Для настройки прокси, сериализации и других параметров HTTP используйте конструктор с готовым Ktor `HttpClient`:
+
+```kotlin
+import com.pachca.sdk.PachcaClient
+import com.pachca.sdk.PACHCA_API_URL
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+
+val http = HttpClient(CIO) {
+    engine {
+        proxy = ProxyBuilder.http(Url("http://proxy:8080"))
+    }
+    defaultRequest {
+        headers.append("Authorization", "Bearer $token")
+    }
+}
+
+val client = PachcaClient(client = http, baseUrl = PACHCA_API_URL)
+```
+
+Полный пример: [`examples/httpclient.kt`](examples/httpclient.kt)
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:
@@ -138,3 +162,5 @@ val client = PachcaClient.stub(messages = mockMessages)
 val message = client.messages.getMessage(1)
 assertEquals("Test message", message.content)
 ```
+
+Полный пример: [`examples/stub.kt`](examples/stub.kt)

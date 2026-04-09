@@ -76,6 +76,24 @@ all_chats = await client.chats.list_chats_all()
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Свой HTTP-клиент
+
+Для настройки прокси, таймаутов и других параметров HTTP используйте `PachcaClient.from_client()` с готовым `httpx.AsyncClient`:
+
+```python
+import httpx
+from pachca import PachcaClient, PACHCA_API_URL
+
+http = httpx.AsyncClient(
+    base_url=PACHCA_API_URL,
+    headers={"Authorization": f"Bearer {token}"},
+    proxy="http://proxy:8080",
+)
+client = PachcaClient.from_client(http)
+```
+
+Полный пример: [`../examples/httpclient.py`](../examples/httpclient.py)
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:
@@ -128,3 +146,5 @@ client = PachcaClient.stub(messages=mock_messages)
 message = await client.messages.get_message(1)
 assert message.content == "Test message"
 ```
+
+Полный пример: [`../examples/stub.py`](../examples/stub.py)

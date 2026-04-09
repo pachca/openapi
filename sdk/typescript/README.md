@@ -66,6 +66,20 @@ const allChats = await pachca.chats.listChatsAll();
 
 SDK автоматически повторяет запросы при получении ответа `429 Too Many Requests`. Используется заголовок `Retry-After` для определения задержки, с экспоненциальным backoff (до 3 попыток).
 
+## Свой HTTP-клиент
+
+Для настройки заголовков, прокси и других параметров HTTP используйте конструктор с объектом конфигурации:
+
+```typescript
+import { PachcaClient } from "@pachca/sdk";
+
+const client = new PachcaClient({
+  headers: { Authorization: `Bearer ${token}` },
+});
+```
+
+Полный пример: [`examples/custom-headers.ts`](examples/custom-headers.ts)
+
 ## Загрузка файлов
 
 Загрузка файла — трёхшаговый процесс:
@@ -121,3 +135,5 @@ const client = PachcaClient.stub({
 const message = await client.messages.getMessage(1);
 expect(message.content).toBe("Test message");
 ```
+
+Полный пример: [`examples/stub.ts`](examples/stub.ts)

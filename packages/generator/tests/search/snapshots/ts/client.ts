@@ -65,12 +65,25 @@ export class SearchServiceImpl extends SearchService {
   }
 }
 
+export const PACHCA_API_URL = "https://api.pachca.com/api/shared/v1";
+
 export class PachcaClient {
   readonly search: SearchService;
 
-  constructor(token: string, baseUrl: string = "https://api.pachca.com/api/shared/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.search = new SearchServiceImpl(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; search?: SearchService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; search?: SearchService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.search = new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.search = tokenOrConfig.search ?? new SearchServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
   }
 
   static stub(search: SearchService = new SearchService()): PachcaClient {

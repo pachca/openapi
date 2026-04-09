@@ -77,8 +77,11 @@ class SearchServiceImpl(SearchService):
         return items
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", search: SearchService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, search: SearchService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -88,6 +91,17 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        search: SearchService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.search: SearchService = search or SearchServiceImpl(client)
+        return self
 
     @classmethod
     def stub(

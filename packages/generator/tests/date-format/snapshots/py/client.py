@@ -74,8 +74,11 @@ class ExportServiceImpl(ExportService):
                 )
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", export: ExportService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, export: ExportService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -85,6 +88,17 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        export: ExportService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.export: ExportService = export or ExportServiceImpl(client)
+        return self
 
     @classmethod
     def stub(

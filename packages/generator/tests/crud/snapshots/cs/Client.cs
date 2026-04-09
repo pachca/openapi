@@ -219,6 +219,11 @@ public sealed class ChatsServiceImpl : ChatsService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient? _client;
@@ -230,11 +235,18 @@ public sealed class PachcaClient : IDisposable
         Chats = chats;
     }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", ChatsService? chats = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, ChatsService? chats = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+
+        Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, ChatsService? chats = null)
+    {
+        _client = client;
 
         Chats = chats ?? new ChatsServiceImpl(baseUrl, _client);
     }

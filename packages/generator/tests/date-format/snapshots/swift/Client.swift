@@ -70,6 +70,8 @@ public final class ExportServiceImpl: ExportService {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let export: ExportService
 
@@ -77,10 +79,16 @@ public struct PachcaClient {
         self.export = export
     }
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", export: ExportService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, export: ExportService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             export: export ?? ExportServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, export: ExportService? = nil) {
+        self.init(
+            export: export ?? ExportServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

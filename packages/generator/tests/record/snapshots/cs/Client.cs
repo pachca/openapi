@@ -56,6 +56,11 @@ public sealed class LinkPreviewsServiceImpl : LinkPreviewsService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient? _client;
@@ -67,11 +72,18 @@ public sealed class PachcaClient : IDisposable
         LinkPreviews = linkPreviews;
     }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", LinkPreviewsService? linkPreviews = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, LinkPreviewsService? linkPreviews = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+
+        LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, LinkPreviewsService? linkPreviews = null)
+    {
+        _client = client;
 
         LinkPreviews = linkPreviews ?? new LinkPreviewsServiceImpl(baseUrl, _client);
     }

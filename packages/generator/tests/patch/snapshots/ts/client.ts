@@ -31,12 +31,25 @@ export class ItemsServiceImpl extends ItemsService {
   }
 }
 
+export const PACHCA_API_URL = "https://api.example.com/v1";
+
 export class PachcaClient {
   readonly items: ItemsService;
 
-  constructor(token: string, baseUrl: string = "https://api.example.com/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.items = new ItemsServiceImpl(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; items?: ItemsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; items?: ItemsService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.items = new ItemsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.items = tokenOrConfig.items ?? new ItemsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
   }
 
   static stub(items: ItemsService = new ItemsService()): PachcaClient {

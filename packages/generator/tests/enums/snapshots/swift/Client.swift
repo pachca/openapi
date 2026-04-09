@@ -14,6 +14,11 @@ public struct PachcaClient {
         )
     }
 
+    public init(baseURL: String, headers: [String: String], session: URLSession = .shared) {
+        self.init(
+        )
+    }
+
     public static func stub() -> PachcaClient {
         PachcaClient(
         )

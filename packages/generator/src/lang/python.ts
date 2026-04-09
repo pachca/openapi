@@ -803,8 +803,13 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   const serviceEntries = ir.services
     .map((s) => ({ prop: pyServiceProp(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.prop.localeCompare(b.prop));
+  if (ir.baseUrl) {
+    lines.push(`PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
+    lines.push('');
+  }
   lines.push('class PachcaClient:');
-  const pyDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  const pyDefault = ir.baseUrl ? ' = PACHCA_API_URL' : '';
   const constructorArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} | None = None`);
   const signature = ['self', `token: str`, `base_url: str${pyDefault}`, ...constructorArgs].join(', ');
   lines.push(`    def __init__(${signature}) -> None:`);
@@ -819,6 +824,23 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
   lines.push('');
   lines.push('    async def close(self) -> None:');
   lines.push('        await self._client.aclose()');
+  lines.push('');
+
+  // from_client classmethod
+  lines.push('    @classmethod');
+  lines.push('    def from_client(');
+  lines.push('        cls,');
+  lines.push('        client: httpx.AsyncClient,');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.prop}: ${s.cls} | None = None,`);
+  }
+  lines.push('    ) -> "PachcaClient":');
+  lines.push('        self = cls.__new__(cls)');
+  lines.push('        self._client = client');
+  for (const s of serviceEntries) {
+    lines.push(`        self.${s.prop}: ${s.cls} = ${s.prop} or ${serviceToImplName(s.cls)}(client)`);
+  }
+  lines.push('        return self');
   lines.push('');
 
   // stub classmethod

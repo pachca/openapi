@@ -812,7 +812,7 @@ function generateClient(ir: IR): string {
   lines.push('');
 
   if (ir.baseUrl) {
-    lines.push(`const DefaultBaseURL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push(`const PachcaAPIURL = ${JSON.stringify(ir.baseUrl)}`);
     lines.push('');
   }
   lines.push('func WithBaseURL(baseURL string) ClientOption {');
@@ -836,7 +836,7 @@ function generateClient(ir: IR): string {
 
   lines.push('func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {');
   if (ir.baseUrl) {
-    lines.push(`\tcfg := clientConfig{baseURL: DefaultBaseURL}`);
+    lines.push(`\tcfg := clientConfig{baseURL: PachcaAPIURL}`);
   } else {
     lines.push('\tcfg := clientConfig{}');
   }
@@ -852,6 +852,30 @@ function generateClient(ir: IR): string {
   }
   lines.push('\t}');
   const maxField = Math.max(...fields.map((f) => f.f.length));
+  for (const f of fields) {
+    const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    const impl = `&${serviceToImplName(f.cls)}{baseURL: cfg.baseURL, client: client}`;
+    lines.push(`\tvar ${varName} ${f.cls} = ${impl}`);
+    lines.push(`\tif ${cfgField} != nil {`);
+    lines.push(`\t\t${varName} = ${cfgField}`);
+    lines.push('\t}');
+  }
+  lines.push('\treturn &PachcaClient{');
+  for (const f of fields) {
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    lines.push(`\t\t${f.f.padEnd(maxField)}: ${varName},`);
+  }
+  lines.push('\t}');
+  lines.push('}');
+  lines.push('');
+
+  // NewPachcaClientWithHTTP function
+  lines.push('func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {');
+  lines.push('\tcfg := clientConfig{baseURL: baseURL}');
+  lines.push('\tfor _, opt := range opts {');
+  lines.push('\t\topt(&cfg)');
+  lines.push('\t}');
   for (const f of fields) {
     const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
     const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);

@@ -170,6 +170,8 @@ public final class ChatsServiceImpl: ChatsService {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let chats: ChatsService
 
@@ -177,10 +179,16 @@ public struct PachcaClient {
         self.chats = chats
     }
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", chats: ChatsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, chats: ChatsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, chats: ChatsService? = nil) {
+        self.init(
+            chats: chats ?? ChatsServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

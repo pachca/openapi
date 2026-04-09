@@ -59,6 +59,8 @@ private final class RedirectPreventer: NSObject, URLSessionTaskDelegate {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let common: CommonService
 
@@ -66,10 +68,16 @@ public struct PachcaClient {
         self.common = common
     }
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", common: CommonService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, common: CommonService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, common: CommonService? = nil) {
+        self.init(
+            common: common ?? CommonServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

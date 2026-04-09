@@ -70,6 +70,8 @@ public final class SearchServiceImpl: SearchService {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let search: SearchService
 
@@ -77,10 +79,16 @@ public struct PachcaClient {
         self.search = search
     }
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", search: SearchService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, search: SearchService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             search: search ?? SearchServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, search: SearchService? = nil) {
+        self.init(
+            search: search ?? SearchServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

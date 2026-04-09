@@ -155,6 +155,14 @@ public sealed class PachcaClient : IDisposable
         Uploads = uploads ?? new UploadsServiceImpl(baseUrl, _client);
     }
 
+    public PachcaClient(string baseUrl, HttpClient client, EventsService? events = null, UploadsService? uploads = null)
+    {
+        _client = client;
+
+        Events = events ?? new EventsServiceImpl(baseUrl, _client);
+        Uploads = uploads ?? new UploadsServiceImpl(baseUrl, _client);
+    }
+
     public static PachcaClient Stub(EventsService? events = null, UploadsService? uploads = null)
     {
         return new PachcaClient(events ?? new EventsService(), uploads ?? new UploadsService());

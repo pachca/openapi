@@ -92,8 +92,11 @@ class ChatsServiceImpl(ChatsService):
                 raise deserialize(ApiError, response.json())
 
 
+PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.pachca.com/api/shared/v1", chats: ChatsService | None = None, members: MembersService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, chats: ChatsService | None = None, members: MembersService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -104,6 +107,19 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        chats: ChatsService | None = None,
+        members: MembersService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.chats: ChatsService = chats or ChatsServiceImpl(client)
+        self.members: MembersService = members or MembersServiceImpl(client)
+        return self
 
     @classmethod
     def stub(

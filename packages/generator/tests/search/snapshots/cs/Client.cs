@@ -120,6 +120,11 @@ public sealed class SearchServiceImpl : SearchService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient? _client;
@@ -131,11 +136,18 @@ public sealed class PachcaClient : IDisposable
         Search = search;
     }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", SearchService? search = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, SearchService? search = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+
+        Search = search ?? new SearchServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, SearchService? search = null)
+    {
+        _client = client;
 
         Search = search ?? new SearchServiceImpl(baseUrl, _client);
     }

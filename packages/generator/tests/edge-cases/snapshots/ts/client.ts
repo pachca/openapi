@@ -97,10 +97,22 @@ export class PachcaClient {
   readonly events: EventsService;
   readonly uploads: UploadsService;
 
-  constructor(token: string, baseUrl: string) {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.events = new EventsServiceImpl(baseUrl, headers);
-    this.uploads = new UploadsServiceImpl(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; events?: EventsService; uploads?: UploadsService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; events?: EventsService; uploads?: UploadsService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? '';
+      this.events = new EventsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.uploads = new UploadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? '';
+      this.events = tokenOrConfig.events ?? new EventsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+      this.uploads = tokenOrConfig.uploads ?? new UploadsServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
   }
 
   static stub(events: EventsService = new EventsService(), uploads: UploadsService = new UploadsService()): PachcaClient {

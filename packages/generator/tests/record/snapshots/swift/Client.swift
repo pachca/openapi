@@ -46,6 +46,8 @@ public final class LinkPreviewsServiceImpl: LinkPreviewsService {
     }
 }
 
+public let pachcaAPIURL = "https://api.pachca.com/api/shared/v1"
+
 public struct PachcaClient {
     public let linkPreviews: LinkPreviewsService
 
@@ -53,10 +55,16 @@ public struct PachcaClient {
         self.linkPreviews = linkPreviews
     }
 
-    public init(token: String, baseURL: String = "https://api.pachca.com/api/shared/v1", linkPreviews: LinkPreviewsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, linkPreviews: LinkPreviewsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, linkPreviews: LinkPreviewsService? = nil) {
+        self.init(
+            linkPreviews: linkPreviews ?? LinkPreviewsServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

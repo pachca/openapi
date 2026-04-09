@@ -35,6 +35,8 @@ class LinkPreviewsServiceImpl internal constructor(
     }
 }
 
+const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
 class PachcaClient private constructor(
     private val client: HttpClient?,
     val linkPreviews: LinkPreviewsService
@@ -43,7 +45,7 @@ class PachcaClient private constructor(
     companion object {
         operator fun invoke(
             token: String,
-            baseUrl: String = "https://api.pachca.com/api/shared/v1",
+            baseUrl: String = PACHCA_API_URL,
             linkPreviews: LinkPreviewsService? = null
         ): PachcaClient {
             val client = createClient(token)
@@ -82,6 +84,15 @@ class PachcaClient private constructor(
             defaultRequest { bearerAuth(token) }
         }
     }
+
+    constructor(
+        baseUrl: String = PACHCA_API_URL,
+        client: HttpClient,
+        linkPreviews: LinkPreviewsService? = null
+    ) : this(
+        client = client,
+        linkPreviews = linkPreviews ?: LinkPreviewsServiceImpl(baseUrl, client)
+    )
 
     override fun close() {
         client?.close()

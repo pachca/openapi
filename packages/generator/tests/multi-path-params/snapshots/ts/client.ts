@@ -65,12 +65,25 @@ export class TasksServiceImpl extends TasksService {
   }
 }
 
+export const PACHCA_API_URL = "https://api.example.com/v1";
+
 export class PachcaClient {
   readonly tasks: TasksService;
 
-  constructor(token: string, baseUrl: string = "https://api.example.com/v1") {
-    const headers = { Authorization: `Bearer ${token}` };
-    this.tasks = new TasksServiceImpl(baseUrl, headers);
+  constructor(token: string, baseUrl?: string);
+  constructor(config: { headers: Record<string, string>; baseUrl?: string; tasks?: TasksService });
+  constructor(tokenOrConfig: string | { headers: Record<string, string>; baseUrl?: string; tasks?: TasksService }, baseUrl?: string) {
+    let resolvedHeaders: Record<string, string>;
+    let resolvedBaseUrl: string;
+    if (typeof tokenOrConfig === 'string') {
+      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };
+      resolvedBaseUrl = baseUrl ?? PACHCA_API_URL;
+      this.tasks = new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    } else {
+      resolvedHeaders = tokenOrConfig.headers;
+      resolvedBaseUrl = tokenOrConfig.baseUrl ?? PACHCA_API_URL;
+      this.tasks = tokenOrConfig.tasks ?? new TasksServiceImpl(resolvedBaseUrl, resolvedHeaders);
+    }
   }
 
   static stub(tasks: TasksService = new TasksService()): PachcaClient {

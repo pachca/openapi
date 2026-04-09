@@ -50,6 +50,11 @@ public sealed class CommonServiceImpl : CommonService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient? _client;
@@ -61,7 +66,7 @@ public sealed class PachcaClient : IDisposable
         Common = common;
     }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", CommonService? common = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, CommonService? common = null)
     {
         var handler = new SocketsHttpHandler
         {
@@ -70,6 +75,13 @@ public sealed class PachcaClient : IDisposable
         _client = new HttpClient(handler);
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+
+        Common = common ?? new CommonServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, CommonService? common = null)
+    {
+        _client = client;
 
         Common = common ?? new CommonServiceImpl(baseUrl, _client);
     }

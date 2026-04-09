@@ -601,6 +601,10 @@ function generateClient(ir: IR): string {
   const svcs = ir.services
     .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
     .sort((a, b) => a.prop.localeCompare(b.prop));
+  if (ir.baseUrl) {
+    lines.push(`public let pachcaAPIURL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
+  }
   lines.push('public struct PachcaClient {');
   for (const s of svcs) lines.push(`    public let ${s.prop}: ${s.cls}`);
   lines.push('');
@@ -615,7 +619,7 @@ function generateClient(ir: IR): string {
   lines.push('');
 
   // Public init with token/baseURL delegating to private init
-  const swiftDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  const swiftDefault = ir.baseUrl ? ' = pachcaAPIURL' : '';
   const initArgs = [`token: String`, `baseURL: String${swiftDefault}`];
   for (const s of svcs) initArgs.push(`${s.prop}: ${s.cls}? = nil`);
   lines.push(`    public init(${initArgs.join(', ')}) {`);
@@ -625,6 +629,20 @@ function generateClient(ir: IR): string {
     const s = svcs[i];
     const suffix = i < svcs.length - 1 ? ',' : '';
     lines.push(`            ${s.prop}: ${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers)${suffix}`);
+  }
+  lines.push('        )');
+  lines.push('    }');
+  lines.push('');
+
+  // Public init with headers/baseURL/session (no token)
+  const headersInitArgs = [`baseURL: String${swiftDefault}`, 'headers: [String: String]', 'session: URLSession = .shared'];
+  for (const s of svcs) headersInitArgs.push(`${s.prop}: ${s.cls}? = nil`);
+  lines.push(`    public init(${headersInitArgs.join(', ')}) {`);
+  lines.push('        self.init(');
+  for (let i = 0; i < svcs.length; i++) {
+    const s = svcs[i];
+    const suffix = i < svcs.length - 1 ? ',' : '';
+    lines.push(`            ${s.prop}: ${s.prop} ?? ${serviceToImplName(s.cls)}(baseURL: baseURL, headers: headers, session: session)${suffix}`);
   }
   lines.push('        )');
   lines.push('    }');

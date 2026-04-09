@@ -84,7 +84,7 @@ type stubClientConfig struct {
 
 type StubClientOption func(*stubClientConfig)
 
-const DefaultBaseURL = "https://api.pachca.com/api/shared/v1"
+const PachcaAPIURL = "https://api.pachca.com/api/shared/v1"
 
 func WithBaseURL(baseURL string) ClientOption {
 	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
@@ -99,12 +99,26 @@ func WithStubLinkPreviews(service LinkPreviewsService) StubClientOption {
 }
 
 func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
-	cfg := clientConfig{baseURL: DefaultBaseURL}
+	cfg := clientConfig{baseURL: PachcaAPIURL}
 	for _, opt := range opts {
 		opt(&cfg)
 	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
+	}
+	var linkPreviews LinkPreviewsService = &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.linkPreviews != nil {
+		linkPreviews = cfg.linkPreviews
+	}
+	return &PachcaClient{
+		LinkPreviews: linkPreviews,
+	}
+}
+
+func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: baseURL}
+	for _, opt := range opts {
+		opt(&cfg)
 	}
 	var linkPreviews LinkPreviewsService = &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.linkPreviews != nil {

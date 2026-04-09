@@ -132,7 +132,7 @@ type stubClientConfig struct {
 
 type StubClientOption func(*stubClientConfig)
 
-const DefaultBaseURL = "https://api.example.com/v1"
+const PachcaAPIURL = "https://api.example.com/v1"
 
 func WithBaseURL(baseURL string) ClientOption {
 	return func(cfg *clientConfig) { cfg.baseURL = baseURL }
@@ -147,12 +147,26 @@ func WithStubTasks(service TasksService) StubClientOption {
 }
 
 func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
-	cfg := clientConfig{baseURL: DefaultBaseURL}
+	cfg := clientConfig{baseURL: PachcaAPIURL}
 	for _, opt := range opts {
 		opt(&cfg)
 	}
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
+	}
+	var tasks TasksService = &TasksServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.tasks != nil {
+		tasks = cfg.tasks
+	}
+	return &PachcaClient{
+		Tasks: tasks,
+	}
+}
+
+func NewPachcaClientWithHTTP(baseURL string, client *http.Client, opts ...ClientOption) *PachcaClient {
+	cfg := clientConfig{baseURL: baseURL}
+	for _, opt := range opts {
+		opt(&cfg)
 	}
 	var tasks TasksService = &TasksServiceImpl{baseURL: cfg.baseURL, client: client}
 	if cfg.tasks != nil {

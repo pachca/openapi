@@ -88,6 +88,11 @@ public sealed class ExportServiceImpl : ExportService
     }
 }
 
+public static class PachcaConstants
+{
+    public const string PachcaApiUrl = "https://api.pachca.com/api/shared/v1";
+}
+
 public sealed class PachcaClient : IDisposable
 {
     private readonly HttpClient? _client;
@@ -99,11 +104,18 @@ public sealed class PachcaClient : IDisposable
         Export = export;
     }
 
-    public PachcaClient(string token, string baseUrl = "https://api.pachca.com/api/shared/v1", ExportService? export = null)
+    public PachcaClient(string token, string baseUrl = PachcaConstants.PachcaApiUrl, ExportService? export = null)
     {
         _client = new HttpClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+
+        Export = export ?? new ExportServiceImpl(baseUrl, _client);
+    }
+
+    public PachcaClient(string baseUrl, HttpClient client, ExportService? export = null)
+    {
+        _client = client;
 
         Export = export ?? new ExportServiceImpl(baseUrl, _client);
     }

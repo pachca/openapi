@@ -79,6 +79,8 @@ public final class TasksServiceImpl: TasksService {
     }
 }
 
+public let pachcaAPIURL = "https://api.example.com/v1"
+
 public struct PachcaClient {
     public let tasks: TasksService
 
@@ -86,10 +88,16 @@ public struct PachcaClient {
         self.tasks = tasks
     }
 
-    public init(token: String, baseURL: String = "https://api.example.com/v1", tasks: TasksService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, tasks: TasksService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             tasks: tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, tasks: TasksService? = nil) {
+        self.init(
+            tasks: tasks ?? TasksServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

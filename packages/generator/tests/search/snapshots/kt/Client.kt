@@ -100,6 +100,8 @@ class SearchServiceImpl internal constructor(
     }
 }
 
+const val PACHCA_API_URL = "https://api.pachca.com/api/shared/v1"
+
 class PachcaClient private constructor(
     private val client: HttpClient?,
     val search: SearchService
@@ -108,7 +110,7 @@ class PachcaClient private constructor(
     companion object {
         operator fun invoke(
             token: String,
-            baseUrl: String = "https://api.pachca.com/api/shared/v1",
+            baseUrl: String = PACHCA_API_URL,
             search: SearchService? = null
         ): PachcaClient {
             val client = createClient(token)
@@ -147,6 +149,15 @@ class PachcaClient private constructor(
             defaultRequest { bearerAuth(token) }
         }
     }
+
+    constructor(
+        baseUrl: String = PACHCA_API_URL,
+        client: HttpClient,
+        search: SearchService? = null
+    ) : this(
+        client = client,
+        search = search ?: SearchServiceImpl(baseUrl, client)
+    )
 
     override fun close() {
         client?.close()

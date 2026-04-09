@@ -44,6 +44,8 @@ public final class ItemsServiceImpl: ItemsService {
     }
 }
 
+public let pachcaAPIURL = "https://api.example.com/v1"
+
 public struct PachcaClient {
     public let items: ItemsService
 
@@ -51,10 +53,16 @@ public struct PachcaClient {
         self.items = items
     }
 
-    public init(token: String, baseURL: String = "https://api.example.com/v1", items: ItemsService? = nil) {
+    public init(token: String, baseURL: String = pachcaAPIURL, items: ItemsService? = nil) {
         let headers = ["Authorization": "Bearer \(token)"]
         self.init(
             items: items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers)
+        )
+    }
+
+    public init(baseURL: String = pachcaAPIURL, headers: [String: String], session: URLSession = .shared, items: ItemsService? = nil) {
+        self.init(
+            items: items ?? ItemsServiceImpl(baseURL: baseURL, headers: headers, session: session)
         )
     }
 

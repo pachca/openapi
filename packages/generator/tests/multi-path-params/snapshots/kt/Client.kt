@@ -72,6 +72,8 @@ class TasksServiceImpl internal constructor(
     }
 }
 
+const val PACHCA_API_URL = "https://api.example.com/v1"
+
 class PachcaClient private constructor(
     private val client: HttpClient?,
     val tasks: TasksService
@@ -80,7 +82,7 @@ class PachcaClient private constructor(
     companion object {
         operator fun invoke(
             token: String,
-            baseUrl: String = "https://api.example.com/v1",
+            baseUrl: String = PACHCA_API_URL,
             tasks: TasksService? = null
         ): PachcaClient {
             val client = createClient(token)
@@ -119,6 +121,15 @@ class PachcaClient private constructor(
             defaultRequest { bearerAuth(token) }
         }
     }
+
+    constructor(
+        baseUrl: String = PACHCA_API_URL,
+        client: HttpClient,
+        tasks: TasksService? = null
+    ) : this(
+        client = client,
+        tasks = tasks ?: TasksServiceImpl(baseUrl, client)
+    )
 
     override fun close() {
         client?.close()

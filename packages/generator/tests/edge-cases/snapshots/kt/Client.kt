@@ -137,6 +137,17 @@ class PachcaClient private constructor(
         }
     }
 
+    constructor(
+        baseUrl: String,
+        client: HttpClient,
+        events: EventsService? = null,
+        uploads: UploadsService? = null
+    ) : this(
+        client = client,
+        events = events ?: EventsServiceImpl(baseUrl, client),
+        uploads = uploads ?: UploadsServiceImpl(baseUrl, client)
+    )
+
     override fun close() {
         client?.close()
     }

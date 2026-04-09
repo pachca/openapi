@@ -135,6 +135,13 @@ public struct PachcaClient {
         )
     }
 
+    public init(baseURL: String, headers: [String: String], session: URLSession = .shared, events: EventsService? = nil, uploads: UploadsService? = nil) {
+        self.init(
+            events: events ?? EventsServiceImpl(baseURL: baseURL, headers: headers, session: session),
+            uploads: uploads ?? UploadsServiceImpl(baseURL: baseURL, headers: headers, session: session)
+        )
+    }
+
     public static func stub(events: EventsService = EventsService(), uploads: UploadsService = UploadsService()) -> PachcaClient {
         PachcaClient(
             events: events,

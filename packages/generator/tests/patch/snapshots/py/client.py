@@ -35,8 +35,11 @@ class ItemsServiceImpl(ItemsService):
                 raise deserialize(ApiError, body)
 
 
+PACHCA_API_URL = "https://api.example.com/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.example.com/v1", items: ItemsService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, items: ItemsService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -46,6 +49,17 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        items: ItemsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.items: ItemsService = items or ItemsServiceImpl(client)
+        return self
 
     @classmethod
     def stub(

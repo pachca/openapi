@@ -1038,7 +1038,14 @@ function emitPachcaClient(
   ir: IR,
   hasRedirect: boolean,
 ): void {
-  const csDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  if (ir.baseUrl) {
+    lines.push(`public static class PachcaConstants`);
+    lines.push('{');
+    lines.push(`    public const string PachcaApiUrl = ${JSON.stringify(ir.baseUrl)};`);
+    lines.push('}');
+    lines.push('');
+  }
+  const csDefault = ir.baseUrl ? ' = PachcaConstants.PachcaApiUrl' : '';
 
   lines.push('public sealed class PachcaClient : IDisposable');
   lines.push('{');
@@ -1092,6 +1099,21 @@ function emitPachcaClient(
     lines.push(`        ${s.propName} = ${s.paramName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
   }
 
+  lines.push('    }');
+
+  // Public constructor with pre-configured HttpClient
+  lines.push('');
+  const httpConstructorParams = ['string baseUrl', 'HttpClient client'];
+  for (const s of serviceEntries) {
+    httpConstructorParams.push(`${s.className}? ${s.paramName} = null`);
+  }
+  lines.push(`    public PachcaClient(${httpConstructorParams.join(', ')})`);
+  lines.push('    {');
+  lines.push('        _client = client;');
+  lines.push('');
+  for (const s of serviceEntries) {
+    lines.push(`        ${s.propName} = ${s.paramName} ?? new ${serviceToImplName(s.className)}(baseUrl, _client);`);
+  }
   lines.push('    }');
 
   // Static Stub() factory method

@@ -121,6 +121,19 @@ class PachcaClient:
         await self._client.aclose()
 
     @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        events: EventsService | None = None,
+        uploads: UploadsService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.events: EventsService = events or EventsServiceImpl(client)
+        self.uploads: UploadsService = uploads or UploadsServiceImpl(client)
+        return self
+
+    @classmethod
     def stub(
         cls,
         events: EventsService | None = None,

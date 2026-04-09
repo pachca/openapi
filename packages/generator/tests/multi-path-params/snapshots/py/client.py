@@ -88,8 +88,11 @@ class TasksServiceImpl(TasksService):
                 )
 
 
+PACHCA_API_URL = "https://api.example.com/v1"
+
+
 class PachcaClient:
-    def __init__(self, token: str, base_url: str = "https://api.example.com/v1", tasks: TasksService | None = None) -> None:
+    def __init__(self, token: str, base_url: str = PACHCA_API_URL, tasks: TasksService | None = None) -> None:
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={"Authorization": f"Bearer {token}"},
@@ -99,6 +102,17 @@ class PachcaClient:
 
     async def close(self) -> None:
         await self._client.aclose()
+
+    @classmethod
+    def from_client(
+        cls,
+        client: httpx.AsyncClient,
+        tasks: TasksService | None = None,
+    ) -> "PachcaClient":
+        self = cls.__new__(cls)
+        self._client = client
+        self.tasks: TasksService = tasks or TasksServiceImpl(client)
+        return self
 
     @classmethod
     def stub(

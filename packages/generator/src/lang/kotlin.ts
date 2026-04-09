@@ -910,7 +910,11 @@ function emitPachcaClient(
   ir: IR,
   hasRedirect: boolean,
 ): void {
-  const ktDefault = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
+  if (ir.baseUrl) {
+    lines.push(`const val PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)}`);
+    lines.push('');
+  }
+  const ktDefault = ir.baseUrl ? ' = PACHCA_API_URL' : '';
   const serviceEntries = ir.services
     .map((svc) => ({
       propName: tagToProperty(svc.tag),
@@ -996,6 +1000,26 @@ function emitPachcaClient(
   lines.push('            defaultRequest { bearerAuth(token) }');
   lines.push('        }');
   lines.push('    }');
+  lines.push('');
+
+  // Secondary constructor from pre-configured HttpClient
+  const secondaryArgs = [`baseUrl: String${ktDefault}`, 'client: HttpClient'];
+  for (const s of serviceEntries) {
+    secondaryArgs.push(`${s.propName}: ${s.className}? = null`);
+  }
+  lines.push(`    constructor(`);
+  for (let i = 0; i < secondaryArgs.length; i++) {
+    const suffix = i < secondaryArgs.length - 1 ? ',' : '';
+    lines.push(`        ${secondaryArgs[i]}${suffix}`);
+  }
+  lines.push('    ) : this(');
+  lines.push('        client = client,');
+  for (let i = 0; i < serviceEntries.length; i++) {
+    const s = serviceEntries[i];
+    const suffix = i < serviceEntries.length - 1 ? ',' : '';
+    lines.push(`        ${s.propName} = ${s.propName} ?: ${serviceToImplName(s.className)}(baseUrl, client)${suffix}`);
+  }
+  lines.push('    )');
   lines.push('');
   lines.push('    override fun close() {');
   lines.push('        client?.close()');

@@ -465,15 +465,35 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     const serviceEntries = ir.services
       .map((s) => ({ prop: tagToProperty(s.tag), cls: tagToServiceName(s.tag) }))
       .sort((a, b) => a.prop.localeCompare(b.prop));
+    if (ir.baseUrl) {
+      lines.push(`export const PACHCA_API_URL = ${JSON.stringify(ir.baseUrl)};`);
+      lines.push('');
+    }
     lines.push('export class PachcaClient {');
     for (const s of serviceEntries) lines.push(`  readonly ${s.prop}: ${s.cls};`);
     lines.push('');
-    const defaultUrl = ir.baseUrl ? ` = ${JSON.stringify(ir.baseUrl)}` : '';
-    lines.push(`  constructor(token: string, baseUrl: string${defaultUrl}) {`);
-    lines.push('    const headers = { Authorization: `Bearer ${token}` };');
+    const defaultUrl = ir.baseUrl ? ' = PACHCA_API_URL' : '';
+    const configFields = ['headers: Record<string, string>', 'baseUrl?: string'];
+    for (const s of serviceEntries) configFields.push(`${s.prop}?: ${s.cls}`);
+    const configType = `{ ${configFields.join('; ')} }`;
+    lines.push(`  constructor(token: string, baseUrl?: string);`);
+    lines.push(`  constructor(config: ${configType});`);
+    lines.push(`  constructor(tokenOrConfig: string | ${configType}, baseUrl?: string) {`);
+    lines.push('    let resolvedHeaders: Record<string, string>;');
+    lines.push('    let resolvedBaseUrl: string;');
+    lines.push(`    if (typeof tokenOrConfig === 'string') {`);
+    lines.push('      resolvedHeaders = { Authorization: `Bearer ${tokenOrConfig}` };');
+    lines.push(`      resolvedBaseUrl = baseUrl ?? ${ir.baseUrl ? 'PACHCA_API_URL' : `''`};`);
     for (const s of serviceEntries) {
-      lines.push(`    this.${s.prop} = new ${serviceToImplName(s.cls)}(baseUrl, headers);`);
+      lines.push(`      this.${s.prop} = new ${serviceToImplName(s.cls)}(resolvedBaseUrl, resolvedHeaders);`);
     }
+    lines.push('    } else {');
+    lines.push('      resolvedHeaders = tokenOrConfig.headers;');
+    lines.push(`      resolvedBaseUrl = tokenOrConfig.baseUrl ?? ${ir.baseUrl ? 'PACHCA_API_URL' : `''`};`);
+    for (const s of serviceEntries) {
+      lines.push(`      this.${s.prop} = tokenOrConfig.${s.prop} ?? new ${serviceToImplName(s.cls)}(resolvedBaseUrl, resolvedHeaders);`);
+    }
+    lines.push('    }');
     lines.push('  }');
     lines.push('');
     // Static stub() factory method

@@ -1863,6 +1863,8 @@ public class ApiError : Exception
 {
     [JsonPropertyName("errors")]
     public List<ApiErrorItem> Errors { get; set; } = default!;
+
+    public override string Message => Errors.Count == 1 ? Errors[0].Message : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";
 }
 
 public class ApiErrorItem
@@ -2291,6 +2293,7 @@ public class OAuthError : Exception
     public string Error { get; set; } = default!;
     [JsonPropertyName("error_description")]
     public string ErrorDescription { get; set; } = default!;
+    public override string Message => Error;
 }
 
 public class OpenViewRequestView

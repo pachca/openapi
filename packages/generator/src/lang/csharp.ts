@@ -395,7 +395,7 @@ function emitModel(
       lines.push('    public override string Message => Errors is not { Count: > 0 }');
       lines.push('        ? "api error"');
       lines.push('        : Errors.Count == 1 ? Errors[0].Message');
-      lines.push('        : $"Errors: {string.Join(\\"; \\", Errors.Select(t => t.Message))}";');
+      lines.push('        : $"Errors: {string.Join("; ", Errors.Select(t => t.Message))}";');
     }
   }
   if (m.name === 'OAuthError') {

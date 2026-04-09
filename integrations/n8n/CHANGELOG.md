@@ -1,6 +1,14 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.5 (2026-04-09)
+
+### Bug Fixes
+
+- Fix v1 file attachments — `fileType` → `file_type` mapping now applied to both v1 top-level `files` and v2 `additionalFields.files` (previously v1 blocks sent camelCase and got 422 `system: null`)
+- Fix buttons clear in raw JSON mode — `[]` now clears buttons in PUT message (previously only `[[]]` worked; v1 behavior restored)
+- Auto-retry on rate limit and server errors — 429 and 5xx responses are retried up to 3 times, honoring `Retry-After` header, with exponential backoff and jitter (aligns with Pachca's documented retry strategy); removes the need for manual Wait nodes
+
 ## 2.0.4 (2026-04-08)
 
 ### Bug Fixes

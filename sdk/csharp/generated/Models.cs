@@ -2562,7 +2562,7 @@ public class User
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
     [JsonPropertyName("last_activity_at")]
-    public DateTimeOffset LastActivityAt { get; set; } = default!;
+    public DateTimeOffset? LastActivityAt { get; set; }
     [JsonPropertyName("time_zone")]
     public string TimeZone { get; set; } = default!;
     [JsonPropertyName("image_url")]

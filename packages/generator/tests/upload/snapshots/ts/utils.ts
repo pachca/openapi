@@ -53,11 +53,6 @@ export async function fetchWithRetry(input: RequestInfo | URL, init?: RequestIni
       await new Promise((r) => setTimeout(r, addJitter(delay)));
       continue;
     }
-    if (RETRYABLE_5XX.has(response.status) && attempt < MAX_RETRIES) {
-      const delay = jitter(10000 * Math.pow(2, attempt));
-      await new Promise((r) => setTimeout(r, delay));
-      continue;
-    }
     return response;
   }
 }

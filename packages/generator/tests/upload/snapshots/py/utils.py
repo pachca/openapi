@@ -120,9 +120,5 @@ class RetryTransport(httpx.AsyncBaseTransport):
                 delay = attempt + 1
                 await asyncio.sleep(_add_jitter(delay))
                 continue
-            if response.status_code in _RETRYABLE_5XX and attempt < self._max_retries:
-                delay = _jitter(10 * (2 ** attempt))
-                await asyncio.sleep(delay)
-                continue
             return response
         return response  # unreachable

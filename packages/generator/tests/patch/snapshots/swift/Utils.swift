@@ -50,11 +50,6 @@ func dataWithRetry(session: URLSession, for request: URLRequest, delegate: (any 
                 continue
             }
         }
-        if let http = response as? HTTPURLResponse, retryable5xx.contains(http.statusCode), attempt < maxRetries {
-            let delay = jitter(10 * UInt64(pow(2.0, Double(attempt))) * 1_000_000_000)
-            try await _Concurrency.Task.sleep(nanoseconds: delay)
-            continue
-        }
         return (data, response)
     }
     return try await session.data(for: request, delegate: delegate) // unreachable

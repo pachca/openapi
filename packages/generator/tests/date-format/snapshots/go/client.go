@@ -152,8 +152,12 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var export ExportService = &ExportServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.export != nil {
+		export = cfg.export
+	}
 	return &PachcaClient{
-		Export: func() ExportService { if cfg.export != nil { return cfg.export }; return &ExportServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Export: export,
 	}
 }
 
@@ -162,7 +166,11 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var export ExportService = &ExportServiceStub{}
+	if cfg.export != nil {
+		export = cfg.export
+	}
 	return &PachcaClient{
-		Export: func() ExportService { if cfg.export != nil { return cfg.export }; return &ExportServiceStub{} }(),
+		Export: export,
 	}
 }

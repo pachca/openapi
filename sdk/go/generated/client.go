@@ -3654,23 +3654,87 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 			return http.ErrUseLastResponse
 		},
 	}
+	var bots BotsService = &BotsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.bots != nil {
+		bots = cfg.bots
+	}
+	var chats ChatsService = &ChatsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
+	var common CommonService = &CommonServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.common != nil {
+		common = cfg.common
+	}
+	var groupTags GroupTagsService = &GroupTagsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.groupTags != nil {
+		groupTags = cfg.groupTags
+	}
+	var linkPreviews LinkPreviewsService = &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.linkPreviews != nil {
+		linkPreviews = cfg.linkPreviews
+	}
+	var members MembersService = &MembersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.members != nil {
+		members = cfg.members
+	}
+	var messages MessagesService = &MessagesServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.messages != nil {
+		messages = cfg.messages
+	}
+	var profile ProfileService = &ProfileServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.profile != nil {
+		profile = cfg.profile
+	}
+	var reactions ReactionsService = &ReactionsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.reactions != nil {
+		reactions = cfg.reactions
+	}
+	var readMembers ReadMembersService = &ReadMembersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.readMembers != nil {
+		readMembers = cfg.readMembers
+	}
+	var search SearchService = &SearchServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.search != nil {
+		search = cfg.search
+	}
+	var security SecurityService = &SecurityServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.security != nil {
+		security = cfg.security
+	}
+	var tasks TasksService = &TasksServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.tasks != nil {
+		tasks = cfg.tasks
+	}
+	var threads ThreadsService = &ThreadsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.threads != nil {
+		threads = cfg.threads
+	}
+	var users UsersService = &UsersServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.users != nil {
+		users = cfg.users
+	}
+	var views ViewsService = &ViewsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.views != nil {
+		views = cfg.views
+	}
 	return &PachcaClient{
-		Bots        : func() BotsService { if cfg.bots != nil { return cfg.bots }; return &BotsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Chats       : func() ChatsService { if cfg.chats != nil { return cfg.chats }; return &ChatsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Common      : func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		GroupTags   : func() GroupTagsService { if cfg.groupTags != nil { return cfg.groupTags }; return &GroupTagsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		LinkPreviews: func() LinkPreviewsService { if cfg.linkPreviews != nil { return cfg.linkPreviews }; return &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Members     : func() MembersService { if cfg.members != nil { return cfg.members }; return &MembersServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Messages    : func() MessagesService { if cfg.messages != nil { return cfg.messages }; return &MessagesServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Profile     : func() ProfileService { if cfg.profile != nil { return cfg.profile }; return &ProfileServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Reactions   : func() ReactionsService { if cfg.reactions != nil { return cfg.reactions }; return &ReactionsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		ReadMembers : func() ReadMembersService { if cfg.readMembers != nil { return cfg.readMembers }; return &ReadMembersServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Search      : func() SearchService { if cfg.search != nil { return cfg.search }; return &SearchServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Security    : func() SecurityService { if cfg.security != nil { return cfg.security }; return &SecurityServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Tasks       : func() TasksService { if cfg.tasks != nil { return cfg.tasks }; return &TasksServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Threads     : func() ThreadsService { if cfg.threads != nil { return cfg.threads }; return &ThreadsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Users       : func() UsersService { if cfg.users != nil { return cfg.users }; return &UsersServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Views       : func() ViewsService { if cfg.views != nil { return cfg.views }; return &ViewsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Bots        : bots,
+		Chats       : chats,
+		Common      : common,
+		GroupTags   : groupTags,
+		LinkPreviews: linkPreviews,
+		Members     : members,
+		Messages    : messages,
+		Profile     : profile,
+		Reactions   : reactions,
+		ReadMembers : readMembers,
+		Search      : search,
+		Security    : security,
+		Tasks       : tasks,
+		Threads     : threads,
+		Users       : users,
+		Views       : views,
 	}
 }
 
@@ -3679,22 +3743,86 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var bots BotsService = &BotsServiceStub{}
+	if cfg.bots != nil {
+		bots = cfg.bots
+	}
+	var chats ChatsService = &ChatsServiceStub{}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
+	var common CommonService = &CommonServiceStub{}
+	if cfg.common != nil {
+		common = cfg.common
+	}
+	var groupTags GroupTagsService = &GroupTagsServiceStub{}
+	if cfg.groupTags != nil {
+		groupTags = cfg.groupTags
+	}
+	var linkPreviews LinkPreviewsService = &LinkPreviewsServiceStub{}
+	if cfg.linkPreviews != nil {
+		linkPreviews = cfg.linkPreviews
+	}
+	var members MembersService = &MembersServiceStub{}
+	if cfg.members != nil {
+		members = cfg.members
+	}
+	var messages MessagesService = &MessagesServiceStub{}
+	if cfg.messages != nil {
+		messages = cfg.messages
+	}
+	var profile ProfileService = &ProfileServiceStub{}
+	if cfg.profile != nil {
+		profile = cfg.profile
+	}
+	var reactions ReactionsService = &ReactionsServiceStub{}
+	if cfg.reactions != nil {
+		reactions = cfg.reactions
+	}
+	var readMembers ReadMembersService = &ReadMembersServiceStub{}
+	if cfg.readMembers != nil {
+		readMembers = cfg.readMembers
+	}
+	var search SearchService = &SearchServiceStub{}
+	if cfg.search != nil {
+		search = cfg.search
+	}
+	var security SecurityService = &SecurityServiceStub{}
+	if cfg.security != nil {
+		security = cfg.security
+	}
+	var tasks TasksService = &TasksServiceStub{}
+	if cfg.tasks != nil {
+		tasks = cfg.tasks
+	}
+	var threads ThreadsService = &ThreadsServiceStub{}
+	if cfg.threads != nil {
+		threads = cfg.threads
+	}
+	var users UsersService = &UsersServiceStub{}
+	if cfg.users != nil {
+		users = cfg.users
+	}
+	var views ViewsService = &ViewsServiceStub{}
+	if cfg.views != nil {
+		views = cfg.views
+	}
 	return &PachcaClient{
-		Bots        : func() BotsService { if cfg.bots != nil { return cfg.bots }; return &BotsServiceStub{} }(),
-		Chats       : func() ChatsService { if cfg.chats != nil { return cfg.chats }; return &ChatsServiceStub{} }(),
-		Common      : func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceStub{} }(),
-		GroupTags   : func() GroupTagsService { if cfg.groupTags != nil { return cfg.groupTags }; return &GroupTagsServiceStub{} }(),
-		LinkPreviews: func() LinkPreviewsService { if cfg.linkPreviews != nil { return cfg.linkPreviews }; return &LinkPreviewsServiceStub{} }(),
-		Members     : func() MembersService { if cfg.members != nil { return cfg.members }; return &MembersServiceStub{} }(),
-		Messages    : func() MessagesService { if cfg.messages != nil { return cfg.messages }; return &MessagesServiceStub{} }(),
-		Profile     : func() ProfileService { if cfg.profile != nil { return cfg.profile }; return &ProfileServiceStub{} }(),
-		Reactions   : func() ReactionsService { if cfg.reactions != nil { return cfg.reactions }; return &ReactionsServiceStub{} }(),
-		ReadMembers : func() ReadMembersService { if cfg.readMembers != nil { return cfg.readMembers }; return &ReadMembersServiceStub{} }(),
-		Search      : func() SearchService { if cfg.search != nil { return cfg.search }; return &SearchServiceStub{} }(),
-		Security    : func() SecurityService { if cfg.security != nil { return cfg.security }; return &SecurityServiceStub{} }(),
-		Tasks       : func() TasksService { if cfg.tasks != nil { return cfg.tasks }; return &TasksServiceStub{} }(),
-		Threads     : func() ThreadsService { if cfg.threads != nil { return cfg.threads }; return &ThreadsServiceStub{} }(),
-		Users       : func() UsersService { if cfg.users != nil { return cfg.users }; return &UsersServiceStub{} }(),
-		Views       : func() ViewsService { if cfg.views != nil { return cfg.views }; return &ViewsServiceStub{} }(),
+		Bots        : bots,
+		Chats       : chats,
+		Common      : common,
+		GroupTags   : groupTags,
+		LinkPreviews: linkPreviews,
+		Members     : members,
+		Messages    : messages,
+		Profile     : profile,
+		Reactions   : reactions,
+		ReadMembers : readMembers,
+		Search      : search,
+		Security    : security,
+		Tasks       : tasks,
+		Threads     : threads,
+		Users       : users,
+		Views       : views,
 	}
 }

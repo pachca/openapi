@@ -851,12 +851,20 @@ function generateClient(ir: IR): string {
     lines.push('\t\t},');
   }
   lines.push('\t}');
-  lines.push('\treturn &PachcaClient{');
   const maxField = Math.max(...fields.map((f) => f.f.length));
   for (const f of fields) {
     const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
     const impl = `&${serviceToImplName(f.cls)}{baseURL: cfg.baseURL, client: client}`;
-    lines.push(`\t\t${f.f.padEnd(maxField)}: func() ${f.cls} { if ${cfgField} != nil { return ${cfgField} }; return ${impl} }(),`);
+    lines.push(`\tvar ${varName} ${f.cls} = ${impl}`);
+    lines.push(`\tif ${cfgField} != nil {`);
+    lines.push(`\t\t${varName} = ${cfgField}`);
+    lines.push('\t}');
+  }
+  lines.push('\treturn &PachcaClient{');
+  for (const f of fields) {
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    lines.push(`\t\t${f.f.padEnd(maxField)}: ${varName},`);
   }
   lines.push('\t}');
   lines.push('}');
@@ -868,11 +876,19 @@ function generateClient(ir: IR): string {
   lines.push('\tfor _, opt := range opts {');
   lines.push('\t\topt(&cfg)');
   lines.push('\t}');
-  lines.push('\treturn &PachcaClient{');
   for (const f of fields) {
     const cfgField = `cfg.${f.f.charAt(0).toLowerCase() + f.f.slice(1)}`;
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
     const stub = `&${serviceToStubName(f.cls)}{}`;
-    lines.push(`\t\t${f.f.padEnd(maxField)}: func() ${f.cls} { if ${cfgField} != nil { return ${cfgField} }; return ${stub} }(),`);
+    lines.push(`\tvar ${varName} ${f.cls} = ${stub}`);
+    lines.push(`\tif ${cfgField} != nil {`);
+    lines.push(`\t\t${varName} = ${cfgField}`);
+    lines.push('\t}');
+  }
+  lines.push('\treturn &PachcaClient{');
+  for (const f of fields) {
+    const varName = f.f.charAt(0).toLowerCase() + f.f.slice(1);
+    lines.push(`\t\t${f.f.padEnd(maxField)}: ${varName},`);
   }
   lines.push('\t}');
   lines.push('}');

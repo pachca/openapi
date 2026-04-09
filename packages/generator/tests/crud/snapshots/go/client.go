@@ -346,8 +346,12 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var chats ChatsService = &ChatsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
 	return &PachcaClient{
-		Chats: func() ChatsService { if cfg.chats != nil { return cfg.chats }; return &ChatsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Chats: chats,
 	}
 }
 
@@ -356,7 +360,11 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var chats ChatsService = &ChatsServiceStub{}
+	if cfg.chats != nil {
+		chats = cfg.chats
+	}
 	return &PachcaClient{
-		Chats: func() ChatsService { if cfg.chats != nil { return cfg.chats }; return &ChatsServiceStub{} }(),
+		Chats: chats,
 	}
 }

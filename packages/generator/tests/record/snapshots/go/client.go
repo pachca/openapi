@@ -106,8 +106,12 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var linkPreviews LinkPreviewsService = &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.linkPreviews != nil {
+		linkPreviews = cfg.linkPreviews
+	}
 	return &PachcaClient{
-		LinkPreviews: func() LinkPreviewsService { if cfg.linkPreviews != nil { return cfg.linkPreviews }; return &LinkPreviewsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		LinkPreviews: linkPreviews,
 	}
 }
 
@@ -116,7 +120,11 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var linkPreviews LinkPreviewsService = &LinkPreviewsServiceStub{}
+	if cfg.linkPreviews != nil {
+		linkPreviews = cfg.linkPreviews
+	}
 	return &PachcaClient{
-		LinkPreviews: func() LinkPreviewsService { if cfg.linkPreviews != nil { return cfg.linkPreviews }; return &LinkPreviewsServiceStub{} }(),
+		LinkPreviews: linkPreviews,
 	}
 }

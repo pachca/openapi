@@ -208,9 +208,17 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var events EventsService = &EventsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.events != nil {
+		events = cfg.events
+	}
+	var uploads UploadsService = &UploadsServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.uploads != nil {
+		uploads = cfg.uploads
+	}
 	return &PachcaClient{
-		Events : func() EventsService { if cfg.events != nil { return cfg.events }; return &EventsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
-		Uploads: func() UploadsService { if cfg.uploads != nil { return cfg.uploads }; return &UploadsServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Events : events,
+		Uploads: uploads,
 	}
 }
 
@@ -219,8 +227,16 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var events EventsService = &EventsServiceStub{}
+	if cfg.events != nil {
+		events = cfg.events
+	}
+	var uploads UploadsService = &UploadsServiceStub{}
+	if cfg.uploads != nil {
+		uploads = cfg.uploads
+	}
 	return &PachcaClient{
-		Events : func() EventsService { if cfg.events != nil { return cfg.events }; return &EventsServiceStub{} }(),
-		Uploads: func() UploadsService { if cfg.uploads != nil { return cfg.uploads }; return &UploadsServiceStub{} }(),
+		Events : events,
+		Uploads: uploads,
 	}
 }

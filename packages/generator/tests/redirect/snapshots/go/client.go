@@ -108,8 +108,12 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 			return http.ErrUseLastResponse
 		},
 	}
+	var common CommonService = &CommonServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.common != nil {
+		common = cfg.common
+	}
 	return &PachcaClient{
-		Common: func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Common: common,
 	}
 }
 
@@ -118,7 +122,11 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var common CommonService = &CommonServiceStub{}
+	if cfg.common != nil {
+		common = cfg.common
+	}
 	return &PachcaClient{
-		Common: func() CommonService { if cfg.common != nil { return cfg.common }; return &CommonServiceStub{} }(),
+		Common: common,
 	}
 }

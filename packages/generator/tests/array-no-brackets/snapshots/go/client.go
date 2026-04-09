@@ -146,8 +146,12 @@ func NewPachcaClient(token string, opts ...ClientOption) *PachcaClient {
 	client := &http.Client{
 		Transport: &authTransport{token: token, base: http.DefaultTransport},
 	}
+	var search SearchService = &SearchServiceImpl{baseURL: cfg.baseURL, client: client}
+	if cfg.search != nil {
+		search = cfg.search
+	}
 	return &PachcaClient{
-		Search: func() SearchService { if cfg.search != nil { return cfg.search }; return &SearchServiceImpl{baseURL: cfg.baseURL, client: client} }(),
+		Search: search,
 	}
 }
 
@@ -156,7 +160,11 @@ func NewStubPachcaClient(opts ...StubClientOption) *PachcaClient {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var search SearchService = &SearchServiceStub{}
+	if cfg.search != nil {
+		search = cfg.search
+	}
 	return &PachcaClient{
-		Search: func() SearchService { if cfg.search != nil { return cfg.search }; return &SearchServiceStub{} }(),
+		Search: search,
 	}
 }

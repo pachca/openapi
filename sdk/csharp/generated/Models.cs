@@ -1690,7 +1690,6 @@ public class ViewBlockFileInput : ViewBlockUnion
 [JsonDerivedType(typeof(ViewSubmitWebhookPayload), "view")]
 [JsonDerivedType(typeof(ChatMemberWebhookPayload), "chat_member")]
 [JsonDerivedType(typeof(CompanyMemberWebhookPayload), "company_member")]
-[JsonDerivedType(typeof(LinkSharedWebhookPayload), "message")]
 public abstract class WebhookPayloadUnion
 {
     [JsonPropertyName("type")]

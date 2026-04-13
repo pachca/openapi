@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import * as yaml from 'js-yaml';
 import { parseOpenAPI, clearCache } from '../lib/openapi/parser';
 import { generateUrlFromOperation, generateTitle } from '../lib/openapi/mapper';
 import {
@@ -35,6 +36,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
   content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
+  content += `> English documentation: [llms-en.txt](${SITE_URL}/llms-en.txt)\n\n`;
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
@@ -1317,6 +1319,172 @@ async function generateGuideMdFiles() {
   return files;
 }
 
+/**
+ * Parse the English OpenAPI spec and generate a concise English API reference.
+ * Each endpoint: METHOD /path — description, parameters, request body fields.
+ */
+function generateEnglishApiReference(): string {
+  const enYamlPath = path.join(process.cwd(), '..', '..', 'packages', 'spec', 'openapi.en.yaml');
+  const fileContents = fs.readFileSync(enYamlPath, 'utf8');
+  const spec = yaml.load(fileContents) as Record<string, unknown>;
+
+  const paths = spec.paths as Record<string, Record<string, unknown>> | undefined;
+  const components = spec.components as Record<string, Record<string, unknown>> | undefined;
+  const schemas = (components?.schemas ?? {}) as Record<string, Record<string, unknown>>;
+
+  if (!paths) return '';
+
+  // Resolve top-level $ref in schemas
+  function resolveSchema(ref: unknown): Record<string, unknown> | undefined {
+    if (!ref || typeof ref !== 'object') return undefined;
+    const obj = ref as Record<string, unknown>;
+    if (typeof obj.$ref === 'string') {
+      const name = obj.$ref.replace('#/components/schemas/', '');
+      return schemas[name] as Record<string, unknown> | undefined;
+    }
+    return obj;
+  }
+
+  // Extract property names and descriptions from a schema
+  function getSchemaProperties(
+    schema: Record<string, unknown>
+  ): { name: string; desc: string; required: boolean }[] {
+    const props = schema.properties as Record<string, Record<string, unknown>> | undefined;
+    const requiredArr = (schema.required as string[]) ?? [];
+    if (!props) return [];
+    return Object.entries(props).map(([name, prop]) => ({
+      name,
+      desc: (prop.description as string) ?? '',
+      required: requiredArr.includes(name),
+    }));
+  }
+
+  // Group operations by tag
+  const grouped = new Map<
+    string,
+    { method: string; path: string; desc: string; params: string; body: string }[]
+  >();
+
+  const methodOrder = ['get', 'post', 'put', 'patch', 'delete'];
+  for (const [pathStr, pathItem] of Object.entries(paths)) {
+    for (const method of methodOrder) {
+      const operation = pathItem[method] as Record<string, unknown> | undefined;
+      if (!operation) continue;
+
+      const tag = ((operation.tags as string[]) ?? ['Other'])[0];
+      if (!grouped.has(tag)) grouped.set(tag, []);
+
+      // Description: first line is title, rest is detail
+      const rawDesc = (operation.description as string) ?? '';
+      const descLines = rawDesc
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
+      const desc = descLines.slice(1).join(' ').substring(0, 200) || descLines[0] || '';
+
+      // Parameters
+      const params = (operation.parameters as Record<string, unknown>[] | undefined) ?? [];
+      const paramStr = params
+        .filter((p) => p.in === 'query' || p.in === 'path')
+        .map((p) => {
+          const required = p.required ? '' : '?';
+          return `${p.name}${required}`;
+        })
+        .join(', ');
+
+      // Request body properties
+      let bodyStr = '';
+      const requestBody = operation.requestBody as Record<string, unknown> | undefined;
+      if (requestBody) {
+        const content = requestBody.content as Record<string, Record<string, unknown>> | undefined;
+        const jsonContent = content?.['application/json'] ?? content?.['multipart/form-data'];
+        if (jsonContent?.schema) {
+          const bodySchema = resolveSchema(jsonContent.schema);
+          if (bodySchema) {
+            const bodyProps = getSchemaProperties(bodySchema);
+            if (bodyProps.length > 0) {
+              // If there's a single wrapper property (like "chat" or "message"), dig into it
+              if (bodyProps.length === 1) {
+                const wrapper = bodyProps[0];
+                const wrapperSchema = resolveSchema(
+                  (bodySchema.properties as Record<string, unknown>)?.[wrapper.name]
+                );
+                if (wrapperSchema) {
+                  const innerProps = getSchemaProperties(wrapperSchema);
+                  if (innerProps.length > 0) {
+                    bodyStr = `{ ${wrapper.name}: { ${innerProps.map((p) => `${p.name}${p.required ? '*' : ''}`).join(', ')} } }`;
+                  }
+                }
+              }
+              if (!bodyStr) {
+                bodyStr = `{ ${bodyProps.map((p) => `${p.name}${p.required ? '*' : ''}`).join(', ')} }`;
+              }
+            }
+          }
+        }
+      }
+
+      grouped.get(tag)!.push({
+        method: method.toUpperCase(),
+        path: `/api/shared/v1${pathStr}`,
+        desc,
+        params: paramStr,
+        body: bodyStr,
+      });
+    }
+  }
+
+  let content = '# API Reference\n\n';
+  content += 'Base URL: `https://api.pachca.com/api/shared/v1`\n\n';
+  content += 'All endpoints require `Authorization: Bearer <TOKEN>` header.\n\n';
+
+  // Sort tags to match the spec order
+  const tagOrder = ((spec.tags as { name: string }[]) ?? []).map((t) => t.name);
+  const sortedTags = [...grouped.keys()].sort(
+    (a, b) =>
+      (tagOrder.indexOf(a) === -1 ? 999 : tagOrder.indexOf(a)) -
+      (tagOrder.indexOf(b) === -1 ? 999 : tagOrder.indexOf(b))
+  );
+
+  for (const tag of sortedTags) {
+    const endpoints = grouped.get(tag)!;
+    content += `## ${tag}\n\n`;
+    for (const ep of endpoints) {
+      content += `### ${ep.method} ${ep.path}\n`;
+      if (ep.desc) content += `${ep.desc}\n`;
+      if (ep.params) content += `Parameters: ${ep.params}\n`;
+      if (ep.body) content += `Body: ${ep.body}\n`;
+      content += '\n';
+    }
+  }
+
+  return content;
+}
+
+/**
+ * Generate an English-only documentation file for Context7 indexing.
+ * Combines: Library Rules + How-to Guides (with SDK examples) + English API Reference.
+ * Must stay under ~1M chars to avoid Context7's "File too large" filter.
+ */
+function generateLlmsEnTxt(): string {
+  let content = '# Pachca API — Complete English Documentation\n\n';
+  content +=
+    '> REST API for Pachca corporate messenger. Manage messages, chats, users, tasks, bots, and webhooks.\n\n';
+  content += '> Base URL: https://api.pachca.com/api/shared/v1\n\n';
+
+  content += generateLibraryRules();
+  content += '---\n\n';
+
+  const howToContent = generateHowToGuides();
+  validateSdkCodeBlocks('How-to Guides (EN)', howToContent);
+  content += howToContent;
+  content += '---\n\n';
+
+  content += generateEnglishApiReference();
+
+  return content;
+}
+
 const REPO_ROOT = path.join(process.cwd(), '..', '..');
 
 const UTF8_BOM = '\uFEFF';
@@ -1345,6 +1513,10 @@ async function main() {
   const llmsFullTxt = await generateLlmsFullTxt(api);
   writeFile('public/llms-full.txt', llmsFullTxt);
   console.log('✓ public/llms-full.txt');
+
+  const llmsEnTxt = generateLlmsEnTxt();
+  writeFile('public/llms-en.txt', llmsEnTxt);
+  console.log(`✓ public/llms-en.txt (${llmsEnTxt.length} chars)`);
 
   const skillMd = generateLegacySkillMd(api);
   writeFile('public/skill.md', skillMd);
@@ -1375,7 +1547,7 @@ async function main() {
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
   console.log(
-    `\nTotal: ${6 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+    `\nTotal: ${7 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
   );
 }
 

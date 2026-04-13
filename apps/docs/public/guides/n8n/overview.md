@@ -50,7 +50,7 @@
 - **7 новых ресурсов:** Chat Member, Custom Property, Read Member, Link Preview, Search, Chat Export, Security
 - **Курсорная пагинация** с Return All / Limit вместо ручного `per`/`page`
 - **AI Tool Use** — `usableAsTool: true` для использования с AI Agent
-- **Trigger-нода** с авторегистрацией вебхука через Bot ID и 16 типами событий
+- **Trigger-нода** с ручной и автоматической регистрацией вебхука, 16 типами событий
 - **Поисковые выпадающие списки** для Chat ID и User ID
 - **Загрузка файлов** через S3 с поддержкой URL и Binary Data
 - **Полнотекстовый поиск** по сообщениям, чатам и пользователям

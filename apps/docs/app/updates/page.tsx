@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = data.frontmatter.description || extractFirstParagraph(data.content);
 
   return {
-    title: data.frontmatter.title,
+    title: { absolute: `${data.frontmatter.title} | Руководство разработчика` },
     description,
     alternates: {
       canonical: '/updates',

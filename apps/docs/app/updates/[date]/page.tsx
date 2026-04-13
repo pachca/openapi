@@ -37,7 +37,7 @@ export async function generateMetadata({
     .trim();
 
   return {
-    title,
+    title: { absolute: `${title} | Руководство разработчика` },
     description,
     alternates: {
       canonical: `/updates/${date}`,

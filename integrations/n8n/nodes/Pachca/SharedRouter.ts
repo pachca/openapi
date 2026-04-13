@@ -910,7 +910,7 @@ async function executeRoute(
 	// === Special handlers ===
 	if (route.special === 'messageButtons') {
 		const buttons = buildButtonRows(this, i);
-		if (buttons.length) body.buttons = buttons;
+		if (buttons !== null) body.buttons = buttons;
 		const files = cleanFileAttachments(this, i);
 		if (files.length) body.files = files;
 	}

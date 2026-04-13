@@ -243,6 +243,130 @@ content-length: 358
     IP-адрес Пачки: `37.200.70.177`
 
 
+## Реализация webhook handler
+
+Полный пример обработки вебхуков на TypeScript (Express.js) и Python (Flask) с проверкой подписи, защитой от replay-атак и обработкой всех типов событий.
+
+### TypeScript (Express.js)
+
+```typescript
+import express from "express"
+import crypto from "crypto"
+
+const SIGNING_SECRET = "your_signing_secret" // Из настроек бота → Исходящий Webhook → Signing Secret
+const app = express()
+
+// Важно: используем express.raw для получения сырого тела запроса (для корректной проверки HMAC)
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // 1. Проверка подписи HMAC-SHA256
+  const signature = crypto.createHmac("sha256", SIGNING_SECRET)
+    .update(req.body).digest("hex")
+  if (signature !== req.headers["pachca-signature"]) {
+    return res.status(401).send("Invalid signature")
+  }
+
+  // 2. Защита от replay-атак (±60 секунд)
+  const event = JSON.parse(req.body.toString())
+  if (Math.abs(Date.now() / 1000 - event.webhook_timestamp) > 60) {
+    return res.status(401).send("Expired event")
+  }
+
+  // 3. Обработка события по типу
+  switch (event.type) {
+    case "message":
+      if (event.event === "new") {
+        console.log(`Новое сообщение от ${event.user_id}: ${event.content}`)
+      } else if (event.event === "update") {
+        console.log(`Сообщение ${event.id} отредактировано`)
+      } else if (event.event === "delete") {
+        console.log(`Сообщение ${event.id} удалено`)
+      }
+      break
+    case "reaction":
+      console.log(`${event.event === "new" ? "Добавлена" : "Удалена"} реакция ${event.emoji}`)
+      break
+    case "button":
+      console.log(`Нажата кнопка: ${event.data}`)
+      // trigger_id доступен 3 секунды — используйте его для открытия формы
+      break
+    case "view_submit":
+      console.log(`Форма заполнена:`, event.payload)
+      break
+  }
+
+  res.status(200).send("OK")
+})
+app.listen(3000)
+```
+
+### Python (Flask)
+
+```python
+import hmac, hashlib, json, time
+from flask import Flask, request, abort
+
+SIGNING_SECRET = "your_signing_secret"  # Из настроек бота → Исходящий Webhook → Signing Secret
+app = Flask(__name__)
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    raw_body = request.get_data()
+
+    # 1. Проверка подписи HMAC-SHA256
+    expected = hmac.new(SIGNING_SECRET.encode(), raw_body, hashlib.sha256).hexdigest()
+    if expected != request.headers.get("Pachca-Signature"):
+        abort(401)
+
+    # 2. Защита от replay-атак (±60 секунд)
+    event = json.loads(raw_body)
+    if abs(time.time() - event["webhook_timestamp"]) > 60:
+        abort(401)
+
+    # 3. Обработка события
+    if event["type"] == "message" and event["event"] == "new":
+        print(f"Новое сообщение от {event['user_id']}: {event['content']}")
+    elif event["type"] == "button":
+        print(f"Нажата кнопка: {event['data']}")
+    elif event["type"] == "view_submit":
+        print(f"Форма заполнена: {event['payload']}")
+
+    return "OK", 200
+```
+
+### Идемпотентная обработка
+
+Пачка использует **at-least-once delivery** — один и тот же вебхук может прийти повторно. Обработчик должен быть идемпотентным:
+
+```typescript
+// Дедупликация по уникальным полям события
+const processed = new Set<string>()
+
+function getEventKey(event: any): string {
+  // Уникальный ключ: тип + событие + id объекта
+  return `${event.type}:${event.event}:${event.id || event.message_id || ""}`
+}
+
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  // ... проверка подписи ...
+  const event = JSON.parse(req.body.toString())
+  const key = getEventKey(event)
+  if (processed.has(key)) {
+    return res.status(200).send("Already processed")
+  }
+  processed.add(key)
+  processEvent(event) // Ваша логика обработки
+  res.status(200).send("OK")
+})
+```
+
+### Обработка ошибок доставки
+
+Если ваш сервер не ответил `2xx` в течение таймаута, Пачка повторит попытку доставки. Рекомендации:
+
+- Отвечайте `200 OK` как можно быстрее — выносите тяжёлую обработку в фоновую очередь
+- При временных ошибках отвечайте `503` — Пачка повторит позже
+- При постоянных ошибках (невалидные данные) — `200 OK` чтобы избежать бесконечных повторов
+
 ## Поллинг
 
 Если у вас нет возможности принимать входящие HTTP-запросы (локальная разработка, жёсткие firewall-правила), используйте **поллинг** — получение событий через API.
@@ -254,3 +378,23 @@ content-length: 358
 
 > Периодически запрашивайте список событий, обрабатывайте каждое и удаляйте обработанные.
 
+
+### Пример поллинга (TypeScript)
+
+```typescript
+import { PachcaClient } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_BOT_TOKEN")
+
+async function pollEvents() {
+  const events = await client.bots.getWebhookEvents()
+  for (const event of events.data) {
+    console.log("Событие:", event.type, event.event)
+    // Обработать событие...
+    await client.bots.deleteWebhookEvent(event.id) // Удалить из очереди
+  }
+}
+
+// Запускать каждые 5 секунд
+setInterval(pollEvents, 5000)
+```

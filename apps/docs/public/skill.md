@@ -244,7 +244,8 @@ Detailed documentation on specific topics is available at:
 - [n8n: Обзор](https://dev.pachca.com/guides/n8n/overview) — Автоматизации в Пачке через платформу n8n — 18 ресурсов, триггер, AI-агент
 - [n8n: Начало работы](https://dev.pachca.com/guides/n8n/setup) — Установка n8n, расширения Пачки, настройка Credentials и первый workflow
 - [n8n: Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources) — Все 18 ресурсов и более 60 операций расширения Пачки для n8n
-- [n8n: Триггер](https://dev.pachca.com/guides/n8n/trigger) — Pachca Trigger: 16 типов событий, авторегистрация вебхука, проверка подписи
+- [n8n: Триггер](https://dev.pachca.com/guides/n8n/trigger) — Pachca Trigger: 16 типов событий, автоматическая и ручная регистрация вебхука, проверка подписи
+- [n8n: Тестирование](https://dev.pachca.com/guides/n8n/testing) — Тестирование n8n-узлов Пачки: Listen for test event, Pin Data, Execute Step, защита webhook-слота бота и локальная разработка через туннель
 - [n8n: Примеры workflow](https://dev.pachca.com/guides/n8n/workflows) — Готовые сценарии автоматизации Пачки в n8n: приветствие, пересылка, задачи, согласование, мониторинг, заявки на отпуск
 - [n8n: Продвинутые функции](https://dev.pachca.com/guides/n8n/advanced) — Экспорт сообщений, загрузка файлов, кнопки, формы, AI-агент, разворачивание ссылок, журнал безопасности
 - [n8n: Устранение ошибок](https://dev.pachca.com/guides/n8n/troubleshooting) — Частые ошибки при работе с Пачкой в n8n: неверный токен, 403, 429, вебхук не приходит

@@ -23,8 +23,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://dev.pachca.com'),
   title: {
-    default: 'Обзор - Пачка для разработчиков',
-    template: '%s - Пачка для разработчиков',
+    default: 'Обзор | Пачка для разработчиков',
+    template: '%s | Пачка для разработчиков',
   },
   description: 'Создавайте уникальные решения на одной платформе',
   openGraph: {

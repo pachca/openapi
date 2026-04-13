@@ -3,7 +3,7 @@ import { getAdjacentItems } from '@/lib/navigation';
 import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { getGuideData, getAllGuideSlugs, extractFirstParagraph } from '@/lib/content-loader';
-import { getSectionTitle } from '@/lib/tabs-config';
+import { getSectionTitle, getNestedParentTitle } from '@/lib/tabs-config';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -30,13 +30,13 @@ export async function generateMetadata({
   const firstParagraph = extractFirstParagraph(data.content);
   const pageTitle = data.frontmatter.title;
   const pageUrl = `/guides/${slugPath}`;
-  const section = getSectionTitle(pageUrl);
-  const title = section ? `${section}: ${pageTitle}` : pageTitle;
+  const parent = getNestedParentTitle(pageUrl);
+  const baseTitle = parent ? `${parent}: ${pageTitle}` : pageTitle;
   const description: string | undefined = data.frontmatter.description || firstParagraph;
   const ogImage = `/api/og?type=guide&slug=${slugPath}`;
 
   return {
-    title,
+    title: { absolute: `${baseTitle} | Руководство разработчика` },
     description,
     alternates: {
       canonical: pageUrl,

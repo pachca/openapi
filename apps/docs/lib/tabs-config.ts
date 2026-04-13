@@ -109,6 +109,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Начало работы', path: '/guides/n8n/setup' },
           { title: 'Ресурсы и операции', path: '/guides/n8n/resources' },
           { title: 'Триггер', path: '/guides/n8n/trigger' },
+          { title: 'Тестирование', path: '/guides/n8n/testing' },
           { title: 'Примеры workflow', path: '/guides/n8n/workflows' },
           { title: 'Продвинутые функции', path: '/guides/n8n/advanced' },
           { title: 'Устранение ошибок', path: '/guides/n8n/troubleshooting' },
@@ -146,6 +147,23 @@ export function getActiveTab(pathname: string): TabId | null {
   if (pathname === '/') return 'guide';
   for (const tab of TABS) {
     if (pathname.startsWith(tab.prefix)) return tab.id;
+  }
+  return null;
+}
+
+/**
+ * Get the parent item title for a nested page (e.g. "n8n" for /guides/n8n/advanced).
+ * Returns null for top-level pages. Used to disambiguate shared child titles like "Обзор".
+ */
+export function getNestedParentTitle(pathname: string): string | null {
+  for (const section of GUIDE_SECTIONS) {
+    for (const item of section.items) {
+      if (!item.children) continue;
+      if (item.path === pathname) return item.title;
+      for (const child of item.children) {
+        if (child.path === pathname) return item.title;
+      }
+    }
   }
   return null;
 }

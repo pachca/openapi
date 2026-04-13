@@ -2263,7 +2263,7 @@ function generateTriggerNode(events: WebhookEventOption[]): string {
 \tIWebhookResponseData,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
-import { verifyWebhookSignature, getTokenProfile } from './GenericFunctions';
+import { verifyWebhookSignature, getTokenProfile, sanitizeBaseUrl } from './GenericFunctions';
 
 /** Maps n8n event value to webhook payload { type, event } for filtering */
 const EVENT_FILTER: Record<string, { type: string; event: string }> = {
@@ -2461,7 +2461,7 @@ ${optionEntries}
 \t\t\t\ttry {
 \t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
 \t\t\t\t\t\tmethod: 'PUT',
-\t\t\t\t\t\turl: \`\${credentials.baseUrl}/bots/\${botId}\`,
+\t\t\t\t\t\turl: \`\${sanitizeBaseUrl(credentials.baseUrl as string)}/bots/\${botId}\`,
 \t\t\t\t\t\tbody: { bot: { webhook: { outgoing_url: webhookUrl } } },
 \t\t\t\t\t});
 \t\t\t\t} catch (error) {
@@ -2496,7 +2496,7 @@ ${optionEntries}
 \t\t\t\ttry {
 \t\t\t\t\tawait this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
 \t\t\t\t\t\tmethod: 'PUT',
-\t\t\t\t\t\turl: \`\${credentials.baseUrl}/bots/\${registeredBotId}\`,
+\t\t\t\t\t\turl: \`\${sanitizeBaseUrl(credentials.baseUrl as string)}/bots/\${registeredBotId}\`,
 \t\t\t\t\t\tbody: { bot: { webhook: { outgoing_url: '' } } },
 \t\t\t\t\t});
 \t\t\t\t} catch {
@@ -2560,12 +2560,14 @@ ${optionEntries}
 \t\t// Event filtering using type+event from payload
 \t\tif (event !== '*') {
 \t\t\tconst filter = EVENT_FILTER[event];
-\t\t\tif (filter) {
-\t\t\t\tconst bodyType = body.type as string | undefined;
-\t\t\t\tconst bodyEvent = body.event as string | undefined;
-\t\t\t\tif (bodyType !== filter.type || bodyEvent !== filter.event) {
-\t\t\t\t\treturn { webhookResponse: 'Event filtered' };
-\t\t\t\t}
+\t\t\tif (!filter) {
+\t\t\t\t// Unknown event value (should not happen with noDataExpression: true) — reject
+\t\t\t\treturn { webhookResponse: 'Event filtered' };
+\t\t\t}
+\t\t\tconst bodyType = body.type as string | undefined;
+\t\t\tconst bodyEvent = body.event as string | undefined;
+\t\t\tif (bodyType !== filter.type || bodyEvent !== filter.event) {
+\t\t\t\treturn { webhookResponse: 'Event filtered' };
 \t\t\t}
 \t\t}
 

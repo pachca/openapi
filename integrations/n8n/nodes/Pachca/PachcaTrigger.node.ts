@@ -7,7 +7,7 @@ import type {
 	IWebhookResponseData,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
-import { verifyWebhookSignature, getTokenProfile } from './GenericFunctions';
+import { verifyWebhookSignature, getTokenProfile, sanitizeBaseUrl } from './GenericFunctions';
 
 /** Maps n8n event value to webhook payload { type, event } for filtering */
 const EVENT_FILTER: Record<string, { type: string; event: string }> = {
@@ -235,7 +235,7 @@ export class PachcaTrigger implements INodeType {
 				try {
 					await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
 						method: 'PUT',
-						url: `${credentials.baseUrl}/bots/${botId}`,
+						url: `${sanitizeBaseUrl(credentials.baseUrl as string)}/bots/${botId}`,
 						body: { bot: { webhook: { outgoing_url: webhookUrl } } },
 					});
 				} catch (error) {
@@ -270,7 +270,7 @@ export class PachcaTrigger implements INodeType {
 				try {
 					await this.helpers.httpRequestWithAuthentication.call(this, 'pachcaApi', {
 						method: 'PUT',
-						url: `${credentials.baseUrl}/bots/${registeredBotId}`,
+						url: `${sanitizeBaseUrl(credentials.baseUrl as string)}/bots/${registeredBotId}`,
 						body: { bot: { webhook: { outgoing_url: '' } } },
 					});
 				} catch {
@@ -334,12 +334,14 @@ export class PachcaTrigger implements INodeType {
 		// Event filtering using type+event from payload
 		if (event !== '*') {
 			const filter = EVENT_FILTER[event];
-			if (filter) {
-				const bodyType = body.type as string | undefined;
-				const bodyEvent = body.event as string | undefined;
-				if (bodyType !== filter.type || bodyEvent !== filter.event) {
-					return { webhookResponse: 'Event filtered' };
-				}
+			if (!filter) {
+				// Unknown event value (should not happen with noDataExpression: true) — reject
+				return { webhookResponse: 'Event filtered' };
+			}
+			const bodyType = body.type as string | undefined;
+			const bodyEvent = body.event as string | undefined;
+			if (bodyType !== filter.type || bodyEvent !== filter.event) {
+				return { webhookResponse: 'Event filtered' };
 			}
 		}
 

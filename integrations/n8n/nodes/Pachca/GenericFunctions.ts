@@ -221,7 +221,7 @@ export async function getTokenProfile(
     'pachcaApi',
     {
       method: 'GET',
-      url: `${credentials.baseUrl}/profile`,
+      url: `${sanitizeBaseUrl(credentials.baseUrl as string)}/profile`,
     },
   )) as IDataObject;
   const data = (response.data ?? {}) as IDataObject;

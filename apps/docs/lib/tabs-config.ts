@@ -109,6 +109,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Начало работы', path: '/guides/n8n/setup' },
           { title: 'Ресурсы и операции', path: '/guides/n8n/resources' },
           { title: 'Триггер', path: '/guides/n8n/trigger' },
+          { title: 'Тестирование', path: '/guides/n8n/testing' },
           { title: 'Примеры workflow', path: '/guides/n8n/workflows' },
           { title: 'Продвинутые функции', path: '/guides/n8n/advanced' },
           { title: 'Устранение ошибок', path: '/guides/n8n/troubleshooting' },

@@ -27,14 +27,6 @@ export class PachcaApi implements ICredentialType {
 			default: '',
 		},
 		{
-			displayName: 'Bot ID',
-			name: 'botId',
-			type: 'number',
-			default: 0,
-			description: 'Bot ID for automatic webhook registration (found in bot settings). Leave empty to auto-detect from token. Only needed for Pachca Trigger node.',
-			hint: 'Only required when using a bot token with the Pachca Trigger node',
-		},
-		{
 			displayName: 'Webhook Signing Secret',
 			name: 'signingSecret',
 			type: 'string',

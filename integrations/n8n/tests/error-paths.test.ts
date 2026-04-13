@@ -12,7 +12,7 @@ import {
   makeApiRequest,
   makeApiRequestAllPages,
   sanitizeBaseUrl,
-  resolveBotId,
+  getTokenProfile,
 } from '../nodes/Pachca/GenericFunctions';
 
 // ============================================================================
@@ -421,10 +421,10 @@ describe('makeApiRequestAllPages error paths', () => {
 });
 
 // ============================================================================
-// resolveBotId
+// getTokenProfile
 // ============================================================================
 
-describe('resolveBotId', () => {
+describe('getTokenProfile', () => {
   function createHookCtx(httpResponse: unknown) {
     return {
       helpers: {
@@ -433,38 +433,43 @@ describe('resolveBotId', () => {
     } as unknown as IHookFunctions;
   }
 
-  it('should return explicit botId from credentials', async () => {
-    const ctx = createHookCtx({});
-    const credentials = { botId: 42, baseUrl: 'https://api.pachca.com/api/shared/v1' };
-    const result = await resolveBotId(ctx, credentials);
-    expect(result).toBe(42);
-    // Should not make any HTTP call
-    expect((ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
-  });
-
-  it('should detect bot token via token/info API', async () => {
+  it('should return { bot: true, id } for bot token via GET /profile', async () => {
     const ctx = createHookCtx({
-      data: { name: null, user_id: 12345 },
+      data: { id: 12345, bot: true },
     });
-    const credentials = { botId: 0, baseUrl: 'https://api.pachca.com/api/shared/v1' };
-    const result = await resolveBotId(ctx, credentials);
-    expect(result).toBe(12345);
+    const credentials = { baseUrl: 'https://api.pachca.com/api/shared/v1' };
+    const result = await getTokenProfile(ctx, credentials);
+    expect(result).toEqual({ id: 12345, bot: true });
   });
 
-  it('should return 0 for personal token (name is not null)', async () => {
+  it('should return { bot: false, id } for personal token via GET /profile', async () => {
     const ctx = createHookCtx({
-      data: { name: 'My Token', user_id: 99 },
+      data: { id: 99, bot: false },
     });
-    const credentials = { botId: 0, baseUrl: 'https://api.pachca.com/api/shared/v1' };
-    const result = await resolveBotId(ctx, credentials);
-    expect(result).toBe(0);
+    const credentials = { baseUrl: 'https://api.pachca.com/api/shared/v1' };
+    const result = await getTokenProfile(ctx, credentials);
+    expect(result).toEqual({ id: 99, bot: false });
   });
 
-  it('should return 0 when data is missing', async () => {
+  it('should return { bot: false, id: 0 } when data is missing', async () => {
     const ctx = createHookCtx({});
-    const credentials = { botId: 0, baseUrl: 'https://api.pachca.com/api/shared/v1' };
-    const result = await resolveBotId(ctx, credentials);
-    expect(result).toBe(0);
+    const credentials = { baseUrl: 'https://api.pachca.com/api/shared/v1' };
+    const result = await getTokenProfile(ctx, credentials);
+    expect(result).toEqual({ id: 0, bot: false });
+  });
+
+  it('should call GET /profile endpoint', async () => {
+    const ctx = createHookCtx({ data: { id: 1, bot: true } });
+    const credentials = { baseUrl: 'https://api.pachca.com/api/shared/v1' };
+    await getTokenProfile(ctx, credentials);
+    const httpMock = ctx.helpers.httpRequestWithAuthentication as ReturnType<typeof vi.fn>;
+    expect(httpMock).toHaveBeenCalledWith(
+      'pachcaApi',
+      expect.objectContaining({
+        method: 'GET',
+        url: 'https://api.pachca.com/api/shared/v1/profile',
+      }),
+    );
   });
 
   it('should propagate network errors (no silent catch)', async () => {
@@ -475,8 +480,8 @@ describe('resolveBotId', () => {
         }),
       },
     } as unknown as IHookFunctions;
-    const credentials = { botId: 0, baseUrl: 'https://api.pachca.com/api/shared/v1' };
+    const credentials = { baseUrl: 'https://api.pachca.com/api/shared/v1' };
 
-    await expect(resolveBotId(ctx, credentials)).rejects.toThrow('Network timeout');
+    await expect(getTokenProfile(ctx, credentials)).rejects.toThrow('Network timeout');
   });
 });

@@ -197,35 +197,38 @@ export async function uploadAvatar(
 }
 
 // ============================================================================
-// BOT ID AUTO-DETECTION
+// TOKEN PROFILE DETECTION
 // ============================================================================
 
 /**
- * Resolve bot ID: use explicit credential value, or auto-detect via /oauth/token/info.
- * Returns the bot's user_id if the token belongs to a bot, or 0 if it's a personal token.
- * Throws on network/auth errors so callers can distinguish "not a bot" from "failed to check".
+ * Fetch the profile associated with the current credential token via GET /profile.
+ *
+ * Used by PachcaTrigger to distinguish bot tokens from personal (user) tokens
+ * during automatic webhook registration: bot tokens cannot currently update
+ * their own webhook URL via PUT /bots/{id} (backend limitation — in development),
+ * while a personal token with the `bots:write` scope and editor access to the
+ * target bot can register the URL for any bot whose ID the user provides.
+ *
+ * Throws on network/auth errors so callers can distinguish "not a bot" from
+ * "failed to check".
  */
-export async function resolveBotId(
+export async function getTokenProfile(
   context: IHookFunctions,
   credentials: ICredentialDataDecryptedObject,
-): Promise<number> {
-  if (credentials.botId && Number(credentials.botId) > 0) {
-    return Number(credentials.botId);
-  }
+): Promise<{ id: number; bot: boolean }> {
   const response = (await context.helpers.httpRequestWithAuthentication.call(
     context,
     'pachcaApi',
     {
       method: 'GET',
-      url: `${credentials.baseUrl}/oauth/token/info`,
+      url: `${credentials.baseUrl}/profile`,
     },
   )) as IDataObject;
-  const data = response.data as IDataObject | undefined;
-  // Bot tokens have name: null, personal tokens have a user-defined name
-  if (data && data.name === null && data.user_id) {
-    return Number(data.user_id);
-  }
-  return 0;
+  const data = (response.data ?? {}) as IDataObject;
+  return {
+    id: Number(data.id ?? 0),
+    bot: Boolean(data.bot),
+  };
 }
 
 /** Sanitize baseUrl: strip trailing slashes, validate protocol */

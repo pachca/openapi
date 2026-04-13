@@ -366,8 +366,8 @@ describe('PachcaApi.credentials.ts', () => {
     expect(content).toContain("name: 'signingSecret'");
   });
 
-  it('should have botId field', () => {
-    expect(content).toContain("name: 'botId'");
+  it('should NOT have botId field (moved to PachcaTrigger node parameter)', () => {
+    expect(content).not.toContain("name: 'botId'");
   });
 });
 

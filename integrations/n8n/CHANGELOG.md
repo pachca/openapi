@@ -5,9 +5,16 @@
 
 ### Bug Fixes
 
+- Fix Pachca Trigger 403 error with bot tokens — trigger no longer tries to auto-register webhook URL via API; new **Webhook Setup** parameter with Manual (default) and Automatic modes; Manual works with any token type including bot tokens
 - Fix v1 file attachments — `fileType` → `file_type` mapping now applied to both v1 top-level `files` and v2 `additionalFields.files` (previously v1 blocks sent camelCase and got 422 `system: null`)
 - Fix buttons clear in raw JSON mode — `[]` now clears buttons in PUT message (previously only `[[]]` worked; v1 behavior restored)
 - Auto-retry on rate limit and server errors — 429 and 5xx responses are retried up to 3 times, honoring `Retry-After` header, with exponential backoff and jitter (aligns with Pachca's documented retry strategy); removes the need for manual Wait nodes
+
+### Improvements
+
+- Pachca Trigger: Automatic mode detects bot tokens via GET /profile and shows clear error instead of generic 403
+- Pachca Trigger: block "Listen for test event" when workflow is already active in Automatic mode (prevents overwriting production webhook URL)
+- Pachca Trigger: auto-cleanup of webhook URL on workflow deactivation in Automatic mode
 
 ## 2.0.4 (2026-04-08)
 

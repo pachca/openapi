@@ -4,6 +4,8 @@
 
 > Полная документация в одном файле: [llms-full.txt](https://dev.pachca.com/llms-full.txt)
 
+> English documentation: [llms-en.txt](https://dev.pachca.com/llms-en.txt)
+
 ## CLI Quick Start
 
 ```bash

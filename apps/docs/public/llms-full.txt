@@ -73,8 +73,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 81–163 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 164–623 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 624–10116 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10117–25035 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 624–10117 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10118–25036 |
 
 ---
 
@@ -715,6 +715,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 - [Коллекция Postman](/pachca.postman_collection.json) — Все методы с примерами для Postman и Bruno
 - [llms.txt](/llms.txt) — Краткое описание API для LLM
 - [llms-full.txt](/llms-full.txt) — Полное описание API для LLM
+- [llms-en.txt](/llms-en.txt) — English API documentation for LLM
 
 
 ---

@@ -90,4 +90,5 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 - [Коллекция Postman](/pachca.postman_collection.json) — Все методы с примерами для Postman и Bruno
 - [llms.txt](/llms.txt) — Краткое описание API для LLM
 - [llms-full.txt](/llms-full.txt) — Полное описание API для LLM
+- [llms-en.txt](/llms-en.txt) — English API documentation for LLM
 

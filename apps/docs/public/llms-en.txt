@@ -545,6 +545,202 @@ async function refreshTeamPresences(userIds: number[]) {
 
 Status fields: `emoji` (string), `title` (string), `expires_at` (ISO datetime or null), `is_away` (boolean), `away_message` (string). Admin can manage any user's status via PUT/DELETE /users/{id}/status.
 
+## How to handle idempotency and partial failures in multi-service workflows
+
+Pachca API is **NOT idempotent** — duplicate POST requests create duplicate resources. Webhooks use **at-least-once** delivery. Both require explicit handling in distributed systems.
+
+### 1. Client-side request deduplication
+
+```typescript
+import { PachcaClient, ApiError } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Idempotency layer: track requests to prevent duplicates
+const requestLog = new Map<string, { result: any; expiresAt: number }>()
+const DEDUP_TTL = 300_000 // 5 minutes
+
+async function idempotentCreateMessage(idempotencyKey: string, entityId: number, content: string) {
+  // Check if this request was already processed
+  const existing = requestLog.get(idempotencyKey)
+  if (existing && Date.now() < existing.expiresAt) {
+    return existing.result // Return cached result, no duplicate created
+  }
+
+  const result = await client.messages.createMessage({
+    message: { entityId, content }
+  })
+
+  // Cache result with TTL for deduplication window
+  requestLog.set(idempotencyKey, { result, expiresAt: Date.now() + DEDUP_TTL })
+  return result
+}
+
+// Usage: same key = same result, no duplicate message
+await idempotentCreateMessage("onboard-user-42", chatId, "Welcome!")
+await idempotentCreateMessage("onboard-user-42", chatId, "Welcome!") // returns cached, no duplicate
+```
+
+### 2. Webhook event deduplication
+
+```typescript
+// Webhooks deliver at-least-once — same event may arrive multiple times
+const processedEvents = new Set<string>()
+
+function handleWebhookEvent(event: any) {
+  // Build unique key from event fields: type + event + id
+  const eventKey = `${event.type}:${event.event}:${event.id}:${event.webhook_timestamp}`
+
+  if (processedEvents.has(eventKey)) {
+    return // Already processed, skip duplicate
+  }
+  processedEvents.add(eventKey)
+
+  // Process event (idempotent handler)
+  switch (event.type) {
+    case "message":
+      syncMessageToExternalSystem(event)
+      break
+    case "button":
+      handleButtonPress(event)
+      break
+  }
+}
+```
+
+### 3. Saga pattern for multi-step operations
+
+```typescript
+import { PachcaClient, MessageEntityType } from "@pachca/sdk"
+
+const client = new PachcaClient("YOUR_TOKEN")
+
+// Saga: create project workspace (chat + members + welcome message + task)
+// Each step has a compensating action for rollback on failure
+
+interface SagaStep {
+  name: string
+  execute: () => Promise<any>
+  compensate: (result: any) => Promise<void>
+}
+
+async function executeSaga(steps: SagaStep[]) {
+  const completed: { step: SagaStep; result: any }[] = []
+
+  for (const step of steps) {
+    try {
+      const result = await step.execute()
+      completed.push({ step, result })
+    } catch (error) {
+      console.error(`Saga failed at step "${step.name}":`, error)
+
+      // Compensate in reverse order (undo completed steps)
+      for (const { step: completedStep, result } of completed.reverse()) {
+        try {
+          await completedStep.compensate(result)
+          console.log(`Compensated: ${completedStep.name}`)
+        } catch (compensateError) {
+          // Log for manual intervention — compensation itself failed
+          console.error(`CRITICAL: Failed to compensate "${completedStep.name}":`, compensateError)
+        }
+      }
+      throw new Error(`Saga rolled back at step "${step.name}"`)
+    }
+  }
+
+  return completed.map(c => c.result)
+}
+
+// Define saga steps with compensating actions
+async function createProjectWorkspace(projectName: string, memberIds: number[]) {
+  let chatId: number
+
+  const steps: SagaStep[] = [
+    {
+      name: "create-chat",
+      execute: async () => {
+        const chat = await client.chats.createChat({
+          chat: { name: projectName, memberIds, channel: false, public: false }
+        })
+        chatId = chat.id
+        return chat
+      },
+      compensate: async (chat) => {
+        // No delete chat API — archive instead
+        await client.chats.archiveChat(chat.id)
+      },
+    },
+    {
+      name: "send-welcome",
+      execute: async () => {
+        return await client.messages.createMessage({
+          message: {
+            entityType: MessageEntityType.Discussion,
+            entityId: chatId,
+            content: `Project **${projectName}** workspace created!`
+          }
+        })
+      },
+      compensate: async (message) => {
+        await client.messages.deleteMessage(message.id)
+      },
+    },
+    {
+      name: "create-task",
+      execute: async () => {
+        return await client.tasks.createTask({
+          task: { kind: "reminder", content: `Set up ${projectName}`, performerIds: memberIds }
+        })
+      },
+      compensate: async (task) => {
+        await client.tasks.deleteTask(task.id)
+      },
+    },
+  ]
+
+  return executeSaga(steps)
+}
+```
+
+### 4. State reconciliation across microservices
+
+```typescript
+// Periodic reconciliation: ensure external system matches Pachca state
+async function reconcileUsers(externalDb: Map<number, any>) {
+  const pachcaUsers = await client.users.listUsersAll()
+
+  for (const user of pachcaUsers) {
+    const external = externalDb.get(user.id)
+    if (!external) {
+      // User exists in Pachca but not in external system — sync
+      await syncUserToExternal(user)
+    } else if (external.lastActivityAt < user.lastActivityAt) {
+      // Pachca has newer activity — update external
+      await updateExternalUser(user)
+    }
+  }
+
+  // Check for users in external system that no longer exist in Pachca
+  for (const [id, external] of externalDb) {
+    if (!pachcaUsers.find(u => u.id === id)) {
+      await markExternalUserDeleted(id)
+    }
+  }
+}
+
+// Schedule reconciliation as fallback for missed webhooks
+setInterval(() => reconcileUsers(externalDb), 15 * 60 * 1000) // Every 15 minutes
+```
+
+### Key principles for Pachca API distributed systems
+- **All POST endpoints create new resources** — never assume idempotency, always deduplicate on client side
+- **Webhooks are at-least-once** — handlers MUST be idempotent (dedup by event id + type + timestamp)
+- **Separate critical from non-critical operations** — chat creation (critical) vs welcome message (non-critical) should fail independently
+- **Use saga pattern with compensating actions** — for multi-step workflows where partial completion is worse than full rollback
+- **Implement periodic reconciliation** — webhooks can be missed; polling + reconciliation ensures eventual consistency
+- **Track operation state externally** — store saga progress in your database, not in memory, for crash recovery
+- **SDK auto-retry handles transient failures** — 429 and 5xx are retried 3 times automatically, so sagas should only compensate on permanent failures (4xx)
+
 ---
 
 ---

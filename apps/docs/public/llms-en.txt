@@ -758,11 +758,11 @@ Request a message export for the specified time period.
 Body: { start_at*, end_at*, webhook_url*, chat_ids, skip_chats_file }
 
 ### GET /api/shared/v1/chats/exports/{id}
-Download a completed message export archive. To download the archive you need to know its `id` and specify it in the request `URL`. The server will respond with `302 Found` and a `Location` header con
+Download a completed message export archive. To download the archive you need to know its `id` and specify it in the request `URL`. The server will respond with `302 Found` and a `Location` header containing a temporary download link. Most HTTP clients automatically follow the redirect and download the file.
 Parameters: id
 
 ### GET /api/shared/v1/custom_properties
-Working with "File" type custom properties is currently unavailable. Retrieve the current list of custom properties for employees and tasks in your workspace. By default, all entities in your workspac
+Working with "File" type custom properties is currently unavailable. Retrieve the current list of custom properties for employees and tasks in your workspace. By default, all entities in your workspace only have basic fields. However, your workspace administrator can add, edit, and delete custom properties. If you use custom properties that are no longer current (deleted or non-existent) when creating employees (or tasks), you will receive an error.
 Parameters: entity_type
 
 ### POST /api/shared/v1/direct_url
@@ -804,7 +804,7 @@ Retrieve the current list of employees in your workspace.
 Parameters: query?, limit?, cursor?
 
 ### POST /api/shared/v1/users
-Create a new employee in your workspace. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using
+Create a new employee in your workspace. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
 Body: { user*, skip_email_notify }
 
 ### GET /api/shared/v1/users/{id}
@@ -812,7 +812,7 @@ Retrieve information about an employee. To get an employee you need to know thei
 Parameters: id
 
 ### PUT /api/shared/v1/users/{id}
-Edit an employee. To edit an employee you need to know their `id` and specify it in the request `URL`. All editable employee parameters are specified in the request body. You can get the current list 
+Edit an employee. To edit an employee you need to know their `id` and specify it in the request `URL`. All editable employee parameters are specified in the request body. You can get the current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
 Parameters: id
 Body: { user: { first_name, last_name, email, phone_number, nickname, department, title, role, suspended, list_tags, custom_properties } }
 
@@ -899,7 +899,7 @@ Parameters: id
 ## Members
 
 ### POST /api/shared/v1/chats/{id}/group_tags
-Add tags to the member list of a conversation or channel. After adding a tag, all its members automatically become members of the chat. The tag and chat member lists are synchronized automatically: wh
+Add tags to the member list of a conversation or channel. After adding a tag, all its members automatically become members of the chat. The tag and chat member lists are synchronized automatically: when a new member is added to the tag, they immediately appear in the chat; when removed from the tag, they are removed from the chat.
 Parameters: id
 Body: { group_tag_ids* }
 
@@ -912,7 +912,7 @@ Leave a conversation or channel on your own.
 Parameters: id
 
 ### GET /api/shared/v1/chats/{id}/members
-Retrieve the current list of chat members. The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve the member list of chats they belong to (or 
+Retrieve the current list of chat members. The workspace owner can retrieve the member list of any chat in the workspace. Admins and bots can only retrieve the member list of chats they belong to (or that are public).
 Parameters: id, role?, limit?, cursor?
 
 ### POST /api/shared/v1/chats/{id}/members
@@ -921,12 +921,12 @@ Parameters: id
 Body: { member_ids*, silent }
 
 ### PUT /api/shared/v1/chats/{id}/members/{user_id}
-Edit a user's or bot's role in a conversation or channel. To edit a role in a conversation or channel you need to know the `id` of the chat and the user (or bot) and specify them in the request `URL`.
+Edit a user's or bot's role in a conversation or channel. To edit a role in a conversation or channel you need to know the `id` of the chat and the user (or bot) and specify them in the request `URL`. All editable role parameters are specified in the request body. The chat owner's role cannot be changed. They always have Admin privileges in the chat.
 Parameters: id, user_id
 Body: { role* }
 
 ### DELETE /api/shared/v1/chats/{id}/members/{user_id}
-Remove a user from the member list of a conversation or channel. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the [Leave conversation or chann
+Remove a user from the member list of a conversation or channel. If the user is the chat owner, they cannot be removed. They can only leave the chat on their own using the [Leave conversation or channel](DELETE /chats/{id}/leave) method.
 Parameters: id, user_id
 
 ## Threads
@@ -942,11 +942,11 @@ Parameters: id
 ## Messages
 
 ### GET /api/shared/v1/messages
-Retrieve a list of messages from conversations, channels, threads, and direct messages. To retrieve messages you need to know the `chat_id` of the required conversation, channel, thread, or direct mes
+Retrieve a list of messages from conversations, channels, threads, and direct messages. To retrieve messages you need to know the `chat_id` of the required conversation, channel, thread, or direct message, and specify it in the request `URL`. Messages are returned in descending order by send date (i.e., the most recent messages come first). To retrieve earlier messages, use the `limit` and `cursor` parameters.
 Parameters: chat_id, sort?, order?, limit?, cursor?
 
 ### POST /api/shared/v1/messages
-Send a message to a conversation or channel, a direct message to a user, or a comment to a thread. When using `entity_type: "discussion"` (or simply without specifying `entity_type`), any `chat_id` ca
+Send a message to a conversation or channel, a direct message to a user, or a comment to a thread. When using `entity_type: "discussion"` (or simply without specifying `entity_type`), any `chat_id` can be passed in the `entity_id` field. This means you can send a message knowing only the chat ID. Additionally, you can send a message to a thread by its ID or a direct message by the user's ID. To send a direct message to a user, you do not need to create a chat. Simply specify `entity_type: "user"` and the user's ID. A chat will be created automatically if there has been no prior conversation between you. Only one direct chat can exist between two users.
 Body: { message*, link_preview }
 
 ### GET /api/shared/v1/messages/{id}
@@ -959,7 +959,7 @@ Parameters: id
 Body: { message: { content, files, buttons, display_avatar_url, display_name } }
 
 ### DELETE /api/shared/v1/messages/{id}
-Delete a message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. There are no time restrictions on message deletion. To delet
+Delete a message. Message deletion is available to the sender, admins, and editors in the chat. In direct messages, both users are editors. There are no time restrictions on message deletion. To delete a message you need to know its `id` and specify it in the request `URL`.
 Parameters: id
 
 ### POST /api/shared/v1/messages/{id}/pin
@@ -983,12 +983,12 @@ Retrieve the current list of reactions on a message.
 Parameters: id, limit?, cursor?
 
 ### POST /api/shared/v1/messages/{id}/reactions
-Add a reaction to a message. To add a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are sent as `Emoji` characters. If the user has already added th
+Add a reaction to a message. To add a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are sent as `Emoji` characters. If the user has already added the same reaction, it will not be duplicated. To remove a reaction, use the [Delete reaction](DELETE /messages/{id}/reactions) method. **Reaction limits:** - Each user can add no more than **20 unique** reactions - A message can have no more than **30 unique** reactions - The total number of reactions on a message cannot exceed **1000**
 Parameters: id
 Body: { code*, name }
 
 ### DELETE /api/shared/v1/messages/{id}/reactions
-Remove a reaction from a message. To remove a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are stored as `Emoji` characters. You can only remove re
+Remove a reaction from a message. To remove a reaction you need to know the message `id` and specify it in the request `URL`. Message reactions are stored as `Emoji` characters. You can only remove reactions that were added by the authenticated user.
 Parameters: id, code, name?
 
 ## Link Previews
@@ -1019,7 +1019,7 @@ Retrieve a list of tasks.
 Parameters: limit?, cursor?
 
 ### POST /api/shared/v1/tasks
-Create a new task. When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No additional description is needed — you simply create a task with the 
+Create a new task. When creating a task, specifying the task type is required: call, meeting, simple reminder, event, or email. No additional description is needed — you simply create a task with the corresponding text. If you specify a task description, it will become the task's text. A task must have assignees; if none are specified, you are assigned as the responsible person. Any workspace employee can be assigned to a task that is not linked to any entity. You can get the current employee list using the [List employees](GET /users) method. A task can be linked to a chat by specifying `chat_id`. To link to a chat, you must be a member of that chat.
 Body: { task: { kind*, content, due_at, priority, performer_ids, chat_id, all_day, custom_properties } }
 
 ### GET /api/shared/v1/tasks/{id}
@@ -1044,16 +1044,16 @@ Body: { type*, trigger_id*, private_metadata, callback_id, view* }
 ## Bots
 
 ### PUT /api/shared/v1/bots/{id}
-Edit a bot's settings. To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters are specified in the request body. You can find the bot's `user_id`
+Edit a bot's settings. To edit a bot you need to know its `user_id` and specify it in the request `URL`. All editable bot parameters are specified in the request body. You can find the bot's `user_id` in the bot settings under the "API" tab. You cannot edit a bot whose settings are not accessible to you (the "Who can edit bot settings" field is located on the "General" tab in the bot settings).
 Parameters: id
 Body: { bot: { webhook* } }
 
 ### GET /api/shared/v1/webhooks/events
-Retrieve the history of a bot's recent events. This method is useful if you cannot receive events in real time at your `URL`, but need to process all events you have subscribed to. Event history is on
+Retrieve the history of a bot's recent events. This method is useful if you cannot receive events in real time at your `URL`, but need to process all events you have subscribed to. Event history is only saved when the "Save event history" option is enabled in the "Outgoing webhook" tab of the bot settings. Specifying a "Webhook `URL`" is not required. To retrieve the event history of a specific bot, you need to know its `access_token` and use it in the request. Each event is a webhook `JSON` object.
 Parameters: limit?, cursor?
 
 ### DELETE /api/shared/v1/webhooks/events/{id}
-This method is only available with a bot's `access_token`. Delete an event from the bot's event history. To delete an event you need to know the bot's `access_token` that owns the event and the event 
+This method is only available with a bot's `access_token`. Delete an event from the bot's event history. To delete an event you need to know the bot's `access_token` that owns the event and the event `id`.
 Parameters: id
 
 ## Security

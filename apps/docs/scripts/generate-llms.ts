@@ -1579,7 +1579,7 @@ function generateEnglishApiReference(): string {
         .split('\n')
         .map((l) => l.trim())
         .filter(Boolean);
-      const desc = descLines.slice(1).join(' ').substring(0, 200) || descLines[0] || '';
+      const desc = descLines.slice(1).join(' ') || descLines[0] || '';
 
       // Parameters
       const params = (operation.parameters as Record<string, unknown>[] | undefined) ?? [];

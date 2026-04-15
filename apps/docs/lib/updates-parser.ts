@@ -8,6 +8,25 @@ export interface ParsedUpdate {
   content: string; // Markdown content
 }
 
+export type ReleaseProduct = 'cli' | 'sdk' | 'generator' | 'n8n';
+
+export interface ReleaseChange {
+  type: '+' | '~' | '-';
+  description: string;
+}
+
+export interface ParsedRelease {
+  product: ReleaseProduct;
+  version: string;
+  date: string; // ISO format: YYYY-MM-DD
+  displayDate: string;
+  changes: ReleaseChange[];
+}
+
+export type TimelineEntry =
+  | { kind: 'update'; data: ParsedUpdate }
+  | { kind: 'release'; data: ParsedRelease };
+
 const MONTHS_RU: Record<string, string> = {
   '01': 'января',
   '02': 'февраля',
@@ -26,7 +45,7 @@ const MONTHS_RU: Record<string, string> = {
 /**
  * Convert ISO date (YYYY-MM-DD) to Russian display format (DD месяца YYYY)
  */
-function formatDateRu(isoDate: string): string {
+export function formatDateRu(isoDate: string): string {
   const [year, month, day] = isoDate.split('-');
   const monthName = MONTHS_RU[month] || month;
   return `${day} ${monthName} ${year}`;
@@ -85,6 +104,72 @@ export function loadUpdates(): ParsedUpdate[] {
     console.error('Error loading updates:', error);
     return [];
   }
+}
+
+/**
+ * Load and parse product releases from data/releases.json
+ */
+export function loadReleases(): ParsedRelease[] {
+  const releasesPath = path.join(process.cwd(), 'data', 'releases.json');
+
+  try {
+    const content = fs.readFileSync(releasesPath, 'utf-8');
+    const raw = JSON.parse(content) as Array<{
+      product: ReleaseProduct;
+      version: string;
+      date: string;
+      changes: ReleaseChange[];
+    }>;
+    return raw.map((r) => ({
+      ...r,
+      displayDate: formatDateRu(r.date),
+    }));
+  } catch (error) {
+    console.error('Error loading releases:', error);
+    return [];
+  }
+}
+
+/**
+ * Load unified timeline: API updates + product releases, sorted by date descending
+ */
+export function loadTimeline(): TimelineEntry[] {
+  const updates = loadUpdates();
+  const releases = loadReleases();
+
+  const entries: TimelineEntry[] = [
+    ...updates.map((u) => ({ kind: 'update' as const, data: u })),
+    ...releases.map((r) => ({ kind: 'release' as const, data: r })),
+  ];
+
+  entries.sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+  return entries;
+}
+
+/**
+ * Group timeline entries by date
+ */
+export function groupTimelineByDate(
+  entries: TimelineEntry[]
+): { date: string; displayDate: string; entries: TimelineEntry[] }[] {
+  const groups: Map<string, TimelineEntry[]> = new Map();
+
+  for (const entry of entries) {
+    const date = entry.data.date;
+    if (!groups.has(date)) {
+      groups.set(date, []);
+    }
+    groups.get(date)!.push(entry);
+  }
+
+  return Array.from(groups.entries())
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([date, items]) => ({
+      date,
+      displayDate: formatDateRu(date),
+      entries: items,
+    }));
 }
 
 /**

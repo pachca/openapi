@@ -13,6 +13,7 @@ import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
+import { loadReleases, formatDateRu, type ParsedRelease } from '../lib/updates-parser';
 import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
 const SITE_URL = 'https://dev.pachca.com';
@@ -1500,13 +1501,106 @@ async function generateEndpointMdFiles(api: Awaited<ReturnType<typeof parseOpenA
   return files;
 }
 
+const RELEASE_PRODUCT_TITLES: Record<ParsedRelease['product'], string> = {
+  cli: 'CLI',
+  sdk: 'SDK',
+  generator: 'Generator',
+  n8n: 'n8n Node',
+};
+
+function generateReleaseBlock(release: ParsedRelease): string {
+  const lines: string[] = [];
+  lines.push(`### ${RELEASE_PRODUCT_TITLES[release.product]} v${release.version}\n`);
+  for (const change of release.changes) {
+    lines.push(`- ${change.description}`);
+  }
+  lines.push('');
+  return lines.join('\n');
+}
+
+/**
+ * Merge releases into the updates markdown timeline by date.
+ * Updates have `<!-- update:YYYY-MM-DD -->` markers — releases are inserted
+ * right after the corresponding date section (or before the next earlier date).
+ */
+function mergeReleasesIntoUpdates(updatesMarkdown: string): string {
+  const releases = loadReleases();
+  if (releases.length === 0) return updatesMarkdown;
+
+  // Group releases by date
+  const releasesByDate = new Map<string, ParsedRelease[]>();
+  for (const r of releases) {
+    if (!releasesByDate.has(r.date)) releasesByDate.set(r.date, []);
+    releasesByDate.get(r.date)!.push(r);
+  }
+
+  // Find all update markers and their positions
+  const markerRegex = /<!-- update:(\d{4}-\d{2}-\d{2}) -->/g;
+  const markers: { date: string; index: number }[] = [];
+  let match;
+  while ((match = markerRegex.exec(updatesMarkdown)) !== null) {
+    markers.push({ date: match[1], index: match.index });
+  }
+
+  // Collect all dates (updates + releases), sorted descending
+  const updateDates = new Set(markers.map((m) => m.date));
+  const allDates = [...new Set([...updateDates, ...releasesByDate.keys()])].sort((a, b) =>
+    b.localeCompare(a)
+  );
+
+  // Build output by processing sections between markers
+  const parts: string[] = [];
+  // Header: everything before the first marker
+  const firstMarkerIndex = markers.length > 0 ? markers[0].index : updatesMarkdown.length;
+  parts.push(updatesMarkdown.slice(0, firstMarkerIndex));
+
+  for (let i = 0; i < allDates.length; i++) {
+    const date = allDates[i];
+    const markerIdx = markers.findIndex((m) => m.date === date);
+
+    if (markerIdx !== -1) {
+      // This date has an update section — extract it
+      const sectionStart = markers[markerIdx].index;
+      const sectionEnd =
+        markerIdx + 1 < markers.length ? markers[markerIdx + 1].index : updatesMarkdown.length;
+      let section = updatesMarkdown.slice(sectionStart, sectionEnd);
+
+      // Append releases for this date after the update section
+      const dateReleases = releasesByDate.get(date);
+      if (dateReleases) {
+        const releaseBlocks = dateReleases.map(generateReleaseBlock).join('\n');
+        section = section.trimEnd() + '\n\n' + releaseBlocks + '\n';
+        releasesByDate.delete(date);
+      }
+
+      parts.push(section);
+    } else {
+      // This date has only releases, no update — create a new section
+      const dateReleases = releasesByDate.get(date);
+      if (dateReleases) {
+        const header = `<!-- release:${date} -->\n\n## ${formatDateRu(date)}\n\n`;
+        const releaseBlocks = dateReleases.map(generateReleaseBlock).join('\n');
+        parts.push(header + releaseBlocks + '\n');
+        releasesByDate.delete(date);
+      }
+    }
+  }
+
+  return parts.join('');
+}
+
 async function generateGuideMdFiles() {
   const guidePages = getOrderedPages();
   const files: { path: string; content: string }[] = [];
 
   for (const guide of guidePages) {
-    const markdown = await generateStaticPageMarkdownAsync(guide.path);
+    let markdown = await generateStaticPageMarkdownAsync(guide.path);
     if (!markdown) continue;
+
+    // Merge product releases into the updates timeline by date
+    if (guide.path === '/updates') {
+      markdown = mergeReleasesIntoUpdates(markdown);
+    }
 
     if (guide.path === '/') {
       files.push({ path: 'public/index.md', content: markdown });

@@ -190,7 +190,7 @@ export async function UpdatesList() {
               }`}
             />
             <div className="flex flex-col mb-3">
-              <span className="text-[11px] font-mono font-bold text-text-tertiary uppercase tracking-widest leading-none mb-2">
+              <span className="text-[12px] font-mono font-bold text-text-tertiary uppercase tracking-widest leading-none mb-2">
                 {group.displayDate}
               </span>
 

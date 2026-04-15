@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Fira_Code } from 'next/font/google';
 import { Sidebar } from '@/components/layout/sidebar-wrapper';
 import { HeaderServer } from '@/components/layout/header-wrapper';
 import { TransitionProvider } from '@/components/layout/transition-provider';
@@ -11,6 +11,12 @@ import './globals.css';
 const inter = Inter({
   subsets: ['cyrillic', 'latin'],
   display: 'swap',
+});
+
+const firaCode = Fira_Code({
+  subsets: ['cyrillic', 'latin'],
+  display: 'swap',
+  variable: '--font-mono',
 });
 
 export const viewport: Viewport = {
@@ -95,7 +101,11 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`min-h-screen ${inter.className}`} suppressHydrationWarning>
+    <html
+      lang="ru"
+      className={`min-h-screen ${inter.className} ${firaCode.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#36373d" media="(prefers-color-scheme: dark)" />

@@ -59,9 +59,7 @@
   --mobile-nav-height: 0px;
   --scroll-offset: calc(var(--mobile-header-height) + var(--mobile-nav-height) + 24px);
 
-  /* Font Families — sans is set by next/font on <html>, mono is for code blocks */
-  --font-mono:
-    'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  /* Font Families — sans is set by next/font on <html>, mono is set via --font-mono CSS variable from next/font (JetBrains Mono) */
 }
 
 @media (max-width: 1023px) {

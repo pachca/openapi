@@ -3,7 +3,7 @@ import { getEndpointByUrl } from '@/lib/openapi/parser';
 import { generateTitle } from '@/lib/openapi/mapper';
 import { getGuideData } from '@/lib/content-loader';
 import { getSectionTitle } from '@/lib/tabs-config';
-import { loadUpdates } from '@/lib/updates-parser';
+import { loadUpdates, loadReleases, formatDateRu } from '@/lib/updates-parser';
 import { type NextRequest } from 'next/server';
 
 // In-memory cache: URL → PNG buffer (max 50 entries)
@@ -120,6 +120,13 @@ async function generateMethodImage(path: string) {
   );
 }
 
+const OG_PRODUCT_TITLES: Record<string, string> = {
+  cli: 'CLI',
+  sdk: 'SDK',
+  generator: 'Generator',
+  n8n: 'n8n Node',
+};
+
 async function generateUpdatesImage(date: string | null) {
   if (!date) {
     return generateGuideImage('updates');
@@ -128,8 +135,20 @@ async function generateUpdatesImage(date: string | null) {
   const updates = loadUpdates();
   const latest = updates.find((u) => u.date === date);
 
-  if (!latest) {
-    return generateGuideImage('updates');
+  let displayDate: string;
+  let title: string;
+
+  if (latest) {
+    displayDate = latest.displayDate;
+    title = latest.title;
+  } else {
+    const releases = loadReleases().filter((r) => r.date === date);
+    if (releases.length === 0) {
+      return generateGuideImage('updates');
+    }
+    displayDate = formatDateRu(date);
+    const products = [...new Set(releases.map((r) => OG_PRODUCT_TITLES[r.product]))];
+    title = products.join(', ') + ' ' + releases.map((r) => `v${r.version}`).join(', ');
   }
 
   return createOgImageResponse(
@@ -155,7 +174,7 @@ async function generateUpdatesImage(date: string | null) {
             letterSpacing: '0.15em',
           }}
         >
-          {latest.displayDate}
+          {displayDate}
         </span>
         <span
           style={{
@@ -165,7 +184,7 @@ async function generateUpdatesImage(date: string | null) {
             lineHeight: 1.3,
           }}
         >
-          {latest.title}
+          {title}
         </span>
       </div>
       <span

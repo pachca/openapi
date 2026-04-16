@@ -10,6 +10,22 @@
 
 ## Тело запроса
 
+**Обязательно**
+
+Формат: `multipart/form-data`
+
+### Схема
+
+- `Content-Disposition: string` (required) — Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `acl: string` (required) — Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `policy: string` (required) — Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-credential: string` (required) — Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-algorithm: string` (required) — Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-date: string` (required) — Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-signature: string` (required) — Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `key: string` (required) — Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `file: binary` (required) — Файл для загрузки
+
 
 ## Пример запроса
 

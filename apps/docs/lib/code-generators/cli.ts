@@ -25,7 +25,12 @@ export function generateCLI(endpoint: Endpoint, options?: ExampleOptions): strin
   // Body fields as flags (for POST/PUT/PATCH)
   if (['POST', 'PUT', 'PATCH'].includes(endpoint.method) && endpoint.requestBody) {
     const bodyFields = extractUnwrappedBodyFields(endpoint.requestBody, options);
-    for (const { name, example, schemaType } of bodyFields) {
+    for (const { name, example, schemaType, format } of bodyFields) {
+      // Multipart binary field → CLI --file=<path> (not a hex blob)
+      if (format === 'binary') {
+        parts.push(`--file=./${name}.jpg`);
+        continue;
+      }
       valueToFlag(name, example, schemaType, parts);
     }
   }
@@ -137,6 +142,7 @@ interface BodyField {
   name: string;
   example: unknown;
   schemaType?: string | string[];
+  format?: string;
 }
 
 function extractUnwrappedBodyFields(
@@ -185,7 +191,7 @@ function extractUnwrappedBodyFields(
         if (options?.requiredOnly && !innerRequired.includes(name)) continue;
         const example = generateExample(s, 0, options);
         if (example !== undefined) {
-          fields.push({ name, example, schemaType: s.type });
+          fields.push({ name, example, schemaType: s.type, format: s.format });
         }
       }
     }
@@ -199,7 +205,7 @@ function extractUnwrappedBodyFields(
       if (options?.requiredOnly && !topRequired.includes(key)) continue;
       const example = generateExample(s, 0, options);
       if (example !== undefined) {
-        fields.push({ name: key, example, schemaType: s.type });
+        fields.push({ name: key, example, schemaType: s.type, format: s.format });
       }
     }
 
@@ -215,7 +221,7 @@ function extractUnwrappedBodyFields(
     if (options?.requiredOnly && !topRequired.includes(name)) continue;
     const example = generateExample(s, 0, options);
     if (example !== undefined) {
-      fields.push({ name, example, schemaType: s.type });
+      fields.push({ name, example, schemaType: s.type, format: s.format });
     }
   }
   return fields;

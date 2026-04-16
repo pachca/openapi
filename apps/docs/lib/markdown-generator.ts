@@ -338,8 +338,16 @@ function formatRequestBody(endpoint: Endpoint): string {
 
   let content = '\n## Тело запроса\n\n';
 
-  const jsonContent = endpoint.requestBody.content?.['application/json'];
-  if (jsonContent?.schema) {
+  // Prefer application/json, fall back to multipart/form-data (e.g. avatar upload)
+  const contentType = endpoint.requestBody.content?.['application/json']
+    ? 'application/json'
+    : endpoint.requestBody.content?.['multipart/form-data']
+      ? 'multipart/form-data'
+      : null;
+  if (!contentType) return content;
+
+  const mediaContent = endpoint.requestBody.content?.[contentType];
+  if (mediaContent?.schema) {
     const required = endpoint.requestBody.required ? '**Обязательно**' : '**Опционально**';
     content += `${required}\n\n`;
 
@@ -347,27 +355,29 @@ function formatRequestBody(endpoint: Endpoint): string {
       content += `${endpoint.requestBody.description}\n\n`;
     }
 
-    content += 'Формат: `application/json`\n\n';
+    content += `Формат: \`${contentType}\`\n\n`;
 
     // Format schema structure
     content += '### Схема\n\n';
     const schemaFormatted = schemaToMarkdown(
-      jsonContent.schema,
+      mediaContent.schema,
       0,
-      jsonContent.schema.required || []
+      mediaContent.schema.required || []
     );
     if (schemaFormatted) {
       content += schemaFormatted;
       content += '\n';
     }
 
-    // Generate example
-    const example = generateRequestExample(endpoint.requestBody);
-    if (example) {
-      content += '### Пример\n\n';
-      content += '```json\n';
-      content += JSON.stringify(example, null, 2);
-      content += '\n```\n';
+    // Generate JSON example (skip for multipart — binary blob makes no sense as JSON)
+    if (contentType === 'application/json') {
+      const example = generateRequestExample(endpoint.requestBody);
+      if (example) {
+        content += '### Пример\n\n';
+        content += '```json\n';
+        content += JSON.stringify(example, null, 2);
+        content += '\n```\n';
+      }
     }
   }
 

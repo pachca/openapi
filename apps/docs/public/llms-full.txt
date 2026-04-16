@@ -74,7 +74,7 @@
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 81–163 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 164–819 |
 | Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 820–10282 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10283–25201 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10283–25233 |
 
 ---
 
@@ -10842,6 +10842,22 @@ response = await client.common.list_properties(params=params)
 
 ## Тело запроса
 
+**Обязательно**
+
+Формат: `multipart/form-data`
+
+### Схема
+
+- `Content-Disposition: string` (required) — Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `acl: string` (required) — Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `policy: string` (required) — Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-credential: string` (required) — Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-algorithm: string` (required) — Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-date: string` (required) — Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `x-amz-signature: string` (required) — Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `key: string` (required) — Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)
+- `file: binary` (required) — Файл для загрузки
+
 
 ## Пример запроса
 
@@ -11324,6 +11340,14 @@ response = await client.profile.get_profile()
 Метод для загрузки или обновления аватара своего профиля. Файл передается в формате `multipart/form-data`.
 
 ## Тело запроса
+
+**Обязательно**
+
+Формат: `multipart/form-data`
+
+### Схема
+
+- `image: binary` (required) — Файл изображения для аватара
 
 
 ## Пример запроса
@@ -13479,6 +13503,14 @@ await client.users.delete_user(id=12)
 
 
 ## Тело запроса
+
+**Обязательно**
+
+Формат: `multipart/form-data`
+
+### Схема
+
+- `image: binary` (required) — Файл изображения для аватара
 
 
 ## Пример запроса

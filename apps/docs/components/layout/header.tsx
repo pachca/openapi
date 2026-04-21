@@ -42,8 +42,14 @@ export function Header() {
                   : 'text-text-secondary hover:bg-glass-hover hover:text-text-primary'
               }`}
             >
-              <span className="lg:hidden truncate">{tab.shortTitle}</span>
-              <span className="hidden lg:inline whitespace-nowrap">{tab.title}</span>
+              {tab.shortTitle === tab.title ? (
+                <span className="truncate whitespace-nowrap">{tab.title}</span>
+              ) : (
+                <>
+                  <span className="lg:hidden truncate">{tab.shortTitle}</span>
+                  <span className="hidden lg:inline whitespace-nowrap">{tab.title}</span>
+                </>
+              )}
             </Link>
           );
         })}

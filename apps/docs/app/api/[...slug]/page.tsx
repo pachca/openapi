@@ -7,6 +7,7 @@ import {
 import { ApiMethodTemplate } from '@/components/api/method-template';
 import { getAdjacentItems } from '@/lib/navigation';
 import { getSdkExamples } from '@/lib/sdk-examples';
+import { formatMetaDescription } from '@/lib/meta-description';
 import { notFound } from 'next/navigation';
 
 export async function generateStaticParams() {
@@ -33,13 +34,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   endpoint.title = generateTitle(endpoint);
 
-  const description = endpoint.description || endpoint.summary;
-  const descriptionBody = (getDescriptionWithoutTitle(endpoint) || '')
-    .split('\n')
-    .filter((line) => line.trim() && !line.trim().startsWith('#'))
-    .join(' ')
-    .replace(/`([^`]*)`/g, '$1')
-    .trim();
+  const descriptionBody = formatMetaDescription(getDescriptionWithoutTitle(endpoint));
+  const description = descriptionBody || formatMetaDescription(endpoint.summary);
   const ogDescription =
     `${endpoint.method} ${endpoint.path}` + (descriptionBody ? `\n${descriptionBody}` : '');
 

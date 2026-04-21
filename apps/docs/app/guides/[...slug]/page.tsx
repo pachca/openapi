@@ -31,7 +31,7 @@ export async function generateMetadata({
   const pageTitle = data.frontmatter.title;
   const pageUrl = `/guides/${slugPath}`;
   const parent = getNestedParentTitle(pageUrl);
-  const baseTitle = parent ? `${parent}: ${pageTitle}` : pageTitle;
+  const baseTitle = parent ? `${parent}, ${pageTitle}` : pageTitle;
   const description: string | undefined = data.frontmatter.description || firstParagraph;
   const ogImage = `/api/og?type=guide&slug=${slugPath}`;
 

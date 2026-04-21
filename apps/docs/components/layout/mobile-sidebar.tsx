@@ -14,6 +14,7 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [hasOpened, setHasOpened] = useState(false);
   const pathname = usePathname();
   const activeTab = useActiveTab();
 
@@ -25,7 +26,12 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
 
   // Listen for toggle event from nav bar
   useEffect(() => {
-    const handler = () => setIsOpen((prev) => !prev);
+    const handler = () =>
+      setIsOpen((prev) => {
+        const next = !prev;
+        if (next) setHasOpened(true);
+        return next;
+      });
     window.addEventListener('toggle-mobile-menu', handler);
     return () => window.removeEventListener('toggle-mobile-menu', handler);
   }, []);
@@ -83,8 +89,8 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
             </button>
           </div>
 
-          {/* Navigation */}
-          {navigation.length > 0 && (
+          {/* Navigation — lazy-rendered to keep SSR output free of duplicate nav text */}
+          {hasOpened && navigation.length > 0 && (
             <div
               className="overflow-y-auto custom-scrollbar flex-1"
               id="mobile-sidebar-scroll-container"

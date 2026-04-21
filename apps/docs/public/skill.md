@@ -219,45 +219,45 @@ Error response body: `{ "errors": [{ "key": "field", "value": "description" }] }
 
 Detailed documentation on specific topics is available at:
 
-- [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут
-- [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами и какие ресурсы доступны для интеграции
-- [CLI](https://dev.pachca.com/guides/cli) — Управление Пачкой из терминала — все API-методы одной командой
-- [SDK: Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные клиентские библиотеки и генератор для Pachca API
-- [SDK: TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript с автодополнением и автопагинацией
-- [SDK: Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python с httpx
-- [SDK: Go](https://dev.pachca.com/guides/sdk/go) — Типизированный клиент для Pachca API на Go с контекстами и автопагинацией
-- [SDK: Kotlin](https://dev.pachca.com/guides/sdk/kotlin) — Типизированный клиент для Pachca API на Kotlin с корутинами и Ktor
-- [SDK: Swift](https://dev.pachca.com/guides/sdk/swift) — Типизированный клиент для Pachca API на Swift с async/await и Codable
-- [SDK: C#](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C# с async/await и автопагинацией
-- [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API
-- [Боты](https://dev.pachca.com/guides/bots) — Создание, настройка и возможности ботов в Пачке
-- [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Отправка сообщений от имени бота без использования API
-- [Исходящие вебхуки](https://dev.pachca.com/guides/webhook) — Получение уведомлений о событиях в реальном времени
-- [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons) — Интерактивные кнопки в сообщениях ботов для навигации и обработки действий
-- [Формы: Обзор](https://dev.pachca.com/guides/forms/overview) — Модальные формы ботов: поля ввода, жизненный цикл и валидация
-- [Формы: Блоки представления](https://dev.pachca.com/guides/forms/blocks) — 10 типов блоков для построения форм в Пачке
-- [Формы: Обработка форм](https://dev.pachca.com/guides/forms/handling) — Открытие представлений, получение результатов и валидация
-- [Разворачивание ссылок](https://dev.pachca.com/guides/link-previews) — Создание превью ссылок из внутренних сервисов прямо в чате
-- [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов: запрос, скачивание и структура архива
-- [DLP-система](https://dev.pachca.com/guides/dlp) — Создание правил DLP: условия, контексты и действия
-- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита: типы событий, фильтрация и примеры запросов
-- [n8n: Обзор](https://dev.pachca.com/guides/n8n/overview) — Автоматизации в Пачке через платформу n8n — 18 ресурсов, триггер, AI-агент
-- [n8n: Начало работы](https://dev.pachca.com/guides/n8n/setup) — Установка n8n, расширения Пачки, настройка Credentials и первый workflow
-- [n8n: Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources) — Все 18 ресурсов и более 60 операций расширения Пачки для n8n
-- [n8n: Триггер](https://dev.pachca.com/guides/n8n/trigger) — Pachca Trigger: 16 типов событий, автоматическая и ручная регистрация вебхука, проверка подписи
-- [n8n: Тестирование](https://dev.pachca.com/guides/n8n/testing) — Тестирование n8n-узлов Пачки: Listen for test event, Pin Data, Execute Step, защита webhook-слота бота и локальная разработка через туннель
-- [n8n: Примеры workflow](https://dev.pachca.com/guides/n8n/workflows) — Готовые сценарии автоматизации Пачки в n8n: приветствие, пересылка, задачи, согласование, мониторинг, заявки на отпуск
-- [n8n: Продвинутые функции](https://dev.pachca.com/guides/n8n/advanced) — Экспорт сообщений, загрузка файлов, кнопки, формы, AI-агент, разворачивание ссылок, журнал безопасности
-- [n8n: Устранение ошибок](https://dev.pachca.com/guides/n8n/troubleshooting) — Частые ошибки при работе с Пачкой в n8n: неверный токен, 403, 429, вебхук не приходит
-- [n8n: Миграция с v1](https://dev.pachca.com/guides/n8n/migration) — Обновление с v1 на v2: таблицы переименований, новые ресурсы, полная обратная совместимость
-- [Albato](https://dev.pachca.com/guides/albato) — Интеграция Пачки с Albato — подключение сотен сервисов без кода
-- [Последние обновления](https://dev.pachca.com/updates) — История изменений и новые возможности API
-- [Основы API: Авторизация](https://dev.pachca.com/api/authorization) — Типы токенов, скоупы и настройка доступа к API
-- [Основы API: Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов, тестирование API
-- [Основы API: Пагинация](https://dev.pachca.com/api/pagination) — Cursor-based pagination в API Пачки
-- [Основы API: Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговый процесс загрузки файлов через presigned URL
-- [Основы API: Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP и rate limits
-- [Основы API: Модели](https://dev.pachca.com/api/models) — Справочник всех моделей данных Pachca API — объекты, возвращаемые в ответах методов.
+- [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
+- [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами: треды как единица работы, сквозные треды, готовые Agent Skills для 40+ агентов и примеры сценариев в чатах и задачах
+- [CLI](https://dev.pachca.com/guides/cli) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
+- [SDK: Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
+- [SDK: TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
+- [SDK: Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+
+- [SDK: Go](https://dev.pachca.com/guides/sdk/go) — Типизированный клиент для Pachca API на Go: синхронный, с context.Context, автопагинацией и обработкой retry. Установка через go get, требуется Go 1.24+
+- [SDK: Kotlin](https://dev.pachca.com/guides/sdk/kotlin) — Типизированный клиент для Pachca API на Kotlin: Ktor с корутинами, kotlinx.serialization и встроенным retry. JitPack, требуется Kotlin 2.2+ и Java 11+
+- [SDK: Swift](https://dev.pachca.com/guides/sdk/swift) — Типизированный клиент для Pachca API на Swift: URLSession, async throws, Codable и встроенный retry. Swift Package, Swift 5.9+, macOS 13+ или iOS 16+
+- [SDK: C#](https://dev.pachca.com/guides/sdk/csharp) — Типизированный клиент для Pachca API на C#: .NET 8+ с async/await, CancellationToken, автопагинацией и обработкой retry. NuGet-пакет Pachca.Sdk
+- [Сценарии](https://dev.pachca.com/guides/workflows) — Пошаговые сценарии для типичных задач с API Пачки: какие методы вызывать и в каком порядке. Основа Agent Skills для AI-агентов и команды pachca guide в CLI
+- [Боты](https://dev.pachca.com/guides/bots) — Боты в Пачке: создание, настройка токена и скоупов, ограничения в мобильных приложениях, работа с входящими и исходящими вебхуками, кнопками и формами
+- [Входящие вебхуки](https://dev.pachca.com/guides/incoming-webhooks) — Входящие вебхуки в Пачке: отправка сообщений от имени бота одним HTTP POST без API, шаблонизатор для форматирования, интеграции с CI/CD и мониторингом
+- [Исходящие вебхуки](https://dev.pachca.com/guides/webhook) — Исходящие вебхуки в Пачке: уведомления о событиях пространства (сообщения, реакции, участники) в реальном времени, подпись для проверки подлинности запроса
+- [Кнопки в сообщениях](https://dev.pachca.com/guides/buttons) — Интерактивные кнопки в сообщениях ботов Пачки: ссылки и действия, обработка нажатий через исходящий вебхук, открытие форм и переходы на внешние ресурсы
+- [Формы: Обзор](https://dev.pachca.com/guides/forms/overview) — Модальные формы ботов в Пачке: поля ввода, списки, даты и кнопки, жизненный цикл представления — от нажатия кнопки до валидации и закрытия модального окна
+- [Формы: Блоки представления](https://dev.pachca.com/guides/forms/blocks) — 10 типов блоков представлений в формах ботов Пачки: заголовок, текст, поля ввода, выбор из списка, дата, кнопки. До 100 блоков в одном представлении
+- [Формы: Обработка форм](https://dev.pachca.com/guides/forms/handling) — Обработка форм в Пачке: открытие представлений по trigger_id (3 секунды), приём результатов через исходящий вебхук, валидация полей и отображение ошибок
+- [Разворачивание ссылок](https://dev.pachca.com/guides/link-previews) — Unfurl в Пачке: превью ссылок внутренних сервисов прямо в чатах — бот ловит URL, подтягивает заголовок, описание, изображение и отправляет обратно в чат
+- [Экспорт сообщений](https://dev.pachca.com/guides/export) — Экспорт сообщений из чатов Пачки: запрос архива за период до 45 дней, скачивание JSON-файлов, структура архива и ограничения по чатам. Тариф «Корпорация»
+- [DLP-система](https://dev.pachca.com/guides/dlp) — DLP-система Пачки для защиты от утечек конфиденциальной информации: правила с условиями и действиями, приоритеты, контексты применения. Тариф «Корпорация»
+- [Журнал аудита событий](https://dev.pachca.com/guides/audit-events) — Журнал аудита событий Пачки для команд безопасности: типы событий, фильтрация по пользователю, периоду и типу, 90 дней хранения. Тариф «Корпорация»
+- [n8n: Обзор](https://dev.pachca.com/guides/n8n/overview) — Автоматизации Пачки на платформе n8n: расширение с 18 ресурсами, триггером событий и AI-агентом. Визуальные workflow без кода для CRM, CI/CD и уведомлений
+- [n8n: Начало работы](https://dev.pachca.com/guides/n8n/setup) — Начало работы с Пачкой в n8n: установка n8n через npm или Docker, установка расширения, настройка Credentials с API-токеном и сборка первого workflow
+- [n8n: Ресурсы и операции](https://dev.pachca.com/guides/n8n/resources) — 18 ресурсов и более 60 операций расширения Пачки для n8n: сообщения, чаты, задачи, сотрудники, боты, теги и вебхуки в модели Resource → Operation
+- [n8n: Триггер](https://dev.pachca.com/guides/n8n/trigger) — Триггер Pachca Trigger для n8n: 16 типов событий Пачки, автоматическая и ручная регистрация вебхука, проверка подписи запроса и IP-фильтр для безопасности
+- [n8n: Тестирование](https://dev.pachca.com/guides/n8n/testing) — Тестирование n8n-узлов Пачки: Listen for test event, Pin Data и Execute Step для экшн-узлов, защита webhook-слота бота и локальная разработка через туннель
+- [n8n: Примеры workflow](https://dev.pachca.com/guides/n8n/workflows) — Готовые сценарии автоматизации Пачки в n8n: приветствие сотрудника, пересылка сообщений, задачи из обсуждений, согласование, мониторинг и заявки на отпуск
+- [n8n: Продвинутые функции](https://dev.pachca.com/guides/n8n/advanced) — Продвинутые функции n8n-расширения Пачки: загрузка файлов через S3, интерактивные кнопки, формы, AI-агент, разворачивание ссылок и журнал безопасности
+- [n8n: Устранение ошибок](https://dev.pachca.com/guides/n8n/troubleshooting) — Частые ошибки при работе с Пачкой в n8n: неверный Access Token, 401 Unauthorized, 403 Forbidden, 429 Too Many Requests и проблемы с доставкой вебхука
+- [n8n: Миграция с v1](https://dev.pachca.com/guides/n8n/migration) — Обновление расширения Пачки для n8n с v1 на v2: таблицы переименований, новые возможности и полная обратная совместимость для существующих workflow
+- [Albato](https://dev.pachca.com/guides/albato) — Интеграция Пачки с Albato: подключите более 250 сервисов без кода и получайте уведомления о событиях из Jira, CRM и других систем прямо в чатах и каналах
+- [Последние обновления](https://dev.pachca.com/updates) — История изменений API Пачки, CLI, SDK и расширения для n8n. Новые методы, параметры и возможности. RSS-лента и markdown-версия для AI-агентов и интеграций
+- [Основы API: Авторизация](https://dev.pachca.com/api/authorization) — Авторизация в API Пачки: персональный токен и токен бота, скоупы методов, настройка доступа для администраторов и сотрудников, смена владельца пространства
+- [Основы API: Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
+- [Основы API: Пагинация](https://dev.pachca.com/api/pagination) — Пагинация в API Пачки по курсору: параметры limit и cursor, структура meta.paginate.next_page и пример получения следующей страницы списка результатов
+- [Основы API: Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговая загрузка файлов в API Пачки через presigned URL S3: получение подписи, отправка multipart/form-data и прикрепление к сообщению или задаче
+- [Основы API: Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP в API Пачки, структуры ApiError и OAuthError, лимиты rate limits по пользователям и ботам, обработка ответа 429 и заголовка Retry-After
+- [Основы API: Модели](https://dev.pachca.com/api/models) — Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
 
 
 ## Modular Skills

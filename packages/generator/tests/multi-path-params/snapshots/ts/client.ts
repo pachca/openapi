@@ -1,5 +1,5 @@
-import { Task, TaskUpdateRequest } from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+import { Task, TaskUpdateRequest } from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class TasksService {
   async getTask(projectId: number, taskId: number): Promise<Task> {

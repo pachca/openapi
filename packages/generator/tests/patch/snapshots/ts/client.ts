@@ -1,5 +1,5 @@
-import { ItemPatchRequest, Item, ApiError } from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+import { ItemPatchRequest, Item, ApiError } from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class ItemsService {
   async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {

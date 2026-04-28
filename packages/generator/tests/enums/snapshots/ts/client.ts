@@ -1,1 +1,1 @@
-import { SortOrder, UserRole, ViewBlockHeaderType } from "./types";
+import { SortOrder, UserRole, ViewBlockHeaderType } from "./types.js";

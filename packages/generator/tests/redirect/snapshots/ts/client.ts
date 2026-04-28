@@ -1,5 +1,5 @@
-import { OAuthError, ApiError } from "./types";
-import { fetchWithRetry } from "./utils";
+import { OAuthError, ApiError } from "./types.js";
+import { fetchWithRetry } from "./utils.js";
 
 export class CommonService {
   async downloadExport(id: number): Promise<string> {

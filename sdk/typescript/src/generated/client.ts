@@ -63,8 +63,8 @@ import {
   UserCreateRequest,
   UserUpdateRequest,
   OpenViewRequest,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class SecurityService {
   async getAuditEvents(params?: GetAuditEventsParams): Promise<GetAuditEventsResponse> {

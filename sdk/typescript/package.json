@@ -23,7 +23,8 @@
   "scripts": {
     "setup": "true",
     "generate": "bun ../../packages/generator/bin/generator.ts --spec ../../packages/spec/openapi.yaml --output . --lang typescript --examples && rm -rf src/generated && mv ts src/generated",
-    "build": "tsc"
+    "build": "tsc",
+    "test:node": "node test/smoke.mjs"
   },
   "dependencies": {},
   "devDependencies": {

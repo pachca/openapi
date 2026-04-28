@@ -1,1 +1,1 @@
-import { BaseEntity, Article } from "./types";
+import { BaseEntity, Article } from "./types.js";

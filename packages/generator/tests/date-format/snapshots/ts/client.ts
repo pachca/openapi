@@ -4,8 +4,8 @@ import {
   OAuthError,
   ExportRequest,
   Export,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class ExportService {
   async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {

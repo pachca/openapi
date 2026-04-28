@@ -3,8 +3,8 @@ import {
   ApiError,
   ChatCreateRequest,
   Chat,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class MembersService {
   async addMembers(id: number, memberIds: number[]): Promise<void> {

@@ -3,4 +3,4 @@ import {
   ViewBlockPlainText,
   ViewBlockImage,
   ViewBlockUnion,
-} from "./types";
+} from "./types.js";

@@ -6,8 +6,8 @@ import {
   ApiError,
   ChatCreateRequest,
   ChatUpdateRequest,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class ChatsService {
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {

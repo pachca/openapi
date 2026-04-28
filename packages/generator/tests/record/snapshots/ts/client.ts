@@ -1,5 +1,5 @@
-import { LinkPreviewsRequest, OAuthError, ApiError } from "./types";
-import { serialize, fetchWithRetry } from "./utils";
+import { LinkPreviewsRequest, OAuthError, ApiError } from "./types.js";
+import { serialize, fetchWithRetry } from "./utils.js";
 
 export class LinkPreviewsService {
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {

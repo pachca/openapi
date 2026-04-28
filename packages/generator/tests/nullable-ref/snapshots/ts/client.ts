@@ -1,1 +1,1 @@
-import { Address, Person } from "./types";
+import { Address, Person } from "./types.js";

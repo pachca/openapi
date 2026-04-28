@@ -1,5 +1,5 @@
-import { FileUploadRequest, OAuthError, UploadParams } from "./types";
-import { deserialize, fetchWithRetry } from "./utils";
+import { FileUploadRequest, OAuthError, UploadParams } from "./types.js";
+import { deserialize, fetchWithRetry } from "./utils.js";
 
 export class CommonService {
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {

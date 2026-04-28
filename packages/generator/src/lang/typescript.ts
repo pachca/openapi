@@ -435,11 +435,11 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   const typesList = importedTypes;
   if (typesList.length > 0) {
     if (typesList.length <= 3) {
-      lines.push(`import { ${typesList.join(', ')} } from "./types";`);
+      lines.push(`import { ${typesList.join(', ')} } from "./types.js";`);
     } else {
       lines.push('import {');
       for (const t of typesList) lines.push(`  ${t},`);
-      lines.push('} from "./types";');
+      lines.push('} from "./types.js";');
     }
   }
 
@@ -451,7 +451,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     ]
       .filter((x): x is string => !!x)
       .join(', ');
-    lines.push(`import { ${utils} } from "./utils";`);
+    lines.push(`import { ${utils} } from "./utils.js";`);
   }
 
   if (hasServices) lines.push('');

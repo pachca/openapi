@@ -1,1 +1,1 @@
-import { Metadata, Event } from "./types";
+import { Metadata, Event } from "./types.js";

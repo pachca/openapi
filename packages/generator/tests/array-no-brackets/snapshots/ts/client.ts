@@ -3,8 +3,8 @@ import {
   SearchMessagesResponse,
   MessageResult,
   OAuthError,
-} from "./types";
-import { deserialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, fetchWithRetry } from "./utils.js";
 
 export class SearchService {
   async searchMessages(params: SearchMessagesParams): Promise<SearchMessagesResponse> {
@@ -83,9 +83,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(search: SearchService = new SearchService()): PachcaClient {
+  static stub(overrides: { search?: SearchService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.search = search;
+    client.search = overrides.search ?? new SearchService();
     return client;
   }
 }

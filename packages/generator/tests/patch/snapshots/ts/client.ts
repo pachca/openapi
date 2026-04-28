@@ -1,5 +1,5 @@
-import { ItemPatchRequest, Item, ApiError } from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+import { ItemPatchRequest, Item, ApiError } from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class ItemsService {
   async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
@@ -52,9 +52,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(items: ItemsService = new ItemsService()): PachcaClient {
+  static stub(overrides: { items?: ItemsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.items = items;
+    client.items = overrides.items ?? new ItemsService();
     return client;
   }
 }

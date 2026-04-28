@@ -6,8 +6,8 @@ import {
   ApiError,
   ChatCreateRequest,
   ChatUpdateRequest,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class ChatsService {
   async listChats(params?: ListChatsParams): Promise<ListChatsResponse> {
@@ -182,9 +182,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(chats: ChatsService = new ChatsService()): PachcaClient {
+  static stub(overrides: { chats?: ChatsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.chats = chats;
+    client.chats = overrides.chats ?? new ChatsService();
     return client;
   }
 }

@@ -1,5 +1,5 @@
-import { Task, TaskUpdateRequest } from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+import { Task, TaskUpdateRequest } from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class TasksService {
   async getTask(projectId: number, taskId: number): Promise<Task> {
@@ -86,9 +86,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(tasks: TasksService = new TasksService()): PachcaClient {
+  static stub(overrides: { tasks?: TasksService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.tasks = tasks;
+    client.tasks = overrides.tasks ?? new TasksService();
     return client;
   }
 }

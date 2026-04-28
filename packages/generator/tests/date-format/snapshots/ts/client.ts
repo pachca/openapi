@@ -4,8 +4,8 @@ import {
   OAuthError,
   ExportRequest,
   Export,
-} from "./types";
-import { deserialize, serialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, serialize, fetchWithRetry } from "./utils.js";
 
 export class ExportService {
   async listEvents(params: ListEventsParams): Promise<ListEventsResponse> {
@@ -82,9 +82,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(export: ExportService = new ExportService()): PachcaClient {
+  static stub(overrides: { export?: ExportService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.export = export;
+    client.export = overrides.export ?? new ExportService();
     return client;
   }
 }

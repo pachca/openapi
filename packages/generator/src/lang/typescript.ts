@@ -435,11 +435,11 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   const typesList = importedTypes;
   if (typesList.length > 0) {
     if (typesList.length <= 3) {
-      lines.push(`import { ${typesList.join(', ')} } from "./types";`);
+      lines.push(`import { ${typesList.join(', ')} } from "./types.js";`);
     } else {
       lines.push('import {');
       for (const t of typesList) lines.push(`  ${t},`);
-      lines.push('} from "./types";');
+      lines.push('} from "./types.js";');
     }
   }
 
@@ -451,7 +451,7 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     ]
       .filter((x): x is string => !!x)
       .join(', ');
-    lines.push(`import { ${utils} } from "./utils";`);
+    lines.push(`import { ${utils} } from "./utils.js";`);
   }
 
   if (hasServices) lines.push('');
@@ -497,11 +497,11 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     lines.push('  }');
     lines.push('');
     // Static stub() factory method
-    const stubArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} = new ${s.cls}()`);
-    lines.push(`  static stub(${stubArgs.join(', ')}): PachcaClient {`);
+    const stubFields = serviceEntries.map((s) => `${s.prop}?: ${s.cls}`).join('; ');
+    lines.push(`  static stub(overrides: { ${stubFields} } = {}): PachcaClient {`);
     lines.push('    const client = Object.create(PachcaClient.prototype);');
     for (const s of serviceEntries) {
-      lines.push(`    client.${s.prop} = ${s.prop};`);
+      lines.push(`    client.${s.prop} = overrides.${s.prop} ?? new ${s.cls}();`);
     }
     lines.push('    return client;');
     lines.push('  }');

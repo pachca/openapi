@@ -1,5 +1,5 @@
-import { FileUploadRequest, OAuthError, UploadParams } from "./types";
-import { deserialize, fetchWithRetry } from "./utils";
+import { FileUploadRequest, OAuthError, UploadParams } from "./types.js";
+import { deserialize, fetchWithRetry } from "./utils.js";
 
 export class CommonService {
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
@@ -82,9 +82,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(common: CommonService = new CommonService()): PachcaClient {
+  static stub(overrides: { common?: CommonService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.common = common;
+    client.common = overrides.common ?? new CommonService();
     return client;
   }
 }

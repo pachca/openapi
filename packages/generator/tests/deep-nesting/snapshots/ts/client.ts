@@ -3,4 +3,4 @@ import {
   OrganizationSettingsNotificationsPush,
   OrganizationSettingsNotifications,
   Organization,
-} from "./types";
+} from "./types.js";

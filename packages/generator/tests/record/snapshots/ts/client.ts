@@ -1,5 +1,5 @@
-import { LinkPreviewsRequest, OAuthError, ApiError } from "./types";
-import { serialize, fetchWithRetry } from "./utils";
+import { LinkPreviewsRequest, OAuthError, ApiError } from "./types.js";
+import { serialize, fetchWithRetry } from "./utils.js";
 
 export class LinkPreviewsService {
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
@@ -53,9 +53,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(linkPreviews: LinkPreviewsService = new LinkPreviewsService()): PachcaClient {
+  static stub(overrides: { linkPreviews?: LinkPreviewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.linkPreviews = linkPreviews;
+    client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();
     return client;
   }
 }

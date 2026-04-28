@@ -44,7 +44,7 @@ jobs:
         working-directory: packages/openapi-parser
         run: bun run build
       - name: Generate SDKs
-        run: npx turbo run generate
+        run: bunx turbo run generate
 
       - name: Check for SDK changes
         id: sdk_changes
@@ -94,7 +94,17 @@ jobs:
 
       - name: Build TypeScript SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
-        run: npm run build
+        run: bun run build
+        working-directory: sdk/typescript
+
+      - name: Smoke test TypeScript SDK under Node
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
+        run: bun run test:node
+        working-directory: sdk/typescript
+
+      - name: Verify TypeScript SDK package (attw)
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
+        run: bun run verify
         working-directory: sdk/typescript
 
       - name: Compile Go SDK
@@ -200,7 +210,13 @@ jobs:
         run: |
           sed -i 's/"version": "0.0.0"/"version": "${{ needs.generate-and-build.outputs.version }}"/' package.json
       - name: Build TypeScript SDK
-        run: npm run build
+        run: bun run build
+        working-directory: sdk/typescript
+      - name: Smoke test TypeScript SDK under Node
+        run: bun run test:node
+        working-directory: sdk/typescript
+      - name: Verify TypeScript SDK package (attw)
+        run: bun run verify
         working-directory: sdk/typescript
       - name: Publish to npm
         working-directory: sdk/typescript
@@ -255,9 +271,9 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           cd packages/cli && node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='$VERSION';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
       - name: Generate changelog
-        run: npx tsx scripts/diff-endpoints.ts
+        run: bun scripts/diff-endpoints.ts
         working-directory: packages/cli
-      - run: npm run build
+      - run: bun run build
         working-directory: packages/cli
       - working-directory: packages/cli
         env:

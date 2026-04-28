@@ -1,1 +1,1 @@
-import { Entity } from "./types";
+import { Entity } from "./types.js";

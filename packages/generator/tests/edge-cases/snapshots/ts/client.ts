@@ -4,8 +4,8 @@ import {
   OAuthScope,
   Event,
   UploadRequest,
-} from "./types";
-import { deserialize, fetchWithRetry } from "./utils";
+} from "./types.js";
+import { deserialize, fetchWithRetry } from "./utils.js";
 
 export class EventsService {
   async listEvents(params?: ListEventsParams): Promise<ListEventsResponse> {
@@ -115,10 +115,10 @@ export class PachcaClient {
     }
   }
 
-  static stub(events: EventsService = new EventsService(), uploads: UploadsService = new UploadsService()): PachcaClient {
+  static stub(overrides: { events?: EventsService; uploads?: UploadsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.events = events;
-    client.uploads = uploads;
+    client.events = overrides.events ?? new EventsService();
+    client.uploads = overrides.uploads ?? new UploadsService();
     return client;
   }
 }

@@ -10,6 +10,8 @@ npm install @pachca/sdk
 
 ## Использование
 
+ESM:
+
 ```typescript
 import { PachcaClient } from "@pachca/sdk";
 
@@ -22,6 +24,14 @@ const message = await pachca.messages.createMessage({
 
 // Список пользователей
 const users = await pachca.users.listUsers();
+```
+
+CommonJS:
+
+```javascript
+const { PachcaClient } = require("@pachca/sdk");
+
+const pachca = new PachcaClient("YOUR_TOKEN");
 ```
 
 ## Конвенции

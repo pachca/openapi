@@ -82,9 +82,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(common: CommonService = new CommonService()): PachcaClient {
+  static stub(overrides: { common?: CommonService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.common = common;
+    client.common = overrides.common ?? new CommonService();
     return client;
   }
 }

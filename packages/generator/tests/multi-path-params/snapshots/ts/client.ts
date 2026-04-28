@@ -86,9 +86,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(tasks: TasksService = new TasksService()): PachcaClient {
+  static stub(overrides: { tasks?: TasksService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.tasks = tasks;
+    client.tasks = overrides.tasks ?? new TasksService();
     return client;
   }
 }

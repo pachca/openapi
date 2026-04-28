@@ -86,9 +86,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(search: SearchService = new SearchService()): PachcaClient {
+  static stub(overrides: { search?: SearchService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.search = search;
+    client.search = overrides.search ?? new SearchService();
     return client;
   }
 }

@@ -52,9 +52,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(items: ItemsService = new ItemsService()): PachcaClient {
+  static stub(overrides: { items?: ItemsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.items = items;
+    client.items = overrides.items ?? new ItemsService();
     return client;
   }
 }

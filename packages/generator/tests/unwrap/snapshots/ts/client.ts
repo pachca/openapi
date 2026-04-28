@@ -112,10 +112,10 @@ export class PachcaClient {
     }
   }
 
-  static stub(chats: ChatsService = new ChatsService(), members: MembersService = new MembersService()): PachcaClient {
+  static stub(overrides: { chats?: ChatsService; members?: MembersService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.chats = chats;
-    client.members = members;
+    client.chats = overrides.chats ?? new ChatsService();
+    client.members = overrides.members ?? new MembersService();
     return client;
   }
 }

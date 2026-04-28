@@ -1972,24 +1972,24 @@ export class PachcaClient {
     }
   }
 
-  static stub(bots: BotsService = new BotsService(), chats: ChatsService = new ChatsService(), common: CommonService = new CommonService(), groupTags: GroupTagsService = new GroupTagsService(), linkPreviews: LinkPreviewsService = new LinkPreviewsService(), members: MembersService = new MembersService(), messages: MessagesService = new MessagesService(), profile: ProfileService = new ProfileService(), reactions: ReactionsService = new ReactionsService(), readMembers: ReadMembersService = new ReadMembersService(), search: SearchService = new SearchService(), security: SecurityService = new SecurityService(), tasks: TasksService = new TasksService(), threads: ThreadsService = new ThreadsService(), users: UsersService = new UsersService(), views: ViewsService = new ViewsService()): PachcaClient {
+  static stub(overrides: { bots?: BotsService; chats?: ChatsService; common?: CommonService; groupTags?: GroupTagsService; linkPreviews?: LinkPreviewsService; members?: MembersService; messages?: MessagesService; profile?: ProfileService; reactions?: ReactionsService; readMembers?: ReadMembersService; search?: SearchService; security?: SecurityService; tasks?: TasksService; threads?: ThreadsService; users?: UsersService; views?: ViewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.bots = bots;
-    client.chats = chats;
-    client.common = common;
-    client.groupTags = groupTags;
-    client.linkPreviews = linkPreviews;
-    client.members = members;
-    client.messages = messages;
-    client.profile = profile;
-    client.reactions = reactions;
-    client.readMembers = readMembers;
-    client.search = search;
-    client.security = security;
-    client.tasks = tasks;
-    client.threads = threads;
-    client.users = users;
-    client.views = views;
+    client.bots = overrides.bots ?? new BotsService();
+    client.chats = overrides.chats ?? new ChatsService();
+    client.common = overrides.common ?? new CommonService();
+    client.groupTags = overrides.groupTags ?? new GroupTagsService();
+    client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();
+    client.members = overrides.members ?? new MembersService();
+    client.messages = overrides.messages ?? new MessagesService();
+    client.profile = overrides.profile ?? new ProfileService();
+    client.reactions = overrides.reactions ?? new ReactionsService();
+    client.readMembers = overrides.readMembers ?? new ReadMembersService();
+    client.search = overrides.search ?? new SearchService();
+    client.security = overrides.security ?? new SecurityService();
+    client.tasks = overrides.tasks ?? new TasksService();
+    client.threads = overrides.threads ?? new ThreadsService();
+    client.users = overrides.users ?? new UsersService();
+    client.views = overrides.views ?? new ViewsService();
     return client;
   }
 }

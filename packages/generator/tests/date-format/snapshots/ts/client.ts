@@ -82,9 +82,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(export: ExportService = new ExportService()): PachcaClient {
+  static stub(overrides: { export?: ExportService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.export = export;
+    client.export = overrides.export ?? new ExportService();
     return client;
   }
 }

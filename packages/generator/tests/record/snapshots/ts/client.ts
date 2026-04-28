@@ -53,9 +53,9 @@ export class PachcaClient {
     }
   }
 
-  static stub(linkPreviews: LinkPreviewsService = new LinkPreviewsService()): PachcaClient {
+  static stub(overrides: { linkPreviews?: LinkPreviewsService } = {}): PachcaClient {
     const client = Object.create(PachcaClient.prototype);
-    client.linkPreviews = linkPreviews;
+    client.linkPreviews = overrides.linkPreviews ?? new LinkPreviewsService();
     return client;
   }
 }

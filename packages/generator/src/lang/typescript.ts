@@ -497,11 +497,11 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
     lines.push('  }');
     lines.push('');
     // Static stub() factory method
-    const stubArgs = serviceEntries.map((s) => `${s.prop}: ${s.cls} = new ${s.cls}()`);
-    lines.push(`  static stub(${stubArgs.join(', ')}): PachcaClient {`);
+    const stubFields = serviceEntries.map((s) => `${s.prop}?: ${s.cls}`).join('; ');
+    lines.push(`  static stub(overrides: { ${stubFields} } = {}): PachcaClient {`);
     lines.push('    const client = Object.create(PachcaClient.prototype);');
     for (const s of serviceEntries) {
-      lines.push(`    client.${s.prop} = ${s.prop};`);
+      lines.push(`    client.${s.prop} = overrides.${s.prop} ?? new ${s.cls}();`);
     }
     lines.push('    return client;');
     lines.push('  }');

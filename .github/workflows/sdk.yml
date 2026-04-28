@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      e2e:
+        description: "Run E2E tests against real backend"
+        type: boolean
+        default: false
 
 concurrency:
   group: sdk-${{ github.ref }}
@@ -107,6 +112,11 @@ jobs:
         run: bun run verify
         working-directory: sdk/typescript
 
+      - name: Smoke test TypeScript SDK under Node
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
+        run: npm run test:node
+        working-directory: sdk/typescript
+
       - name: Compile Go SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.go_changed == 'true'
         working-directory: sdk/go/generated
@@ -116,6 +126,14 @@ jobs:
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.kotlin_changed == 'true'
         working-directory: sdk/kotlin/generated
         run: ./gradlew compileKotlin -Pversion=0.0.0
+
+      - name: E2E Kotlin
+        if: inputs.e2e
+        working-directory: sdk/kotlin/generated
+        env:
+          PACHCA_BASE_URL: https://api.pachca.com/api/shared/v1
+          PACHCA_TOKEN: ${{ secrets.PACHCA_TEST_TOKEN }}
+        run: ./gradlew test -Pversion=0.0.0
 
       - name: Check Python SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.python_changed == 'true'
@@ -217,6 +235,9 @@ jobs:
         working-directory: sdk/typescript
       - name: Verify TypeScript SDK package (attw)
         run: bun run verify
+        working-directory: sdk/typescript
+      - name: Smoke test TypeScript SDK under Node
+        run: npm run test:node
         working-directory: sdk/typescript
       - name: Publish to npm
         working-directory: sdk/typescript

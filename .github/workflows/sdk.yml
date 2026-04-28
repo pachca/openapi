@@ -117,6 +117,11 @@ jobs:
         run: npm run test:node
         working-directory: sdk/typescript
 
+      - name: Verify TypeScript SDK package (attw)
+        if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
+        run: npm run verify
+        working-directory: sdk/typescript
+
       - name: Compile Go SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.go_changed == 'true'
         working-directory: sdk/go/generated

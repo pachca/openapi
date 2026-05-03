@@ -6872,6 +6872,7 @@ components:
       required:
         - type
         - event
+        - chat_id
         - message_id
         - code
         - name
@@ -6892,6 +6893,12 @@ components:
             - $ref: '#/components/schemas/ReactionEventType'
           description: Тип события
           example: new
+        chat_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор чата, в котором находится сообщение. Поле всегда присутствует в payload; в редких случаях (например, если сообщение было удалено к моменту отправки вебхука) может быть `null`.
+          example: 9012
         message_id:
           type: integer
           format: int32
@@ -7363,6 +7370,7 @@ components:
         - role
         - suspended
         - invite_status
+        - inviter_id
         - list_tags
         - custom_properties
         - user_status
@@ -7384,6 +7392,7 @@ components:
           example: Олег
         last_name:
           type: string
+          nullable: true
           description: Фамилия
           example: Петров
         nickname:
@@ -7392,18 +7401,22 @@ components:
           example: ''
         email:
           type: string
-          description: Электронная почта
+          nullable: true
+          description: Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.
           example: olegp@example.com
         phone_number:
           type: string
-          description: Телефон
+          nullable: true
+          description: Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.
           example: ''
         department:
           type: string
+          nullable: true
           description: Департамент
           example: Продукт
         title:
           type: string
+          nullable: true
           description: Должность
           example: CIO
         role:
@@ -7420,6 +7433,12 @@ components:
             - $ref: '#/components/schemas/InviteStatus'
           description: Статус приглашения
           example: confirmed
+        inviter_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор сотрудника, который пригласил данного сотрудника. Возвращает `null`, если сотрудник зарегистрировался самостоятельно или если пригласивший сотрудник был удалён.
+          example: 185
         list_tags:
           type: array
           items:
@@ -7455,10 +7474,12 @@ components:
         last_activity_at:
           type: string
           format: date-time
+          nullable: true
           description: Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
           example: '2025-01-20T13:40:07.000Z'
         time_zone:
           type: string
+          nullable: true
           description: Часовой пояс пользователя
           example: Europe/Moscow
         image_url:
@@ -8260,6 +8281,7 @@ components:
         - event
         - callback_id
         - private_metadata
+        - chat_id
         - user_id
         - data
         - webhook_timestamp
@@ -8290,6 +8312,12 @@ components:
           nullable: true
           description: Приватные метаданные, указанные при открытии представления
           example: "{'timeoff_id':4378}"
+        chat_id:
+          type: integer
+          format: int32
+          nullable: true
+          description: Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload; для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).
+          example: 9012
         user_id:
           type: integer
           format: int32

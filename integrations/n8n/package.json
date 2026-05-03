@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-pachca",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Pachca node for n8n workflow automation",
   "license": "MIT",
   "main": "index.js",
@@ -52,6 +52,7 @@
   },
   "scripts": {
     "generate-n8n": "tsx scripts/generate-n8n.ts && eslint --fix nodes/Pachca/V2/ nodes/Pachca/SharedRouter.ts nodes/Pachca/Pachca.node.ts credentials/ || true",
+    "prebuild": "rm -rf e2e/.n8n-test",
     "build": "n8n-node build",
     "dev:n8n": "n8n-node dev",
     "lint": "eslint .",

@@ -32,7 +32,7 @@ const client = new PachcaClient("YOUR_TOKEN")
 ```typescript
 // Получение профиля
 const response = client.profile.getProfile()
-// → User({ id: number, firstName: string, lastName: string, nickname: string, email: string, phoneNumber: string, department: string, title: string, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string, timeZone: string, imageUrl: string | null })
+// → User({ id: number, firstName: string, lastName: string | null, nickname: string, email: string | null, phoneNumber: string | null, department: string | null, title: string | null, role: UserRole, suspended: boolean, inviteStatus: InviteStatus, inviterId: number | null, listTags: string[], customProperties: CustomProperty({ id: number, name: string, dataType: CustomPropertyDataType, value: string })[], userStatus: UserStatus({ emoji: string, title: string, expiresAt: string | null, isAway: boolean, awayMessage: UserStatusAwayMessage({ text: string }) | null }) | null, bot: boolean, sso: boolean, createdAt: string, lastActivityAt: string | null, timeZone: string | null, imageUrl: string | null })
 ```
 
 

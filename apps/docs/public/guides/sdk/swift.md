@@ -40,7 +40,7 @@ import PachcaSDK
 
 // Получение профиля
 let response = try await client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String?)
+// → User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int?, listTags: [String], customProperties: [CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)], userStatus: UserStatus(emoji: String, title: String, expiresAt: String?, isAway: Bool, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String?, timeZone: String?, imageUrl: String?)
 ```
 
 

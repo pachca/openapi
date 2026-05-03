@@ -824,6 +824,7 @@ class ReactionWebhookPayload:
     user_id: int
     created_at: datetime
     webhook_timestamp: int
+    chat_id: int | None = None
 
 
 @dataclass
@@ -945,12 +946,7 @@ class UploadParams:
 class User:
     id: int
     first_name: str
-    last_name: str
     nickname: str
-    email: str
-    phone_number: str
-    department: str
-    title: str
     role: UserRole
     suspended: bool
     invite_status: InviteStatus
@@ -959,9 +955,15 @@ class User:
     bot: bool
     sso: bool
     created_at: datetime
-    last_activity_at: datetime
-    time_zone: str
+    last_name: str | None = None
+    email: str | None = None
+    phone_number: str | None = None
+    department: str | None = None
+    title: str | None = None
+    inviter_id: int | None = None
     user_status: UserStatus | None = None
+    last_activity_at: datetime | None = None
+    time_zone: str | None = None
     image_url: str | None = None
 
 
@@ -1164,6 +1166,7 @@ class ViewSubmitWebhookPayload:
     webhook_timestamp: int
     callback_id: str | None = None
     private_metadata: str | None = None
+    chat_id: int | None = None
 
 
 @dataclass

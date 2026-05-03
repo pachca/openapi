@@ -1678,6 +1678,7 @@ public struct ReactionRequest: Codable {
 public struct ReactionWebhookPayload: Codable {
     public let type: String
     public let event: ReactionEventType
+    public let chatId: Int?
     public let messageId: Int
     public let code: String
     public let name: String
@@ -1685,9 +1686,10 @@ public struct ReactionWebhookPayload: Codable {
     public let createdAt: String
     public let webhookTimestamp: Int
 
-    public init(type: String, event: ReactionEventType, messageId: Int, code: String, name: String, userId: Int, createdAt: String, webhookTimestamp: Int) {
+    public init(type: String, event: ReactionEventType, chatId: Int? = nil, messageId: Int, code: String, name: String, userId: Int, createdAt: String, webhookTimestamp: Int) {
         self.type = type
         self.event = event
+        self.chatId = chatId
         self.messageId = messageId
         self.code = code
         self.name = name
@@ -1699,6 +1701,7 @@ public struct ReactionWebhookPayload: Codable {
     enum CodingKeys: String, CodingKey {
         case type
         case event
+        case chatId = "chat_id"
         case messageId = "message_id"
         case code
         case name
@@ -1983,26 +1986,27 @@ public struct UploadParams: Codable {
 public struct User: Codable {
     public let id: Int
     public let firstName: String
-    public let lastName: String
+    public let lastName: String?
     public let nickname: String
-    public let email: String
-    public let phoneNumber: String
-    public let department: String
-    public let title: String
+    public let email: String?
+    public let phoneNumber: String?
+    public let department: String?
+    public let title: String?
     public let role: UserRole
     public let suspended: Bool
     public let inviteStatus: InviteStatus
+    public let inviterId: Int?
     public let listTags: [String]
     public let customProperties: [CustomProperty]
     public let userStatus: UserStatus?
     public let bot: Bool
     public let sso: Bool
     public let createdAt: String
-    public let lastActivityAt: String
-    public let timeZone: String
+    public let lastActivityAt: String?
+    public let timeZone: String?
     public let imageUrl: String?
 
-    public init(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String, timeZone: String, imageUrl: String? = nil) {
+    public init(id: Int, firstName: String, lastName: String? = nil, nickname: String, email: String? = nil, phoneNumber: String? = nil, department: String? = nil, title: String? = nil, role: UserRole, suspended: Bool, inviteStatus: InviteStatus, inviterId: Int? = nil, listTags: [String], customProperties: [CustomProperty], userStatus: UserStatus? = nil, bot: Bool, sso: Bool, createdAt: String, lastActivityAt: String? = nil, timeZone: String? = nil, imageUrl: String? = nil) {
         self.id = id
         self.firstName = firstName
         self.lastName = lastName
@@ -2014,6 +2018,7 @@ public struct User: Codable {
         self.role = role
         self.suspended = suspended
         self.inviteStatus = inviteStatus
+        self.inviterId = inviterId
         self.listTags = listTags
         self.customProperties = customProperties
         self.userStatus = userStatus
@@ -2037,6 +2042,7 @@ public struct User: Codable {
         case role
         case suspended
         case inviteStatus = "invite_status"
+        case inviterId = "inviter_id"
         case listTags = "list_tags"
         case customProperties = "custom_properties"
         case userStatus = "user_status"
@@ -2480,15 +2486,17 @@ public struct ViewSubmitWebhookPayload: Codable {
     public let event: String
     public let callbackId: String?
     public let privateMetadata: String?
+    public let chatId: Int?
     public let userId: Int
     public let data: [String: String]
     public let webhookTimestamp: Int
 
-    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, userId: Int, data: [String: String], webhookTimestamp: Int) {
+    public init(type: String, event: String, callbackId: String? = nil, privateMetadata: String? = nil, chatId: Int? = nil, userId: Int, data: [String: String], webhookTimestamp: Int) {
         self.type = type
         self.event = event
         self.callbackId = callbackId
         self.privateMetadata = privateMetadata
+        self.chatId = chatId
         self.userId = userId
         self.data = data
         self.webhookTimestamp = webhookTimestamp
@@ -2499,6 +2507,7 @@ public struct ViewSubmitWebhookPayload: Codable {
         case event
         case callbackId = "callback_id"
         case privateMetadata = "private_metadata"
+        case chatId = "chat_id"
         case userId = "user_id"
         case data
         case webhookTimestamp = "webhook_timestamp"

@@ -36,7 +36,7 @@ val client = PachcaClient("YOUR_TOKEN")
 ```kotlin
 // Получение профиля
 val response = client.profile.getProfile()
-// → User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)
+// → User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)
 ```
 
 

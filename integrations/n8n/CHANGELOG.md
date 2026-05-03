@@ -1,6 +1,18 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.6 (2026-05-04)
+
+### Improvements
+
+- Pachca Trigger: webhook payloads for `reaction_new`, `reaction_delete` and `view_submit` events now include `chat_id` — id of the chat where the event happened. Always present in the payload, in rare cases may be `null`. Removes the need for an extra `GET /messages/{id}` lookup in reaction handlers. For `view_submit`, `chat_id` reflects the chat at the moment the form was **opened** (not submitted)
+- User schema: new `inviter_id` field — ID of the employee who invited this user (`null` for self-registered users or when the inviter has been deleted)
+- User schema: `last_name`, `email`, `phone_number`, `department`, `title`, `time_zone`, `last_activity_at` are now correctly typed as nullable (matches actual API behavior — bots without `can_see_personal_data?` get `null` for `email`/`phone_number`)
+
+### Build
+
+- Add `prebuild` script that cleans `e2e/.n8n-test/` before build — prevents `ENAMETOOLONG` failure caused by recursive symlink left over from local E2E runs
+
 ## 2.0.5 (2026-04-13)
 
 ### Bug Fixes

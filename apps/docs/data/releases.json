@@ -15,10 +15,6 @@
       {
         "type": "~",
         "description": "Модель `User`: поля `last_name`, `email`, `phone_number`, `department`, `title`, `time_zone`, `last_activity_at` корректно объявлены как nullable. `email` и `phone_number` возвращают `null` для ботов без права просмотра персональных данных."
-      },
-      {
-        "type": "-",
-        "description": "Сборка: добавлен `prebuild`, удаляющий `e2e/.n8n-test/` — устраняет падение `ENAMETOOLONG` после локальных E2E-прогонов"
       }
     ]
   },

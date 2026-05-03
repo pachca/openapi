@@ -107,8 +107,8 @@ curl "https://api.pachca.com/api/shared/v1/users" \
   - `first_name: string` (required) — Имя
   - `last_name: string` (required) — Фамилия
   - `nickname: string` (required) — Имя пользователя
-  - `email: string` (required) — Электронная почта
-  - `phone_number: string` (required) — Телефон
+  - `email: string` (required) — Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.
+  - `phone_number: string` (required) — Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.
   - `department: string` (required) — Департамент
   - `title: string` (required) — Должность
   - `role: string` (required) — Уровень доступа
@@ -116,6 +116,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
   - `suspended: boolean` (required) — Деактивация пользователя
   - `invite_status: string` (required) — Статус приглашения
     Значения: `confirmed` — Принято, `sent` — Отправлено
+  - `inviter_id: integer, int32` (required) — Идентификатор сотрудника, который пригласил данного сотрудника. Возвращает `null`, если сотрудник зарегистрировался самостоятельно или если пригласивший сотрудник был удалён.
   - `list_tags: array of string` (required) — Массив тегов, привязанных к сотруднику
   - `custom_properties: array of object` (required) — Дополнительные поля сотрудника
     - `id: integer, int32` (required) — Идентификатор поля
@@ -153,6 +154,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
     "role": "admin",
     "suspended": false,
     "invite_status": "confirmed",
+    "inviter_id": 185,
     "list_tags": [
       "Product",
       "Design"

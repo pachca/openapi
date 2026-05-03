@@ -2105,6 +2105,9 @@ actions:
   - target: $.components.schemas.ReactionWebhookPayload.properties.event
     update:
       description: Event type
+  - target: $.components.schemas.ReactionWebhookPayload.properties.chat_id
+    update:
+      description: ID of the chat that contains the message. The field is always present in the payload; in rare cases (for example, if the message was deleted before the webhook was dispatched) it may be `null`.
   - target: $.components.schemas.ReactionWebhookPayload.properties.message_id
     update:
       description: ID of the message the reaction belongs to
@@ -2390,10 +2393,10 @@ actions:
       description: Username
   - target: $.components.schemas.User.properties.email
     update:
-      description: Email
+      description: Email. Returns `null` for bots without permission to view personal data, and when a bot for which personal data of employees is hidden requests another user's data.
   - target: $.components.schemas.User.properties.phone_number
     update:
-      description: Phone number
+      description: Phone number. Returns `null` for bots without permission to view personal data, and when a bot for which personal data of employees is hidden requests another user's data.
   - target: $.components.schemas.User.properties.department
     update:
       description: Department
@@ -2409,6 +2412,9 @@ actions:
   - target: $.components.schemas.User.properties.invite_status
     update:
       description: Invitation status
+  - target: $.components.schemas.User.properties.inviter_id
+    update:
+      description: ID of the employee who invited this user. Returns `null` if the user signed up themselves or if the inviter has been deleted.
   - target: $.components.schemas.User.properties.list_tags
     update:
       description: Array of tags assigned to the employee
@@ -2936,6 +2942,9 @@ actions:
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.private_metadata
     update:
       description: Private metadata specified when opening the view
+  - target: $.components.schemas.ViewSubmitWebhookPayload.properties.chat_id
+    update:
+      description: ID of the chat in which the button that opened the form was clicked. The value is captured at the moment the form was **opened**, not submitted — if the form stayed open for a long time, `chat_id` still points to the chat where the button was clicked. The field is always present in the payload; for forms opened before this change was rolled out, `chat_id` will be `null` — such forms will gradually phase out by the saved view TTL (30 days).
   - target: $.components.schemas.ViewSubmitWebhookPayload.properties.user_id
     update:
       description: ID of the user who submitted the form

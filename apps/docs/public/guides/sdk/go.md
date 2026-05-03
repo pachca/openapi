@@ -34,7 +34,7 @@ import pachca "github.com/pachca/openapi/sdk/go/generated"
 
 // Получение профиля
 response, err := client.Profile.GetProfile(ctx)
-// → User{ID: int32, FirstName: string, LastName: string, Nickname: string, Email: string, PhoneNumber: string, Department: string, Title: string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: string, TimeZone: string, ImageURL: *string}
+// → User{ID: int32, FirstName: string, LastName: *string, Nickname: string, Email: *string, PhoneNumber: *string, Department: *string, Title: *string, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterID: *int32, ListTags: []string, CustomProperties: []CustomProperty{ID: int32, Name: string, DataType: CustomPropertyDataType, Value: string}, UserStatus: *UserStatus{Emoji: string, Title: string, ExpiresAt: *string, IsAway: bool, AwayMessage: *UserStatusAwayMessage{Text: string}}, Bot: bool, Sso: bool, CreatedAt: string, LastActivityAt: *string, TimeZone: *string, ImageURL: *string}
 ```
 
 

@@ -846,27 +846,27 @@ model User {
   
   @doc("Фамилия")
   @example("Петров")
-  last_name: string;
-  
+  last_name: string | null;
+
   @doc("Имя пользователя")
   @example("")
   nickname: string;
-  
-  @doc("Электронная почта")
+
+  @doc("Электронная почта. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.")
   @example("olegp@example.com")
-  email: string;
-  
-  @doc("Телефон")
+  email: string | null;
+
+  @doc("Телефон. Возвращает `null` для ботов без права просмотра персональных данных, а также при запросе данных другого пользователя ботом, для которого скрыты персональные данные сотрудников.")
   @example("")
-  phone_number: string;
-  
+  phone_number: string | null;
+
   @doc("Департамент")
   @example("Продукт")
-  department: string;
-  
+  department: string | null;
+
   @doc("Должность")
   @example("CIO")
-  title: string;
+  title: string | null;
   
   @doc("Уровень доступа")
   @example(UserRole.admin)
@@ -879,7 +879,11 @@ model User {
   @doc("Статус приглашения")
   @example(InviteStatus.confirmed)
   invite_status: InviteStatus;
-  
+
+  @doc("Идентификатор сотрудника, который пригласил данного сотрудника. Возвращает `null`, если сотрудник зарегистрировался самостоятельно или если пригласивший сотрудник был удалён.")
+  @example(185)
+  inviter_id: int32 | null;
+
   @doc("Массив тегов, привязанных к сотруднику")
   @example(#["Product", "Design"])
   list_tags: string[];
@@ -904,11 +908,11 @@ model User {
   
   @doc("Дата последней активности пользователя (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ")
   @example(utcDateTime.fromISO("2025-01-20T13:40:07.000Z"))
-  last_activity_at: utcDateTime;
-  
+  last_activity_at: utcDateTime | null;
+
   @doc("Часовой пояс пользователя")
   @example("Europe/Moscow")
-  time_zone: string;
+  time_zone: string | null;
   
   @doc("Ссылка на скачивание аватарки пользователя")
   @example("https://app.pachca.com/users/12/photo.jpg")
@@ -2764,15 +2768,19 @@ model ReactionWebhookPayload {
     reaction: "Для реакций всегда reaction"
   })
   type: "reaction";
-  
+
   @doc("Тип события")
   @example(ReactionEventType.new)
   event: ReactionEventType;
-  
+
+  @doc("Идентификатор чата, в котором находится сообщение. Поле всегда присутствует в payload; в редких случаях (например, если сообщение было удалено к моменту отправки вебхука) может быть `null`.")
+  @example(9012)
+  chat_id: int32 | null;
+
   @doc("Идентификатор сообщения, к которому относится реакция")
   @example(1245817)
   message_id: int32;
-  
+
   @doc("Emoji символ реакции")
   @example("👍")
   code: string;
@@ -2858,6 +2866,10 @@ model ViewSubmitWebhookPayload {
   @doc("Приватные метаданные, указанные при открытии представления")
   @example("{'timeoff_id':4378}")
   private_metadata: string | null;
+
+  @doc("Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload; для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).")
+  @example(9012)
+  chat_id: int32 | null;
 
   @doc("Идентификатор пользователя, который отправил форму")
   @example(1235523)

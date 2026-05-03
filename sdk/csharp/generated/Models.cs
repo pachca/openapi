@@ -1731,6 +1731,8 @@ public class ReactionWebhookPayload : WebhookPayloadUnion
     public override string Type => "reaction";
     [JsonPropertyName("event")]
     public ReactionEventType @Event { get; set; } = default!;
+    [JsonPropertyName("chat_id")]
+    public int? ChatId { get; set; }
     [JsonPropertyName("message_id")]
     public int MessageId { get; set; } = default!;
     [JsonPropertyName("code")]
@@ -1769,6 +1771,8 @@ public class ViewSubmitWebhookPayload : WebhookPayloadUnion
     public string? CallbackId { get; set; }
     [JsonPropertyName("private_metadata")]
     public string? PrivateMetadata { get; set; }
+    [JsonPropertyName("chat_id")]
+    public int? ChatId { get; set; }
     [JsonPropertyName("user_id")]
     public int UserId { get; set; } = default!;
     [JsonPropertyName("data")]
@@ -2540,23 +2544,25 @@ public class User
     [JsonPropertyName("first_name")]
     public string FirstName { get; set; } = default!;
     [JsonPropertyName("last_name")]
-    public string LastName { get; set; } = default!;
+    public string? LastName { get; set; }
     [JsonPropertyName("nickname")]
     public string Nickname { get; set; } = default!;
     [JsonPropertyName("email")]
-    public string Email { get; set; } = default!;
+    public string? Email { get; set; }
     [JsonPropertyName("phone_number")]
-    public string PhoneNumber { get; set; } = default!;
+    public string? PhoneNumber { get; set; }
     [JsonPropertyName("department")]
-    public string Department { get; set; } = default!;
+    public string? Department { get; set; }
     [JsonPropertyName("title")]
-    public string Title { get; set; } = default!;
+    public string? Title { get; set; }
     [JsonPropertyName("role")]
     public UserRole Role { get; set; } = default!;
     [JsonPropertyName("suspended")]
     public bool Suspended { get; set; } = default!;
     [JsonPropertyName("invite_status")]
     public InviteStatus InviteStatus { get; set; } = default!;
+    [JsonPropertyName("inviter_id")]
+    public int? InviterId { get; set; }
     [JsonPropertyName("list_tags")]
     public List<string> ListTags { get; set; } = default!;
     [JsonPropertyName("custom_properties")]
@@ -2570,9 +2576,9 @@ public class User
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = default!;
     [JsonPropertyName("last_activity_at")]
-    public DateTimeOffset LastActivityAt { get; set; } = default!;
+    public DateTimeOffset? LastActivityAt { get; set; }
     [JsonPropertyName("time_zone")]
-    public string TimeZone { get; set; } = default!;
+    public string? TimeZone { get; set; }
     [JsonPropertyName("image_url")]
     public string? ImageUrl { get; set; }
 }

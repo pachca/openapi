@@ -1,6 +1,63 @@
 [
   {
     "product": "n8n",
+    "version": "2.0.6",
+    "date": "2026-05-04",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Trigger: в payload трёх вебхуков (`reaction_new`, `reaction_delete`, `view_submit`) добавлено поле `chat_id` — id чата, в котором произошло событие. Всегда присутствует, в редких случаях может быть `null`. Для `view_submit` отражает чат на момент открытия формы, а не сабмита."
+      },
+      {
+        "type": "+",
+        "description": "Модель `User`: новое поле `inviter_id` (кто пригласил сотрудника); `null` для самостоятельной регистрации или удалённого пригласившего"
+      },
+      {
+        "type": "~",
+        "description": "Модель `User`: поля `last_name`, `email`, `phone_number`, `department`, `title`, `time_zone`, `last_activity_at` корректно объявлены как nullable. `email` и `phone_number` возвращают `null` для ботов без права просмотра персональных данных."
+      },
+      {
+        "type": "-",
+        "description": "Сборка: добавлен `prebuild`, удаляющий `e2e/.n8n-test/` — устраняет падение `ENAMETOOLONG` после локальных E2E-прогонов"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.5.0",
+    "date": "2026-05-04",
+    "changes": [
+      {
+        "type": "~",
+        "description": "В вывод сотрудника (`users list/get/create/update`, `profile get`) добавлено поле `inviter_id`"
+      },
+      {
+        "type": "~",
+        "description": "Поля сотрудника `last_name`, `email`, `phone_number`, `department`, `title`, `time_zone`, `last_activity_at` корректно объявлены как nullable"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.0.15",
+    "date": "2026-05-04",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Модель `User`: новое поле `inviter_id` — идентификатор сотрудника, который пригласил данного пользователя"
+      },
+      {
+        "type": "~",
+        "description": "Модель `User`: поля `last_name`, `email`, `phone_number`, `department`, `title`, `time_zone`, `last_activity_at` корректно объявлены как nullable"
+      },
+      {
+        "type": "+",
+        "description": "Webhook payload `reaction_new`, `reaction_delete`, `view_submit`: добавлено поле `chat_id` (id чата, в котором произошло событие; в редких случаях может быть `null`)"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.0.5",
     "date": "2026-04-13",
     "changes": [
@@ -19,6 +76,21 @@
       {
         "type": "~",
         "description": "Trigger: определение бот-токенов, блокировка тест-событий при активном workflow, автоочистка webhook URL"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.0.14",
+    "date": "2026-04-28",
+    "changes": [
+      {
+        "type": "+",
+        "description": "TypeScript SDK: dual-publish ESM/CJS — пакет теперь работает и в Node.js (CommonJS), и в современных бандлерах. `attw`-проверка в CI не пропускает регрессии."
+      },
+      {
+        "type": "~",
+        "description": "TypeScript SDK: фабрика `stub()` теперь принимает объект-форму параметров (`stub({ apiKey })`) вместо отдельных аргументов"
       }
     ]
   },

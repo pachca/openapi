@@ -1,5 +1,21 @@
 [
   {
+    "version": "2026.5.0",
+    "date": "4 мая 2026",
+    "changes": [
+      {
+        "type": "~",
+        "command": "users list, users get, users create, users update, profile get",
+        "description": "В вывод модели сотрудника добавлено поле inviter_id — кто пригласил сотрудника (null для самостоятельной регистрации или удалённого пригласившего)"
+      },
+      {
+        "type": "~",
+        "command": "users list, users get, users create, users update, profile get",
+        "description": "Поля last_name, email, phone_number, department, title, time_zone, last_activity_at в модели сотрудника теперь корректно объявлены как nullable (email и phone_number возвращают null для ботов без права просмотра персональных данных)"
+      }
+    ]
+  },
+  {
     "version": "2026.4.1",
     "date": "8 апреля 2026",
     "changes": [

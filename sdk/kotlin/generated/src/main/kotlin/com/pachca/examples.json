@@ -235,7 +235,7 @@
   },
   "ProfileOperations_getProfile": {
     "usage": "val response = client.profile.getProfile()",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)"
   },
   "ProfileOperations_getStatus": {
     "usage": "val response = client.profile.getStatus()",
@@ -321,7 +321,7 @@
   },
   "UserOperations_getUser": {
     "usage": "val response = client.users.getUser(id = 12)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)"
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)"
   },
   "UserStatusOperations_getUserStatus": {
     "usage": "val response = client.users.getUserStatus(userId = 12)",
@@ -329,7 +329,7 @@
   },
   "UserOperations_createUser": {
     "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegp@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Продукт\",\n        title = \"CIO\",\n        role = UserRoleInput.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    ),\n    skipEmailNotify = true\n)\nval response = client.users.createUser(request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
@@ -339,7 +339,7 @@
   },
   "UserOperations_updateUser": {
     "usage": "val request = UserUpdateRequest(\n    user = UserUpdateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegpetrov@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Отдел разработки\",\n        title = \"Старший разработчик\",\n        role = UserRoleInput.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserUpdateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    )\n)\nval response = client.users.updateUser(id = 12, request = request)",
-    "output": "User(id: Int, firstName: String, lastName: String, nickname: String, email: String, phoneNumber: String, department: String, title: String, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime, timeZone: String, imageUrl: String?)",
+    "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserRoleInput",
       "UserUpdateRequest",

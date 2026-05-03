@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026.5.0  (4 мая 2026)
+
+- **Изменено** (users list, users get, users create, users update, profile get): В вывод модели сотрудника добавлено поле inviter_id — кто пригласил сотрудника (null для самостоятельной регистрации или удалённого пригласившего)
+- **Изменено** (users list, users get, users create, users update, profile get): Поля last_name, email, phone_number, department, title, time_zone, last_activity_at в модели сотрудника теперь корректно объявлены как nullable (email и phone_number возвращают null для ботов без права просмотра персональных данных)
+
 ## 2026.4.1  (8 апреля 2026)
 
 - **Изменено** (messages create, messages update): Поддержка упоминаний по ID: `<@user_id>` в тексте сообщения автоматически преобразуется в `@nickname`

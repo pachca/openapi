@@ -884,6 +884,7 @@ export interface ReactionRequest {
 export interface ReactionWebhookPayload {
   type: "reaction";
   event: ReactionEventType;
+  chatId: number | null;
   messageId: number;
   code: string;
   name: string;
@@ -989,23 +990,24 @@ export interface UploadParams {
 export interface User {
   id: number;
   firstName: string;
-  lastName: string;
+  lastName: string | null;
   nickname: string;
-  email: string;
-  phoneNumber: string;
-  department: string;
-  title: string;
+  email: string | null;
+  phoneNumber: string | null;
+  department: string | null;
+  title: string | null;
   role: UserRole;
   suspended: boolean;
   inviteStatus: InviteStatus;
+  inviterId: number | null;
   listTags: string[];
   customProperties: CustomProperty[];
   userStatus: UserStatus | null;
   bot: boolean;
   sso: boolean;
   createdAt: string;
-  lastActivityAt: string;
-  timeZone: string;
+  lastActivityAt: string | null;
+  timeZone: string | null;
   imageUrl: string | null;
 }
 
@@ -1177,6 +1179,7 @@ export interface ViewSubmitWebhookPayload {
   event: "submit";
   callbackId: string | null;
   privateMetadata: string | null;
+  chatId: number | null;
   userId: number;
   data: Record<string, string>;
   webhookTimestamp: number;

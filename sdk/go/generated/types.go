@@ -774,6 +774,7 @@ type ReactionWebhookPayload struct {
 	UserID           int32             `json:"user_id"`
 	CreatedAt        time.Time         `json:"created_at"`
 	WebhookTimestamp int32             `json:"webhook_timestamp"`
+	ChatID           *int32            `json:"chat_id"`
 }
 
 type SearchPaginationMetaPaginate struct {
@@ -880,12 +881,7 @@ type UploadParams struct {
 type User struct {
 	ID               int32            `json:"id"`
 	FirstName        string           `json:"first_name"`
-	LastName         string           `json:"last_name"`
 	Nickname         string           `json:"nickname"`
-	Email            string           `json:"email"`
-	PhoneNumber      string           `json:"phone_number"`
-	Department       string           `json:"department"`
-	Title            string           `json:"title"`
 	Role             UserRole         `json:"role"`
 	Suspended        bool             `json:"suspended"`
 	InviteStatus     InviteStatus     `json:"invite_status"`
@@ -894,9 +890,15 @@ type User struct {
 	Bot              bool             `json:"bot"`
 	Sso              bool             `json:"sso"`
 	CreatedAt        time.Time        `json:"created_at"`
-	LastActivityAt   time.Time        `json:"last_activity_at"`
-	TimeZone         string           `json:"time_zone"`
+	LastName         *string          `json:"last_name"`
+	Email            *string          `json:"email"`
+	PhoneNumber      *string          `json:"phone_number"`
+	Department       *string          `json:"department"`
+	Title            *string          `json:"title"`
+	InviterID        *int32           `json:"inviter_id"`
 	UserStatus       *UserStatus      `json:"user_status"`
+	LastActivityAt   *string          `json:"last_activity_at"`
+	TimeZone         *string          `json:"time_zone"`
 	ImageURL         *string          `json:"image_url"`
 }
 
@@ -1076,6 +1078,7 @@ type ViewSubmitWebhookPayload struct {
 	WebhookTimestamp int32             `json:"webhook_timestamp"`
 	CallbackID       *string           `json:"callback_id"`
 	PrivateMetadata  *string           `json:"private_metadata"`
+	ChatID           *int32            `json:"chat_id"`
 }
 
 type WebhookEvent struct {

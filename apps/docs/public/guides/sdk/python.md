@@ -32,7 +32,7 @@ client = PachcaClient("YOUR_TOKEN")
 ```python
 # Получение профиля
 response = await client.profile.get_profile()
-# → User(id: int, first_name: str, last_name: str, nickname: str, email: str, phone_number: str, department: str, title: str, role: UserRole, suspended: bool, invite_status: InviteStatus, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime, time_zone: str, image_url: str | None)
+# → User(id: int, first_name: str, last_name: str | None, nickname: str, email: str | None, phone_number: str | None, department: str | None, title: str | None, role: UserRole, suspended: bool, invite_status: InviteStatus, inviter_id: int | None, list_tags: list[str], custom_properties: list[CustomProperty(id: int, name: str, data_type: CustomPropertyDataType, value: str)], user_status: UserStatus(emoji: str, title: str, expires_at: datetime | None, is_away: bool, away_message: UserStatusAwayMessage(text: str) | None) | None, bot: bool, sso: bool, created_at: datetime, last_activity_at: datetime | None, time_zone: str | None, image_url: str | None)
 ```
 
 

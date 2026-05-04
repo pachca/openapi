@@ -69,7 +69,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 Подключайте Пачку к внешним сервисам без написания кода.
 
-- [n8n](/guides/n8n/overview) — Визуальные автоматизации
+- [n8n](/guides/n8n/overview) — Verified-нода в витрине n8n
 - [Albato](/guides/albato) — Подключение 250+ сервисов
 
 

@@ -1,20 +1,18 @@
 # n8n-nodes-pachca
 
-Verified community node for [n8n](https://n8n.io/) to interact with the [Pachca API](https://dev.pachca.com/). Listed in the official n8n marketplace as **verified by n8n** — [Pachca](https://n8n.io/integrations/pachca/) and [Pachca Trigger](https://n8n.io/integrations/pachca-trigger/).
+Community node for [n8n](https://n8n.io/) to interact with the [Pachca API](https://dev.pachca.com/).
 
 Auto-generated from the [OpenAPI spec](https://github.com/pachca/openapi) — always in sync with the latest API.
 
 ## Installation
 
-**Recommended (n8n Cloud and self-hosted):** install directly from the n8n editor.
+In your n8n instance:
 
-1. Open any workflow and click **+** in the top right to open the Nodes panel
-2. Search for `Pachca` — verified nodes appear in the **More from the community** section
-3. Select the node and click **Install** (instance owner / admin only)
+1. Go to **Settings > Community Nodes**
+2. Enter `n8n-nodes-pachca`
+3. Click **Install**
 
-Alternative — **Settings > Community Nodes**: enter `n8n-nodes-pachca` and click **Install**.
-
-Self-hosted only — install via CLI:
+Or install via CLI:
 
 ```bash
 npm install n8n-nodes-pachca

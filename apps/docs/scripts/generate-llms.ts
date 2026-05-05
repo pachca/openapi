@@ -135,11 +135,15 @@ function generateLibraryRules(): string {
 
 ## Pagination
 - Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters
-- Response includes \`meta.paginate.next_page\` — cursor for next page
-- End of data: when \`data\` array is empty (cursor is never null)
+- Response includes \`meta.paginate\` with fields: \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`
+- \`next_page\` — cursor for the next page; \`prev_page\` — cursor for the previous page (useful for polling new data)
+- \`has_next\` / \`has_prev\` — booleans indicating whether more data exists in that direction
+- End of data: when \`has_next\` is \`false\` (forward) or \`has_prev\` is \`false\` (backward)
+- Cursors are opaque tokens — do not parse or construct them manually
 - TypeScript auto-pagination: \`client.users.listUsersAll()\` returns flat array of all results
 - Python auto-pagination: \`await client.users.list_users_all()\` returns list of all results
-- Available for: users, chats, messages, members, tags, reactions, tasks, search results, audit events, webhook events
+- Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
+- Search endpoints (\`/search\`, \`/users?query=\`) use a simpler format with only \`next_page\` and \`total\`
 
 ## Rate Limiting
 - Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
@@ -345,15 +349,16 @@ Token types: **admin** (full access, get in Settings → Automations → API), *
 const allUsers = await client.users.listUsersAll()
 console.log(\`Total: \${allUsers.length}\`)
 
-// Manual pagination with cursor control
+// Manual pagination with cursor control using has_next
 let cursor: string | undefined
-for (;;) {
+let hasNext = true
+while (hasNext) {
   const response = await client.users.listUsers({ limit: 50, cursor })
-  if (response.data.length === 0) break
   for (const user of response.data) {
     console.log(user.firstName, user.lastName)
   }
   cursor = response.meta.paginate.nextPage
+  hasNext = response.meta.paginate.hasNext
 }
 \`\`\`
 
@@ -363,20 +368,45 @@ for (;;) {
 all_users = await client.users.list_users_all()
 print(f"Total: {len(all_users)}")
 
-# Manual pagination with cursor control
+# Manual pagination with cursor control using has_next
 from pachca.models import ListUsersParams
 
 cursor = None
-while True:
+has_next = True
+while has_next:
     response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
-    if not response.data:
-        break
     for user in response.data:
         print(user.first_name, user.last_name)
     cursor = response.meta.paginate.next_page
+    has_next = response.meta.paginate.has_next
 \`\`\`
 
 Auto-pagination methods: \`listUsersAll()\`, \`listChatsAll()\`, \`listChatMessagesAll()\`, \`listMembersAll()\`, \`listTagsAll()\`, \`listTasksAll()\`, \`searchMessagesAll()\`, \`searchChatsAll()\`, \`searchUsersAll()\`, \`listReactionsAll()\`, \`getAuditEventsAll()\`, \`getWebhookEventsAll()\`.
+
+### Polling new data with prev_page
+
+Use \`prev_page\` cursor to efficiently poll for new records without refetching the entire list:
+
+\`\`\`typescript
+// Initial fetch
+const initial = await client.chats.listChats({ limit: 50 })
+let prevCursor = initial.meta.paginate.prevPage
+const chats = new Map(initial.data.map(c => [c.id, c]))
+
+// Poll for new data periodically
+setInterval(async () => {
+  let hasPrev = true
+  while (hasPrev) {
+    const response = await client.chats.listChats({ limit: 50, cursor: prevCursor })
+    // Deduplicate by id — records may reappear if their sort field changed
+    for (const chat of response.data) {
+      chats.set(chat.id, chat)
+    }
+    prevCursor = response.meta.paginate.prevPage
+    hasPrev = response.meta.paginate.hasPrev
+  }
+}, 5000)
+\`\`\`
 
 `;
 
@@ -1292,7 +1322,8 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 - On \`429\` response, respect the \`Retry-After\` header.
 
 ### Pagination
-- **Cursor-based** (preferred): use \`limit\` (1–50) and \`cursor\` parameters. Check \`meta.paginate.next_page\` in response.
+- **Cursor-based** (preferred): use \`limit\` (1–50) and \`cursor\` parameters. Response includes \`meta.paginate\` with \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`.
+- Use \`has_next\` / \`has_prev\` to detect end of data. Use \`prev_page\` cursor for polling new records.
 - **Offset-based** (legacy): use \`per\` (1–50) and \`page\` parameters.
 
 ### Permissions

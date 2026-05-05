@@ -35,7 +35,7 @@ actions:
       description: Number of records to return
   - target: $.paths['/audit_events'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/bots/{id}'].put
     update:
       description: >-
@@ -97,7 +97,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/chats'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/chats/exports'].post
     update:
       description: |-
@@ -217,7 +217,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/chats/{id}/members'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/chats/{id}/members'].post
     update:
       description: |-
@@ -321,7 +321,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/group_tags'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/group_tags/{id}'].get
     update:
       description: |-
@@ -372,7 +372,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/group_tags/{id}/users'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/messages'].post
     update:
       description: >-
@@ -416,7 +416,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/messages'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/messages/{id}'].get
     update:
       description: |-
@@ -552,7 +552,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/messages/{id}/reactions'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/messages/{id}/read_member_ids'].get
     update:
       description: |-
@@ -567,7 +567,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/messages/{id}/read_member_ids'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/messages/{id}/thread'].post
     update:
       description: >-
@@ -643,7 +643,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='order')]
     update:
       description: Sort direction
@@ -676,7 +676,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='order')]
     update:
       description: Sort direction
@@ -709,7 +709,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/users'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/search/users'].get.parameters[?(@.name=='sort')]
     update:
       description: Sort results by
@@ -758,7 +758,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/tasks'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/tasks/{id}'].get
     update:
       description: |-
@@ -841,7 +841,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/users'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/users/{id}'].get
     update:
       description: |-
@@ -956,7 +956,7 @@ actions:
       description: Number of records to return per request
   - target: $.paths['/webhooks/events'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/webhooks/events/{id}'].delete
     update:
       description: |-
@@ -2060,6 +2060,15 @@ actions:
   - target: $.components.schemas.PaginationMeta.properties.paginate.properties.next_page
     update:
       description: Next page pagination cursor
+  - target: $.components.schemas.PaginationMeta.properties.paginate.properties.prev_page
+    update:
+      description: Previous page pagination cursor
+  - target: $.components.schemas.PaginationMeta.properties.paginate.properties.has_next
+    update:
+      description: Whether more data exists on the next page
+  - target: $.components.schemas.PaginationMeta.properties.paginate.properties.has_prev
+    update:
+      description: Whether more data exists on the previous page
   - target: $.components.schemas.Reaction
     update:
       description: Message reaction

@@ -2999,6 +2999,9 @@ actions:
   - target: $.components.schemas.WebhookLink.properties.skip
     update:
       description: Skip unfurling this link. If `true`, the message author has hidden the preview for this link and the bot should not create a preview
+  - target: $.components.schemas.LinkSharedWebhookPayload.properties.links.items.properties.skip
+    update:
+      description: Skip unfurling this link. If `true`, the message author has hidden the preview for this link and the bot should not create a preview
   - target: $.components.schemas.WebhookMessageThread
     update:
       description: Thread object in the message webhook

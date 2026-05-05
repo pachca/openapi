@@ -108,7 +108,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации из meta.paginate.next_page
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -395,7 +395,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из meta.paginate.next_page)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -954,7 +954,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из meta.paginate.next_page)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -1429,7 +1429,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -1707,7 +1707,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -1892,7 +1892,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -2473,7 +2473,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -2565,7 +2565,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3001,7 +3001,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из meta.paginate.next_page)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3142,7 +3142,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из meta.paginate.next_page)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3297,7 +3297,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из meta.paginate.next_page)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3501,7 +3501,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3934,7 +3934,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -4559,7 +4559,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из meta.paginate.next_page)
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -6812,8 +6812,23 @@ components:
               type: string
               description: Курсор пагинации следующей страницы
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
+            prev_page:
+              type: string
+              description: Курсор пагинации предыдущей страницы
+              example: eyJxZCO2MiwiZGlyIjoiYXNjIn0
+            has_next:
+              type: boolean
+              description: Есть ли ещё данные на следующей странице
+              example: true
+            has_prev:
+              type: boolean
+              description: Есть ли ещё данные на предыдущей странице
+              example: false
           required:
             - next_page
+            - prev_page
+            - has_next
+            - has_prev
           description: Вспомогательная информация
       description: Метаданные пагинации
     Reaction:

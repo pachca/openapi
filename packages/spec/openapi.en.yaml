@@ -8534,6 +8534,7 @@ components:
       required:
         - url
         - domain
+        - skip
       properties:
         url:
           type: string
@@ -8543,6 +8544,12 @@ components:
           type: string
           description: Link domain
           example: example.com
+        skip:
+          type: boolean
+          description: >-
+            Skip unfurling this link. If `true`, the message author has hidden the preview for this link and the bot
+            should not create a preview
+          example: false
       description: Link object in the link unfurling webhook
     WebhookMessageThread:
       type: object

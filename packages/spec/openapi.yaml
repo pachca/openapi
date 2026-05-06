@@ -6826,9 +6826,6 @@ components:
               example: false
           required:
             - next_page
-            - prev_page
-            - has_next
-            - has_prev
           description: Вспомогательная информация
       description: Метаданные пагинации
     Reaction:

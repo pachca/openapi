@@ -3076,7 +3076,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+          description: Pagination cursor (from `meta.paginate.next_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3217,7 +3217,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+          description: Pagination cursor (from `meta.paginate.next_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3372,7 +3372,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+          description: Pagination cursor (from `meta.paginate.next_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9

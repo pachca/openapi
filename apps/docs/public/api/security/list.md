@@ -23,7 +23,7 @@
 - `entity_id: string` — Идентификатор затронутой сущности
 - `entity_type: string` — Тип сущности
 - `limit: integer, int32` (default: 50) — Количество записей для возврата
-- `cursor: string` — Курсор для пагинации из meta.paginate.next_page
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
 
 
 ## Пример запроса
@@ -102,6 +102,9 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы
+    - `prev_page: string` — Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`
+    - `has_next: boolean` — Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`
+    - `has_prev: boolean` — Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`
 
 **Пример ответа:**
 
@@ -123,7 +126,10 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
+      "prev_page": "eyJxZCO2MiwiZGlyIjoiYXNjIn0",
+      "has_next": true,
+      "has_prev": false
     }
   }
 }

@@ -82,16 +82,34 @@ async function runRouter(ctx: ReturnType<typeof createMockContext>) {
 }
 
 // Helper to configure mock for paginated response
-function mockPaginatedResponse(ctx: ReturnType<typeof createMockContext>, pages: { data: unknown[]; nextCursor?: string }[]) {
+function mockPaginatedResponse(
+	ctx: ReturnType<typeof createMockContext>,
+	pages: {
+		data: unknown[];
+		nextCursor?: string;
+		prevCursor?: string;
+		hasNext?: boolean;
+		hasPrev?: boolean;
+		total?: number;
+	}[],
+) {
 	let pageIndex = 0;
 	ctx.helpers.httpRequestWithAuthentication.mockImplementation(async (_cred: string, options: any) => {
 		ctx._calls.push({ method: options.method, url: options.url, body: options.body, qs: options.qs });
 		const page = pages[pageIndex++] ?? { data: [] };
+		const paginate: Record<string, unknown> = {};
+		if (page.nextCursor !== undefined) paginate.next_page = page.nextCursor;
+		if (page.prevCursor !== undefined) paginate.prev_page = page.prevCursor;
+		if (page.hasNext !== undefined) paginate.has_next = page.hasNext;
+		if (page.hasPrev !== undefined) paginate.has_prev = page.hasPrev;
+		const meta: Record<string, unknown> = {};
+		if (Object.keys(paginate).length > 0) meta.paginate = paginate;
+		if (page.total !== undefined) meta.total = page.total;
 		return {
 			statusCode: 200,
 			body: {
 				data: page.data,
-				meta: page.nextCursor ? { paginate: { next_page: page.nextCursor } } : {},
+				meta,
 			},
 		};
 	});
@@ -1432,5 +1450,72 @@ describe('BUG 2: v1 user.getAll applies filterOptions client-side', () => {
 		const result = await runRouter(ctx);
 		expect(result[0]).toHaveLength(1);
 		expect(result[0][0].json.id).toBe(1);
+	});
+});
+
+describe('Pagination: has_next-driven termination + dual-shape fallback (BAK-2759)', () => {
+	it('списочный метод: returnAll останавливается на has_next: false', async () => {
+		const ctx = createMockContext({
+			resource: 'user',
+			operation: 'getAll',
+			params: { returnAll: true },
+		});
+		mockPaginatedResponse(ctx, [
+			{ data: [{ id: 1 }], nextCursor: 'c1', prevCursor: 'p1', hasNext: true, hasPrev: false },
+			{ data: [{ id: 2 }], nextCursor: 'c2', prevCursor: 'p2', hasNext: true, hasPrev: true },
+			{ data: [{ id: 3 }], nextCursor: 'c3', prevCursor: 'p3', hasNext: false, hasPrev: true },
+		]);
+		const result = await runRouter(ctx);
+		expect(result[0]).toHaveLength(3);
+		// 4-й запрос не должен делаться — has_next: false
+		expect(ctx._calls.length).toBe(3);
+	});
+
+	it('списочный метод: цикл продолжается пока has_next: true даже на коротких страницах', async () => {
+		const ctx = createMockContext({
+			resource: 'user',
+			operation: 'getAll',
+			params: { returnAll: true },
+		});
+		mockPaginatedResponse(ctx, [
+			{ data: [{ id: 1 }, { id: 2 }], nextCursor: 'c1', hasNext: true, hasPrev: false },
+			{ data: [{ id: 3 }], nextCursor: 'c2', hasNext: false, hasPrev: true },
+		]);
+		const result = await runRouter(ctx);
+		expect(result[0]).toHaveLength(3);
+		expect(ctx._calls.length).toBe(2);
+	});
+
+	it('legacy meta без has_next (например, /users?query=): останавливается по пустому data', async () => {
+		const ctx = createMockContext({
+			resource: 'user',
+			operation: 'getAll',
+			params: { returnAll: true, additionalFields: { query: 'Олег' } },
+		});
+		// Симуляция упрощённого meta — только next_page, без has_next/prev_page/has_prev
+		mockPaginatedResponse(ctx, [
+			{ data: [{ id: 1 }], nextCursor: 'c1' },
+			{ data: [{ id: 2 }], nextCursor: 'c2' },
+			{ data: [], nextCursor: 'c3' },
+		]);
+		const result = await runRouter(ctx);
+		expect(result[0]).toHaveLength(2);
+		// 3 запроса: 2 с данными + 1 пустой (терминатор)
+		expect(ctx._calls.length).toBe(3);
+	});
+
+	it('legacy meta: cursor stability guard — не зацикливается, если сервер возвращает тот же next_page', async () => {
+		const ctx = createMockContext({
+			resource: 'user',
+			operation: 'getAll',
+			params: { returnAll: true, additionalFields: { query: 'X' } },
+		});
+		mockPaginatedResponse(ctx, [
+			{ data: [{ id: 1 }], nextCursor: 'same' },
+			{ data: [{ id: 2 }], nextCursor: 'same' }, // тот же курсор → guard
+		]);
+		const result = await runRouter(ctx);
+		expect(result[0]).toHaveLength(2);
+		expect(ctx._calls.length).toBe(2);
 	});
 });

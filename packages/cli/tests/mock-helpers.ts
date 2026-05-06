@@ -189,23 +189,37 @@ export function mockFetch(response: { status?: number; data?: unknown; headers?:
 
 /**
  * Mock globalThis.fetch for paginated responses (multiple pages).
+ *
+ * Supports both meta shapes:
+ * - List endpoints (full PaginationMeta): pass `hasNext`/`hasPrev`/`prev` to set the new fields
+ * - Search endpoints (SearchPaginationMeta): pass `total` to set the search total counter
+ * - Legacy /users-with-query (Elasticsearch path): pass only `next` (omit hasNext) to simulate the simplified shape
  */
-export function mockPaginatedFetch(pages: { data: unknown[]; next?: string }[]): void {
+export function mockPaginatedFetch(
+  pages: {
+    data: unknown[];
+    next?: string;
+    prev?: string;
+    hasNext?: boolean;
+    hasPrev?: boolean;
+    total?: number;
+  }[],
+): void {
   let callIndex = 0;
   globalThis.fetch = vi.fn().mockImplementation(() => {
     const page = pages[callIndex++] || pages[pages.length - 1];
+    const paginate: Record<string, unknown> = { next_page: page.next || null };
+    if (page.prev !== undefined) paginate.prev_page = page.prev;
+    if (page.hasNext !== undefined) paginate.has_next = page.hasNext;
+    if (page.hasPrev !== undefined) paginate.has_prev = page.hasPrev;
+    const meta: Record<string, unknown> = { paginate };
+    if (page.total !== undefined) meta.total = page.total;
     return Promise.resolve({
       ok: true,
       status: 200,
       headers: new Headers({ 'content-type': 'application/json' }),
-      json: () => Promise.resolve({
-        data: page.data,
-        meta: { paginate: { next_page: page.next || null } },
-      }),
-      text: () => Promise.resolve(JSON.stringify({
-        data: page.data,
-        meta: { paginate: { next_page: page.next || null } },
-      })),
+      json: () => Promise.resolve({ data: page.data, meta }),
+      text: () => Promise.resolve(JSON.stringify({ data: page.data, meta })),
     });
   });
 }

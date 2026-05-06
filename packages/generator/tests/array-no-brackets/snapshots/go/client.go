@@ -92,7 +92,8 @@ func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *Searc
 	}
 	var items []MessageResult
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.SearchMessages(ctx, *params)
 		if err != nil {
@@ -104,7 +105,11 @@ func (s *SearchServiceImpl) SearchMessagesAll(ctx context.Context, params *Searc
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 type PachcaClient struct {

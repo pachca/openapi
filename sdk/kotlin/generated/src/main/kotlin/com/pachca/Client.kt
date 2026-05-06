@@ -89,7 +89,8 @@ class SecurityServiceImpl internal constructor(
     ): List<AuditEvent> {
         val items = mutableListOf<AuditEvent>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = getAuditEvents(
                 startTime = startTime,
                 endTime = endTime,
@@ -104,7 +105,8 @@ class SecurityServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 }
@@ -146,12 +148,14 @@ class BotsServiceImpl internal constructor(
     override suspend fun getWebhookEventsAll(limit: Int?): List<WebhookEvent> {
         val items = mutableListOf<WebhookEvent>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = getWebhookEvents(limit = limit, cursor = cursor)
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -266,7 +270,8 @@ class ChatsServiceImpl internal constructor(
     ): List<Chat> {
         val items = mutableListOf<Chat>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listChats(
                 sort = sort,
                 order = order,
@@ -280,7 +285,8 @@ class ChatsServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -506,7 +512,8 @@ class MembersServiceImpl internal constructor(
     ): List<User> {
         val items = mutableListOf<User>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listMembers(
                 id = id,
                 role = role,
@@ -516,7 +523,8 @@ class MembersServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -654,12 +662,14 @@ class GroupTagsServiceImpl internal constructor(
     override suspend fun listTagsAll(names: List<String>?, limit: Int?): List<GroupTag> {
         val items = mutableListOf<GroupTag>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listTags(names = names, limit = limit, cursor = cursor)
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -691,12 +701,14 @@ class GroupTagsServiceImpl internal constructor(
     override suspend fun getTagUsersAll(id: Int, limit: Int?): List<User> {
         val items = mutableListOf<User>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = getTagUsers(id = id, limit = limit, cursor = cursor)
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -812,7 +824,8 @@ class MessagesServiceImpl internal constructor(
     ): List<Message> {
         val items = mutableListOf<Message>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listChatMessages(
                 chatId = chatId,
                 sort = sort,
@@ -823,7 +836,8 @@ class MessagesServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -960,12 +974,14 @@ class ReactionsServiceImpl internal constructor(
     override suspend fun listReactionsAll(id: Int, limit: Int?): List<Reaction> {
         val items = mutableListOf<Reaction>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listReactions(id = id, limit = limit, cursor = cursor)
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -1477,12 +1493,14 @@ class TasksServiceImpl internal constructor(
     override suspend fun listTasksAll(limit: Int?): List<Task> {
         val items = mutableListOf<Task>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listTasks(limit = limit, cursor = cursor)
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 
@@ -1603,12 +1621,14 @@ class UsersServiceImpl internal constructor(
     override suspend fun listUsersAll(query: String?, limit: Int?): List<User> {
         val items = mutableListOf<User>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listUsers(query = query, limit = limit, cursor = cursor)
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta.paginate.nextPage
-        } while (true)
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
         return items
     }
 

@@ -115,13 +115,15 @@ public sealed class SecurityServiceImpl : SecurityService
     {
         var items = new List<AuditEvent>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await GetAuditEventsAsync(startTime: startTime, endTime: endTime, eventKey: eventKey, actorId: actorId, actorType: actorType, entityId: entityId, entityType: entityType, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 }
@@ -200,13 +202,15 @@ public sealed class BotsServiceImpl : BotsService
     {
         var items = new List<WebhookEvent>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await GetWebhookEventsAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -374,13 +378,15 @@ public sealed class ChatsServiceImpl : ChatsService
     {
         var items = new List<Chat>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListChatsAsync(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -738,13 +744,15 @@ public sealed class MembersServiceImpl : MembersService
     {
         var items = new List<User>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListMembersAsync(id, role: role, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -980,13 +988,15 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
     {
         var items = new List<GroupTag>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListTagsAsync(names: names, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -1040,13 +1050,15 @@ public sealed class GroupTagsServiceImpl : GroupTagsService
     {
         var items = new List<User>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await GetTagUsersAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -1218,13 +1230,15 @@ public sealed class MessagesServiceImpl : MessagesService
     {
         var items = new List<Message>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListChatMessagesAsync(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -1463,13 +1477,15 @@ public sealed class ReactionsServiceImpl : ReactionsService
     {
         var items = new List<Reaction>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListReactionsAsync(id, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -2196,13 +2212,15 @@ public sealed class TasksServiceImpl : TasksService
     {
         var items = new List<Pachca.Sdk.Task>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListTasksAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 
@@ -2401,13 +2419,15 @@ public sealed class UsersServiceImpl : UsersService
     {
         var items = new List<User>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListUsersAsync(query: query, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 

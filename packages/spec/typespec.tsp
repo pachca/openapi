@@ -1141,17 +1141,17 @@ model PaginationMeta {
     @example("eyJxZCO2MiwiZGlyIjomSNYjIn3")
     next_page: string;
 
-    @doc("Курсор пагинации предыдущей страницы")
+    @doc("Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`")
     @example("eyJxZCO2MiwiZGlyIjoiYXNjIn0")
-    prev_page: string;
+    prev_page?: string;
 
-    @doc("Есть ли ещё данные на следующей странице")
+    @doc("Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`")
     @example(true)
-    has_next: boolean;
+    has_next?: boolean;
 
-    @doc("Есть ли ещё данные на предыдущей странице")
+    @doc("Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`")
     @example(false)
-    has_prev: boolean;
+    has_prev?: boolean;
   };
 }
 
@@ -2965,7 +2965,7 @@ model WebhookLink {
   @example("example.com")
   domain: string;
 
-  @doc("Пропустить разворачивание этой ссылки. Если `true` — автор сообщения скрыл превью для этой ссылки, и бот не должен создавать превью")
+  @doc("Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью")
   @example(false)
   skip: boolean;
 }
@@ -5120,7 +5120,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Сортировка результатов")
@@ -5174,7 +5174,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(100)
     limit?: int32 = 100,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")
@@ -5231,7 +5231,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")

@@ -657,28 +657,46 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`    ) -> list[${itemType}]:`);
   lines.push(`        items: list[${itemType}] = []`);
   lines.push('        cursor: str | None = None');
-  lines.push('        while True:');
-  {
-    const callParts: string[] = [];
-    if (op.externalUrl) callParts.push(camelToSnake(op.externalUrl));
-    for (const p of op.pathParams) callParts.push(pyParamName(p.sdkName));
+  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  const callParts: string[] = [];
+  if (op.externalUrl) callParts.push(camelToSnake(op.externalUrl));
+  for (const p of op.pathParams) callParts.push(pyParamName(p.sdkName));
+  if (paramsType) callParts.push('params=params');
+
+  if (useHasNext) {
+    lines.push('        has_next = True');
+    lines.push('        while has_next:');
     if (paramsType) {
       lines.push('            if params is None:');
       lines.push(`                params = ${paramsType}()`);
       lines.push('            params.cursor = cursor');
-      callParts.push('params=params');
     }
     lines.push(`            response = await self.${pyMethodName(op)}(${callParts.join(', ')})`);
-  }
-  const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.next_page' : 'response.meta.paginate.next_page if response.meta else None';
-  lines.push('            items.extend(response.data)');
-  lines.push('            if not response.data:');
-  lines.push('                break');
-  lines.push(`            cursor = ${metaAccess}`);
-  if (!rt?.metaIsRequired) {
-    lines.push('            if not cursor:');
+    lines.push('            items.extend(response.data)');
+    lines.push('            if not response.data:');
     lines.push('                break');
+    lines.push('            cursor = response.meta.paginate.next_page');
+    lines.push('            reported_has_next = getattr(response.meta.paginate, "has_next", None)');
+    lines.push('            has_next = True if reported_has_next is None else reported_has_next');
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.next_page' : 'response.meta.paginate.next_page if response.meta else None';
+    lines.push('        while True:');
+    if (paramsType) {
+      lines.push('            if params is None:');
+      lines.push(`                params = ${paramsType}()`);
+      lines.push('            params.cursor = cursor');
+    }
+    lines.push(`            response = await self.${pyMethodName(op)}(${callParts.join(', ')})`);
+    lines.push('            items.extend(response.data)');
+    lines.push('            if not response.data:');
+    lines.push('                break');
+    lines.push(`            cursor = ${metaAccess}`);
+    if (!rt?.metaIsRequired) {
+      lines.push('            if not cursor:');
+      lines.push('                break');
+    }
   }
   lines.push('        return items');
 }

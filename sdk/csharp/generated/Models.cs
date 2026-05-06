@@ -2335,6 +2335,12 @@ public class PaginationMetaPaginate
 {
     [JsonPropertyName("next_page")]
     public string NextPage { get; set; } = default!;
+    [JsonPropertyName("prev_page")]
+    public string? PrevPage { get; set; }
+    [JsonPropertyName("has_next")]
+    public bool? HasNext { get; set; }
+    [JsonPropertyName("has_prev")]
+    public bool? HasPrev { get; set; }
 }
 
 public class PaginationMeta
@@ -2741,6 +2747,8 @@ public class WebhookLink
     public string Url { get; set; } = default!;
     [JsonPropertyName("domain")]
     public string Domain { get; set; } = default!;
+    [JsonPropertyName("skip")]
+    public bool Skip { get; set; } = default!;
 }
 
 public class WebhookMessageThread

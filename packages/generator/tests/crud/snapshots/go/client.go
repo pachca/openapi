@@ -124,19 +124,24 @@ func (s *ChatsServiceImpl) ListChatsAll(ctx context.Context, params *ListChatsPa
 	}
 	var items []Chat
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListChats(ctx, params)
 		if err != nil {
 			return nil, err
 		}
 		items = append(items, result.Data...)
-		if len(result.Data) == 0 || result.Meta == nil {
+		if len(result.Data) == 0 {
 			return items, nil
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *ChatsServiceImpl) GetChat(ctx context.Context, id int32) (*Chat, error) {

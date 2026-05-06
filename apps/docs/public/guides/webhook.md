@@ -190,6 +190,7 @@
 - `links: array of object` (required) — Массив обнаруженных ссылок на отслеживаемые домены
   - `url: string` (required) — URL ссылки
   - `domain: string` (required) — Домен ссылки
+  - `skip: boolean` (required) — Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью
 - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения
 - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
 - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX

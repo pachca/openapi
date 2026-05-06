@@ -866,6 +866,9 @@ export interface OpenViewRequest {
 export interface PaginationMeta {
   paginate: {
     nextPage: string;
+    prevPage?: string;
+    hasNext?: boolean;
+    hasPrev?: boolean;
   };
 }
 
@@ -1195,6 +1198,7 @@ export interface WebhookEvent {
 export interface WebhookLink {
   url: string;
   domain: string;
+  skip: boolean;
 }
 
 export interface WebhookMessageThread {

@@ -87,7 +87,8 @@ class ChatsServiceImpl internal constructor(
     ): List<Chat> {
         val items = mutableListOf<Chat>()
         var cursor: String? = null
-        do {
+        var hasNext = true
+        while (hasNext) {
             val response = listChats(
                 availability = availability,
                 limit = limit,
@@ -98,7 +99,8 @@ class ChatsServiceImpl internal constructor(
             items.addAll(response.data)
             if (response.data.isEmpty()) break
             cursor = response.meta?.paginate?.nextPage
-        } while (cursor != null)
+            hasNext = response.meta?.paginate?.hasNext ?: true
+        }
         return items
     }
 

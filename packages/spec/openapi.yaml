@@ -3001,7 +3001,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3142,7 +3142,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3297,7 +3297,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
+          description: Курсор для пагинации (из `meta.paginate.next_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -6814,21 +6814,18 @@ components:
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
             prev_page:
               type: string
-              description: Курсор пагинации предыдущей страницы
+              description: Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`
               example: eyJxZCO2MiwiZGlyIjoiYXNjIn0
             has_next:
               type: boolean
-              description: Есть ли ещё данные на следующей странице
+              description: Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`
               example: true
             has_prev:
               type: boolean
-              description: Есть ли ещё данные на предыдущей странице
+              description: Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`
               example: false
           required:
             - next_page
-            - prev_page
-            - has_next
-            - has_prev
           description: Вспомогательная информация
       description: Метаданные пагинации
     Reaction:
@@ -8402,7 +8399,7 @@ components:
           example: example.com
         skip:
           type: boolean
-          description: Пропустить разворачивание этой ссылки. Если `true` — автор сообщения скрыл превью для этой ссылки, и бот не должен создавать превью
+          description: Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью
           example: false
       description: Объект ссылки в вебхуке разворачивания ссылок
     WebhookMessageThread:

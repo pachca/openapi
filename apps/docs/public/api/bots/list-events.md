@@ -17,7 +17,7 @@
 ### Query параметры
 
 - `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
-- `cursor: string` — Курсор для пагинации (из meta.paginate.next_page)
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
 
 
 ## Пример запроса
@@ -123,6 +123,7 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
       - `links: array of object` (required) — Массив обнаруженных ссылок на отслеживаемые домены
         - `url: string` (required) — URL ссылки
         - `domain: string` (required) — Домен ссылки
+        - `skip: boolean` (required) — Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью
       - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения
       - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
       - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
@@ -130,6 +131,9 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы
+    - `prev_page: string` — Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`
+    - `has_next: boolean` — Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`
+    - `has_prev: boolean` — Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`
 
 **Пример ответа:**
 
@@ -162,7 +166,10 @@ curl "https://api.pachca.com/api/shared/v1/webhooks/events?limit=1" \
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
+      "prev_page": "eyJxZCO2MiwiZGlyIjoiYXNjIn0",
+      "has_next": true,
+      "has_prev": false
     }
   }
 }

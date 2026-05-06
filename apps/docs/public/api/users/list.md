@@ -14,7 +14,7 @@
 
 - `query: string` — Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм).
 - `limit: integer, int32` (default: 50) — Количество возвращаемых сущностей за один запрос
-- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
 
 
 ## Пример запроса
@@ -69,6 +69,9 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
     - `next_page: string` (required) — Курсор пагинации следующей страницы
+    - `prev_page: string` — Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`
+    - `has_next: boolean` — Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`
+    - `has_prev: boolean` — Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`
 
 **Пример ответа:**
 
@@ -119,7 +122,10 @@ curl "https://api.pachca.com/api/shared/v1/users?query=Олег&limit=1" \
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3"
+      "next_page": "eyJxZCO2MiwiZGlyIjomSNYjIn3",
+      "prev_page": "eyJxZCO2MiwiZGlyIjoiYXNjIn0",
+      "has_next": true,
+      "has_prev": false
     }
   }
 }

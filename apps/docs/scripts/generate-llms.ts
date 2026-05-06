@@ -135,15 +135,15 @@ function generateLibraryRules(): string {
 
 ## Pagination
 - Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters
-- Response includes \`meta.paginate\` with fields: \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`
-- \`next_page\` — cursor for the next page; \`prev_page\` — cursor for the previous page (useful for polling new data)
+- Response includes \`meta.paginate\` with: \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`
+- \`next_page\` — cursor to advance forward through the list. \`prev_page\` — cursor to poll for new records "above" the list
 - \`has_next\` / \`has_prev\` — booleans indicating whether more data exists in that direction
-- End of data: when \`has_next\` is \`false\` (forward) or \`has_prev\` is \`false\` (backward)
-- Cursors are opaque tokens — do not parse or construct them manually
+- End of data: \`has_next: false\` (forward) or \`has_prev: false\` (backward). Cursors themselves are never \`null\`
+- Cursors are opaque — do not parse, construct, or persist them across sessions
 - TypeScript auto-pagination: \`client.users.listUsersAll()\` returns flat array of all results
 - Python auto-pagination: \`await client.users.list_users_all()\` returns list of all results
 - Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
-- Search endpoints (\`/search\`, \`/users?query=\`) use a simpler format with only \`next_page\` and \`total\`
+- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) use a simpler \`SearchPaginationMeta\` with only \`next_page\` and \`total\`
 
 ## Rate Limiting
 - Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
@@ -385,15 +385,15 @@ Auto-pagination methods: \`listUsersAll()\`, \`listChatsAll()\`, \`listChatMessa
 
 ### Polling new data with prev_page
 
-Use \`prev_page\` cursor to efficiently poll for new records without refetching the entire list:
+Use the \`prev_page\` cursor to efficiently poll for new records that appear "above" the list (newer than your first page) without refetching everything:
 
 \`\`\`typescript
-// Initial fetch
+// Initial fetch — save prev_page
 const initial = await client.chats.listChats({ limit: 50 })
 let prevCursor = initial.meta.paginate.prevPage
 const chats = new Map(initial.data.map(c => [c.id, c]))
 
-// Poll for new data periodically
+// Poll periodically — drain newer records via prev_page until has_prev is false
 setInterval(async () => {
   let hasPrev = true
   while (hasPrev) {
@@ -1323,7 +1323,8 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 
 ### Pagination
 - **Cursor-based** (preferred): use \`limit\` (1–50) and \`cursor\` parameters. Response includes \`meta.paginate\` with \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`.
-- Use \`has_next\` / \`has_prev\` to detect end of data. Use \`prev_page\` cursor for polling new records.
+- Use \`has_next\` / \`has_prev\` to detect end of data. Use \`prev_page\` to poll for new records "above" the list.
+- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) return only \`next_page\` and \`total\`.
 - **Offset-based** (legacy): use \`per\` (1–50) and \`page\` parameters.
 
 ### Permissions

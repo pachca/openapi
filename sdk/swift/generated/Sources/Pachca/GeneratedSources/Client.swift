@@ -61,12 +61,14 @@ public final class SecurityServiceImpl: SecurityService {
     public override func getAuditEventsAll(startTime: String? = nil, endTime: String? = nil, eventKey: AuditEventKey? = nil, actorId: String? = nil, actorType: String? = nil, entityId: String? = nil, entityType: String? = nil, limit: Int? = nil) async throws -> [AuditEvent] {
         var items: [AuditEvent] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await getAuditEvents(startTime: startTime, endTime: endTime, eventKey: eventKey, actorId: actorId, actorType: actorType, entityId: entityId, entityType: entityType, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 }
@@ -126,12 +128,14 @@ public final class BotsServiceImpl: BotsService {
     public override func getWebhookEventsAll(limit: Int? = nil) async throws -> [WebhookEvent] {
         var items: [WebhookEvent] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await getWebhookEvents(limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -243,12 +247,14 @@ public final class ChatsServiceImpl: ChatsService {
     public override func listChatsAll(sort: ChatSortField? = nil, order: SortOrder? = nil, availability: ChatAvailability? = nil, lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, personal: Bool? = nil, limit: Int? = nil) async throws -> [Chat] {
         var items: [Chat] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listChats(sort: sort, order: order, availability: availability, lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, personal: personal, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -553,12 +559,14 @@ public final class MembersServiceImpl: MembersService {
     public override func listMembersAll(id: Int, role: ChatMemberRoleFilter? = nil, limit: Int? = nil) async throws -> [User] {
         var items: [User] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listMembers(id: id, role: role, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -737,12 +745,14 @@ public final class GroupTagsServiceImpl: GroupTagsService {
     public override func listTagsAll(names: [String]? = nil, limit: Int? = nil) async throws -> [GroupTag] {
         var items: [GroupTag] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listTags(names: names, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -784,12 +794,14 @@ public final class GroupTagsServiceImpl: GroupTagsService {
     public override func getTagUsersAll(id: Int, limit: Int? = nil) async throws -> [User] {
         var items: [User] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await getTagUsers(id: id, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -920,12 +932,14 @@ public final class MessagesServiceImpl: MessagesService {
     public override func listChatMessagesAll(chatId: Int, sort: MessageSortField? = nil, order: SortOrder? = nil, limit: Int? = nil) async throws -> [Message] {
         var items: [Message] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listChatMessages(chatId: chatId, sort: sort, order: order, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -1123,12 +1137,14 @@ public final class ReactionsServiceImpl: ReactionsService {
     public override func listReactionsAll(id: Int, limit: Int? = nil) async throws -> [Reaction] {
         var items: [Reaction] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listReactions(id: id, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -1660,12 +1676,14 @@ public final class TasksServiceImpl: TasksService {
     public override func listTasksAll(limit: Int? = nil) async throws -> [Task] {
         var items: [Task] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listTasks(limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 
@@ -1821,12 +1839,14 @@ public final class UsersServiceImpl: UsersService {
     public override func listUsersAll(query: String? = nil, limit: Int? = nil) async throws -> [User] {
         var items: [User] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listUsers(query: query, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 

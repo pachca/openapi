@@ -469,7 +469,6 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix
   lines.push(`    ${fnPrefix} ${op.methodName}All(${args.join(', ')}) async throws -> [${itemType}] {`);
   lines.push(`        var items: [${itemType}] = []`);
   lines.push('        var cursor: String? = nil');
-  lines.push('        repeat {');
 
   // Build call args for original method
   const callArgs: string[] = [];
@@ -488,12 +487,28 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix
   }
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
-  lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
-  lines.push('            items.append(contentsOf: response.data)');
-  lines.push('            if response.data.isEmpty { break }');
-  lines.push(`            cursor = ${metaAccess}`);
-  lines.push(rt?.metaIsRequired ? '        } while true' : '        } while cursor != nil');
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
+    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?? true' : 'response.meta?.paginate.hasNext ?? true';
+    lines.push('        var hasNext = true');
+    lines.push('        while hasNext {');
+    lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
+    lines.push('            items.append(contentsOf: response.data)');
+    lines.push('            if response.data.isEmpty { break }');
+    lines.push(`            cursor = ${cursorExpr}`);
+    lines.push(`            hasNext = ${hasNextExpr}`);
+    lines.push('        }');
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
+    lines.push('        repeat {');
+    lines.push(`            let response = try await ${op.methodName}(${callArgs.join(', ')})`);
+    lines.push('            items.append(contentsOf: response.data)');
+    lines.push('            if response.data.isEmpty { break }');
+    lines.push(`            cursor = ${metaAccess}`);
+    lines.push(rt?.metaIsRequired ? '        } while true' : '        } while cursor != nil');
+  }
   lines.push('        return items');
   lines.push('    }');
 }

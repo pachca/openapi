@@ -114,7 +114,8 @@ func (s *SecurityServiceImpl) GetAuditEventsAll(ctx context.Context, params *Get
 	}
 	var items []AuditEvent
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.GetAuditEvents(ctx, params)
 		if err != nil {
@@ -126,7 +127,11 @@ func (s *SecurityServiceImpl) GetAuditEventsAll(ctx context.Context, params *Get
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 type BotsService interface {
@@ -209,7 +214,8 @@ func (s *BotsServiceImpl) GetWebhookEventsAll(ctx context.Context, params *GetWe
 	}
 	var items []WebhookEvent
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.GetWebhookEvents(ctx, params)
 		if err != nil {
@@ -221,7 +227,11 @@ func (s *BotsServiceImpl) GetWebhookEventsAll(ctx context.Context, params *GetWe
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *BotsServiceImpl) UpdateBot(ctx context.Context, id int32, request BotUpdateRequest) (*BotResponse, error) {
@@ -404,7 +414,8 @@ func (s *ChatsServiceImpl) ListChatsAll(ctx context.Context, params *ListChatsPa
 	}
 	var items []Chat
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListChats(ctx, params)
 		if err != nil {
@@ -416,7 +427,11 @@ func (s *ChatsServiceImpl) ListChatsAll(ctx context.Context, params *ListChatsPa
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *ChatsServiceImpl) GetChat(ctx context.Context, id int32) (*Chat, error) {
@@ -907,7 +922,8 @@ func (s *MembersServiceImpl) ListMembersAll(ctx context.Context, id int32, param
 	}
 	var items []User
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListMembers(ctx, id, params)
 		if err != nil {
@@ -919,7 +935,11 @@ func (s *MembersServiceImpl) ListMembersAll(ctx context.Context, id int32, param
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *MembersServiceImpl) AddTags(ctx context.Context, id int32, groupTagIds []int32) error {
@@ -1210,7 +1230,8 @@ func (s *GroupTagsServiceImpl) ListTagsAll(ctx context.Context, params *ListTags
 	}
 	var items []GroupTag
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListTags(ctx, params)
 		if err != nil {
@@ -1222,7 +1243,11 @@ func (s *GroupTagsServiceImpl) ListTagsAll(ctx context.Context, params *ListTags
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *GroupTagsServiceImpl) GetTag(ctx context.Context, id int32) (*GroupTag, error) {
@@ -1309,7 +1334,8 @@ func (s *GroupTagsServiceImpl) GetTagUsersAll(ctx context.Context, id int32, par
 	}
 	var items []User
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.GetTagUsers(ctx, id, params)
 		if err != nil {
@@ -1321,7 +1347,11 @@ func (s *GroupTagsServiceImpl) GetTagUsersAll(ctx context.Context, id int32, par
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *GroupTagsServiceImpl) CreateTag(ctx context.Context, request GroupTagRequest) (*GroupTag, error) {
@@ -1537,7 +1567,8 @@ func (s *MessagesServiceImpl) ListChatMessagesAll(ctx context.Context, params *L
 	}
 	var items []Message
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListChatMessages(ctx, *params)
 		if err != nil {
@@ -1549,7 +1580,11 @@ func (s *MessagesServiceImpl) ListChatMessagesAll(ctx context.Context, params *L
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *MessagesServiceImpl) GetMessage(ctx context.Context, id int32) (*Message, error) {
@@ -1876,7 +1911,8 @@ func (s *ReactionsServiceImpl) ListReactionsAll(ctx context.Context, id int32, p
 	}
 	var items []Reaction
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListReactions(ctx, id, params)
 		if err != nil {
@@ -1888,7 +1924,11 @@ func (s *ReactionsServiceImpl) ListReactionsAll(ctx context.Context, id int32, p
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *ReactionsServiceImpl) AddReaction(ctx context.Context, id int32, request ReactionRequest) (*Reaction, error) {
@@ -2794,7 +2834,8 @@ func (s *TasksServiceImpl) ListTasksAll(ctx context.Context, params *ListTasksPa
 	}
 	var items []Task
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListTasks(ctx, params)
 		if err != nil {
@@ -2806,7 +2847,11 @@ func (s *TasksServiceImpl) ListTasksAll(ctx context.Context, params *ListTasksPa
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *TasksServiceImpl) GetTask(ctx context.Context, id int32) (*Task, error) {
@@ -3067,7 +3112,8 @@ func (s *UsersServiceImpl) ListUsersAll(ctx context.Context, params *ListUsersPa
 	}
 	var items []User
 	var cursor *string
-	for {
+	hasNext := true
+	for hasNext {
 		params.Cursor = cursor
 		result, err := s.ListUsers(ctx, params)
 		if err != nil {
@@ -3079,7 +3125,11 @@ func (s *UsersServiceImpl) ListUsersAll(ctx context.Context, params *ListUsersPa
 		}
 		nextPage := result.Meta.Paginate.NextPage
 		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
 	}
+	return items, nil
 }
 
 func (s *UsersServiceImpl) GetUser(ctx context.Context, id int32) (*User, error) {

@@ -721,23 +721,37 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push(`  async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
   lines.push(`    const items: ${itemType}[] = [];`);
   lines.push('    let cursor: string | undefined;');
-  lines.push('    do {');
 
   // Build call args
   const callArgs: string[] = [];
   if (op.externalUrl) callArgs.push(op.externalUrl);
   for (const p of op.pathParams) callArgs.push(p.sdkName);
   if (paramsType) callArgs.push('{ ...params, cursor } as ' + paramsType);
-  lines.push(`      const response = await this.${op.methodName}(${callArgs.join(', ')});`);
+
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate.nextPage';
-  lines.push('      items.push(...response.data);');
-  lines.push('      if (response.data.length === 0) break;');
-  lines.push(`      cursor = ${metaAccess};`);
-  if (rt?.metaIsRequired) {
-    lines.push('    } while (true);');
+  const metaOpt = rt?.metaIsRequired ? '' : '?';
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    lines.push('    let hasNext = true;');
+    lines.push('    while (hasNext) {');
+    lines.push(`      const response = await this.${op.methodName}(${callArgs.join(', ')});`);
+    lines.push('      items.push(...response.data);');
+    lines.push('      if (response.data.length === 0) break;');
+    lines.push(`      cursor = response.meta${metaOpt}.paginate.nextPage;`);
+    lines.push(`      hasNext = response.meta${metaOpt}.paginate.hasNext ?? true;`);
+    lines.push('    }');
   } else {
-    lines.push('    } while (cursor);');
+    lines.push('    do {');
+    lines.push(`      const response = await this.${op.methodName}(${callArgs.join(', ')});`);
+    lines.push('      items.push(...response.data);');
+    lines.push('      if (response.data.length === 0) break;');
+    lines.push(`      cursor = response.meta${metaOpt}.paginate.nextPage;`);
+    if (rt?.metaIsRequired) {
+      lines.push('    } while (true);');
+    } else {
+      lines.push('    } while (cursor);');
+    }
   }
   lines.push('    return items;');
   lines.push('  }');

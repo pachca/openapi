@@ -14,7 +14,7 @@
 
 - `query: string` — Текст поискового запроса
 - `limit: integer, int32` (default: 100) — Количество возвращаемых результатов за один запрос
-- `cursor: string` — Курсор для пагинации (из meta.paginate.next_page)
+- `cursor: string` — Курсор для пагинации (из `meta.paginate.next_page`)
 - `order: string` — Направление сортировки
   Значения: `asc`, `desc`
 - `created_from: date-time` — Фильтр по дате создания (от)

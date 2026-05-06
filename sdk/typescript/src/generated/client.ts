@@ -113,12 +113,14 @@ export class SecurityServiceImpl extends SecurityService {
   async getAuditEventsAll(params?: Omit<GetAuditEventsParams, 'cursor'>): Promise<AuditEvent[]> {
     const items: AuditEvent[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.getAuditEvents({ ...params, cursor } as GetAuditEventsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 }
@@ -171,12 +173,14 @@ export class BotsServiceImpl extends BotsService {
   async getWebhookEventsAll(params?: Omit<GetWebhookEventsParams, 'cursor'>): Promise<WebhookEvent[]> {
     const items: WebhookEvent[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.getWebhookEvents({ ...params, cursor } as GetWebhookEventsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -279,12 +283,14 @@ export class ChatsServiceImpl extends ChatsService {
   async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
     const items: Chat[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listChats({ ...params, cursor } as ListChatsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -556,12 +562,14 @@ export class MembersServiceImpl extends MembersService {
   async listMembersAll(id: number, params?: Omit<ListMembersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listMembers(id, { ...params, cursor } as ListMembersParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -726,12 +734,14 @@ export class GroupTagsServiceImpl extends GroupTagsService {
   async listTagsAll(params?: Omit<ListTagsParams, 'cursor'>): Promise<GroupTag[]> {
     const items: GroupTag[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listTags({ ...params, cursor } as ListTagsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -772,12 +782,14 @@ export class GroupTagsServiceImpl extends GroupTagsService {
   async getTagUsersAll(id: number, params?: Omit<GetTagUsersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.getTagUsers(id, { ...params, cursor } as GetTagUsersParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -897,12 +909,14 @@ export class MessagesServiceImpl extends MessagesService {
   async listChatMessagesAll(params: Omit<ListChatMessagesParams, 'cursor'>): Promise<Message[]> {
     const items: Message[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listChatMessages({ ...params, cursor } as ListChatMessagesParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -1080,12 +1094,14 @@ export class ReactionsServiceImpl extends ReactionsService {
   async listReactionsAll(id: number, params?: Omit<ListReactionsParams, 'cursor'>): Promise<Reaction[]> {
     const items: Reaction[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listReactions(id, { ...params, cursor } as ListReactionsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -1569,12 +1585,14 @@ export class TasksServiceImpl extends TasksService {
   async listTasksAll(params?: Omit<ListTasksParams, 'cursor'>): Promise<Task[]> {
     const items: Task[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listTasks({ ...params, cursor } as ListTasksParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 
@@ -1720,12 +1738,14 @@ export class UsersServiceImpl extends UsersService {
   async listUsersAll(params?: Omit<ListUsersParams, 'cursor'>): Promise<User[]> {
     const items: User[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listUsers({ ...params, cursor } as ListUsersParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta.paginate.nextPage;
-    } while (true);
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
     return items;
   }
 

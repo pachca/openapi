@@ -118,13 +118,15 @@ public sealed class ChatsServiceImpl : ChatsService
     {
         var items = new List<Chat>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await ListChatsAsync(availability: availability, limit: limit, cursor: cursor, sortField: sortField, sortOrder: sortOrder, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta?.Paginate?.NextPage;
-        } while (cursor != null);
+            hasNext = response.Meta?.Paginate?.HasNext ?? true;
+        }
         return items;
     }
 

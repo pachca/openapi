@@ -90,7 +90,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 
 ### Список с пагинацией
 
-Списочные методы возвращают массив `data` и блок `meta` с курсором для следующей страницы:
+Списочные методы возвращают массив `data` и блок `meta.paginate` с курсорами и флагами:
 
 ```json
 {
@@ -100,7 +100,10 @@ curl "https://api.pachca.com/api/shared/v1/users" \
   ],
   "meta": {
     "paginate": {
-      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ"
+      "next_page": "eyJpZCI6MTAsIl9rZCI6Im4ifQ",
+      "prev_page": "eyJpZCI6MSwgIl9rZCI6InAifQ",
+      "has_next": true,
+      "has_prev": false
     }
   }
 }

@@ -1626,13 +1626,22 @@ public struct OpenViewRequest: Codable {
 
 public struct PaginationMetaPaginate: Codable {
     public let nextPage: String
+    public let prevPage: String?
+    public let hasNext: Bool?
+    public let hasPrev: Bool?
 
-    public init(nextPage: String) {
+    public init(nextPage: String, prevPage: String? = nil, hasNext: Bool? = nil, hasPrev: Bool? = nil) {
         self.nextPage = nextPage
+        self.prevPage = prevPage
+        self.hasNext = hasNext
+        self.hasPrev = hasPrev
     }
 
     enum CodingKeys: String, CodingKey {
         case nextPage = "next_page"
+        case prevPage = "prev_page"
+        case hasNext = "has_next"
+        case hasPrev = "has_prev"
     }
 }
 
@@ -2538,10 +2547,12 @@ public struct WebhookEvent: Codable {
 public struct WebhookLink: Codable {
     public let url: String
     public let domain: String
+    public let skip: Bool
 
-    public init(url: String, domain: String) {
+    public init(url: String, domain: String, skip: Bool) {
         self.url = url
         self.domain = domain
+        self.skip = skip
     }
 }
 

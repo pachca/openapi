@@ -643,7 +643,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+      description: Pagination cursor (from `meta.paginate.next_page`)
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='order')]
     update:
       description: Sort direction
@@ -676,7 +676,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+      description: Pagination cursor (from `meta.paginate.next_page`)
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='order')]
     update:
       description: Sort direction
@@ -709,7 +709,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/users'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+      description: Pagination cursor (from `meta.paginate.next_page`)
   - target: $.paths['/search/users'].get.parameters[?(@.name=='sort')]
     update:
       description: Sort results by
@@ -2062,13 +2062,13 @@ actions:
       description: Next page pagination cursor
   - target: $.components.schemas.PaginationMeta.properties.paginate.properties.prev_page
     update:
-      description: Previous page pagination cursor
+      description: Previous page pagination cursor. Used for polling new records "above" the list
   - target: $.components.schemas.PaginationMeta.properties.paginate.properties.has_next
     update:
-      description: Whether more data exists on the next page
+      description: Whether more data exists on the next page. `false` on the last page
   - target: $.components.schemas.PaginationMeta.properties.paginate.properties.has_prev
     update:
-      description: Whether more data exists on the previous page
+      description: Whether more data exists on the previous page. `false` on the first request without a cursor
   - target: $.components.schemas.Reaction
     update:
       description: Message reaction
@@ -2998,10 +2998,10 @@ actions:
       description: Link domain
   - target: $.components.schemas.WebhookLink.properties.skip
     update:
-      description: Skip unfurling this link. If `true`, the message author has hidden the preview for this link and the bot should not create a preview
+      description: Whether the message author hid the preview for this link. If `true`, the bot must not create a preview
   - target: $.components.schemas.LinkSharedWebhookPayload.properties.links.items.properties.skip
     update:
-      description: Skip unfurling this link. If `true`, the message author has hidden the preview for this link and the bot should not create a preview
+      description: Whether the message author hid the preview for this link. If `true`, the bot must not create a preview
   - target: $.components.schemas.WebhookMessageThread
     update:
       description: Thread object in the message webhook

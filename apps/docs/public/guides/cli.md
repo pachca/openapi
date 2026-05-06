@@ -277,6 +277,13 @@ pachca users list --all
 
 При `--all` CLI показывает прогресс загрузки в stderr, а финальный результат выводит в stdout единым массивом.
 
+В API существует **две группы методов с пагинацией**, у которых разная структура `meta` в JSON-выводе:
+
+- **Списочные методы** (`pachca users list`, `pachca chats list`, `pachca messages list` и т.д.) — `meta.paginate` с полями `next_page`, `prev_page`, `has_next`, `has_prev`. Признак конца — `has_next: false`.
+- **Методы поиска** (`pachca search list-users`, `pachca search list-chats`, `pachca search list-messages`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Подробнее — в разделе [Пагинация](/api/pagination).
+
 ## Загрузка файлов
 
 Команда `pachca upload` автоматически получает подпись через `POST /uploads` и загружает файл на S3 — не нужно вручную копировать 7 параметров подписи:
@@ -608,7 +615,7 @@ pachca doctor
 # ✔ Конфиг         ~/.config/pachca/config.toml (права: 600)
 # ✔ Профиль        personal (user: Иван Иванов)
 # ✔ Токен          действителен (11 скоупов)
-# ✔ CLI            v2026.3.0 (актуальная версия)
+# ✔ CLI            v2026.5.1 (актуальная версия)
 ```
 
 ## Обновление

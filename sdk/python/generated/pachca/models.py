@@ -793,6 +793,9 @@ class OpenViewRequest:
 @dataclass
 class PaginationMetaPaginate:
     next_page: str
+    prev_page: str | None = None
+    has_next: bool | None = None
+    has_prev: bool | None = None
 
 
 @dataclass
@@ -1181,6 +1184,7 @@ class WebhookEvent:
 class WebhookLink:
     url: str
     domain: str
+    skip: bool
 
 
 @dataclass

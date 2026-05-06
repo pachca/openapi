@@ -84,20 +84,26 @@ using var client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.co
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит поле `Meta.Paginate.NextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `Data`.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `Meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.Users.ListUsersAsync()`, `client.Chats.ListChatsAsync()`, `client.Messages.ListChatMessagesAsync()` и т.д.) — `Meta.Paginate` с полями `NextPage`, `PrevPage`, `HasNext`, `HasPrev`. Признак конца — `HasNext == false`. Курсор `PrevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.Search.SearchUsersAsync()`, `client.Search.SearchChatsAsync()`, `client.Search.SearchMessagesAsync()`) — `Meta` с полями `Total` и `Paginate.NextPage` (без `PrevPage`/`HasNext`/`HasPrev`). Признак конца — пустой `Data` или совпадение числа полученных записей с `Total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `null`. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```csharp
 var chats = new List<Chat>();
 string? cursor = null;
+var hasNext = true;
 
-while (true)
+while (hasNext)
 {
     var response = await client.Chats.ListChatsAsync(cursor: cursor);
-    if (response.Data.Count == 0) break;
     chats.AddRange(response.Data);
     cursor = response.Meta.Paginate.NextPage;
+    hasNext = response.Meta.Paginate.HasNext;
 }
 ```
 

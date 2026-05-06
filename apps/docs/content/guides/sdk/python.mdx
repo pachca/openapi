@@ -90,7 +90,12 @@ await client.close()
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.next_page` — курсор для следующей страницы. Курсор никогда не бывает `None` — конец данных определяется по пустому списку `data`.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.list_users()`, `client.chats.list_chats()`, `client.messages.list_chat_messages()` и т.д.) — `meta.paginate` с полями `next_page`, `prev_page`, `has_next`, `has_prev`. Признак конца — `has_next == False`. Курсор `prev_page` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.search_users()`, `client.search.search_chats()`, `client.search.search_messages()`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `None`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
@@ -98,13 +103,13 @@ await client.close()
 from pachca.models import ListUsersParams
 
 cursor = None
-while True:
+has_next = True
+while has_next:
     response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
-    if not response.data:
-        break
     for user in response.data:
         print(user.first_name, user.last_name)
     cursor = response.meta.paginate.next_page
+    has_next = response.meta.paginate.has_next
 ```
 
 ### Автопагинация

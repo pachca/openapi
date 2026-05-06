@@ -617,10 +617,6 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   }
   lines.push(`\tvar items []${itemType}`);
   lines.push('\tvar cursor *string');
-  lines.push('\tfor {');
-  if (op.queryParams.length > 0) {
-    lines.push('\t\tparams.Cursor = cursor');
-  }
 
   // Build call args
   const callArgs: string[] = ['ctx'];
@@ -632,19 +628,47 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   }
 
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const metaNilCheck = rt?.metaIsRequired ? '' : ' || result.Meta == nil';
-  const metaAccess = rt?.metaIsRequired ? 'result.Meta.Paginate.NextPage' : 'result.Meta.Paginate.NextPage';
-  lines.push(`\t\tresult, err := s.${goMethodName(op)}(${callArgs.join(', ')})`);
-  lines.push('\t\tif err != nil {');
-  lines.push('\t\t\treturn nil, err');
-  lines.push('\t\t}');
-  lines.push('\t\titems = append(items, result.Data...)');
-  lines.push(`\t\tif len(result.Data) == 0${metaNilCheck} {`);
-  lines.push('\t\t\treturn items, nil');
-  lines.push('\t\t}');
-  lines.push(`\t\tnextPage := ${metaAccess}`);
-  lines.push('\t\tcursor = &nextPage');
-  lines.push('\t}');
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    lines.push('\thasNext := true');
+    lines.push('\tfor hasNext {');
+    if (op.queryParams.length > 0) {
+      lines.push('\t\tparams.Cursor = cursor');
+    }
+    lines.push(`\t\tresult, err := s.${goMethodName(op)}(${callArgs.join(', ')})`);
+    lines.push('\t\tif err != nil {');
+    lines.push('\t\t\treturn nil, err');
+    lines.push('\t\t}');
+    lines.push('\t\titems = append(items, result.Data...)');
+    lines.push('\t\tif len(result.Data) == 0 {');
+    lines.push('\t\t\treturn items, nil');
+    lines.push('\t\t}');
+    lines.push('\t\tnextPage := result.Meta.Paginate.NextPage');
+    lines.push('\t\tcursor = &nextPage');
+    lines.push('\t\tif result.Meta.Paginate.HasNext != nil {');
+    lines.push('\t\t\thasNext = *result.Meta.Paginate.HasNext');
+    lines.push('\t\t}');
+    lines.push('\t}');
+    lines.push('\treturn items, nil');
+  } else {
+    const metaNilCheck = rt?.metaIsRequired ? '' : ' || result.Meta == nil';
+    lines.push('\tfor {');
+    if (op.queryParams.length > 0) {
+      lines.push('\t\tparams.Cursor = cursor');
+    }
+    lines.push(`\t\tresult, err := s.${goMethodName(op)}(${callArgs.join(', ')})`);
+    lines.push('\t\tif err != nil {');
+    lines.push('\t\t\treturn nil, err');
+    lines.push('\t\t}');
+    lines.push('\t\titems = append(items, result.Data...)');
+    lines.push(`\t\tif len(result.Data) == 0${metaNilCheck} {`);
+    lines.push('\t\t\treturn items, nil');
+    lines.push('\t\t}');
+    lines.push('\t\tnextPage := result.Meta.Paginate.NextPage');
+    lines.push('\t\tcursor = &nextPage');
+    lines.push('\t}');
+  }
   lines.push('}');
 }
 

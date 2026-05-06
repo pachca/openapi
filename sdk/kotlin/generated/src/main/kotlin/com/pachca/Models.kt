@@ -1167,6 +1167,9 @@ data class OpenViewRequest(
 @Serializable
 data class PaginationMetaPaginate(
     @SerialName("next_page") val nextPage: String,
+    @SerialName("prev_page") val prevPage: String? = null,
+    @SerialName("has_next") val hasNext: Boolean? = null,
+    @SerialName("has_prev") val hasPrev: Boolean? = null,
 )
 
 @Serializable
@@ -1432,6 +1435,7 @@ data class WebhookEvent(
 data class WebhookLink(
     val url: String,
     val domain: String,
+    val skip: Boolean,
 )
 
 @Serializable

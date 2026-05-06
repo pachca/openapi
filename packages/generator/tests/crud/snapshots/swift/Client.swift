@@ -77,12 +77,14 @@ public final class ChatsServiceImpl: ChatsService {
     public override func listChatsAll(availability: ChatAvailability? = nil, limit: Int? = nil, sortField: String? = nil, sortOrder: SortOrder? = nil) async throws -> [Chat] {
         var items: [Chat] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await listChats(availability: availability, limit: limit, cursor: cursor, sortField: sortField, sortOrder: sortOrder)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta?.paginate.nextPage
-        } while cursor != nil
+            hasNext = response.meta?.paginate.hasNext ?? true
+        }
         return items
     }
 

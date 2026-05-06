@@ -72,12 +72,14 @@ export class ChatsServiceImpl extends ChatsService {
   async listChatsAll(params?: Omit<ListChatsParams, 'cursor'>): Promise<Chat[]> {
     const items: Chat[] = [];
     let cursor: string | undefined;
-    do {
+    let hasNext = true;
+    while (hasNext) {
       const response = await this.listChats({ ...params, cursor } as ListChatsParams);
       items.push(...response.data);
       if (response.data.length === 0) break;
       cursor = response.meta?.paginate.nextPage;
-    } while (cursor);
+      hasNext = response.meta?.paginate.hasNext ?? true;
+    }
     return items;
   }
 

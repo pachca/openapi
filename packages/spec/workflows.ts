@@ -831,13 +831,13 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         },
         {
           description:
-            'При появлении ссылки бот получает вебхук `"event": "link_shared"` с массивом `links`',
+            'При появлении ссылки бот получает вебхук `"event": "link_shared"` с массивом `links`. Каждый объект содержит `url`, `domain` и `skip: boolean` — если `skip` равен `true`, автор скрыл превью и бот должен пропустить эту ссылку',
           descriptionEn:
-            'When a link appears, bot receives webhook `"event": "link_shared"` with `links` array',
+            'When a link appears, bot receives webhook `"event": "link_shared"` with `links` array. Each object has `url`, `domain` and `skip: boolean` — if `skip` is `true`, the author hid the preview and the bot must skip this link',
         },
         {
-          description: 'Извлеки данные из своей системы по URL из `links`',
-          descriptionEn: 'Extract data from your system by URL from `links`',
+          description: 'Извлеки данные из своей системы по URL из `links` (пропуская объекты с `skip: true`)',
+          descriptionEn: 'Extract data from your system by URL from `links` (skipping objects with `skip: true`)',
         },
         {
           description: 'Отправь превью-данные',

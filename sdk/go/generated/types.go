@@ -746,7 +746,10 @@ type OpenViewRequest struct {
 }
 
 type PaginationMetaPaginate struct {
-	NextPage string `json:"next_page"`
+	NextPage string  `json:"next_page"`
+	PrevPage *string `json:"prev_page,omitempty"`
+	HasNext  *bool   `json:"has_next,omitempty"`
+	HasPrev  *bool   `json:"has_prev,omitempty"`
 }
 
 type PaginationMeta struct {
@@ -1091,6 +1094,7 @@ type WebhookEvent struct {
 type WebhookLink struct {
 	URL    string `json:"url"`
 	Domain string `json:"domain"`
+	Skip   bool   `json:"skip"`
 }
 
 type WebhookMessageThread struct {

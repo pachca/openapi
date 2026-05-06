@@ -65,7 +65,8 @@ if (existsSync(changelogPath)) {
     lines.push(`## ${e.version}  (${e.date})`, '');
     for (const c of e.changes) {
       const label = TYPE_LABELS[c.type] || c.type;
-      lines.push(`- **${label}** (${c.command}): ${c.description}`);
+      const scope = c.command ? ` (${c.command})` : '';
+      lines.push(`- **${label}**${scope}: ${c.description}`);
     }
     lines.push('');
   }

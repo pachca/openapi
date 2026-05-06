@@ -668,11 +668,17 @@ function generateCommandCode(p: CommandGenParams): string {
     runBodyLines.push(`        const body = response.data as Record<string, unknown>;`);
     runBodyLines.push(`        const items = body.data as unknown[];`);
     runBodyLines.push(`        if (items) allData.push(...items);`);
-    runBodyLines.push(`        if (!items || items.length === 0) break;`);
     runBodyLines.push(`        const meta = body.meta as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        const paginate = meta?.paginate as Record<string, unknown> | undefined;`);
     runBodyLines.push(`        nextCursor = paginate?.next_page as string | undefined;`);
     runBodyLines.push(`        pages++;`);
+    runBodyLines.push(`        // Условие конца: списочные методы — has_next === false; методы поиска и /users?query= (без has_next) — пустой data`);
+    runBodyLines.push(`        const hasNext = paginate?.has_next;`);
+    runBodyLines.push(`        if (typeof hasNext === 'boolean') {`);
+    runBodyLines.push(`          if (!hasNext) break;`);
+    runBodyLines.push(`        } else if (!items || items.length === 0) {`);
+    runBodyLines.push(`          break;`);
+    runBodyLines.push(`        }`);
     runBodyLines.push('');
     runBodyLines.push(`        if (process.stderr.isTTY) {`);
     runBodyLines.push(`          const total = (paginate as Record<string, unknown> | undefined)?.total;`);

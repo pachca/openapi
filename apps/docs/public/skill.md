@@ -197,7 +197,9 @@ npx @pachca/cli <command> --token <TOKEN>
 - On `429` response, respect the `Retry-After` header.
 
 ### Pagination
-- **Cursor-based** (preferred): use `limit` (1–50) and `cursor` parameters. Check `meta.paginate.next_page` in response.
+- **Cursor-based** (preferred): use `limit` (1–50) and `cursor` parameters. Response includes `meta.paginate` with `next_page`, `prev_page`, `has_next`, `has_prev`.
+- Use `has_next` / `has_prev` to detect end of data. Use `prev_page` to poll for new records "above" the list.
+- Search endpoints (`/search/users`, `/search/chats`, `/search/messages`) return only `next_page` and `total`.
 - **Offset-based** (legacy): use `per` (1–50) and `page` parameters.
 
 ### Permissions
@@ -254,7 +256,7 @@ Detailed documentation on specific topics is available at:
 - [Последние обновления](https://dev.pachca.com/updates) — История изменений API Пачки, CLI, SDK и расширения для n8n. Новые методы, параметры и возможности. RSS-лента и markdown-версия для AI-агентов и интеграций
 - [Основы API: Авторизация](https://dev.pachca.com/api/authorization) — Авторизация в API Пачки: персональный токен и токен бота, скоупы методов, настройка доступа для администраторов и сотрудников, смена владельца пространства
 - [Основы API: Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
-- [Основы API: Пагинация](https://dev.pachca.com/api/pagination) — Пагинация в API Пачки по курсору: параметры limit и cursor, структура meta.paginate.next_page и пример получения следующей страницы списка результатов
+- [Основы API: Пагинация](https://dev.pachca.com/api/pagination) — Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
 - [Основы API: Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговая загрузка файлов в API Пачки через presigned URL S3: получение подписи, отправка multipart/form-data и прикрепление к сообщению или задаче
 - [Основы API: Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP в API Пачки, структуры ApiError и OAuthError, лимиты rate limits по пользователям и ботам, обработка ответа 429 и заголовка Retry-After
 - [Основы API: Модели](https://dev.pachca.com/api/models) — Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности

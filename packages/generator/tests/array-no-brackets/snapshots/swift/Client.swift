@@ -57,12 +57,14 @@ public final class SearchServiceImpl: SearchService {
     public override func searchMessagesAll(query: String, chatIds: [Int], userIds: [Int]? = nil, limit: Int? = nil) async throws -> [MessageResult] {
         var items: [MessageResult] = []
         var cursor: String? = nil
-        repeat {
+        var hasNext = true
+        while hasNext {
             let response = try await searchMessages(query: query, chatIds: chatIds, userIds: userIds, limit: limit, cursor: cursor)
             items.append(contentsOf: response.data)
             if response.data.isEmpty { break }
             cursor = response.meta.paginate.nextPage
-        } while true
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
         return items
     }
 }

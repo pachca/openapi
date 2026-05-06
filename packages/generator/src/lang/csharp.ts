@@ -655,8 +655,6 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier
   lines.push(`${indent}{`);
   lines.push(`${indent2}var items = new List<${itemType}>();`);
   lines.push(`${indent2}string? cursor = null;`);
-  lines.push(`${indent2}do`);
-  lines.push(`${indent2}{`);
 
   // Build call args
   const callArgs: string[] = [];
@@ -683,13 +681,31 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier
   callArgs.push('cancellationToken: cancellationToken');
 
   const baseName = `${snakeToPascal(op.methodName)}Async`;
-  lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const metaAccess = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
-  lines.push(`${indent2}    items.AddRange(response.Data);`);
-  lines.push(`${indent2}    if (response.Data.Count == 0) break;`);
-  lines.push(`${indent2}    cursor = ${metaAccess};`);
-  lines.push(rt?.metaIsRequired ? `${indent2}} while (true);` : `${indent2}} while (cursor != null);`);
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    const cursorExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
+    const hasNextExpr = rt?.metaIsRequired ? 'response.Meta.Paginate.HasNext ?? true' : 'response.Meta?.Paginate?.HasNext ?? true';
+    lines.push(`${indent2}var hasNext = true;`);
+    lines.push(`${indent2}while (hasNext)`);
+    lines.push(`${indent2}{`);
+    lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
+    lines.push(`${indent2}    items.AddRange(response.Data);`);
+    lines.push(`${indent2}    if (response.Data.Count == 0) break;`);
+    lines.push(`${indent2}    cursor = ${cursorExpr};`);
+    lines.push(`${indent2}    hasNext = ${hasNextExpr};`);
+    lines.push(`${indent2}}`);
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.Meta.Paginate.NextPage' : 'response.Meta?.Paginate?.NextPage';
+    lines.push(`${indent2}do`);
+    lines.push(`${indent2}{`);
+    lines.push(`${indent2}    var response = await ${baseName}(${callArgs.join(', ')}).ConfigureAwait(false);`);
+    lines.push(`${indent2}    items.AddRange(response.Data);`);
+    lines.push(`${indent2}    if (response.Data.Count == 0) break;`);
+    lines.push(`${indent2}    cursor = ${metaAccess};`);
+    lines.push(rt?.metaIsRequired ? `${indent2}} while (true);` : `${indent2}} while (cursor != null);`);
+  }
   lines.push(`${indent2}return items;`);
   lines.push(`${indent}}`);
 }

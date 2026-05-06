@@ -139,7 +139,8 @@ class SecurityServiceImpl(SecurityService):
     ) -> list[AuditEvent]:
         items: list[AuditEvent] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = GetAuditEventsParams()
             params.cursor = cursor
@@ -148,6 +149,8 @@ class SecurityServiceImpl(SecurityService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
 
@@ -210,7 +213,8 @@ class BotsServiceImpl(BotsService):
     ) -> list[WebhookEvent]:
         items: list[WebhookEvent] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = GetWebhookEventsParams()
             params.cursor = cursor
@@ -219,6 +223,8 @@ class BotsServiceImpl(BotsService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def update_bot(
@@ -344,7 +350,8 @@ class ChatsServiceImpl(ChatsService):
     ) -> list[Chat]:
         items: list[Chat] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListChatsParams()
             params.cursor = cursor
@@ -353,6 +360,8 @@ class ChatsServiceImpl(ChatsService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_chat(
@@ -663,7 +672,8 @@ class MembersServiceImpl(MembersService):
     ) -> list[User]:
         items: list[User] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListMembersParams()
             params.cursor = cursor
@@ -672,6 +682,8 @@ class MembersServiceImpl(MembersService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def add_tags(
@@ -862,7 +874,8 @@ class GroupTagsServiceImpl(GroupTagsService):
     ) -> list[GroupTag]:
         items: list[GroupTag] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListTagsParams()
             params.cursor = cursor
@@ -871,6 +884,8 @@ class GroupTagsServiceImpl(GroupTagsService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_tag(
@@ -919,7 +934,8 @@ class GroupTagsServiceImpl(GroupTagsService):
     ) -> list[User]:
         items: list[User] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = GetTagUsersParams()
             params.cursor = cursor
@@ -928,6 +944,8 @@ class GroupTagsServiceImpl(GroupTagsService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def create_tag(
@@ -1069,7 +1087,8 @@ class MessagesServiceImpl(MessagesService):
     ) -> list[Message]:
         items: list[Message] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListChatMessagesParams()
             params.cursor = cursor
@@ -1078,6 +1097,8 @@ class MessagesServiceImpl(MessagesService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_message(
@@ -1272,7 +1293,8 @@ class ReactionsServiceImpl(ReactionsService):
     ) -> list[Reaction]:
         items: list[Reaction] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListReactionsParams()
             params.cursor = cursor
@@ -1281,6 +1303,8 @@ class ReactionsServiceImpl(ReactionsService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def add_reaction(
@@ -1828,7 +1852,8 @@ class TasksServiceImpl(TasksService):
     ) -> list[Task]:
         items: list[Task] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListTasksParams()
             params.cursor = cursor
@@ -1837,6 +1862,8 @@ class TasksServiceImpl(TasksService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_task(
@@ -2011,7 +2038,8 @@ class UsersServiceImpl(UsersService):
     ) -> list[User]:
         items: list[User] = []
         cursor: str | None = None
-        while True:
+        has_next = True
+        while has_next:
             if params is None:
                 params = ListUsersParams()
             params.cursor = cursor
@@ -2020,6 +2048,8 @@ class UsersServiceImpl(UsersService):
             if not response.data:
                 break
             cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
         return items
 
     async def get_user(

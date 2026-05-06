@@ -427,10 +427,19 @@ export async function makeApiRequestAllPages(
     const paginate = meta?.paginate as IDataObject | undefined;
     const nextCursor = (paginate?.next_page as string) ?? undefined;
 
-    // Guard against infinite loops: server returned the same cursor we just sent
-    if (nextCursor && nextCursor === cursor) break;
-    cursor = nextCursor;
-    pageCount++;
+    // Termination: списочные методы — has_next === false; legacy meta без has_next (например, /users?query=) — пустой data
+    const hasNext = paginate?.has_next as boolean | undefined;
+    if (typeof hasNext === 'boolean') {
+      cursor = nextCursor;
+      pageCount++;
+      if (!hasNext) break;
+    } else {
+      if (items.length === 0) break;
+      // Guard against infinite loops: server returned the same cursor we just sent
+      if (nextCursor && nextCursor === cursor) break;
+      cursor = nextCursor;
+      pageCount++;
+    }
   } while (cursor && (returnAll || results.length < limit) && pageCount < MAX_PAGES);
 
   const finalResults = returnAll ? results : results.slice(0, limit);

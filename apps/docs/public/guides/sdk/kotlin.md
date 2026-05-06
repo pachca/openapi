@@ -197,19 +197,25 @@ val response = client.chats.getChat(id = 334)
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `meta.paginate.nextPage` — курсор для следующей страницы. Курсор никогда не бывает `null` — конец данных определяется по пустому массиву `data`.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.users.listUsers()`, `client.chats.listChats()`, `client.messages.listChatMessages()` и т.д.) — `meta.paginate` с полями `nextPage`, `prevPage`, `hasNext`, `hasPrev`. Признак конца — `hasNext == false`. Курсор `prevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.search.searchUsers()`, `client.search.searchChats()`, `client.search.searchMessages()`) — `meta` с полями `total` и `paginate.nextPage` (без `prevPage`/`hasNext`/`hasPrev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
+
+Курсоры — непрозрачные токены, никогда не бывают `null`/пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```kotlin
 var cursor: String? = null
-while (true) {
+var hasNext = true
+while (hasNext) {
     val response = client.users.listUsers(limit = 50, cursor = cursor)
-    if (response.data.isEmpty()) break
     for (user in response.data) {
         println("${user.firstName} ${user.lastName}")
     }
     cursor = response.meta.paginate.nextPage
+    hasNext = response.meta.paginate.hasNext
 }
 ```
 

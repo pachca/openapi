@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.7 (2026-05-06)
+
+### Improvements
+
+- Pachca Trigger: `link_shared` webhook payload now carries `skip: boolean` on every link in the `links` array — `true` means the message author hid the preview for this link and the bot must skip it
+- Support for the updated cursor-based pagination format in list operations
+
 ## 2.0.6 (2026-05-04)
 
 ### Improvements

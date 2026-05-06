@@ -16,11 +16,15 @@
 
 ## Pagination
 - Cursor-based: use `limit` (1–50, default 50) and `cursor` query parameters
-- Response includes `meta.paginate.next_page` — cursor for next page
-- End of data: when `data` array is empty (cursor is never null)
+- Response includes `meta.paginate` with: `next_page`, `prev_page`, `has_next`, `has_prev`
+- `next_page` — cursor to advance forward through the list. `prev_page` — cursor to poll for new records "above" the list
+- `has_next` / `has_prev` — booleans indicating whether more data exists in that direction
+- End of data: `has_next: false` (forward) or `has_prev: false` (backward). Cursors themselves are never `null`
+- Cursors are opaque — do not parse, construct, or persist them across sessions
 - TypeScript auto-pagination: `client.users.listUsersAll()` returns flat array of all results
 - Python auto-pagination: `await client.users.list_users_all()` returns list of all results
-- Available for: users, chats, messages, members, tags, reactions, tasks, search results, audit events, webhook events
+- Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
+- Search endpoints (`/search/users`, `/search/chats`, `/search/messages`) use a simpler `SearchPaginationMeta` with only `next_page` and `total`
 
 ## Rate Limiting
 - Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
@@ -126,15 +130,16 @@ Token types: **admin** (full access, get in Settings → Automations → API), *
 const allUsers = await client.users.listUsersAll()
 console.log(`Total: ${allUsers.length}`)
 
-// Manual pagination with cursor control
+// Manual pagination with cursor control using has_next
 let cursor: string | undefined
-for (;;) {
+let hasNext = true
+while (hasNext) {
   const response = await client.users.listUsers({ limit: 50, cursor })
-  if (response.data.length === 0) break
   for (const user of response.data) {
     console.log(user.firstName, user.lastName)
   }
   cursor = response.meta.paginate.nextPage
+  hasNext = response.meta.paginate.hasNext
 }
 ```
 
@@ -144,20 +149,45 @@ for (;;) {
 all_users = await client.users.list_users_all()
 print(f"Total: {len(all_users)}")
 
-# Manual pagination with cursor control
+# Manual pagination with cursor control using has_next
 from pachca.models import ListUsersParams
 
 cursor = None
-while True:
+has_next = True
+while has_next:
     response = await client.users.list_users(ListUsersParams(limit=50, cursor=cursor))
-    if not response.data:
-        break
     for user in response.data:
         print(user.first_name, user.last_name)
     cursor = response.meta.paginate.next_page
+    has_next = response.meta.paginate.has_next
 ```
 
 Auto-pagination methods: `listUsersAll()`, `listChatsAll()`, `listChatMessagesAll()`, `listMembersAll()`, `listTagsAll()`, `listTasksAll()`, `searchMessagesAll()`, `searchChatsAll()`, `searchUsersAll()`, `listReactionsAll()`, `getAuditEventsAll()`, `getWebhookEventsAll()`.
+
+### Polling new data with prev_page
+
+Use the `prev_page` cursor to efficiently poll for new records that appear "above" the list (newer than your first page) without refetching everything:
+
+```typescript
+// Initial fetch — save prev_page
+const initial = await client.chats.listChats({ limit: 50 })
+let prevCursor = initial.meta.paginate.prevPage
+const chats = new Map(initial.data.map(c => [c.id, c]))
+
+// Poll periodically — drain newer records via prev_page until has_prev is false
+setInterval(async () => {
+  let hasPrev = true
+  while (hasPrev) {
+    const response = await client.chats.listChats({ limit: 50, cursor: prevCursor })
+    // Deduplicate by id — records may reappear if their sort field changed
+    for (const chat of response.data) {
+      chats.set(chat.id, chat)
+    }
+    prevCursor = response.meta.paginate.prevPage
+    hasPrev = response.meta.paginate.hasPrev
+  }
+}, 5000)
+```
 
 ## How to create chats and manage members
 

@@ -104,26 +104,30 @@ request := pachca.ChatUpdateRequest{
 
 ## Пагинация
 
-Методы, возвращающие списки, используют cursor-based пагинацию. Ответ всегда содержит `Meta.Paginate.NextPage` — курсор для следующей страницы. Курсор никогда не бывает пустым — конец данных определяется по пустому слайсу `Data`.
+SDK работает с двумя группами методов, возвращающих списки, у которых **разная структура `Meta`** — это важно учитывать при ручной пагинации:
+
+- **Списочные методы** (`client.Users.ListUsers()`, `client.Chats.ListChats()`, `client.Messages.ListChatMessages()` и т.д.) — `Meta.Paginate` с полями `NextPage`, `PrevPage`, `HasNext`, `HasPrev`. Признак конца — `HasNext == false`. Курсор `PrevPage` нужен для polling новых записей «сверху» списка.
+- **Методы поиска** (`client.Search.SearchUsers()`, `client.Search.SearchChats()`, `client.Search.SearchMessages()`) — `Meta` с полями `Total` и `Paginate.NextPage` (без `PrevPage`/`HasNext`/`HasPrev`). Признак конца — пустой `Data` или совпадение числа полученных записей с `Total`.
+
+Курсоры — непрозрачные токены, никогда не бывают пустыми. Подробное описание полей и примеры — на странице [Пагинация](/api/pagination).
 
 ### Ручная пагинация
 
 ```go
 var cursor *string
-for {
+hasNext := true
+for hasNext {
     params := &pachca.ListUsersParams{Limit: pachca.Ptr(int32(50)), Cursor: cursor}
     response, err := client.Users.ListUsers(ctx, params)
     if err != nil {
         log.Fatal(err)
-    }
-    if len(response.Data) == 0 {
-        break
     }
     for _, user := range response.Data {
         fmt.Println(user.FirstName, user.LastName)
     }
     nextPage := response.Meta.Paginate.NextPage
     cursor = &nextPage
+    hasNext = response.Meta.Paginate.HasNext
 }
 ```
 

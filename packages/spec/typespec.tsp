@@ -1140,6 +1140,18 @@ model PaginationMeta {
     @doc("Курсор пагинации следующей страницы")
     @example("eyJxZCO2MiwiZGlyIjomSNYjIn3")
     next_page: string;
+
+    @doc("Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`")
+    @example("eyJxZCO2MiwiZGlyIjoiYXNjIn0")
+    prev_page?: string;
+
+    @doc("Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`")
+    @example(true)
+    has_next?: boolean;
+
+    @doc("Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`")
+    @example(false)
+    has_prev?: boolean;
   };
 }
 
@@ -2952,6 +2964,10 @@ model WebhookLink {
   @doc("Домен ссылки")
   @example("example.com")
   domain: string;
+
+  @doc("Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью")
+  @example(false)
+  skip: boolean;
 }
 
 @doc("Структура исходящего вебхука о разворачивании ссылок")
@@ -3456,7 +3472,7 @@ interface UserOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -3851,7 +3867,7 @@ interface GroupTagOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -3895,7 +3911,7 @@ interface GroupTagOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4102,7 +4118,7 @@ interface ChatOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4259,7 +4275,7 @@ interface ChatMemberOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4815,7 +4831,7 @@ interface ChatMessageOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -4869,7 +4885,7 @@ interface ReadMemberOperations {
     @minValue(1)
     @maxValue(300)
     limit?: int32 = 300,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -5012,7 +5028,7 @@ interface ReactionOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -5104,7 +5120,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Сортировка результатов")
@@ -5158,7 +5174,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(100)
     limit?: int32 = 100,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")
@@ -5215,7 +5231,7 @@ interface SearchOperations {
     @extension("example", 10)
     @query @maxValue(200)
     limit?: int32 = 200,
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string,
     @doc("Направление сортировки")
@@ -5318,7 +5334,7 @@ interface TaskOperations {
     @minValue(1)
     @maxValue(50)
     limit?: int32 = 50,
-    @doc("Курсор для пагинации (из `meta.paginate.next_page`)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -5558,7 +5574,7 @@ interface BotOperations {
     @maxValue(50)
     limit?: int32 = 50,
     
-    @doc("Курсор для пагинации (из meta.paginate.next_page)")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {
@@ -5671,7 +5687,7 @@ interface SecurityOperations {
     @maxValue(50)
     limit?: int32 = 50,
     
-    @doc("Курсор для пагинации из meta.paginate.next_page")
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
     @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
     @query cursor?: string
   ): {

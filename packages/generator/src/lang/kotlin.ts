@@ -563,7 +563,6 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
 
   lines.push(`${indent2}val items = mutableListOf<${itemType}>()`);
   lines.push(`${indent2}var cursor: String? = null`);
-  lines.push(`${indent2}do {`);
 
   // Build call args for original method
   const callArgs: string[] = [];
@@ -580,13 +579,30 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   const callStr = callArgs.length <= 3
     ? `${op.methodName}(${callArgs.join(', ')})`
     : `${op.methodName}(\n${callArgs.map(a => `${indent2}        ${a},`).join('\n')}\n${indent2}    )`;
-  lines.push(`${indent2}    val response = ${callStr}`);
+
   const rt = ir.responses.find((r) => r.name === op.successResponse.responseRef);
-  const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
-  lines.push(`${indent2}    items.addAll(response.data)`);
-  lines.push(`${indent2}    if (response.data.isEmpty()) break`);
-  lines.push(`${indent2}    cursor = ${metaAccess}`);
-  lines.push(rt?.metaIsRequired ? `${indent2}} while (true)` : `${indent2}} while (cursor != null)`);
+  const useHasNext = rt?.metaRef === 'PaginationMeta';
+
+  if (useHasNext) {
+    const cursorExpr = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
+    const hasNextExpr = rt?.metaIsRequired ? 'response.meta.paginate.hasNext ?: true' : 'response.meta?.paginate?.hasNext ?: true';
+    lines.push(`${indent2}var hasNext = true`);
+    lines.push(`${indent2}while (hasNext) {`);
+    lines.push(`${indent2}    val response = ${callStr}`);
+    lines.push(`${indent2}    items.addAll(response.data)`);
+    lines.push(`${indent2}    if (response.data.isEmpty()) break`);
+    lines.push(`${indent2}    cursor = ${cursorExpr}`);
+    lines.push(`${indent2}    hasNext = ${hasNextExpr}`);
+    lines.push(`${indent2}}`);
+  } else {
+    const metaAccess = rt?.metaIsRequired ? 'response.meta.paginate.nextPage' : 'response.meta?.paginate?.nextPage';
+    lines.push(`${indent2}do {`);
+    lines.push(`${indent2}    val response = ${callStr}`);
+    lines.push(`${indent2}    items.addAll(response.data)`);
+    lines.push(`${indent2}    if (response.data.isEmpty()) break`);
+    lines.push(`${indent2}    cursor = ${metaAccess}`);
+    lines.push(rt?.metaIsRequired ? `${indent2}} while (true)` : `${indent2}} while (cursor != null)`);
+  }
   lines.push(`${indent2}return items`);
   lines.push(`${indent}}`);
 }

@@ -478,6 +478,7 @@
     - `links: array of object` (required) — Массив обнаруженных ссылок на отслеживаемые домены
       - `url: string` (required) — URL ссылки. Пример: `"https://example.com/page1"`
       - `domain: string` (required) — Домен ссылки. Пример: `"example.com"`
+      - `skip: boolean` (required) — Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью. Пример: `false`
     - `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
     - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-09-18T19:53:14.000Z"`
     - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1726685594`

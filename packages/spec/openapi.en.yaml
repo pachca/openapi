@@ -108,7 +108,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -404,7 +404,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -977,7 +977,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -1466,7 +1466,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -1747,7 +1747,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -1943,7 +1943,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -2543,7 +2543,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -2635,7 +2635,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -3584,7 +3584,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -4025,7 +4025,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -4660,7 +4660,7 @@ paths:
         - name: cursor
           in: query
           required: false
-          description: Pagination cursor (from `meta.paginate.next_page`)
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
           schema:
             type: string
             example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
@@ -6943,6 +6943,18 @@ components:
               type: string
               description: Next page pagination cursor
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
+            prev_page:
+              type: string
+              description: Previous page pagination cursor. Used for polling new records "above" the list
+              example: eyJxZCO2MiwiZGlyIjoiYXNjIn0
+            has_next:
+              type: boolean
+              description: Whether more data exists on the next page. `false` on the last page
+              example: true
+            has_prev:
+              type: boolean
+              description: Whether more data exists on the previous page. `false` on the first request without a cursor
+              example: false
           required:
             - next_page
           description: Helper information
@@ -8534,6 +8546,7 @@ components:
       required:
         - url
         - domain
+        - skip
       properties:
         url:
           type: string
@@ -8543,6 +8556,10 @@ components:
           type: string
           description: Link domain
           example: example.com
+        skip:
+          type: boolean
+          description: Whether the message author hid the preview for this link. If `true`, the bot must not create a preview
+          example: false
       description: Link object in the link unfurling webhook
     WebhookMessageThread:
       type: object

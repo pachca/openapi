@@ -90,13 +90,15 @@ public sealed class SearchServiceImpl : SearchService
     {
         var items = new List<MessageResult>();
         string? cursor = null;
-        do
+        var hasNext = true;
+        while (hasNext)
         {
             var response = await SearchMessagesAsync(query: query, chatIds: chatIds, userIds: userIds, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
             items.AddRange(response.Data);
             if (response.Data.Count == 0) break;
             cursor = response.Meta.Paginate.NextPage;
-        } while (true);
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
         return items;
     }
 }

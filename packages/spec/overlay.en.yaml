@@ -643,7 +643,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/search/chats'].get.parameters[?(@.name=='order')]
     update:
       description: Sort direction
@@ -676,7 +676,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/search/messages'].get.parameters[?(@.name=='order')]
     update:
       description: Sort direction
@@ -709,7 +709,7 @@ actions:
       description: Number of results to return per request
   - target: $.paths['/search/users'].get.parameters[?(@.name=='cursor')]
     update:
-      description: Pagination cursor (from `meta.paginate.next_page`)
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/search/users'].get.parameters[?(@.name=='sort')]
     update:
       description: Sort results by

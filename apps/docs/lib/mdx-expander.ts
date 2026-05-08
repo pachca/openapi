@@ -313,10 +313,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
   result = result.replace(/<CardRow>([\s\S]*?)<\/CardRow>/g, (_, inner) => inner.trim() + '\n');
 
   // <ParamsTable>...</ParamsTable> -> unwrap (markdown table inside)
-  result = result.replace(
-    /<ParamsTable>([\s\S]*?)<\/ParamsTable>/g,
-    (_, inner) => '\n' + inner.trim() + '\n'
-  );
+  result = result.replace(/<ParamsTable>([\s\S]*?)<\/ParamsTable>/g, (_, inner) => inner.trim());
 
   // Standalone <Card compact ... >children</Card> -> markdown link
   result = result.replace(

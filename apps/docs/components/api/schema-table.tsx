@@ -263,13 +263,13 @@ export function SchemaTable({ schema }: SchemaTableProps) {
                 {prop.example ? (
                   prop.example.startsWith('{') || prop.example.startsWith('[') ? (
                     <CopyableCell text={JSON.stringify(JSON.parse(prop.example), null, 2)}>
-                      <pre className="text-[12px] font-mono text-text-primary whitespace-pre m-0 px-2 py-1.5 rounded-md bg-glass border border-glass-border overflow-x-auto hover:border-accent/50 transition-colors">
+                      <pre className="text-[13px] font-mono font-normal text-text-primary whitespace-pre m-0 px-2 py-1.5 rounded-md bg-glass border border-glass-border overflow-x-auto hover:border-accent/50 transition-colors">
                         {JSON.stringify(JSON.parse(prop.example), null, 2)}
                       </pre>
                     </CopyableCell>
                   ) : (
                     <CopyableCell text={prop.example}>
-                      <code className="text-[12px] font-mono text-text-primary bg-glass px-1.5 py-0.5 rounded-md border border-glass-border inline-block break-all! whitespace-normal! overflow-wrap-anywhere hover:border-accent/50 transition-colors">
+                      <code className="text-[13px] font-mono text-text-primary bg-glass px-1.5 py-0.5 rounded-md border border-glass-border inline-block break-all! whitespace-normal! overflow-wrap-anywhere hover:border-accent/50 transition-colors">
                         {prop.example}
                       </code>
                     </CopyableCell>

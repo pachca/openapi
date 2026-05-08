@@ -8,12 +8,13 @@ hideTableOfContents: true
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-<Info>Методы [Получение подписи](POST /uploads), [Загрузка файла](POST /direct_url), [Загрузка аватара](PUT /profile/avatar), [Удаление аватара](DELETE /profile/avatar), [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar) и [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar) не возвращают модели данных.</Info>
+<Info>Методы [Получение подписи](POST /uploads) и [Загрузка файла](POST /direct_url) не возвращают модели данных.</Info>
 
 <CardGroup>
   <Card title="Дополнительное поле" href="#dopolnitelnoe-pole" methods="GET" />
   <Card title="Токен доступа" href="#token-dostupa" methods="GET" />
   <Card title="Статус пользователя" href="#status-polzovatelya" methods="GET PUT DELETE" />
+  <Card title="Аватар" href="#avatar" methods="PUT DELETE" />
   <Card title="Сотрудник" href="#sotrudnik" methods="GET POST PUT DELETE" />
   <Card title="Тег" href="#teg" methods="GET POST PUT DELETE" />
   <Card title="Чат" href="#chat" methods="GET POST PUT DELETE" />
@@ -49,6 +50,15 @@ hideTableOfContents: true
 - [Удаление статуса сотрудника](DELETE /users/{user_id}/status)
 
 <ModelSchema name="UserStatus" />
+
+## Аватар
+
+- [Загрузка аватара](PUT /profile/avatar)
+- [Удаление аватара](DELETE /profile/avatar)
+- [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar)
+- [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar)
+
+<ModelSchema name="AvatarData" />
 
 ## Сотрудник
 

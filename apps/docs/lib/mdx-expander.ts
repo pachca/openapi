@@ -312,6 +312,12 @@ export async function expandMdxComponents(content: string): Promise<string> {
   // <CardRow>...</CardRow> -> expand inner content (wrapper for prose context)
   result = result.replace(/<CardRow>([\s\S]*?)<\/CardRow>/g, (_, inner) => inner.trim() + '\n');
 
+  // <ParamsTable>...</ParamsTable> -> unwrap (markdown table inside)
+  result = result.replace(
+    /<ParamsTable>([\s\S]*?)<\/ParamsTable>/g,
+    (_, inner) => '\n' + inner.trim() + '\n'
+  );
+
   // Standalone <Card compact ... >children</Card> -> markdown link
   result = result.replace(
     /<Card\s+compact\s+([\s\S]*?)>([\s\S]*?)<\/Card>/g,

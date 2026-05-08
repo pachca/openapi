@@ -312,6 +312,9 @@ export async function expandMdxComponents(content: string): Promise<string> {
   // <CardRow>...</CardRow> -> expand inner content (wrapper for prose context)
   result = result.replace(/<CardRow>([\s\S]*?)<\/CardRow>/g, (_, inner) => inner.trim() + '\n');
 
+  // <ParamsTable>...</ParamsTable> -> unwrap (markdown table inside)
+  result = result.replace(/<ParamsTable>([\s\S]*?)<\/ParamsTable>/g, (_, inner) => inner.trim());
+
   // Standalone <Card compact ... >children</Card> -> markdown link
   result = result.replace(
     /<Card\s+compact\s+([\s\S]*?)>([\s\S]*?)<\/Card>/g,
@@ -692,6 +695,10 @@ export async function expandMdxComponents(content: string): Promise<string> {
 
   // Interactive playground components — remove (no markdown representation)
   result = result.replace(/<(?:WebhookPlayground|MessagePlayground|FormPlayground)\s*\/>\n?/g, '');
+
+  // HTML entities used for typography (&nbsp;, &shy;, etc.) -> plain space / drop
+  result = result.replace(/&nbsp;/g, ' ');
+  result = result.replace(/&shy;/g, '');
 
   // Clean up multiple newlines
   result = result.replace(/\n{4,}/g, '\n\n\n');

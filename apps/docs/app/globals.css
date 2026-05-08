@@ -369,7 +369,7 @@ a:focus:not(:focus-visible) {
 }
 
 .prose code:not(pre code) {
-  @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-medium border border-glass-border whitespace-nowrap;
+  @apply bg-glass text-text-primary px-1.5 py-0.5 rounded-md text-[13px] font-mono font-normal border border-glass-border whitespace-nowrap;
 }
 
 .prose table {
@@ -382,6 +382,21 @@ a:focus:not(:focus-visible) {
 
 .prose td {
   @apply py-3 px-4 border-b border-background-border text-sm text-text-primary;
+}
+
+/* Таблица параметров: фиксированные ширины первых двух колонок */
+.params-table table {
+  table-layout: fixed;
+}
+
+.params-table table th:nth-child(1),
+.params-table table td:nth-child(1) {
+  width: 200px;
+}
+
+.params-table table th:nth-child(2),
+.params-table table td:nth-child(2) {
+  width: 120px;
 }
 
 /* Code Block Styling */

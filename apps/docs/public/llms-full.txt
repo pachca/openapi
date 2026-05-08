@@ -73,8 +73,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 81–167 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 168–849 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 850–10649 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10650–25685 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 850–10661 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10662–25697 |
 
 ---
 
@@ -10097,7 +10097,7 @@ users = await with_retry(lambda: client.users.list_users())
 
 Все модели данных, возвращаемые в ответах API. Каждая модель содержит связанные методы и таблицу свойств.
 
-> Методы [Получение подписи](POST /uploads), [Загрузка файла](POST /direct_url), [Загрузка аватара](PUT /profile/avatar), [Удаление аватара](DELETE /profile/avatar), [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar) и [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar) не возвращают модели данных.
+> Методы [Получение подписи](POST /uploads) и [Загрузка файла](POST /direct_url) не возвращают модели данных.
 
 
 ## Дополнительное поле
@@ -10146,6 +10146,18 @@ users = await with_retry(lambda: client.users.list_users())
 - `is_away: boolean` (required) — Режим «Нет на месте». Пример: `false`
 - `away_message: object` (required) — Сообщение при режиме «Нет на месте». Отображается в профиле пользователя, а также при отправке ему личного сообщения или упоминании в чате.
   - `text: string` (required) — Текст сообщения. Пример: `"Я в отпуске до 15 апреля. По срочным вопросам обращайтесь к @ivanov."`
+
+
+## Аватар
+
+- [Загрузка аватара](PUT /profile/avatar)
+- [Удаление аватара](DELETE /profile/avatar)
+- [Загрузка аватара сотрудника](PUT /users/{user_id}/avatar)
+- [Удаление аватара сотрудника](DELETE /users/{user_id}/avatar)
+
+Данные аватара
+
+- `image_url: string` (required) — URL аватара. Пример: `"https://pachca-prod.s3.amazonaws.com/uploads/0001/0001/image.jpg"`
 
 
 ## Сотрудник

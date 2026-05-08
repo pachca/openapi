@@ -696,6 +696,10 @@ export async function expandMdxComponents(content: string): Promise<string> {
   // Interactive playground components — remove (no markdown representation)
   result = result.replace(/<(?:WebhookPlayground|MessagePlayground|FormPlayground)\s*\/>\n?/g, '');
 
+  // HTML entities used for typography (&nbsp;, &shy;, etc.) -> plain space / drop
+  result = result.replace(/&nbsp;/g, ' ');
+  result = result.replace(/&shy;/g, '');
+
   // Clean up multiple newlines
   result = result.replace(/\n{4,}/g, '\n\n\n');
 

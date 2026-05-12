@@ -1,3 +1,4 @@
+import { ArrowUpRight, Zap } from 'lucide-react';
 import { getSchemaByName, getEndpointByOperation, getBaseUrl } from '@/lib/openapi/parser';
 import { getSdkExamples, getSdkExampleForLang } from '@/lib/sdk-examples';
 import { SchemaTable } from '@/components/api/schema-table';
@@ -443,6 +444,50 @@ export async function ScopeRoles() {
   return <ScopeRolesTable schema={schema} />;
 }
 
+// Update manually when a new product release goes out
+const LATEST_PRODUCT_UPDATE = {
+  date: '27 мая 2026',
+  title: 'Есть что переслать 📤',
+};
+
+export function ProductUpdatesLink() {
+  return (
+    <a
+      href="https://pachca.com/updates"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group not-prose mb-10 flex flex-col rounded-xl border border-glass-border bg-glass backdrop-blur-md no-underline! transition-all duration-200 hover:bg-glass-hover hover:border-glass-heavy-border"
+    >
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span className="inline-flex h-[21px] shrink-0 items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-white">
+          <Zap className="h-3 w-3 fill-white stroke-none" />
+          new
+        </span>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-[13px] text-text-secondary font-normal">
+            {LATEST_PRODUCT_UPDATE.date}
+          </span>
+          <span className="text-text-tertiary text-[14px]">·</span>
+          <span className="truncate text-[14px] font-medium text-text-primary">
+            {LATEST_PRODUCT_UPDATE.title}
+          </span>
+        </div>
+        <span className="ml-auto hidden  text-text-secondary font-normal shrink-0 items-center gap-0.5 text-[13px] transition-colors group-hover:text-text-primary lg:flex">
+          Обновления продукта
+          <ArrowUpRight className="h-3.5 w-3.5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </span>
+      </div>
+      <div className="lg:hidden">
+        <div className="mx-4 border-t border-glass-divider" />
+        <div className="flex items-center  text-text-secondary font-normal gap-0.5 px-4 py-2.5 text-[13px]">
+          Обновления продукта
+          <ArrowUpRight className="h-3.5 w-3.5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </div>
+      </div>
+    </a>
+  );
+}
+
 export const customMdxComponents = {
   SchemaBlock,
   HttpCodes,
@@ -483,4 +528,5 @@ export const customMdxComponents = {
   HomeHero,
   HomeHeroContent,
   HomeHeroCode,
+  ProductUpdatesLink,
 };

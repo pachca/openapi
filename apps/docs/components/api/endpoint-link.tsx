@@ -90,7 +90,7 @@ export function EndpointLink({
       <Tooltip.Portal>
         <Tooltip.Content
           side="top"
-          align="center"
+          align="start"
           sideOffset={4}
           collisionPadding={8}
           className="z-50 animate-tooltip rounded-lg px-2 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md whitespace-nowrap flex items-center gap-1.5"

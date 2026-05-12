@@ -1165,37 +1165,34 @@ function OptionsEditor({
       {options.map((opt, i) => (
         <div key={i} className="flex items-start gap-1.5">
           {preselect && (
-            <Tooltip.Provider delayDuration={0}>
-              <Tooltip.Root>
-                <Tooltip.Trigger asChild>
-                  <button
-                    type="button"
-                    onClick={() => togglePreselect(i)}
-                    className="mt-1 cursor-pointer rounded p-0.5 text-text-tertiary transition-colors"
-                  >
-                    {preselect === 'select' ? (
-                      <Check className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
-                    ) : preselect === 'radio' ? (
-                      <CircleDot className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
-                    ) : (
-                      <CheckSquare className={`h-3.5 w-3.5 ${opt.checked ? 'text-primary' : ''}`} />
-                    )}
-                  </button>
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content
-                    side="top"
-                    align="center"
-                    sideOffset={2}
-                    collisionPadding={8}
-                    className="z-[10002] pointer-events-none animate-tooltip rounded-md bg-text-primary px-2.5 py-1.5 text-[12px] font-semibold text-background shadow-xl whitespace-nowrap"
-                  >
-                    {preselect === 'checked' ? 'Отмечено по умолчанию' : 'Выбрано по умолчанию'}
-                    <Tooltip.Arrow className="fill-text-primary" width={8} height={4} />
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip.Root>
-            </Tooltip.Provider>
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <button
+                  type="button"
+                  onClick={() => togglePreselect(i)}
+                  className="mt-1 cursor-pointer rounded p-0.5 text-text-tertiary transition-colors"
+                >
+                  {preselect === 'select' ? (
+                    <Check className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
+                  ) : preselect === 'radio' ? (
+                    <CircleDot className={`h-3.5 w-3.5 ${opt.selected ? 'text-primary' : ''}`} />
+                  ) : (
+                    <CheckSquare className={`h-3.5 w-3.5 ${opt.checked ? 'text-primary' : ''}`} />
+                  )}
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  side="top"
+                  align="center"
+                  sideOffset={2}
+                  collisionPadding={8}
+                  className="z-[10002] pointer-events-none animate-tooltip rounded-lg px-2.5 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md text-text-primary text-[12px] font-semibold whitespace-nowrap"
+                >
+                  {preselect === 'checked' ? 'Отмечено по умолчанию' : 'Выбрано по умолчанию'}
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
           )}
           <div className="flex flex-1 flex-col gap-1">
             <input
@@ -2163,41 +2160,35 @@ export function FormPlayground({ buttonText = 'Конструктор форм' 
                   <div className="flex shrink-0 items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span className="text-[13px] font-medium text-text-primary">JSON</span>
-                      <Tooltip.Provider delayDuration={0}>
-                        <Tooltip.Root open={jsonCopied === 'mobile'}>
-                          <Tooltip.Trigger asChild>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(jsonInput);
-                                setJsonCopied('mobile');
-                                setTimeout(() => setJsonCopied(false), 2000);
-                              }}
-                              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary"
-                            >
-                              {jsonCopied === 'mobile' ? (
-                                <Check
-                                  className="h-3.5 w-3.5 text-accent-green"
-                                  strokeWidth={2.5}
-                                />
-                              ) : (
-                                <Copy className="h-3.5 w-3.5" strokeWidth={2.5} />
-                              )}
-                            </button>
-                          </Tooltip.Trigger>
-                          <Tooltip.Portal>
-                            <Tooltip.Content
-                              side="top"
-                              align="center"
-                              sideOffset={2}
-                              collisionPadding={8}
-                              className="z-[10000] pointer-events-none animate-tooltip rounded-md bg-text-primary px-2.5 py-1.5 text-[12px] font-semibold text-background shadow-xl whitespace-nowrap"
-                            >
-                              Скопировано
-                              <Tooltip.Arrow className="fill-text-primary" width={8} height={4} />
-                            </Tooltip.Content>
-                          </Tooltip.Portal>
-                        </Tooltip.Root>
-                      </Tooltip.Provider>
+                      <Tooltip.Root open={jsonCopied === 'mobile'}>
+                        <Tooltip.Trigger asChild>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(jsonInput);
+                              setJsonCopied('mobile');
+                              setTimeout(() => setJsonCopied(false), 2000);
+                            }}
+                            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary"
+                          >
+                            {jsonCopied === 'mobile' ? (
+                              <Check className="h-3.5 w-3.5 text-accent-green" strokeWidth={2.5} />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            )}
+                          </button>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content
+                            side="top"
+                            align="center"
+                            sideOffset={2}
+                            collisionPadding={8}
+                            className="z-[10000] pointer-events-none animate-tooltip rounded-lg px-2.5 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md text-text-primary text-[12px] font-semibold whitespace-nowrap"
+                          >
+                            Скопировано
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip.Root>
                     </div>
                     {error && <span className="text-[12px] text-accent-red">{error}</span>}
                   </div>
@@ -2238,37 +2229,35 @@ export function FormPlayground({ buttonText = 'Конструктор форм' 
                 <div className="flex shrink-0 items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className="text-[13px] font-medium text-text-primary">JSON</span>
-                    <Tooltip.Provider delayDuration={0}>
-                      <Tooltip.Root open={jsonCopied === 'desktop'}>
-                        <Tooltip.Trigger asChild>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(jsonInput);
-                              setJsonCopied('desktop');
-                              setTimeout(() => setJsonCopied(false), 2000);
-                            }}
-                            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary"
-                          >
-                            {jsonCopied === 'desktop' ? (
-                              <Check className="h-3.5 w-3.5 text-accent-green" strokeWidth={2.5} />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" strokeWidth={2.5} />
-                            )}
-                          </button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content
-                            side="top"
-                            align="center"
-                            sideOffset={2}
-                            className="z-[10000] pointer-events-none animate-tooltip rounded-md bg-text-primary px-2.5 py-1.5 text-[12px] font-semibold text-background shadow-xl whitespace-nowrap"
-                          >
-                            Скопировано
-                            <Tooltip.Arrow className="fill-text-primary" width={8} height={4} />
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip.Root>
-                    </Tooltip.Provider>
+                    <Tooltip.Root open={jsonCopied === 'desktop'}>
+                      <Tooltip.Trigger asChild>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(jsonInput);
+                            setJsonCopied('desktop');
+                            setTimeout(() => setJsonCopied(false), 2000);
+                          }}
+                          className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary"
+                        >
+                          {jsonCopied === 'desktop' ? (
+                            <Check className="h-3.5 w-3.5 text-accent-green" strokeWidth={2.5} />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" strokeWidth={2.5} />
+                          )}
+                        </button>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content
+                          side="top"
+                          align="center"
+                          sideOffset={2}
+                          collisionPadding={8}
+                          className="z-[10000] pointer-events-none animate-tooltip rounded-lg px-2.5 py-1.5 shadow-xl border border-glass-heavy-border bg-glass-heavy backdrop-blur-md text-text-primary text-[12px] font-semibold whitespace-nowrap"
+                        >
+                          Скопировано
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip.Root>
                   </div>
                   {error && <span className="text-[12px] text-accent-red">{error}</span>}
                 </div>

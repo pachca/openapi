@@ -157,7 +157,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="min-h-screen m-0 text-text-primary antialiased bg-background"
         suppressHydrationWarning
       >
-        <Tooltip.Provider delayDuration={0}>
+        <Tooltip.Provider delayDuration={0} disableHoverableContent>
           <DisplaySettingsProvider>
             <TransitionProvider />
             <HeaderServer />

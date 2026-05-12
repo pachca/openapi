@@ -22,6 +22,7 @@ import {
   ApiCodeExample,
   ModelSchema,
   ScopeRoles,
+  ProductUpdatesLink,
 } from '@/components/mdx/mdx-components';
 import { Steps, Step } from '@/components/mdx/steps';
 
@@ -241,6 +242,7 @@ const components = {
   WebhookPlayground,
   MessagePlayground,
   FormPlayground,
+  ProductUpdatesLink,
 };
 
 interface MarkdownContentProps {

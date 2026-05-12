@@ -465,7 +465,7 @@ export function ProductUpdatesLink() {
             new
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="shrink-0 text-[13px] text-text-secondary font-normal">
+            <span className="shrink-0 text-[13px] text-text-secondary font-medium">
               {LATEST_PRODUCT_UPDATE.date}
             </span>
             <span className="hidden sm:inline text-text-tertiary text-[14px]">·</span>

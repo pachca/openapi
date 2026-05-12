@@ -456,22 +456,27 @@ export function ProductUpdatesLink() {
       href="https://pachca.com/updates"
       target="_blank"
       rel="noopener noreferrer"
-      className="group not-prose mb-10 flex flex-col rounded-xl border border-glass-border bg-glass backdrop-blur-md no-underline! transition-all duration-200 hover:bg-glass-hover hover:border-glass-heavy-border"
+      className="group not-prose mb-10 flex flex-col rounded-xl border border-glass-border bg-glass backdrop-blur-md no-underline! transition-colors duration-200 hover:bg-glass-hover hover:border-glass-heavy-border"
     >
-      <div className="flex items-center gap-3 px-4 py-3">
-        <span className="inline-flex h-[21px] shrink-0 items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-white">
-          <Zap className="h-3 w-3 fill-white stroke-none" />
-          new
-        </span>
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 text-[13px] text-text-secondary font-normal">
-            {LATEST_PRODUCT_UPDATE.date}
+      <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-[21px] shrink-0 items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-white">
+            <Zap className="h-3 w-3 fill-white stroke-none" />
+            new
           </span>
-          <span className="text-text-tertiary text-[14px]">·</span>
-          <span className="truncate text-[14px] font-medium text-text-primary">
-            {LATEST_PRODUCT_UPDATE.title}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="shrink-0 text-[13px] text-text-secondary font-medium">
+              {LATEST_PRODUCT_UPDATE.date}
+            </span>
+            <span className="hidden sm:inline text-text-tertiary text-[14px]">·</span>
+            <span className="hidden sm:inline truncate text-[14px] font-medium text-text-primary">
+              {LATEST_PRODUCT_UPDATE.title}
+            </span>
+          </div>
         </div>
+        <span className="sm:hidden mt-1 text-[14px] font-medium text-text-primary">
+          {LATEST_PRODUCT_UPDATE.title}
+        </span>
         <span className="ml-auto hidden  text-text-secondary font-normal shrink-0 items-center gap-0.5 text-[13px] transition-colors group-hover:text-text-primary lg:flex">
           Обновления продукта
           <ArrowUpRight className="h-3.5 w-3.5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />

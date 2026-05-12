@@ -104,7 +104,7 @@ function PackageLink({ href, title }: { href: string; title: string }) {
 
 function ReleaseEntry({ release }: { release: ParsedRelease }) {
   return (
-    <div className="rounded-lg border border-glass-border bg-glass px-3 py-3 backdrop-blur-sm">
+    <div className="overflow-x-auto rounded-lg border border-glass-border bg-glass px-3 py-3 backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-2">
         <ProductBadge product={release.product} />
         <span className="text-[13px] font-mono font-semibold text-text-tertiary">
@@ -119,7 +119,9 @@ function ReleaseEntry({ release }: { release: ParsedRelease }) {
               <span className={`shrink-0 font-mono font-bold ${typeInfo.color} w-3 text-center`}>
                 {typeInfo.icon}
               </span>
-              <InlineCodeText text={change.description} />
+              <div className="min-w-0">
+                <InlineCodeText text={change.description} />
+              </div>
             </div>
           );
         })}
@@ -190,7 +192,7 @@ export async function UpdatesList() {
               }`}
             />
             <div className="flex flex-col mb-3">
-              <span className="text-[12px] font-mono font-bold text-text-tertiary uppercase tracking-widest leading-none mb-2">
+              <span className="text-[13px] text-text-secondary leading-none mb-2">
                 {group.displayDate}
               </span>
 

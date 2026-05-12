@@ -696,6 +696,12 @@ export async function expandMdxComponents(content: string): Promise<string> {
   // Interactive playground components — remove (no markdown representation)
   result = result.replace(/<(?:WebhookPlayground|MessagePlayground|FormPlayground)\s*\/>\n?/g, '');
 
+  // ProductUpdatesLink — expand to plain markdown link
+  result = result.replace(
+    /<ProductUpdatesLink\s*\/>\n?/g,
+    '> **Обновление продукта** — [Показать все обновления](https://pachca.com/updates)\n\n'
+  );
+
   // HTML entities used for typography (&nbsp;, &shy;, etc.) -> plain space / drop
   result = result.replace(/&nbsp;/g, ' ');
   result = result.replace(/&shy;/g, '');

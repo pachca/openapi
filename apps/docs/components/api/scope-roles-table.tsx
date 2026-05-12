@@ -112,7 +112,7 @@ export function ScopeRolesTable({ schema }: ScopeRolesTableProps) {
                   {scopeRoles[scope] && scopeRoles[scope].length < totalRoles && (
                     <Tooltip.Root>
                       <Tooltip.Trigger asChild>
-                        <span className="flex gap-1 ml-auto cursor-default">
+                        <span className="flex gap-1 ml-auto cursor-default p-2 -m-2">
                           {ROLES.map((r) => (
                             <span
                               key={r}

@@ -105,7 +105,7 @@ export function MarkdownActions({ pageUrl }: MarkdownActionsProps) {
             href="/feed.xml"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-7 items-center gap-1 text-text-secondary! font-medium hover:text-text-primary! transition-colors text-nowrap no-underline!"
+            className="flex h-7 items-center gap-1 text-text-secondary! font-medium hover:text-text-primary! transition-colors duration-200 text-nowrap no-underline!"
           >
             <Rss className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
             <span>RSS</span>

@@ -124,7 +124,7 @@ npx @pachca/cli users list --no-input -o json
 - [Руководство CLI](/guides/cli/overview) — Установка, авторизация, скрипты и CI, полный справочник команд
 
 
-Вспомогательная команда `pachca api` и поиск эндпоинтов (`api ls` / `--describe` / `--spec` / `--docs`) — в разделе [Прямые запросы](/guides/cli/api-requests).
+Команда `pachca api` (прямые запросы) и встроенный справочник по API (`api ls` / `--describe` / `--spec` / `--docs`) — в разделе [Прямые запросы](/guides/cli/api-requests).
 
 ### Context7 MCP
 

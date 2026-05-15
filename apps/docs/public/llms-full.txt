@@ -80,8 +80,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 88–174 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 175–856 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10984 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10985–26020 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10983 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10984–26019 |
 
 ---
 
@@ -1159,7 +1159,7 @@ npx @pachca/cli users list --no-input -o json
 - [Руководство CLI](/guides/cli/overview) — Установка, авторизация, скрипты и CI, полный справочник команд
 
 
-Вспомогательная команда `pachca api` и поиск эндпоинтов (`api ls` / `--describe` / `--spec` / `--docs`) — в разделе [Прямые запросы](/guides/cli/api-requests).
+Команда `pachca api` (прямые запросы) и встроенный справочник по API (`api ls` / `--describe` / `--spec` / `--docs`) — в разделе [Прямые запросы](/guides/cli/api-requests).
 
 ### Context7 MCP
 
@@ -1282,7 +1282,6 @@ pachca api POST /messages -f message[content]="Привет"
 - [Сценарии](/guides/cli/workflows) — Готовые пошаговые рецепты под типовые задачи
 - [Файлы](/guides/cli/files) — Загрузка файла на S3 одной командой
 - [Прямые запросы](/guides/cli/api-requests) — команда `pachca api` и встроенный справочник по API в терминале
-- [AI агенты](/guides/ai-agents) — Те же команды выполняет агент — рутину берёт на себя
 
 
 ---

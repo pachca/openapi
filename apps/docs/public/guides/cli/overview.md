@@ -79,5 +79,4 @@ pachca api POST /messages -f message[content]="Привет"
 - [Сценарии](/guides/cli/workflows) — Готовые пошаговые рецепты под типовые задачи
 - [Файлы](/guides/cli/files) — Загрузка файла на S3 одной командой
 - [Прямые запросы](/guides/cli/api-requests) — команда `pachca api` и встроенный справочник по API в терминале
-- [AI агенты](/guides/ai-agents) — Те же команды выполняет агент — рутину берёт на себя
 

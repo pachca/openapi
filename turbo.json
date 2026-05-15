@@ -27,7 +27,7 @@
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "scripts/generate-cli.ts",
-        "../../apps/docs/lib/openapi/mapper.ts",
+        "../../apps/docs/lib/**",
         "../../packages/spec/workflows.ts",
         "../../apps/docs/scripts/skills/config.ts"
       ],

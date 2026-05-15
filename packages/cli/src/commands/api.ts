@@ -2,15 +2,29 @@ import * as fs from 'node:fs';
 import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '../base-command.js';
 import { outputError } from '../output.js';
+import {
+  type EndpointIndexEntry,
+  buildListRows,
+  detectIntrospectMode,
+  positionals,
+  findEndpoint,
+  renderIntrospect,
+} from '../api-introspect.js';
 
 export default class Api extends BaseCommand {
-  static override description = 'Произвольный запрос к API';
+  static override description =
+    'Произвольный запрос к API. Самоописание: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs`';
 
   static override examples = [
     '<%= config.bin %> api GET /messages --query chat_id=123',
     '<%= config.bin %> api POST /messages -F message[chat_id]=12345 -f message[content]="Привет"',
     '<%= config.bin %> api POST /messages --input payload.json',
     '<%= config.bin %> api GET /profile -o yaml',
+    '<%= config.bin %> api ls',
+    '<%= config.bin %> api ls --json',
+    '<%= config.bin %> api POST /messages --describe',
+    '<%= config.bin %> api GET /messages --spec',
+    '<%= config.bin %> api POST /messages --docs',
   ];
 
   static override strict = false;
@@ -49,6 +63,21 @@ export default class Api extends BaseCommand {
   };
 
   async run(): Promise<void> {
+    // C1 — self-documenting `api`. Intercept the raw argv BEFORE this.parse(Api):
+    // the `method` arg is required+enum, so `api ls` / `--describe` would fail
+    // oclif validation before run(). This branch is strictly additive — those
+    // argv shapes errored before; the normal request path below is untouched.
+    const raw = this.argv;
+    if (raw[0] === 'ls') {
+      await this.runApiList(raw.includes('--json'));
+      return;
+    }
+    const mode = detectIntrospectMode(raw);
+    if (mode) {
+      await this.runApiIntrospect(raw, mode);
+      return;
+    }
+
     const { args, flags } = await this.parse(Api);
     this.parsedFlags = flags;
 
@@ -142,6 +171,60 @@ export default class Api extends BaseCommand {
     const outFormat = format === 'table' ? 'json' : format;
     const { outputData } = await import('../output.js');
     outputData(data, { ...this.getOutputOptions(), format: outFormat as 'json' | 'yaml' | 'csv' });
+  }
+
+  /** Load the build-time endpoint index (mirrors guide.ts workflows.json loading). */
+  private async loadEndpoints(): Promise<EndpointIndexEntry[]> {
+    try {
+      const data = await import('../data/endpoints.json', { with: { type: 'json' } });
+      return ((data as { default?: unknown }).default || data) as EndpointIndexEntry[];
+    } catch {
+      return [];
+    }
+  }
+
+  /** `pachca api ls [--json]` — list every API endpoint. */
+  private async runApiList(asJson: boolean): Promise<void> {
+    const entries = await this.loadEndpoints();
+    const rows = buildListRows(entries);
+    const { outputData } = await import('../output.js');
+    outputData(rows, { format: asJson ? 'json' : 'table', quiet: false });
+  }
+
+  /** `pachca api <METHOD> <path> --spec|--docs|--describe`. */
+  private async runApiIntrospect(
+    raw: string[],
+    mode: 'spec' | 'docs' | 'describe',
+  ): Promise<void> {
+    const errFormat = process.stdout.isTTY ? 'table' : 'json';
+    const pos = positionals(raw);
+    const method = pos[0];
+    const path = pos[1];
+    if (!method || !path) {
+      outputError(
+        {
+          error: `Укажите метод и путь: pachca api <МЕТОД> <путь> --${mode}. Список: pachca api ls`,
+          type: 'PACHCA_USAGE_ERROR',
+          code: null,
+        },
+        errFormat,
+      );
+      this.exit(2);
+    }
+    const entries = await this.loadEndpoints();
+    const entry = findEndpoint(entries, method, path);
+    if (!entry) {
+      outputError(
+        {
+          error: `Эндпоинт не найден: ${method.toUpperCase()} ${path}. Список: pachca api ls`,
+          type: 'PACHCA_NOT_FOUND_ERROR',
+          code: null,
+        },
+        errFormat,
+      );
+      this.exit(2);
+    }
+    process.stdout.write(renderIntrospect(entry, mode) + '\n');
   }
 }
 

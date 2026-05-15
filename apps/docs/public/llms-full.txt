@@ -73,8 +73,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 81–167 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 168–849 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 850–10661 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10662–25697 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 850–10682 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10683–25718 |
 
 ---
 
@@ -1764,6 +1764,27 @@ cat payload.json | pachca api POST /messages --input -
 
 > `pachca api` выводит сырой ответ API без извлечения данных из обёртки `data`
 
+
+### Самоописание API
+
+Не нужно знать эндпоинт заранее — CLI описывает API сам, прямо против своей спецификации:
+
+```bash
+# Список всех эндпоинтов (METHOD PATH SUMMARY SCOPE)
+pachca api ls
+pachca api ls --json          # машиночитаемо
+
+# Краткая справка по эндпоинту: параметры, тело, скоуп, эквивалентная команда
+pachca api POST /messages --describe
+
+# OpenAPI-фрагмент эндпоинта (схемы запроса/ответа)
+pachca api GET /messages --spec
+
+# Полный markdown-референс эндпоинта
+pachca api POST /messages --docs
+```
+
+Метод указывается позиционно, поэтому `--describe`/`--spec`/`--docs` всегда однозначны. Для агента это значит: не нужно грузить всю документацию в контекст или ходить на сайт — он спрашивает у самого CLI ровно нужный метод и сразу его вызывает (точечно, минимум контекста, всегда синхронно с актуальным API).
 
 ## Настройки
 

@@ -25,7 +25,7 @@ const COMMANDS_DIR = path.join(CLI_SRC, 'commands');
 const DATA_DIR = path.join(CLI_SRC, 'data');
 
 // URL generation — single source of truth from apps/docs/lib/openapi/mapper.ts
-import { generateUrlFromOperation } from '../../../apps/docs/lib/openapi/mapper.js';
+import { generateUrlFromOperation, generateTitle } from '../../../apps/docs/lib/openapi/mapper.js';
 
 // Entity ID → related list command (for agent hints in descriptions)
 const ENTITY_HINTS: Record<string, string> = {
@@ -979,6 +979,130 @@ async function generateAlternativesData(commands: GeneratedCommand[]): Promise<v
   );
 }
 
+// ----- C1: Endpoint Index (self-documenting `pachca api`) -----
+
+/**
+ * Emit src/data/endpoints.json — a compact, machine-readable index of every
+ * API endpoint. Heavy logic (parse, $ref resolution, markdown, examples,
+ * curl, equivalent typed command) is REUSED from the apps/docs generators;
+ * the CLI runtime only reads this JSON (no YAML parser in the bundle).
+ *
+ * Uses the docs parser (apps/docs/lib/openapi/parser.ts) because its
+ * $ref-resolved `Endpoint` is the exact input shape generateEndpointMarkdown /
+ * generateCLI expect — not the build-only parser used for command codegen.
+ */
+async function generateEndpointsData(): Promise<void> {
+  try {
+    const { parseOpenAPI: parseDocsOpenAPI } = await import(
+      '../../../apps/docs/lib/openapi/parser.js'
+    );
+    const { generateEndpointMarkdown, schemaToMarkdown } = await import(
+      '../../../apps/docs/lib/markdown-generator.js'
+    );
+    const { generateCLI } = await import('../../../apps/docs/lib/code-generators/cli.js');
+
+    const SITE_URL = 'https://dev.pachca.com';
+    const api = await parseDocsOpenAPI();
+
+    const entries = api.endpoints.map((ep: Endpoint) => {
+      const url = generateUrlFromOperation(ep); // /api/<section>/<action>
+      const segments = url.split('/');
+      const section = segments[2] ?? '';
+      const action = segments[3] ?? '';
+      const command = `pachca ${section} ${action}`.trim();
+      const docLink = `${SITE_URL}${url}`;
+
+      const req = (ep.requirements ?? {}) as { scope?: string; plan?: string; auth?: boolean };
+      const scope = req.scope ?? null;
+      const plan = req.plan ?? null;
+      const auth = req.auth !== false;
+      const summary = ep.summary || generateTitle(ep) || `${ep.method} ${ep.path}`;
+      const paginated = ep.paginated ?? false;
+
+      const docs = generateEndpointMarkdown(ep);
+      const equivalentCmd = generateCLI(ep);
+      const describe = buildDescribe(ep, {
+        summary, scope, plan, auth, paginated, command, docLink, equivalentCmd, schemaToMarkdown,
+      });
+
+      const spec = {
+        method: ep.method,
+        path: ep.path,
+        summary: ep.summary,
+        description: ep.description,
+        parameters: ep.parameters,
+        requestBody: ep.requestBody,
+        responses: ep.responses,
+        requirements: ep.requirements,
+        paginated,
+      };
+
+      return {
+        method: ep.method, path: ep.path, summary, scope, plan, auth, paginated,
+        command, docLink, describe, spec, docs,
+      };
+    });
+
+    // Minified: machine-only index (like a lockfile), ~2 MB pretty → ~1 MB.
+    // Loaded lazily at runtime only for `api ls` / `--describe` / `--spec` / `--docs`.
+    fs.writeFileSync(
+      path.join(DATA_DIR, 'endpoints.json'),
+      JSON.stringify(entries),
+    );
+  } catch (error) {
+    // Endpoint index is optional at runtime; never block command generation.
+    console.warn('  ⚠ Skipped endpoints.json:', (error as Error).message);
+  }
+}
+
+function buildDescribe(
+  ep: Endpoint,
+  ctx: {
+    summary: string;
+    scope: string | null;
+    plan: string | null;
+    auth: boolean;
+    paginated: boolean;
+    command: string;
+    docLink: string;
+    equivalentCmd: string;
+    schemaToMarkdown: (s: unknown, depth?: number, required?: string[], examples?: boolean) => string;
+  },
+): string {
+  const planNames: Record<string, string> = { corporation: 'Корпорация' };
+  let md = `# ${ep.method} ${ep.path} — ${ctx.summary}\n\n`;
+  if (!ctx.auth) md += `> Авторизация не требуется\n\n`;
+  if (ctx.scope) md += `> **Скоуп:** \`${ctx.scope}\`\n\n`;
+  if (ctx.plan) md += `> **Тариф:** ${planNames[ctx.plan] ?? ctx.plan}\n\n`;
+  if (ctx.paginated) md += `> Пагинация: добавьте \`--all\` для автоматического обхода страниц\n\n`;
+
+  const params = ep.parameters ?? [];
+  if (params.length > 0) {
+    md += `## Параметры\n\n`;
+    for (const p of params) {
+      const req = p.required ? ' (обязательный)' : '';
+      const where = p.in === 'path' ? 'путь' : p.in;
+      md += `- \`${p.name}\` — ${where}${req}${p.description ? `: ${p.description}` : ''}\n`;
+    }
+    md += `\n`;
+  }
+
+  const bodyMedia = ep.requestBody?.content
+    ? (ep.requestBody.content['application/json'] ??
+       Object.values(ep.requestBody.content)[0])
+    : undefined;
+  if (bodyMedia?.schema) {
+    const required = (bodyMedia.schema as { required?: string[] }).required ?? [];
+    const bodyMd = ctx.schemaToMarkdown(bodyMedia.schema, 0, required, false).trim();
+    if (bodyMd) md += `## Тело запроса\n\n${bodyMd}\n\n`;
+  }
+
+  md += `## Эквивалентная команда\n\n\`\`\`bash\n${ctx.equivalentCmd}\n\`\`\`\n\n`;
+  md += `Документация: ${ctx.docLink}\n`;
+  md += `Полная справка: \`pachca api ${ep.method} ${ep.path} --docs\` · схема: \`--spec\`\n`;
+  return md;
+}
+
 // ----- README Generation -----
 
 function generateReadme(commands: GeneratedCommand[]): void {
@@ -1165,6 +1289,9 @@ async function main(): Promise<void> {
 
   await generateAlternativesData(commands);
   console.log('  Generated alternatives.json');
+
+  await generateEndpointsData();
+  console.log('  Generated endpoints.json');
 
   // Generate README
   generateReadme(commands);

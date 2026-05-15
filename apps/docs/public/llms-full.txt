@@ -80,8 +80,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 88–174 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 175–856 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10947 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10948–25983 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10950 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10951–25986 |
 
 ---
 
@@ -1577,6 +1577,7 @@ pachca users list --all
 | `--dry-run` |  | Показать запрос без отправки |
 | `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
 | `--no-retry` |  | Отключить авто-retry при 429/503 |
+| `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
 
 
 Флаг `--force` (пропуск подтверждения DELETE) задаётся не глобально, а у деструктивных команд — см. [Деструктивные операции](#destruktivnye-operatsii).
@@ -1754,6 +1755,7 @@ esac
 |-----------|---------|
 | `PACHCA_TOKEN` | Bearer-токен (высший приоритет, удобно для CI) |
 | `PACHCA_PROFILE` | Активный профиль для команды |
+| `PACHCA_HOME` | Переопределить каталог конфига (по умолчанию `~/.config/pachca`); удобно для изоляции в CI/тестах/агентах |
 | `PACHCA_TIMEOUT` | Таймаут запроса в секундах (по умолчанию 30) |
 | `PACHCA_PROMPT_DISABLED` | Отключить интерактивные промпты (для агентов) |
 | `CI` | Автоматический неинтерактивный режим |
@@ -1868,6 +1870,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `--dry-run` |  | Показать запрос без отправки |
 | `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
 | `--no-retry` |  | Отключить авто-retry при 429/503 |
+| `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
 
 
 Переменные окружения (`PACHCA_TOKEN`, `PACHCA_PROFILE`, `CI` и др.) — в разделе [Скрипты и CI](/guides/cli/scripting#peremennye-okruzheniya).

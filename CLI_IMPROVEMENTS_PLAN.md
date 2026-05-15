@@ -307,11 +307,11 @@
 **Что делаем (антидубль, 4 → 1):** `base-command.ts` `baseFlags` — единственный источник; из него на build генерим `packages/cli/src/data/global-flags.json`. Из него же берут: (а) `generateReadme()` вместо хардкода, (б) шапка страницы Commands (D2), (в) таблица в гайде, (г) `baseFlagNames` в `introspect.ts` (вместо ручного Set). Минус 3 копии.
 
 **Шаги:**
-- [ ] Генерить `global-flags.json` из `base-command.ts` `baseFlags` (на build, в `generate-cli.ts` — рядом с прочими генерациями)
-- [ ] `generateReadme()` читает из него (убрать хардкод-таблицу)
-- [ ] D2 (шапка) и гайд читают из него же
-- [ ] `introspect.ts` `baseFlagNames` ← из него же (убрать ручной Set; сюда же попадёт `--plain` из C7 автоматически)
-- [ ] Привести `--quiet` к единой формулировке, добавить недостающие флаги
+- [x] `generateGlobalFlagsData()` в `generate-cli.ts`: структура (имена/char/type/options/hidden) из `BaseCommand.baseFlags` (импорт под bun) + единственная RU-карта описаний → `src/data/global-flags.json`. turbo input `generate-cli` += `src/base-command.ts`
+- [x] `generateReadme()` строит таблицу флагов из `global-flags.json` (хардкод-массив удалён)
+- [x] Гайд: хардкод-таблица в `scripting.mdx` заменена на `<GlobalFlags />` (loader `lib/cli-data.ts` + компонент + регистрация в 2 местах + handler в `mdx-expander.ts`). Шапка D2 будет читать тот же источник
+- [x] `introspect.ts` `baseFlagNames` ← `new Set(Object.keys(BaseCommand.baseFlags))` (ручной Set удалён; `--plain` из C7 попадёт автоматически)
+- [x] `--quiet` приведён к единой формулировке; добавлены недостающие в README (`--no-truncate`/`--no-color`/`--no-retry`); `--force` убран из «глобальных» (он пер-командный, отмечена ссылка на «Деструктивные операции»)
 
 ---
 

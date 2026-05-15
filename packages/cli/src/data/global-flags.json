@@ -1,0 +1,97 @@
+[
+  {
+    "name": "output",
+    "char": "o",
+    "type": "string",
+    "description": "Формат вывода: table, json, yaml, csv",
+    "options": [
+      "table",
+      "json",
+      "yaml",
+      "csv"
+    ],
+    "hidden": false
+  },
+  {
+    "name": "columns",
+    "char": "c",
+    "type": "string",
+    "description": "Колонки для table-вывода (через запятую)",
+    "hidden": false
+  },
+  {
+    "name": "no-header",
+    "type": "boolean",
+    "description": "Скрыть заголовок таблицы",
+    "hidden": false
+  },
+  {
+    "name": "no-truncate",
+    "type": "boolean",
+    "description": "Не обрезать длинные значения",
+    "hidden": false
+  },
+  {
+    "name": "profile",
+    "char": "p",
+    "type": "string",
+    "description": "Профиль для этой команды",
+    "hidden": false
+  },
+  {
+    "name": "token",
+    "type": "string",
+    "description": "Токен для этого вызова (без сохранения)",
+    "hidden": false
+  },
+  {
+    "name": "quiet",
+    "char": "q",
+    "type": "boolean",
+    "description": "Подавить вывод (только exit code и ошибки)",
+    "hidden": false
+  },
+  {
+    "name": "no-color",
+    "type": "boolean",
+    "description": "Отключить цвета",
+    "hidden": false
+  },
+  {
+    "name": "verbose",
+    "char": "v",
+    "type": "boolean",
+    "description": "Показывать HTTP-запросы и ответы",
+    "hidden": false
+  },
+  {
+    "name": "no-input",
+    "type": "boolean",
+    "description": "Отключить интерактивные промпты",
+    "hidden": false
+  },
+  {
+    "name": "dry-run",
+    "type": "boolean",
+    "description": "Показать запрос без отправки",
+    "hidden": false
+  },
+  {
+    "name": "timeout",
+    "type": "string",
+    "description": "Таймаут запроса в секундах (по умолчанию 30)",
+    "hidden": false
+  },
+  {
+    "name": "no-retry",
+    "type": "boolean",
+    "description": "Отключить авто-retry при 429/503",
+    "hidden": false
+  },
+  {
+    "name": "json",
+    "type": "boolean",
+    "description": "Алиас для --output json",
+    "hidden": true
+  }
+]

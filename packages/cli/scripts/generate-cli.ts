@@ -27,6 +27,9 @@ const DATA_DIR = path.join(CLI_SRC, 'data');
 // URL generation — single source of truth from apps/docs/lib/openapi/mapper.ts
 import { generateUrlFromOperation, generateTitle } from '../../../apps/docs/lib/openapi/mapper.js';
 
+// D3 — single source of truth for global flags: BaseCommand.baseFlags
+import { BaseCommand } from '../src/base-command.js';
+
 // Entity ID → related list command (for agent hints in descriptions)
 const ENTITY_HINTS: Record<string, string> = {
   chats: 'pachca chats list',
@@ -1103,9 +1106,68 @@ function buildDescribe(
   return md;
 }
 
+// ----- D3: Global Flags Index (single source of truth) -----
+
+interface GlobalFlagEntry {
+  name: string;
+  char?: string;
+  type: 'boolean' | 'string';
+  description: string;
+  options?: string[];
+  hidden: boolean;
+}
+
+/**
+ * Russian descriptions for global flags — the ONE localized copy.
+ * Structure (which flags exist, char, type, options, hidden) comes from
+ * BaseCommand.baseFlags (the real oclif source of truth); only the RU text
+ * lives here, replacing the two hardcoded RU tables (README + guide) and
+ * the manual baseFlagNames Set.
+ */
+const GLOBAL_FLAG_DESCRIPTIONS_RU: Record<string, string> = {
+  output: 'Формат вывода: table, json, yaml, csv',
+  columns: 'Колонки для table-вывода (через запятую)',
+  'no-header': 'Скрыть заголовок таблицы',
+  'no-truncate': 'Не обрезать длинные значения',
+  profile: 'Профиль для этой команды',
+  token: 'Токен для этого вызова (без сохранения)',
+  quiet: 'Подавить вывод (только exit code и ошибки)',
+  'no-color': 'Отключить цвета',
+  verbose: 'Показывать HTTP-запросы и ответы',
+  'no-input': 'Отключить интерактивные промпты',
+  'dry-run': 'Показать запрос без отправки',
+  timeout: 'Таймаут запроса в секундах (по умолчанию 30)',
+  'no-retry': 'Отключить авто-retry при 429/503',
+  json: 'Алиас для --output json',
+};
+
+function buildGlobalFlags(): GlobalFlagEntry[] {
+  const baseFlags = BaseCommand.baseFlags as Record<
+    string,
+    { char?: string; type?: string; options?: string[]; hidden?: boolean }
+  >;
+  return Object.entries(baseFlags).map(([name, def]) => ({
+    name,
+    ...(def.char ? { char: def.char } : {}),
+    type: def.type === 'boolean' ? 'boolean' : 'string',
+    description: GLOBAL_FLAG_DESCRIPTIONS_RU[name] ?? name,
+    ...(def.options ? { options: def.options } : {}),
+    hidden: !!def.hidden,
+  }));
+}
+
+function generateGlobalFlagsData(): GlobalFlagEntry[] {
+  const flags = buildGlobalFlags();
+  fs.writeFileSync(
+    path.join(DATA_DIR, 'global-flags.json'),
+    JSON.stringify(flags, null, 2),
+  );
+  return flags;
+}
+
 // ----- README Generation -----
 
-function generateReadme(commands: GeneratedCommand[]): void {
+function generateReadme(commands: GeneratedCommand[], globalFlags: GlobalFlagEntry[]): void {
   const templatePath = path.join(ROOT, 'packages', 'cli', 'README.template.md');
   if (!fs.existsSync(templatePath)) return;
 
@@ -1134,24 +1196,19 @@ function generateReadme(commands: GeneratedCommand[]): void {
     `<!-- AUTO:COMMANDS -->\n${commandLines.join('\n')}\n<!-- AUTO:COMMANDS:END -->`,
   );
 
-  // Generate global flags table
+  // Generate global flags table — single source: D3 global-flags.json (from baseFlags)
   const flagsLines: string[] = [
     '## Глобальные флаги', '',
     '| Флаг | Короткий | Описание |',
     '|------|----------|----------|',
-    '| `--output <format>` | `-o` | Формат вывода: table, json, yaml, csv |',
-    '| `--columns <list>` | `-c` | Колонки для table-вывода |',
-    '| `--no-header` | | Скрыть заголовок таблицы |',
-    '| `--profile <name>` | `-p` | Профиль для этой команды |',
-    '| `--token <value>` | | Bearer-токен для этого вызова |',
-    '| `--quiet` | `-q` | Подавить вывод кроме ошибок |',
-    '| `--verbose` | `-v` | Показывать HTTP-детали |',
-    '| `--no-input` | | Отключить промпты |',
-    '| `--dry-run` | | Показать запрос без отправки |',
-    '| `--timeout <seconds>` | | Таймаут запроса |',
-    '| `--no-retry` | | Отключить авто-retry |',
-    '',
   ];
+  for (const f of globalFlags) {
+    if (f.hidden) continue;
+    const flag = f.type === 'boolean' ? `\`--${f.name}\`` : `\`--${f.name} <value>\``;
+    const short = f.char ? `\`-${f.char}\`` : '';
+    flagsLines.push(`| ${flag} | ${short} | ${f.description} |`);
+  }
+  flagsLines.push('');
 
   template = template.replace(
     /<!-- AUTO:FLAGS -->[\s\S]*?<!-- AUTO:FLAGS:END -->/,
@@ -1293,8 +1350,11 @@ async function main(): Promise<void> {
   await generateEndpointsData();
   console.log('  Generated endpoints.json');
 
+  const globalFlags = generateGlobalFlagsData();
+  console.log('  Generated global-flags.json');
+
   // Generate README
-  generateReadme(commands);
+  generateReadme(commands, globalFlags);
   console.log('  Generated README.md');
 
   console.log('Done!');

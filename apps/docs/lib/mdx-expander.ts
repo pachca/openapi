@@ -639,6 +639,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
     result = result.replace(/<CliCommands\s*\/>/g, md);
   }
 
+  // <GlobalFlags /> -> markdown table of global CLI flags (D3 single source)
+  if (result.includes('<GlobalFlags')) {
+    const { getGlobalFlags } = await import('./cli-data');
+    let md = '| Флаг | Короткий | Описание |\n';
+    md += '|------|----------|----------|\n';
+    for (const f of getGlobalFlags()) {
+      const flag = f.type === 'boolean' ? `\`--${f.name}\`` : `\`--${f.name} <value>\``;
+      const short = f.char ? `\`-${f.char}\`` : '';
+      md += `| ${flag} | ${short} | ${f.description} |\n`;
+    }
+    md += '\n';
+    result = result.replace(/<GlobalFlags\s*\/>/g, md);
+  }
+
   // <ScopeRoles /> -> OAuth scopes table with roles
   if (result.includes('<ScopeRoles')) {
     const oauthScope = await getSchemaByName('OAuthScope');

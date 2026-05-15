@@ -66,7 +66,8 @@ export default class Introspect extends BaseCommand {
       );
     }
 
-    const baseFlagNames = new Set(['output', 'columns', 'no-header', 'no-truncate', 'profile', 'token', 'quiet', 'no-color', 'verbose', 'no-input', 'dry-run', 'timeout', 'no-retry', 'json']);
+    // D3 single source: derived from BaseCommand.baseFlags (no manual Set to drift)
+    const baseFlagNames = new Set(Object.keys(BaseCommand.baseFlags));
     const requiredFlagNames = new Set((cmdMeta.requiredFlags as string[] | undefined) || []);
 
     const flagsMeta = cmdMeta.flags as Record<string, Record<string, unknown>> | undefined;

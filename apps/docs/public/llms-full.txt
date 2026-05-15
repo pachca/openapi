@@ -80,8 +80,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 88–174 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 175–856 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10754 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10755–25790 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10758 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10759–25794 |
 
 ---
 
@@ -1545,22 +1545,26 @@ pachca users list --all
 
 ## Глобальные флаги
 
+Доступны для всех команд. Таблица генерируется из исходного определения флагов в CLI — всегда актуальна:
+
 | Флаг | Короткий | Описание |
 |------|----------|----------|
-| `--output <format>` | `-o` | Формат: `table`, `json`, `yaml`, `csv` |
-| `--columns <list>` | `-c` | Колонки для table-вывода (через запятую) |
-| `--profile <name>` | `-p` | Профиль для этой команды |
-| `--token <value>` | | Токен для этого вызова (без сохранения) |
-| `--quiet` | `-q` | Без вывода, только exit code |
-| `--no-input` | | Без интерактивных промптов |
-| `--dry-run` | | Показать запрос без отправки |
-| `--force` | | Пропустить подтверждение DELETE |
-| `--verbose` | `-v` | Показать HTTP-запросы и ответы |
-| `--timeout <sec>` | | Таймаут запроса в секундах (по умолчанию 30) |
-| `--no-color` | | Отключить цвета |
-| `--no-header` | | Скрыть заголовок таблицы |
-| `--no-truncate` | | Не обрезать длинные значения |
-| `--no-retry` | | Отключить авто-retry при 429/503 |
+| `--output <value>` | `-o` | Формат вывода: table, json, yaml, csv |
+| `--columns <value>` | `-c` | Колонки для table-вывода (через запятую) |
+| `--no-header` |  | Скрыть заголовок таблицы |
+| `--no-truncate` |  | Не обрезать длинные значения |
+| `--profile <value>` | `-p` | Профиль для этой команды |
+| `--token <value>` |  | Токен для этого вызова (без сохранения) |
+| `--quiet` | `-q` | Подавить вывод (только exit code и ошибки) |
+| `--no-color` |  | Отключить цвета |
+| `--verbose` | `-v` | Показывать HTTP-запросы и ответы |
+| `--no-input` |  | Отключить интерактивные промпты |
+| `--dry-run` |  | Показать запрос без отправки |
+| `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
+| `--no-retry` |  | Отключить авто-retry при 429/503 |
+
+
+Флаг `--force` (пропуск подтверждения DELETE) задаётся не глобально, а у деструктивных команд — см. [Деструктивные операции](#destruktivnye-operatsii).
 
 ### Сортировка
 

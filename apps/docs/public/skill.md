@@ -223,7 +223,14 @@ Detailed documentation on specific topics is available at:
 
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
 - [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами: треды как единица работы, сквозные треды, готовые Agent Skills для 40+ агентов и примеры сценариев в чатах и задачах
-- [CLI](https://dev.pachca.com/guides/cli) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
+- [CLI: Обзор](https://dev.pachca.com/guides/cli/overview) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
+- [CLI: Установка](https://dev.pachca.com/guides/cli/installation) — Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
+- [CLI: Авторизация](https://dev.pachca.com/guides/cli/authentication) — Авторизация Pachca CLI: профили для нескольких токенов, приоритет источников токена, headless-режим для CI и агентов.
+- [CLI: Запросы к API](https://dev.pachca.com/guides/cli/api-requests) — Прямые HTTP-запросы через pachca api: типизированные поля -f/-F, инлайн JSON, stdin. Самоописание API: ls, --describe, --spec, --docs.
+- [CLI: Скрипты и CI](https://dev.pachca.com/guides/cli/scripting) — Pachca CLI в скриптах: форматы вывода, пайпы, пагинация, глобальные флаги, kebab-case, dry-run, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
+- [CLI: Файлы](https://dev.pachca.com/guides/cli/files) — Загрузка файлов через Pachca CLI: pachca upload автоматически получает подпись и загружает на S3 одной командой.
+- [CLI: Сценарии](https://dev.pachca.com/guides/cli/workflows) — Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.
+- [CLI: Команды](https://dev.pachca.com/guides/cli/commands) — Полный справочник команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги], встроенная справка.
 - [SDK: Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
 - [SDK: TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
 - [SDK: Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+

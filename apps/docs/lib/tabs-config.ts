@@ -54,7 +54,20 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     items: [
       { title: 'Быстрый старт', path: '/guides/quickstart' },
       { title: 'AI агенты', path: '/guides/ai-agents' },
-      { title: 'CLI', path: '/guides/cli' },
+      {
+        title: 'CLI',
+        path: '/guides/cli/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/cli/overview' },
+          { title: 'Установка', path: '/guides/cli/installation' },
+          { title: 'Авторизация', path: '/guides/cli/authentication' },
+          { title: 'Запросы к API', path: '/guides/cli/api-requests' },
+          { title: 'Скрипты и CI', path: '/guides/cli/scripting' },
+          { title: 'Файлы', path: '/guides/cli/files' },
+          { title: 'Сценарии', path: '/guides/cli/workflows' },
+          { title: 'Команды', path: '/guides/cli/commands' },
+        ],
+      },
       {
         title: 'SDK',
         path: '/guides/sdk/overview',

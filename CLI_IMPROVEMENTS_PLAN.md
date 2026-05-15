@@ -268,11 +268,11 @@
 **Переиспользуем (контент не пишем заново):** это **перекомпоновка существующего `cli.mdx`** (566 строк уже написаны) по новым страницам, не новый контент. Роутинг — существующий `apps/docs/app/guides/[...slug]/page.tsx`; навигация — `lib/navigation`/`guides-config`; рендер в `.md`/llms — существующий `mdx-expander.ts`. Новых MDX-компонентов **не вводим** (значков нет — Q8). Это автоматически закрывает D5 (generate-llms сам подхватит страницы из навигации).
 
 **Шаги:**
-- [ ] Спроектировать дерево навигации (sidebar) — свериться с `lib/navigation`
-- [ ] Разрезать `cli.mdx` на страницы, сохранив **все** примеры, без потери контента
-- [ ] Разделение аудиторий словами/структурой (без значков): явные подзаголовки «Если вы в терминале…» / «Если подключаете агента…»
-- [ ] Редиректы со старого `/guides/cli` на Overview (не терять ссылки/SEO)
-- [ ] `npx turbo build` → проверить рендер всех MDX-компонентов на новых страницах в `next dev` (Turbopack-резолв)
+- [x] Навигация: `tabs-config.ts` — `CLI` стал accordion-родителем с 8 children (паттерн SDK/forms/n8n), порядок отражает прогрессию Get started → Guides → Reference
+- [x] `cli.mdx` (590 строк) разрезан на 8 страниц `content/guides/cli/*.mdx` (overview, installation, authentication, api-requests, scripting, files, workflows, commands) — контент перенесён дословно, без потерь; монолит удалён
+- [x] Разделение аудиторий словами (без значков, Q8/Q9 — только в ключевых местах): подзаголовки «Если вы в терминале…» / «Если подключаете агента…» в Overview, Installation, Authentication; тезис «зачем агенту» в Запросы к API
+- [x] Редиректы `/guides/cli` + `/guides/cli.md` → `/guides/cli/overview` (паттерн accordion parent → first child); внутренние ссылки обновлены (home, quickstart, workflows, cards.tsx icon-map); стале `public/guides/cli.md` удалён (регенерируется как `cli/*.md`); `ai-agents.mdx` оставлен для D4 (редирект покрывает)
+- [x] `npx turbo build`/`check` — рендер всех страниц проверен (D5 закрывается автоматически: `generate-llms` подхватывает страницы из навигации)
 
 ---
 

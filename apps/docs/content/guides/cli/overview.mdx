@@ -1,0 +1,67 @@
+---
+title: Обзор
+description: "Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+"
+---
+
+# CLI
+
+<CardRow>
+  <Card compact icon="Package" title="@pachca/cli" href="https://www.npmjs.com/package/@pachca/cli">npm</Card>
+</CardRow>
+
+`pachca` — официальный CLI для Pachca API: авторизация, сообщения, управление пространством — всё из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и интерактивными подсказками. Требуется Node.js 20 или новее.
+
+**Если вы в терминале** — начните здесь: [установка](/guides/cli/installation) → [авторизация](/guides/cli/authentication) → первые команды. Привычный путь, ничего нового осваивать не нужно.
+
+**Если подключаете агента** — те же команды может выполнять агент за вас: рутину делает он, вы остаётесь в контроле. Это апгрейд того же инструмента, не отдельный мир — подробнее в [AI агенты](/guides/ai-agents).
+
+## Быстрый старт
+
+<Steps>
+  <Step title="Вход в аккаунт">
+    Сохраните API-токен. Получить его можно в интерфейсе Пачки в разделе **Автоматизации** > **API** — подробнее в руководстве [Авторизация](/api/authorization).
+
+    ```bash
+    # Интерактивный вход
+    pachca auth login
+
+    # Для CI и скриптов — передайте токен через флаг
+    pachca auth login --token YOUR_ACCESS_TOKEN
+    ```
+  </Step>
+  <Step title="Первая команда">
+    Получите список сотрудников:
+
+    ```bash
+    pachca users list
+
+    # ID    Имя              Email               Роль
+    # 1234  Иван Иванов      ivan@company.ru     admin
+    # 5678  Мария Петрова    maria@company.ru    user
+    ```
+
+    Добавьте `-o json` для JSON-вывода.
+  </Step>
+  <Step title="Отправка сообщения">
+    Отправьте сообщение в канал или беседу:
+
+    ```bash
+    pachca messages create --entity-id 123 --content "Привет!"
+    ```
+
+    Если не указать обязательные флаги — CLI запросит их интерактивно. Эту же команду может вызывать агент — без промптов, по флагам или JSON.
+  </Step>
+</Steps>
+
+## Разделы
+
+<CardGroup columns={2}>
+  <Card icon="Download" title="Установка" href="/guides/cli/installation">npm, npx, автодополнение, настройки</Card>
+  <Card icon="KeyRound" title="Авторизация" href="/guides/cli/authentication">профили, приоритет токена, CI</Card>
+  <Card icon="Terminal" title="Запросы к API" href="/guides/cli/api-requests">`pachca api`, самоописание API</Card>
+  <Card icon="ScrollText" title="Скрипты и CI" href="/guides/cli/scripting">форматы, exit codes, ошибки</Card>
+  <Card icon="Upload" title="Файлы" href="/guides/cli/files">загрузка на S3 одной командой</Card>
+  <Card icon="ListChecks" title="Сценарии" href="/guides/cli/workflows">готовые пошаговые рецепты</Card>
+  <Card icon="Library" title="Команды" href="/guides/cli/commands">полный справочник команд</Card>
+  <Card icon="Bot" title="AI агенты" href="/guides/ai-agents">тот же CLI, рутину делает агент</Card>
+</CardGroup>

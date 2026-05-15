@@ -6,7 +6,7 @@
     "changes": [
       {
         "type": "+",
-        "description": "Самоописание API: `pachca api ls` (список всех эндпоинтов), `pachca api <МЕТОД> <путь> --describe|--spec|--docs` — CLI описывает API против собственной спецификации"
+        "description": "Список эндпоинтов и справка по API прямо в CLI: `pachca api ls` (список всех эндпоинтов), `pachca api <МЕТОД> <путь> --describe|--spec|--docs` (параметры, тело, схема, пример) — данные из той же OpenAPI-спецификации, из которой собран CLI"
       },
       {
         "type": "+",

@@ -226,7 +226,7 @@ Detailed documentation on specific topics is available at:
 - [CLI: Обзор](https://dev.pachca.com/guides/cli/overview) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
 - [CLI: Установка](https://dev.pachca.com/guides/cli/installation) — Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
 - [CLI: Авторизация](https://dev.pachca.com/guides/cli/authentication) — Авторизация Pachca CLI: профили для нескольких токенов, приоритет источников токена, headless-режим для CI и агентов.
-- [CLI: Запросы к API](https://dev.pachca.com/guides/cli/api-requests) — Прямые HTTP-запросы через pachca api: типизированные поля -f/-F, инлайн JSON, stdin. Самоописание API: ls, --describe, --spec, --docs.
+- [CLI: Запросы к API](https://dev.pachca.com/guides/cli/api-requests) — Прямые HTTP-запросы через pachca api: типизированные поля -f/-F, инлайн JSON, stdin. Список эндпоинтов и справка по API: ls, --describe, --spec, --docs.
 - [CLI: Скрипты и CI](https://dev.pachca.com/guides/cli/scripting) — Pachca CLI в скриптах: форматы вывода, пайпы, пагинация, глобальные флаги, kebab-case, dry-run, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
 - [CLI: Файлы](https://dev.pachca.com/guides/cli/files) — Загрузка файлов через Pachca CLI: pachca upload автоматически получает подпись и загружает на S3 одной командой.
 - [CLI: Сценарии](https://dev.pachca.com/guides/cli/workflows) — Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.

@@ -13,7 +13,7 @@ import {
 
 export default class Api extends BaseCommand {
   static override description =
-    'Произвольный запрос к API. Самоописание: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs`';
+    'Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs`';
 
   static override examples = [
     '<%= config.bin %> api GET /messages --query chat_id=123',

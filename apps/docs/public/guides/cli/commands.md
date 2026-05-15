@@ -273,4 +273,4 @@ pachca commands
 pachca commands --available
 ```
 
-Не знаете точный эндпоинт — CLI описывает API сам: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Запросы к API](/guides/cli/api-requests).
+Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Запросы к API](/guides/cli/api-requests).

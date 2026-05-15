@@ -50,7 +50,7 @@
 
 ## Что умеет CLI
 
-- [Запросы к API](/guides/cli/api-requests) — `pachca api`, самоописание API против спецификации
+- [Запросы к API](/guides/cli/api-requests) — `pachca api`, список эндпоинтов и справка по API
 - [Скрипты и CI](/guides/cli/scripting) — форматы вывода, exit codes, таксономия ошибок
 - [Файлы](/guides/cli/files) — загрузка на S3 одной командой
 - [Сценарии](/guides/cli/workflows) — готовые пошаговые рецепты под задачу

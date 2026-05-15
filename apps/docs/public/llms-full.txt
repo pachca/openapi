@@ -80,8 +80,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 88–174 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 175–856 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10958 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10959–25994 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10963 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10964–25999 |
 
 ---
 
@@ -1244,6 +1244,11 @@ npx skills add pachca/openapi
 
 ```bash
     pachca users list
+
+    # ID    Имя              Email               Роль
+    # 1234  Иван Иванов      ivan@company.ru     admin
+    # 5678  Мария Петрова    maria@company.ru    user
+
     pachca messages create --entity-id 123 --content "Привет!"
     ```
 
@@ -1883,7 +1888,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 
 | Команда | Описание |
 |---------|----------|
-| `pachca api` | Произвольный запрос к API. Самоописание: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs` |
+| `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs` |
 
 ### auth
 

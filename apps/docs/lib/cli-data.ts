@@ -32,3 +32,42 @@ function readJson<T>(file: string, fallback: T): T {
 export function getGlobalFlags(): GlobalFlag[] {
   return readJson<GlobalFlag[]>('global-flags.json', []).filter((f) => !f.hidden);
 }
+
+export interface CommandFlag {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+  options?: string[];
+}
+
+export interface CommandArg {
+  name: string;
+  required: boolean;
+  description: string;
+}
+
+export interface CliCommand {
+  command: string;
+  summary: string;
+  method: string | null;
+  path: string | null;
+  scope: string | null;
+  plan: string | null;
+  args?: CommandArg[];
+  flags: CommandFlag[];
+}
+
+export interface CliSection {
+  section: string;
+  commands: CliCommand[];
+}
+
+/**
+ * All CLI commands grouped by section — generated from oclif.manifest.json
+ * via the shared src/lib/manifest.ts normalization (same logic as
+ * `pachca introspect`).
+ */
+export function getCliSections(): CliSection[] {
+  return readJson<CliSection[]>('commands.json', []);
+}

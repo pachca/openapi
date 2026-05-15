@@ -287,10 +287,10 @@
 **Переиспользуем (антидубль):** `introspect.ts` **уже** парсит `oclif.manifest.json` и нормализует флаги/аргументы (фильтр `baseFlagNames`, форма `{name,type,required,options,description}`, `apiMethod/apiPath/scope/plan`). Не писать вторую реализацию в компоненте — **вынести нормализацию в общий хелпер** (напр. `packages/cli/src/lib/manifest.ts`), который зовут и команда `introspect`, и docs-компонент `<CliCommands />`. Один источник данных (`oclif.manifest.json`) + одна логика разбора.
 
 **Шаги:**
-- [ ] Вынести нормализацию манифеста из `introspect.ts` в общий хелпер; `introspect` переключить на него (поведение не менять)
-- [ ] `<CliCommands />` ([cli-commands.tsx](apps/docs/components/mdx/cli-commands.tsx)) читает тот же хелпер вместо своей логики
-- [ ] Рендер: секция → команды → флаги (имя/тип/required/опции/описание) + аргументы
-- [ ] Шапка: глобальные флаги + env — **из общего источника D3**
+- [x] Нормализация манифеста вынесена в `src/lib/manifest.ts` (`listCommandEntries`/`normalizeCommand`/`groupCommandsBySection`); `introspect.ts` переключён на неё — поведение идентично (1905 тестов green)
+- [x] Сборка: `scripts/emit-commands.ts` (после `oclif manifest`, в build-цепочке) реюзает ту же `manifest.ts` → `src/data/commands.json` (27 секций, 85 команд). Атомарная запись (tmp+rename) — docs-build читает параллельно. turbo: `src/data/commands.json` в outputs build-таска
+- [x] `<CliCommands />` переписан: читает `commands.json` через `lib/cli-data.ts` (без кросс-пакетного TS-импорта, как `parser.ts` читает `openapi.yaml`); рендер секция → команды → флаги (имя/тип/required/опции/описание) + аргументы (`*` = обязательное); `EndpointLink` сохранён (scope/plan/auth из OpenAPI). `mdx-expander` для `<CliCommands/>` — компактные таблицы по секциям (HTML богатый, md лёгкий — не раздувать llms)
+- [x] Шапка Commands-страницы: `<GlobalFlags />` (источник D3) + ссылка на env-переменные в «Скрипты и CI» (env не дублируется)
 
 ---
 

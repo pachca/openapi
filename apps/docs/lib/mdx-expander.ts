@@ -622,20 +622,22 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return text + '\n';
   });
 
-  // <CliCommands /> -> markdown table of CLI commands
+  // <CliCommands /> -> per-section markdown tables of CLI commands.
+  // Compact (command + summary) on purpose: keeps llms-full.txt lean; the
+  // HTML page renders the full flags/args. Same source as the page
+  // (commands.json via the shared manifest.ts normalization).
   if (result.includes('<CliCommands')) {
-    const sections = await generateNavigation();
-    const methodsSec = sections.find((s) => s.title === 'Методы API');
-    const allCommands = methodsSec ? methodsSec.items.flatMap((group) => group.children ?? []) : [];
-
-    let md = '| Команда | Описание |\n';
-    md += '|---------|----------|\n';
-    for (const item of allCommands) {
-      const command = `pachca ${item.href.replace(/^\/api\//, '').replace(/\//g, ' ')}`;
-      md += `| \`${command}\` | ${item.title} |\n`;
+    const { getCliSections } = await import('./cli-data');
+    let md = '';
+    for (const section of getCliSections()) {
+      md += `### ${section.section}\n\n`;
+      md += '| Команда | Описание |\n';
+      md += '|---------|----------|\n';
+      for (const cmd of section.commands) {
+        md += `| \`${cmd.command}\` | ${cmd.summary} |\n`;
+      }
+      md += '\n';
     }
-    md += '\n';
-
     result = result.replace(/<CliCommands\s*\/>/g, md);
   }
 

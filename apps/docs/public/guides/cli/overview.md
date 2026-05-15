@@ -78,5 +78,5 @@ pachca api POST /messages -f message[content]="Привет"
 - [Скрипты и CI](/guides/cli/scripting) — Форматы вывода, пагинация, exit codes, таксономия ошибок
 - [Сценарии](/guides/cli/workflows) — Готовые пошаговые рецепты под типовые задачи
 - [Файлы](/guides/cli/files) — Загрузка файла на S3 одной командой
-- [Прямые запросы](/guides/cli/api-requests) — команда `pachca api` и встроенный справочник по API в терминале
+- [Прямые запросы](/guides/cli/api-requests) — Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале
 

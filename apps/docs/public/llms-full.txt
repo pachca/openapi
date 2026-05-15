@@ -80,8 +80,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 88–174 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 175–856 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10743 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10744–25779 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10754 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10755–25790 |
 
 ---
 
@@ -1138,23 +1138,34 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 ### CLI
 
-Самый быстрый и производительный способ. Минимальное влияние на контекст агента — не нужно загружать документацию, агент узнаёт возможности через `--help`. Если есть доступ к shell, агент может генерировать скрипты для типовых задач.
+Самый быстрый и производительный способ. Главное: агенту **не нужно грузить документацию в контекст или ходить на сайт**. CLI описывает API сам — агент спрашивает у него ровно нужный метод и сразу его вызывает. Точечно, минимум контекста, всегда синхронно с актуальным API.
 
 ```bash
-# Установка
-npm install -g @pachca/cli
+# Без установки — агент запускает сразу, всегда последняя версия
+npx @pachca/cli api ls
 
-# Агент может вызывать любые команды
-pachca messages create --entity-id 123 --content "Готово"
-pachca users list -o json
+# 1. Какой метод нужен? — список эндпоинтов
+npx @pachca/cli api ls
+
+# 2. Как его вызвать? — параметры, тело, эквивалентная команда
+npx @pachca/cli api POST /messages --describe
+
+# 3. Вызов типизированной командой
+npx @pachca/cli messages create --entity-id 123 --content "Готово" --no-input -o json
 ```
 
-> CLI автоматически определяет неинтерактивную среду (stdin/stdout — не TTY) и адаптируется: выводит JSON вместо таблиц, отключает промпты и спиннер, а при пропущенных обязательных флагах — возвращает ошибку вместо запроса ввода. Агенту не нужна дополнительная настройка — достаточно передать все обязательные флаги.
+Токен агент передаёт через переменную окружения `PACHCA_TOKEN` (или флаг `--token` для разового вызова) — ничего не пишется на диск, токен берётся из секретов агента и **не коммитится в репозиторий**.
+
+Для ветвления логики агент использует exit codes (`0` успех, `3` нет доступа, `4` не найдено) и поле `type` в JSON-ошибке (`PACHCA_AUTH_ERROR`, `PACHCA_VALIDATION_ERROR` и т.д.).
+
+> CLI автоматически определяет неинтерактивную среду (stdin/stdout — не TTY) и адаптируется: выводит JSON вместо таблиц, отключает промпты и спиннер, а при пропущенных обязательных флагах — возвращает ошибку вместо запроса ввода. Флаг `--no-input -o json` фиксирует этот режим явно.
 
 
 - [@pachca/cli](https://www.npmjs.com/package/@pachca/cli) — Пакет на npm
-- [Руководство CLI](/guides/cli) — Полная документация по CLI — команды, флаги, пайпы, сценарии
+- [Руководство CLI](/guides/cli/overview) — Установка, авторизация, скрипты и CI, полный справочник команд
 
+
+Механика самоописания (`api ls` / `--describe` / `--spec` / `--docs`, нюанс с методом) — подробно в разделе [Запросы к API](/guides/cli/api-requests).
 
 ### Context7 MCP
 

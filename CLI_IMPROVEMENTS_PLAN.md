@@ -184,9 +184,9 @@
 
 ⚠️ Прежде чем что-то добавлять: текущая дока/README обещают `pachca autocomplete fish` — нужно проверить, реально ли это работает (возможно, существующая неточность доки, а не задача CLI). PowerShell, скорее всего, **уже доступен** через плагин — тогда задача чисто документационная.
 
-- [ ] Аудит: что реально умеет `pachca autocomplete` сейчас (bash/zsh/powershell/fish?)
-- [ ] Если powershell уже есть → только обновить доку; если fish заявлен, но не работает → убрать из доки или закрыть отдельно
-- [ ] elvish — вне scope (плагином не поддерживается)
+- [x] Аудит: `@oclif/plugin-autocomplete@3.2.42`, arg `shell` `options: ['zsh','bash','powershell']`. `pachca autocomplete fish` → **ошибка** «Expected fish to be one of: zsh, bash, powershell» (доку врала). `powershell` **работает** (topicSeparator у нас `" "`, не `:`, → ограничение плагина не применяется; проверено: строит кэш + инструкции)
+- [x] Чисто документационная правка: `installation.mdx` и `README.template.md` — `fish` → `powershell` («bash, zsh и PowerShell»). Код CLI не трогали (powershell уже из коробки)
+- [x] elvish/fish — вне scope (плагином v3 не поддерживаются); упоминания убраны, ложных обещаний в доке больше нет
 
 ---
 

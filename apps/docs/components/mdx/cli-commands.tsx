@@ -27,16 +27,23 @@ function FlagsArgs({ cmd }: { cmd: CliCommand }) {
   ];
   if (rows.length === 0) return null;
   return (
-    <table className="w-full border-none text-[13px] mt-2 mb-1">
+    <table className="w-full table-fixed border-none text-[13px] mt-2 mb-1">
+      <colgroup>
+        <col className="w-[26%]" />
+        <col className="w-[26%]" />
+        <col className="w-[48%]" />
+      </colgroup>
       <tbody className="divide-y divide-glass-divider">
         {rows.map((r) => (
           <tr key={r.token}>
-            <td className="py-2 pl-0! align-top whitespace-nowrap text-text-primary">
+            <td className="py-2 pl-0! pr-3 align-top break-words text-text-primary">
               <CopyableInlineCode>{r.token}</CopyableInlineCode>
               {r.required ? <span className="text-danger ml-1">*</span> : null}
             </td>
-            <td className="py-2 align-top whitespace-nowrap text-text-secondary pr-4">{r.type}</td>
-            <td className="py-2 pl-0! align-top text-text-secondary">{r.description}</td>
+            <td className="py-2 pr-3 align-top break-words text-text-secondary">{r.type}</td>
+            <td className="py-2 pl-0! align-top break-words text-text-secondary">
+              {r.description}
+            </td>
           </tr>
         ))}
       </tbody>

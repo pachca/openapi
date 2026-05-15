@@ -6,14 +6,12 @@ description: "Официальный CLI для Pachca API: все методы 
 # CLI
 
 <CardRow>
-  <Card compact icon="Package" title="@pachca/cli" href="https://www.npmjs.com/package/@pachca/cli">npm</Card>
+  <Card compact title="@pachca/cli" href="https://www.npmjs.com/package/@pachca/cli">npm</Card>
 </CardRow>
 
-`pachca` — официальный CLI: авторизация, сообщения, управление пространством — всё из терминала. Каждый API-метод доступен как команда с типизированными флагами, валидацией и подсказками. Нужен Node.js 20+.
+`pachca` — официальный CLI для Pachca API: авторизация, сообщения, управление пространством — всё из терминала. Каждый метод API доступен как команда с типизированными флагами, валидацией и подсказками. Нужен Node.js 20+.
 
-## Начните в терминале
-
-Привычный путь, ничего нового осваивать не нужно — три шага до первого результата:
+## Быстрый старт
 
 <Steps>
   <Step title="Установка">
@@ -32,7 +30,7 @@ description: "Официальный CLI для Pachca API: все методы 
 
     Подробнее — [Авторизация](/guides/cli/authentication).
   </Step>
-  <Step title="Первые команды">
+  <Step title="Первый запрос">
     ```bash
     pachca users list
 
@@ -43,24 +41,39 @@ description: "Официальный CLI для Pachca API: все методы 
     pachca messages create --entity-id 123 --content "Привет!"
     ```
 
-    Пропущенные обязательные флаги CLI запросит интерактивно. Добавьте `-o json` для JSON.
+    Пропущенные обязательные флаги CLI запросит интерактивно. Добавьте `-o json` для JSON-вывода.
   </Step>
 </Steps>
 
-## Следующий шаг: подключить агента
+## Два способа работы
 
-Те же команды может выполнять агент за вас — рутину делает он, вы остаётесь в контроле. Это не отдельный мир, а апгрейд того же инструмента: агент спрашивает у самого CLI нужный метод (`pachca api ls`) и сразу его вызывает.
+**1. Типизированные команды.** Каждый метод API — отдельная команда `pachca <секция> <действие>` с флагами, валидацией и подсказками. Так написаны все примеры в документации и интеграции. Справка по любой команде — флаг `--help`:
 
-<CardRow>
-  <Card compact icon="Bot" title="Подключить агента" href="/guides/ai-agents">тот же CLI, рутину делает агент за вас</Card>
-</CardRow>
+```bash
+pachca messages create --entity-id 123 --content "Привет"
+pachca messages create --help   # параметры, флаги, примеры команды
+pachca commands                 # список всех команд
+```
 
-## Что умеет CLI
+Полный справочник — [Команды](/guides/cli/commands), готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
+
+**2. Прямые запросы (`pachca api`).** Для нестандартных вызовов и отладки — прямой HTTP-запрос к любому методу. Эта же команда работает как встроенный справочник по API: список эндпоинтов и справку по каждому (параметры, тело, пример) можно получить прямо в терминале, **не открывая сайт документации** — особенно удобно агентам:
+
+```bash
+pachca api ls                          # список всех эндпоинтов
+pachca api POST /messages --describe   # параметры, тело, пример
+pachca api POST /messages -f message[content]="Привет"
+```
+
+Подробнее — [Прямые запросы](/guides/cli/api-requests).
+
+## Разделы
 
 <CardGroup columns={2}>
-  <Card icon="Library" title="Команды" href="/guides/cli/commands">каждый метод API — типизированная команда; полный справочник</Card>
-  <Card icon="ListChecks" title="Сценарии" href="/guides/cli/workflows">готовые пошаговые рецепты под задачу</Card>
-  <Card icon="ScrollText" title="Скрипты и CI" href="/guides/cli/scripting">форматы вывода, exit codes, таксономия ошибок</Card>
-  <Card icon="Upload" title="Файлы" href="/guides/cli/files">загрузка на S3 одной командой</Card>
-  <Card icon="Terminal" title="Прямые запросы" href="/guides/cli/api-requests">вспомогательный `pachca api`, когда команды не хватает</Card>
+  <Card title="Команды" href="/guides/cli/commands">Полный справочник: каждый метод API как команда со всеми флагами</Card>
+  <Card title="Скрипты и CI" href="/guides/cli/scripting">Форматы вывода, пагинация, exit codes, таксономия ошибок</Card>
+  <Card title="Сценарии" href="/guides/cli/workflows">Готовые пошаговые рецепты под типовые задачи</Card>
+  <Card title="Файлы" href="/guides/cli/files">Загрузка файла на S3 одной командой</Card>
+  <Card title="Прямые запросы" href="/guides/cli/api-requests">`pachca api` и встроенный справочник по API в терминале</Card>
+  <Card title="AI агенты" href="/guides/ai-agents">Те же команды выполняет агент — рутину берёт на себя</Card>
 </CardGroup>

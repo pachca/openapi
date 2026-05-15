@@ -156,9 +156,9 @@
 
 **Переиспользуем:** не новый форматтер, а **ветка-вариант `outputCsv`** в [output.ts:45](packages/cli/src/output.ts) — та же логика выбора колонок (`OutputOptions.columns`), только разделитель `\t`, без заголовка/цвета. Существующие форматы (json/yaml/csv/table) не трогаем.
 
-- [ ] Ветка `plain` в `output.ts` (вариант `outputCsv`, `\t` + без header)
-- [ ] Флаг в `baseFlags`; добавить в `baseFlagNames` (`introspect.ts`) — эта же правка уходит в общий источник по D3
-- [ ] Тест, строка в доку и в авто-таблицу флагов (через D3-источник)
+- [x] `outputPlain` в `output.ts` — вариант `outputCsv`: `\t`, без заголовка, `id` первой (если нет явных `--columns`), таб/перевод строки в значениях схлопываются. Существующие json/yaml/csv/table не тронуты; `outputData` проверяет `opts.plain` до диспетчера форматов (аддитивно)
+- [x] Флаг `plain` в `BaseCommand.baseFlags` + `getOutputOptions().plain`. В `introspect.baseFlagNames` и `global-flags.json` (→ README + `<GlobalFlags/>`) попал **автоматически** через D3 (источник = baseFlags); добавлена только RU-строка в карту описаний
+- [x] Тест `tests/output-plain.test.ts` (7) + раздел «Плоский вывод» в `scripting.mdx`; авто-таблица флагов обновилась через D3
 
 ---
 

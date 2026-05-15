@@ -1139,6 +1139,7 @@ const GLOBAL_FLAG_DESCRIPTIONS_RU: Record<string, string> = {
   timeout: 'Таймаут запроса в секундах (по умолчанию 30)',
   'no-retry': 'Отключить авто-retry при 429/503',
   json: 'Алиас для --output json',
+  plain: 'Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов)',
 };
 
 function buildGlobalFlags(): GlobalFlagEntry[] {

@@ -80,8 +80,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 88–174 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 175–856 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10932 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10933–25968 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10947 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10948–25983 |
 
 ---
 
@@ -1499,6 +1499,21 @@ pachca users list --columns email --no-header
 
 # Не обрезать длинные значения
 pachca users list --no-truncate
+```
+
+### Плоский вывод
+
+Флаг `--plain` — именованный режим для скриптов: TSV (значения через таб), без заголовка, колонка `id` первой, без цвета и обрезки. Удобно для `cut`/`awk` вместо комбинации `--columns ... --no-header -o csv`:
+
+```bash
+# id <tab> name <tab> ...
+pachca users list --plain
+
+# Вторая колонка (name) каждой строки
+pachca users list --plain | cut -f2
+
+# Только нужные колонки сохраняют свой порядок
+pachca users list --plain --columns email,role
 ```
 
 ### Пайпы и перенаправление

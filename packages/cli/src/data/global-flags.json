@@ -93,5 +93,11 @@
     "type": "boolean",
     "description": "Алиас для --output json",
     "hidden": true
+  },
+  {
+    "name": "plain",
+    "type": "boolean",
+    "description": "Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов)",
+    "hidden": false
   }
 ]

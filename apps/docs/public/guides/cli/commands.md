@@ -30,6 +30,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `--dry-run` |  | Показать запрос без отправки |
 | `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
 | `--no-retry` |  | Отключить авто-retry при 429/503 |
+| `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
 
 
 Переменные окружения (`PACHCA_TOKEN`, `PACHCA_PROFILE`, `CI` и др.) — в разделе [Скрипты и CI](/guides/cli/scripting#peremennye-okruzheniya).

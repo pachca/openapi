@@ -34,6 +34,21 @@ pachca users list --columns email --no-header
 pachca users list --no-truncate
 ```
 
+### Плоский вывод
+
+Флаг `--plain` — именованный режим для скриптов: TSV (значения через таб), без заголовка, колонка `id` первой, без цвета и обрезки. Удобно для `cut`/`awk` вместо комбинации `--columns ... --no-header -o csv`:
+
+```bash
+# id <tab> name <tab> ...
+pachca users list --plain
+
+# Вторая колонка (name) каждой строки
+pachca users list --plain | cut -f2
+
+# Только нужные колонки сохраняют свой порядок
+pachca users list --plain --columns email,role
+```
+
 ### Пайпы и перенаправление
 
 В пайпах CLI автоматически выводит JSON и отключает цвет и спиннер. Данные идут в stdout, ошибки и прогресс — в stderr.
@@ -95,6 +110,7 @@ pachca users list --all
 | `--dry-run` |  | Показать запрос без отправки |
 | `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
 | `--no-retry` |  | Отключить авто-retry при 429/503 |
+| `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
 
 
 Флаг `--force` (пропуск подтверждения DELETE) задаётся не глобально, а у деструктивных команд — см. [Деструктивные операции](#destruktivnye-operatsii).

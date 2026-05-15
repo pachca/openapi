@@ -43,7 +43,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 
 | Команда | Описание |
 |---------|----------|
-| `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs` |
+| `pachca api` | Произвольный запрос к API. Самоописание: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs` |
 
 ### auth
 
@@ -273,4 +273,4 @@ pachca commands
 pachca commands --available
 ```
 
-Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Запросы к API](/guides/cli/api-requests).
+Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).

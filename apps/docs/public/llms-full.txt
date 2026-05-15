@@ -73,8 +73,8 @@
 |---------|-------------|-------|
 | LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 81–167 |
 | How-to Guides | Step-by-step solutions with TypeScript + Python code | 168–849 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 850–10682 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10683–25718 |
+| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 850–10685 |
+| API Reference | Complete REST API — every endpoint with schemas and examples | 10686–25721 |
 
 ---
 
@@ -1757,6 +1757,9 @@ pachca api PUT /tasks/42 -f task[due_at]="2026-04-01T10:00:00Z"
 
 # Отправить готовый JSON-файл
 pachca api POST /messages --input payload.json
+
+# Инлайн JSON-строка (самодостаточная команда — удобно для агентов)
+pachca api POST /messages --data '{"message":{"entity_id":123,"content":"Привет"}}'
 
 # Из stdin
 cat payload.json | pachca api POST /messages --input -

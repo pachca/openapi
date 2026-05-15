@@ -497,6 +497,9 @@ pachca api PUT /tasks/42 -f task[due_at]="2026-04-01T10:00:00Z"
 # Отправить готовый JSON-файл
 pachca api POST /messages --input payload.json
 
+# Инлайн JSON-строка (самодостаточная команда — удобно для агентов)
+pachca api POST /messages --data '{"message":{"entity_id":123,"content":"Привет"}}'
+
 # Из stdin
 cat payload.json | pachca api POST /messages --input -
 ```

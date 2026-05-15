@@ -19,6 +19,7 @@ export default class Api extends BaseCommand {
     '<%= config.bin %> api GET /messages --query chat_id=123',
     '<%= config.bin %> api POST /messages -F message[chat_id]=12345 -f message[content]="Привет"',
     '<%= config.bin %> api POST /messages --input payload.json',
+    `<%= config.bin %> api POST /messages --data '{"message":{"entity_id":123,"content":"Привет"}}'`,
     '<%= config.bin %> api GET /profile -o yaml',
     '<%= config.bin %> api ls',
     '<%= config.bin %> api ls --json',
@@ -56,6 +57,9 @@ export default class Api extends BaseCommand {
     input: Flags.string({
       description: 'JSON file to send as body (- for stdin)',
     }),
+    data: Flags.string({
+      description: 'Inline JSON string as request body',
+    }),
     query: Flags.string({
       description: 'Query parameter (key=value)',
       multiple: true,
@@ -88,6 +92,14 @@ export default class Api extends BaseCommand {
     if (hasFields && flags.input) {
       outputError(
         { error: '-f/-F and --input are mutually exclusive', type: 'PACHCA_USAGE_ERROR', code: null },
+        format,
+      );
+      this.exit(2);
+    }
+    // C6 — --data (inline JSON) shares the body path; only one body source allowed.
+    if (flags.data && (hasFields || flags.input)) {
+      outputError(
+        { error: '--data is mutually exclusive with -f/-F and --input', type: 'PACHCA_USAGE_ERROR', code: null },
         format,
       );
       this.exit(2);
@@ -130,6 +142,17 @@ export default class Api extends BaseCommand {
       } catch {
         outputError(
           { error: `Invalid JSON in ${inputPath === '-' ? 'stdin' : inputPath}`, type: 'PACHCA_USAGE_ERROR', code: null },
+          format,
+        );
+        this.exit(2);
+      }
+    } else if (flags.data) {
+      // Same string → JSON → body path as --input, just inline (thin alias).
+      try {
+        body = JSON.parse(flags.data);
+      } catch {
+        outputError(
+          { error: 'Invalid JSON in --data', type: 'PACHCA_USAGE_ERROR', code: null },
           format,
         );
         this.exit(2);

@@ -1,5 +1,28 @@
 [
   {
+    "product": "cli",
+    "version": "2026.5.2",
+    "date": "2026-05-15",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Самоописание API: `pachca api ls` (список всех эндпоинтов), `pachca api <МЕТОД> <путь> --describe|--spec|--docs` — CLI описывает API против собственной спецификации"
+      },
+      {
+        "type": "+",
+        "description": "`pachca api --data '{json}'` — тело запроса инлайн JSON-строкой"
+      },
+      {
+        "type": "+",
+        "description": "Флаг `--plain` — плоский TSV-вывод для скриптов (без заголовка, id первым)"
+      },
+      {
+        "type": "+",
+        "description": "Переменная окружения `PACHCA_HOME` — переопределение каталога конфига (CI, тесты, агенты)"
+      }
+    ]
+  },
+  {
     "product": "n8n",
     "version": "2.0.7",
     "date": "2026-05-06",

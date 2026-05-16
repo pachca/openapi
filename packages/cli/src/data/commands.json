@@ -4,7 +4,7 @@
     "commands": [
       {
         "command": "pachca api",
-        "summary": "Произвольный запрос к API. Самоописание: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs`",
+        "summary": "Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs`",
         "method": null,
         "path": null,
         "scope": null,
@@ -13,12 +13,12 @@
           {
             "name": "method",
             "required": true,
-            "description": "HTTP method (GET, POST, PUT, DELETE)"
+            "description": "HTTP-метод (GET, POST, PUT, DELETE, PATCH)"
           },
           {
             "name": "path",
             "required": true,
-            "description": "API path (e.g., /messages)"
+            "description": "Путь API (например, /messages)"
           }
         ],
         "flags": [
@@ -26,31 +26,31 @@
             "name": "raw-field",
             "type": "option",
             "required": false,
-            "description": "String field (key=value)"
+            "description": "Строковое поле (key=value)"
           },
           {
             "name": "field",
             "type": "option",
             "required": false,
-            "description": "Typed field (numbers/bools auto-converted, @file reads file)"
+            "description": "Типизированное поле (числа/boolean автоматически, @file читает файл)"
           },
           {
             "name": "input",
             "type": "option",
             "required": false,
-            "description": "JSON file to send as body (- for stdin)"
+            "description": "JSON-файл с телом запроса (- для stdin)"
           },
           {
             "name": "data",
             "type": "option",
             "required": false,
-            "description": "Inline JSON string as request body"
+            "description": "Тело запроса инлайн JSON-строкой"
           },
           {
             "name": "query",
             "type": "option",
             "required": false,
-            "description": "Query parameter (key=value)"
+            "description": "Query-параметр (key=value)"
           }
         ]
       }
@@ -88,7 +88,7 @@
           {
             "name": "profile",
             "required": false,
-            "description": "Profile name to remove"
+            "description": "Имя профиля для удаления"
           }
         ],
         "flags": []
@@ -113,7 +113,7 @@
           {
             "name": "profile",
             "required": true,
-            "description": "Profile name to switch to"
+            "description": "Имя профиля для переключения"
           }
         ],
         "flags": []
@@ -426,7 +426,7 @@
             "name": "available",
             "type": "boolean",
             "required": false,
-            "description": "Show only commands available to current token"
+            "description": "Показать только команды, доступные текущему токену"
           }
         ]
       }
@@ -613,7 +613,7 @@
           {
             "name": "key",
             "required": true,
-            "description": "Configuration key"
+            "description": "Ключ настройки"
           }
         ],
         "flags": []
@@ -638,12 +638,12 @@
           {
             "name": "key",
             "required": true,
-            "description": "Configuration key"
+            "description": "Ключ настройки"
           },
           {
             "name": "value",
             "required": true,
-            "description": "Configuration value"
+            "description": "Значение настройки"
           }
         ],
         "flags": []
@@ -830,7 +830,7 @@
           {
             "name": "query",
             "required": false,
-            "description": "Search query"
+            "description": "Поисковый запрос"
           }
         ],
         "flags": []
@@ -851,7 +851,7 @@
           {
             "name": "command",
             "required": false,
-            "description": "Command name (e.g., \"messages create\")"
+            "description": "Имя команды (например, \"messages create\")"
           }
         ],
         "flags": []

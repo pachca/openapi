@@ -14,7 +14,7 @@ export default class AuthLogout extends BaseCommand {
 
   static override args = {
     profile: Args.string({
-      description: 'Profile name to remove',
+      description: 'Имя профиля для удаления',
       required: false,
     }),
   };

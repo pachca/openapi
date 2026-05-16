@@ -19,8 +19,11 @@ Pachca is a corporate messenger for teams. The REST API lets you automate commun
 | LLM-friendly summary | `https://dev.pachca.com/llms.txt` | Quick overview with links |
 | Full documentation | `https://dev.pachca.com/llms-full.txt` | Complete reference in one file |
 | OpenAPI 3.0 spec | `https://dev.pachca.com/openapi.yaml` | Programmatic parsing and code generation |
+| Arazzo workflows | `https://dev.pachca.com/workflows.arazzo.yaml` | Multi-step call sequences for chained operations |
+| CLI (per-endpoint, on demand) | `npx @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |
+| Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |
 
-For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt`.
+For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx @pachca/cli api ls`).
 
 ## CLI (recommended)
 
@@ -226,11 +229,12 @@ Detailed documentation on specific topics is available at:
 - [CLI: Обзор](https://dev.pachca.com/guides/cli/overview) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
 - [CLI: Установка](https://dev.pachca.com/guides/cli/installation) — Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
 - [CLI: Авторизация](https://dev.pachca.com/guides/cli/authentication) — Авторизация Pachca CLI: профили для нескольких токенов, приоритет источников токена, headless-режим для CI и агентов.
-- [CLI: Команды](https://dev.pachca.com/guides/cli/commands) — Полный справочник команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги], встроенная справка.
-- [CLI: Скрипты и CI](https://dev.pachca.com/guides/cli/scripting) — Pachca CLI в скриптах: форматы вывода, пайпы, пагинация, глобальные флаги, kebab-case, dry-run, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
+- [CLI: Вывод](https://dev.pachca.com/guides/cli/output) — Форматы вывода Pachca CLI (table, json, yaml, csv), выбор колонок, плоский TSV-режим, пайпы и перенаправление, курсорная пагинация.
+- [CLI: Флаги и скрипты](https://dev.pachca.com/guides/cli/scripting) — Глобальные флаги Pachca CLI, сортировка, kebab-case, boolean-флаги, dry-run, деструктивные операции, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
 - [CLI: Сценарии](https://dev.pachca.com/guides/cli/workflows) — Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.
 - [CLI: Файлы](https://dev.pachca.com/guides/cli/files) — Загрузка файлов через Pachca CLI: pachca upload автоматически получает подпись и загружает на S3 одной командой.
 - [CLI: Прямые запросы](https://dev.pachca.com/guides/cli/api-requests) — Команда pachca api: прямые HTTP-запросы к любому методу (поля -f/-F, инлайн JSON, stdin) и встроенный справочник по API (ls, --describe, --spec, --docs) прямо в терминале, без сайта документации.
+- [CLI: Справочник команд](https://dev.pachca.com/guides/cli/commands) — Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику.
 - [SDK: Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
 - [SDK: TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
 - [SDK: Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+

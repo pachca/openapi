@@ -13,7 +13,7 @@ import {
 
 export default class Api extends BaseCommand {
   static override description =
-    'Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs`';
+    'Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs`';
 
   static override examples = [
     '<%= config.bin %> api GET /messages --query chat_id=123',
@@ -32,12 +32,12 @@ export default class Api extends BaseCommand {
 
   static override args = {
     method: Args.string({
-      description: 'HTTP method (GET, POST, PUT, DELETE)',
+      description: 'HTTP-метод (GET, POST, PUT, DELETE, PATCH)',
       required: true,
       options: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     }),
     path: Args.string({
-      description: 'API path (e.g., /messages)',
+      description: 'Путь API (например, /messages)',
       required: true,
     }),
   };
@@ -46,22 +46,22 @@ export default class Api extends BaseCommand {
     ...BaseCommand.baseFlags,
     'raw-field': Flags.string({
       char: 'f',
-      description: 'String field (key=value)',
+      description: 'Строковое поле (key=value)',
       multiple: true,
     }),
     field: Flags.string({
       char: 'F',
-      description: 'Typed field (numbers/bools auto-converted, @file reads file)',
+      description: 'Типизированное поле (числа/boolean автоматически, @file читает файл)',
       multiple: true,
     }),
     input: Flags.string({
-      description: 'JSON file to send as body (- for stdin)',
+      description: 'JSON-файл с телом запроса (- для stdin)',
     }),
     data: Flags.string({
-      description: 'Inline JSON string as request body',
+      description: 'Тело запроса инлайн JSON-строкой',
     }),
     query: Flags.string({
-      description: 'Query parameter (key=value)',
+      description: 'Query-параметр (key=value)',
       multiple: true,
     }),
   };

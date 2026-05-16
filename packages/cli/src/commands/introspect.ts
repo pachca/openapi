@@ -16,7 +16,7 @@ export default class Introspect extends BaseCommand {
 
   static override args = {
     command: Args.string({
-      description: 'Command name (e.g., "messages create")',
+      description: 'Имя команды (например, "messages create")',
       required: false,
     }),
   };

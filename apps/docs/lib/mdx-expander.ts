@@ -622,22 +622,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return text + '\n';
   });
 
-  // <CliCommands /> -> per-section markdown tables of CLI commands.
-  // Compact (command + summary) on purpose: keeps llms-full.txt lean; the
-  // HTML page renders the full flags/args. Same source as the page
-  // (commands.json via the shared manifest.ts normalization).
+  // <CliCommands /> -> one flat markdown table (command + method/summary).
+  // Lean on purpose: keeps llms-full.txt small; the HTML page renders the
+  // per-command params behind a per-row spoiler. Source: commands.json.
   if (result.includes('<CliCommands')) {
     const { getCliSections } = await import('./cli-data');
-    let md = '';
+    let md = '| Команда | Метод API |\n';
+    md += '|---------|-----------|\n';
     for (const section of getCliSections()) {
-      md += `### ${section.section}\n\n`;
-      md += '| Команда | Описание |\n';
-      md += '|---------|----------|\n';
       for (const cmd of section.commands) {
-        md += `| \`${cmd.command}\` | ${cmd.summary} |\n`;
+        const method = cmd.method ? `\`${cmd.method}\` ` : '';
+        md += `| \`${cmd.command}\` | ${method}${cmd.summary} |\n`;
       }
-      md += '\n';
     }
+    md += '\n';
     result = result.replace(/<CliCommands\s*\/>/g, md);
   }
 

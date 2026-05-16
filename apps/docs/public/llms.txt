@@ -6,6 +6,19 @@
 
 > English documentation: [llms-en.txt](https://dev.pachca.com/llms-en.txt)
 
+
+## Document Map
+
+| Раздел | Описание | Строки |
+|--------|----------|--------|
+| CLI Quick Start | Установка, команды, точечная справка по API | 22–42 |
+| SDK | Типизированные клиенты для 6 языков | 43–69 |
+| Agent Skills | Скиллы для AI-агентов и установка | 70–90 |
+| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 91–100 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 101–150 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 151–250 |
+| Дополнительно | Прочие ссылки и контакты | 251–257 |
+
 ## CLI Quick Start
 
 ```bash
@@ -17,7 +30,73 @@ npm install -g @pachca/cli
 pachca auth login
 pachca messages create --entity-id=<chat_id> --content="Hello"
 pachca guide "отправить сообщение"  # CLI guide for humans
+
+# Docs for any endpoint — without loading llms-full.txt
+npx @pachca/cli api ls                         # list every endpoint
+npx @pachca/cli api POST /messages --describe  # params, body, scope
+npx @pachca/cli api GET /messages --spec       # OpenAPI fragment
+npx @pachca/cli api POST /messages --docs      # full Markdown reference
 ```
+
+> Не загружай весь llms-full.txt ради одного метода. Сначала `npx @pachca/cli api ls`, затем `npx @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.
+
+## SDK
+
+Типизированные клиенты для 6 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.
+
+| Язык | Пакет | Установка |
+|------|-------|----------|
+| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
+| Python | `pachca-sdk` | `pip install pachca-sdk` |
+| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
+| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |
+| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
+| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
+
+Конвенции:
+- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
+- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
+- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.
+
+```
+TypeScript: new PachcaClient("TOKEN") → pachca.messages.createMessage({...})
+Python:     PachcaClient("TOKEN")     → await client.messages.create_message(...)
+Go:         NewPachcaClient("TOKEN")  → client.Messages.CreateMessage(ctx, ...)
+Kotlin:     PachcaClient("TOKEN")     → pachca.messages.createMessage(...)
+Swift:      PachcaClient(token: "TOKEN") → try await pachca.messages.createMessage(...)
+C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessageAsync(...)
+```
+
+## Agent Skills
+
+Скиллы для AI-агентов (Claude Code, Cursor и др.):
+
+| Скилл | Описание |
+|-------|---------|
+| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля |
+| pachca-users | Pachca — управление сотрудниками (участниками пространства) и тегами (группами) |
+| pachca-chats | Pachca — управление чатами, каналами и беседами |
+| pachca-messages | Pachca — сообщения: отправка, редактирование, удаление |
+| pachca-bots | Pachca — управление ботами, вебхуки и превью ссылок |
+| pachca-forms | Pachca — интерактивные формы и модальные окна для ботов |
+| pachca-tasks | Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление |
+| pachca-search | Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям |
+| pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP |
+| pachca | Pachca — корпоративный мессенджер с REST API и CLI |
+
+Установка: `npx skills add pachca/openapi`
+
+Индекс скиллов: [https://dev.pachca.com/.well-known/skills/index.json](https://dev.pachca.com/.well-known/skills/index.json)
+
+## Основное
+
+- **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.
+- **Пагинация:** курсорная — `limit` (1–50) и `cursor`; в ответе `meta.paginate` (`next_page`, `prev_page`, `has_next`, `has_prev`). Поисковые методы — только `next_page` и `total`.
+- **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.
+- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.
+- **Идемпотентность:** запросы НЕ идемпотентны — дедуплицируй на клиенте; вебхуки доставляются at-least-once, обработчики должны быть идемпотентны.
+- **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.
+- Детали по конкретному методу — `npx @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.
 
 ## Руководства
 - [Обзор](https://dev.pachca.com/.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
@@ -26,11 +105,12 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 - [CLI: Обзор](https://dev.pachca.com/guides/cli/overview.md): Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
 - [CLI: Установка](https://dev.pachca.com/guides/cli/installation.md): Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
 - [CLI: Авторизация](https://dev.pachca.com/guides/cli/authentication.md): Авторизация Pachca CLI: профили для нескольких токенов, приоритет источников токена, headless-режим для CI и агентов.
-- [CLI: Команды](https://dev.pachca.com/guides/cli/commands.md): Полный справочник команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги], встроенная справка.
-- [CLI: Скрипты и CI](https://dev.pachca.com/guides/cli/scripting.md): Pachca CLI в скриптах: форматы вывода, пайпы, пагинация, глобальные флаги, kebab-case, dry-run, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
+- [CLI: Вывод](https://dev.pachca.com/guides/cli/output.md): Форматы вывода Pachca CLI (table, json, yaml, csv), выбор колонок, плоский TSV-режим, пайпы и перенаправление, курсорная пагинация.
+- [CLI: Флаги и скрипты](https://dev.pachca.com/guides/cli/scripting.md): Глобальные флаги Pachca CLI, сортировка, kebab-case, boolean-флаги, dry-run, деструктивные операции, exit codes, таксономия ошибок, переменные окружения, неинтерактивный режим.
 - [CLI: Сценарии](https://dev.pachca.com/guides/cli/workflows.md): Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.
 - [CLI: Файлы](https://dev.pachca.com/guides/cli/files.md): Загрузка файлов через Pachca CLI: pachca upload автоматически получает подпись и загружает на S3 одной командой.
 - [CLI: Прямые запросы](https://dev.pachca.com/guides/cli/api-requests.md): Команда pachca api: прямые HTTP-запросы к любому методу (поля -f/-F, инлайн JSON, stdin) и встроенный справочник по API (ls, --describe, --spec, --docs) прямо в терминале, без сайта документации.
+- [CLI: Справочник команд](https://dev.pachca.com/guides/cli/commands.md): Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику.
 - [SDK: Обзор](https://dev.pachca.com/guides/sdk/overview.md): Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
 - [SDK: TypeScript](https://dev.pachca.com/guides/sdk/typescript.md): Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
 - [SDK: Python](https://dev.pachca.com/guides/sdk/python.md): Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+
@@ -168,56 +248,9 @@ pachca guide "отправить сообщение"  # CLI guide for humans
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
-## SDK
-
-Типизированные клиенты для 6 языков. Все следуют единому паттерну: `PachcaClient(token)` → `client.service.method(request)`.
-
-| Язык | Пакет | Установка |
-|------|-------|----------|
-| TypeScript | `@pachca/sdk` | `npm install @pachca/sdk` |
-| Python | `pachca-sdk` | `pip install pachca-sdk` |
-| Go | `github.com/pachca/go-sdk` | `go get github.com/pachca/openapi/sdk/go/generated` |
-| Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |
-| Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
-| C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
-
-Конвенции:
-- **Вход**: path-параметры и body-поля (если ≤2) разворачиваются в аргументы метода. Иначе — один объект-запрос.
-- **Выход**: если ответ API содержит единственное поле `data`, SDK возвращает его содержимое напрямую.
-- Имена сервисов, методов и полей соответствуют operationId и параметрам из OpenAPI.
-
-```
-TypeScript: new PachcaClient("TOKEN") → pachca.messages.createMessage({...})
-Python:     PachcaClient("TOKEN")     → await client.messages.create_message(...)
-Go:         NewPachcaClient("TOKEN")  → client.Messages.CreateMessage(ctx, ...)
-Kotlin:     PachcaClient("TOKEN")     → pachca.messages.createMessage(...)
-Swift:      PachcaClient(token: "TOKEN") → try await pachca.messages.createMessage(...)
-C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessageAsync(...)
-```
-
-## Agent Skills
-
-Скиллы для AI-агентов (Claude Code, Cursor и др.):
-
-| Скилл | Описание |
-|-------|---------|
-| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля |
-| pachca-users | Pachca — управление сотрудниками (участниками пространства) и тегами (группами) |
-| pachca-chats | Pachca — управление чатами, каналами и беседами |
-| pachca-messages | Pachca — сообщения: отправка, редактирование, удаление |
-| pachca-bots | Pachca — управление ботами, вебхуки и превью ссылок |
-| pachca-forms | Pachca — интерактивные формы и модальные окна для ботов |
-| pachca-tasks | Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление |
-| pachca-search | Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям |
-| pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP |
-| pachca | Pachca — корпоративный мессенджер с REST API и CLI |
-
-Установка: `npx skills add pachca/openapi`
-
-Индекс скиллов: [https://dev.pachca.com/.well-known/skills/index.json](https://dev.pachca.com/.well-known/skills/index.json)
-
 ## Дополнительно
 - [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)
+- [Arazzo](https://dev.pachca.com/workflows.arazzo.yaml): Многошаговые сценарии API (Arazzo 1.0.1) — порядок вызовов для агентов
 - [Веб-сайт](https://pachca.com/)
 - [Получить помощь](mailto:team@pachca.com)
 

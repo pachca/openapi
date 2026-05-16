@@ -4,86 +4,82 @@
 
 > Краткий индекс: [llms.txt](https://dev.pachca.com/llms.txt)
 
-## Содержание
 
-### Руководства
-- [Обзор](#обзор)
-- [Быстрый старт](#быстрый-старт)
-- [AI агенты](#ai-агенты)
-- [CLI: Обзор](#cli:-обзор)
-- [CLI: Установка](#cli:-установка)
-- [CLI: Авторизация](#cli:-авторизация)
-- [CLI: Команды](#cli:-команды)
-- [CLI: Скрипты и CI](#cli:-скрипты-и-ci)
-- [CLI: Сценарии](#cli:-сценарии)
-- [CLI: Файлы](#cli:-файлы)
-- [CLI: Прямые запросы](#cli:-прямые-запросы)
-- [SDK: Обзор](#sdk:-обзор)
-- [SDK: TypeScript](#sdk:-typescript)
-- [SDK: Python](#sdk:-python)
-- [SDK: Go](#sdk:-go)
-- [SDK: Kotlin](#sdk:-kotlin)
-- [SDK: Swift](#sdk:-swift)
-- [SDK: C#](#sdk:-c)
-- [Сценарии](#сценарии)
-- [Боты](#боты)
-- [Входящие вебхуки](#входящие-вебхуки)
-- [Исходящие вебхуки](#исходящие-вебхуки)
-- [Кнопки в сообщениях](#кнопки-в-сообщениях)
-- [Формы: Обзор](#формы:-обзор)
-- [Формы: Блоки представления](#формы:-блоки-представления)
-- [Формы: Обработка форм](#формы:-обработка-форм)
-- [Разворачивание ссылок](#разворачивание-ссылок)
-- [Экспорт сообщений](#экспорт-сообщений)
-- [DLP-система](#dlp-система)
-- [Журнал аудита событий](#журнал-аудита-событий)
-- [n8n: Обзор](#n8n:-обзор)
-- [n8n: Начало работы](#n8n:-начало-работы)
-- [n8n: Ресурсы и операции](#n8n:-ресурсы-и-операции)
-- [n8n: Триггер](#n8n:-триггер)
-- [n8n: Тестирование](#n8n:-тестирование)
-- [n8n: Примеры workflow](#n8n:-примеры-workflow)
-- [n8n: Продвинутые функции](#n8n:-продвинутые-функции)
-- [n8n: Устранение ошибок](#n8n:-устранение-ошибок)
-- [n8n: Миграция с v1](#n8n:-миграция-с-v1)
-- [Albato](#albato)
-- [Последние обновления](#последние-обновления)
-- [Основы API: Авторизация](#основы-api:-авторизация)
-- [Основы API: Запросы и ответы](#основы-api:-запросы-и-ответы)
-- [Основы API: Пагинация](#основы-api:-пагинация)
-- [Основы API: Загрузка файлов](#основы-api:-загрузка-файлов)
-- [Основы API: Ошибки и лимиты](#основы-api:-ошибки-и-лимиты)
-- [Основы API: Модели](#основы-api:-модели)
-
-### API Методы
-- [Common](#api-common)
-- [Profile](#api-profile)
-- [Users](#api-users)
-- [Group tags](#api-group-tags)
-- [Chats](#api-chats)
-- [Members](#api-members)
-- [Threads](#api-threads)
-- [Messages](#api-messages)
-- [Read members](#api-read-members)
-- [Reactions](#api-reactions)
-- [Link Previews](#api-link-previews)
-- [Search](#api-search)
-- [Tasks](#api-tasks)
-- [Views](#api-views)
-- [Bots](#api-bots)
-- [Security](#api-security)
+---
 
 
 ## Document Map
 
-| Section | Description | Lines |
-|---------|-------------|-------|
-| LIBRARY RULES | Core rules, auth, pagination, rate limits, SDK overview | 88–174 |
-| How-to Guides | Step-by-step solutions with TypeScript + Python code | 175–856 |
-| Guides | Full SDK docs (6 languages), webhooks, bots, forms, n8n | 857–10983 |
-| API Reference | Complete REST API — every endpoint with schemas and examples | 10984–26019 |
-
----
+| Раздел | Строки |
+|--------|--------|
+| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | 84–184 |
+| How-to Guides — рецепты задач с кодом TS/Python | 185–866 |
+| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | 867–10904 |
+| · Обзор | 870–967 |
+| · Быстрый старт | 968–1047 |
+| · AI агенты | 1048–1231 |
+| · CLI | 1232–1317 |
+| · Установка | 1318–1398 |
+| · Авторизация | 1399–1461 |
+| · Вывод | 1462–1556 |
+| · Флаги и скрипты | 1557–1774 |
+| · Сценарии | 1775–1813 |
+| · Файлы | 1814–1839 |
+| · Прямые запросы | 1840–1941 |
+| · Справочник команд | 1942–2066 |
+| · SDK и генератор | 2067–2143 |
+| · TypeScript | 2144–2546 |
+| · Python | 2547–2943 |
+| · Go | 2944–3365 |
+| · Kotlin | 3366–3779 |
+| · Swift | 3780–4162 |
+| · C# | 4163–4606 |
+| · Сценарии | 4607–5071 |
+| · Боты | 5072–5249 |
+| · Входящие вебхуки | 5250–5390 |
+| · Исходящие вебхуки | 5391–5799 |
+| · Кнопки в сообщениях | 5800–5947 |
+| · Формы | 5948–6007 |
+| · Блоки представления | 6008–6225 |
+| · Обработка форм | 6226–6356 |
+| · Разворачивание ссылок | 6357–6460 |
+| · Экспорт сообщений | 6461–6593 |
+| · DLP-система | 6594–6690 |
+| · Пачка Audit Events API | 6691–6756 |
+| · n8n | 6757–6823 |
+| · Начало работы | 6824–7042 |
+| · Ресурсы и операции | 7043–7408 |
+| · Триггер | 7409–7649 |
+| · Тестирование | 7650–7914 |
+| · Примеры workflow | 7915–8125 |
+| · Продвинутые функции | 8126–8353 |
+| · Устранение ошибок | 8354–8544 |
+| · Миграция с v1 | 8545–8657 |
+| · Интеграция с Albato | 8658–8788 |
+| · Последние обновления | 8789–9376 |
+| · Авторизация | 9377–9533 |
+| · Запросы и ответы | 9534–9713 |
+| · Пагинация | 9714–9942 |
+| · Загрузка файлов | 9943–10152 |
+| · Ошибки и лимиты | 10153–10338 |
+| · Модели | 10339–10904 |
+| API-методы — все эндпоинты со схемами и примерами | 10905–25931 |
+| · Common | 10907–11691 |
+| · Profile | 11692–12679 |
+| · Users | 12680–15034 |
+| · Group tags | 15035–16370 |
+| · Chats | 16371–17626 |
+| · Members | 17627–18957 |
+| · Threads | 18958–19273 |
+| · Messages | 19274–21089 |
+| · Read members | 21090–21334 |
+| · Reactions | 21335–21975 |
+| · Link Previews | 21976–22229 |
+| · Search | 22230–23024 |
+| · Tasks | 23025–24306 |
+| · Views | 24307–24876 |
+| · Bots | 24877–25621 |
+| · Security | 25622–25931 |
 
 # LIBRARY RULES
 
@@ -169,6 +165,20 @@
 | Kotlin | `com.pachca:sdk` | `implementation("com.pachca:pachca-sdk:1.0.1")` |
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
+
+## CLI (Command-Line Interface)
+- Zero-install: `npx @pachca/cli <command> --token <TOKEN>` (always latest). Or `npm install -g @pachca/cli`
+- Every API endpoint is a typed command: `pachca <section> <action> --flags` (e.g. `pachca messages create --entity-id=123 --content="Hi"`)
+- Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
+- Token via `PACHCA_TOKEN` env or `--token` flag — nothing is written to disk
+- Branch on exit codes (`0` success, `3` forbidden, `4` not found); JSON errors carry a `type` field (`PACHCA_AUTH_ERROR`, `PACHCA_VALIDATION_ERROR`, …)
+- **Per-endpoint docs on demand — you do not need to load this whole file.** To get just the endpoint you need:
+  - `npx @pachca/cli api ls` — list every endpoint (`METHOD PATH SUMMARY SCOPE`; add `--json` for machine-readable)
+  - `npx @pachca/cli api <METHOD> <path> --describe` — parameters, body, scope, equivalent typed command
+  - `npx @pachca/cli api <METHOD> <path> --spec` — OpenAPI fragment (request/response schemas)
+  - `npx @pachca/cli api <METHOD> <path> --docs` — full Markdown reference for that one endpoint
+- Arbitrary request to any endpoint: `npx @pachca/cli api <METHOD> <path> -f field=value` (or `-F` typed, `--input body.json`, `--data '{...}'`)
+- Any documentation page is also available as Markdown — append `.md` to its URL (e.g. `https://dev.pachca.com/guides/webhook.md`)
 
 ---
 
@@ -946,6 +956,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 - [OpenAPI-спецификация](/openapi.yaml) — Описание всех методов в YAML
 - [Коллекция Postman](/pachca.postman_collection.json) — Все методы с примерами для Postman и Bruno
+- [Arazzo-сценарии](/workflows.arazzo.yaml) — Многошаговые сценарии API для агентов
 - [llms.txt](/llms.txt) — Краткое описание API для LLM
 - [llms-full.txt](/llms-full.txt) — Полное описание API для LLM
 - [llms-en.txt](/llms-en.txt) — English API documentation for LLM
@@ -1138,28 +1149,33 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 ### CLI
 
-Самый быстрый и производительный способ. Агент работает теми же **типизированными командами**, что и человек: каждый метод API — отдельная команда с флагами и валидацией. Готовые последовательности под типовые задачи — в [Сценариях](/guides/cli/workflows).
+Самый быстрый и производительный способ. Минимальное влияние на контекст агента — не нужно загружать документацию, агент узнаёт возможности через `--help`. Если есть доступ к shell, агент может генерировать скрипты для типовых задач.
 
 ```bash
-# Без установки — агент запускает сразу, всегда последняя версия
-npx @pachca/cli messages create --entity-id 123 --content "Готово" --no-input -o json
-npx @pachca/cli users list --no-input -o json
+# Установка
+npm install -g @pachca/cli
+
+# Агент может вызывать любые команды
+pachca messages create --entity-id 123 --content "Готово"
+pachca users list -o json
 ```
 
-Токен агент передаёт через переменную окружения `PACHCA_TOKEN` (или флаг `--token` для разового вызова) — ничего не пишется на диск, токен берётся из секретов агента и **не коммитится в репозиторий**.
+Через CLI доступны и произвольные запросы к любому эндпоинту, и вся документация API прямо в терминале — список методов, их параметры, схемы и полный справочник. Агенту не нужно открывать сайт или грузить документацию в контекст. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).
 
-Для ветвления логики агент использует exit codes (`0` успех, `3` нет доступа, `4` не найдено) и поле `type` в JSON-ошибке (`PACHCA_AUTH_ERROR`, `PACHCA_VALIDATION_ERROR` и т.д.).
+```bash
+# Произвольный запрос к любому эндпоинту
+pachca api POST /messages -F message[chat_id]=123 -f message[content]="Привет"
 
-Если нужного метода нет под рукой, не обязательно грузить документацию в контекст или открывать сайт — CLI подскажет точечно: `api ls` (список эндпоинтов), затем `api <МЕТОД> <путь> --describe` (параметры, тело, эквивалентная команда), и агент сразу её вызывает.
-
-> CLI автоматически определяет неинтерактивную среду (stdin/stdout — не TTY) и адаптируется: выводит JSON вместо таблиц, отключает промпты и спиннер, а при пропущенных обязательных флагах — возвращает ошибку вместо запроса ввода. Флаг `--no-input -o json` фиксирует этот режим явно.
-
+# Документация по API прямо в терминале
+pachca api ls                         # список эндпоинтов
+pachca api POST /messages --describe  # параметры, тело, эквивалентная команда
+pachca api GET /messages --spec       # OpenAPI-фрагмент
+pachca api POST /messages --docs      # полный markdown-референс
+```
 
 - [@pachca/cli](https://www.npmjs.com/package/@pachca/cli) — Пакет на npm
 - [Руководство CLI](/guides/cli/overview) — Установка, авторизация, скрипты и CI, полный справочник команд
 
-
-Команда `pachca api` (прямые запросы) и встроенный справочник по API (`api ls` / `--describe` / `--spec` / `--docs`) — в разделе [Прямые запросы](/guides/cli/api-requests).
 
 ### Context7 MCP
 
@@ -1183,6 +1199,17 @@ https://dev.pachca.com/openapi.yaml
 ```
 
 - [OpenAPI-спецификация](/openapi.yaml) — OpenAPI 3.0 — типы, схемы, все эндпоинты
+
+
+### Arazzo (многошаговые сценарии)
+
+OpenAPI описывает отдельные методы; [Arazzo](https://spec.openapis.org/arazzo/latest.html) — стандарт OpenAPI Initiative для готовых последовательностей вызовов. Машиночитаемое описание типовых сценариев Пачки (в каком порядке какие методы вызывать) — полезно агентам и workflow-движкам для многошаговых задач.
+
+```text
+https://dev.pachca.com/workflows.arazzo.yaml
+```
+
+- [Arazzo-сценарии](/workflows.arazzo.yaml) — Многошаговые сценарии API в формате Arazzo 1.0.1
 
 
 ### Agent Skills
@@ -1261,7 +1288,7 @@ pachca messages create --help   # параметры, флаги, примеры
 pachca commands                 # список всех команд
 ```
 
-Полный справочник — [Команды](/guides/cli/commands), готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
+Все команды со всеми флагами — в разделе [Справочник команд](/guides/cli/commands); готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
 
 ### Прямые запросы
 
@@ -1277,11 +1304,12 @@ pachca api POST /messages -f message[content]="Привет"
 
 ## Разделы
 
-- [Команды](/guides/cli/commands) — Полный справочник: каждый метод API как команда со всеми флагами
-- [Скрипты и CI](/guides/cli/scripting) — Форматы вывода, пагинация, exit codes, таксономия ошибок
+- [Вывод](/guides/cli/output) — Форматы (table, json, yaml, csv), колонки, пайпы, пагинация
+- [Флаги и скрипты](/guides/cli/scripting) — Глобальные флаги, exit codes, таксономия ошибок, переменные окружения
 - [Сценарии](/guides/cli/workflows) — Готовые пошаговые рецепты под типовые задачи
 - [Файлы](/guides/cli/files) — Загрузка файла на S3 одной командой
 - [Прямые запросы](/guides/cli/api-requests) — Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале
+- [Справочник команд](/guides/cli/commands) — Все команды; параметры каждой — по клику
 
 
 ---
@@ -1431,286 +1459,7 @@ PACHCA_TOKEN=$PACHCA_SECRET pachca messages create --entity-id 123 --content "Д
 ---
 
 
-# Команды
-
-Паттерн всех команд: `pachca [секция] [действие] [--флаги]`
-
-Имена команд совпадают с URL документации:
-
-```text noCopy
-dev.pachca.com/api/messages/create  →  pachca messages create
-dev.pachca.com/api/chats/list       →  pachca chats list
-dev.pachca.com/api/members/add      →  pachca members add
-```
-
-## Глобальные флаги
-
-Доступны для каждой команды ниже (генерируются из исходного определения флагов в CLI):
-
-| Флаг | Короткий | Описание |
-|------|----------|----------|
-| `--output <value>` | `-o` | Формат вывода: table, json, yaml, csv |
-| `--columns <value>` | `-c` | Колонки для table-вывода (через запятую) |
-| `--no-header` |  | Скрыть заголовок таблицы |
-| `--no-truncate` |  | Не обрезать длинные значения |
-| `--profile <value>` | `-p` | Профиль для этой команды |
-| `--token <value>` |  | Токен для этого вызова (без сохранения) |
-| `--quiet` | `-q` | Подавить вывод (только exit code и ошибки) |
-| `--no-color` |  | Отключить цвета |
-| `--verbose` | `-v` | Показывать HTTP-запросы и ответы |
-| `--no-input` |  | Отключить интерактивные промпты |
-| `--dry-run` |  | Показать запрос без отправки |
-| `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
-| `--no-retry` |  | Отключить авто-retry при 429/503 |
-| `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
-
-
-Переменные окружения (`PACHCA_TOKEN`, `PACHCA_PROFILE`, `CI` и др.) — в разделе [Скрипты и CI](/guides/cli/scripting#peremennye-okruzheniya).
-
-## Все команды
-
-Аргументы и обязательные флаги помечены `*`. Полный список — генерируется из манифеста CLI:
-
-### api
-
-| Команда | Описание |
-|---------|----------|
-| `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe|--spec|--docs` |
-
-### auth
-
-| Команда | Описание |
-|---------|----------|
-| `pachca auth list` | Список сохранённых профилей |
-| `pachca auth login` | Авторизация и сохранение токена |
-| `pachca auth logout` | Удаление сохранённого профиля |
-| `pachca auth status` | Статус текущего профиля |
-| `pachca auth switch` | Переключение активного профиля |
-
-### bots
-
-| Команда | Описание |
-|---------|----------|
-| `pachca bots list-events` | История событий |
-| `pachca bots remove-event` | Удаление события |
-| `pachca bots update` | Редактирование бота |
-
-### changelog
-
-| Команда | Описание |
-|---------|----------|
-| `pachca changelog` | История изменений CLI |
-
-### chats
-
-| Команда | Описание |
-|---------|----------|
-| `pachca chats archive` | Архивация чата |
-| `pachca chats create` | Новый чат |
-| `pachca chats get` | Информация о чате |
-| `pachca chats list` | Список чатов |
-| `pachca chats unarchive` | Разархивация чата |
-| `pachca chats update` | Обновление чата |
-
-### commands
-
-| Команда | Описание |
-|---------|----------|
-| `pachca commands` | Список всех команд |
-
-### common
-
-| Команда | Описание |
-|---------|----------|
-| `pachca common custom-properties` | Список дополнительных полей |
-| `pachca common direct-url` | Загрузка файла |
-| `pachca common get-exports` | Скачать архив экспорта |
-| `pachca common request-export` | Экспорт сообщений |
-| `pachca common uploads` | Получение подписи, ключа и других параметров |
-
-### config
-
-| Команда | Описание |
-|---------|----------|
-| `pachca config get` | Получение значения конфигурации |
-| `pachca config list` | Список всех настроек |
-| `pachca config set` | Установка значения конфигурации |
-
-### doctor
-
-| Команда | Описание |
-|---------|----------|
-| `pachca doctor` | Диагностика окружения: Node.js, сеть, токен, конфигурация |
-
-### group-tags
-
-| Команда | Описание |
-|---------|----------|
-| `pachca group-tags create` | Новый тег |
-| `pachca group-tags delete` | Удаление тега |
-| `pachca group-tags get` | Информация о теге |
-| `pachca group-tags list` | Список тегов сотрудников |
-| `pachca group-tags list-users` | Список сотрудников тега |
-| `pachca group-tags update` | Редактирование тега |
-
-### guide
-
-| Команда | Описание |
-|---------|----------|
-| `pachca guide` | Поиск сценариев использования |
-
-### introspect
-
-| Команда | Описание |
-|---------|----------|
-| `pachca introspect` | Метаданные команды в машиночитаемом формате |
-
-### link-previews
-
-| Команда | Описание |
-|---------|----------|
-| `pachca link-previews add` | Unfurl (разворачивание ссылок) |
-
-### members
-
-| Команда | Описание |
-|---------|----------|
-| `pachca members add` | Добавление пользователей |
-| `pachca members add-group-tags` | Добавление тегов |
-| `pachca members leave` | Выход из беседы или канала |
-| `pachca members list` | Список участников чата |
-| `pachca members remove` | Исключение пользователя |
-| `pachca members remove-group-tag` | Исключение тега |
-| `pachca members update` | Редактирование роли |
-
-### messages
-
-| Команда | Описание |
-|---------|----------|
-| `pachca messages create` | Новое сообщение |
-| `pachca messages delete` | Удаление сообщения |
-| `pachca messages get` | Информация о сообщении |
-| `pachca messages list` | Список сообщений чата |
-| `pachca messages pin` | Закрепление сообщения |
-| `pachca messages unpin` | Открепление сообщения |
-| `pachca messages update` | Редактирование сообщения |
-
-### profile
-
-| Команда | Описание |
-|---------|----------|
-| `pachca profile delete-avatar` | Удаление аватара |
-| `pachca profile delete-status` | Удаление статуса |
-| `pachca profile get` | Информация о профиле |
-| `pachca profile get-info` | Информация о токене |
-| `pachca profile get-status` | Текущий статус |
-| `pachca profile update-avatar` | Загрузка аватара |
-| `pachca profile update-status` | Новый статус |
-
-### reactions
-
-| Команда | Описание |
-|---------|----------|
-| `pachca reactions add` | Добавление реакции |
-| `pachca reactions list` | Список реакций |
-| `pachca reactions remove` | Удаление реакции |
-
-### read-member
-
-| Команда | Описание |
-|---------|----------|
-| `pachca read-member list-readers` | Список прочитавших сообщение |
-
-### search
-
-| Команда | Описание |
-|---------|----------|
-| `pachca search list-chats` | Поиск чатов |
-| `pachca search list-messages` | Поиск сообщений |
-| `pachca search list-users` | Поиск сотрудников |
-
-### security
-
-| Команда | Описание |
-|---------|----------|
-| `pachca security list` | Журнал аудита событий |
-
-### tasks
-
-| Команда | Описание |
-|---------|----------|
-| `pachca tasks create` | Новое напоминание |
-| `pachca tasks delete` | Удаление напоминания |
-| `pachca tasks get` | Информация о напоминании |
-| `pachca tasks list` | Список напоминаний |
-| `pachca tasks update` | Редактирование напоминания |
-
-### threads
-
-| Команда | Описание |
-|---------|----------|
-| `pachca threads add` | Новый тред |
-| `pachca threads get` | Информация о треде |
-
-### upgrade
-
-| Команда | Описание |
-|---------|----------|
-| `pachca upgrade` | Обновить CLI до последней версии |
-
-### upload
-
-| Команда | Описание |
-|---------|----------|
-| `pachca upload` | Загрузить файл (получает подпись и загружает автоматически) |
-
-### users
-
-| Команда | Описание |
-|---------|----------|
-| `pachca users create` | Создать сотрудника |
-| `pachca users delete` | Удаление сотрудника |
-| `pachca users get` | Информация о сотруднике |
-| `pachca users get-status` | Статус сотрудника |
-| `pachca users list` | Список сотрудников |
-| `pachca users remove-avatar` | Удаление аватара сотрудника |
-| `pachca users remove-status` | Удаление статуса сотрудника |
-| `pachca users update` | Редактирование сотрудника |
-| `pachca users update-avatar` | Загрузка аватара сотрудника |
-| `pachca users update-status` | Новый статус сотрудника |
-
-### version
-
-| Команда | Описание |
-|---------|----------|
-| `pachca version` | Версия CLI |
-
-### views
-
-| Команда | Описание |
-|---------|----------|
-| `pachca views open` | Открытие представления |
-
-
-## Справка
-
-```bash
-# Подробная справка по команде
-pachca messages create --help
-
-# Список всех команд
-pachca commands
-
-# Только команды, доступные текущему токену (фильтр по скоупам)
-pachca commands --available
-```
-
-Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).
-
----
-
-
-# Скрипты и CI
+# Вывод
 
 ## Форматы вывода
 
@@ -1801,6 +1550,11 @@ pachca users list --all
 - **Методы поиска** (`pachca search list-users`, `pachca search list-chats`, `pachca search list-messages`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
 
 Подробнее — в разделе [Пагинация](/api/pagination).
+
+---
+
+
+# Флаги и скрипты
 
 ## Глобальные флаги
 
@@ -2124,21 +1878,188 @@ cat payload.json | pachca api POST /messages --input -
 ```bash
 # Список всех эндпоинтов (METHOD PATH SUMMARY SCOPE)
 pachca api ls
-pachca api ls --json          # машиночитаемо
+
+#  METHOD  PATH        SUMMARY                 SCOPE
+#  POST    /chats      Новый чат               chats:create
+#  GET     /chats      Список чатов            chats:read
+#  POST    /messages   Новое сообщение         messages:create
+#  GET     /messages   Список сообщений чата   messages:read
+#  ...     весь список эндпоинтов API
+
+# То же машиночитаемо
+pachca api ls --json
+
+# [
+#   { "method": "POST", "path": "/messages", "summary": "Новое сообщение", "scope": "messages:create" },
+#   ...
+# ]
 
 # Краткая справка по эндпоинту: параметры, тело, скоуп, эквивалентная команда
 pachca api POST /messages --describe
 
+# # POST /messages — Новое сообщение
+# > Скоуп: messages:create
+#
+# ## Тело запроса
+# - message: object (required) — Собранный объект параметров создаваемого сообщения
+#   - entity_id: integer (required) — Идентификатор сущности
+#   - content: string (required) — Текст сообщения
+#   ...
+#
+# ## Эквивалентная команда
+#   pachca messages create --entity-id=334 --content="..." --json --token YOUR_ACCESS_TOKEN
+
 # OpenAPI-фрагмент эндпоинта (схемы запроса/ответа)
 pachca api GET /messages --spec
 
-# Полный markdown-референс эндпоинта
+# {
+#   "method": "GET",
+#   "path": "/messages",
+#   "parameters": [
+#     { "name": "chat_id", "in": "query", "required": true, ... },
+#     ...
+#   ]
+# }
+
+# Полный markdown-референс эндпоинта (как на сайте документации)
 pachca api POST /messages --docs
+
+# # Новое сообщение
+# Метод: POST · Путь: /messages
+# > Скоуп: messages:create
+#
+# ## Тело запроса
+# ...
 ```
 
 Метод указывается позиционно, поэтому `--describe`/`--spec`/`--docs` всегда однозначны — отдельный `-X` не нужен.
 
-Полезно и агентам: они в основном работают [типизированными командами](/guides/cli/commands) и готовыми [сценариями](/guides/cli/workflows), а когда нужного метода нет под рукой — `api ls`/`--describe` дают точечную справку, не загружая всю документацию в контекст. Подробнее — в разделе [AI агенты](/guides/ai-agents).
+Полезно и агентам: они в основном работают [типизированными командами](/guides/cli/commands) и готовыми [сценариями](/guides/cli/workflows), а когда нужного метода нет под рукой — `api ls`/`--describe` дают точечную справку, не загружая всю документацию в контекст.
+
+---
+
+
+# Справочник команд
+
+Паттерн всех команд: `pachca [секция] [действие] [--флаги]`
+
+Имена команд совпадают с URL документации:
+
+```text noCopy
+dev.pachca.com/api/messages/create  →  pachca messages create
+dev.pachca.com/api/chats/list       →  pachca chats list
+dev.pachca.com/api/members/add      →  pachca members add
+```
+
+Глобальные флаги (доступны для всех команд) и переменные окружения — в разделе [Флаги и скрипты](/guides/cli/scripting).
+
+## Все команды
+
+Раскройте строку, чтобы увидеть параметры команды. Обязательные аргументы и флаги помечены `*`.
+
+| Команда | Метод API |
+|---------|-----------|
+| `pachca api` | Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs` |
+| `pachca auth list` | Список сохранённых профилей |
+| `pachca auth login` | Авторизация и сохранение токена |
+| `pachca auth logout` | Удаление сохранённого профиля |
+| `pachca auth status` | Статус текущего профиля |
+| `pachca auth switch` | Переключение активного профиля |
+| `pachca bots list-events` | `GET` История событий |
+| `pachca bots remove-event` | `DELETE` Удаление события |
+| `pachca bots update` | `PUT` Редактирование бота |
+| `pachca changelog` | История изменений CLI |
+| `pachca chats archive` | `PUT` Архивация чата |
+| `pachca chats create` | `POST` Новый чат |
+| `pachca chats get` | `GET` Информация о чате |
+| `pachca chats list` | `GET` Список чатов |
+| `pachca chats unarchive` | `PUT` Разархивация чата |
+| `pachca chats update` | `PUT` Обновление чата |
+| `pachca commands` | Список всех команд |
+| `pachca common custom-properties` | `GET` Список дополнительных полей |
+| `pachca common direct-url` | `POST` Загрузка файла |
+| `pachca common get-exports` | `GET` Скачать архив экспорта |
+| `pachca common request-export` | `POST` Экспорт сообщений |
+| `pachca common uploads` | `POST` Получение подписи, ключа и других параметров |
+| `pachca config get` | Получение значения конфигурации |
+| `pachca config list` | Список всех настроек |
+| `pachca config set` | Установка значения конфигурации |
+| `pachca doctor` | Диагностика окружения: Node.js, сеть, токен, конфигурация |
+| `pachca group-tags create` | `POST` Новый тег |
+| `pachca group-tags delete` | `DELETE` Удаление тега |
+| `pachca group-tags get` | `GET` Информация о теге |
+| `pachca group-tags list` | `GET` Список тегов сотрудников |
+| `pachca group-tags list-users` | `GET` Список сотрудников тега |
+| `pachca group-tags update` | `PUT` Редактирование тега |
+| `pachca guide` | Поиск сценариев использования |
+| `pachca introspect` | Метаданные команды в машиночитаемом формате |
+| `pachca link-previews add` | `POST` Unfurl (разворачивание ссылок) |
+| `pachca members add` | `POST` Добавление пользователей |
+| `pachca members add-group-tags` | `POST` Добавление тегов |
+| `pachca members leave` | `DELETE` Выход из беседы или канала |
+| `pachca members list` | `GET` Список участников чата |
+| `pachca members remove` | `DELETE` Исключение пользователя |
+| `pachca members remove-group-tag` | `DELETE` Исключение тега |
+| `pachca members update` | `PUT` Редактирование роли |
+| `pachca messages create` | `POST` Новое сообщение |
+| `pachca messages delete` | `DELETE` Удаление сообщения |
+| `pachca messages get` | `GET` Информация о сообщении |
+| `pachca messages list` | `GET` Список сообщений чата |
+| `pachca messages pin` | `POST` Закрепление сообщения |
+| `pachca messages unpin` | `DELETE` Открепление сообщения |
+| `pachca messages update` | `PUT` Редактирование сообщения |
+| `pachca profile delete-avatar` | `DELETE` Удаление аватара |
+| `pachca profile delete-status` | `DELETE` Удаление статуса |
+| `pachca profile get` | `GET` Информация о профиле |
+| `pachca profile get-info` | `GET` Информация о токене |
+| `pachca profile get-status` | `GET` Текущий статус |
+| `pachca profile update-avatar` | `PUT` Загрузка аватара |
+| `pachca profile update-status` | `PUT` Новый статус |
+| `pachca reactions add` | `POST` Добавление реакции |
+| `pachca reactions list` | `GET` Список реакций |
+| `pachca reactions remove` | `DELETE` Удаление реакции |
+| `pachca read-member list-readers` | `GET` Список прочитавших сообщение |
+| `pachca search list-chats` | `GET` Поиск чатов |
+| `pachca search list-messages` | `GET` Поиск сообщений |
+| `pachca search list-users` | `GET` Поиск сотрудников |
+| `pachca security list` | `GET` Журнал аудита событий |
+| `pachca tasks create` | `POST` Новое напоминание |
+| `pachca tasks delete` | `DELETE` Удаление напоминания |
+| `pachca tasks get` | `GET` Информация о напоминании |
+| `pachca tasks list` | `GET` Список напоминаний |
+| `pachca tasks update` | `PUT` Редактирование напоминания |
+| `pachca threads add` | `POST` Новый тред |
+| `pachca threads get` | `GET` Информация о треде |
+| `pachca upgrade` | Обновить CLI до последней версии |
+| `pachca upload` | Загрузить файл (получает подпись и загружает автоматически) |
+| `pachca users create` | `POST` Создать сотрудника |
+| `pachca users delete` | `DELETE` Удаление сотрудника |
+| `pachca users get` | `GET` Информация о сотруднике |
+| `pachca users get-status` | `GET` Статус сотрудника |
+| `pachca users list` | `GET` Список сотрудников |
+| `pachca users remove-avatar` | `DELETE` Удаление аватара сотрудника |
+| `pachca users remove-status` | `DELETE` Удаление статуса сотрудника |
+| `pachca users update` | `PUT` Редактирование сотрудника |
+| `pachca users update-avatar` | `PUT` Загрузка аватара сотрудника |
+| `pachca users update-status` | `PUT` Новый статус сотрудника |
+| `pachca version` | Версия CLI |
+| `pachca views open` | `POST` Открытие представления |
+
+
+## Справка
+
+```bash
+# Подробная справка по команде
+pachca messages create --help
+
+# Список всех команд
+pachca commands
+
+# Только команды, доступные текущему токену (фильтр по скоупам)
+pachca commands --available
+```
+
+Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).
 
 ---
 

@@ -59,7 +59,7 @@ pachca messages create --help   # параметры, флаги, примеры
 pachca commands                 # список всех команд
 ```
 
-Полный справочник — [Команды](/guides/cli/commands), готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
+Все команды со всеми флагами — в разделе [Справочник команд](/guides/cli/commands); готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
 
 ### Прямые запросы
 
@@ -76,9 +76,10 @@ pachca api POST /messages -f message[content]="Привет"
 ## Разделы
 
 <CardGroup columns={2}>
-  <Card title="Команды" href="/guides/cli/commands">Полный справочник: каждый метод API как команда со всеми флагами</Card>
-  <Card title="Скрипты и CI" href="/guides/cli/scripting">Форматы вывода, пагинация, exit codes, таксономия ошибок</Card>
+  <Card title="Вывод" href="/guides/cli/output">Форматы (table, json, yaml, csv), колонки, пайпы, пагинация</Card>
+  <Card title="Флаги и скрипты" href="/guides/cli/scripting">Глобальные флаги, exit codes, таксономия ошибок, переменные окружения</Card>
   <Card title="Сценарии" href="/guides/cli/workflows">Готовые пошаговые рецепты под типовые задачи</Card>
   <Card title="Файлы" href="/guides/cli/files">Загрузка файла на S3 одной командой</Card>
   <Card title="Прямые запросы" href="/guides/cli/api-requests">Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале</Card>
+  <Card title="Справочник команд" href="/guides/cli/commands">Все команды; параметры каждой — по клику</Card>
 </CardGroup>

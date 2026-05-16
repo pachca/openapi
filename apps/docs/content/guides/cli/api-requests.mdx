@@ -43,18 +43,60 @@ cat payload.json | pachca api POST /messages --input -
 ```bash
 # Список всех эндпоинтов (METHOD PATH SUMMARY SCOPE)
 pachca api ls
-pachca api ls --json          # машиночитаемо
+
+#  METHOD  PATH        SUMMARY                 SCOPE
+#  POST    /chats      Новый чат               chats:create
+#  GET     /chats      Список чатов            chats:read
+#  POST    /messages   Новое сообщение         messages:create
+#  GET     /messages   Список сообщений чата   messages:read
+#  ...     весь список эндпоинтов API
+
+# То же машиночитаемо
+pachca api ls --json
+
+# [
+#   { "method": "POST", "path": "/messages", "summary": "Новое сообщение", "scope": "messages:create" },
+#   ...
+# ]
 
 # Краткая справка по эндпоинту: параметры, тело, скоуп, эквивалентная команда
 pachca api POST /messages --describe
 
+# # POST /messages — Новое сообщение
+# > Скоуп: messages:create
+#
+# ## Тело запроса
+# - message: object (required) — Собранный объект параметров создаваемого сообщения
+#   - entity_id: integer (required) — Идентификатор сущности
+#   - content: string (required) — Текст сообщения
+#   ...
+#
+# ## Эквивалентная команда
+#   pachca messages create --entity-id=334 --content="..." --json --token YOUR_ACCESS_TOKEN
+
 # OpenAPI-фрагмент эндпоинта (схемы запроса/ответа)
 pachca api GET /messages --spec
 
-# Полный markdown-референс эндпоинта
+# {
+#   "method": "GET",
+#   "path": "/messages",
+#   "parameters": [
+#     { "name": "chat_id", "in": "query", "required": true, ... },
+#     ...
+#   ]
+# }
+
+# Полный markdown-референс эндпоинта (как на сайте документации)
 pachca api POST /messages --docs
+
+# # Новое сообщение
+# Метод: POST · Путь: /messages
+# > Скоуп: messages:create
+#
+# ## Тело запроса
+# ...
 ```
 
 Метод указывается позиционно, поэтому `--describe`/`--spec`/`--docs` всегда однозначны — отдельный `-X` не нужен.
 
-Полезно и агентам: они в основном работают [типизированными командами](/guides/cli/commands) и готовыми [сценариями](/guides/cli/workflows), а когда нужного метода нет под рукой — `api ls`/`--describe` дают точечную справку, не загружая всю документацию в контекст. Подробнее — в разделе [AI агенты](/guides/ai-agents).
+Полезно и агентам: они в основном работают [типизированными командами](/guides/cli/commands) и готовыми [сценариями](/guides/cli/workflows), а когда нужного метода нет под рукой — `api ls`/`--describe` дают точечную справку, не загружая всю документацию в контекст.

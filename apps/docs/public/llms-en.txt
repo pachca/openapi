@@ -89,6 +89,20 @@
 | Swift | `PachcaSDK` | SPM: `https://github.com/pachca/openapi` |
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
+## CLI (Command-Line Interface)
+- Zero-install: `npx @pachca/cli <command> --token <TOKEN>` (always latest). Or `npm install -g @pachca/cli`
+- Every API endpoint is a typed command: `pachca <section> <action> --flags` (e.g. `pachca messages create --entity-id=123 --content="Hi"`)
+- Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
+- Token via `PACHCA_TOKEN` env or `--token` flag — nothing is written to disk
+- Branch on exit codes (`0` success, `3` forbidden, `4` not found); JSON errors carry a `type` field (`PACHCA_AUTH_ERROR`, `PACHCA_VALIDATION_ERROR`, …)
+- **Per-endpoint docs on demand — you do not need to load this whole file.** To get just the endpoint you need:
+  - `npx @pachca/cli api ls` — list every endpoint (`METHOD PATH SUMMARY SCOPE`; add `--json` for machine-readable)
+  - `npx @pachca/cli api <METHOD> <path> --describe` — parameters, body, scope, equivalent typed command
+  - `npx @pachca/cli api <METHOD> <path> --spec` — OpenAPI fragment (request/response schemas)
+  - `npx @pachca/cli api <METHOD> <path> --docs` — full Markdown reference for that one endpoint
+- Arbitrary request to any endpoint: `npx @pachca/cli api <METHOD> <path> -f field=value` (or `-F` typed, `--input body.json`, `--data '{...}'`)
+- Any documentation page is also available as Markdown — append `.md` to its URL (e.g. `https://dev.pachca.com/guides/webhook.md`)
+
 ---
 
 # How-to Guides

@@ -128,7 +128,7 @@ pkill -f n8n; npx n8n start
 
 ## Versioning
 
-- **npm version**: SemVer (`MAJOR.MINOR.PATCH`), current: `2.0.0`
+- **npm version**: SemVer (`MAJOR.MINOR.PATCH`), current: `2.0.8`
 - **n8n node version**: VersionedNodeType with `defaultVersion: 2`
   - `typeVersion: 1` — loads PachcaV1 (frozen V1 class)
   - `typeVersion: 2` — loads PachcaV2 (generated V2 class)

@@ -17,7 +17,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "bun scripts/generate-cli.ts && tsc && oclif manifest && node scripts/patch-manifest.js",
+    "build": "bun scripts/generate-cli.ts && tsc && oclif manifest && node scripts/patch-manifest.js && bun scripts/emit-commands.ts",
     "dev": "node --import tsx bin/dev.js",
     "typecheck": "tsc --noEmit",
     "test": "tsc && vitest run",

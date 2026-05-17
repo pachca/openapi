@@ -2,6 +2,9 @@
   "name": "pachca-api",
   "private": true,
   "packageManager": "bun@1.3.4",
+  "scripts": {
+    "sdk:build": "bash scripts/build-sdks.sh"
+  },
   "workspaces": [
     "apps/*",
     "apps/*/*",

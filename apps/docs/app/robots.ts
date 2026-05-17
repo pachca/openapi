@@ -8,10 +8,14 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'GPTBot', allow: '/' },
       { userAgent: 'OAI-SearchBot', allow: '/' },
       { userAgent: 'ClaudeBot', allow: '/' },
+      { userAgent: 'Claude-SearchBot', allow: '/' },
       { userAgent: 'PerplexityBot', allow: '/' },
       { userAgent: 'Amazonbot', allow: '/' },
+      // Bulk training scraper, not citation-relevant — kept blocked.
       { userAgent: 'CCBot', disallow: '/' },
-      { userAgent: 'Google-Extended', disallow: '/' },
+      // Allowed: enables Gemini / Google AI grounding & citation of these
+      // docs; does NOT affect Google Search ranking.
+      { userAgent: 'Google-Extended', allow: '/' },
       {
         userAgent: '*',
         allow: '/',

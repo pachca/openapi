@@ -10,6 +10,8 @@
 
 Вы можете заполнять дополнительные поля сотрудника, которые созданы в вашей компании. Получить актуальный список идентификаторов дополнительных полей сотрудника вы можете в методе [Список дополнительных полей](GET /custom_properties).
 
+Через параметр `chat_ids` сотрудника можно сразу добавить в указанные чаты. Чтобы создать гостя, передайте `role: "guest"` — для этой роли `chat_ids` обязателен и должен содержать ровно один активный чат, в который у токена есть право добавлять участников. При нарушении правил гостевого доступа возвращается `400` с ошибкой по полю `chat_ids`.
+
 ## Тело запроса
 
 **Обязательно**
@@ -27,9 +29,10 @@
   - `department: string` — Департамент
   - `title: string` — Должность
   - `role: string` — Уровень доступа
-    Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость
+    Значения: `admin` — Администратор, `user` — Сотрудник, `multi_guest` — Мульти-гость, `guest` — Гость
   - `suspended: boolean` — Деактивация пользователя
   - `list_tags: array of string` — Массив тегов, привязываемых к сотруднику
+  - `chat_ids: array of integer` — Идентификаторы чатов, в которые сотрудник будет добавлен сразу при создании. Для роли `guest` параметр обязателен и должен содержать ровно один активный чат.
   - `custom_properties: array of object` — Задаваемые дополнительные поля
     - `id: integer, int32` (required) — Идентификатор поля
     - `value: string` (required) — Устанавливаемое значение
@@ -52,6 +55,9 @@
     "list_tags": [
       "Product",
       "Design"
+    ],
+    "chat_ids": [
+      12345
     ],
     "custom_properties": [
       {
@@ -84,6 +90,9 @@ curl "https://api.pachca.com/api/shared/v1/users" \
     "list_tags": [
       "Product",
       "Design"
+    ],
+    "chat_ids": [
+      12345
     ],
     "custom_properties": [
       {
@@ -146,9 +155,9 @@ curl "https://api.pachca.com/api/shared/v1/users" \
     "id": 12,
     "first_name": "Олег",
     "last_name": "Петров",
-    "nickname": "",
+    "nickname": "olegpetrov",
     "email": "olegp@example.com",
-    "phone_number": "",
+    "phone_number": "+79001234567",
     "department": "Продукт",
     "title": "CIO",
     "role": "admin",

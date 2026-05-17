@@ -76,3 +76,8 @@ obj/
 *.user
 *.suo
 sdk/csharp/examples/Examples.csproj
+
+# Рабочие планы/черновики — не в репозитории
+/CLI_IMPROVEMENTS_PLAN.md
+*_PLAN.md
+/plans/

@@ -51,7 +51,7 @@
     },
     "integrations/n8n": {
       "name": "n8n-nodes-pachca",
-      "version": "0.0.0-dev",
+      "version": "2.0.8",
       "devDependencies": {
         "@n8n/node-cli": "^0.23.0",
         "@pachca/openapi-parser": "workspace:*",
@@ -176,6 +176,11 @@
       },
     },
   },
+  "trustedDependencies": [
+    "esbuild",
+    "sharp",
+    "unrs-resolver",
+  ],
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
 

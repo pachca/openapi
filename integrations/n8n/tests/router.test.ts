@@ -1453,7 +1453,7 @@ describe('BUG 2: v1 user.getAll applies filterOptions client-side', () => {
 	});
 });
 
-describe('Pagination: has_next-driven termination + dual-shape fallback (BAK-2759)', () => {
+describe('Pagination: has_next-driven termination + dual-shape fallback', () => {
 	it('списочный метод: returnAll останавливается на has_next: false', async () => {
 		const ctx = createMockContext({
 			resource: 'user',

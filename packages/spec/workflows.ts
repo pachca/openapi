@@ -1241,6 +1241,41 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
         'Creation available only to admins and owners (not bots). No separate "add user to tag" endpoint.',
     },
     {
+      title: 'Создать гостя в чат',
+      titleEn: 'Create a guest in a chat',
+      related: ['Массовое создание сотрудников с тегами'],
+      relatedEn: ['Bulk create employees with tags'],
+      steps: [
+        {
+          description: 'Выбери активный чат, в который добавить гостя — узнай его ID',
+          descriptionEn: 'Pick the active chat to add the guest to — get its ID',
+          command: 'pachca chats list',
+          apiMethod: 'GET',
+          apiPath: '/chats',
+          notes:
+            'Чат должен быть активным (не архивным) и принадлежать вашей компании. У токена должно быть право добавлять в него участников.',
+          notesEn:
+            'The chat must be active (not archived) and belong to your company. The token must have permission to add members to it.',
+        },
+        {
+          description: 'Создай гостя: роль `guest` и ровно один чат в `--chat-ids`',
+          descriptionEn: 'Create the guest: role `guest` and exactly one chat in `--chat-ids`',
+          command:
+            'pachca users create --email="guest@example.com" --role=guest --chat-ids=\'[12345]\'',
+          apiMethod: 'POST',
+          apiPath: '/users',
+          notes:
+            'Для роли `guest` `chat_ids` обязателен и должен содержать ровно один чат. Нарушение (не передан, пусто, больше одного, чат не существует, архивный или нет прав) → `400` с элементом `errors`, где `key` — `chat_ids`.',
+          notesEn:
+            'For the `guest` role `chat_ids` is required and must contain exactly one chat. Any violation (missing, empty, more than one, chat does not exist, archived, or no permission) → `400` with an `errors` item whose `key` is `chat_ids`.',
+        },
+      ],
+      notes:
+        'Для остальных ролей `chat_ids` опционален — можно сразу добавить в несколько чатов. Создание доступно только администраторам и владельцам (не ботам).',
+      notesEn:
+        'For other roles `chat_ids` is optional — you can add to several chats at once. Creation is available only to admins and owners (not bots).',
+    },
+    {
       title: 'Найти сотрудника по имени или email',
       titleEn: 'Find employee by name or email',
       steps: [

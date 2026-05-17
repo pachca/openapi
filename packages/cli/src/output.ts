@@ -10,6 +10,8 @@ export interface OutputOptions {
   noHeader?: boolean;
   noTruncate?: boolean;
   quiet?: boolean;
+  /** C7 — plain mode: TSV, no header, ID column first, no color. */
+  plain?: boolean;
 }
 
 /**
@@ -20,6 +22,12 @@ export function outputData(
   opts: OutputOptions,
 ): void {
   if (opts.quiet) return;
+
+  // C7 — named plain mode (additive; existing formats untouched).
+  if (opts.plain) {
+    outputPlain(data, opts);
+    return;
+  }
 
   const format = opts.format;
 
@@ -63,6 +71,33 @@ function outputCsv(data: unknown, opts: OutputOptions): void {
       return str;
     });
     process.stdout.write(row.join(',') + '\n');
+  }
+}
+
+/**
+ * C7 — plain mode. Variant of outputCsv for scripts: TSV, no header,
+ * `id` column first (if present), no color, no truncation. Same column
+ * selection as csv/table (OutputOptions.columns). Tabs/newlines inside
+ * values are collapsed to spaces so every record stays on one line
+ * (safe for cut/awk).
+ */
+function outputPlain(data: unknown, opts: OutputOptions): void {
+  const items = Array.isArray(data) ? data : [data];
+  if (items.length === 0) return;
+
+  let columns = opts.columns || Object.keys(items[0] as Record<string, unknown>);
+  if (!opts.columns && columns.includes('id')) {
+    columns = ['id', ...columns.filter((c) => c !== 'id')];
+  }
+
+  for (const item of items) {
+    const row = columns.map((col) => {
+      const val = (item as Record<string, unknown>)[col];
+      if (val == null) return '';
+      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+      return str.replace(/[\t\n\r]+/g, ' ');
+    });
+    process.stdout.write(row.join('\t') + '\n');
   }
 }
 

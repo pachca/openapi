@@ -3,7 +3,7 @@
 
 Это руководство поможет вам выполнить первый запрос к API Пачки — от получения токена до создания чата.
 
-> Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#nastroyka-dostupa)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Также можно использовать [CLI](/guides/cli) — все методы доступны как команды.
+> Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#nastroyka-dostupa)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Также можно использовать [CLI](/guides/cli/overview) — все методы доступны как команды.
 
 
 ## Первые запросы

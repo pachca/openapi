@@ -12,7 +12,7 @@ export default class AuthSwitch extends BaseCommand {
 
   static override args = {
     profile: Args.string({
-      description: 'Profile name to switch to',
+      description: 'Имя профиля для переключения',
       required: true,
     }),
   };

@@ -109,7 +109,7 @@ const iconMap: Record<string, LucideIcon> = {
 const GUIDE_ICONS: Record<string, string> = {
   '/guides/quickstart': 'Zap',
   '/guides/ai-agents': 'Sparkles',
-  '/guides/cli': 'Terminal',
+  '/guides/cli/overview': 'Terminal',
   '/guides/workflows': 'Route',
   '/guides/webhook': 'Webhook',
   '/guides/export': 'Download',

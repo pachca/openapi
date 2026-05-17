@@ -1,0 +1,2700 @@
+[
+  {
+    "section": "api",
+    "commands": [
+      {
+        "command": "pachca api",
+        "summary": "Произвольный запрос к API. Список и справка: `api ls` (список эндпоинтов), `api <МЕТОД> <путь> --describe` / `--spec` / `--docs`",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "method",
+            "required": true,
+            "description": "HTTP-метод (GET, POST, PUT, DELETE, PATCH)"
+          },
+          {
+            "name": "path",
+            "required": true,
+            "description": "Путь API (например, /messages)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "raw-field",
+            "type": "option",
+            "required": false,
+            "description": "Строковое поле (key=value)"
+          },
+          {
+            "name": "field",
+            "type": "option",
+            "required": false,
+            "description": "Типизированное поле (числа/boolean автоматически, @file читает файл)"
+          },
+          {
+            "name": "input",
+            "type": "option",
+            "required": false,
+            "description": "JSON-файл с телом запроса (- для stdin)"
+          },
+          {
+            "name": "data",
+            "type": "option",
+            "required": false,
+            "description": "Тело запроса инлайн JSON-строкой"
+          },
+          {
+            "name": "query",
+            "type": "option",
+            "required": false,
+            "description": "Query-параметр (key=value)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "auth",
+    "commands": [
+      {
+        "command": "pachca auth list",
+        "summary": "Список сохранённых профилей",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca auth login",
+        "summary": "Авторизация и сохранение токена",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca auth logout",
+        "summary": "Удаление сохранённого профиля",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "profile",
+            "required": false,
+            "description": "Имя профиля для удаления"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca auth status",
+        "summary": "Статус текущего профиля",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca auth switch",
+        "summary": "Переключение активного профиля",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "profile",
+            "required": true,
+            "description": "Имя профиля для переключения"
+          }
+        ],
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "bots",
+    "commands": [
+      {
+        "command": "pachca bots list-events",
+        "summary": "История событий",
+        "method": "GET",
+        "path": "/webhooks/events",
+        "scope": "webhooks:events:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca bots remove-event",
+        "summary": "Удаление события",
+        "method": "DELETE",
+        "path": "/webhooks/events/{id}",
+        "scope": "webhooks:events:delete",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор события (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca bots update",
+        "summary": "Редактирование бота",
+        "method": "PUT",
+        "path": "/bots/{id}",
+        "scope": "bots:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор бота (pachca bots list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "webhook",
+            "type": "option",
+            "required": true,
+            "description": "Объект параметров вебхука"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "changelog",
+    "commands": [
+      {
+        "command": "pachca changelog",
+        "summary": "История изменений CLI",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "chats",
+    "commands": [
+      {
+        "command": "pachca chats archive",
+        "summary": "Архивация чата",
+        "method": "PUT",
+        "path": "/chats/{id}/archive",
+        "scope": "chats:archive",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата (pachca chats list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca chats create",
+        "summary": "Новый чат",
+        "method": "POST",
+        "path": "/chats",
+        "scope": "chats:create",
+        "plan": null,
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": true,
+            "description": "Название"
+          },
+          {
+            "name": "member-ids",
+            "type": "option",
+            "required": false,
+            "description": "Массив идентификаторов пользователей, которые станут участниками"
+          },
+          {
+            "name": "group-tag-ids",
+            "type": "option",
+            "required": false,
+            "description": "Массив идентификаторов тегов, которые станут участниками"
+          },
+          {
+            "name": "channel",
+            "type": "boolean",
+            "required": false,
+            "description": "Является каналом"
+          },
+          {
+            "name": "public",
+            "type": "boolean",
+            "required": false,
+            "description": "Открытый доступ"
+          }
+        ]
+      },
+      {
+        "command": "pachca chats get",
+        "summary": "Информация о чате",
+        "method": "GET",
+        "path": "/chats/{id}",
+        "scope": "chats:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата (pachca chats list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca chats list",
+        "summary": "Список чатов",
+        "method": "GET",
+        "path": "/chats",
+        "scope": "chats:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "sort",
+            "type": "option",
+            "required": false,
+            "description": "Поле сортировки",
+            "options": [
+              "id",
+              "last_message_at"
+            ]
+          },
+          {
+            "name": "order",
+            "type": "option",
+            "required": false,
+            "description": "Направление сортировки",
+            "options": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
+            "name": "availability",
+            "type": "option",
+            "required": false,
+            "description": "Параметр, который отвечает за доступность и выборку чатов для пользователя",
+            "options": [
+              "is_member",
+              "public"
+            ]
+          },
+          {
+            "name": "last-message-at-after",
+            "type": "option",
+            "required": false,
+            "description": "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+          },
+          {
+            "name": "last-message-at-before",
+            "type": "option",
+            "required": false,
+            "description": "Фильтрация по времени создания последнего сообщения. Будут возвращены те чаты, время последнего созданного сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+          },
+          {
+            "name": "personal",
+            "type": "boolean",
+            "required": false,
+            "description": "Фильтрация по личным и групповым чатам. Если параметр не указан, возвращаются любые чаты."
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca chats unarchive",
+        "summary": "Разархивация чата",
+        "method": "PUT",
+        "path": "/chats/{id}/unarchive",
+        "scope": "chats:archive",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата (pachca chats list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca chats update",
+        "summary": "Обновление чата",
+        "method": "PUT",
+        "path": "/chats/{id}",
+        "scope": "chats:update",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата (pachca chats list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": false,
+            "description": "Название"
+          },
+          {
+            "name": "public",
+            "type": "boolean",
+            "required": false,
+            "description": "Открытый доступ"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "commands",
+    "commands": [
+      {
+        "command": "pachca commands",
+        "summary": "Список всех команд",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": [
+          {
+            "name": "available",
+            "type": "boolean",
+            "required": false,
+            "description": "Показать только команды, доступные текущему токену"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "common",
+    "commands": [
+      {
+        "command": "pachca common custom-properties",
+        "summary": "Список дополнительных полей",
+        "method": "GET",
+        "path": "/custom_properties",
+        "scope": "custom_properties:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "entity-type",
+            "type": "option",
+            "required": true,
+            "description": "Тип сущности",
+            "options": [
+              "User",
+              "Task"
+            ]
+          }
+        ]
+      },
+      {
+        "command": "pachca common direct-url",
+        "summary": "Загрузка файла",
+        "method": "POST",
+        "path": "/direct_url",
+        "scope": null,
+        "plan": null,
+        "flags": [
+          {
+            "name": "direct-url",
+            "type": "option",
+            "required": false,
+            "description": "URL для отправки запроса (получается из ответа POST /uploads)"
+          },
+          {
+            "name": "content-disposition",
+            "type": "option",
+            "required": true,
+            "description": "Параметр Content-Disposition, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "acl",
+            "type": "option",
+            "required": true,
+            "description": "Параметр acl, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "policy",
+            "type": "option",
+            "required": true,
+            "description": "Параметр policy, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "x-amz-credential",
+            "type": "option",
+            "required": true,
+            "description": "Параметр x-amz-credential, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "x-amz-algorithm",
+            "type": "option",
+            "required": true,
+            "description": "Параметр x-amz-algorithm, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "x-amz-date",
+            "type": "option",
+            "required": true,
+            "description": "Параметр x-amz-date, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "x-amz-signature",
+            "type": "option",
+            "required": true,
+            "description": "Параметр x-amz-signature, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "key",
+            "type": "option",
+            "required": true,
+            "description": "Параметр key, полученный в ответе на запрос [Получение подписи, ключа и других параметров](POST /uploads)"
+          },
+          {
+            "name": "file",
+            "type": "option",
+            "required": false,
+            "description": "Файл для загрузки"
+          }
+        ]
+      },
+      {
+        "command": "pachca common get-exports",
+        "summary": "Скачать архив экспорта",
+        "method": "GET",
+        "path": "/chats/exports/{id}",
+        "scope": "chat_exports:read",
+        "plan": "corporation",
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор экспорта"
+          }
+        ],
+        "flags": [
+          {
+            "name": "save",
+            "type": "option",
+            "required": false,
+            "description": "Путь для сохранения файла"
+          }
+        ]
+      },
+      {
+        "command": "pachca common request-export",
+        "summary": "Экспорт сообщений",
+        "method": "POST",
+        "path": "/chats/exports",
+        "scope": "chat_exports:write",
+        "plan": "corporation",
+        "flags": [
+          {
+            "name": "start-at",
+            "type": "option",
+            "required": true,
+            "description": "Дата начала для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
+          },
+          {
+            "name": "end-at",
+            "type": "option",
+            "required": true,
+            "description": "Дата окончания для экспорта (ISO-8601, UTC+0) в формате YYYY-MM-DD"
+          },
+          {
+            "name": "webhook-url",
+            "type": "option",
+            "required": true,
+            "description": "Адрес, на который будет отправлен вебхук по завершению экспорта"
+          },
+          {
+            "name": "chat-ids",
+            "type": "option",
+            "required": false,
+            "description": "Массив идентификаторов чатов. Указывается, если нужно получить сообщения только некоторых чатов."
+          },
+          {
+            "name": "skip-chats-file",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропуск формирования файла со списком чатов (chats.json)"
+          }
+        ]
+      },
+      {
+        "command": "pachca common uploads",
+        "summary": "Получение подписи, ключа и других параметров",
+        "method": "POST",
+        "path": "/uploads",
+        "scope": "uploads:write",
+        "plan": null,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "config",
+    "commands": [
+      {
+        "command": "pachca config get",
+        "summary": "Получение значения конфигурации",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "key",
+            "required": true,
+            "description": "Ключ настройки"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca config list",
+        "summary": "Список всех настроек",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca config set",
+        "summary": "Установка значения конфигурации",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "key",
+            "required": true,
+            "description": "Ключ настройки"
+          },
+          {
+            "name": "value",
+            "required": true,
+            "description": "Значение настройки"
+          }
+        ],
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "doctor",
+    "commands": [
+      {
+        "command": "pachca doctor",
+        "summary": "Диагностика окружения: Node.js, сеть, токен, конфигурация",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "group-tags",
+    "commands": [
+      {
+        "command": "pachca group-tags create",
+        "summary": "Новый тег",
+        "method": "POST",
+        "path": "/group_tags",
+        "scope": "group_tags:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": true,
+            "description": "Название тега"
+          }
+        ]
+      },
+      {
+        "command": "pachca group-tags delete",
+        "summary": "Удаление тега",
+        "method": "DELETE",
+        "path": "/group_tags/{id}",
+        "scope": "group_tags:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор тега"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca group-tags get",
+        "summary": "Информация о теге",
+        "method": "GET",
+        "path": "/group_tags/{id}",
+        "scope": "group_tags:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор тега"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca group-tags list",
+        "summary": "Список тегов сотрудников",
+        "method": "GET",
+        "path": "/group_tags",
+        "scope": "group_tags:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "names",
+            "type": "option",
+            "required": false,
+            "description": "Массив названий тегов, по которым вы хотите отфильтровать список (через запятую)"
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca group-tags list-users",
+        "summary": "Список сотрудников тега",
+        "method": "GET",
+        "path": "/group_tags/{id}/users",
+        "scope": "group_tags:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор тега"
+          }
+        ],
+        "flags": [
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca group-tags update",
+        "summary": "Редактирование тега",
+        "method": "PUT",
+        "path": "/group_tags/{id}",
+        "scope": "group_tags:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор тега"
+          }
+        ],
+        "flags": [
+          {
+            "name": "name",
+            "type": "option",
+            "required": true,
+            "description": "Название тега"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "guide",
+    "commands": [
+      {
+        "command": "pachca guide",
+        "summary": "Поиск сценариев использования",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "query",
+            "required": false,
+            "description": "Поисковый запрос"
+          }
+        ],
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "introspect",
+    "commands": [
+      {
+        "command": "pachca introspect",
+        "summary": "Метаданные команды в машиночитаемом формате",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "args": [
+          {
+            "name": "command",
+            "required": false,
+            "description": "Имя команды (например, \"messages create\")"
+          }
+        ],
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "link-previews",
+    "commands": [
+      {
+        "command": "pachca link-previews add",
+        "summary": "Unfurl (разворачивание ссылок)",
+        "method": "POST",
+        "path": "/messages/{id}/link_previews",
+        "scope": "link_previews:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "link-previews",
+            "type": "option",
+            "required": true,
+            "description": "`JSON` карта предпросмотров ссылок, где каждый ключ — `URL`, который был получен в исходящем вебхуке о новом сообщении."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "members",
+    "commands": [
+      {
+        "command": "pachca members add",
+        "summary": "Добавление пользователей",
+        "method": "POST",
+        "path": "/chats/{id}/members",
+        "scope": "chat_members:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата (беседа, канал или чат треда)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "member-ids",
+            "type": "option",
+            "required": true,
+            "description": "Массив идентификаторов пользователей, которые станут участниками"
+          },
+          {
+            "name": "silent",
+            "type": "boolean",
+            "required": false,
+            "description": "Не создавать в чате системное сообщение о добавлении участника"
+          }
+        ]
+      },
+      {
+        "command": "pachca members add-group-tags",
+        "summary": "Добавление тегов",
+        "method": "POST",
+        "path": "/chats/{id}/group_tags",
+        "scope": "chat_members:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата"
+          }
+        ],
+        "flags": [
+          {
+            "name": "group-tag-ids",
+            "type": "option",
+            "required": true,
+            "description": "Массив идентификаторов тегов, которые станут участниками"
+          }
+        ]
+      },
+      {
+        "command": "pachca members leave",
+        "summary": "Выход из беседы или канала",
+        "method": "DELETE",
+        "path": "/chats/{id}/leave",
+        "scope": "chats:leave",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca members list",
+        "summary": "Список участников чата",
+        "method": "GET",
+        "path": "/chats/{id}/members",
+        "scope": "chat_members:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата"
+          }
+        ],
+        "flags": [
+          {
+            "name": "role",
+            "type": "option",
+            "required": false,
+            "description": "Роль в чате",
+            "options": [
+              "all",
+              "owner",
+              "admin",
+              "editor",
+              "member"
+            ]
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca members remove",
+        "summary": "Исключение пользователя",
+        "method": "DELETE",
+        "path": "/chats/{id}/members/{user_id}",
+        "scope": "chat_members:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата"
+          },
+          {
+            "name": "user_id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca members remove-group-tag",
+        "summary": "Исключение тега",
+        "method": "DELETE",
+        "path": "/chats/{id}/group_tags/{tag_id}",
+        "scope": "chat_members:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата"
+          },
+          {
+            "name": "tag_id",
+            "required": true,
+            "description": "Идентификатор тега (pachca tags list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca members update",
+        "summary": "Редактирование роли",
+        "method": "PUT",
+        "path": "/chats/{id}/members/{user_id}",
+        "scope": "chat_members:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор чата"
+          },
+          {
+            "name": "user_id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "role",
+            "type": "option",
+            "required": true,
+            "description": "Роль"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "messages",
+    "commands": [
+      {
+        "command": "pachca messages create",
+        "summary": "Новое сообщение",
+        "method": "POST",
+        "path": "/messages",
+        "scope": "messages:create",
+        "plan": null,
+        "flags": [
+          {
+            "name": "entity-type",
+            "type": "option",
+            "required": false,
+            "description": "Тип сущности"
+          },
+          {
+            "name": "entity-id",
+            "type": "option",
+            "required": true,
+            "description": "Идентификатор сущности (pachca chats list | pachca users list)"
+          },
+          {
+            "name": "content",
+            "type": "option",
+            "required": true,
+            "description": "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`)."
+          },
+          {
+            "name": "files",
+            "type": "option",
+            "required": false,
+            "description": "Прикрепляемые файлы"
+          },
+          {
+            "name": "buttons",
+            "type": "option",
+            "required": false,
+            "description": "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке."
+          },
+          {
+            "name": "parent-message-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор сообщения. Указывается в случае, если вы отправляете ответ на другое сообщение."
+          },
+          {
+            "name": "display-avatar-url",
+            "type": "option",
+            "required": false,
+            "description": "Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. (макс. 255 символов)"
+          },
+          {
+            "name": "display-name",
+            "type": "option",
+            "required": false,
+            "description": "Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота. (макс. 255 символов)"
+          },
+          {
+            "name": "skip-invite-mentions",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропуск добавления упоминаемых пользователей в тред. Работает только при отправке сообщения в тред."
+          },
+          {
+            "name": "link-preview",
+            "type": "boolean",
+            "required": false,
+            "description": "Отображение предпросмотра первой найденной ссылки в тексте сообщения"
+          }
+        ]
+      },
+      {
+        "command": "pachca messages delete",
+        "summary": "Удаление сообщения",
+        "method": "DELETE",
+        "path": "/messages/{id}",
+        "scope": "messages:delete",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca messages get",
+        "summary": "Информация о сообщении",
+        "method": "GET",
+        "path": "/messages/{id}",
+        "scope": "messages:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca messages list",
+        "summary": "Список сообщений чата",
+        "method": "GET",
+        "path": "/messages",
+        "scope": "messages:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "chat_id",
+            "required": false,
+            "description": "Идентификатор чата (беседа, канал, диалог или чат треда)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "chat-id",
+            "type": "option",
+            "required": true,
+            "description": "Идентификатор чата (беседа, канал, диалог или чат треда)"
+          },
+          {
+            "name": "sort",
+            "type": "option",
+            "required": false,
+            "description": "Поле сортировки",
+            "options": [
+              "id"
+            ]
+          },
+          {
+            "name": "order",
+            "type": "option",
+            "required": false,
+            "description": "Направление сортировки",
+            "options": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca messages pin",
+        "summary": "Закрепление сообщения",
+        "method": "POST",
+        "path": "/messages/{id}/pin",
+        "scope": "pins:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca messages unpin",
+        "summary": "Открепление сообщения",
+        "method": "DELETE",
+        "path": "/messages/{id}/pin",
+        "scope": "pins:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca messages update",
+        "summary": "Редактирование сообщения",
+        "method": "PUT",
+        "path": "/messages/{id}",
+        "scope": "messages:update",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения (pachca messages list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "content",
+            "type": "option",
+            "required": false,
+            "description": "Текст сообщения. Поддерживает упоминания: `@nickname` или `<@user_id>` (будет автоматически преобразовано в `@nickname`)."
+          },
+          {
+            "name": "files",
+            "type": "option",
+            "required": false,
+            "description": "Прикрепляемые файлы"
+          },
+          {
+            "name": "buttons",
+            "type": "option",
+            "required": false,
+            "description": "Массив строк, каждая из которых представлена массивом кнопок. Максимум 100 кнопок у сообщения, до 8 кнопок в строке. Для удаления кнопок пришлите пустой массив."
+          },
+          {
+            "name": "display-avatar-url",
+            "type": "option",
+            "required": false,
+            "description": "Ссылка на специальную аватарку отправителя для этого сообщения. Использование этого поля возможно только с access_token бота."
+          },
+          {
+            "name": "display-name",
+            "type": "option",
+            "required": false,
+            "description": "Полное специальное имя отправителя для этого сообщения. Использование этого поля возможно только с access_token бота."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "profile",
+    "commands": [
+      {
+        "command": "pachca profile delete-avatar",
+        "summary": "Удаление аватара",
+        "method": "DELETE",
+        "path": "/profile/avatar",
+        "scope": "profile_avatar:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca profile delete-status",
+        "summary": "Удаление статуса",
+        "method": "DELETE",
+        "path": "/profile/status",
+        "scope": "profile_status:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca profile get",
+        "summary": "Информация о профиле",
+        "method": "GET",
+        "path": "/profile",
+        "scope": "profile:read",
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca profile get-info",
+        "summary": "Информация о токене",
+        "method": "GET",
+        "path": "/oauth/token/info",
+        "scope": null,
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca profile get-status",
+        "summary": "Текущий статус",
+        "method": "GET",
+        "path": "/profile/status",
+        "scope": "profile_status:read",
+        "plan": null,
+        "flags": []
+      },
+      {
+        "command": "pachca profile update-avatar",
+        "summary": "Загрузка аватара",
+        "method": "PUT",
+        "path": "/profile/avatar",
+        "scope": "profile_avatar:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "file",
+            "type": "option",
+            "required": false,
+            "description": "Файл изображения для аватара"
+          }
+        ]
+      },
+      {
+        "command": "pachca profile update-status",
+        "summary": "Новый статус",
+        "method": "PUT",
+        "path": "/profile/status",
+        "scope": "profile_status:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "emoji",
+            "type": "option",
+            "required": true,
+            "description": "Emoji символ статуса"
+          },
+          {
+            "name": "title",
+            "type": "option",
+            "required": true,
+            "description": "Текст статуса"
+          },
+          {
+            "name": "expires-at",
+            "type": "option",
+            "required": false,
+            "description": "Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ"
+          },
+          {
+            "name": "is-away",
+            "type": "boolean",
+            "required": false,
+            "description": "Режим «Нет на месте»"
+          },
+          {
+            "name": "away-message",
+            "type": "option",
+            "required": false,
+            "description": "Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. (макс. 1024 символов)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "reactions",
+    "commands": [
+      {
+        "command": "pachca reactions add",
+        "summary": "Добавление реакции",
+        "method": "POST",
+        "path": "/messages/{id}/reactions",
+        "scope": "reactions:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "code",
+            "type": "option",
+            "required": true,
+            "description": "Emoji символ реакции"
+          },
+          {
+            "name": "name",
+            "type": "option",
+            "required": false,
+            "description": "Текстовое имя эмодзи (используется для кастомных эмодзи)"
+          }
+        ]
+      },
+      {
+        "command": "pachca reactions list",
+        "summary": "Список реакций",
+        "method": "GET",
+        "path": "/messages/{id}/reactions",
+        "scope": "reactions:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca reactions remove",
+        "summary": "Удаление реакции",
+        "method": "DELETE",
+        "path": "/messages/{id}/reactions",
+        "scope": "reactions:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "code",
+            "type": "option",
+            "required": true,
+            "description": "Emoji символ реакции"
+          },
+          {
+            "name": "name",
+            "type": "option",
+            "required": false,
+            "description": "Текстовое имя эмодзи (используется для кастомных эмодзи)"
+          },
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "read-member",
+    "commands": [
+      {
+        "command": "pachca read-member list-readers",
+        "summary": "Список прочитавших сообщение",
+        "method": "GET",
+        "path": "/messages/{id}/read_member_ids",
+        "scope": "messages:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения"
+          }
+        ],
+        "flags": [
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "search",
+    "commands": [
+      {
+        "command": "pachca search list-chats",
+        "summary": "Поиск чатов",
+        "method": "GET",
+        "path": "/search/chats",
+        "scope": "search:chats",
+        "plan": null,
+        "flags": [
+          {
+            "name": "query",
+            "type": "option",
+            "required": false,
+            "description": "Текст поискового запроса"
+          },
+          {
+            "name": "order",
+            "type": "option",
+            "required": false,
+            "description": "Направление сортировки",
+            "options": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
+            "name": "created-from",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по дате создания (от)"
+          },
+          {
+            "name": "created-to",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по дате создания (до)"
+          },
+          {
+            "name": "active",
+            "type": "boolean",
+            "required": false,
+            "description": "Фильтр по активности чата"
+          },
+          {
+            "name": "chat-subtype",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по типу чата",
+            "options": [
+              "discussion",
+              "thread"
+            ]
+          },
+          {
+            "name": "personal",
+            "type": "boolean",
+            "required": false,
+            "description": "Фильтр по личным чатам"
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca search list-messages",
+        "summary": "Поиск сообщений",
+        "method": "GET",
+        "path": "/search/messages",
+        "scope": "search:messages",
+        "plan": null,
+        "flags": [
+          {
+            "name": "query",
+            "type": "option",
+            "required": false,
+            "description": "Текст поискового запроса"
+          },
+          {
+            "name": "order",
+            "type": "option",
+            "required": false,
+            "description": "Направление сортировки",
+            "options": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
+            "name": "created-from",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по дате создания (от)"
+          },
+          {
+            "name": "created-to",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по дате создания (до)"
+          },
+          {
+            "name": "chat-ids",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по ID чатов (через запятую)"
+          },
+          {
+            "name": "user-ids",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по ID авторов сообщений (через запятую)"
+          },
+          {
+            "name": "active",
+            "type": "boolean",
+            "required": false,
+            "description": "Фильтр по активности чата"
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca search list-users",
+        "summary": "Поиск сотрудников",
+        "method": "GET",
+        "path": "/search/users",
+        "scope": "search:users",
+        "plan": null,
+        "flags": [
+          {
+            "name": "query",
+            "type": "option",
+            "required": false,
+            "description": "Текст поискового запроса"
+          },
+          {
+            "name": "sort",
+            "type": "option",
+            "required": false,
+            "description": "Сортировка результатов",
+            "options": [
+              "by_score",
+              "alphabetical"
+            ]
+          },
+          {
+            "name": "order",
+            "type": "option",
+            "required": false,
+            "description": "Направление сортировки",
+            "options": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
+            "name": "created-from",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по дате создания (от)"
+          },
+          {
+            "name": "created-to",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по дате создания (до)"
+          },
+          {
+            "name": "company-roles",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по ролям сотрудников (через запятую)"
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "security",
+    "commands": [
+      {
+        "command": "pachca security list",
+        "summary": "Журнал аудита событий",
+        "method": "GET",
+        "path": "/audit_events",
+        "scope": "audit_events:read",
+        "plan": "corporation",
+        "flags": [
+          {
+            "name": "start-time",
+            "type": "option",
+            "required": false,
+            "description": "Начальная метка времени (включительно)"
+          },
+          {
+            "name": "end-time",
+            "type": "option",
+            "required": false,
+            "description": "Конечная метка времени (исключительно)"
+          },
+          {
+            "name": "event-key",
+            "type": "option",
+            "required": false,
+            "description": "Фильтр по конкретному типу события",
+            "options": [
+              "user_login",
+              "user_logout",
+              "user_2fa_fail",
+              "user_2fa_success",
+              "user_created",
+              "user_deleted",
+              "user_role_changed",
+              "user_updated",
+              "tag_created",
+              "tag_deleted",
+              "user_added_to_tag",
+              "user_removed_from_tag",
+              "chat_created",
+              "chat_renamed",
+              "chat_permission_changed",
+              "user_chat_join",
+              "user_chat_leave",
+              "tag_added_to_chat",
+              "tag_removed_from_chat",
+              "message_updated",
+              "message_deleted",
+              "message_created",
+              "reaction_created",
+              "reaction_deleted",
+              "thread_created",
+              "access_token_created",
+              "access_token_updated",
+              "access_token_destroy",
+              "kms_encrypt",
+              "kms_decrypt",
+              "audit_events_accessed",
+              "dlp_violation_detected",
+              "search_users_api",
+              "search_chats_api",
+              "search_messages_api"
+            ]
+          },
+          {
+            "name": "actor-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор пользователя, выполнившего действие"
+          },
+          {
+            "name": "actor-type",
+            "type": "option",
+            "required": false,
+            "description": "Тип актора"
+          },
+          {
+            "name": "entity-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор затронутой сущности"
+          },
+          {
+            "name": "entity-type",
+            "type": "option",
+            "required": false,
+            "description": "Тип сущности"
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "tasks",
+    "commands": [
+      {
+        "command": "pachca tasks create",
+        "summary": "Новое напоминание",
+        "method": "POST",
+        "path": "/tasks",
+        "scope": "tasks:create",
+        "plan": null,
+        "flags": [
+          {
+            "name": "kind",
+            "type": "option",
+            "required": true,
+            "description": "Тип"
+          },
+          {
+            "name": "content",
+            "type": "option",
+            "required": false,
+            "description": "Описание (по умолчанию — название типа)"
+          },
+          {
+            "name": "due-at",
+            "type": "option",
+            "required": false,
+            "description": "Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени)."
+          },
+          {
+            "name": "priority",
+            "type": "option",
+            "required": false,
+            "description": "Приоритет: 1, 2 (важно) или 3 (очень важно)."
+          },
+          {
+            "name": "performer-ids",
+            "type": "option",
+            "required": false,
+            "description": "Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные» (по умолчанию ответственным назначается вы)"
+          },
+          {
+            "name": "chat-id",
+            "type": "option",
+            "required": false,
+            "description": "Идентификатор чата, к которому привязывается напоминание (pachca chats list)"
+          },
+          {
+            "name": "all-day",
+            "type": "boolean",
+            "required": false,
+            "description": "Напоминание на весь день (без указания времени)"
+          },
+          {
+            "name": "custom-properties",
+            "type": "option",
+            "required": false,
+            "description": "Задаваемые дополнительные поля"
+          }
+        ]
+      },
+      {
+        "command": "pachca tasks delete",
+        "summary": "Удаление напоминания",
+        "method": "DELETE",
+        "path": "/tasks/{id}",
+        "scope": "tasks:delete",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор напоминания (pachca tasks list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca tasks get",
+        "summary": "Информация о напоминании",
+        "method": "GET",
+        "path": "/tasks/{id}",
+        "scope": "tasks:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор напоминания (pachca tasks list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca tasks list",
+        "summary": "Список напоминаний",
+        "method": "GET",
+        "path": "/tasks",
+        "scope": "tasks:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca tasks update",
+        "summary": "Редактирование напоминания",
+        "method": "PUT",
+        "path": "/tasks/{id}",
+        "scope": "tasks:update",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор напоминания (pachca tasks list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "kind",
+            "type": "option",
+            "required": false,
+            "description": "Тип"
+          },
+          {
+            "name": "content",
+            "type": "option",
+            "required": false,
+            "description": "Описание"
+          },
+          {
+            "name": "due-at",
+            "type": "option",
+            "required": false,
+            "description": "Срок выполнения напоминания (ISO-8601) в формате YYYY-MM-DDThh:mm:ss.sssTZD. Если указано время 23:59:59.000, то напоминание будет создано на весь день (без указания времени)."
+          },
+          {
+            "name": "priority",
+            "type": "option",
+            "required": false,
+            "description": "Приоритет: 1, 2 (важно) или 3 (очень важно)."
+          },
+          {
+            "name": "performer-ids",
+            "type": "option",
+            "required": false,
+            "description": "Массив идентификаторов пользователей, привязываемых к напоминанию как «ответственные»"
+          },
+          {
+            "name": "status",
+            "type": "option",
+            "required": false,
+            "description": "Статус"
+          },
+          {
+            "name": "all-day",
+            "type": "boolean",
+            "required": false,
+            "description": "Напоминание на весь день (без указания времени)"
+          },
+          {
+            "name": "done-at",
+            "type": "option",
+            "required": false,
+            "description": "Дата и время выполнения напоминания (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ"
+          },
+          {
+            "name": "custom-properties",
+            "type": "option",
+            "required": false,
+            "description": "Задаваемые дополнительные поля"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "threads",
+    "commands": [
+      {
+        "command": "pachca threads add",
+        "summary": "Новый тред",
+        "method": "POST",
+        "path": "/messages/{id}/thread",
+        "scope": "threads:create",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор сообщения"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca threads get",
+        "summary": "Информация о треде",
+        "method": "GET",
+        "path": "/threads/{id}",
+        "scope": "threads:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор треда"
+          }
+        ],
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "upgrade",
+    "commands": [
+      {
+        "command": "pachca upgrade",
+        "summary": "Обновить CLI до последней версии",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "upload",
+    "commands": [
+      {
+        "command": "pachca upload",
+        "summary": "Загрузить файл (получает подпись и загружает автоматически)",
+        "method": null,
+        "path": null,
+        "scope": "uploads:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "file",
+            "required": true,
+            "description": "Путь к файлу или - для stdin"
+          }
+        ],
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "users",
+    "commands": [
+      {
+        "command": "pachca users create",
+        "summary": "Создать сотрудника",
+        "method": "POST",
+        "path": "/users",
+        "scope": "users:create",
+        "plan": null,
+        "flags": [
+          {
+            "name": "first-name",
+            "type": "option",
+            "required": false,
+            "description": "Имя"
+          },
+          {
+            "name": "last-name",
+            "type": "option",
+            "required": false,
+            "description": "Фамилия"
+          },
+          {
+            "name": "email",
+            "type": "option",
+            "required": true,
+            "description": "Электронная почта"
+          },
+          {
+            "name": "phone-number",
+            "type": "option",
+            "required": false,
+            "description": "Телефон"
+          },
+          {
+            "name": "nickname",
+            "type": "option",
+            "required": false,
+            "description": "Имя пользователя"
+          },
+          {
+            "name": "department",
+            "type": "option",
+            "required": false,
+            "description": "Департамент"
+          },
+          {
+            "name": "title",
+            "type": "option",
+            "required": false,
+            "description": "Должность"
+          },
+          {
+            "name": "role",
+            "type": "option",
+            "required": false,
+            "description": "Уровень доступа"
+          },
+          {
+            "name": "suspended",
+            "type": "boolean",
+            "required": false,
+            "description": "Деактивация пользователя"
+          },
+          {
+            "name": "list-tags",
+            "type": "option",
+            "required": false,
+            "description": "Массив тегов, привязываемых к сотруднику"
+          },
+          {
+            "name": "chat-ids",
+            "type": "option",
+            "required": false,
+            "description": "Идентификаторы чатов, в которые сотрудник будет добавлен сразу при создании. Для роли `guest` параметр обязателен и должен содержать ровно один активный чат."
+          },
+          {
+            "name": "custom-properties",
+            "type": "option",
+            "required": false,
+            "description": "Задаваемые дополнительные поля"
+          },
+          {
+            "name": "skip-email-notify",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропуск этапа отправки приглашения сотруднику. Сотруднику не будет отправлено письмо на электронную почту с приглашением создать аккаунт. Полезно при предварительном создании аккаунтов перед входом через SSO."
+          }
+        ]
+      },
+      {
+        "command": "pachca users delete",
+        "summary": "Удаление сотрудника",
+        "method": "DELETE",
+        "path": "/users/{id}",
+        "scope": "users:delete",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca users get",
+        "summary": "Информация о сотруднике",
+        "method": "GET",
+        "path": "/users/{id}",
+        "scope": "users:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca users get-status",
+        "summary": "Статус сотрудника",
+        "method": "GET",
+        "path": "/users/{user_id}/status",
+        "scope": "user_status:read",
+        "plan": null,
+        "args": [
+          {
+            "name": "user_id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": []
+      },
+      {
+        "command": "pachca users list",
+        "summary": "Список сотрудников",
+        "method": "GET",
+        "path": "/users",
+        "scope": "users:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "query",
+            "type": "option",
+            "required": false,
+            "description": "Поисковая фраза для фильтрации результатов. Поиск работает по полям: `first_name` (имя), `last_name` (фамилия), `email` (электронная почта), `phone_number` (телефон) и `nickname` (никнейм)."
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
+      },
+      {
+        "command": "pachca users remove-avatar",
+        "summary": "Удаление аватара сотрудника",
+        "method": "DELETE",
+        "path": "/users/{user_id}/avatar",
+        "scope": "user_avatar:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "user_id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca users remove-status",
+        "summary": "Удаление статуса сотрудника",
+        "method": "DELETE",
+        "path": "/users/{user_id}/status",
+        "scope": "user_status:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "user_id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "force",
+            "type": "boolean",
+            "required": false,
+            "description": "Пропустить подтверждение"
+          }
+        ]
+      },
+      {
+        "command": "pachca users update",
+        "summary": "Редактирование сотрудника",
+        "method": "PUT",
+        "path": "/users/{id}",
+        "scope": "users:update",
+        "plan": null,
+        "args": [
+          {
+            "name": "id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "first-name",
+            "type": "option",
+            "required": false,
+            "description": "Имя"
+          },
+          {
+            "name": "last-name",
+            "type": "option",
+            "required": false,
+            "description": "Фамилия"
+          },
+          {
+            "name": "email",
+            "type": "option",
+            "required": false,
+            "description": "Электронная почта"
+          },
+          {
+            "name": "phone-number",
+            "type": "option",
+            "required": false,
+            "description": "Телефон"
+          },
+          {
+            "name": "nickname",
+            "type": "option",
+            "required": false,
+            "description": "Имя пользователя"
+          },
+          {
+            "name": "department",
+            "type": "option",
+            "required": false,
+            "description": "Департамент"
+          },
+          {
+            "name": "title",
+            "type": "option",
+            "required": false,
+            "description": "Должность"
+          },
+          {
+            "name": "role",
+            "type": "option",
+            "required": false,
+            "description": "Уровень доступа"
+          },
+          {
+            "name": "suspended",
+            "type": "boolean",
+            "required": false,
+            "description": "Деактивация пользователя"
+          },
+          {
+            "name": "list-tags",
+            "type": "option",
+            "required": false,
+            "description": "Массив тегов, привязываемых к сотруднику"
+          },
+          {
+            "name": "custom-properties",
+            "type": "option",
+            "required": false,
+            "description": "Задаваемые дополнительные поля"
+          }
+        ]
+      },
+      {
+        "command": "pachca users update-avatar",
+        "summary": "Загрузка аватара сотрудника",
+        "method": "PUT",
+        "path": "/users/{user_id}/avatar",
+        "scope": "user_avatar:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "user_id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "file",
+            "type": "option",
+            "required": false,
+            "description": "Файл изображения для аватара"
+          }
+        ]
+      },
+      {
+        "command": "pachca users update-status",
+        "summary": "Новый статус сотрудника",
+        "method": "PUT",
+        "path": "/users/{user_id}/status",
+        "scope": "user_status:write",
+        "plan": null,
+        "args": [
+          {
+            "name": "user_id",
+            "required": true,
+            "description": "Идентификатор пользователя (pachca users list)"
+          }
+        ],
+        "flags": [
+          {
+            "name": "emoji",
+            "type": "option",
+            "required": true,
+            "description": "Emoji символ статуса"
+          },
+          {
+            "name": "title",
+            "type": "option",
+            "required": true,
+            "description": "Текст статуса"
+          },
+          {
+            "name": "expires-at",
+            "type": "option",
+            "required": false,
+            "description": "Срок жизни статуса (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ"
+          },
+          {
+            "name": "is-away",
+            "type": "boolean",
+            "required": false,
+            "description": "Режим «Нет на месте»"
+          },
+          {
+            "name": "away-message",
+            "type": "option",
+            "required": false,
+            "description": "Текст сообщения при режиме «Нет на месте». Отображается в профиле и при личных сообщениях/упоминаниях. (макс. 1024 символов)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section": "version",
+    "commands": [
+      {
+        "command": "pachca version",
+        "summary": "Версия CLI",
+        "method": null,
+        "path": null,
+        "scope": null,
+        "plan": null,
+        "flags": []
+      }
+    ]
+  },
+  {
+    "section": "views",
+    "commands": [
+      {
+        "command": "pachca views open",
+        "summary": "Открытие представления",
+        "method": "POST",
+        "path": "/views/open",
+        "scope": "views:write",
+        "plan": null,
+        "flags": [
+          {
+            "name": "title",
+            "type": "option",
+            "required": true,
+            "description": "Заголовок представления (макс. 24 символов)"
+          },
+          {
+            "name": "close-text",
+            "type": "option",
+            "required": false,
+            "description": "Текст кнопки закрытия представления (макс. 24 символов)"
+          },
+          {
+            "name": "submit-text",
+            "type": "option",
+            "required": false,
+            "description": "Текст кнопки отправки формы (макс. 24 символов)"
+          },
+          {
+            "name": "blocks",
+            "type": "option",
+            "required": true,
+            "description": "Массив блоков представления"
+          },
+          {
+            "name": "type",
+            "type": "option",
+            "required": true,
+            "description": "Способ открытия представления",
+            "options": [
+              "modal"
+            ]
+          },
+          {
+            "name": "trigger-id",
+            "type": "option",
+            "required": true,
+            "description": "Уникальный идентификатор события (полученный, например, в исходящем вебхуке о нажатии кнопки)"
+          },
+          {
+            "name": "private-metadata",
+            "type": "option",
+            "required": false,
+            "description": "Необязательная строка, которая будет отправлена в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для передачи в формате `JSON` какой то дополнительной информации вместе с заполненной пользователем формой. (макс. 3000 символов)"
+          },
+          {
+            "name": "callback-id",
+            "type": "option",
+            "required": false,
+            "description": "Необязательный идентификатор для распознавания этого представления, который будет отправлен в ваше приложение при отправке пользователем заполненной формы. Используйте это поле, например, для понимания, какую форму должен был заполнить пользователь. (макс. 255 символов)"
+          }
+        ]
+      }
+    ]
+  }
+]

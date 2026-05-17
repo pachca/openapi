@@ -1,0 +1,682 @@
+arazzo: 1.0.1
+info:
+  title: Pachca API Workflows
+  version: 1.0.0
+  summary: Multi-step recipes for common Pachca API tasks, referencing the Pachca OpenAPI description.
+sourceDescriptions:
+  - name: pachca
+    url: https://dev.pachca.com/openapi.yaml
+    type: openapi
+workflows:
+  - workflowId: find-chat-by-name-and-send-message
+    summary: Find chat by name and send message
+    description: '`entity_type` defaults to `"discussion"`, can be omitted.'
+    steps:
+      - stepId: find-chat-by-name-and-send-message-1
+        description: Find chat by name via search (If multiple results — pick the best match by `name`)
+        operationId: SearchOperations_searchChats
+      - stepId: find-chat-by-name-and-send-message-2
+        description: Send message to the found chat
+        operationId: MessageOperations_createMessage
+  - workflowId: send-message-to-channel-or-conversation-if-chat-id-is-kn
+    summary: Send message to channel or conversation (if chat_id is known)
+    description: '`"entity_type": "discussion"` is used by default, can be omitted'
+    steps:
+      - stepId: send-message-to-channel-or-conversation-if-chat-id-is-kn-1
+        description: Send message to chat
+        operationId: MessageOperations_createMessage
+  - workflowId: send-direct-message-to-user
+    summary: Send direct message to user
+    description: No need to create a chat — it is created automatically
+    steps:
+      - stepId: send-direct-message-to-user-1
+        description: Determine recipient `user_id` (Or take user_id from context (webhook, previous request))
+        operationId: SearchOperations_searchUsers
+      - stepId: send-direct-message-to-user-2
+        description: Send direct message
+        operationId: MessageOperations_createMessage
+  - workflowId: reply-to-thread
+    summary: Reply to thread
+    description: '`skip_invite_mentions: true` — do not automatically add mentioned users to thread.'
+    steps:
+      - stepId: reply-to-thread-1
+        description: >-
+          Get or create thread, take `thread.id` from response (If thread already exists, the
+          existing one is returned)
+        operationId: ThreadOperations_createThread
+      - stepId: reply-to-thread-2
+        description: Send message to thread
+        operationId: MessageOperations_createMessage
+  - workflowId: reply-to-user-who-messaged-the-bot
+    summary: Reply to user who messaged the bot
+    description: >-
+      If bot was called in a thread — main context is in thread parent message. Webhook has
+      `thread.message_id` — get parent message: `pachca messages get <message_id>`. Manual
+      prerequisites: Webhook contains `entity_type` that determines context: `"user"` — DM to bot,
+      `"thread"` — message in thread, `"discussion"` — message in channel or conversation.
+    steps:
+      - stepId: reply-to-user-who-messaged-the-bot-1
+        description: 'DM (`entity_type: "user"`): reply with direct message'
+        operationId: MessageOperations_createMessage
+      - stepId: reply-to-user-who-messaged-the-bot-2
+        description: >-
+          Thread (`entity_type: "thread"`): reply in the same thread (No nested threads — reply goes
+          to the same thread)
+        operationId: MessageOperations_createMessage
+      - stepId: reply-to-user-who-messaged-the-bot-3
+        description: >-
+          Conversation/channel (`entity_type: "discussion"`): inline reply or thread
+          (`parent_message_id` visually links reply to the message)
+        operationId: MessageOperations_createMessage
+  - workflowId: send-message-with-files
+    summary: Send message with files
+    description: >-
+      `pachca upload` automatically gets signature (POST /uploads), substitutes filename in `key`,
+      and uploads to S3. Returns ready-to-use `key` for `files`. Manual prerequisites: Upload each
+      file — command returns `key`.
+    steps:
+      - stepId: send-message-with-files-1
+        description: Send message with all files
+        operationId: MessageOperations_createMessage
+  - workflowId: send-message-with-buttons
+    summary: Send message with buttons
+    description: >-
+      `buttons` — array of arrays (rows × buttons). Max 100 buttons, up to 8 per row. Button with
+      `url` opens link, with `data` — sends event to webhook. Manual prerequisites: Build `buttons`
+      array — array of rows, each row is an array of buttons.
+    steps:
+      - stepId: send-message-with-buttons-1
+        description: Send message with buttons
+        operationId: MessageOperations_createMessage
+  - workflowId: get-chat-message-history
+    summary: Get chat message history
+    description: >-
+      For thread messages use thread `chat_id` (`thread.chat_id`). Pagination is cursor-based, not
+      page-based.
+    steps:
+      - stepId: get-chat-message-history-1
+        description: >-
+          Get chat messages with pagination (`limit` (1-50), `cursor`, `sort[id]=asc` or `desc`
+          (default))
+        operationId: ChatMessageOperations_listChatMessages
+  - workflowId: get-attachments-from-message
+    summary: Get attachments from message
+    description: >-
+      Webhook for new message does NOT contain attachments — `files` field is absent. Always check
+      attachments via GET /messages/{id}. Manual prerequisites: Download files via `files[].url`.
+    steps:
+      - stepId: get-attachments-from-message-1
+        description: Get message — `files[]` contains objects with `url`, `name`, `file_type`, `size`
+        operationId: MessageOperations_getMessage
+  - workflowId: pin-unpin-message
+    summary: Pin/unpin message
+    description: A chat can have multiple pinned messages.
+    steps:
+      - stepId: pin-unpin-message-1
+        description: Pin message
+        operationId: MessageOperations_pinMessage
+      - stepId: pin-unpin-message-2
+        description: Unpin message
+        operationId: MessageOperations_unpinMessage
+  - workflowId: subscribe-to-message-thread
+    summary: Subscribe to message thread
+    description: >-
+      POST /messages/{id}/thread is idempotent — safe to call repeatedly. Manual prerequisites: Now
+      the bot will receive webhook events about new messages in this thread.
+    steps:
+      - stepId: subscribe-to-message-thread-1
+        description: Get or create thread, take `chat_id` from response
+        operationId: ThreadOperations_createThread
+      - stepId: subscribe-to-message-thread-2
+        description: Add bot to thread chat members
+        operationId: ChatMemberOperations_addMembers
+  - workflowId: mention-user
+    summary: Mention user
+    description: >-
+      If `user_id` is known, use `<@user_id>` — simpler and requires no lookup. Searching among chat
+      members is more precise — user is explicitly linked to context. Manual prerequisites: If you
+      know the `user_id` — insert `<@user_id>` into the message text (e.g. `<@123>`). Backend
+      automatically converts to `@nickname`. No further steps needed; If you only know the name —
+      determine search query, use last name (more unique). Names are not declined in API, use
+      nominative case; One result → use `nickname`. Multiple → ask user to clarify; Insert
+      `@nickname` or `<@user_id>` into message text.
+    steps:
+      - stepId: mention-user-1
+        description: Search among target chat members (Filter by name on client side)
+        operationId: ChatMemberOperations_listMembers
+      - stepId: mention-user-2
+        description: 'If writing to thread: also check parent chat members'
+        operationId: ChatMemberOperations_listMembers
+      - stepId: mention-user-3
+        description: Not found — search entire company
+        operationId: SearchOperations_searchUsers
+  - workflowId: edit-message
+    summary: Edit message
+    description: Can only edit own messages (or on behalf of bot).
+    steps:
+      - stepId: edit-message-1
+        description: Update message
+        operationId: MessageOperations_updateMessage
+  - workflowId: update-message-attachments
+    summary: Update message attachments
+    description: '`files: []` removes all attachments. If `files` field is omitted — attachments are unchanged.'
+    steps:
+      - stepId: update-message-attachments-1
+        description: >-
+          Get current attachments from `files[]` (Save needed objects (`key`, `name`, `file_type`,
+          `size`))
+        operationId: MessageOperations_getMessage
+      - stepId: update-message-attachments-2
+        description: If adding new file — upload it
+        operationId: UploadOperations_getUploadParams
+      - stepId: update-message-attachments-3
+        description: >-
+          Update message with new `files` array (`files` on edit is replace-all: the sent array
+          completely replaces current attachments)
+        operationId: MessageOperations_updateMessage
+  - workflowId: delete-message
+    summary: Delete message
+    steps:
+      - stepId: delete-message-1
+        description: Delete message
+        operationId: MessageOperations_deleteMessage
+  - workflowId: add-reaction-to-message
+    summary: Add reaction to message
+    description: '`code` — emoji character, not its text name.'
+    steps:
+      - stepId: add-reaction-to-message-1
+        description: Add reaction
+        operationId: ReactionOperations_addReaction
+      - stepId: add-reaction-to-message-2
+        description: Remove reaction
+        operationId: ReactionOperations_removeReaction
+  - workflowId: check-who-read-a-message
+    summary: Check who read a message
+    steps:
+      - stepId: check-who-read-a-message-1
+        description: Get array of `user_id` who read the message
+        operationId: ReadMemberOperations_listReadMembers
+      - stepId: check-who-read-a-message-2
+        description: If needed, match with employee names
+        operationId: UserOperations_listUsers
+  - workflowId: send-notification-to-multiple-users
+    summary: Send notification to multiple users
+    description: 'Respect rate limit: ~4 req/sec for messages. Add delays for large lists.'
+    steps:
+      - stepId: send-notification-to-multiple-users-1
+        description: >-
+          Determine list of recipient `user_id`s (Or get user_ids from tag — see "Get all employees
+          of a tag/department")
+        operationId: UserOperations_listUsers
+      - stepId: send-notification-to-multiple-users-2
+        description: 'For each: send direct message (For each recipient)'
+        operationId: MessageOperations_createMessage
+  - workflowId: create-channel-and-invite-members
+    summary: Create channel and invite members
+    description: '`channel` — boolean, not string. `member_ids` and `group_tag_ids` — optional on creation.'
+    steps:
+      - stepId: create-channel-and-invite-members-1
+        description: >-
+          Create channel with members (`"channel": true` for channel, `false` (default) for
+          conversation. Members can be passed immediately: `member_ids` and/or `group_tag_ids`)
+        operationId: ChatOperations_createChat
+      - stepId: create-channel-and-invite-members-2
+        description: Or add members later
+        operationId: ChatMemberOperations_addMembers
+  - workflowId: archive-and-manage-chat
+    summary: Archive and manage chat
+    steps:
+      - stepId: archive-and-manage-chat-1
+        description: Archive chat
+        operationId: ChatOperations_archiveChat
+      - stepId: archive-and-manage-chat-2
+        description: Unarchive chat
+        operationId: ChatOperations_unarchiveChat
+      - stepId: archive-and-manage-chat-3
+        description: >-
+          Change member role (`role`: `"admin"` | `"member"` | `"editor"` (channels only). Creator
+          role cannot be changed.)
+        operationId: ChatMemberOperations_updateMemberRole
+      - stepId: archive-and-manage-chat-4
+        description: Remove member
+        operationId: ChatMemberOperations_removeMember
+      - stepId: archive-and-manage-chat-5
+        description: Leave chat
+        operationId: ChatMemberOperations_leaveChat
+  - workflowId: rename-or-update-chat
+    summary: Rename or update chat
+    description: To change members use POST/DELETE /chats/{id}/members.
+    steps:
+      - stepId: rename-or-update-chat-1
+        description: 'Update chat (Available fields: `name`, `public`)'
+        operationId: ChatOperations_updateChat
+  - workflowId: create-project-conversation-from-template
+    summary: Create project conversation from template
+    description: '`group_tag_ids` on creation adds all tag members at once.'
+    steps:
+      - stepId: create-project-conversation-from-template-1
+        description: Create conversation with members from tag
+        operationId: ChatOperations_createChat
+      - stepId: create-project-conversation-from-template-2
+        description: Send welcome message
+        operationId: MessageOperations_createMessage
+  - workflowId: export-chat-history
+    summary: Export chat history
+    description: >-
+      `webhook_url` required — POST does not return id in response. Export available only to Owner
+      on "Corporation" plan. Max period: 45 days (366 when specific chats are specified). Manual
+      prerequisites: Wait for webhook: JSON with `"type": "export"`, `"event": "ready"` and
+      `export_id`.
+    steps:
+      - stepId: export-chat-history-1
+        description: >-
+          Request export (`start_at`, `end_at` (YYYY-MM-DD), `webhook_url` required — request is
+          async)
+        operationId: ExportOperations_requestExport
+      - stepId: export-chat-history-2
+        description: Download export file (Server returns 302, HTTP client downloads file automatically)
+        operationId: ExportOperations_downloadExport
+  - workflowId: find-active-chats-for-period
+    summary: Find active chats for period
+    steps:
+      - stepId: find-active-chats-for-period-1
+        description: >-
+          Get chats with activity after specified date (For range add `--last-message-at-before`.
+          Date in ISO-8601 UTC+0)
+        operationId: ChatOperations_listChats
+  - workflowId: find-and-archive-inactive-chats
+    summary: Find and archive inactive chats
+    steps:
+      - stepId: find-and-archive-inactive-chats-1
+        description: Get chats with no activity since specified date
+        operationId: ChatOperations_listChats
+      - stepId: find-and-archive-inactive-chats-2
+        description: 'For each chat: archive (Check `"channel": false` — archiving channels may be undesirable)'
+        operationId: ChatOperations_archiveChat
+  - workflowId: update-bot-webhook-url
+    summary: Update bot webhook URL
+    description: Only users with bot edit permissions can update settings.
+    steps:
+      - stepId: update-bot-webhook-url-1
+        description: >-
+          Update bot webhook URL (Bot `id` (its `user_id`) can be found in "API" tab of bot
+          settings)
+        operationId: BotOperations_updateBot
+  - workflowId: handle-incoming-webhook-event
+    summary: Handle incoming webhook event
+    description: >-
+      Webhook contains minimal data — files (`files`) are absent. Manual prerequisites: Receive POST
+      request on your Webhook URL; Verify signature (Signing secret) for security; Check
+      `webhook_timestamp` — must be within 1 minute; Parse JSON: event type, data.
+    steps:
+      - stepId: handle-incoming-webhook-event-1
+        description: >-
+          For full info request message — especially for attachments (`files[]`) (Webhook does NOT
+          contain files — `files` is absent)
+        operationId: MessageOperations_getMessage
+  - workflowId: link-unfurling
+    summary: Link unfurling
+    description: >-
+      Endpoint is bound to a specific message. Requires a special Unfurl bot with specified domains.
+      Manual prerequisites: Create a special Unfurl bot and specify tracked domains; When a link
+      appears, bot receives webhook `"event": "link_shared"` with `links` array. Each object has
+      `url`, `domain` and `skip: boolean` — if `skip` is `true`, the author hid the preview and the
+      bot must skip this link; Extract data from your system by URL from `links` (skipping objects
+      with `skip: true`).
+    steps:
+      - stepId: link-unfurling-1
+        description: Send preview data
+        operationId: LinkPreviewOperations_createLinkPreviews
+  - workflowId: handle-button-click-callback
+    summary: Handle button click (callback)
+    description: >-
+      Button with `data` sends event to webhook. Button with `url` — opens link (no webhook). Manual
+      prerequisites: Receive webhook with `"event": "message_button_clicked"` — payload: `data`,
+      `user_id`, `message_id`; Perform required action (DB write, API call, etc.).
+    steps:
+      - stepId: handle-button-click-callback-1
+        description: Reply to user
+        operationId: MessageOperations_createMessage
+      - stepId: handle-button-click-callback-2
+        description: 'Optionally: update original message (`"buttons": []` removes buttons)'
+        operationId: MessageOperations_updateMessage
+  - workflowId: periodic-digest-report
+    summary: Periodic digest/report
+    description: >-
+      No built-in scheduler — use cron, celery, sidekiq, etc. on your side. Manual prerequisites: On
+      schedule (cron/scheduler): collect data from your system; Compose message text with metrics or
+      summary.
+    steps:
+      - stepId: periodic-digest-report-1
+        description: Send message to channel
+        operationId: MessageOperations_createMessage
+  - workflowId: monitoring-and-alerts
+    summary: Monitoring and alerts
+    description: >-
+      Manual prerequisites: External system detects event (error, deploy, metric threshold); Makes
+      POST request to bot or directly calls Pachca API; On button click — handle callback and update
+      alert status.
+    steps:
+      - stepId: monitoring-and-alerts-1
+        description: Send alert with buttons to channel
+        operationId: MessageOperations_createMessage
+  - workflowId: process-events-via-history-polling
+    summary: Process events via history (polling)
+    description: >-
+      Polling — alternative to real-time webhook if bot has no public URL. Manual prerequisites: In
+      bot settings enable "Save event history". Webhook URL is optional.; Process each event (same
+      format as real-time webhook).
+    steps:
+      - stepId: process-events-via-history-polling-1
+        description: Get accumulated events
+        operationId: BotOperations_getWebhookEvents
+      - stepId: process-events-via-history-polling-2
+        description: Delete processed event (Delete to avoid reprocessing)
+        operationId: BotOperations_deleteWebhookEvent
+  - workflowId: show-interactive-form-to-user
+    summary: Show interactive form to user
+    description: >-
+      Forms only work from bot. Manual prerequisites: Prepare form object: `view` with `title`,
+      `blocks`, optionally `callback_id` and `private_metadata`; On button click — receive webhook
+      event with `trigger_id`; On form submission receive webhook — handle per "Handle form
+      submission" scenario.
+    steps:
+      - stepId: show-interactive-form-to-user-1
+        description: Send message with button
+        operationId: MessageOperations_createMessage
+      - stepId: show-interactive-form-to-user-2
+        description: Immediately open form (`trigger_id` expires in 3 seconds — prepare form object in advance)
+        operationId: FormOperations_openView
+  - workflowId: employee-survey-via-form
+    summary: Employee survey via form
+    description: >-
+      Each user must click button themselves — each has their own `trigger_id`. Manual
+      prerequisites: On button click receive webhook with `trigger_id`; On submit webhook process
+      answers; Save to database or send summary message to channel; Respond HTTP 200 — form will
+      close.
+    steps:
+      - stepId: employee-survey-via-form-1
+        description: Send message with "Take survey" button
+        operationId: MessageOperations_createMessage
+      - stepId: employee-survey-via-form-2
+        description: Open form with survey fields
+        operationId: FormOperations_openView
+  - workflowId: request-application-form
+    summary: Request/application form
+    description: 'Manual prerequisites: Respond HTTP 200 — form will close.'
+    steps:
+      - stepId: request-application-form-1
+        description: Post message with "Create request" button
+        operationId: MessageOperations_createMessage
+      - stepId: request-application-form-2
+        description: 'On click open form with fields: subject, description, priority'
+        operationId: FormOperations_openView
+      - stepId: request-application-form-3
+        description: 'On submit: create task or send notification to assignee'
+        operationId: TaskOperations_createTask
+      - stepId: request-application-form-4
+        description: Send confirmation to author
+        operationId: MessageOperations_createMessage
+  - workflowId: get-employee-by-id
+    summary: Get employee by ID
+    description: Returns all fields including `custom_properties`, `user_status`, `list_tags`.
+    steps:
+      - stepId: get-employee-by-id-1
+        description: Get employee info
+        operationId: UserOperations_getUser
+  - workflowId: bulk-create-employees-with-tags
+    summary: Bulk create employees with tags
+    description: >-
+      Creation available only to admins and owners (not bots). No separate "add user to tag"
+      endpoint.
+    steps:
+      - stepId: bulk-create-employees-with-tags-1
+        description: Create tag (if needed)
+        operationId: GroupTagOperations_createTag
+      - stepId: bulk-create-employees-with-tags-2
+        description: >-
+          For each employee: create account with tags (Tags are assigned via `list_tags` field in
+          request body)
+        operationId: UserOperations_createUser
+      - stepId: bulk-create-employees-with-tags-3
+        description: Or update existing
+        operationId: UserOperations_updateUser
+  - workflowId: create-a-guest-in-a-chat
+    summary: Create a guest in a chat
+    description: >-
+      For other roles `chat_ids` is optional — you can add to several chats at once. Creation is
+      available only to admins and owners (not bots).
+    steps:
+      - stepId: create-a-guest-in-a-chat-1
+        description: >-
+          Pick the active chat to add the guest to — get its ID (The chat must be active (not
+          archived) and belong to your company. The token must have permission to add members to
+          it.)
+        operationId: ChatOperations_listChats
+      - stepId: create-a-guest-in-a-chat-2
+        description: >-
+          Create the guest: role `guest` and exactly one chat in `--chat-ids` (For the `guest` role
+          `chat_ids` is required and must contain exactly one chat. Any violation (missing, empty,
+          more than one, chat does not exist, archived, or no permission) → `400` with an `errors`
+          item whose `key` is `chat_ids`.)
+        operationId: UserOperations_createUser
+  - workflowId: find-employee-by-name-or-email
+    summary: Find employee by name or email
+    description: 'Cursor-based pagination: `limit` and `cursor` from `meta`. For exact email — iterate pages.'
+    steps:
+      - stepId: find-employee-by-name-or-email-1
+        description: Search by name/email (partial match)
+        operationId: UserOperations_listUsers
+  - workflowId: onboard-new-employee
+    summary: Onboard new employee
+    description: Step 1 requires admin/owner token. Steps 2-3 can be done by bot.
+    steps:
+      - stepId: onboard-new-employee-1
+        description: Create account
+        operationId: UserOperations_createUser
+      - stepId: onboard-new-employee-2
+        description: Add to required channels
+        operationId: ChatMemberOperations_addMembers
+      - stepId: onboard-new-employee-3
+        description: Send welcome message
+        operationId: MessageOperations_createMessage
+  - workflowId: offboard-employee
+    summary: Offboard employee
+    description: Suspension (`suspended`) preserves data, deletion is irreversible.
+    steps:
+      - stepId: offboard-employee-1
+        description: Suspend access
+        operationId: UserOperations_updateUser
+      - stepId: offboard-employee-2
+        description: 'Optionally: delete account permanently'
+        operationId: UserOperations_deleteUser
+  - workflowId: get-all-employees-of-a-tag-department
+    summary: Get all employees of a tag/department
+    steps:
+      - stepId: get-all-employees-of-a-tag-department-1
+        description: Find tag by name, take `id` (`names` filter — server-side filtering by tag name)
+        operationId: GroupTagOperations_listTags
+      - stepId: get-all-employees-of-a-tag-department-2
+        description: Get all tag members
+        operationId: GroupTagOperations_getTagUsers
+  - workflowId: manage-employee-status
+    summary: Manage employee status
+    steps:
+      - stepId: manage-employee-status-1
+        description: Get current status
+        operationId: UserStatusOperations_getUserStatus
+      - stepId: manage-employee-status-2
+        description: 'Set status (`is_away: true` — away mode. `away_message` — max 1024 chars)'
+        operationId: UserStatusOperations_updateUserStatus
+      - stepId: manage-employee-status-3
+        description: Delete status
+        operationId: UserStatusOperations_deleteUserStatus
+  - workflowId: upload-employee-avatar
+    summary: Upload employee avatar
+    steps:
+      - stepId: upload-employee-avatar-1
+        description: >-
+          Upload avatar for employee (Requires admin access. File is sent in multipart/form-data
+          format)
+        operationId: UserAvatarOperations_updateUserAvatar
+  - workflowId: delete-employee-avatar
+    summary: Delete employee avatar
+    steps:
+      - stepId: delete-employee-avatar-1
+        description: Delete employee avatar (Requires admin access)
+        operationId: UserAvatarOperations_deleteUserAvatar
+  - workflowId: create-reminder
+    summary: Create reminder
+    description: >-
+      `custom_properties[].value` type is always string. Additional fields: GET
+      /custom_properties?entity_type=Task.
+    steps:
+      - stepId: create-reminder-1
+        description: Create task (`chat_id` to link to chat, `custom_properties` for additional fields)
+        operationId: TaskOperations_createTask
+  - workflowId: get-list-of-upcoming-tasks
+    summary: Get list of upcoming tasks
+    steps:
+      - stepId: get-list-of-upcoming-tasks-1
+        description: >-
+          Get all tasks, filter by `status` on client side (`status`: `"undone"` — not completed,
+          `"done"` — completed. API-side filtering not supported)
+        operationId: TaskOperations_listTasks
+  - workflowId: get-task-by-id
+    summary: Get task by ID
+    steps:
+      - stepId: get-task-by-id-1
+        description: Get task info
+        operationId: TaskOperations_getTask
+  - workflowId: mark-task-as-completed
+    summary: Mark task as completed
+    steps:
+      - stepId: mark-task-as-completed-1
+        description: Update task status
+        operationId: TaskOperations_updateTask
+  - workflowId: update-task-reschedule-change-assignees
+    summary: Update task (reschedule, change assignees)
+    steps:
+      - stepId: update-task-reschedule-change-assignees-1
+        description: >-
+          Update task fields (`performer_ids` replaces entire list. `priority`: 1 (normal), 2
+          (important), 3 (very important))
+        operationId: TaskOperations_updateTask
+  - workflowId: delete-task
+    summary: Delete task
+    description: 'Deletion is irreversible. To just close — use PUT with `"status": "done"`.'
+    steps:
+      - stepId: delete-task-1
+        description: Delete task
+        operationId: TaskOperations_deleteTask
+  - workflowId: create-series-of-reminders
+    summary: Create series of reminders
+    description: 'Manual prerequisites: Prepare list of dates (daily, weekly, etc.).'
+    steps:
+      - stepId: create-series-of-reminders-1
+        description: 'For each date: create task'
+        operationId: TaskOperations_createTask
+  - workflowId: get-own-profile
+    summary: Get own profile
+    description: >-
+      Returns `id`, `first_name`, `last_name`, `nickname`, `email`, `phone_number`, `department`,
+      `title`, `role`, `suspended`, `invite_status`, `list_tags`, `custom_properties`,
+      `user_status`, `bot`, `sso`, `created_at`, `last_activity_at`, `time_zone`, `image_url`.
+    steps:
+      - stepId: get-own-profile-1
+        description: Get current user info
+        operationId: ProfileOperations_getProfile
+  - workflowId: verify-own-token
+    summary: Verify own token
+    description: 'Useful for diagnostics: which scopes the token has, when it expires.'
+    steps:
+      - stepId: verify-own-token-1
+        description: 'Get token info: scopes, creation date, lifetime'
+        operationId: OAuthOperations_getTokenInfo
+  - workflowId: set-status
+    summary: Set status
+    steps:
+      - stepId: set-status-1
+        description: >-
+          Set status (`is_away: true` — away mode. `expires_at` — auto-reset (ISO-8601, UTC+0).
+          `away_message` — max 1024 chars)
+        operationId: ProfileOperations_updateStatus
+  - workflowId: reset-status
+    summary: Reset status
+    steps:
+      - stepId: reset-status-1
+        description: Delete status
+        operationId: ProfileOperations_deleteStatus
+  - workflowId: get-custom-profile-fields
+    summary: Get custom profile fields
+    description: Custom fields are configured by workspace admin.
+    steps:
+      - stepId: get-custom-profile-fields-1
+        description: Get list of additional fields for employees (Add `entity_type=User` to filter)
+        operationId: CommonOperations_listProperties
+      - stepId: get-custom-profile-fields-2
+        description: Get profile — `custom_properties` contains field values
+        operationId: ProfileOperations_getProfile
+  - workflowId: upload-profile-avatar
+    summary: Upload profile avatar
+    steps:
+      - stepId: upload-profile-avatar-1
+        description: Upload avatar from file (Image file is sent in multipart/form-data format)
+        operationId: ProfileAvatarOperations_updateProfileAvatar
+  - workflowId: delete-profile-avatar
+    summary: Delete profile avatar
+    steps:
+      - stepId: delete-profile-avatar-1
+        description: Delete avatar
+        operationId: ProfileAvatarOperations_deleteProfileAvatar
+  - workflowId: find-message-by-text
+    summary: Find message by text
+    description: Searches all accessible chats. `root_chat_id` in response — root chat for threads.
+    steps:
+      - stepId: find-message-by-text-1
+        description: >-
+          Full-text search across messages (`limit` (up to 200), `cursor`. Filters: `chat_ids[]`,
+          `user_ids[]`, `active`, `created_from`/`created_to`)
+        operationId: SearchOperations_searchMessages
+  - workflowId: find-chat-by-name
+    summary: Find chat by name
+    steps:
+      - stepId: find-chat-by-name-1
+        description: >-
+          Full-text search across chats (`limit` (up to 100), `cursor`. Filters: `active`,
+          `chat_subtype`, `personal`, `created_from`/`created_to`)
+        operationId: SearchOperations_searchChats
+  - workflowId: find-employee-by-name
+    summary: Find employee by name
+    description: Searches by name, email, title and other fields. Supports sorting by relevance.
+    steps:
+      - stepId: find-employee-by-name-1
+        description: >-
+          Full-text search across employees (`sort=alphabetical` for alphabetical order,
+          `sort=by_score` (default). Filters: `company_roles[]`, `created_from`/`created_to`)
+        operationId: SearchOperations_searchUsers
+  - workflowId: get-audit-event-log
+    summary: Get audit event log
+    description: Available only to workspace owner.
+    steps:
+      - stepId: get-audit-event-log-1
+        description: >-
+          Get audit log (`start_time` and `end_time` required (ISO-8601, UTC+0). Filters:
+          `event_key`, `actor_id`, `actor_type`, `entity_id`, `entity_type`)
+        operationId: SecurityOperations_getAuditEvents
+  - workflowId: monitor-suspicious-logins
+    summary: Monitor suspicious logins
+    steps:
+      - stepId: monitor-suspicious-logins-1
+        description: Get failed 2FA events for period
+        operationId: SecurityOperations_getAuditEvents
+      - stepId: monitor-suspicious-logins-2
+        description: If anomalies found — send notification to admin
+        operationId: MessageOperations_createMessage
+  - workflowId: export-logs-for-period
+    summary: Export logs for period
+    description: 'Manual prerequisites: Collect all events into array → save to file or send to external system.'
+    steps:
+      - stepId: export-logs-for-period-1
+        description: Get all events for period with pagination
+        operationId: SecurityOperations_getAuditEvents

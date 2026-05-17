@@ -1,82 +1,54 @@
-# Pachca API — Agent Skills
+# AGENTS.md
 
-Pachca — corporate messenger with REST API and CLI.
+Guidance for AI coding agents working in this repository. (Using the Pachca
+API instead of contributing here? See `skill.md`, `/llms.txt`, or the
+`skills/` directory — not this file.)
 
-## Quick start
+## What this repo is
 
-```bash
-npx @pachca/cli <command> --token <TOKEN>
-```
+Monorepo (Turborepo + bun) for the Pachca API platform. TypeSpec is the
+single source of truth; everything else is generated from it.
 
-For regular use:
+| Path | What |
+|------|------|
+| `packages/spec` | TypeSpec (`typespec.tsp`) → `openapi.yaml`; overlay, `workflows.ts`, examples |
+| `packages/cli` | oclif CLI `@pachca/cli`, generated from OpenAPI |
+| `packages/generator` | Multi-language SDK generator |
+| `packages/openapi-parser` | Shared OpenAPI parser |
+| `apps/docs` | Next.js 16 docs site (dev.pachca.com): `content/` MDX, `lib/`, `scripts/` generators, `public/` generated artifacts |
+| `n8n-nodes-pachca` | n8n community node |
 
-```bash
-npm install -g @pachca/cli && pachca auth login
-```
-
-## Authorization
-
-Use `--token <TOKEN>` flag or `PACHCA_TOKEN` environment variable. Get token: Settings → Automations → API (admin) or bot settings (bot).
-
-## Routing
-
-Identify the task and use the appropriate skill:
-
-| Task | Skill |
-|------|-------|
-| Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля | `pachca-profile` |
-| Pachca — управление сотрудниками (участниками пространства) и тегами (группами) | `pachca-users` |
-| Pachca — управление чатами, каналами и беседами | `pachca-chats` |
-| Pachca — сообщения: отправка, редактирование, удаление | `pachca-messages` |
-| Pachca — управление ботами, вебхуки и превью ссылок | `pachca-bots` |
-| Pachca — интерактивные формы и модальные окна для ботов | `pachca-forms` |
-| Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление | `pachca-tasks` |
-| Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям | `pachca-search` |
-| Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP | `pachca-security` |
-
-## Top 5 operations
+## Build & check
 
 ```bash
-# Send a message
-pachca messages create --entity-id=<chat_id> --content="Hello"
-
-# Search chats
-pachca search list-chats --query="..."
-
-# My profile
-pachca profile get
-
-# Search messages
-pachca search list-messages --query="..."
-
-# Create a chat
-pachca chats create --name="Project" --member-ids=1,2,3
+npx turbo build      # compiles TypeSpec + builds all packages + regenerates generated files
+npx turbo check      # lint + typecheck + knip + format:check + test — MUST pass before commit (CI runs this)
+bun turbo dev        # docs dev server (Next.js 16)
 ```
 
-## Available skills
+Standard loop: edit source → `npx turbo build` → `npx turbo check` →
+review generated diffs → commit. Branch from `origin/main`; open a PR
+(never push to `main`).
 
-| Skill | Description | Path |
-|-------|-------------|------|
-| pachca-profile | Pachca — МОЙ профиль, МОЙ статус, МОЙ токен, кастомные поля | [skills/pachca-profile/SKILL.md](skills/pachca-profile/SKILL.md) |
-| pachca-users | Pachca — управление сотрудниками (участниками пространства) и тегами (группами) | [skills/pachca-users/SKILL.md](skills/pachca-users/SKILL.md) |
-| pachca-chats | Pachca — управление чатами, каналами и беседами | [skills/pachca-chats/SKILL.md](skills/pachca-chats/SKILL.md) |
-| pachca-messages | Pachca — сообщения: отправка, редактирование, удаление | [skills/pachca-messages/SKILL.md](skills/pachca-messages/SKILL.md) |
-| pachca-bots | Pachca — управление ботами, вебхуки и превью ссылок | [skills/pachca-bots/SKILL.md](skills/pachca-bots/SKILL.md) |
-| pachca-forms | Pachca — интерактивные формы и модальные окна для ботов | [skills/pachca-forms/SKILL.md](skills/pachca-forms/SKILL.md) |
-| pachca-tasks | Pachca — задачи и напоминания: создание, список, обновление, выполнение, удаление | [skills/pachca-tasks/SKILL.md](skills/pachca-tasks/SKILL.md) |
-| pachca-search | Pachca — полнотекстовый поиск по сотрудникам, чатам и сообщениям | [skills/pachca-search/SKILL.md](skills/pachca-search/SKILL.md) |
-| pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP | [skills/pachca-security/SKILL.md](skills/pachca-security/SKILL.md) |
+## Do NOT hand-edit generated files — edit the generator
 
-## Limitations
+| Generated | Source of truth |
+|-----------|-----------------|
+| `packages/spec/openapi.yaml` | `packages/spec/typespec.tsp` (then `npx turbo build --filter=@pachca/spec --force`) |
+| `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, `public/workflows.arazzo.yaml`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` |
+| `packages/cli/src/commands/**` (except `auth`/`config`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
+| n8n node files | `n8n-nodes-pachca` generator |
 
-- Rate limit: ~4 req/sec per chat (messages), ~50 req/sec (other). Respect `Retry-After` on 429.
-- Pagination: cursor-based (`limit` + `cursor`). Check `meta.paginate.next_page`.
-- Admin operations (managing employees/tags, deleting messages) require an admin token.
+## Repo-specific gotchas
 
-## Installation
+- A new MDX component must be registered in **three** places: `apps/docs/components/mdx/mdx-components.tsx`, `apps/docs/components/api/markdown-content.tsx`, and a handler in `apps/docs/lib/mdx-expander.ts` (else raw tags leak into generated `.md`/`llms-full.txt`).
+- Next.js middleware lives in `apps/docs/proxy.ts` (Next 16 renamed `middleware.ts` → `proxy.ts`; both present fails the build).
+- After changing `typespec.tsp`, always `npx turbo build --filter=@pachca/spec --force` — otherwise `openapi.yaml` stays stale.
+- Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
 
-```bash
-npx skills add pachca/openapi
-```
+## Deep-dive docs (read before the relevant task)
 
-More info: [API Docs](https://dev.pachca.com) · [Full reference](https://dev.pachca.com/llms-full.txt) · [OpenAPI spec](https://dev.pachca.com/openapi.yaml) · CLI help: `pachca --help`
+- `CONTRIBUTING.md` — full layout, generation pipeline, build/check, workflow.
+- `docs/api-audit.md` — **canonical** API-audit & backend-sync process (run on "проверь API"): scope, what to check, version/changelog bumps, backend sync checkpoint.
+- `docs/updates-format.md` — `updates.mdx` / `releases.json` / changelog rules (breaking the parser rules breaks the updates page).
+- `docs/docs-conventions.md` — MDX 3-place registration, Turbopack/TypeSpec gotchas, headings & design-system rules.

@@ -23,9 +23,14 @@ npm install -g @pachca/cli
 pachca auth login
 pachca messages create --entity-id=123 --content="Привет!"
 pachca guide "отправить сообщение"  # CLI guide
+
+# Встроенный справочник по API прямо в терминале (для агентов)
+pachca api ls                          # список всех эндпоинтов
+pachca api POST /messages --describe   # параметры, тело, пример
+pachca api POST /messages -f message[content]="Привет"  # прямой запрос
 ```
 
-Все методы API доступны как команды. Типизированные флаги, валидация, 4 формата вывода (table, JSON, YAML, CSV), курсорная пагинация, несколько профилей авторизации, неинтерактивный режим для CI и AI-агентов.
+Все методы API доступны как команды. Типизированные флаги, валидация, 4 формата вывода (table, JSON, YAML, CSV), курсорная пагинация, несколько профилей авторизации, неинтерактивный режим для CI и AI-агентов. Команда `pachca api` — прямые запросы к любому методу и встроенный справочник по API (`ls`, `--describe`, `--spec`, `--docs`) из той же OpenAPI-спеки: агенту не нужно открывать сайт документации.
 
 **Документация**: https://dev.pachca.com/guides/cli
 
@@ -158,14 +163,18 @@ npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,sw
 
 | Файл | Содержимое |
 |------|------------|
-| [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: все endpoint'ы со ссылками |
+| [`/llms.txt`](https://dev.pachca.com/llms.txt) | Краткий индекс: все endpoint'ы со ссылками + карта строк |
 | [`/llms-full.txt`](https://dev.pachca.com/llms-full.txt) | Полная документация: гайды + endpoint'ы с параметрами |
+| [`/llms-en.txt`](https://dev.pachca.com/llms-en.txt) | Английская версия полной документации (для Context7) |
 | [`/skill.md`](https://dev.pachca.com/skill.md) | AI-agent skill: workflows, capabilities, ссылки |
+| [`/workflows.arazzo.yaml`](https://dev.pachca.com/workflows.arazzo.yaml) | Многошаговые сценарии API в формате Arazzo 1.0.1 |
 | `/api/{section}/{action}.md` | Отдельный .md для каждого endpoint'а и гайда |
+| `<любая страница>.md` | Markdown-версия любой страницы (или заголовок `Accept: text/markdown`) |
+| `/.well-known/agent-skills/index.json` | Discovery-индекс Agent Skills (Cloudflare RFC) |
 
-[Context7](https://context7.com/pachca/openapi) — AI-native document discovery.
+[Context7](https://context7.com/pachca/openapi) — AI-native document discovery. Через CLI справочник по API доступен и без сайта: `pachca api ls`, `pachca api <МЕТОД> <путь> --describe`.
 
-Все файлы доступны с `Access-Control-Allow-Origin: *` и кешируются через CDN.
+Все файлы доступны с `Access-Control-Allow-Origin: *`, помечены `X-Robots-Tag: noindex` и кешируются через CDN.
 
 ## Разработка
 
@@ -199,6 +208,15 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 <details>
 <summary>Для мейнтейнеров: архитектура и внутреннее устройство</summary>
 
+## Процесс разработки
+
+Канонические доки (читать перед соответствующей задачей; AGENTS.md ссылается на них):
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — раскладка, пайплайн генерации, build/check, workflow веток и PR
+- [docs/api-audit.md](docs/api-audit.md) — аудит API и синхронизация с бэкендом (запускается на «проверь API»), bump версий и changelog'ов
+- [docs/updates-format.md](docs/updates-format.md) — правила `updates.mdx` / `releases.json` / changelog (нарушение ломает парсер страницы обновлений)
+- [docs/docs-conventions.md](docs/docs-conventions.md) — конвенции MDX/TypeSpec, регистрация компонентов в трёх местах, заголовки
+
 ## Структура монорепозитория
 
 ```
@@ -219,6 +237,9 @@ bun turbo generate       # TypeSpec → openapi.yaml + SDK
 ├── integrations/
 │   └── n8n/               # n8n community node (генерируется из OpenAPI)
 ├── skills/                # Agent Skills (генерируются → apps/docs/public/.well-known/skills/)
+├── docs/                  # Канонические процесс-доки (api-audit, updates-format, docs-conventions)
+├── CONTRIBUTING.md        # Раскладка, пайплайн генерации, build/check, workflow
+├── AGENTS.md              # Гайд для AI-агентов по работе с репозиторием (CLAUDE.md → симлинк)
 ├── .github/workflows/     # CI/CD (check, sdk, generator, n8n, deploy, gitlab)
 ├── Package.swift          # Корневой Swift Package (копируется из sdk/swift при CI)
 ├── jitpack.yml            # JitPack конфиг для Kotlin (JDK 17)
@@ -250,9 +271,10 @@ apps/docs
     │
     │ generate-llms, generate-cli, next build
     ▼
-  Сайт + llms.txt + llms-full.txt
-  + skill.md + per-endpoint .md
-  + Agent Skills (skills/, AGENTS.md, .well-known/)
+  Сайт + llms.txt + llms-full.txt + llms-en.txt
+  + skill.md + per-endpoint и per-guide .md
+  + workflows.arazzo.yaml (Arazzo 1.0.1)
+  + Agent Skills (skills/, AGENTS.md, .well-known/{skills,agent-skills}/)
   + scenarios.json + pachca.postman_collection.json
   + CLI examples (10-й код-генератор)
   + OG-изображения + sitemap + RSS

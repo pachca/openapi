@@ -15,7 +15,7 @@ export default class Commands extends BaseCommand {
   static override flags = {
     ...BaseCommand.baseFlags,
     available: Flags.boolean({
-      description: 'Show only commands available to current token',
+      description: 'Показать только команды, доступные текущему токену',
       default: false,
     }),
   };

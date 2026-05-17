@@ -223,17 +223,20 @@ pachca guide            # список всех сценариев
 
 | Флаг | Короткий | Описание |
 |------|----------|----------|
-| `--output <format>` | `-o` | Формат вывода: table, json, yaml, csv |
-| `--columns <list>` | `-c` | Колонки для table-вывода |
-| `--no-header` | | Скрыть заголовок таблицы |
-| `--profile <name>` | `-p` | Профиль для этой команды |
-| `--token <value>` | | Bearer-токен для этого вызова |
-| `--quiet` | `-q` | Подавить вывод кроме ошибок |
-| `--verbose` | `-v` | Показывать HTTP-детали |
-| `--no-input` | | Отключить промпты |
-| `--dry-run` | | Показать запрос без отправки |
-| `--timeout <seconds>` | | Таймаут запроса |
-| `--no-retry` | | Отключить авто-retry |
+| `--output <value>` | `-o` | Формат вывода: table, json, yaml, csv |
+| `--columns <value>` | `-c` | Колонки для table-вывода (через запятую) |
+| `--no-header` |  | Скрыть заголовок таблицы |
+| `--no-truncate` |  | Не обрезать длинные значения |
+| `--profile <value>` | `-p` | Профиль для этой команды |
+| `--token <value>` |  | Токен для этого вызова (без сохранения) |
+| `--quiet` | `-q` | Подавить вывод (только exit code и ошибки) |
+| `--no-color` |  | Отключить цвета |
+| `--verbose` | `-v` | Показывать HTTP-запросы и ответы |
+| `--no-input` |  | Отключить интерактивные промпты |
+| `--dry-run` |  | Показать запрос без отправки |
+| `--timeout <value>` |  | Таймаут запроса в секундах (по умолчанию 30) |
+| `--no-retry` |  | Отключить авто-retry при 429/503 |
+| `--plain` |  | Плоский вывод: TSV без заголовка, ID первым, без цвета (для скриптов) |
 
 <!-- AUTO:FLAGS:END -->
 
@@ -366,9 +369,9 @@ pachca changelog
 ## Shell completion
 
 ```
-pachca autocomplete zsh   # zsh completion
-pachca autocomplete bash  # bash completion
-pachca autocomplete fish  # fish completion
+pachca autocomplete zsh         # zsh completion
+pachca autocomplete bash        # bash completion
+pachca autocomplete powershell  # PowerShell completion
 ```
 
 ## Переменные окружения

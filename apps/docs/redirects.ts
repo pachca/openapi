@@ -15,6 +15,8 @@ const redirects: Redirect[] = [
   { source: '/guides/forms.md', destination: '/guides/forms/overview.md' },
   { source: '/guides/n8n', destination: '/guides/n8n/overview' },
   { source: '/guides/n8n.md', destination: '/guides/n8n/overview.md' },
+  { source: '/guides/cli', destination: '/guides/cli/overview' },
+  { source: '/guides/cli.md', destination: '/guides/cli/overview.md' },
 
   // ===== SDK → Guides =====
   { source: '/api/sdk', destination: '/guides/sdk/overview' },

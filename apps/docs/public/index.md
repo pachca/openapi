@@ -6,7 +6,7 @@ REST API Пачки позволяет автоматизировать рабо
 - [Быстрый старт](/guides/quickstart)
 - [Авторизация](/api/authorization)
 - [Модели API](/api/models)
-- [CLI](/guides/cli)
+- [CLI](/guides/cli/overview)
 - [SDK](/guides/sdk/overview)
 - [n8n](/guides/n8n/overview)
 
@@ -88,6 +88,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 
 - [OpenAPI-спецификация](/openapi.yaml) — Описание всех методов в YAML
 - [Коллекция Postman](/pachca.postman_collection.json) — Все методы с примерами для Postman и Bruno
+- [Arazzo-сценарии](/workflows.arazzo.yaml) — Многошаговые сценарии API для агентов
 - [llms.txt](/llms.txt) — Краткое описание API для LLM
 - [llms-full.txt](/llms-full.txt) — Полное описание API для LLM
 - [llms-en.txt](/llms-en.txt) — English API documentation for LLM

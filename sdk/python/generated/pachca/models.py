@@ -226,6 +226,15 @@ class TaskStatus(StrEnum):
     UNDONE = "undone"  # Активно
 
 
+class UserCreateRole(StrEnum):
+    """Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат."""
+
+    ADMIN = "admin"  # Администратор
+    USER = "user"  # Сотрудник
+    MULTI_GUEST = "multi_guest"  # Мульти-гость
+    GUEST = "guest"  # Гость
+
+
 class UserEventType(StrEnum):
     """Тип события webhook для пользователей"""
 
@@ -247,7 +256,7 @@ class UserRole(StrEnum):
 
 
 class UserRoleInput(StrEnum):
-    """Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API."""
+    """Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`)."""
 
     ADMIN = "admin"  # Администратор
     USER = "user"  # Сотрудник
@@ -985,9 +994,10 @@ class UserCreateRequestUser:
     nickname: str | None = None
     department: str | None = None
     title: str | None = None
-    role: UserRoleInput | None = None
+    role: UserCreateRole | None = None
     suspended: bool | None = None
     list_tags: list[str] | None = None
+    chat_ids: list[int] | None = None
     custom_properties: list[UserCreateRequestCustomProperty] | None = None
 
 

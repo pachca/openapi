@@ -114,11 +114,21 @@ pachca messages create --entity-id 123 --content "Готово"
 pachca users list -o json
 ```
 
-> CLI автоматически определяет неинтерактивную среду (stdin/stdout — не TTY) и адаптируется: выводит JSON вместо таблиц, отключает промпты и спиннер, а при пропущенных обязательных флагах — возвращает ошибку вместо запроса ввода. Агенту не нужна дополнительная настройка — достаточно передать все обязательные флаги.
+Через CLI доступны и произвольные запросы к любому эндпоинту, и вся документация API прямо в терминале — список методов, их параметры, схемы и полный справочник. Агенту не нужно открывать сайт или грузить документацию в контекст. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).
 
+```bash
+# Произвольный запрос к любому эндпоинту
+pachca api POST /messages -F message[chat_id]=123 -f message[content]="Привет"
+
+# Документация по API прямо в терминале
+pachca api ls                         # список эндпоинтов
+pachca api POST /messages --describe  # параметры, тело, эквивалентная команда
+pachca api GET /messages --spec       # OpenAPI-фрагмент
+pachca api POST /messages --docs      # полный markdown-референс
+```
 
 - [@pachca/cli](https://www.npmjs.com/package/@pachca/cli) — Пакет на npm
-- [Руководство CLI](/guides/cli) — Полная документация по CLI — команды, флаги, пайпы, сценарии
+- [Руководство CLI](/guides/cli/overview) — Установка, авторизация, скрипты и CI, полный справочник команд
 
 
 ### Context7 MCP
@@ -143,6 +153,17 @@ https://dev.pachca.com/openapi.yaml
 ```
 
 - [OpenAPI-спецификация](/openapi.yaml) — OpenAPI 3.0 — типы, схемы, все эндпоинты
+
+
+### Arazzo (многошаговые сценарии)
+
+OpenAPI описывает отдельные методы. [Arazzo](https://spec.openapis.org/arazzo/latest.html) — стандарт OpenAPI Initiative для готовых последовательностей вызовов. Машиночитаемое описание типовых сценариев Пачки (в каком порядке какие методы вызывать) — полезно агентам и workflow-движкам для многошаговых задач.
+
+```text
+https://dev.pachca.com/workflows.arazzo.yaml
+```
+
+- [Arazzo-сценарии](/workflows.arazzo.yaml) — Многошаговые сценарии API в формате Arazzo 1.0.1
 
 
 ### Agent Skills

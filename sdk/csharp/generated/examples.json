@@ -328,13 +328,13 @@
     "output": "object"
   },
   "UserOperations_createUser": {
-    "usage": "var request = new UserCreateRequest\n{\n    User = new UserCreateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegp@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Продукт\",\n        Title = \"CIO\",\n        Role = UserRoleInput.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        CustomProperties = new List<UserCreateRequestCustomProperty> { new UserCreateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    },\n    SkipEmailNotify = true\n};\nvar response = await client.Users.CreateUserAsync(request);",
+    "usage": "var request = new UserCreateRequest\n{\n    User = new UserCreateRequestUser\n    {\n        FirstName = \"Олег\",\n        LastName = \"Петров\",\n        Email = \"olegp@example.com\",\n        PhoneNumber = \"+79001234567\",\n        Nickname = \"olegpetrov\",\n        Department = \"Продукт\",\n        Title = \"CIO\",\n        Role = UserCreateRole.User,\n        Suspended = false,\n        ListTags = new List<string> { \"example\" },\n        ChatIds = new List<int> { 123 },\n        CustomProperties = new List<UserCreateRequestCustomProperty> { new UserCreateRequestCustomProperty { Id = 1678, Value = \"Санкт-Петербург\" } }\n    },\n    SkipEmailNotify = true\n};\nvar response = await client.Users.CreateUserAsync(request);",
     "output": "User(Id: int, FirstName: string, LastName: string?, Nickname: string, Email: string?, PhoneNumber: string?, Department: string?, Title: string?, Role: UserRole, Suspended: bool, InviteStatus: InviteStatus, InviterId: int?, ListTags: List<string>, CustomProperties: List<CustomProperty(Id: int, Name: string, DataType: CustomPropertyDataType, Value: string)>, UserStatus: UserStatus(Emoji: string, Title: string, ExpiresAt: DateTimeOffset?, IsAway: bool, AwayMessage: UserStatusAwayMessage(Text: string)?)?, Bot: bool, Sso: bool, CreatedAt: DateTimeOffset, LastActivityAt: DateTimeOffset?, TimeZone: string?, ImageUrl: string?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
       "UserCreateRequestUser",
-      "UserRoleInput"
+      "UserCreateRole"
     ]
   },
   "UserOperations_updateUser": {

@@ -622,21 +622,35 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return text + '\n';
   });
 
-  // <CliCommands /> -> markdown table of CLI commands
+  // <CliCommands /> -> one flat markdown table (command + method/summary).
+  // Lean on purpose: keeps llms-full.txt small; the HTML page renders the
+  // per-command params behind a per-row spoiler. Source: commands.json.
   if (result.includes('<CliCommands')) {
-    const sections = await generateNavigation();
-    const methodsSec = sections.find((s) => s.title === 'Методы API');
-    const allCommands = methodsSec ? methodsSec.items.flatMap((group) => group.children ?? []) : [];
-
-    let md = '| Команда | Описание |\n';
-    md += '|---------|----------|\n';
-    for (const item of allCommands) {
-      const command = `pachca ${item.href.replace(/^\/api\//, '').replace(/\//g, ' ')}`;
-      md += `| \`${command}\` | ${item.title} |\n`;
+    const { getCliSections } = await import('./cli-data');
+    let md = '| Команда | Метод API |\n';
+    md += '|---------|-----------|\n';
+    for (const section of getCliSections()) {
+      for (const cmd of section.commands) {
+        const method = cmd.method ? `\`${cmd.method}\` ` : '';
+        md += `| \`${cmd.command}\` | ${method}${cmd.summary} |\n`;
+      }
     }
     md += '\n';
-
     result = result.replace(/<CliCommands\s*\/>/g, md);
+  }
+
+  // <GlobalFlags /> -> markdown table of global CLI flags (D3 single source)
+  if (result.includes('<GlobalFlags')) {
+    const { getGlobalFlags } = await import('./cli-data');
+    let md = '| Флаг | Короткий | Описание |\n';
+    md += '|------|----------|----------|\n';
+    for (const f of getGlobalFlags()) {
+      const flag = f.type === 'boolean' ? `\`--${f.name}\`` : `\`--${f.name} <value>\``;
+      const short = f.char ? `\`-${f.char}\`` : '';
+      md += `| ${flag} | ${short} | ${f.description} |\n`;
+    }
+    md += '\n';
+    result = result.replace(/<GlobalFlags\s*\/>/g, md);
   }
 
   // <ScopeRoles /> -> OAuth scopes table with roles

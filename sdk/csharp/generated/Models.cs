@@ -1032,6 +1032,49 @@ internal class TaskStatusConverter : JsonConverter<TaskStatus>
     }
 }
 
+/// <summary>Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат.</summary>
+[JsonConverter(typeof(UserCreateRoleConverter))]
+public enum UserCreateRole
+{
+    /// <summary>Администратор</summary>
+    Admin,
+    /// <summary>Сотрудник</summary>
+    User,
+    /// <summary>Мульти-гость</summary>
+    MultiGuest,
+    /// <summary>Гость</summary>
+    Guest,
+}
+
+internal class UserCreateRoleConverter : JsonConverter<UserCreateRole>
+{
+    public override UserCreateRole Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return value switch
+        {
+            "admin" => UserCreateRole.Admin,
+            "user" => UserCreateRole.User,
+            "multi_guest" => UserCreateRole.MultiGuest,
+            "guest" => UserCreateRole.Guest,
+            _ => throw new JsonException($"Unknown UserCreateRole value: {value}"),
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, UserCreateRole value, JsonSerializerOptions options)
+    {
+        var str = value switch
+        {
+            UserCreateRole.Admin => "admin",
+            UserCreateRole.User => "user",
+            UserCreateRole.MultiGuest => "multi_guest",
+            UserCreateRole.Guest => "guest",
+            _ => value.ToString(),
+        };
+        writer.WriteStringValue(str);
+    }
+}
+
 /// <summary>Тип события webhook для пользователей</summary>
 [JsonConverter(typeof(UserEventTypeConverter))]
 public enum UserEventType
@@ -1126,7 +1169,7 @@ internal class UserRoleConverter : JsonConverter<UserRole>
     }
 }
 
-/// <summary>Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API.</summary>
+/// <summary>Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`).</summary>
 [JsonConverter(typeof(UserRoleInputConverter))]
 public enum UserRoleInput
 {
@@ -2614,11 +2657,13 @@ public class UserCreateRequestUser
     [JsonPropertyName("title")]
     public string? Title { get; set; }
     [JsonPropertyName("role")]
-    public UserRoleInput? Role { get; set; }
+    public UserCreateRole? Role { get; set; }
     [JsonPropertyName("suspended")]
     public bool? Suspended { get; set; }
     [JsonPropertyName("list_tags")]
     public List<string>? ListTags { get; set; }
+    [JsonPropertyName("chat_ids")]
+    public List<int>? ChatIds { get; set; }
     [JsonPropertyName("custom_properties")]
     public List<UserCreateRequestCustomProperty>? CustomProperties { get; set; }
 }

@@ -134,14 +134,25 @@ pachca messages create --entity-id 123 --content "Готово"
 pachca users list -o json
 ```
 
-<Info>CLI автоматически определяет неинтерактивную среду (stdin/stdout — не TTY) и адаптируется: выводит JSON вместо таблиц, отключает промпты и спиннер, а при пропущенных обязательных флагах — возвращает ошибку вместо запроса ввода. Агенту не нужна дополнительная настройка — достаточно передать все обязательные флаги.</Info>
+Через CLI доступны и произвольные запросы к любому эндпоинту, и вся документация API прямо в терминале — список методов, их параметры, схемы и полный справочник. Агенту не нужно открывать сайт или грузить документацию в контекст. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).
+
+```bash
+# Произвольный запрос к любому эндпоинту
+pachca api POST /messages -F message[chat_id]=123 -f message[content]="Привет"
+
+# Документация по API прямо в терминале
+pachca api ls                         # список эндпоинтов
+pachca api POST /messages --describe  # параметры, тело, эквивалентная команда
+pachca api GET /messages --spec       # OpenAPI-фрагмент
+pachca api POST /messages --docs      # полный markdown-референс
+```
 
 <CardGroup columns={2}>
   <Card title="@pachca/cli" href="https://www.npmjs.com/package/@pachca/cli">
     Пакет на npm
   </Card>
-  <Card title="Руководство CLI" href="/guides/cli">
-    Полная документация по CLI — команды, флаги, пайпы, сценарии
+  <Card title="Руководство CLI" href="/guides/cli/overview">
+    Установка, авторизация, скрипты и CI, полный справочник команд
   </Card>
 </CardGroup>
 
@@ -172,6 +183,20 @@ https://dev.pachca.com/openapi.yaml
 <CardGroup columns={1}>
   <Card title="OpenAPI-спецификация" href="/openapi.yaml">
     OpenAPI 3.0 — типы, схемы, все эндпоинты
+  </Card>
+</CardGroup>
+
+### Arazzo (многошаговые сценарии)
+
+OpenAPI описывает отдельные методы. [Arazzo](https://spec.openapis.org/arazzo/latest.html) — стандарт OpenAPI Initiative для готовых последовательностей вызовов. Машиночитаемое описание типовых сценариев Пачки (в каком порядке какие методы вызывать) — полезно агентам и workflow-движкам для многошаговых задач.
+
+```text
+https://dev.pachca.com/workflows.arazzo.yaml
+```
+
+<CardGroup columns={1}>
+  <Card title="Arazzo-сценарии" href="/workflows.arazzo.yaml">
+    Многошаговые сценарии API в формате Arazzo 1.0.1
   </Card>
 </CardGroup>
 

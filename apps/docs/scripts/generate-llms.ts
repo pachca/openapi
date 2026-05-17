@@ -13,6 +13,7 @@ import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
+import { WORKFLOWS } from '@pachca/spec/workflows';
 import { loadReleases, formatDateRu, type ParsedRelease } from '../lib/updates-parser';
 import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
@@ -49,26 +50,18 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += 'pachca auth login\n';
   content += 'pachca messages create --entity-id=<chat_id> --content="Hello"\n';
   content += 'pachca guide "отправить сообщение"  # CLI guide for humans\n';
-  content += '```\n\n';
-
-  content += '## Руководства\n';
-  for (const guide of guidePages) {
-    const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
-    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
-    content += `- [${displayTitle}](${SITE_URL}${mdPath}): ${guide.description}\n`;
-  }
   content += '\n';
-
-  for (const tag of sortedTags) {
-    const endpoints = grouped.get(tag)!;
-    content += `## ${tag}\n`;
-    for (const endpoint of endpoints) {
-      const title = generateTitle(endpoint);
-      const url = generateUrlFromOperation(endpoint);
-      content += `- [${title}](${SITE_URL}${url}.md): ${endpoint.method} ${endpoint.path}\n`;
-    }
-    content += '\n';
-  }
+  content += '# Docs for any endpoint — without loading llms-full.txt\n';
+  content += 'npx @pachca/cli api ls                         # list every endpoint\n';
+  content += 'npx @pachca/cli api POST /messages --describe  # params, body, scope\n';
+  content += 'npx @pachca/cli api GET /messages --spec       # OpenAPI fragment\n';
+  content += 'npx @pachca/cli api POST /messages --docs      # full Markdown reference\n';
+  content += '```\n\n';
+  content +=
+    '> Не загружай весь llms-full.txt ради одного метода. Сначала `npx @pachca/cli api ls`, ' +
+    'затем `npx @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
+    'Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. ' +
+    'Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.\n\n';
 
   content += '## SDK\n\n';
   content +=
@@ -113,13 +106,116 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += 'Установка: `npx skills add pachca/openapi`\n\n';
   content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
 
+  // Compact self-contained essentials so an agent reading only llms.txt
+  // (without fetching sub-pages) still has the core rules. Summary-level
+  // mirror of generateLibraryRules() — keep both in sync if rules change.
+  content += '## Основное\n\n';
+  content +=
+    '- **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.\n';
+  content +=
+    '- **Пагинация:** курсорная — `limit` (1–50) и `cursor`; в ответе `meta.paginate` (`next_page`, `prev_page`, `has_next`, `has_prev`). Поисковые методы — только `next_page` и `total`.\n';
+  content +=
+    '- **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.\n';
+  content +=
+    '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
+  content +=
+    '- **Идемпотентность:** запросы НЕ идемпотентны — дедуплицируй на клиенте; вебхуки доставляются at-least-once, обработчики должны быть идемпотентны.\n';
+  content +=
+    '- **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.\n';
+  content +=
+    '- Детали по конкретному методу — `npx @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.\n\n';
+
+  content += '## Руководства\n';
+  for (const guide of guidePages) {
+    const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    content += `- [${displayTitle}](${SITE_URL}${mdPath}): ${guide.description}\n`;
+  }
+  content += '\n';
+
+  for (const tag of sortedTags) {
+    const endpoints = grouped.get(tag)!;
+    content += `## ${tag}\n`;
+    for (const endpoint of endpoints) {
+      const title = generateTitle(endpoint);
+      const url = generateUrlFromOperation(endpoint);
+      content += `- [${title}](${SITE_URL}${url}.md): ${endpoint.method} ${endpoint.path}\n`;
+    }
+    content += '\n';
+  }
+
   content += '## Дополнительно\n';
   content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
+  content += `- [Arazzo](${SITE_URL}/workflows.arazzo.yaml): Многошаговые сценарии API (Arazzo 1.0.1) — порядок вызовов для агентов\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
   content += '\n____\n';
 
+  content = insertLlmsDocumentMap(content);
+
   return content;
+}
+
+/**
+ * Post-process llms.txt: scan for top-level section headers, build a
+ * Document Map with real line ranges, and insert it before the first
+ * section. Mirrors insertDocumentMap() for llms-full.txt — coarse
+ * sections only (CLI, SDK, Skills, Guides, API, Additional).
+ */
+function insertLlmsDocumentMap(content: string): string {
+  const lines = content.split('\n');
+  const idxOf = (h: string) => lines.findIndex((l) => l === h);
+
+  const cliIdx = idxOf('## CLI Quick Start');
+  const sdkIdx = idxOf('## SDK');
+  const skillsIdx = idxOf('## Agent Skills');
+  const coreIdx = idxOf('## Основное');
+  const guidesIdx = idxOf('## Руководства');
+  const addIdx = idxOf('## Дополнительно');
+  if ([cliIdx, sdkIdx, skillsIdx, coreIdx, guidesIdx, addIdx].some((i) => i < 0)) return content;
+
+  // First API tag section: first `## ` header after Руководства that is not Дополнительно
+  let apiIdx = -1;
+  for (let i = guidesIdx + 1; i < lines.length; i++) {
+    if (lines[i].startsWith('## ') && lines[i] !== '## Дополнительно') {
+      apiIdx = i;
+      break;
+    }
+  }
+  if (apiIdx < 0) return content;
+
+  const sections = [
+    { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
+    { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
+    { name: 'Agent Skills', desc: 'Скиллы для AI-агентов и установка', idx: skillsIdx },
+    { name: 'Основное', desc: 'Авторизация, пагинация, лимиты, ошибки, файлы', idx: coreIdx },
+    { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
+    { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
+    { name: 'Дополнительно', desc: 'Прочие ссылки и контакты', idx: addIdx },
+  ];
+
+  const head = [
+    '',
+    '## Document Map',
+    '',
+    '| Раздел | Описание | Строки |',
+    '|--------|----------|--------|',
+  ];
+  const blockSize = head.length + sections.length + 1; // head + rows + trailing ''
+  // content ends with a newline → split() yields a trailing '' that is not a
+  // real line; exclude it so the last range end matches the actual file.
+  const trailingEmpty = lines[lines.length - 1] === '' ? 1 : 0;
+  const totalLines = lines.length + blockSize - trailingEmpty;
+
+  const rows = sections.map((s, i) => {
+    const start = s.idx + blockSize + 1; // 1-based, shifted by inserted block
+    const end = i < sections.length - 1 ? sections[i + 1].idx + blockSize : totalLines;
+    return `| ${s.name} | ${s.desc} | ${start}–${end} |`;
+  });
+
+  const blockLines = [...head, ...rows, ''];
+  const newLines = [...lines.slice(0, cliIdx), ...blockLines, ...lines.slice(cliIdx)];
+  return newLines.join('\n');
 }
 
 function generateLibraryRules(): string {
@@ -207,6 +303,20 @@ function generateLibraryRules(): string {
 | Kotlin | \`com.pachca:sdk\` | \`implementation("com.pachca:pachca-sdk:1.0.1")\` |
 | Swift | \`PachcaSDK\` | SPM: \`https://github.com/pachca/openapi\` |
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
+
+## CLI (Command-Line Interface)
+- Zero-install: \`npx @pachca/cli <command> --token <TOKEN>\` (always latest). Or \`npm install -g @pachca/cli\`
+- Every API endpoint is a typed command: \`pachca <section> <action> --flags\` (e.g. \`pachca messages create --entity-id=123 --content="Hi"\`)
+- Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
+- Token via \`PACHCA_TOKEN\` env or \`--token\` flag — nothing is written to disk
+- Branch on exit codes (\`0\` success, \`3\` forbidden, \`4\` not found); JSON errors carry a \`type\` field (\`PACHCA_AUTH_ERROR\`, \`PACHCA_VALIDATION_ERROR\`, …)
+- **Per-endpoint docs on demand — you do not need to load this whole file.** To get just the endpoint you need:
+  - \`npx @pachca/cli api ls\` — list every endpoint (\`METHOD PATH SUMMARY SCOPE\`; add \`--json\` for machine-readable)
+  - \`npx @pachca/cli api <METHOD> <path> --describe\` — parameters, body, scope, equivalent typed command
+  - \`npx @pachca/cli api <METHOD> <path> --spec\` — OpenAPI fragment (request/response schemas)
+  - \`npx @pachca/cli api <METHOD> <path> --docs\` — full Markdown reference for that one endpoint
+- Arbitrary request to any endpoint: \`npx @pachca/cli api <METHOD> <path> -f field=value\` (or \`-F\` typed, \`--input body.json\`, \`--data '{...}'\`)
+- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook.md\`)
 
 `;
 }
@@ -1025,24 +1135,9 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
   content += '> Краткий индекс: [llms.txt](https://dev.pachca.com/llms.txt)\n\n';
 
-  content += '## Содержание\n\n';
-  content += '### Руководства\n';
-  for (const guide of guidePages) {
-    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
-    const anchor = displayTitle
-      .toLowerCase()
-      .replace(/[#?&=]/g, '')
-      .replace(/\s+/g, '-');
-    content += `- [${displayTitle}](#${anchor})\n`;
-  }
-  content += '\n';
-
-  content += '### API Методы\n';
-  for (const tag of sortedTags) {
-    content += `- [${tag}](#api-${tag.toLowerCase().replace(/\s+/g, '-')})\n`;
-  }
-  content += '\n';
-
+  // The old anchor-based `## Содержание` was removed: in a flat .txt the
+  // `#anchor` links never resolve. The unified, line-addressable Document Map
+  // (built in insertDocumentMap, inserted at the top) replaces it.
   content += '\n---\n\n';
 
   content += generateLibraryRules();
@@ -1100,72 +1195,90 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
 }
 
 /**
- * Post-process: scan generated content for section headers,
- * build a Document Map with real line ranges, and insert it after TOC.
+ * Post-process: build a single line-addressable Document Map (replaces the
+ * old anchor TOC) and insert it at the top, before `# LIBRARY RULES`.
+ * Coarse parent rows + nested child rows per guide and per API tag, all with
+ * real line ranges. Detection is by exact headers (`# …`, `## API: …`) plus
+ * code-fence-aware scanning for guide H1s, so it never picks up `#` comments
+ * inside code blocks.
  */
 function insertDocumentMap(content: string): string {
   const lines = content.split('\n');
+  const idxOf = (h: string) => lines.indexOf(h);
 
-  // Find section start lines (1-based)
-  const markers: { name: string; desc: string; line: number }[] = [];
-  for (let i = 0; i < lines.length; i++) {
+  const libIdx = idxOf('# LIBRARY RULES');
+  const howIdx = idxOf('# How-to Guides');
+  const guidesIdx = idxOf('# Руководства');
+  const apiIdx = idxOf('# API Методы');
+  const footIdx = idxOf('## Дополнительная информация');
+  if ([libIdx, howIdx, guidesIdx, apiIdx, footIdx].some((i) => i < 0)) return content;
+  if (!(libIdx < howIdx && howIdx < guidesIdx && guidesIdx < apiIdx && apiIdx < footIdx))
+    return content;
+
+  // Per-guide: guide pages are separated by a `---` line; each begins with a
+  // single-`#` H1. Track code fences so `# comment` lines inside ``` blocks
+  // never count. The first H1 after the section header / a `---` separator is
+  // the guide title.
+  const guides: { title: string; idx: number }[] = [];
+  let fence = false;
+  let expectGuide = true; // right after `# Руководства`
+  for (let i = guidesIdx + 1; i < apiIdx; i++) {
     const l = lines[i];
-    if (l === '# LIBRARY RULES')
-      markers.push({
-        name: 'LIBRARY RULES',
-        desc: 'Core rules, auth, pagination, rate limits, SDK overview',
-        line: i + 1,
-      });
-    else if (l === '# How-to Guides')
-      markers.push({
-        name: 'How-to Guides',
-        desc: 'Step-by-step solutions with TypeScript + Python code',
-        line: i + 1,
-      });
-    else if (l === '# Руководства')
-      markers.push({
-        name: 'Guides',
-        desc: 'Full SDK docs (6 languages), webhooks, bots, forms, n8n',
-        line: i + 1,
-      });
-    else if (l === '# API Методы')
-      markers.push({
-        name: 'API Reference',
-        desc: 'Complete REST API — every endpoint with schemas and examples',
-        line: i + 1,
-      });
+    if (l.trimStart().startsWith('```')) {
+      fence = !fence;
+      continue;
+    }
+    if (fence) continue;
+    if (l === '---') {
+      expectGuide = true;
+      continue;
+    }
+    if (expectGuide && l.startsWith('# ') && !l.startsWith('## ')) {
+      guides.push({ title: l.slice(2).trim(), idx: i });
+      expectGuide = false;
+    }
   }
 
-  if (markers.length === 0) return content;
-
-  // Build the map block
-  const mapLines = [
-    '',
-    '## Document Map',
-    '',
-    '| Section | Description | Lines |',
-    '|---------|-------------|-------|',
-  ];
-  const mapBlockSize = mapLines.length + markers.length; // join adds length-1 newlines
-
-  // Adjust line numbers by the map block we're about to insert
-  for (const m of markers) {
-    m.line += mapBlockSize;
+  // Per-tag: `## API: <tag>` headers between API Методы and the footer.
+  const tags: { tag: string; idx: number }[] = [];
+  for (let i = apiIdx + 1; i < footIdx; i++) {
+    if (lines[i].startsWith('## API: ')) tags.push({ tag: lines[i].slice(8), idx: i });
   }
-  const totalLines = lines.length + mapBlockSize;
 
-  for (let i = 0; i < markers.length; i++) {
-    const start = markers[i].line;
-    const end = i < markers.length - 1 ? markers[i + 1].line - 1 : totalLines;
-    mapLines.push(`| ${markers[i].name} | ${markers[i].desc} | ${start}–${end} |`);
+  // Map block. Row count is fixed by the inputs, so its line count (and thus
+  // the shift applied to every section below it) is known up front.
+  const headRows = ['', '## Document Map', '', '| Раздел | Строки |', '|--------|--------|'];
+  const rowCount = 4 + guides.length + tags.length; // 4 coarse parents + children
+  const blockSize = headRows.length + rowCount + 1; // + rows + trailing ''
+  // All sections sit after the insertion point, so every line shifts by the
+  // inserted block size. L() = final 1-based line for a pre-insertion index.
+  const L = (i: number) => i + 1 + blockSize;
+
+  const rows: string[] = [];
+  rows.push(
+    `| LIBRARY RULES — правила: auth, пагинация, лимиты, ошибки, SDK | ${L(libIdx)}–${L(howIdx) - 1} |`
+  );
+  rows.push(
+    `| How-to Guides — рецепты задач с кодом TS/Python | ${L(howIdx)}–${L(guidesIdx) - 1} |`
+  );
+  rows.push(
+    `| Руководства — гайды: SDK, вебхуки, боты, формы, n8n, CLI | ${L(guidesIdx)}–${L(apiIdx) - 1} |`
+  );
+  for (let k = 0; k < guides.length; k++) {
+    const end = k < guides.length - 1 ? L(guides[k + 1].idx) - 1 : L(apiIdx) - 1;
+    rows.push(`| · ${guides[k].title} | ${L(guides[k].idx)}–${end} |`);
   }
-  mapLines.push('');
+  rows.push(
+    `| API-методы — все эндпоинты со схемами и примерами | ${L(apiIdx)}–${L(footIdx) - 1} |`
+  );
+  for (let j = 0; j < tags.length; j++) {
+    const end = j < tags.length - 1 ? L(tags[j + 1].idx) - 1 : L(footIdx) - 1;
+    rows.push(`| · ${tags[j].tag} | ${L(tags[j].idx)}–${end} |`);
+  }
 
-  // Insert after TOC (before the first ---)
-  const insertIdx = content.indexOf('\n---\n\n# LIBRARY RULES');
-  if (insertIdx === -1) return content;
-
-  return content.slice(0, insertIdx) + mapLines.join('\n') + content.slice(insertIdx);
+  const block = [...headRows, ...rows, ''];
+  const out = [...lines.slice(0, libIdx), ...block, ...lines.slice(libIdx)];
+  return out.join('\n');
 }
 
 function generateWorkflowsSection(): string {
@@ -1374,8 +1487,11 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     `| LLM-friendly summary | \`${SITE_URL}/llms.txt\` | Quick overview with links |`,
     `| Full documentation | \`${SITE_URL}/llms-full.txt\` | Complete reference in one file |`,
     `| OpenAPI 3.0 spec | \`${SITE_URL}/openapi.yaml\` | Programmatic parsing and code generation |`,
+    `| Arazzo workflows | \`${SITE_URL}/workflows.arazzo.yaml\` | Multi-step call sequences for chained operations |`,
+    '| CLI (per-endpoint, on demand) | `npx @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |',
+    '| Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |',
     '',
-    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt`.',
+    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx @pachca/cli api ls`).',
     '',
     STATIC_SECTIONS,
     '',
@@ -1388,6 +1504,83 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     '',
     generateModularSkillsSection(),
   ].join('\n');
+}
+
+/**
+ * Arazzo 1.0.1 description of the common multi-step workflows, referencing
+ * the Pachca OpenAPI description. OpenAPI alone does not make an API
+ * agent-ready for chained calls; Arazzo expresses the call sequences
+ * (Bump.sh / OAI Workflows guidance, 2026). Source of truth: WORKFLOWS in
+ * @pachca/spec; only API-backed steps become Arazzo steps (manual UI steps
+ * are folded into the workflow description).
+ */
+function generateArazzo(api: Awaited<ReturnType<typeof parseOpenAPI>>): string {
+  const opByKey = new Map<string, string>();
+  for (const ep of api.endpoints) opByKey.set(`${ep.method} ${ep.path}`, ep.id);
+
+  const slug = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 56);
+
+  const usedWfIds = new Set<string>();
+  const workflows: Record<string, unknown>[] = [];
+
+  for (const [skill, list] of Object.entries(WORKFLOWS)) {
+    for (const wf of list) {
+      const steps: Record<string, unknown>[] = [];
+      const manual: string[] = [];
+      for (const st of wf.steps) {
+        const desc = st.descriptionEn || st.description;
+        if (!st.apiMethod || !st.apiPath) {
+          manual.push(desc);
+          continue;
+        }
+        const opId = opByKey.get(`${st.apiMethod} ${st.apiPath}`);
+        if (!opId) continue;
+        const sid = `${slug(wf.titleEn || wf.title) || skill}-${steps.length + 1}`;
+        steps.push({
+          stepId: sid,
+          description: st.notesEn || st.notes ? `${desc} (${st.notesEn || st.notes})` : desc,
+          operationId: opId,
+        });
+      }
+      if (steps.length === 0) continue;
+
+      let wid = slug(wf.titleEn || wf.title) || skill;
+      const base = wid;
+      for (let n = 2; usedWfIds.has(wid); n++) wid = `${base}-${n}`;
+      usedWfIds.add(wid);
+
+      const descParts: string[] = [];
+      if (wf.notesEn || wf.notes) descParts.push(wf.notesEn || wf.notes || '');
+      if (manual.length) descParts.push(`Manual prerequisites: ${manual.join('; ')}.`);
+
+      workflows.push({
+        workflowId: wid,
+        summary: wf.titleEn || wf.title,
+        ...(descParts.length ? { description: descParts.join(' ') } : {}),
+        steps,
+      });
+    }
+  }
+
+  const doc = {
+    arazzo: '1.0.1',
+    info: {
+      title: 'Pachca API Workflows',
+      version: '1.0.0',
+      summary:
+        'Multi-step recipes for common Pachca API tasks, referencing the Pachca OpenAPI description.',
+    },
+    sourceDescriptions: [{ name: 'pachca', url: `${SITE_URL}/openapi.yaml`, type: 'openapi' }],
+    workflows,
+  };
+
+  return yaml.dump(doc, { lineWidth: 100, noRefs: true });
 }
 
 function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
@@ -1859,6 +2052,10 @@ async function main() {
   writeFile('public/pachca.postman_collection.json', JSON.stringify(postmanCollection, null, 2));
   console.log('✓ public/pachca.postman_collection.json');
 
+  const arazzo = generateArazzo(api);
+  writeFile('public/workflows.arazzo.yaml', arazzo);
+  console.log('✓ public/workflows.arazzo.yaml');
+
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {
     writeFile(file.path, file.content);
@@ -1872,7 +2069,7 @@ async function main() {
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
   console.log(
-    `\nTotal: ${7 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+    `\nTotal: ${8 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
   );
 }
 

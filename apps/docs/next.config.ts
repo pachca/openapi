@@ -30,11 +30,14 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        source: '/:path(llms\\.txt|llms-full\\.txt)',
+        source: '/:path(llms\\.txt|llms-full\\.txt|llms-en\\.txt)',
         headers: [
           { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          // Agent artifact, not a search landing page — avoid duplicate-content
+          // ranking against the real HTML docs.
+          { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
       {
@@ -43,17 +46,20 @@ const nextConfig: NextConfig = {
           { key: 'Content-Type', value: 'text/markdown; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          // .md twins duplicate the HTML pages — keep them out of the index.
+          { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
       {
-        source: '/.well-known/skills/:path*',
+        source: '/.well-known/:path(skills|agent-skills)/:rest*',
         headers: [
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
       {
-        source: '/openapi.yaml',
+        source: '/:path(openapi\\.yaml|workflows\\.arazzo\\.yaml)',
         headers: [
           { key: 'Content-Type', value: 'application/yaml' },
           { key: 'Access-Control-Allow-Origin', value: '*' },

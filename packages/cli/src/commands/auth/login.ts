@@ -18,11 +18,11 @@ export default class AuthLogin extends BaseCommand {
     ...BaseCommand.baseFlags,
     profile: Flags.string({
       char: 'p',
-      description: 'Profile name (default: "default")',
+      description: 'Имя профиля (по умолчанию "default")',
       default: 'default',
     }),
     token: Flags.string({
-      description: 'Token to save (skips prompt)',
+      description: 'Токен для сохранения (без интерактивного ввода)',
     }),
   };
 

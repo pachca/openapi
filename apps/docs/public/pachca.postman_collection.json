@@ -322,7 +322,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegp@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Продукт\",\n    \"title\": \"CIO\",\n    \"role\": \"user\",\n    \"suspended\": false,\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  },\n  \"skip_email_notify\": true\n}",
+              "raw": "{\n  \"user\": {\n    \"first_name\": \"Олег\",\n    \"last_name\": \"Петров\",\n    \"email\": \"olegp@example.com\",\n    \"phone_number\": \"+79001234567\",\n    \"nickname\": \"olegpetrov\",\n    \"department\": \"Продукт\",\n    \"title\": \"CIO\",\n    \"role\": \"user\",\n    \"suspended\": false,\n    \"list_tags\": [\n      \"Product\",\n      \"Design\"\n    ],\n    \"chat_ids\": [\n      12345\n    ],\n    \"custom_properties\": [\n      {\n        \"id\": 1678,\n        \"value\": \"Санкт-Петербург\"\n      }\n    ]\n  },\n  \"skip_email_notify\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"

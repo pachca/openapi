@@ -18,8 +18,28 @@
     },
     "generate-llms": {
       "dependsOn": ["@pachca/spec#generate"],
-      "inputs": ["scripts/generate-llms.ts", "scripts/skills/**", "lib/**", "content/**"],
-      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md", "public/.well-known/**", "public/pachca.postman_collection.json"],
+      "inputs": [
+        "scripts/generate-llms.ts",
+        "scripts/skills/**",
+        "lib/**",
+        "content/**",
+        "../../packages/cli/src/data/*.json",
+        "../../packages/spec/workflows.ts"
+      ],
+      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/llms-en.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md", "public/.well-known/**", "public/pachca.postman_collection.json", "public/workflows.arazzo.yaml"],
+      "cache": true
+    },
+    "@pachca/docs#generate-llms": {
+      "dependsOn": ["@pachca/spec#generate", "@pachca/cli#build"],
+      "inputs": [
+        "scripts/generate-llms.ts",
+        "scripts/skills/**",
+        "lib/**",
+        "content/**",
+        "../../packages/cli/src/data/*.json",
+        "../../packages/spec/workflows.ts"
+      ],
+      "outputs": ["public/llms.txt", "public/llms-full.txt", "public/llms-en.txt", "public/skill.md", "public/index.md", "public/guides/**", "public/**/*.md", "public/.well-known/**", "public/pachca.postman_collection.json", "public/workflows.arazzo.yaml"],
       "cache": true
     },
     "generate-cli": {
@@ -27,11 +47,12 @@
       "inputs": [
         "../../packages/spec/openapi.yaml",
         "scripts/generate-cli.ts",
-        "../../apps/docs/lib/openapi/mapper.ts",
+        "src/base-command.ts",
+        "../../apps/docs/lib/**",
         "../../packages/spec/workflows.ts",
         "../../apps/docs/scripts/skills/config.ts"
       ],
-      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "!src/data/changelog.json", "README.md"],
+      "outputs": ["src/commands/*/*.ts", "!src/commands/auth/*.ts", "!src/commands/config/*.ts", "src/data/*.json", "!src/data/changelog.json", "!src/data/commands.json", "README.md"],
       "cache": true
     },
     "overlay:apply": {
@@ -64,7 +85,7 @@
     },
     "build": {
       "dependsOn": ["^build", "generate", "overlay:apply", "generate-llms", "generate-cli", "generate-n8n"],
-      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json", "generated/bin/**", "generated/obj/**"],
+      "outputs": [".next/**", "!.next/cache/**", ".build/**", "dist/**", "oclif.manifest.json", "src/data/commands.json", "generated/bin/**", "generated/obj/**"],
       "cache": true
     },
     "dev": {

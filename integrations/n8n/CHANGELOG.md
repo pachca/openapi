@@ -1,6 +1,13 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.8 (2026-05-17)
+
+### Improvements
+
+- Create User: new `chat_ids` parameter — add the employee to the given company chats right at creation (the token must have invite rights for each chat)
+- Create User: `role` now accepts `guest`. For the `guest` role `chat_ids` is required and must contain exactly one active chat of your company, otherwise the API returns `400`. Backward compatible — integrations not sending `role: "guest"` / `chat_ids` keep working
+
 ## 2.0.7 (2026-05-06)
 
 ### Improvements

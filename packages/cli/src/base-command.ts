@@ -71,6 +71,10 @@ export abstract class BaseCommand extends Command {
       default: false,
       hidden: true,
     }),
+    plain: Flags.boolean({
+      description: 'Plain output: TSV, no header, ID column first, no color (for scripts)',
+      default: false,
+    }),
   };
 
   private _parsedFlags!: BaseFlags;
@@ -103,6 +107,7 @@ export abstract class BaseCommand extends Command {
       noHeader: this.parsedFlags['no-header'],
       noTruncate: this.parsedFlags['no-truncate'],
       quiet: this.parsedFlags.quiet,
+      plain: this.parsedFlags.plain,
     };
   }
 

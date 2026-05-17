@@ -570,6 +570,7 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 				{ api: 'role', n8n: 'role' },
 				{ api: 'suspended', n8n: 'suspended' },
 				{ api: 'list_tags', n8n: 'listTags', isArray: true, arrayType: 'string' },
+				{ api: 'chat_ids', n8n: 'chatIds', isArray: true, arrayType: 'int' },
 				{ api: 'custom_properties', n8n: 'customProperties', subKey: 'property' },
 				{ api: 'skip_email_notify', n8n: 'skipEmailNotify' },
 			],

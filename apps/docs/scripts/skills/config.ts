@@ -386,20 +386,6 @@ export const ROUTER_SKILL_CONFIG: SkillConfig = {
   isRouter: true,
 };
 
-export const TOP_OPERATIONS: { comment: string; command: string }[] = [
-  {
-    comment: 'Send a message',
-    command: 'pachca messages create --entity-id=<chat_id> --content="Hello"',
-  },
-  { comment: 'Search chats', command: 'pachca search list-chats --query="..."' },
-  { comment: 'My profile', command: 'pachca profile get' },
-  { comment: 'Search messages', command: 'pachca search list-messages --query="..."' },
-  {
-    comment: 'Create a chat',
-    command: 'pachca chats create --name="Project" --member-ids=1,2,3',
-  },
-];
-
 export const COMMON_ENDPOINT_MAP: Record<string, string> = {
   '/custom_properties': 'pachca-profile',
   '/uploads': 'pachca-messages',

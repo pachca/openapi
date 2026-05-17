@@ -89,6 +89,14 @@ export const userFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['user'], operation: ['create'] } },
 		options: [
 			{
+				displayName: 'Chat IDs',
+				name: 'chatIds',
+				type: 'string',
+				default: "",
+				description: 'IDs of chats the employee is added to right at creation. Required for the `guest` role and must contain exactly one active chat.',
+				placeholder: '12345',
+			},
+			{
 				displayName: 'Custom Properties',
 				name: 'customProperties',
 				type: 'fixedCollection',
@@ -166,6 +174,7 @@ export const userFields: INodeProperties[] = [
 				name: 'role',
 				type: 'options',
 				options: [{ name: 'Admin', value: 'admin', description: 'Administrator' },
+{ name: 'Guest', value: 'guest' },
 { name: 'Multi Guest', value: 'multi_guest', description: 'Multi-guest' },
 { name: 'User', value: 'user', description: 'Employee' }],
 				default: "user",

@@ -33,11 +33,10 @@
     "build": "tsc && tsc -p tsconfig.cjs.json && node -e \"require('fs').writeFileSync('dist/cjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\"",
     "typecheck": "tsc --noEmit",
     "test:node": "node test/smoke.mjs && node test/smoke.cjs",
-    "verify": "attw --pack ."
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {},
   "devDependencies": {
-    "@arethetypeswrong/cli": "0.18.2",
     "@pachca/spec": "workspace:*",
     "typescript": "^5.0.0"
   }

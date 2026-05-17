@@ -55,9 +55,13 @@ may fail to resolve it at runtime. Instead: `import` it in
 ## Headings — no decorative symbols
 
 In MDX headings (`##`, `###`) and `<Step title="...">` do **not** use:
-em dash `—`, arrows `→ ← ⇒`, plus `+`, the latinism `vs`. Headings feed
-the sidebar TOC and these look like noise there. Parentheses `(...)` and
-hyphens in compound words (`webhook-слот`) are fine.
+em dash `—`, arrows `→ ← ⇒`, plus `+`, the latinism `vs`, and **inline
+code / backticks** (`` `guest` ``, `` `chat_ids` ``). Headings feed the
+sidebar TOC and these look like noise there; backticks in a heading are
+**not** rendered as code — the raw backticks show. Name the entity in
+words («гостевая роль», «чаты») and expand the identifier in the body
+text under the heading. Parentheses `(...)` and hyphens in compound words
+(`webhook-слот`) are fine.
 
 Rewrite as a clean phrase:
 
@@ -65,9 +69,10 @@ Rewrite as a clean phrase:
 |-----|------|
 | `### Execute Step — запуск одного узла` | `### Запуск одного узла через Execute Step` |
 | `<Step title="Деактивировать → протестировать → активировать">` | `<Step title="Временная деактивация продакшен-workflow">` |
+| `## Роль "guest" и "chat_ids" при создании` (backticks in heading) | `## Гостевая роль и чаты при создании сотрудника` |
 
 Check before commit:
-`grep -En '^#{2,3}.*( — | → | \+ )' apps/docs/content/**/*.mdx`
+`grep -En '^#{2,3}.*( — | → | \+ |`)' apps/docs/content/**/*.mdx`
 
 ## Design system — minimum font size
 
@@ -88,6 +93,33 @@ labels). For normal-case text the minimum is `text-[12px]`. Don't "fix"
 - Always recompile after editing `typespec.tsp`:
   `npx turbo build --filter=@pachca/spec --force` — otherwise
   `openapi.yaml` stays stale and docs won't reflect the change.
+- **`@doc` of model fields: short, plain, no markdown bold.** The params
+  table renders the field description as text — inline `` `code` ``
+  becomes a chip, but `**bold**` shows as literal `**`. Keep it to one or
+  two short sentences, self-contained, with no cross-ref like «см.
+  описание метода». Don't invent qualifiers — use the exact terms already
+  in the docs (incident: wrote «чаты компании» / «company chats» where
+  docs never call chats that). Put detailed rules / error lists /
+  edge-cases in the **operation** `@doc("""...""")` (rendered as full
+  markdown above the table; multi-paragraph is fine there). Reference
+  length: `User.skip_email_notify` (2 short sentences).
+- **`@doc` terminal period — by sentence count.** Established convention
+  (≈863 single-line `@doc`: ≈825 without a period, ≈38 with one): a
+  **single phrase / one sentence** (a field label like
+  `@doc("Тип файла")`) ends **without** a terminal period; a
+  **multi-sentence** description (two or more sentences) ends **with** a
+  terminal period on every sentence, including the last (real examples:
+  the `User.email` / `User.phone_number` docs). Same principle as
+  changelog punctuation — [updates-format §3](./updates-format.md). When
+  splitting a semicolon into two sentences the result is multi-sentence,
+  so make sure the last sentence also ends with a period.
+- **EN overlay symmetry for operation descriptions.**
+  `$.paths[...].<method>.update.description` in
+  `packages/spec/overlay.en.yaml` is a **full replacement** of the
+  description. If you add a paragraph to a RU operation `@doc` but not to
+  its overlay target, the English version silently loses the paragraph
+  (`overlay:apply` does not fail — no Cyrillic remains). When editing a RU
+  operation description, always update its EN overlay target in lockstep.
 
 ---
 

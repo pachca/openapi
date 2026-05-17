@@ -329,6 +329,18 @@ export enum TaskStatus {
   Undone = "undone",
 }
 
+/** Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат. */
+export enum UserCreateRole {
+  /** Администратор */
+  Admin = "admin",
+  /** Сотрудник */
+  User = "user",
+  /** Мульти-гость */
+  MultiGuest = "multi_guest",
+  /** Гость */
+  Guest = "guest",
+}
+
 /** Тип события webhook для пользователей */
 export enum UserEventType {
   /** Приглашение */
@@ -357,7 +369,7 @@ export enum UserRole {
   Guest = "guest",
 }
 
-/** Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API. */
+/** Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`). */
 export enum UserRoleInput {
   /** Администратор */
   Admin = "admin",
@@ -1028,9 +1040,10 @@ export interface UserCreateRequest {
     nickname?: string;
     department?: string;
     title?: string;
-    role?: UserRoleInput;
+    role?: UserCreateRole;
     suspended?: boolean;
     listTags?: string[];
+    chatIds?: number[];
     customProperties?: UserCreateRequestCustomProperty[];
   };
   skipEmailNotify?: boolean;

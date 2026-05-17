@@ -17,18 +17,20 @@ description: "Официальный CLI для Pachca API: все методы 
   <Step title="Установка">
     ```bash
     npm install -g @pachca/cli
-    pachca --version
     ```
 
-    Подробнее — [Установка](/guides/cli/installation) (есть и вариант без установки через `npx`).
+    Подробнее — [Установка](/guides/cli/installation).
   </Step>
-  <Step title="Авторизация">
-    ```bash
-    pachca auth login
-    # или для CI: pachca auth login --token YOUR_ACCESS_TOKEN
-    ```
+  <Step title="Вход в аккаунт">
+    Сохраните API-токен. Получить его можно в интерфейсе Пачки в разделе **Автоматизации** > **API** — подробнее в руководстве [Авторизация](/api/authorization).
 
-    Подробнее — [Авторизация](/guides/cli/authentication).
+    ```bash
+    # Интерактивный вход
+    pachca auth login
+
+    # Для CI и скриптов — передайте токен через флаг
+    pachca auth login --token YOUR_ACCESS_TOKEN
+    ```
   </Step>
   <Step title="Первый запрос">
     ```bash
@@ -37,13 +39,17 @@ description: "Официальный CLI для Pachca API: все методы 
     # ID    Имя              Email               Роль
     # 1234  Иван Иванов      ivan@company.ru     admin
     # 5678  Мария Петрова    maria@company.ru    user
-
-    pachca messages create --entity-id 123 --content "Привет!"
     ```
 
-    Пропущенные обязательные флаги CLI запросит интерактивно. Добавьте `-o json` для JSON-вывода.
+    Готово. Это типизированная команда. Тот же запрос можно сделать и напрямую через `pachca api` — оба способа описаны в разделе [Способы работы](#sposoby-raboty).
   </Step>
 </Steps>
+
+Без установки — разовый запуск через `npx`, токен передаётся флагом:
+
+```bash
+npx @pachca/cli users list --token YOUR_ACCESS_TOKEN
+```
 
 ## Способы работы
 
@@ -54,21 +60,23 @@ description: "Официальный CLI для Pachca API: все методы 
 Каждый метод API — отдельная команда `pachca <секция> <действие>` с флагами, валидацией и подсказками. Справка по любой команде — флаг `--help`:
 
 ```bash
-pachca messages create --entity-id 123 --content "Привет"
-pachca messages create --help   # параметры, флаги, примеры команды
-pachca commands                 # список всех команд
+pachca messages create --entity-id 123 --content "Привет"  # отправить сообщение
+pachca messages create --help  # справка по этой команде
+pachca commands  # список всех команд
 ```
 
-Все команды со всеми флагами — в разделе [Справочник команд](/guides/cli/commands); готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
+Пропущенные обязательные флаги CLI запросит интерактивно. Флаг `-o json` переключает вывод в машиночитаемый JSON.
+
+Все команды со всеми флагами — в разделе [Справочник команд](/guides/cli/commands). Готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
 
 ### Прямые запросы
 
 Команда `pachca api` отправляет прямой HTTP-запрос к любому методу — для нестандартных вызовов и отладки. Она же работает как встроенный справочник по API: список эндпоинтов и справку по каждому (параметры, тело, пример) можно получить прямо в терминале, **не открывая сайт документации** — особенно удобно агентам:
 
 ```bash
-pachca api ls                          # список всех эндпоинтов
-pachca api POST /messages --describe   # параметры, тело, пример
-pachca api POST /messages -f message[content]="Привет"
+pachca api POST /messages -f message[entity_id]=123 -f message[content]="Привет"  # тот же запрос
+pachca api POST /messages --describe  # справка по тому же методу
+pachca api ls  # список всех эндпоинтов
 ```
 
 Подробнее — [Прямые запросы](/guides/cli/api-requests).
@@ -76,10 +84,11 @@ pachca api POST /messages -f message[content]="Привет"
 ## Разделы
 
 <CardGroup columns={2}>
+  <Card title="Авторизация" href="/guides/cli/authentication">Профили, приоритет источников токена, headless-режим для CI и агентов</Card>
   <Card title="Вывод" href="/guides/cli/output">Форматы (table, json, yaml, csv), колонки, пайпы, пагинация</Card>
   <Card title="Флаги и скрипты" href="/guides/cli/scripting">Глобальные флаги, exit codes, таксономия ошибок, переменные окружения</Card>
   <Card title="Сценарии" href="/guides/cli/workflows">Готовые пошаговые рецепты под типовые задачи</Card>
   <Card title="Файлы" href="/guides/cli/files">Загрузка файла на S3 одной командой</Card>
   <Card title="Прямые запросы" href="/guides/cli/api-requests">Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале</Card>
-  <Card title="Справочник команд" href="/guides/cli/commands">Все команды; параметры каждой — по клику</Card>
+  <Card title="Справочник команд" href="/guides/cli/commands">Все команды, параметры каждой — по клику</Card>
 </CardGroup>

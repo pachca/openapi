@@ -57,6 +57,9 @@ curl "https://api.pachca.com/api/shared/v1/users" \
       "Product",
       "Design"
     ],
+    "chat_ids": [
+      12345
+    ],
     "custom_properties": [
       {
         "id": 1678,

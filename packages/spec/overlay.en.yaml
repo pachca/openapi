@@ -825,6 +825,12 @@ actions:
 
         You can fill in custom properties for the employee that have been created in your workspace. You can get the
         current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
+
+
+        Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To
+        create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one
+        active chat the token has permission to add members to. Violating the guest access rules returns `400`
+        with an error on the `chat_ids` field.
   - target: $.paths['/users'].get
     update:
       description: |-
@@ -2484,6 +2490,11 @@ actions:
   - target: $.components.schemas.UserCreateRequest.properties.user.properties.list_tags
     update:
       description: Array of tags to assign to the employee
+  - target: $.components.schemas.UserCreateRequest.properties.user.properties.chat_ids
+    update:
+      description: >-
+        IDs of chats the employee is added to right at creation. Required for the `guest` role and must contain
+        exactly one active chat.
   - target: $.components.schemas.UserCreateRequest.properties.user.properties.custom_properties
     update:
       description: Custom properties to set
@@ -2522,13 +2533,27 @@ actions:
         guest: Guest
   - target: $.components.schemas.UserRoleInput
     update:
-      description: User role allowed for creation and editing. The `guest` role cannot be set via API.
+      description: >-
+        User role allowed when editing an employee. The `guest` role cannot be set via API when editing — the
+        `guest` role can only be assigned when creating an employee (see `UserCreateRole`).
   - target: $.components.schemas.UserRoleInput
     update:
       x-enum-descriptions:
         admin: Administrator
         user: Employee
         multi_guest: Multi-guest
+  - target: $.components.schemas.UserCreateRole
+    update:
+      description: >-
+        User role allowed when creating an employee. Unlike editing, the `guest` role can be assigned on
+        creation — in that case the `chat_ids` parameter is required and must contain exactly one chat.
+  - target: $.components.schemas.UserCreateRole
+    update:
+      x-enum-descriptions:
+        admin: Administrator
+        user: Employee
+        multi_guest: Multi-guest
+        guest: Guest
   - target: $.components.schemas.UserStatus
     update:
       description: User status

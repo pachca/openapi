@@ -316,6 +316,17 @@ public enum TaskStatus: String, Codable, CaseIterable {
     case undone
 }
 
+public enum UserCreateRole: String, Codable, CaseIterable {
+    /// Администратор
+    case admin
+    /// Сотрудник
+    case user
+    /// Мульти-гость
+    case multiGuest = "multi_guest"
+    /// Гость
+    case guest
+}
+
 public enum UserEventType: String, Codable, CaseIterable {
     /// Приглашение
     case invite
@@ -2082,12 +2093,13 @@ public struct UserCreateRequestUser: Codable {
     public let nickname: String?
     public let department: String?
     public let title: String?
-    public let role: UserRoleInput?
+    public let role: UserCreateRole?
     public let suspended: Bool?
     public let listTags: [String]?
+    public let chatIds: [Int]?
     public let customProperties: [UserCreateRequestCustomProperty]?
 
-    public init(firstName: String? = nil, lastName: String? = nil, email: String, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserRoleInput? = nil, suspended: Bool? = nil, listTags: [String]? = nil, customProperties: [UserCreateRequestCustomProperty]? = nil) {
+    public init(firstName: String? = nil, lastName: String? = nil, email: String, phoneNumber: String? = nil, nickname: String? = nil, department: String? = nil, title: String? = nil, role: UserCreateRole? = nil, suspended: Bool? = nil, listTags: [String]? = nil, chatIds: [Int]? = nil, customProperties: [UserCreateRequestCustomProperty]? = nil) {
         self.firstName = firstName
         self.lastName = lastName
         self.email = email
@@ -2098,6 +2110,7 @@ public struct UserCreateRequestUser: Codable {
         self.role = role
         self.suspended = suspended
         self.listTags = listTags
+        self.chatIds = chatIds
         self.customProperties = customProperties
     }
 
@@ -2112,6 +2125,7 @@ public struct UserCreateRequestUser: Codable {
         case role
         case suspended
         case listTags = "list_tags"
+        case chatIds = "chat_ids"
         case customProperties = "custom_properties"
     }
 }

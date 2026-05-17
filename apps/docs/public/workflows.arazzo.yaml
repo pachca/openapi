@@ -441,6 +441,25 @@ workflows:
       - stepId: bulk-create-employees-with-tags-3
         description: Or update existing
         operationId: UserOperations_updateUser
+  - workflowId: create-a-guest-in-a-chat
+    summary: Create a guest in a chat
+    description: >-
+      For other roles `chat_ids` is optional — you can add to several chats at once. Creation is
+      available only to admins and owners (not bots).
+    steps:
+      - stepId: create-a-guest-in-a-chat-1
+        description: >-
+          Pick the active chat to add the guest to — get its ID (The chat must be active (not
+          archived) and belong to your company. The token must have permission to add members to
+          it.)
+        operationId: ChatOperations_listChats
+      - stepId: create-a-guest-in-a-chat-2
+        description: >-
+          Create the guest: role `guest` and exactly one chat in `--chat-ids` (For the `guest` role
+          `chat_ids` is required and must contain exactly one chat. Any violation (missing, empty,
+          more than one, chat does not exist, archived, or no permission) → `400` with an `errors`
+          item whose `key` is `chat_ids`.)
+        operationId: UserOperations_createUser
   - workflowId: find-employee-by-name-or-email
     summary: Find employee by name or email
     description: 'Cursor-based pagination: `limit` and `cursor` from `meta`. For exact email — iterate pages.'

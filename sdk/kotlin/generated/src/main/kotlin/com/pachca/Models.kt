@@ -367,6 +367,19 @@ enum class TaskStatus(val value: String) {
     @SerialName("undone") UNDONE("undone"),
 }
 
+/** Роль пользователя, допустимая при создании сотрудника. В отличие от редактирования, при создании можно назначить роль `guest` — в этом случае параметр `chat_ids` обязателен и должен содержать ровно один чат. */
+@Serializable
+enum class UserCreateRole(val value: String) {
+    /** Администратор */
+    @SerialName("admin") ADMIN("admin"),
+    /** Сотрудник */
+    @SerialName("user") USER("user"),
+    /** Мульти-гость */
+    @SerialName("multi_guest") MULTI_GUEST("multi_guest"),
+    /** Гость */
+    @SerialName("guest") GUEST("guest"),
+}
+
 /** Тип события webhook для пользователей */
 @Serializable
 enum class UserEventType(val value: String) {
@@ -397,7 +410,7 @@ enum class UserRole(val value: String) {
     @SerialName("guest") GUEST("guest"),
 }
 
-/** Роль пользователя, допустимая при создании и редактировании. Роль `guest` недоступна для установки через API. */
+/** Роль пользователя, допустимая при редактировании сотрудника. Роль `guest` недоступна для установки через API при редактировании — назначить роль `guest` можно только при создании сотрудника (см. `UserCreateRole`). */
 @Serializable
 enum class UserRoleInput(val value: String) {
     /** Администратор */
@@ -1346,9 +1359,10 @@ data class UserCreateRequestUser(
     val nickname: String? = null,
     val department: String? = null,
     val title: String? = null,
-    val role: UserRoleInput? = null,
+    val role: UserCreateRole? = null,
     val suspended: Boolean? = null,
     @SerialName("list_tags") val listTags: List<String>? = null,
+    @SerialName("chat_ids") val chatIds: List<Int>? = null,
     @SerialName("custom_properties") val customProperties: List<UserCreateRequestCustomProperty>? = null,
 )
 

@@ -328,13 +328,13 @@
     "output": "Any"
   },
   "UserOperations_createUser": {
-    "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegp@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Продукт\",\n        title = \"CIO\",\n        role = UserRoleInput.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    ),\n    skipEmailNotify = true\n)\nval response = client.users.createUser(request = request)",
+    "usage": "val request = UserCreateRequest(\n    user = UserCreateRequestUser(\n        firstName = \"Олег\",\n        lastName = \"Петров\",\n        email = \"olegp@example.com\",\n        phoneNumber = \"+79001234567\",\n        nickname = \"olegpetrov\",\n        department = \"Продукт\",\n        title = \"CIO\",\n        role = UserCreateRole.USER,\n        suspended = false,\n        listTags = listOf(\"example\"),\n        chatIds = listOf(123),\n        customProperties = listOf(UserCreateRequestCustomProperty(id = 1678, value = \"Санкт-Петербург\"))\n    ),\n    skipEmailNotify = true\n)\nval response = client.users.createUser(request = request)",
     "output": "User(id: Int, firstName: String, lastName: String?, nickname: String, email: String?, phoneNumber: String?, department: String?, title: String?, role: UserRole, suspended: Boolean, inviteStatus: InviteStatus, inviterId: Int?, listTags: List<String>, customProperties: List<CustomProperty(id: Int, name: String, dataType: CustomPropertyDataType, value: String)>, userStatus: UserStatus(emoji: String, title: String, expiresAt: OffsetDateTime?, isAway: Boolean, awayMessage: UserStatusAwayMessage(text: String)?)?, bot: Boolean, sso: Boolean, createdAt: OffsetDateTime, lastActivityAt: OffsetDateTime?, timeZone: String?, imageUrl: String?)",
     "imports": [
       "UserCreateRequest",
       "UserCreateRequestCustomProperty",
       "UserCreateRequestUser",
-      "UserRoleInput"
+      "UserCreateRole"
     ]
   },
   "UserOperations_updateUser": {

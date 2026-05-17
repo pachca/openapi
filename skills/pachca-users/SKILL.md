@@ -80,6 +80,23 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 > Создание доступно только администраторам и владельцам (не ботам). Нет отдельного эндпоинта "добавить юзера в тег".
 
 
+### Создать гостя в чат
+
+1. Выбери активный чат, в который добавить гостя — узнай его ID:
+   ```bash
+   pachca chats list
+   ```
+   > Чат должен быть активным (не архивным) и принадлежать вашей компании. У токена должно быть право добавлять в него участников.
+
+2. Создай гостя: роль `guest` и ровно один чат в `--chat-ids`:
+   ```bash
+   pachca users create --email="guest@example.com" --role=guest --chat-ids='[12345]'
+   ```
+   > Для роли `guest` `chat_ids` обязателен и должен содержать ровно один чат. Нарушение (не передан, пусто, больше одного, чат не существует, архивный или нет прав) → `400` с элементом `errors`, где `key` — `chat_ids`.
+
+> Для остальных ролей `chat_ids` опционален — можно сразу добавить в несколько чатов. Создание доступно только администраторам и владельцам (не ботам).
+
+
 ### Найти сотрудника по имени или email
 
 1. Поиск по имени/email (частичное совпадение):
@@ -179,7 +196,7 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 ## Limitations
 
 - Rate limit: ~50 req/sec. On 429 — wait and retry.
-- `user.role`: allowed values — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость)
+- `user.role`: allowed values — `admin` (Администратор), `user` (Сотрудник), `multi_guest` (Мульти-гость), `guest` (Гость)
 - `status.away_message`: max 1024 characters
 - `limit`: max 50
 - Pagination: cursor-based (limit + cursor)

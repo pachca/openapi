@@ -737,7 +737,17 @@ function booleanDescription(desc?: string): string {
 
 
 function quote(s: string): string {
-  return `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+  // Escape order matters: backslashes first, then single quotes, then control
+  // chars. Newlines/carriage returns/tabs MUST become escape sequences —
+  // OpenAPI property descriptions can be multi-paragraph (rendered fine by the
+  // docs site and SDK doc comments), but a raw newline inside this
+  // single-quoted JS string literal produces invalid generated TypeScript.
+  return `'${s
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n')
+    .replace(/\t/g, '\\t')}'`;
 }
 
 /** Display name overrides for enum values (when formatDisplayName isn't sufficient) */

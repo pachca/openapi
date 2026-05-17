@@ -3937,6 +3937,12 @@ paths:
 
         You can fill in custom properties for the employee that have been created in your workspace. You can get the
         current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
+
+
+        Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a
+        guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the
+        token has permission to add members to. Violating the guest access rules returns `400` with an error on the
+        `chat_ids` field.
       parameters: []
       responses:
         '201':
@@ -7550,7 +7556,7 @@ components:
         nickname:
           type: string
           description: Username
-          example: ''
+          example: olegpetrov
         email:
           type: string
           nullable: true
@@ -7564,7 +7570,7 @@ components:
           description: >-
             Phone number. Returns `null` for bots without permission to view personal data, and when a bot for which
             personal data of employees is hidden requests another user's data.
-          example: ''
+          example: '+79001234567'
         department:
           type: string
           nullable: true
@@ -7684,7 +7690,7 @@ components:
               example: CIO
             role:
               allOf:
-                - $ref: '#/components/schemas/UserRoleInput'
+                - $ref: '#/components/schemas/UserCreateRole'
               description: Access level
               example: user
             suspended:
@@ -7699,6 +7705,16 @@ components:
               example:
                 - Product
                 - Design
+            chat_ids:
+              type: array
+              items:
+                type: integer
+                format: int32
+              description: >-
+                IDs of chats the employee is added to right at creation. Required for the `guest` role and must contain
+                exactly one active chat.
+              example:
+                - 12345
             custom_properties:
               type: array
               items:
@@ -7726,6 +7742,21 @@ components:
             account. Useful when pre-creating accounts before SSO login.
           example: true
       description: Employee creation request
+    UserCreateRole:
+      type: string
+      enum:
+        - admin
+        - user
+        - multi_guest
+        - guest
+      description: >-
+        User role allowed when creating an employee. Unlike editing, the `guest` role can be assigned on creation — in
+        that case the `chat_ids` parameter is required and must contain exactly one chat.
+      x-enum-descriptions:
+        admin: Administrator
+        user: Employee
+        multi_guest: Multi-guest
+        guest: Guest
     UserEventType:
       type: string
       enum:
@@ -7762,7 +7793,9 @@ components:
         - admin
         - user
         - multi_guest
-      description: User role allowed for creation and editing. The `guest` role cannot be set via API.
+      description: >-
+        User role allowed when editing an employee. The `guest` role cannot be set via API when editing — the `guest`
+        role can only be assigned when creating an employee (see `UserCreateRole`).
       x-enum-descriptions:
         admin: Administrator
         user: Employee

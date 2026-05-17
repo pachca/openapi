@@ -848,7 +848,7 @@ Retrieve the current list of employees in your workspace.
 Parameters: query?, limit?, cursor?
 
 ### POST /api/shared/v1/users
-Create a new employee in your workspace. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method.
+Create a new employee in your workspace. You can fill in custom properties for the employee that have been created in your workspace. You can get the current list of employee custom property IDs using the [List custom properties](GET /custom_properties) method. Through the `chat_ids` parameter the employee can be added to the specified chats right at creation. To create a guest, pass `role: "guest"` — for this role `chat_ids` is required and must contain exactly one active chat the token has permission to add members to. Violating the guest access rules returns `400` with an error on the `chat_ids` field.
 Body: { user*, skip_email_notify }
 
 ### GET /api/shared/v1/users/{id}

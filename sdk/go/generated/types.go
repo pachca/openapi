@@ -231,6 +231,15 @@ const (
 	TaskStatusUndone TaskStatus = "undone" // Активно
 )
 
+type UserCreateRole string
+
+const (
+	UserCreateRoleAdmin      UserCreateRole = "admin" // Администратор
+	UserCreateRoleUser       UserCreateRole = "user" // Сотрудник
+	UserCreateRoleMultiGuest UserCreateRole = "multi_guest" // Мульти-гость
+	UserCreateRoleGuest      UserCreateRole = "guest" // Гость
+)
+
 type UserEventType string
 
 const (
@@ -918,9 +927,10 @@ type UserCreateRequestUser struct {
 	Nickname         *string                           `json:"nickname,omitempty"`
 	Department       *string                           `json:"department,omitempty"`
 	Title            *string                           `json:"title,omitempty"`
-	Role             *UserRoleInput                    `json:"role,omitempty"`
+	Role             *UserCreateRole                   `json:"role,omitempty"`
 	Suspended        *bool                             `json:"suspended,omitempty"`
 	ListTags         []string                          `json:"list_tags,omitempty"`
+	ChatIDs          []int32                           `json:"chat_ids,omitempty"`
 	CustomProperties []UserCreateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 

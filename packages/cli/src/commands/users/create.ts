@@ -55,6 +55,9 @@ export default class UsersCreate extends BaseCommand {
     'list-tags': Flags.string({
       description: "Массив тегов, привязываемых к сотруднику",
     }),
+    'chat-ids': Flags.string({
+      description: "Идентификаторы чатов, в которые сотрудник будет добавлен сразу при создании. Для роли `guest` параметр обязателен и должен содержать ровно один активный чат.",
+    }),
     'custom-properties': Flags.string({
       description: "Задаваемые дополнительные поля",
     }),
@@ -101,6 +104,7 @@ export default class UsersCreate extends BaseCommand {
       role: flags['role'],
       suspended: flags['suspended'],
       list_tags: flags['list-tags'] ? this.parseJSON(flags['list-tags'], 'list-tags') : undefined,
+      chat_ids: flags['chat-ids'] ? this.parseJSON(flags['chat-ids'], 'chat-ids') : undefined,
       custom_properties: flags['custom-properties'] ? this.parseJSON(flags['custom-properties'], 'custom-properties') : undefined,
       },
       skip_email_notify: flags['skip-email-notify'],

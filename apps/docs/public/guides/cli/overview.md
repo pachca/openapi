@@ -13,20 +13,22 @@
 
 ```bash
     npm install -g @pachca/cli
-    pachca --version
     ```
 
-    Подробнее — [Установка](/guides/cli/installation) (есть и вариант без установки через `npx`).
+    Подробнее — [Установка](/guides/cli/installation).
 
 
-  ### Шаг 2. Авторизация
+  ### Шаг 2. Вход в аккаунт
 
-```bash
+Сохраните API-токен. Получить его можно в интерфейсе Пачки в разделе **Автоматизации** > **API** — подробнее в руководстве [Авторизация](/api/authorization).
+
+    ```bash
+    # Интерактивный вход
     pachca auth login
-    # или для CI: pachca auth login --token YOUR_ACCESS_TOKEN
-    ```
 
-    Подробнее — [Авторизация](/guides/cli/authentication).
+    # Для CI и скриптов — передайте токен через флаг
+    pachca auth login --token YOUR_ACCESS_TOKEN
+    ```
 
 
   ### Шаг 3. Первый запрос
@@ -37,12 +39,16 @@
     # ID    Имя              Email               Роль
     # 1234  Иван Иванов      ivan@company.ru     admin
     # 5678  Мария Петрова    maria@company.ru    user
-
-    pachca messages create --entity-id 123 --content "Привет!"
     ```
 
-    Пропущенные обязательные флаги CLI запросит интерактивно. Добавьте `-o json` для JSON-вывода.
+    Готово. Это типизированная команда. Тот же запрос можно сделать и напрямую через `pachca api` — оба способа описаны в разделе [Способы работы](#sposoby-raboty).
 
+
+Без установки — разовый запуск через `npx`, токен передаётся флагом:
+
+```bash
+npx @pachca/cli users list --token YOUR_ACCESS_TOKEN
+```
 
 ## Способы работы
 
@@ -53,31 +59,34 @@
 Каждый метод API — отдельная команда `pachca <секция> <действие>` с флагами, валидацией и подсказками. Справка по любой команде — флаг `--help`:
 
 ```bash
-pachca messages create --entity-id 123 --content "Привет"
-pachca messages create --help   # параметры, флаги, примеры команды
-pachca commands                 # список всех команд
+pachca messages create --entity-id 123 --content "Привет"  # отправить сообщение
+pachca messages create --help  # справка по этой команде
+pachca commands  # список всех команд
 ```
 
-Все команды со всеми флагами — в разделе [Справочник команд](/guides/cli/commands); готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
+Пропущенные обязательные флаги CLI запросит интерактивно. Флаг `-o json` переключает вывод в машиночитаемый JSON.
+
+Все команды со всеми флагами — в разделе [Справочник команд](/guides/cli/commands). Готовые пошаговые рецепты под задачу — [Сценарии](/guides/cli/workflows).
 
 ### Прямые запросы
 
 Команда `pachca api` отправляет прямой HTTP-запрос к любому методу — для нестандартных вызовов и отладки. Она же работает как встроенный справочник по API: список эндпоинтов и справку по каждому (параметры, тело, пример) можно получить прямо в терминале, **не открывая сайт документации** — особенно удобно агентам:
 
 ```bash
-pachca api ls                          # список всех эндпоинтов
-pachca api POST /messages --describe   # параметры, тело, пример
-pachca api POST /messages -f message[content]="Привет"
+pachca api POST /messages -f message[entity_id]=123 -f message[content]="Привет"  # тот же запрос
+pachca api POST /messages --describe  # справка по тому же методу
+pachca api ls  # список всех эндпоинтов
 ```
 
 Подробнее — [Прямые запросы](/guides/cli/api-requests).
 
 ## Разделы
 
+- [Авторизация](/guides/cli/authentication) — Профили, приоритет источников токена, headless-режим для CI и агентов
 - [Вывод](/guides/cli/output) — Форматы (table, json, yaml, csv), колонки, пайпы, пагинация
 - [Флаги и скрипты](/guides/cli/scripting) — Глобальные флаги, exit codes, таксономия ошибок, переменные окружения
 - [Сценарии](/guides/cli/workflows) — Готовые пошаговые рецепты под типовые задачи
 - [Файлы](/guides/cli/files) — Загрузка файла на S3 одной командой
 - [Прямые запросы](/guides/cli/api-requests) — Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале
-- [Справочник команд](/guides/cli/commands) — Все команды; параметры каждой — по клику
+- [Справочник команд](/guides/cli/commands) — Все команды, параметры каждой — по клику
 

@@ -55,6 +55,8 @@ import {
   Code,
   Package,
   Database,
+  BotMessageSquare,
+  FileDiff,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -103,12 +105,17 @@ const iconMap: Record<string, LucideIcon> = {
   Code,
   Package,
   Database,
+  BotMessageSquare,
+  FileDiff,
 };
 
 /** Icon mapping for guide pages by path */
 const GUIDE_ICONS: Record<string, string> = {
   '/guides/quickstart': 'Zap',
   '/guides/ai-agents': 'Sparkles',
+  '/guides/ai-agents/overview': 'Sparkles',
+  '/guides/ai-agents/interaction': 'BotMessageSquare',
+  '/guides/ai-agents/markdown': 'FileDiff',
   '/guides/cli/overview': 'Terminal',
   '/guides/workflows': 'Route',
   '/guides/webhook': 'Webhook',

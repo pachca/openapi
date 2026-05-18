@@ -53,7 +53,15 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
     title: 'Инструменты',
     items: [
       { title: 'Быстрый старт', path: '/guides/quickstart' },
-      { title: 'AI агенты', path: '/guides/ai-agents' },
+      {
+        title: 'AI агенты',
+        path: '/guides/ai-agents/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/ai-agents/overview' },
+          { title: 'Взаимодействие с агентом', path: '/guides/ai-agents/interaction' },
+          { title: 'Markdown и документы', path: '/guides/ai-agents/markdown' },
+        ],
+      },
       {
         title: 'CLI',
         path: '/guides/cli/overview',

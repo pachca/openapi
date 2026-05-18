@@ -5,7 +5,7 @@
 
 Сценарии используются как:
 - **Справочник для разработчиков** — быстрый ответ на вопрос «как сделать X через API»
-- **Основа для AI-агентов** — входят в [Agent Skills](/guides/ai-agents#agent-skills) для подключения к 40+ AI-агентам
+- **Основа для AI-агентов** — входят в [Agent Skills](/guides/ai-agents/overview) для подключения к 40+ AI-агентам
 - **Встроенная подсказка в CLI** — доступны через команду `pachca guide` в [CLI](/guides/cli/workflows)
 
 ### pachca-profile

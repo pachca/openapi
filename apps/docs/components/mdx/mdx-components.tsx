@@ -447,8 +447,8 @@ export async function ScopeRoles() {
 
 // Update manually when a new product release goes out
 const LATEST_PRODUCT_UPDATE = {
-  date: '27 мая 2026',
-  title: 'Есть что переслать 📤',
+  date: '18 мая 2026',
+  title: 'Новое окно прочитавших и поставивших реакцию',
 };
 
 export function ProductUpdatesLink() {

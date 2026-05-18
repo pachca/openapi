@@ -225,7 +225,9 @@ Error response body: `{ "errors": [{ "key": "field", "value": "description" }] }
 Detailed documentation on specific topics is available at:
 
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart) — Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
-- [AI агенты](https://dev.pachca.com/guides/ai-agents) — Как Пачка работает с AI-агентами: треды как единица работы, сквозные треды, готовые Agent Skills для 40+ агентов и примеры сценариев в чатах и задачах
+- [AI агенты: Обзор](https://dev.pachca.com/guides/ai-agents/overview) — Готовность Пачки к AI-агентам: агент как участник тредов и способы подключения — llms.txt, CLI как основной путь, Agent Skills, OpenAPI, Arazzo, Context7
+- [AI агенты: Взаимодействие с агентом](https://dev.pachca.com/guides/ai-agents/interaction) — Как агент в Пачке получает события через вебхук, собирает контекст треда, выполняет действия и отвечает. Реакция-индикатор и таймер agent-thinking
+- [AI агенты: Markdown и документы](https://dev.pachca.com/guides/ai-agents/markdown) — Агент присылает отчёты, ревью и сводки в Markdown — Пачка рендерит .md оформленной карточкой: таблицы, чеклисты, подсветка кода, diff, диаграммы Mermaid
 - [CLI: Обзор](https://dev.pachca.com/guides/cli/overview) — Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+
 - [CLI: Установка](https://dev.pachca.com/guides/cli/installation) — Установка @pachca/cli: глобально через npm или без установки через npx (для агентов и CI). Автодополнение, настройки по умолчанию, диагностика и обновление.
 - [CLI: Авторизация](https://dev.pachca.com/guides/cli/authentication) — Авторизация Pachca CLI: профили для нескольких токенов, приоритет источников токена, headless-режим для CI и агентов.

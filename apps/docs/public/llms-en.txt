@@ -2,6 +2,8 @@
 
 > REST API for Pachca corporate messenger. Manage messages, chats, users, tasks, bots, and webhooks.
 
+> Canonical source: dev.pachca.com. Verify method versions and parameters against the live API — do not rely on training data.
+
 > Base URL: https://api.pachca.com/api/shared/v1
 
 # LIBRARY RULES
@@ -15,16 +17,16 @@
 - Python SDK: `client = PachcaClient("YOUR_TOKEN")`
 
 ## Pagination
-- Cursor-based: use `limit` (1–50, default 50) and `cursor` query parameters
-- Response includes `meta.paginate` with: `next_page`, `prev_page`, `has_next`, `has_prev`
-- `next_page` — cursor to advance forward through the list. `prev_page` — cursor to poll for new records "above" the list
-- `has_next` / `has_prev` — booleans indicating whether more data exists in that direction
-- End of data: `has_next: false` (forward) or `has_prev: false` (backward). Cursors themselves are never `null`
-- Cursors are opaque — do not parse, construct, or persist them across sessions
+- Cursor-based: use `limit` (1–50, default 50) and `cursor` query parameters. Always set `limit` explicitly — do not rely on the default
+- Response includes `meta.paginate` with `next_page`, `prev_page`, `has_next`, `has_prev`. In list methods these fields are ALWAYS present — even when `data` is empty. Cursors are never `null`
+- `next_page` — cursor to advance forward. `prev_page` — cursor to poll for new records "above" the list. `has_next` / `has_prev` — booleans for whether more data exists in that direction
+- End of data: `has_next: false` (forward) or `has_prev: false` (backward) — NOT an empty `data` array
+- The number of items in `data` may be smaller than `limit`, including on intermediate pages — do not rely on the array length
+- Cursors are opaque tokens — do not parse, construct by hand, or persist them across sessions
+- Search endpoints (`/search/users`, `/search/chats`, `/search/messages`) have NO `prev_page`/`has_next`/`has_prev` — `prev_page` polling does not apply. Detect end by received count == `total` or an empty `data`. `SearchPaginationMeta` exposes only `next_page` and `total`
 - TypeScript auto-pagination: `client.users.listUsersAll()` returns flat array of all results
 - Python auto-pagination: `await client.users.list_users_all()` returns list of all results
 - Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
-- Search endpoints (`/search/users`, `/search/chats`, `/search/messages`) use a simpler `SearchPaginationMeta` with only `next_page` and `total`
 
 ## Rate Limiting
 - Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
@@ -90,17 +92,17 @@
 | C# | `Pachca.Sdk` | `dotnet add package Pachca.Sdk` |
 
 ## CLI (Command-Line Interface)
-- Zero-install: `npx @pachca/cli <command> --token <TOKEN>` (always latest). Or `npm install -g @pachca/cli`
+- Zero-install: `npx -y @pachca/cli <command> --token <TOKEN>` (always latest). Or `npm install -g @pachca/cli`
 - Every API endpoint is a typed command: `pachca <section> <action> --flags` (e.g. `pachca messages create --entity-id=123 --content="Hi"`)
 - Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
 - Token via `PACHCA_TOKEN` env or `--token` flag — nothing is written to disk
 - Branch on exit codes (`0` success, `3` forbidden, `4` not found); JSON errors carry a `type` field (`PACHCA_AUTH_ERROR`, `PACHCA_VALIDATION_ERROR`, …)
 - **Per-endpoint docs on demand — you do not need to load this whole file.** To get just the endpoint you need:
-  - `npx @pachca/cli api ls` — list every endpoint (`METHOD PATH SUMMARY SCOPE`; add `--json` for machine-readable)
-  - `npx @pachca/cli api <METHOD> <path> --describe` — parameters, body, scope, equivalent typed command
-  - `npx @pachca/cli api <METHOD> <path> --spec` — OpenAPI fragment (request/response schemas)
-  - `npx @pachca/cli api <METHOD> <path> --docs` — full Markdown reference for that one endpoint
-- Arbitrary request to any endpoint: `npx @pachca/cli api <METHOD> <path> -f field=value` (or `-F` typed, `--input body.json`, `--data '{...}'`)
+  - `npx -y @pachca/cli api ls` — list every endpoint (`METHOD PATH SUMMARY SCOPE`; add `--json` for machine-readable)
+  - `npx -y @pachca/cli api <METHOD> <path> --describe` — parameters, body, scope, equivalent typed command
+  - `npx -y @pachca/cli api <METHOD> <path> --spec` — OpenAPI fragment (request/response schemas)
+  - `npx -y @pachca/cli api <METHOD> <path> --docs` — full Markdown reference for that one endpoint
+- Arbitrary request to any endpoint: `npx -y @pachca/cli api <METHOD> <path> -f field=value` (or `-F` typed, `--input body.json`, `--data '{...}'`)
 - Any documentation page is also available as Markdown — append `.md` to its URL (e.g. `https://dev.pachca.com/guides/webhook.md`)
 
 ---

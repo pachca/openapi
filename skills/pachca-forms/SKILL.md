@@ -22,16 +22,16 @@ allowed-tools: Bash(npx:*), Bash(pachca:*), Bash(which:*), Bash(npm:*)
 Ask the user for a Pachca token (bot: Automations → Integrations → API, user: Automations → API).
 **Bot token only** — user tokens will not work.
 
-Run commands via `npx @pachca/cli` with the `--token` flag:
+Run commands via `npx -y @pachca/cli` with the `--token` flag:
 
-    npx @pachca/cli <command> --token $PACHCA_TOKEN
+    npx -y @pachca/cli <command> --token $PACHCA_TOKEN
 
 Or set the `PACHCA_TOKEN` environment variable:
 
     export PACHCA_TOKEN=<token>
-    npx @pachca/cli <command>
+    npx -y @pachca/cli <command>
 
-Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
+Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 
 > After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`
 
@@ -39,13 +39,13 @@ Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`
 
 1. If the user has a saved profile — check:
 
-       npx @pachca/cli auth status
+       npx -y @pachca/cli auth status
 
    If OK — run commands without `--token`.
 
 2. If no profile is configured — ask for a token and use `--token`:
 
-       npx @pachca/cli auth status --token $PACHCA_TOKEN
+       npx -y @pachca/cli auth status --token $PACHCA_TOKEN
 
 3. If you don't know the parameters — run `pachca <command> --help`.
 

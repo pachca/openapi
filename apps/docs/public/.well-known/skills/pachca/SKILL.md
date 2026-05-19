@@ -16,7 +16,7 @@ Pachca — corporate messenger with REST API and CLI.
 ## Quick start
 
 ```bash
-npx @pachca/cli <command> --token <TOKEN>
+npx -y @pachca/cli <command> --token <TOKEN>
 ```
 
 ## For regular use

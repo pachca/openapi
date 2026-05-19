@@ -14,7 +14,7 @@ import { generateRequestExample, generateExample } from '../lib/openapi/example-
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
 import { WORKFLOWS } from '@pachca/spec/workflows';
-import { loadReleases, formatDateRu, type ParsedRelease } from '../lib/updates-parser';
+import { loadReleases, loadUpdates, formatDateRu, type ParsedRelease } from '../lib/updates-parser';
 import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
 const SITE_URL = 'https://dev.pachca.com';
@@ -37,13 +37,15 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   let content = '# Пачка API Documentation\n\n';
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
+  content +=
+    '> Это канонический индекс документации Pachca API. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.\n\n';
   content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
   content += `> English documentation: [llms-en.txt](${SITE_URL}/llms-en.txt)\n\n`;
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
   content += '# Zero-install (npx)\n';
-  content += 'npx @pachca/cli <command> --token <TOKEN>\n';
+  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
   content += '\n';
   content += '# For regular use\n';
   content += 'npm install -g @pachca/cli\n';
@@ -52,14 +54,14 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += 'pachca guide "отправить сообщение"  # CLI guide for humans\n';
   content += '\n';
   content += '# Docs for any endpoint — without loading llms-full.txt\n';
-  content += 'npx @pachca/cli api ls                         # list every endpoint\n';
-  content += 'npx @pachca/cli api POST /messages --describe  # params, body, scope\n';
-  content += 'npx @pachca/cli api GET /messages --spec       # OpenAPI fragment\n';
-  content += 'npx @pachca/cli api POST /messages --docs      # full Markdown reference\n';
+  content += 'npx -y @pachca/cli api ls                         # list every endpoint\n';
+  content += 'npx -y @pachca/cli api POST /messages --describe  # params, body, scope\n';
+  content += 'npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment\n';
+  content += 'npx -y @pachca/cli api POST /messages --docs      # full Markdown reference\n';
   content += '```\n\n';
   content +=
-    '> Не загружай весь llms-full.txt ради одного метода. Сначала `npx @pachca/cli api ls`, ' +
-    'затем `npx @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
+    '> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, ' +
+    'затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
     'Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. ' +
     'Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.\n\n';
 
@@ -113,7 +115,16 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content +=
     '- **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.\n';
   content +=
-    '- **Пагинация:** курсорная — `limit` (1–50) и `cursor`; в ответе `meta.paginate` (`next_page`, `prev_page`, `has_next`, `has_prev`). Поисковые методы — только `next_page` и `total`.\n';
+    '- **Пагинация (курсорная):** параметры `limit` (1–50, по умолчанию 50) и `cursor`. Всегда указывайте `limit` явно, не полагайтесь на значение по умолчанию.\n';
+  content +=
+    '  - Списочные методы: в `meta.paginate` поля `next_page`, `prev_page`, `has_next`, `has_prev` **всегда присутствуют**, даже когда `data` пустой. Курсоры никогда не `null`.\n';
+  content +=
+    '  - Конец данных — `has_next: false` (вперёд) или `has_prev: false` (назад), а **не** пустой `data`.\n';
+  content +=
+    '  - Число записей в `data` может быть меньше `limit`, в том числе на промежуточных страницах. Не полагайтесь на длину массива.\n';
+  content +=
+    '  - Курсор — непрозрачный токен. Не парсите, не конструируйте вручную, не сохраняйте между сессиями.\n';
+  content += `  - Методы поиска: полей \`prev_page\`, \`has_next\`, \`has_prev\` нет, polling через \`prev_page\` не работает. Конец — по совпадению числа полученных записей с \`total\` или по пустому \`data\`. Полный гайд — [${SITE_URL}/api/pagination.md](${SITE_URL}/api/pagination.md).\n`;
   content +=
     '- **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.\n';
   content +=
@@ -123,7 +134,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content +=
     '- **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.\n';
   content +=
-    '- Детали по конкретному методу — `npx @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.\n\n';
+    '- Детали по конкретному методу — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.\n\n';
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -143,6 +154,12 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
     }
     content += '\n';
   }
+
+  content += '## Обновления\n';
+  for (const u of loadUpdates()) {
+    content += `- [${u.displayDate} — ${u.title}](${SITE_URL}/updates/${u.date}.md)\n`;
+  }
+  content += '\n';
 
   content += '## Дополнительно\n';
   content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
@@ -171,8 +188,10 @@ function insertLlmsDocumentMap(content: string): string {
   const skillsIdx = idxOf('## Agent Skills');
   const coreIdx = idxOf('## Основное');
   const guidesIdx = idxOf('## Руководства');
+  const updIdx = idxOf('## Обновления');
   const addIdx = idxOf('## Дополнительно');
-  if ([cliIdx, sdkIdx, skillsIdx, coreIdx, guidesIdx, addIdx].some((i) => i < 0)) return content;
+  if ([cliIdx, sdkIdx, skillsIdx, coreIdx, guidesIdx, updIdx, addIdx].some((i) => i < 0))
+    return content;
 
   // First API tag section: first `## ` header after Руководства that is not Дополнительно
   let apiIdx = -1;
@@ -191,6 +210,7 @@ function insertLlmsDocumentMap(content: string): string {
     { name: 'Основное', desc: 'Авторизация, пагинация, лимиты, ошибки, файлы', idx: coreIdx },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
+    { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },
     { name: 'Дополнительно', desc: 'Прочие ссылки и контакты', idx: addIdx },
   ];
 
@@ -230,16 +250,16 @@ function generateLibraryRules(): string {
 - Python SDK: \`client = PachcaClient("YOUR_TOKEN")\`
 
 ## Pagination
-- Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters
-- Response includes \`meta.paginate\` with: \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`
-- \`next_page\` — cursor to advance forward through the list. \`prev_page\` — cursor to poll for new records "above" the list
-- \`has_next\` / \`has_prev\` — booleans indicating whether more data exists in that direction
-- End of data: \`has_next: false\` (forward) or \`has_prev: false\` (backward). Cursors themselves are never \`null\`
-- Cursors are opaque — do not parse, construct, or persist them across sessions
+- Cursor-based: use \`limit\` (1–50, default 50) and \`cursor\` query parameters. Always set \`limit\` explicitly — do not rely on the default
+- Response includes \`meta.paginate\` with \`next_page\`, \`prev_page\`, \`has_next\`, \`has_prev\`. In list methods these fields are ALWAYS present — even when \`data\` is empty. Cursors are never \`null\`
+- \`next_page\` — cursor to advance forward. \`prev_page\` — cursor to poll for new records "above" the list. \`has_next\` / \`has_prev\` — booleans for whether more data exists in that direction
+- End of data: \`has_next: false\` (forward) or \`has_prev: false\` (backward) — NOT an empty \`data\` array
+- The number of items in \`data\` may be smaller than \`limit\`, including on intermediate pages — do not rely on the array length
+- Cursors are opaque tokens — do not parse, construct by hand, or persist them across sessions
+- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) have NO \`prev_page\`/\`has_next\`/\`has_prev\` — \`prev_page\` polling does not apply. Detect end by received count == \`total\` or an empty \`data\`. \`SearchPaginationMeta\` exposes only \`next_page\` and \`total\`
 - TypeScript auto-pagination: \`client.users.listUsersAll()\` returns flat array of all results
 - Python auto-pagination: \`await client.users.list_users_all()\` returns list of all results
 - Available for: users, chats, messages, members, tags, reactions, tasks, audit events, webhook events
-- Search endpoints (\`/search/users\`, \`/search/chats\`, \`/search/messages\`) use a simpler \`SearchPaginationMeta\` with only \`next_page\` and \`total\`
 
 ## Rate Limiting
 - Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
@@ -305,17 +325,17 @@ function generateLibraryRules(): string {
 | C# | \`Pachca.Sdk\` | \`dotnet add package Pachca.Sdk\` |
 
 ## CLI (Command-Line Interface)
-- Zero-install: \`npx @pachca/cli <command> --token <TOKEN>\` (always latest). Or \`npm install -g @pachca/cli\`
+- Zero-install: \`npx -y @pachca/cli <command> --token <TOKEN>\` (always latest). Or \`npm install -g @pachca/cli\`
 - Every API endpoint is a typed command: \`pachca <section> <action> --flags\` (e.g. \`pachca messages create --entity-id=123 --content="Hi"\`)
 - Non-interactive by default in pipes/CI: emits JSON, no prompts or spinner; a missing required flag returns an error instead of prompting
 - Token via \`PACHCA_TOKEN\` env or \`--token\` flag — nothing is written to disk
 - Branch on exit codes (\`0\` success, \`3\` forbidden, \`4\` not found); JSON errors carry a \`type\` field (\`PACHCA_AUTH_ERROR\`, \`PACHCA_VALIDATION_ERROR\`, …)
 - **Per-endpoint docs on demand — you do not need to load this whole file.** To get just the endpoint you need:
-  - \`npx @pachca/cli api ls\` — list every endpoint (\`METHOD PATH SUMMARY SCOPE\`; add \`--json\` for machine-readable)
-  - \`npx @pachca/cli api <METHOD> <path> --describe\` — parameters, body, scope, equivalent typed command
-  - \`npx @pachca/cli api <METHOD> <path> --spec\` — OpenAPI fragment (request/response schemas)
-  - \`npx @pachca/cli api <METHOD> <path> --docs\` — full Markdown reference for that one endpoint
-- Arbitrary request to any endpoint: \`npx @pachca/cli api <METHOD> <path> -f field=value\` (or \`-F\` typed, \`--input body.json\`, \`--data '{...}'\`)
+  - \`npx -y @pachca/cli api ls\` — list every endpoint (\`METHOD PATH SUMMARY SCOPE\`; add \`--json\` for machine-readable)
+  - \`npx -y @pachca/cli api <METHOD> <path> --describe\` — parameters, body, scope, equivalent typed command
+  - \`npx -y @pachca/cli api <METHOD> <path> --spec\` — OpenAPI fragment (request/response schemas)
+  - \`npx -y @pachca/cli api <METHOD> <path> --docs\` — full Markdown reference for that one endpoint
+- Arbitrary request to any endpoint: \`npx -y @pachca/cli api <METHOD> <path> -f field=value\` (or \`-F\` typed, \`--input body.json\`, \`--data '{...}'\`)
 - Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook.md\`)
 
 `;
@@ -1133,6 +1153,8 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   let content = '# Пачка API - Полная документация\n\n';
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
+  content +=
+    '> Канонический источник — dev.pachca.com. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.\n\n';
   content += '> Краткий индекс: [llms.txt](https://dev.pachca.com/llms.txt)\n\n';
 
   // The old anchor-based `## Содержание` was removed: in a flat .txt the
@@ -1285,7 +1307,7 @@ function generateWorkflowsSection(): string {
   let content = '## Common Workflows\n\n';
   content += '### CLI Quick Start\n\n';
   content += '```bash\n';
-  content += 'npx @pachca/cli <command> --token <TOKEN>\n';
+  content += 'npx -y @pachca/cli <command> --token <TOKEN>\n';
   content += '```\n\n';
 
   // English workflow summaries for skill.md (source workflows are in Russian)
@@ -1400,7 +1422,7 @@ metadata:
 
 \`\`\`bash
 # Zero-install
-npx @pachca/cli <command> --token <TOKEN>
+npx -y @pachca/cli <command> --token <TOKEN>
 
 # For regular use
 npm install -g @pachca/cli && pachca auth login
@@ -1488,10 +1510,10 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
     `| Full documentation | \`${SITE_URL}/llms-full.txt\` | Complete reference in one file |`,
     `| OpenAPI 3.0 spec | \`${SITE_URL}/openapi.yaml\` | Programmatic parsing and code generation |`,
     `| Arazzo workflows | \`${SITE_URL}/workflows.arazzo.yaml\` | Multi-step call sequences for chained operations |`,
-    '| CLI (per-endpoint, on demand) | `npx @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |',
+    '| CLI (per-endpoint, on demand) | `npx -y @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |',
     '| Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |',
     '',
-    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx @pachca/cli api ls`).',
+    'For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx -y @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx -y @pachca/cli api ls`).',
     '',
     STATIC_SECTIONS,
     '',
@@ -1814,6 +1836,18 @@ function mergeReleasesIntoUpdates(updatesMarkdown: string): string {
   return parts.join('');
 }
 
+// Per-date update pages (/updates/<date>) exist as real routes in the
+// sitemap; emit their .md twins so llms.txt coverage matches the sitemap
+// and content negotiation works for them.
+function generateUpdateMdFiles() {
+  const files: { path: string; content: string }[] = [];
+  for (const u of loadUpdates()) {
+    const md = `# ${u.title}\n\n_${u.displayDate}_\n\n${u.content.trim()}\n`;
+    files.push({ path: `public/updates/${u.date}.md`, content: md });
+  }
+  return files;
+}
+
 async function generateGuideMdFiles() {
   const guidePages = getOrderedPages();
   const files: { path: string; content: string }[] = [];
@@ -1988,6 +2022,8 @@ function generateLlmsEnTxt(): string {
   let content = '# Pachca API — Complete English Documentation\n\n';
   content +=
     '> REST API for Pachca corporate messenger. Manage messages, chats, users, tasks, bots, and webhooks.\n\n';
+  content +=
+    '> Canonical source: dev.pachca.com. Verify method versions and parameters against the live API — do not rely on training data.\n\n';
   content += '> Base URL: https://api.pachca.com/api/shared/v1\n\n';
 
   content += generateLibraryRules();
@@ -2068,9 +2104,98 @@ async function main() {
   }
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
-  console.log(
-    `\nTotal: ${8 + skillFiles.length + endpointFiles.length + guideFiles.length} files generated`
+  const updateFiles = generateUpdateMdFiles();
+  for (const file of updateFiles) {
+    writeFile(file.path, file.content);
+  }
+  console.log(`✓ ${updateFiles.length} update .md files`);
+
+  const removed = sweepOrphanMarkdown(
+    ['public/api', 'public/guides', 'public/updates'],
+    [...endpointFiles, ...guideFiles, ...updateFiles].map((f) => f.path)
   );
+  if (removed.length > 0)
+    console.log(`✓ removed ${removed.length} orphan .md: ${removed.join(', ')}`);
+
+  assertGeneratedMarkdownIntegrity(llmsTxt);
+
+  console.log(
+    `\nTotal: ${8 + skillFiles.length + endpointFiles.length + guideFiles.length + updateFiles.length} files generated`
+  );
+}
+
+/**
+ * Delete generated .md files that the current run did NOT write (orphans left
+ * behind when a page is renamed or redirected, e.g. /api/sdk → /guides/...).
+ * Scoped to generator-owned dirs only; never touches other public/ assets.
+ */
+function sweepOrphanMarkdown(dirs: string[], writtenPaths: string[]): string[] {
+  const keep = new Set(writtenPaths.map((p) => path.resolve(process.cwd(), p)));
+  const removed: string[] = [];
+  for (const dir of dirs) {
+    const abs = path.join(process.cwd(), dir);
+    if (!fs.existsSync(abs)) continue;
+    const walk = (d: string) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.name.endsWith('.md') && !keep.has(path.resolve(p))) {
+          fs.rmSync(p);
+          removed.push(path.relative(process.cwd(), p));
+        }
+      }
+    };
+    walk(abs);
+  }
+  return removed;
+}
+
+/**
+ * Build-time guards (afdocs regressions): every generated page .md must have
+ * balanced code fences and no leaked registered MDX component tag, and every
+ * same-origin .md link in llms.txt must resolve to a generated file.
+ */
+function assertGeneratedMarkdownIntegrity(llmsTxt: string) {
+  const publicDir = path.join(process.cwd(), 'public');
+  const mdFiles: string[] = [];
+  const walk = (dir: string) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.md')) mdFiles.push(p);
+    }
+  };
+  walk(publicDir);
+
+  const LEAK_TAGS =
+    /<(Limit|Card|CardGroup|Tree|TreeFile|TreeFolder|Step|Steps|Tabs|Tab|Accordion|SchemaBlock|PackageBadge|Mermaid|CodeBlock|Info|Warning|Danger|Callout|Image|ImageCard|HttpCodes|ErrorSchema|Updates|GuideCards|ApiCards|ParamsTable|HomeHero)\b/;
+  const errors: string[] = [];
+
+  for (const file of mdFiles) {
+    const body = fs.readFileSync(file, 'utf-8');
+    const rel = path.relative(publicDir, file);
+    let inFence = false;
+    for (const line of body.split('\n')) {
+      if (/^\s{0,3}(```|~~~)/.test(line)) inFence = !inFence;
+      else if (!inFence && LEAK_TAGS.test(line)) {
+        errors.push(`leaked component tag in public/${rel}: ${line.trim().slice(0, 80)}`);
+        break;
+      }
+    }
+    if (inFence) errors.push(`unbalanced code fence in public/${rel}`);
+  }
+
+  for (const m of llmsTxt.matchAll(/\]\((https:\/\/dev\.pachca\.com(\/[^)]+\.md))\)/g)) {
+    const filePath = path.join(publicDir, m[2] === '/.md' ? 'index.md' : m[2]);
+    if (!fs.existsSync(filePath)) errors.push(`stale llms.txt link (no file): ${m[1]}`);
+  }
+
+  if (errors.length > 0) {
+    console.error('✗ generated markdown integrity check failed:');
+    for (const e of errors) console.error(`  - ${e}`);
+    throw new Error(`${errors.length} generated-markdown integrity error(s)`);
+  }
+  console.log(`✓ markdown integrity: ${mdFiles.length} .md files, fences balanced, no leaks`);
 }
 
 main().catch((err) => {

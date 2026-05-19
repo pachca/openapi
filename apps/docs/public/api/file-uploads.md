@@ -10,7 +10,7 @@
 
 Сделайте запрос к методу [Получение подписи, ключа и других параметров](POST /uploads) без тела для получения подписи и параметров. Данный метод необходимо использовать для загрузки каждого файла.
 
-    **Получение параметров загрузки**
+**Получение параметров загрузки**
 
 ```bash
 curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
@@ -18,14 +18,14 @@ curl -X POST "https://api.pachca.com/api/shared/v1/uploads" \
 ```
 
 
-    В ответе вы получите параметры для следующего шага: `Content-Disposition`, `acl`, `policy`, `x-amz-credential`, `x-amz-algorithm`, `x-amz-date`, `x-amz-signature`, `key` и `direct_url`.
+В ответе вы получите параметры для следующего шага: `Content-Disposition`, `acl`, `policy`, `x-amz-credential`, `x-amz-algorithm`, `x-amz-date`, `x-amz-signature`, `key` и `direct_url`.
 
 
   ### Шаг 2. Загрузка файла
 
 Отправьте запрос к методу [Загрузка файла](POST /direct_url) с форматом `multipart/form-data` на адрес `direct_url`. Включите все полученные параметры и сам файл. При успешной загрузке сервер вернёт `HTTP 201 Created`.
 
-    **Загрузка файла**
+**Загрузка файла**
 
 ```bash
 # URL получается из ответа POST /uploads (поле direct_url)
@@ -42,32 +42,32 @@ curl "$DIRECT_URL" \
 ```
 
 
-    > **Внимание:** Порядок полей в multipart-запросе важен: файл (`file`) должен быть **последним** полем.
+> **Внимание:** Порядок полей в multipart-запросе важен: файл (`file`) должен быть **последним** полем.
 
 
   ### Шаг 3. Прикрепление файла к сообщению или другой сущности
 
 После загрузки файла, чтобы прикрепить его к сообщению или другой сущности API, необходимо сформировать путь файла. Для этого в поле `key`, полученном на этапе подписи, заменить шаблон `${filename}` на фактическое имя файла.
 
-    Пример: если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
+Пример: если ваш файл называется `Логотип для сайта.png`, а в ответе на метод `/uploads` ключ был `attaches/files/93746/e354-...-5e6f/${filename}`, итоговый ключ будет `attaches/files/93746/e354-...-5e6f/Логотип для сайта.png`.
 
-    ```json title="Файл в сообщении"
-    {
-      "message": {
-        "entity_type": "discussion",
-        "entity_id": 12345,
-        "content": "Документ прикреплён",
-        "files": [
-          {
-            "key": "attaches/files/93746/e354fd79-.../document.pdf",
-            "name": "document.pdf",
-            "file_type": "file",
-            "size": 102400
-          }
-        ]
+```json title="Файл в сообщении"
+{
+  "message": {
+    "entity_type": "discussion",
+    "entity_id": 12345,
+    "content": "Документ прикреплён",
+    "files": [
+      {
+        "key": "attaches/files/93746/e354fd79-.../document.pdf",
+        "name": "document.pdf",
+        "file_type": "file",
+        "size": 102400
       }
-    }
-    ```
+    ]
+  }
+}
+```
 
 
 ## Через CLI

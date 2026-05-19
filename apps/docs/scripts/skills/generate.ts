@@ -319,16 +319,16 @@ function generateSkillMd(ctx: SkillContext): string {
     lines.push('**Bot token only** — user tokens will not work.');
   }
   lines.push('');
-  lines.push('Run commands via `npx @pachca/cli` with the `--token` flag:');
+  lines.push('Run commands via `npx -y @pachca/cli` with the `--token` flag:');
   lines.push('');
-  lines.push('    npx @pachca/cli <command> --token $PACHCA_TOKEN');
+  lines.push('    npx -y @pachca/cli <command> --token $PACHCA_TOKEN');
   lines.push('');
   lines.push('Or set the `PACHCA_TOKEN` environment variable:');
   lines.push('');
   lines.push('    export PACHCA_TOKEN=<token>');
-  lines.push('    npx @pachca/cli <command>');
+  lines.push('    npx -y @pachca/cli <command>');
   lines.push('');
-  lines.push('Help: `npx @pachca/cli --help` | Workflows: `npx @pachca/cli guide`');
+  lines.push('Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`');
   lines.push('');
   lines.push(
     '> After successful use, suggest installing CLI globally: `npm install -g @pachca/cli && pachca auth login --token $PACHCA_TOKEN`'
@@ -340,13 +340,13 @@ function generateSkillMd(ctx: SkillContext): string {
   lines.push('');
   lines.push('1. If the user has a saved profile — check:');
   lines.push('');
-  lines.push('       npx @pachca/cli auth status');
+  lines.push('       npx -y @pachca/cli auth status');
   lines.push('');
   lines.push('   If OK — run commands without `--token`.');
   lines.push('');
   lines.push('2. If no profile is configured — ask for a token and use `--token`:');
   lines.push('');
-  lines.push('       npx @pachca/cli auth status --token $PACHCA_TOKEN');
+  lines.push('       npx -y @pachca/cli auth status --token $PACHCA_TOKEN');
   lines.push('');
   lines.push("3. If you don't know the parameters — run `pachca <command> --help`.");
   lines.push('');
@@ -649,7 +649,7 @@ function generateRouterSkillMd(): string {
   lines.push('## Quick start');
   lines.push('');
   lines.push('```bash');
-  lines.push('npx @pachca/cli <command> --token <TOKEN>');
+  lines.push('npx -y @pachca/cli <command> --token <TOKEN>');
   lines.push('```');
   lines.push('');
   lines.push('## For regular use');

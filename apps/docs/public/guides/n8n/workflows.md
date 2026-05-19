@@ -20,9 +20,8 @@
 
 **Что можно добавить:** отправка личного сообщения с полезными ссылками, добавление сотрудника в рабочие каналы.
 
-<Card title="welcome.json" icon="FileSearch" href="/workflows/n8n/welcome.json" download>
-  Готовый workflow для импорта в n8n
-</Card>
+[welcome.json](/workflows/n8n/welcome.json) — Готовый workflow для импорта в n8n
+
 
 > После импорта замените Credentials на свои во всех узлах Pachca.
 
@@ -46,9 +45,8 @@
 
 **Когда полезно:** дублирование важных новостей в общие каналы, агрегация обсуждений.
 
-<Card title="forward.json" icon="FileSearch" href="/workflows/n8n/forward.json" download>
-  Готовый workflow для импорта в n8n
-</Card>
+[forward.json](/workflows/n8n/forward.json) — Готовый workflow для импорта в n8n
+
 
 > После импорта замените Credentials, `CHAT_ID_ИСТОЧНИКА` и `CHAT_ID_ЦЕЛЕВОГО` на свои значения.
 
@@ -73,9 +71,8 @@
 
 **Что можно добавить:** личные уведомления ответственным, группировка по проектам.
 
-<Card title="reminder.json" icon="FileSearch" href="/workflows/n8n/reminder.json" download>
-  Готовый workflow для импорта в n8n
-</Card>
+[reminder.json](/workflows/n8n/reminder.json) — Готовый workflow для импорта в n8n
+
 
 > После импорта замените Credentials и `CHAT_ID` во всех узлах Pachca.
 
@@ -139,9 +136,8 @@
 
 **Что можно добавить:** проверка нескольких сервисов, графики через разворачивание ссылок, эскалация в личные сообщения.
 
-<Card title="monitoring.json" icon="FileSearch" href="/workflows/n8n/monitoring.json" download>
-  Готовый workflow для импорта в n8n
-</Card>
+[monitoring.json](/workflows/n8n/monitoring.json) — Готовый workflow для импорта в n8n
+
 
 > После импорта замените Credentials, `CHAT_ID_МОНИТОРИНГА` и URL сервиса во всех узлах Pachca.
 

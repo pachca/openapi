@@ -5,6 +5,10 @@ import type { NextRequest } from 'next/server';
 function markdownTwin(pathname: string): string | null {
   if (pathname === '/') return '/index.md';
   if (pathname === '/updates') return '/updates.md';
+  if (pathname.startsWith('/updates/')) {
+    if (pathname.endsWith('.md')) return null;
+    return `${pathname.replace(/\/+$/, '')}.md`;
+  }
   if (pathname.startsWith('/guides/') || pathname.startsWith('/api/')) {
     if (pathname.startsWith('/api/search') || pathname.startsWith('/api/og')) return null;
     if (pathname.endsWith('.md')) return null;
@@ -28,15 +32,33 @@ export function proxy(request: NextRequest) {
       url.pathname = twin;
       const rewrite = NextResponse.rewrite(url);
       rewrite.headers.set('Vary', 'Accept');
+      // The next.config `*.md` header rule matches the request path, not
+      // this rewrite's destination, so the negotiated markdown response
+      // would otherwise ship without noindex. Keep the .md twin out of the
+      // search index here too (matches the Mintlify default).
+      rewrite.headers.set('X-Robots-Tag', 'noindex');
       return rewrite;
     }
   }
 
   const response = NextResponse.next();
-  // Advertise the markdown version of the page (HTTP Link header, in
-  // addition to the per-page <link rel="alternate"> metadata tag).
+  // Advertise agent-facing resources via the HTTP Link header so an agent
+  // that fetches any page (e.g. arriving from a web search and reading only
+  // the response headers) discovers the documentation index without
+  // inspecting the body. Mirrors the Mintlify/Stripe default: the per-page
+  // .md twin, the llms.txt / llms-full.txt index (rel="llms-txt" +
+  // X-Llms-Txt), and the skills index (rel="service-meta").
   const mdUrl = pathname === '/' ? '/.md' : `${pathname}.md`;
-  response.headers.set('Link', `<${mdUrl}>; rel="alternate"; type="text/markdown"`);
+  response.headers.set(
+    'Link',
+    [
+      `<${mdUrl}>; rel="alternate"; type="text/markdown"`,
+      '</llms.txt>; rel="llms-txt"; type="text/plain"',
+      '</llms-full.txt>; rel="llms-full-txt"; type="text/plain"',
+      '</.well-known/skills/index.json>; rel="service-meta"; type="application/json"',
+    ].join(', ')
+  );
+  response.headers.set('X-Llms-Txt', '/llms.txt');
   response.headers.set('Vary', 'Accept');
   return response;
 }

@@ -37,7 +37,7 @@
 | Руководства | Страницы-руководства (Markdown по `.md`) | 109–160 |
 | API-методы | Все эндпоинты, сгруппированы по разделам | 161–260 |
 | Обновления | Журнал обновлений по датам | 261–308 |
-| Дополнительно | Прочие ссылки и контакты | 309–315 |
+| Дополнительно | Прочие ссылки и контакты | 309–317 |
 
 ## CLI Quick Start
 
@@ -307,6 +307,8 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [20 января 2025 — Дата последней активности пользователя](https://dev.pachca.com/updates/2025-01-20.md)
 
 ## Дополнительно
+- [OpenAPI 3.0 spec](https://dev.pachca.com/openapi.yaml): Машиночитаемая спецификация API для кодогенерации и инструментов
+- [Postman collection](https://dev.pachca.com/pachca.postman_collection.json): Готовая коллекция для импорта в Postman/Bruno/Insomnia
 - [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)
 - [Arazzo](https://dev.pachca.com/workflows.arazzo.yaml): Многошаговые сценарии API (Arazzo 1.0.1) — порядок вызовов для агентов
 - [Веб-сайт](https://pachca.com/)

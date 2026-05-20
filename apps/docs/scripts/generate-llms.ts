@@ -187,6 +187,8 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '\n';
 
   content += '## Дополнительно\n';
+  content += `- [OpenAPI 3.0 spec](${SITE_URL}/openapi.yaml): Машиночитаемая спецификация API для кодогенерации и инструментов\n`;
+  content += `- [Postman collection](${SITE_URL}/pachca.postman_collection.json): Готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
   content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
   content += `- [Arazzo](${SITE_URL}/workflows.arazzo.yaml): Многошаговые сценарии API (Arazzo 1.0.1) — порядок вызовов для агентов\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';

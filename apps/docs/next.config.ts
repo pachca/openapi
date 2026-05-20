@@ -30,13 +30,27 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        source: '/:path(llms\\.txt|llms-full\\.txt|llms-en\\.txt)',
+        // /llms.txt is the agent entry point — it MUST be indexable so chat
+        // agents with hardened web tools (e.g. browser ChatGPT, whose
+        // `web_fetch` only accepts URLs returned by `web_search`/`web_fetch`
+        // or pasted by the user) can find it via `site:dev.pachca.com llms.txt`.
+        // It has unique content (CLI quick start, essentials, full index of
+        // methods) and does not duplicate any single HTML page.
+        source: '/:path(llms\\.txt)',
         headers: [
           { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
-          // Agent artifact, not a search landing page — avoid duplicate-content
-          // ranking against the real HTML docs.
+        ],
+      },
+      {
+        // llms-full.txt + llms-en.txt are full mirrors of HTML content —
+        // keep noindex to avoid duplicate-content ranking.
+        source: '/:path(llms-full\\.txt|llms-en\\.txt)',
+        headers: [
+          { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
           { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },

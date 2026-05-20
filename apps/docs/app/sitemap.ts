@@ -38,6 +38,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: getFileMtime(guidePathToFile('/')),
   });
 
+  // /llms.txt — agent entry point. Listed in the sitemap so search engines
+  // crawl and index it; restricted chat agents (browser ChatGPT) require the
+  // URL to be in a search result before they can fetch it directly.
+  entries.push({
+    url: `${BASE_URL}/llms.txt`,
+    lastModified: specMtime,
+  });
+
   // Guide pages
   for (const guide of guidePages) {
     if (guide.path === '/') continue;

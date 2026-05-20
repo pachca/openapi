@@ -1162,15 +1162,15 @@ model PaginationMeta {
     @example("eyJxZCO2MiwiZGlyIjomSNYjIn3")
     next_page: string;
 
-    @doc("Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`")
+    @doc("Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка.")
     @example("eyJxZCO2MiwiZGlyIjoiYXNjIn0")
     prev_page?: string;
 
-    @doc("Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`")
+    @doc("Есть ли ещё данные на следующей странице. На последней странице — `false`.")
     @example(true)
     has_next?: boolean;
 
-    @doc("Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`")
+    @doc("Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`.")
     @example(false)
     has_prev?: boolean;
   };
@@ -4609,6 +4609,57 @@ interface ThreadOperations {
     @body body: OAuthError;
   } | {
     @statusCode _: 404;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 402;
+    @body body: ApiError;
+  };
+
+  @extension("x-requirements", #{
+    scope: "threads:read",
+  })
+  @doc("""
+Список тредов
+
+Метод для получения списка доступных тредов.
+
+Возвращаются треды, у которых вы являетесь участником чата треда либо чата, в котором был создан тред. Публичные чаты, в которых вы не состоите, в выдачу не попадают — чтобы такой тред попал в список, нужно быть участником чата треда или чата, в котором был создан тред.
+
+Сортировка — по убыванию времени последнего сообщения в треде.
+""")
+  @extension("x-paginated", true)
+  @route("/threads")
+  @get
+  listThreads(
+    @doc("Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
+    @extension("example", "2025-01-01T00:00:00.000Z")
+    @query last_message_at_after?: utcDateTime,
+    @doc("Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).")
+    @extension("example", "2025-02-01T00:00:00.000Z")
+    @query last_message_at_before?: utcDateTime,
+    @doc("Количество возвращаемых сущностей за один запрос")
+    @query
+    @extension("example", 1)
+    @minValue(1)
+    @maxValue(50)
+    limit?: int32 = 50,
+    @doc("Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)")
+    @extension("example", "eyJpZCI6MTAsImRpciI6ImFzYyJ9")
+    @query cursor?: string
+  ): {
+    @statusCode _: 200;
+    @body body: PaginatedDataResponse<Thread[]>;
+  } | {
+    @statusCode _: 401;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 403;
+    @body body: OAuthError;
+  } | {
+    @statusCode _: 400;
+    @body body: ApiError;
+  } | {
+    @statusCode _: 422;
     @body body: ApiError;
   } | {
     @statusCode _: 402;

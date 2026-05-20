@@ -170,6 +170,7 @@
 ## Тред
 
 - [Информация о треде](GET /threads/{id})
+- [Список тредов](GET /threads)
 - [Новый тред](POST /messages/{id}/thread)
 
 Тред

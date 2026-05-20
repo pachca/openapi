@@ -981,6 +981,10 @@ Parameters: id, user_id
 Create a new thread on a message. If a thread has already been created for the message, the response will return information about the previously created thread.
 Parameters: id
 
+### GET /api/shared/v1/threads
+Get a list of available threads. Returns threads whose thread chat — or the chat where the thread was created — you are a member of. Public chats you have not joined are not returned — to surface such a thread, you must be a member of the thread chat or of the chat where the thread was created. Sorted by the time of the last message in the thread, descending.
+Parameters: last_message_at_after?, last_message_at_before?, limit?, cursor?
+
 ### GET /api/shared/v1/threads/{id}
 Retrieve information about a thread. To get a thread you need to know its `id` and specify it in the request `URL`.
 Parameters: id

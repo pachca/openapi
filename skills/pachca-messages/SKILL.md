@@ -268,7 +268,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 - `message.entity_type`: allowed values — `discussion` (Беседа или канал), `thread` (Тред), `user` (Пользователь)
 - `message.display_avatar_url`: max 255 characters
 - `message.display_name`: max 255 characters
-- `limit`: max — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids)
+- `limit`: max — 50 (GET /messages), 50 (GET /messages/{id}/reactions), 300 (GET /messages/{id}/read_member_ids), 50 (GET /threads)
 - Pagination: cursor-based (limit + cursor)
 
 ## Endpoints
@@ -288,6 +288,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 | GET | /messages/{id}/reactions | Список реакций |
 | GET | /messages/{id}/read_member_ids | Список прочитавших сообщение |
 | POST | /messages/{id}/thread | Новый тред |
+| GET | /threads | Список тредов |
 | GET | /threads/{id} | Информация о треде |
 | POST | /uploads | Получение подписи, ключа и других параметров |
 
@@ -296,6 +297,7 @@ Help: `npx -y @pachca/cli --help` | Workflows: `npx -y @pachca/cli guide`
 For advanced workflows, read the files in references/:
   references/reply-to-user-who-messaged-the-bot.md — Reply to user who messaged the bot
   references/send-message-with-files.md — Send message with files
+  references/list-active-threads-in-a-time-window.md — List active threads in a time window
   references/mention-user.md — Mention user
 
 > If unsure how to complete a task, read the corresponding file from references/.

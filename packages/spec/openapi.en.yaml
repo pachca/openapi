@@ -3826,6 +3826,122 @@ paths:
         - Tasks
       x-requirements:
         scope: tasks:delete
+  /threads:
+    get:
+      operationId: ThreadOperations_listThreads
+      description: >-
+        List threads
+
+
+        Get a list of available threads.
+
+
+        Returns threads whose thread chat — or the chat where the thread was created — you are a member of. Public chats
+        you have not joined are not returned — to surface such a thread, you must be a member of the thread chat or of
+        the chat where the thread was created.
+
+
+        Sorted by the time of the last message in the thread, descending.
+      parameters:
+        - name: last_message_at_after
+          in: query
+          required: false
+          description: >-
+            Filter by the time of the last message in the thread. Returns only threads whose last message time is no
+            earlier than the specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+          schema:
+            type: string
+            format: date-time
+            example: '2025-01-01T00:00:00.000Z'
+          example: '2025-01-01T00:00:00.000Z'
+          explode: false
+        - name: last_message_at_before
+          in: query
+          required: false
+          description: >-
+            Filter by the time of the last message in the thread. Returns only threads whose last message time is no
+            later than the specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+          schema:
+            type: string
+            format: date-time
+            example: '2025-02-01T00:00:00.000Z'
+          example: '2025-02-01T00:00:00.000Z'
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Number of records to return per request
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Thread'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Response wrapper with data and pagination
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Threads
+      x-paginated: true
+      x-requirements:
+        scope: threads:read
   /threads/{id}:
     get:
       operationId: ThreadOperations_getThread

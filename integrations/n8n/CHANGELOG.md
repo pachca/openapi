@@ -1,6 +1,12 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## 2.0.9 (2026-05-20)
+
+### Improvements
+
+- Thread: new `Get Many` operation — list threads the user or bot can see. Supports filtering by last message time (`Last Message At After` / `Last Message At Before`) and cursor pagination. Sorted by last message time descending. Threads from public discussions where the user is not a member are not returned — to surface such a thread, the bot must be in the thread chat or in the parent discussion
+
 ## 2.0.8 (2026-05-17)
 
 ### Improvements

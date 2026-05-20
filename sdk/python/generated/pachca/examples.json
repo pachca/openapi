@@ -244,6 +244,13 @@
       "ListReadMembersParams"
     ]
   },
+  "ThreadOperations_listThreads": {
+    "usage": "params = ListThreadsParams(\n    last_message_at_after=datetime.fromisoformat(\"2025-01-01T00:00:00.000Z\"),\n    last_message_at_before=datetime.fromisoformat(\"2025-02-01T00:00:00.000Z\"),\n    limit=1,\n    cursor=\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n)\nresponse = await client.threads.list_threads(params=params)",
+    "output": "ListThreadsResponse(data: list[Thread], meta: PaginationMeta)",
+    "imports": [
+      "ListThreadsParams"
+    ]
+  },
   "ThreadOperations_getThread": {
     "usage": "response = await client.threads.get_thread(id=265142)",
     "output": "Thread(id: int, chat_id: int, message_id: int, message_chat_id: int, updated_at: datetime)"

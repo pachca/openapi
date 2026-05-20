@@ -1,5 +1,11 @@
 import { ArrowUpRight, Zap } from 'lucide-react';
-import { getSchemaByName, getEndpointByOperation, getBaseUrl } from '@/lib/openapi/parser';
+import {
+  getSchemaByName,
+  getEndpointByOperation,
+  getBaseUrl,
+  parseOpenAPI,
+} from '@/lib/openapi/parser';
+import { processSchema } from '@/lib/openapi/resolve-links';
 import { getSdkExamples, getSdkExampleForLang } from '@/lib/sdk-examples';
 import { SchemaTable } from '@/components/api/schema-table';
 import { WebhookSchemaSection } from '@/components/api/webhook-schema-section';
@@ -424,7 +430,10 @@ export async function ModelSchema({ name }: ModelSchemaProps) {
     );
   }
 
-  return <SchemaTable schema={schema} />;
+  const api = await parseOpenAPI();
+  const resolved = processSchema(schema, api.endpoints);
+
+  return <SchemaTable schema={resolved} />;
 }
 
 // ============================================

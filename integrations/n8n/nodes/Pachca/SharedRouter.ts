@@ -430,6 +430,12 @@ const ROUTES: Record<string, Record<string, RouteConfig>> = {
 			path: '/messages/{id}/thread',
 			pathParams: [{ api: 'id', n8n: 'threadMessageId' }],
 		},
+		getAll: {
+			method: 'GET' as IHttpRequestMethods,
+			path: '/threads',
+			paginated: true,
+			queryMap: [{ api: 'last_message_at_after', n8n: 'lastMessageAtAfter' }, { api: 'last_message_at_before', n8n: 'lastMessageAtBefore' }],
+		},
 		get: {
 			method: 'GET' as IHttpRequestMethods,
 			path: '/threads/{id}',

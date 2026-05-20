@@ -53,6 +53,8 @@ from .models import (
     ReactionRequest,
     RemoveReactionParams,
     ListReadMembersParams,
+    ListThreadsParams,
+    ListThreadsResponse,
     Thread,
     AccessTokenInfo,
     AvatarData,
@@ -1385,6 +1387,18 @@ class ReadMembersServiceImpl(ReadMembersService):
 
 
 class ThreadsService:
+    async def list_threads(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> ListThreadsResponse:
+        raise NotImplementedError("Threads.listThreads is not implemented")
+
+    async def list_threads_all(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> list[Thread]:
+        raise NotImplementedError("Threads.listThreadsAll is not implemented")
+
     async def get_thread(
         self,
         id: int,
@@ -1401,6 +1415,52 @@ class ThreadsService:
 class ThreadsServiceImpl(ThreadsService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
+
+    async def list_threads(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> ListThreadsResponse:
+        query: dict[str, str] = {}
+        if params is not None and params.last_message_at_after is not None:
+            query["last_message_at_after"] = params.last_message_at_after.isoformat()
+        if params is not None and params.last_message_at_before is not None:
+            query["last_message_at_before"] = params.last_message_at_before.isoformat()
+        if params is not None and params.limit is not None:
+            query["limit"] = str(params.limit)
+        if params is not None and params.cursor is not None:
+            query["cursor"] = params.cursor
+        response = await self._client.get(
+            "/threads",
+            params=query,
+        )
+        body = response.json()
+        match response.status_code:
+            case 200:
+                return deserialize(ListThreadsResponse, body)
+            case 401:
+                raise deserialize(OAuthError, body)
+            case _:
+                raise deserialize(ApiError, body)
+
+    async def list_threads_all(
+        self,
+        params: ListThreadsParams | None = None,
+    ) -> list[Thread]:
+        items: list[Thread] = []
+        cursor: str | None = None
+        has_next = True
+        while has_next:
+            if params is None:
+                params = ListThreadsParams()
+            params.cursor = cursor
+            response = await self.list_threads(params=params)
+            items.extend(response.data)
+            if not response.data:
+                break
+            cursor = response.meta.paginate.next_page
+            reported_has_next = getattr(response.meta.paginate, "has_next", None)
+            has_next = True if reported_has_next is None else reported_has_next
+        return items
 
     async def get_thread(
         self,

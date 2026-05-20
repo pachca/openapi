@@ -221,6 +221,10 @@
     "usage": "var response = await client.ReadMembers.ListReadMembersAsync(194275, 300, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
     "output": "object"
   },
+  "ThreadOperations_listThreads": {
+    "usage": "var response = await client.Threads.ListThreadsAsync(DateTimeOffset.Parse(\"2025-01-01T00:00:00.000Z\"), DateTimeOffset.Parse(\"2025-02-01T00:00:00.000Z\"), 1, \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\");",
+    "output": "ListThreadsResponse(Data: List<Thread>, Meta: PaginationMeta)"
+  },
   "ThreadOperations_getThread": {
     "usage": "var response = await client.Threads.GetThreadAsync(265142);",
     "output": "Thread(Id: long, ChatId: long, MessageId: long, MessageChatId: long, UpdatedAt: DateTimeOffset)"

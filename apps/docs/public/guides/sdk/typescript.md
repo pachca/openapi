@@ -104,6 +104,7 @@ const client = new PachcaClient("YOUR_TOKEN", "https://custom-api.example.com/ap
 | `client.members.leaveChat()` | [Выход из беседы или канала](/api/members/leave) |
 | `client.members.removeMember()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.createThread()` | [Новый тред](/api/threads/add) |
+| `client.threads.listThreads()` | [Список тредов](/api/threads/list) |
 | `client.threads.getThread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.createMessage()` | [Новое сообщение](/api/messages/create) |
 | `client.messages.pinMessage()` | [Закрепление сообщения](/api/messages/pin) |

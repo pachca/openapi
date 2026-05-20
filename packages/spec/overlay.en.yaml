@@ -806,6 +806,32 @@ actions:
   - target: $.paths['/threads/{id}'].get.parameters[?(@.name=='id')]
     update:
       description: Thread ID
+  - target: $.paths['/threads'].get
+    update:
+      description: |-
+        List threads
+
+        Get a list of available threads.
+
+        Returns threads whose thread chat — or the chat where the thread was created — you are a member of. Public chats you have not joined are not returned — to surface such a thread, you must be a member of the thread chat or of the chat where the thread was created.
+
+        Sorted by the time of the last message in the thread, descending.
+  - target: $.paths['/threads'].get.parameters[?(@.name=='last_message_at_after')]
+    update:
+      description: >-
+        Filter by the time of the last message in the thread. Returns only threads whose last message time is no
+        earlier than the specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+  - target: $.paths['/threads'].get.parameters[?(@.name=='last_message_at_before')]
+    update:
+      description: >-
+        Filter by the time of the last message in the thread. Returns only threads whose last message time is no
+        later than the specified time (in YYYY-MM-DDThh:mm:ss.sssZ format).
+  - target: $.paths['/threads'].get.parameters[?(@.name=='limit')]
+    update:
+      description: Number of records to return per request
+  - target: $.paths['/threads'].get.parameters[?(@.name=='cursor')]
+    update:
+      description: Pagination cursor (from `meta.paginate.next_page` or `meta.paginate.prev_page`)
   - target: $.paths['/uploads'].post
     update:
       description: |-

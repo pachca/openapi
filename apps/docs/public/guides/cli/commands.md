@@ -93,6 +93,7 @@ dev.pachca.com/api/members/add      →  pachca members add
 | `pachca tasks update` | `PUT` Редактирование напоминания |
 | `pachca threads add` | `POST` Новый тред |
 | `pachca threads get` | `GET` Информация о треде |
+| `pachca threads list` | `GET` Список тредов |
 | `pachca upgrade` | Обновить CLI до последней версии |
 | `pachca upload` | Загрузить файл (получает подпись и загружает автоматически) |
 | `pachca users create` | `POST` Создать сотрудника |

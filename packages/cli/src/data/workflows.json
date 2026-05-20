@@ -149,6 +149,21 @@
     ]
   },
   {
+    "title": "Получить список активных тредов за период",
+    "skill": "pachca-messages",
+    "steps": [
+      {
+        "description": "Запроси список тредов с фильтром по времени последнего сообщения и нужным `--limit`",
+        "command": "pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --last-message-at-before=2026-05-20T00:00:00.000Z --limit=50",
+        "notes": "`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (по умолчанию 50). Сортировка — по убыванию времени последнего сообщения."
+      },
+      {
+        "description": "Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`",
+        "command": "pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>"
+      }
+    ]
+  },
+  {
     "title": "Упомянуть пользователя",
     "skill": "pachca-messages",
     "steps": [

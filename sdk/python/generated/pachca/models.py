@@ -1344,6 +1344,14 @@ class ListTasksParams:
 
 
 @dataclass
+class ListThreadsParams:
+    last_message_at_after: datetime | None = None
+    last_message_at_before: datetime | None = None
+    limit: int | None = None
+    cursor: str | None = None
+
+
+@dataclass
 class ListUsersParams:
     query: str | None = None
     limit: int | None = None
@@ -1424,6 +1432,12 @@ class SearchUsersResponse:
 @dataclass
 class ListTasksResponse:
     data: list[Task]
+    meta: PaginationMeta
+
+
+@dataclass
+class ListThreadsResponse:
+    data: list[Thread]
     meta: PaginationMeta
 
 

@@ -20,6 +20,16 @@ const PRODUCT_LABELS: Record<ReleaseProduct, string> = {
   n8n: 'n8n',
 };
 
+// Canonical order of release blocks within a single date (and of the
+// package badges row below them). Don't rely on JSON order in
+// `data/releases.json` — entries get added in different sequences.
+const PRODUCT_ORDER: Record<ReleaseProduct, number> = {
+  n8n: 0,
+  cli: 1,
+  sdk: 2,
+  generator: 3,
+};
+
 const PRODUCT_COLORS: Record<ReleaseProduct, string> = {
   cli: 'bg-method-get/10 text-method-get',
   sdk: 'bg-method-post/10 text-method-post',
@@ -172,9 +182,9 @@ export async function UpdatesList() {
         const updates = group.entries.filter(
           (e): e is TimelineEntry & { kind: 'update' } => e.kind === 'update'
         );
-        const releases = group.entries.filter(
-          (e): e is TimelineEntry & { kind: 'release' } => e.kind === 'release'
-        );
+        const releases = group.entries
+          .filter((e): e is TimelineEntry & { kind: 'release' } => e.kind === 'release')
+          .sort((a, b) => PRODUCT_ORDER[a.data.product] - PRODUCT_ORDER[b.data.product]);
 
         const firstUpdate = updates[0];
         const sectionId = firstUpdate ? toSlug(firstUpdate.data.title) : `releases-${group.date}`;

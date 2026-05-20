@@ -2910,6 +2910,14 @@ public class ListTasksResponse
     public PaginationMeta Meta { get; set; } = default!;
 }
 
+public class ListThreadsResponse
+{
+    [JsonPropertyName("data")]
+    public List<Thread> Data { get; set; } = new();
+    [JsonPropertyName("meta")]
+    public PaginationMeta Meta { get; set; } = default!;
+}
+
 public class ListUsersResponse
 {
     [JsonPropertyName("data")]

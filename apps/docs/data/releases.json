@@ -1,6 +1,39 @@
 [
   {
     "product": "n8n",
+    "version": "2.0.9",
+    "date": "2026-05-20",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Thread: новая операция `Get Many` — список тредов с фильтром по времени последнего сообщения (`Last Message At After` / `Last Message At Before`) и курсорной пагинацией"
+      }
+    ]
+  },
+  {
+    "product": "sdk",
+    "version": "1.0.19",
+    "date": "2026-05-20",
+    "changes": [
+      {
+        "type": "+",
+        "description": "Метод `Список тредов` (`GET /threads`) с фильтром по времени последнего сообщения и курсорной пагинацией"
+      }
+    ]
+  },
+  {
+    "product": "cli",
+    "version": "2026.5.4",
+    "date": "2026-05-20",
+    "changes": [
+      {
+        "type": "+",
+        "description": "`pachca threads list` — список тредов с фильтрами `--last-message-at-after` / `--last-message-at-before`, курсорной пагинацией и сортировкой по убыванию времени последнего сообщения"
+      }
+    ]
+  },
+  {
+    "product": "n8n",
     "version": "2.0.8",
     "date": "2026-05-17",
     "changes": [

@@ -52,7 +52,7 @@ export function buildListRows(entries: EndpointIndexEntry[]): EndpointListRow[] 
  * Detect a self-documenting mode from raw argv (before this.parse()).
  * `pachca api` already requires the method positionally, so
  * `pachca api POST /messages --describe` is unambiguous by construction
- * (no `-X` needed, unlike Notion's `ntn api`).
+ * (the HTTP method is a positional arg, so no `-X`-style flag is needed).
  */
 export function detectIntrospectMode(argv: string[]): IntrospectMode | null {
   if (argv.includes('--describe')) return 'describe';

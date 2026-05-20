@@ -3740,6 +3740,113 @@ paths:
         - Tasks
       x-requirements:
         scope: tasks:delete
+  /threads:
+    get:
+      operationId: ThreadOperations_listThreads
+      description: |-
+        Список тредов
+
+        Метод для получения списка доступных тредов.
+
+        Возвращаются треды, у которых вы являетесь участником чата треда либо чата, в котором был создан тред. Публичные чаты, в которых вы не состоите, в выдачу не попадают — чтобы такой тред попал в список, нужно быть участником чата треда или чата, в котором был создан тред.
+
+        Сортировка — по убыванию времени последнего сообщения в треде.
+      parameters:
+        - name: last_message_at_after
+          in: query
+          required: false
+          description: Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+          schema:
+            type: string
+            format: date-time
+            example: '2025-01-01T00:00:00.000Z'
+          example: '2025-01-01T00:00:00.000Z'
+          explode: false
+        - name: last_message_at_before
+          in: query
+          required: false
+          description: Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ).
+          schema:
+            type: string
+            format: date-time
+            example: '2025-02-01T00:00:00.000Z'
+          example: '2025-02-01T00:00:00.000Z'
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Количество возвращаемых сущностей за один запрос
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            example: 1
+            default: 50
+          example: 1
+          explode: false
+        - name: cursor
+          in: query
+          required: false
+          description: Курсор для пагинации (из `meta.paginate.next_page` или `meta.paginate.prev_page`)
+          schema:
+            type: string
+            example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          example: eyJpZCI6MTAsImRpciI6ImFzYyJ9
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Thread'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+                description: Обертка ответа с данными и пагинацией
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '402':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '422':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+      tags:
+        - Threads
+      x-paginated: true
+      x-requirements:
+        scope: threads:read
   /threads/{id}:
     get:
       operationId: ThreadOperations_getThread
@@ -6816,15 +6923,15 @@ components:
               example: eyJxZCO2MiwiZGlyIjomSNYjIn3
             prev_page:
               type: string
-              description: Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка. Отсутствует у `/users` с заданным `query`
+              description: Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка.
               example: eyJxZCO2MiwiZGlyIjoiYXNjIn0
             has_next:
               type: boolean
-              description: Есть ли ещё данные на следующей странице. На последней странице — `false`. Отсутствует у `/users` с заданным `query`
+              description: Есть ли ещё данные на следующей странице. На последней странице — `false`.
               example: true
             has_prev:
               type: boolean
-              description: Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`. Отсутствует у `/users` с заданным `query`
+              description: Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`.
               example: false
           required:
             - next_page

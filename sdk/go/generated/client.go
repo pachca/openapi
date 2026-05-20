@@ -2066,11 +2066,21 @@ func (s *ReadMembersServiceImpl) ListReadMembers(ctx context.Context, id int32, 
 }
 
 type ThreadsService interface {
+	ListThreads(ctx context.Context, params *ListThreadsParams) (*ListThreadsResponse, error)
+	ListThreadsAll(ctx context.Context, params *ListThreadsParams) ([]Thread, error)
 	GetThread(ctx context.Context, id int32) (*Thread, error)
 	CreateThread(ctx context.Context, id int32) (*Thread, error)
 }
 
 type ThreadsServiceStub struct{}
+
+func (s *ThreadsServiceStub) ListThreads(ctx context.Context, params *ListThreadsParams) (*ListThreadsResponse, error) {
+	return nil, NotImplementedError{Method: "Threads.listThreads"}
+}
+
+func (s *ThreadsServiceStub) ListThreadsAll(ctx context.Context, params *ListThreadsParams) ([]Thread, error) {
+	return nil, NotImplementedError{Method: "Threads.listThreadsAll"}
+}
 
 func (s *ThreadsServiceStub) GetThread(ctx context.Context, id int32) (*Thread, error) {
 	return nil, NotImplementedError{Method: "Threads.getThread"}
@@ -2083,6 +2093,82 @@ func (s *ThreadsServiceStub) CreateThread(ctx context.Context, id int32) (*Threa
 type ThreadsServiceImpl struct {
 	baseURL string
 	client  *http.Client
+}
+
+func (s *ThreadsServiceImpl) ListThreads(ctx context.Context, params *ListThreadsParams) (*ListThreadsResponse, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/threads", s.baseURL))
+	if err != nil {
+		return nil, err
+	}
+	q := u.Query()
+	if params != nil && params.LastMessageAtAfter != nil {
+		q.Set("last_message_at_after", params.LastMessageAtAfter.Format(time.RFC3339))
+	}
+	if params != nil && params.LastMessageAtBefore != nil {
+		q.Set("last_message_at_before", params.LastMessageAtBefore.Format(time.RFC3339))
+	}
+	if params != nil && params.Limit != nil {
+		q.Set("limit", fmt.Sprintf("%v", *params.Limit))
+	}
+	if params != nil && params.Cursor != nil {
+		q.Set("cursor", fmt.Sprintf("%v", *params.Cursor))
+	}
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := doWithRetry(s.client, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var result ListThreadsResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	case http.StatusUnauthorized:
+		var e OAuthError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			e.Err = fmt.Sprintf("HTTP 401: %v", err)
+		}
+		return nil, &e
+	default:
+		var e ApiError
+		if err := json.NewDecoder(resp.Body).Decode(&e); err != nil {
+			return nil, fmt.Errorf("HTTP %d: %w", resp.StatusCode, err)
+		}
+		return nil, &e
+	}
+}
+
+func (s *ThreadsServiceImpl) ListThreadsAll(ctx context.Context, params *ListThreadsParams) ([]Thread, error) {
+	if params == nil {
+		params = &ListThreadsParams{}
+	}
+	var items []Thread
+	var cursor *string
+	hasNext := true
+	for hasNext {
+		params.Cursor = cursor
+		result, err := s.ListThreads(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, result.Data...)
+		if len(result.Data) == 0 {
+			return items, nil
+		}
+		nextPage := result.Meta.Paginate.NextPage
+		cursor = &nextPage
+		if result.Meta.Paginate.HasNext != nil {
+			hasNext = *result.Meta.Paginate.HasNext
+		}
+	}
+	return items, nil
 }
 
 func (s *ThreadsServiceImpl) GetThread(ctx context.Context, id int32) (*Thread, error) {

@@ -1046,6 +1046,23 @@ class ReadMembersServiceImpl internal constructor(
 }
 
 interface ThreadsService {
+    suspend fun listThreads(
+        lastMessageAtAfter: OffsetDateTime? = null,
+        lastMessageAtBefore: OffsetDateTime? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+    ): ListThreadsResponse {
+        throw NotImplementedError("Threads.listThreads is not implemented")
+    }
+
+    suspend fun listThreadsAll(
+        lastMessageAtAfter: OffsetDateTime? = null,
+        lastMessageAtBefore: OffsetDateTime? = null,
+        limit: Int? = null,
+    ): List<Thread> {
+        throw NotImplementedError("Threads.listThreadsAll is not implemented")
+    }
+
     suspend fun getThread(id: Int): Thread {
         throw NotImplementedError("Threads.getThread is not implemented")
     }
@@ -1059,6 +1076,48 @@ class ThreadsServiceImpl internal constructor(
     private val baseUrl: String,
     private val client: HttpClient,
 ) : ThreadsService {
+    override suspend fun listThreads(
+        lastMessageAtAfter: OffsetDateTime?,
+        lastMessageAtBefore: OffsetDateTime?,
+        limit: Int?,
+        cursor: String?,
+    ): ListThreadsResponse {
+        val response = client.get("$baseUrl/threads") {
+            lastMessageAtAfter?.let { parameter("last_message_at_after", it.toString()) }
+            lastMessageAtBefore?.let { parameter("last_message_at_before", it.toString()) }
+            limit?.let { parameter("limit", it) }
+            cursor?.let { parameter("cursor", it) }
+        }
+        return when (response.status.value) {
+            200 -> response.body()
+            401 -> throw response.body<OAuthError>()
+            else -> throw response.body<ApiError>()
+        }
+    }
+
+    override suspend fun listThreadsAll(
+        lastMessageAtAfter: OffsetDateTime?,
+        lastMessageAtBefore: OffsetDateTime?,
+        limit: Int?,
+    ): List<Thread> {
+        val items = mutableListOf<Thread>()
+        var cursor: String? = null
+        var hasNext = true
+        while (hasNext) {
+            val response = listThreads(
+                lastMessageAtAfter = lastMessageAtAfter,
+                lastMessageAtBefore = lastMessageAtBefore,
+                limit = limit,
+                cursor = cursor,
+            )
+            items.addAll(response.data)
+            if (response.data.isEmpty()) break
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?: true
+        }
+        return items
+    }
+
     override suspend fun getThread(id: Int): Thread {
         val response = client.get("$baseUrl/threads/$id")
         return when (response.status.value) {

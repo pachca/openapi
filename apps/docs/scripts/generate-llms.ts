@@ -2099,9 +2099,17 @@ function writeFileFromRoot(filePath: string, content: string) {
   fs.writeFileSync(fullPath, content, 'utf-8');
 }
 
-/** One-line pointer to the canonical index at the top of every page `.md`. */
+/** Two-line agent directive at the top of every page `.md`. Mirrors the
+ *  imperative tone of /llms.txt and the HTML <body> directive in app/layout.tsx
+ *  — for an agent landing on a .md twin: use this page for the topic at hand,
+ *  load /llms.txt for the broader API overview. llms-full.txt is intentionally
+ *  not advertised here (~329K tokens; only referenced from /llms.txt itself). */
 function withAgentPointer(content: string): string {
-  return `> Полный индекс документации: [llms.txt](${SITE_URL}/llms.txt)\n\n${content}`;
+  return (
+    `> Это Markdown-версия страницы. Используй её содержимое для ответов по этой теме.\n` +
+    `> Для общего обзора API — [llms.txt](${SITE_URL}/llms.txt).\n\n` +
+    content
+  );
 }
 
 async function main() {

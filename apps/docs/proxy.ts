@@ -48,7 +48,7 @@ export function proxy(request: NextRequest) {
   // inspecting the body. Mirrors the Mintlify/Stripe default: the per-page
   // .md twin, the llms.txt / llms-full.txt index (rel="llms-txt" +
   // X-Llms-Txt), and the skills index (rel="service-meta").
-  const mdUrl = pathname === '/' ? '/.md' : `${pathname}.md`;
+  const mdUrl = pathname === '/' ? '/index.md' : `${pathname}.md`;
   response.headers.set(
     'Link',
     [

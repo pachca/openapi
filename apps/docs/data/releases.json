@@ -28,7 +28,7 @@
     "changes": [
       {
         "type": "+",
-        "description": "`pachca threads list` — список тредов с фильтрами `--last-message-at-after` / `--last-message-at-before`, курсорной пагинацией и сортировкой по убыванию времени последнего сообщения"
+        "description": "`pachca threads list` — список доступных тредов с фильтрами `--last-message-at-after` / `--last-message-at-before` и курсорной пагинацией"
       }
     ]
   },

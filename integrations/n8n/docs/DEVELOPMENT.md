@@ -2,7 +2,7 @@
 
 ## Architecture
 
-The n8n node is **auto-generated** from the Pachca OpenAPI specification using the **VersionedNodeType** pattern (the standard pattern used by core n8n-nodes-base nodes):
+The n8n node is **auto-generated** from the Pachca OpenAPI specification using the **VersionedNodeType** pattern (same as Slack, Gmail, HTTP Request in n8n-nodes-base):
 
 ```
 TypeSpec (typespec.tsp)

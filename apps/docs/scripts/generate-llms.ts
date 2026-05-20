@@ -51,10 +51,10 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // mentioning the bulk file, so the link + caveat don't read as a
   // contradiction («use this — actually don't use this»).
   content +=
-    '> Точечные запросы по API: `npx -y @pachca/cli api ls`, далее `api <МЕТОД> <путь> --describe` ' +
-    '(схема — `--spec`, полный референс — `--docs`). Любую страницу сайта можно получить в Markdown, ' +
-    'добавив `.md` к её URL. Ссылки в разделах «Руководства» и «API-методы» уже ведут на `.md` — ' +
-    'запрашивай напрямую.\n\n';
+    '> Точечные запросы по API: `npx -y @pachca/cli api ls`, далее ' +
+    '`npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
+    'Любую страницу сайта можно получить в Markdown, добавив `.md` к её URL. ' +
+    'Ссылки в разделах «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую.\n\n';
   content +=
     `> Полная документация одним файлом: [llms-full.txt](${SITE_URL}/llms-full.txt) ` +
     `(~${sizes.llmsFullKTokens}K токенов — обычно не помещается в контекст целиком).\n\n`;

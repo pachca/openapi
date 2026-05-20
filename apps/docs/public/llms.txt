@@ -1,26 +1,43 @@
 ﻿# Пачка API Documentation
 
-> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.
+> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.
 
-> Это канонический справочник API Pachca для AI-агентов: CLI quick start, основные правила API (авторизация, пагинация, лимиты, ошибки, файлы), полные перечни руководств и API-методов. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.
+> Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.
 
-> Полная документация в одном файле: [llms-full.txt](https://dev.pachca.com/llms-full.txt)
+> Точечные запросы по API: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Любую страницу сайта можно получить в Markdown, добавив `.md` к её URL. Ссылки в разделах «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую.
 
-> English documentation: [llms-en.txt](https://dev.pachca.com/llms-en.txt)
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~329K токенов — обычно не помещается в контекст целиком).
+
+> English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~12K токенов).
+
+## Основное
+
+- **Авторизация:** `Authorization: Bearer <TOKEN>`. Токены: admin (полный доступ), bot (от бота + вебхуки), user (ограниченный). Бессрочные.
+- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.
+  - Списочные методы: `meta.paginate` всегда содержит `next_page`, `prev_page`, `has_next`, `has_prev` — даже при пустом `data`. Курсоры никогда не `null`.
+  - Конец — `has_next: false` (вперёд) или `has_prev: false` (назад), не пустой `data`.
+  - `data.length` может быть меньше `limit` даже не на последней странице — не считай по длине.
+  - Курсор непрозрачен: не парси, не конструируй, не сохраняй между сессиями.
+  - Поиск: `prev_page`/`has_next`/`has_prev` отсутствуют, `prev_page`-polling не работает. Конец — `count == total` или пустой `data`. Полный гайд — [https://dev.pachca.com/api/pagination.md](https://dev.pachca.com/api/pagination.md).
+- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — жди `Retry-After`.
+- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.
+- **Идемпотентность:** запросы не идемпотентны — дедуплицируй на клиенте. Вебхуки at-least-once — обработчики идемпотентны.
+- **Файлы:** 3 шага: `POST /uploads` → upload на `direct_url` (внешний S3, без Authorization) → `key` в `files[]` сообщения.
+- Детали метода — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`. Полный референс — `llms-full.txt` или `.md`-страницы из разделов ниже.
 
 
 ## Document Map
 
 | Раздел | Описание | Строки |
 |--------|----------|--------|
-| CLI Quick Start | Установка, команды, точечная справка по API | 25–45 |
-| SDK | Типизированные клиенты для 6 языков | 46–72 |
-| Agent Skills | Скиллы для AI-агентов и установка | 73–93 |
-| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 94–108 |
+| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 13–27 |
+| CLI Quick Start | Установка, команды, точечная справка по API | 42–60 |
+| SDK | Типизированные клиенты для 6 языков | 61–87 |
+| Agent Skills | Скиллы для AI-агентов и установка | 88–108 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 109–160 |
 | API-методы | Все эндпоинты, сгруппированы по разделам | 161–260 |
 | Обновления | Журнал обновлений по датам | 261–308 |
-| Дополнительно | Прочие ссылки и контакты | 309–315 |
+| Дополнительно | Прочие ссылки и контакты | 309–317 |
 
 ## CLI Quick Start
 
@@ -40,8 +57,6 @@ npx -y @pachca/cli api POST /messages --describe  # params, body, scope
 npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment
 npx -y @pachca/cli api POST /messages --docs      # full Markdown reference
 ```
-
-> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.
 
 ## SDK
 
@@ -90,21 +105,6 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 Установка: `npx skills add pachca/openapi`
 
 Индекс скиллов: [https://dev.pachca.com/.well-known/skills/index.json](https://dev.pachca.com/.well-known/skills/index.json)
-
-## Основное
-
-- **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.
-- **Пагинация (курсорная):** параметры `limit` (1–50, по умолчанию 50) и `cursor`. Всегда указывайте `limit` явно, не полагайтесь на значение по умолчанию.
-  - Списочные методы: в `meta.paginate` поля `next_page`, `prev_page`, `has_next`, `has_prev` **всегда присутствуют**, даже когда `data` пустой. Курсоры никогда не `null`.
-  - Конец данных — `has_next: false` (вперёд) или `has_prev: false` (назад), а **не** пустой `data`.
-  - Число записей в `data` может быть меньше `limit`, в том числе на промежуточных страницах. Не полагайтесь на длину массива.
-  - Курсор — непрозрачный токен. Не парсите, не конструируйте вручную, не сохраняйте между сессиями.
-  - Методы поиска: полей `prev_page`, `has_next`, `has_prev` нет, polling через `prev_page` не работает. Конец — по совпадению числа полученных записей с `total` или по пустому `data`. Полный гайд — [https://dev.pachca.com/api/pagination.md](https://dev.pachca.com/api/pagination.md).
-- **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.
-- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.
-- **Идемпотентность:** запросы НЕ идемпотентны — дедуплицируй на клиенте; вебхуки доставляются at-least-once, обработчики должны быть идемпотентны.
-- **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.
-- Детали по конкретному методу — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.
 
 ## Руководства
 - [Обзор](https://dev.pachca.com/.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
@@ -307,6 +307,8 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [20 января 2025 — Дата последней активности пользователя](https://dev.pachca.com/updates/2025-01-20.md)
 
 ## Дополнительно
+- [OpenAPI 3.0 spec](https://dev.pachca.com/openapi.yaml): Машиночитаемая спецификация API для кодогенерации и инструментов
+- [Postman collection](https://dev.pachca.com/pachca.postman_collection.json): Готовая коллекция для импорта в Postman/Bruno/Insomnia
 - [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)
 - [Arazzo](https://dev.pachca.com/workflows.arazzo.yaml): Многошаговые сценарии API (Arazzo 1.0.1) — порядок вызовов для агентов
 - [Веб-сайт](https://pachca.com/)

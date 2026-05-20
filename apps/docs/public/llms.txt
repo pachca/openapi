@@ -8,6 +8,8 @@
 
 > English documentation: [llms-en.txt](https://dev.pachca.com/llms-en.txt)
 
+> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.
+
 ## Основное
 
 - **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.
@@ -28,8 +30,8 @@
 
 | Раздел | Описание | Строки |
 |--------|----------|--------|
-| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 11–25 |
-| CLI Quick Start | Установка, команды, точечная справка по API | 40–60 |
+| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 13–27 |
+| CLI Quick Start | Установка, команды, точечная справка по API | 42–60 |
 | SDK | Типизированные клиенты для 6 языков | 61–87 |
 | Agent Skills | Скиллы для AI-агентов и установка | 88–108 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 109–160 |
@@ -55,8 +57,6 @@ npx -y @pachca/cli api POST /messages --describe  # params, body, scope
 npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment
 npx -y @pachca/cli api POST /messages --docs      # full Markdown reference
 ```
-
-> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.
 
 ## SDK
 

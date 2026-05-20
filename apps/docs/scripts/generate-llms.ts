@@ -42,6 +42,15 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
   content += `> English documentation: [llms-en.txt](${SITE_URL}/llms-en.txt)\n\n`;
 
+  // Navigation/economy tip — placed before any content so overview-mode
+  // agents see «don't bulk-fetch llms-full.txt» before they decide what
+  // to load next. CLI commands referenced are self-contained.
+  content +=
+    '> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, ' +
+    'затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
+    'Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. ' +
+    'Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.\n\n';
+
   // Compact self-contained essentials so an agent reading only llms.txt
   // (without fetching sub-pages) still has the core rules. Summary-level
   // mirror of generateLibraryRules() — keep both in sync if rules change.
@@ -89,11 +98,6 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += 'npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment\n';
   content += 'npx -y @pachca/cli api POST /messages --docs      # full Markdown reference\n';
   content += '```\n\n';
-  content +=
-    '> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, ' +
-    'затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
-    'Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. ' +
-    'Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.\n\n';
 
   content += '## SDK\n\n';
   content +=

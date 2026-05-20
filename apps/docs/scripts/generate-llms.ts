@@ -2111,7 +2111,9 @@ async function main() {
 
   const updateFiles = generateUpdateMdFiles();
   for (const file of updateFiles) {
-    writeFile(file.path, withAgentPointer(file.content));
+    // No agent pointer on per-update pages — they are dated changelog entries,
+    // not reference content; the pointer belongs on guide/endpoint pages only.
+    writeFile(file.path, file.content);
   }
   console.log(`✓ ${updateFiles.length} update .md files`);
 

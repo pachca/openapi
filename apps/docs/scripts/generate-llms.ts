@@ -2056,6 +2056,11 @@ function writeFileFromRoot(filePath: string, content: string) {
   fs.writeFileSync(fullPath, content, 'utf-8');
 }
 
+/** One-line pointer to the canonical index at the top of every page `.md`. */
+function withAgentPointer(content: string): string {
+  return `> Полный индекс документации: [llms.txt](${SITE_URL}/llms.txt)\n\n${content}`;
+}
+
 async function main() {
   clearCache();
   const api = await parseOpenAPI();
@@ -2094,19 +2099,19 @@ async function main() {
 
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {
-    writeFile(file.path, file.content);
+    writeFile(file.path, withAgentPointer(file.content));
   }
   console.log(`✓ ${endpointFiles.length} endpoint .md files`);
 
   const guideFiles = await generateGuideMdFiles();
   for (const file of guideFiles) {
-    writeFile(file.path, file.content);
+    writeFile(file.path, withAgentPointer(file.content));
   }
   console.log(`✓ ${guideFiles.length} guide .md files`);
 
   const updateFiles = generateUpdateMdFiles();
   for (const file of updateFiles) {
-    writeFile(file.path, file.content);
+    writeFile(file.path, withAgentPointer(file.content));
   }
   console.log(`✓ ${updateFiles.length} update .md files`);
 

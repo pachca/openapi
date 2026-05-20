@@ -1,3 +1,5 @@
+> Полный индекс документации: [llms.txt](https://dev.pachca.com/llms.txt)
+
 
 # Продвинутые функции
 

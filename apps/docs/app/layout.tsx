@@ -117,7 +117,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <link rel="llms-txt" type="text/plain" title="llms.txt" href="/llms.txt" />
         <link rel="llms-full-txt" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
-        <link rel="alternate" type="text/markdown" title="skill.md" href="/skill.md" />
+        {/* Per-page <link rel="alternate" type="text/markdown"> is emitted by
+            each page's generateMetadata() (alternates.types['text/markdown'])
+            so it points to that page's own .md twin. Do NOT add a global one
+            here — it would shadow the per-page tag with a constant href. */}
         <link rel="skills" href="/.well-known/skills/index.json" />
         <link
           rel="alternate"

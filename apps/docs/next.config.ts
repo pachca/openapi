@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
           // Agent artifact, not a search landing page — avoid duplicate-content
           // ranking against the real HTML docs.
           { key: 'X-Robots-Tag', value: 'noindex' },
@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'text/markdown; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
           // .md twins duplicate the HTML pages — keep them out of the index.
           { key: 'X-Robots-Tag', value: 'noindex' },
         ],
@@ -54,7 +54,7 @@ const nextConfig: NextConfig = {
         source: '/.well-known/:path(skills|agent-skills)/:rest*',
         headers: [
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
           { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'application/yaml' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
         ],
       },
       {
@@ -71,7 +71,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'application/json' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
         ],
       },
     ];

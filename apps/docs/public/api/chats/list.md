@@ -1,3 +1,5 @@
+> Полный индекс документации: [llms.txt](https://dev.pachca.com/llms.txt)
+
 # Список чатов
 
 **Метод**: `GET`

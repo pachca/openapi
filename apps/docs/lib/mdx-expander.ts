@@ -198,6 +198,27 @@ function treeToMarkdown(jsx: string): string {
 // ============================================
 
 /**
+ * Strip the common leading indentation shared by all non-blank lines.
+ * MDX authors indent JSX children for readability (e.g. content under a
+ * <Step>); that cosmetic indentation must not survive into the generated
+ * Markdown, or a block whose opening fence inherits the indent while its
+ * closing fence does not produces an unbalanced (unclosed) code fence.
+ * No-op when the minimal indent is already 0, so flush-left content is
+ * never altered.
+ */
+function dedent(text: string): string {
+  const lines = text.split('\n');
+  let min = Infinity;
+  for (const line of lines) {
+    if (line.trim() === '') continue;
+    const indent = line.match(/^[ \t]*/)?.[0].length ?? 0;
+    if (indent < min) min = indent;
+  }
+  if (!isFinite(min) || min === 0) return text;
+  return lines.map((l) => l.slice(min)).join('\n');
+}
+
+/**
  * Expand MDX components in content to their markdown representation
  * This is used when generating raw .md files from .mdx sources
  */
@@ -211,7 +232,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
       /<Step\s+title="([^"]*)">([\s\S]*?)<\/Step>/g,
       (_: string, title: string, content: string) => {
         stepNum++;
-        return `### Шаг ${stepNum}. ${title}\n\n${content.trim()}\n\n`;
+        return `### Шаг ${stepNum}. ${title}\n\n${dedent(content).trim()}\n\n`;
       }
     );
   });
@@ -345,6 +366,20 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return items.length > 0 ? items.join('\n') + '\n' : '';
   });
 
+  // Standalone non-compact <Card ...>children</Card> or <Card ... /> left
+  // after CardGroup/compact handling (e.g. download cards outside a group).
+  // Runs last so grouped/compact cards are already consumed.
+  result = result.replace(
+    /<Card\s+([\s\S]*?)(?:>([\s\S]*?)<\/Card>|\/>)/g,
+    (_, attrs, children) => {
+      const title = attrs.match(/title="([^"]+)"/)?.[1] ?? '';
+      const href = attrs.match(/href="([^"]+)"/)?.[1];
+      const text = (children ?? '').trim();
+      const link = href ? `[${title}](${href})` : `**${title}**`;
+      return text ? `${link} — ${text}\n` : `${link}\n`;
+    }
+  );
+
   // <Image src="..." alt="..." /> -> ![alt](src)
   result = result.replace(/<Image\s+src="([^"]+)"\s+alt="([^"]*)"[^/]*\/>/g, '![$2]($1)');
   result = result.replace(/<Image\s+alt="([^"]*)"\s+src="([^"]+)"[^/]*\/>/g, '![$1]($2)');
@@ -363,8 +398,21 @@ export async function expandMdxComponents(content: string): Promise<string> {
     return md;
   });
 
-  // <Limit ... /> -> just remove (limit info is contextual)
-  result = result.replace(/<Limit\s+[^/]*\/>/g, '');
+  // <Limit ... /> -> just remove (limit info is contextual). Limit tags are
+  // multi-line and their attribute values contain "/" (HTML entities, inline
+  // tags), so match across newlines up to the first self-closing "/>".
+  result = result.replace(/<Limit\b[\s\S]*?\/>/g, '');
+
+  // <PackageBadge name="..." href="..." version="..." /> -> code-formatted
+  // package link (3rd registration site per AGENTS.md: component already in
+  // mdx-components.tsx + markdown-content.tsx).
+  result = result.replace(/<PackageBadge\b[\s\S]*?\/>/g, (tag) => {
+    const name = tag.match(/name="([^"]*)"/)?.[1] ?? '';
+    const href = tag.match(/href="([^"]*)"/)?.[1];
+    const version = tag.match(/version="([^"]*)"/)?.[1];
+    const label = `\`${name}${version ? `@${version}` : ''}\``;
+    return href ? `[${label}](${href})` : label;
+  });
 
   // <Updates /> -> generate full updates markdown from MDX file
   if (result.includes('<Updates')) {

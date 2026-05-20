@@ -2,6 +2,8 @@
 
 > REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.
 
+> Это канонический индекс документации Pachca API. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.
+
 > Полная документация в одном файле: [llms-full.txt](https://dev.pachca.com/llms-full.txt)
 
 > English documentation: [llms-en.txt](https://dev.pachca.com/llms-en.txt)
@@ -11,19 +13,20 @@
 
 | Раздел | Описание | Строки |
 |--------|----------|--------|
-| CLI Quick Start | Установка, команды, точечная справка по API | 22–42 |
-| SDK | Типизированные клиенты для 6 языков | 43–69 |
-| Agent Skills | Скиллы для AI-агентов и установка | 70–90 |
-| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 91–100 |
-| Руководства | Страницы-руководства (Markdown по `.md`) | 101–152 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 153–252 |
-| Дополнительно | Прочие ссылки и контакты | 253–259 |
+| CLI Quick Start | Установка, команды, точечная справка по API | 25–45 |
+| SDK | Типизированные клиенты для 6 языков | 46–72 |
+| Agent Skills | Скиллы для AI-агентов и установка | 73–93 |
+| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 94–108 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 109–160 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 161–260 |
+| Обновления | Журнал обновлений по датам | 261–308 |
+| Дополнительно | Прочие ссылки и контакты | 309–315 |
 
 ## CLI Quick Start
 
 ```bash
 # Zero-install (npx)
-npx @pachca/cli <command> --token <TOKEN>
+npx -y @pachca/cli <command> --token <TOKEN>
 
 # For regular use
 npm install -g @pachca/cli
@@ -32,13 +35,13 @@ pachca messages create --entity-id=<chat_id> --content="Hello"
 pachca guide "отправить сообщение"  # CLI guide for humans
 
 # Docs for any endpoint — without loading llms-full.txt
-npx @pachca/cli api ls                         # list every endpoint
-npx @pachca/cli api POST /messages --describe  # params, body, scope
-npx @pachca/cli api GET /messages --spec       # OpenAPI fragment
-npx @pachca/cli api POST /messages --docs      # full Markdown reference
+npx -y @pachca/cli api ls                         # list every endpoint
+npx -y @pachca/cli api POST /messages --describe  # params, body, scope
+npx -y @pachca/cli api GET /messages --spec       # OpenAPI fragment
+npx -y @pachca/cli api POST /messages --docs      # full Markdown reference
 ```
 
-> Не загружай весь llms-full.txt ради одного метода. Сначала `npx @pachca/cli api ls`, затем `npx @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.
+> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.
 
 ## SDK
 
@@ -91,12 +94,17 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 ## Основное
 
 - **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.
-- **Пагинация:** курсорная — `limit` (1–50) и `cursor`; в ответе `meta.paginate` (`next_page`, `prev_page`, `has_next`, `has_prev`). Поисковые методы — только `next_page` и `total`.
+- **Пагинация (курсорная):** параметры `limit` (1–50, по умолчанию 50) и `cursor`. Всегда указывайте `limit` явно, не полагайтесь на значение по умолчанию.
+  - Списочные методы: в `meta.paginate` поля `next_page`, `prev_page`, `has_next`, `has_prev` **всегда присутствуют**, даже когда `data` пустой. Курсоры никогда не `null`.
+  - Конец данных — `has_next: false` (вперёд) или `has_prev: false` (назад), а **не** пустой `data`.
+  - Число записей в `data` может быть меньше `limit`, в том числе на промежуточных страницах. Не полагайтесь на длину массива.
+  - Курсор — непрозрачный токен. Не парсите, не конструируйте вручную, не сохраняйте между сессиями.
+  - Методы поиска: полей `prev_page`, `has_next`, `has_prev` нет, polling через `prev_page` не работает. Конец — по совпадению числа полученных записей с `total` или по пустому `data`. Полный гайд — [https://dev.pachca.com/api/pagination.md](https://dev.pachca.com/api/pagination.md).
 - **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.
 - **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.
 - **Идемпотентность:** запросы НЕ идемпотентны — дедуплицируй на клиенте; вебхуки доставляются at-least-once, обработчики должны быть идемпотентны.
 - **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.
-- Детали по конкретному методу — `npx @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.
+- Детали по конкретному методу — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.
 
 ## Руководства
 - [Обзор](https://dev.pachca.com/.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
@@ -249,6 +257,54 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 ## Security
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
+
+## Обновления
+- [17 мая 2026 — Гостевая роль и чаты при создании сотрудника, справка по API в CLI](https://dev.pachca.com/updates/2026-05-17.md)
+- [06 мая 2026 — Курсорная пагинация и параметр skip в unfurl-вебхуке](https://dev.pachca.com/updates/2026-05-06.md)
+- [05 мая 2026 — Расширение n8n опубликовано в официальной витрине](https://dev.pachca.com/updates/2026-05-05.md)
+- [04 мая 2026 — Поле inviter_id, nullable-уточнения и chat_id в вебхуках](https://dev.pachca.com/updates/2026-05-04.md)
+- [13 апреля 2026 — Документация n8n и обновление Trigger](https://dev.pachca.com/updates/2026-04-13.md)
+- [08 апреля 2026 — Упоминания пользователей по ID](https://dev.pachca.com/updates/2026-04-08.md)
+- [07 апреля 2026 — Аватары и сортировка](https://dev.pachca.com/updates/2026-04-07.md)
+- [27 марта 2026 — Примеры кода на C#](https://dev.pachca.com/updates/2026-03-27.md)
+- [25 марта 2026 — Конструктор форм](https://dev.pachca.com/updates/2026-03-25.md)
+- [24 марта 2026 — Интерактивный playground сообщений и вебхуков](https://dev.pachca.com/updates/2026-03-24.md)
+- [21 марта 2026 — Ошибки оплаты, роли сотрудников, закрепление сообщений](https://dev.pachca.com/updates/2026-03-21.md)
+- [19 марта 2026 — Редактирование скоупов, исправления в моделях](https://dev.pachca.com/updates/2026-03-19.md)
+- [17 марта 2026 — Справочник моделей данных](https://dev.pachca.com/updates/2026-03-17.md)
+- [14 марта 2026 — Новые руководства и реструктуризация документации](https://dev.pachca.com/updates/2026-03-14.md)
+- [05 марта 2026 — Сценарии](https://dev.pachca.com/updates/2026-03-05.md)
+- [03 марта 2026 — CLI для работы с API](https://dev.pachca.com/updates/2026-03-03.md)
+- [27 февраля 2026 — Полнотекстовый поиск, сообщение о недоступности и новые поля сообщений](https://dev.pachca.com/updates/2026-02-27.md)
+- [26 февраля 2026 — Режим «Нет на месте» и управление статусами](https://dev.pachca.com/updates/2026-02-26.md)
+- [25 февраля 2026 — Привязка напоминаний к чатам](https://dev.pachca.com/updates/2026-02-25.md)
+- [24 февраля 2026 — Авторизация и скоупы](https://dev.pachca.com/updates/2026-02-24.md)
+- [22 февраля 2026 — Инструменты для тестирования API](https://dev.pachca.com/updates/2026-02-22.md)
+- [21 февраля 2026 — Ресурсы для AI-агентов](https://dev.pachca.com/updates/2026-02-21.md)
+- [20 февраля 2026 — Аудит-события сообщений, тредов и реакций](https://dev.pachca.com/updates/2026-02-20.md)
+- [19 февраля 2026 — Аудит-события безопасности и токенов](https://dev.pachca.com/updates/2026-02-19.md)
+- [16 февраля 2026 — Курсорная пагинация](https://dev.pachca.com/updates/2026-02-16.md)
+- [12 февраля 2026 — Добавление участников в тред](https://dev.pachca.com/updates/2026-02-12.md)
+- [09 февраля 2026 — Управление напоминаниями](https://dev.pachca.com/updates/2026-02-09.md)
+- [29 января 2026 — Фильтрация тегов по названию](https://dev.pachca.com/updates/2026-01-29.md)
+- [20 ноября 2025 — История событий бота](https://dev.pachca.com/updates/2025-11-20.md)
+- [09 сентября 2025 — Новая пагинация в списке сотрудников](https://dev.pachca.com/updates/2025-09-09.md)
+- [01 сентября 2025 — Редактирование бота](https://dev.pachca.com/updates/2025-09-01.md)
+- [28 августа 2025 — Обновленные лимиты запросов](https://dev.pachca.com/updates/2025-08-28.md)
+- [20 августа 2025 — Новая пагинация в списке чатов](https://dev.pachca.com/updates/2025-08-20.md)
+- [12 августа 2025 — Формы](https://dev.pachca.com/updates/2025-08-12.md)
+- [07 августа 2025 — Признак SSO авторизации](https://dev.pachca.com/updates/2025-08-07.md)
+- [02 июня 2025 — Список участников чата и название реакции](https://dev.pachca.com/updates/2025-06-02.md)
+- [21 мая 2025 — API Аудит Событий](https://dev.pachca.com/updates/2025-05-21.md)
+- [27 апреля 2025 — Markdown версия документации](https://dev.pachca.com/updates/2025-04-27.md)
+- [07 апреля 2025 — Сортировка сообщений](https://dev.pachca.com/updates/2025-04-07.md)
+- [21 марта 2025 — Экспорт сообщений](https://dev.pachca.com/updates/2025-03-21.md)
+- [18 марта 2025 — Информация о профиле](https://dev.pachca.com/updates/2025-03-18.md)
+- [17 марта 2025 — Сортировка чатов](https://dev.pachca.com/updates/2025-03-17.md)
+- [06 марта 2025 — Аватарки и имена отправителей](https://dev.pachca.com/updates/2025-03-06.md)
+- [27 февраля 2025 — Ширина и высота изображения](https://dev.pachca.com/updates/2025-02-27.md)
+- [31 января 2025 — Ссылка на сообщение](https://dev.pachca.com/updates/2025-01-31.md)
+- [20 января 2025 — Дата последней активности пользователя](https://dev.pachca.com/updates/2025-01-20.md)
 
 ## Дополнительно
 - [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)

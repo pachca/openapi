@@ -20,16 +20,16 @@ Pachca is a corporate messenger for teams. The REST API lets you automate commun
 | Full documentation | `https://dev.pachca.com/llms-full.txt` | Complete reference in one file |
 | OpenAPI 3.0 spec | `https://dev.pachca.com/openapi.yaml` | Programmatic parsing and code generation |
 | Arazzo workflows | `https://dev.pachca.com/workflows.arazzo.yaml` | Multi-step call sequences for chained operations |
-| CLI (per-endpoint, on demand) | `npx @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |
+| CLI (per-endpoint, on demand) | `npx -y @pachca/cli api <METHOD> <path> --docs` | One endpoint without loading the full file |
 | Markdown page | append `.md` to any page URL | Reading a single guide page as Markdown |
 
-For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx @pachca/cli api ls`).
+For detailed endpoint documentation, parameters, and response schemas, fetch `/llms-full.txt` — or, to avoid loading the whole file, pull just the endpoint you need with `npx -y @pachca/cli api <METHOD> <path> --describe` (or `--spec` / `--docs`; list all endpoints: `npx -y @pachca/cli api ls`).
 
 ## CLI (recommended)
 
 ```bash
 # Zero-install
-npx @pachca/cli <command> --token <TOKEN>
+npx -y @pachca/cli <command> --token <TOKEN>
 
 # For regular use
 npm install -g @pachca/cli && pachca auth login
@@ -160,7 +160,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 ### CLI Quick Start
 
 ```bash
-npx @pachca/cli <command> --token <TOKEN>
+npx -y @pachca/cli <command> --token <TOKEN>
 ```
 
 ### Find chat by name and send message

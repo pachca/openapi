@@ -1,3 +1,5 @@
+> Полный индекс документации: [llms.txt](https://dev.pachca.com/llms.txt)
+
 
 # CLI
 
@@ -12,42 +14,42 @@
   ### Шаг 1. Установка
 
 ```bash
-    npm install -g @pachca/cli
-    ```
+npm install -g @pachca/cli
+```
 
-    Подробнее — [Установка](/guides/cli/installation).
+Подробнее — [Установка](/guides/cli/installation).
 
 
   ### Шаг 2. Вход в аккаунт
 
 Сохраните API-токен. Получить его можно в интерфейсе Пачки в разделе **Автоматизации** > **API** — подробнее в руководстве [Авторизация](/api/authorization).
 
-    ```bash
-    # Интерактивный вход
-    pachca auth login
+```bash
+# Интерактивный вход
+pachca auth login
 
-    # Для CI и скриптов — передайте токен через флаг
-    pachca auth login --token YOUR_ACCESS_TOKEN
-    ```
+# Для CI и скриптов — передайте токен через флаг
+pachca auth login --token YOUR_ACCESS_TOKEN
+```
 
 
   ### Шаг 3. Первый запрос
 
 ```bash
-    pachca users list
+pachca users list
 
-    # ID    Имя              Email               Роль
-    # 1234  Иван Иванов      ivan@company.ru     admin
-    # 5678  Мария Петрова    maria@company.ru    user
-    ```
+# ID    Имя              Email               Роль
+# 1234  Иван Иванов      ivan@company.ru     admin
+# 5678  Мария Петрова    maria@company.ru    user
+```
 
-    Готово. Это типизированная команда. Тот же запрос можно сделать и напрямую через `pachca api` — оба способа описаны в разделе [Способы работы](#sposoby-raboty).
+Готово. Это типизированная команда. Тот же запрос можно сделать и напрямую через `pachca api` — оба способа описаны в разделе [Способы работы](#sposoby-raboty).
 
 
 Без установки — разовый запуск через `npx`, токен передаётся флагом:
 
 ```bash
-npx @pachca/cli users list --token YOUR_ACCESS_TOKEN
+npx -y @pachca/cli users list --token YOUR_ACCESS_TOKEN
 ```
 
 ## Способы работы

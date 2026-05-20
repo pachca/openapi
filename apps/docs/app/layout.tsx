@@ -115,8 +115,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           title="Пачка API — Обновления"
           href="/feed.xml"
         />
-        <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
-        <link rel="alternate" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
+        <link rel="llms-txt" type="text/plain" title="llms.txt" href="/llms.txt" />
+        <link rel="llms-full-txt" type="text/plain" title="llms-full.txt" href="/llms-full.txt" />
         <link rel="alternate" type="text/markdown" title="skill.md" href="/skill.md" />
         <link rel="skills" href="/.well-known/skills/index.json" />
         <link
@@ -157,6 +157,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="min-h-screen m-0 text-text-primary antialiased bg-background"
         suppressHydrationWarning
       >
+        {/* Agent-facing directive, server-rendered into the HTML body so
+            websearch agents that do one fetch + read body text (not just
+            those sending Accept: text/markdown or reading HTTP headers)
+            discover the docs index. This is the ONLY llms.txt pointer on
+            the websearch→single-fetch path (validated by afdocs
+            `llms-txt-directive-html`) — do NOT remove it.
+            aria-hidden + non-focusable link keep it out of the a11y tree
+            and tab order; raw-HTML/text agents still read it because
+            CSS/ARIA/tabindex don't affect text extractors. Kept first +
+            near the top on purpose. */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+        >
+          Документация Pachca API для AI-агентов: полный индекс —{' '}
+          <a href="/llms.txt" tabIndex={-1}>
+            /llms.txt
+          </a>
+          . Любую страницу можно получить в Markdown, добавив <code>.md</code> к её URL или отправив
+          заголовок <code>Accept: text/markdown</code>.
+        </div>
         <Tooltip.Provider delayDuration={0} disableHoverableContent>
           <DisplaySettingsProvider>
             <TransitionProvider />

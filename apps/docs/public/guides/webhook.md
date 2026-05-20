@@ -1,3 +1,5 @@
+> Полный индекс документации: [llms.txt](https://dev.pachca.com/llms.txt)
+
 
 # Исходящие вебхуки
 
@@ -232,21 +234,21 @@ content-length: 358
 
 Для проверки подписи необходимо вычислить её самостоятельно, используя секрет вебхука `Signing secret`, который доступен в настройках бота во вкладке «Исходящий webhook». Рекомендуется использовать сырой (raw) контент тела запроса для вычисления хеша, так как при JSON-парсинге содержимое может быть изменено.
 
-    ```javascript title="Вычисление и сравнение подписи"
-    // WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
+```javascript title="Вычисление и сравнение подписи"
+// WEBHOOK_SECRET - значение поля Signing secret во вкладке «Исходящий webhook» в настройках бота
 
-    const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
-    if (signature !== request.headers['pachca-signature']) {
-        throw "Invalid signature"
-    }
-    ```
+const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
+if (signature !== request.headers['pachca-signature']) {
+    throw "Invalid signature"
+}
+```
 
 
   ### Шаг 2. Валидируйте IP-адрес отправителя
 
 Кроме проверки подписи, также рекомендуется валидировать IP-адреса отправителя.
 
-    IP-адрес Пачки: `37.200.70.177`
+IP-адрес Пачки: `37.200.70.177`
 
 
 ## Реализация webhook handler

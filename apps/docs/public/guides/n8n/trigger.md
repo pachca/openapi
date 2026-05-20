@@ -1,3 +1,5 @@
+> Полный индекс документации: [llms.txt](https://dev.pachca.com/llms.txt)
+
 
 # Триггер
 
@@ -101,12 +103,12 @@ Pachca Trigger поддерживает два режима настройки: 
 
 В верхней части панели узла n8n показывает два URL:
 
-    - **Test URL** (`/webhook-test/...`) — временный URL, активен только во время ручного теста через кнопку **Listen for test event**
-    - **Production URL** (`/webhook/...`) — постоянный URL, работает, пока workflow активен
+- **Test URL** (`/webhook-test/...`) — временный URL, активен только во время ручного теста через кнопку **Listen for test event**
+- **Production URL** (`/webhook/...`) — постоянный URL, работает, пока workflow активен
 
-    Для настройки в Пачке нужен **Production URL**. Нажмите иконку копирования рядом с ним.
+Для настройки в Пачке нужен **Production URL**. Нажмите иконку копирования рядом с ним.
 
-    ![Test URL и Production URL в панели узла n8n](/images/n8n/trigger-webhook-urls.avif)
+![Test URL и Production URL в панели узла n8n](/images/n8n/trigger-webhook-urls.avif)
 
 *Test URL и Production URL в верхней части панели узла*
 

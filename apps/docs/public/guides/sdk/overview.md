@@ -1,3 +1,5 @@
+> Полный индекс документации: [llms.txt](https://dev.pachca.com/llms.txt)
+
 
 # SDK и генератор
 
@@ -22,14 +24,14 @@
 
 ```bash
 # Генерация из Pachca API (спецификация загружается автоматически)
-npx @pachca/generator --output ./generated --lang typescript
+npx -y @pachca/generator --output ./generated --lang typescript
 
 # Несколько языков
-npx @pachca/generator --output ./generated --lang typescript,python,go,kotlin,swift,csharp
+npx -y @pachca/generator --output ./generated --lang typescript,python,go,kotlin,swift,csharp
 
 # Из локального файла или произвольного URL
-npx @pachca/generator --spec openapi.yaml --output ./generated --lang typescript
-npx @pachca/generator --spec https://example.com/openapi.yaml --output ./generated --lang go
+npx -y @pachca/generator --spec openapi.yaml --output ./generated --lang typescript
+npx -y @pachca/generator --spec https://example.com/openapi.yaml --output ./generated --lang go
 ```
 
 | Параметр | Описание |

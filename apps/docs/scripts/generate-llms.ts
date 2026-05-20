@@ -38,7 +38,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content +=
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
   content +=
-    '> Это канонический индекс документации Pachca API. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.\n\n';
+    '> Это канонический справочник API Pachca для AI-агентов: CLI quick start, основные правила API (авторизация, пагинация, лимиты, ошибки, файлы), полные перечни руководств и API-методов. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.\n\n';
   content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
   content += `> English documentation: [llms-en.txt](${SITE_URL}/llms-en.txt)\n\n`;
 

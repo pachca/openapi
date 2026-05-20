@@ -36,11 +36,41 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
 
   let content = '# Пачка API Documentation\n\n';
   content +=
-    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами.\n\n';
+    '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.\n\n';
   content +=
-    '> Это канонический справочник API Pachca для AI-агентов: CLI quick start, основные правила API (авторизация, пагинация, лимиты, ошибки, файлы), полные перечни руководств и API-методов. Сверяй версии и параметры методов с актуальным API, не полагайся на данные из обучающей выборки.\n\n';
+    '> Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.\n\n';
   content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
   content += `> English documentation: [llms-en.txt](${SITE_URL}/llms-en.txt)\n\n`;
+
+  // Compact self-contained essentials so an agent reading only llms.txt
+  // (without fetching sub-pages) still has the core rules. Summary-level
+  // mirror of generateLibraryRules() — keep both in sync if rules change.
+  // Placed first (before Document Map / CLI / SDK) so substance hits any
+  // agent that skims only the top of the file.
+  content += '## Основное\n\n';
+  content +=
+    '- **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.\n';
+  content +=
+    '- **Пагинация (курсорная):** параметры `limit` (1–50, по умолчанию 50) и `cursor`. Всегда указывайте `limit` явно, не полагайтесь на значение по умолчанию.\n';
+  content +=
+    '  - Списочные методы: в `meta.paginate` поля `next_page`, `prev_page`, `has_next`, `has_prev` **всегда присутствуют**, даже когда `data` пустой. Курсоры никогда не `null`.\n';
+  content +=
+    '  - Конец данных — `has_next: false` (вперёд) или `has_prev: false` (назад), а **не** пустой `data`.\n';
+  content +=
+    '  - Число записей в `data` может быть меньше `limit`, в том числе на промежуточных страницах. Не полагайтесь на длину массива.\n';
+  content +=
+    '  - Курсор — непрозрачный токен. Не парсите, не конструируйте вручную, не сохраняйте между сессиями.\n';
+  content += `  - Методы поиска: полей \`prev_page\`, \`has_next\`, \`has_prev\` нет, polling через \`prev_page\` не работает. Конец — по совпадению числа полученных записей с \`total\` или по пустому \`data\`. Полный гайд — [${SITE_URL}/api/pagination.md](${SITE_URL}/api/pagination.md).\n`;
+  content +=
+    '- **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.\n';
+  content +=
+    '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
+  content +=
+    '- **Идемпотентность:** запросы НЕ идемпотентны — дедуплицируй на клиенте; вебхуки доставляются at-least-once, обработчики должны быть идемпотентны.\n';
+  content +=
+    '- **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.\n';
+  content +=
+    '- Детали по конкретному методу — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.\n\n';
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
@@ -107,34 +137,6 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   content += '\n';
   content += 'Установка: `npx skills add pachca/openapi`\n\n';
   content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
-
-  // Compact self-contained essentials so an agent reading only llms.txt
-  // (without fetching sub-pages) still has the core rules. Summary-level
-  // mirror of generateLibraryRules() — keep both in sync if rules change.
-  content += '## Основное\n\n';
-  content +=
-    '- **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.\n';
-  content +=
-    '- **Пагинация (курсорная):** параметры `limit` (1–50, по умолчанию 50) и `cursor`. Всегда указывайте `limit` явно, не полагайтесь на значение по умолчанию.\n';
-  content +=
-    '  - Списочные методы: в `meta.paginate` поля `next_page`, `prev_page`, `has_next`, `has_prev` **всегда присутствуют**, даже когда `data` пустой. Курсоры никогда не `null`.\n';
-  content +=
-    '  - Конец данных — `has_next: false` (вперёд) или `has_prev: false` (назад), а **не** пустой `data`.\n';
-  content +=
-    '  - Число записей в `data` может быть меньше `limit`, в том числе на промежуточных страницах. Не полагайтесь на длину массива.\n';
-  content +=
-    '  - Курсор — непрозрачный токен. Не парсите, не конструируйте вручную, не сохраняйте между сессиями.\n';
-  content += `  - Методы поиска: полей \`prev_page\`, \`has_next\`, \`has_prev\` нет, polling через \`prev_page\` не работает. Конец — по совпадению числа полученных записей с \`total\` или по пустому \`data\`. Полный гайд — [${SITE_URL}/api/pagination.md](${SITE_URL}/api/pagination.md).\n`;
-  content +=
-    '- **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.\n';
-  content +=
-    '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
-  content +=
-    '- **Идемпотентность:** запросы НЕ идемпотентны — дедуплицируй на клиенте; вебхуки доставляются at-least-once, обработчики должны быть идемпотентны.\n';
-  content +=
-    '- **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.\n';
-  content +=
-    '- Детали по конкретному методу — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.\n\n';
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -203,11 +205,13 @@ function insertLlmsDocumentMap(content: string): string {
   }
   if (apiIdx < 0) return content;
 
+  // Array order must match file order (ascending idx): rows compute `end`
+  // from sections[i + 1].idx, so any inversion produces negative ranges.
   const sections = [
+    { name: 'Основное', desc: 'Авторизация, пагинация, лимиты, ошибки, файлы', idx: coreIdx },
     { name: 'CLI Quick Start', desc: 'Установка, команды, точечная справка по API', idx: cliIdx },
     { name: 'SDK', desc: 'Типизированные клиенты для 6 языков', idx: sdkIdx },
     { name: 'Agent Skills', desc: 'Скиллы для AI-агентов и установка', idx: skillsIdx },
-    { name: 'Основное', desc: 'Авторизация, пагинация, лимиты, ошибки, файлы', idx: coreIdx },
     { name: 'Руководства', desc: 'Страницы-руководства (Markdown по `.md`)', idx: guidesIdx },
     { name: 'API-методы', desc: 'Все эндпоинты, сгруппированы по разделам', idx: apiIdx },
     { name: 'Обновления', desc: 'Журнал обновлений по датам', idx: updIdx },
@@ -227,9 +231,23 @@ function insertLlmsDocumentMap(content: string): string {
   const trailingEmpty = lines[lines.length - 1] === '' ? 1 : 0;
   const totalLines = lines.length + blockSize - trailingEmpty;
 
+  // Document Map is inserted at cliIdx. Sections before that point keep
+  // their original 1-based line; sections from cliIdx onward shift by
+  // blockSize. For a section whose successor crosses the insertion
+  // boundary, `end` clamps to cliIdx so its row doesn't swallow the
+  // Document Map's own lines.
+  const shift = (idx: number) => (idx >= cliIdx ? blockSize : 0);
   const rows = sections.map((s, i) => {
-    const start = s.idx + blockSize + 1; // 1-based, shifted by inserted block
-    const end = i < sections.length - 1 ? sections[i + 1].idx + blockSize : totalLines;
+    const next = sections[i + 1];
+    const start = s.idx + shift(s.idx) + 1;
+    let end: number;
+    if (next === undefined) {
+      end = totalLines;
+    } else if (s.idx < cliIdx && next.idx >= cliIdx) {
+      end = cliIdx;
+    } else {
+      end = next.idx + shift(next.idx);
+    }
     return `| ${s.name} | ${s.desc} | ${start}–${end} |`;
   });
 

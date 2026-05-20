@@ -1,4 +1,5 @@
-> Полный индекс документации: [llms.txt](https://dev.pachca.com/llms.txt)
+> Это Markdown-версия страницы. Используй её содержимое для ответов по этой теме.
+> Для общего обзора API — [llms.txt](https://dev.pachca.com/llms.txt).
 
 
 # Продвинутые функции

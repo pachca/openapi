@@ -185,7 +185,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <a href="https://dev.pachca.com/llms.txt" tabIndex={-1}>
             https://dev.pachca.com/llms.txt
           </a>{' '}
-          before answering. For questions specific to this page, use the page content.
+          before answering. For questions specific to this page, use the page content &mdash; append{' '}
+          <code>.md</code> to the URL for the Markdown version.
         </div>
         <Tooltip.Provider delayDuration={0} disableHoverableContent>
           <DisplaySettingsProvider>

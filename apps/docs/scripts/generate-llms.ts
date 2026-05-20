@@ -29,7 +29,14 @@ function groupByTag(endpoints: Endpoint[]) {
   return grouped;
 }
 
-function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
+interface BulkFileSizes {
+  /** Approximate token count for `llms-full.txt`, in thousands. */
+  llmsFullKTokens: number;
+  /** Approximate token count for `llms-en.txt`, in thousands. */
+  llmsEnKTokens: number;
+}
+
+function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: BulkFileSizes) {
   const grouped = groupByTag(api.endpoints);
   const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
   const guidePages = getOrderedPages();
@@ -39,17 +46,19 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
     '> REST API мессенджера Пачка для управления сообщениями, чатами, пользователями и задачами. Base URL: `https://api.pachca.com/api/shared/v1`. Авторизация: header `Authorization: Bearer <TOKEN>`.\n\n';
   content +=
     '> Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.\n\n';
-  content += `> Полная документация в одном файле: [llms-full.txt](${SITE_URL}/llms-full.txt)\n\n`;
-  content += `> English documentation: [llms-en.txt](${SITE_URL}/llms-en.txt)\n\n`;
 
-  // Navigation/economy tip — placed before any content so overview-mode
-  // agents see «don't bulk-fetch llms-full.txt» before they decide what
-  // to load next. CLI commands referenced are self-contained.
+  // Tip first, then file pointers — recommend the surgical path before
+  // mentioning the bulk file, so the link + caveat don't read as a
+  // contradiction («use this — actually don't use this»).
   content +=
-    '> Не загружай весь llms-full.txt ради одного метода. Сначала `npx -y @pachca/cli api ls`, ' +
-    'затем `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
-    'Ссылки в разделах «Руководства» и «API-методы» уже ведут на Markdown (`.md`) — запрашивай их напрямую. ' +
-    'Любую другую страницу сайта тоже можно получить в Markdown, добавив `.md` к её URL.\n\n';
+    '> Точечные запросы по API: `npx -y @pachca/cli api ls`, далее `api <МЕТОД> <путь> --describe` ' +
+    '(схема — `--spec`, полный референс — `--docs`). Любую страницу сайта можно получить в Markdown, ' +
+    'добавив `.md` к её URL. Ссылки в разделах «Руководства» и «API-методы» уже ведут на `.md` — ' +
+    'запрашивай напрямую.\n\n';
+  content +=
+    `> Полная документация одним файлом: [llms-full.txt](${SITE_URL}/llms-full.txt) ` +
+    `(~${sizes.llmsFullKTokens}K токенов — обычно не помещается в контекст целиком).\n\n`;
+  content += `> English-only: [llms-en.txt](${SITE_URL}/llms-en.txt) (~${sizes.llmsEnKTokens}K токенов).\n\n`;
 
   // Compact self-contained essentials so an agent reading only llms.txt
   // (without fetching sub-pages) still has the core rules. Summary-level
@@ -2087,15 +2096,22 @@ async function main() {
   clearCache();
   const api = await parseOpenAPI();
 
-  const llmsTxt = generateLlmsTxt(api);
+  // Build the bulk variants first so llms.txt can quote their actual
+  // approximate token counts in the preamble (helps agents decide
+  // whether to load them at all — llms-full.txt rarely fits in context).
+  const llmsFullTxt = await generateLlmsFullTxt(api);
+  const llmsEnTxt = generateLlmsEnTxt();
+
+  const llmsTxt = generateLlmsTxt(api, {
+    llmsFullKTokens: Math.round(llmsFullTxt.length / 4 / 1000),
+    llmsEnKTokens: Math.round(llmsEnTxt.length / 4 / 1000),
+  });
   writeFile('public/llms.txt', llmsTxt);
   console.log('✓ public/llms.txt');
 
-  const llmsFullTxt = await generateLlmsFullTxt(api);
   writeFile('public/llms-full.txt', llmsFullTxt);
   console.log('✓ public/llms-full.txt');
 
-  const llmsEnTxt = generateLlmsEnTxt();
   writeFile('public/llms-en.txt', llmsEnTxt);
   console.log(`✓ public/llms-en.txt (${llmsEnTxt.length} chars)`);
 

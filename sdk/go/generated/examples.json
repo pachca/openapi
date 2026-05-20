@@ -244,6 +244,13 @@
       "ListReadMembersParams"
     ]
   },
+  "ThreadOperations_listThreads": {
+    "usage": "params := &ListThreadsParams{\n\tLastMessageAtAfter: Ptr(\"2025-01-01T00:00:00.000Z\"),\n\tLastMessageAtBefore: Ptr(\"2025-02-01T00:00:00.000Z\"),\n\tLimit: Ptr(int32(1)),\n\tCursor: Ptr(\"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"),\n}\nresponse, err := client.Threads.ListThreads(ctx, params)",
+    "output": "ListThreadsResponse{Data: []Thread, Meta: PaginationMeta}",
+    "imports": [
+      "ListThreadsParams"
+    ]
+  },
   "ThreadOperations_getThread": {
     "usage": "response, err := client.Threads.GetThread(ctx, int32(265142))",
     "output": "Thread{ID: int64, ChatID: int64, MessageID: int64, MessageChatID: int64, UpdatedAt: string}"

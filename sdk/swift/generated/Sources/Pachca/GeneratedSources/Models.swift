@@ -2887,6 +2887,11 @@ public struct ListTasksResponse: Codable {
     public let meta: PaginationMeta
 }
 
+public struct ListThreadsResponse: Codable {
+    public let data: [Thread]
+    public let meta: PaginationMeta
+}
+
 public struct ListUsersResponse: Codable {
     public let data: [User]
     public let meta: PaginationMeta

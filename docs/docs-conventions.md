@@ -1,127 +1,150 @@
-# Docs authoring conventions & gotchas
+# Конвенции и подводные камни в документации
 
-Rules for editing `apps/docs` (MDX content + components) that aren't
-obvious from the code and have bitten us before.
+Правила для редактирования `apps/docs` (MDX-контент + компоненты),
+которые не видны из кода и уже не раз нас кусали.
 
-## New MDX component → register in THREE places
+## Новый MDX-компонент — регистрировать в ТРЁХ местах
 
-The site has two render paths: Next.js renders MDX with React, **and**
-`scripts/generate-llms.ts` flattens MDX to Markdown for `/llms-full.txt`
-and per-page `.md`. A component added for the site that the flattener
-doesn't know about leaks as a raw `<Component>` tag into the AI-facing
+У сайта два пути рендеринга: Next.js рендерит MDX через React, **и**
+`scripts/generate-llms.ts` уплощает MDX в Markdown для `/llms-full.txt`
+и постраничных `.md`. Компонент, добавленный для сайта, о котором
+flattener не знает, утекает сырым тегом `<Component>` в AI-facing
 Markdown.
 
-When adding a component, register it in **all three**:
+Добавляя компонент, регистрируй его **во всех трёх**:
 
-1. `apps/docs/components/mdx/mdx-components.tsx` — definition + add to
-   `customMdxComponents`.
-2. `apps/docs/components/api/markdown-content.tsx` — import + add to the
-   `components` object passed to `MDXRemote` (missing this → runtime
-   "component is not defined").
-3. `apps/docs/lib/mdx-expander.ts` — a handler in `expandMdxComponents()`
-   converting the JSX to plain Markdown (or unwrapping inner content for
-   layout-only wrappers like `<CardRow>`/`<ParamsTable>`). Missing this →
-   raw tags leak into `public/**/*.md` and `public/llms-full.txt`.
+1. `apps/docs/components/mdx/mdx-components.tsx` — определение + добавить
+   в `customMdxComponents`.
+2. `apps/docs/components/api/markdown-content.tsx` — импорт + добавить в
+   объект `components`, который передаётся в `MDXRemote` (без этого —
+   runtime-ошибка «component is not defined»).
+3. `apps/docs/lib/mdx-expander.ts` — обработчик в `expandMdxComponents()`,
+   который превращает JSX в обычный Markdown (или раскрывает внутренний
+   контент для layout-обёрток вроде `<CardRow>` / `<ParamsTable>`). Без
+   этого сырые теги утекают в `public/**/*.md` и `public/llms-full.txt`.
 
-**Verify:** after `npx turbo build`,
+**Проверка:** после `npx turbo build` команда
 `grep -n "ComponentName" apps/docs/public/llms-full.txt apps/docs/public/api/*.md`
-must return nothing. Same rule for typography HTML entities (`&nbsp;`,
-`&shy;`, …) — strip/replace them in the expander, don't let them reach the
-AI-facing Markdown.
+должна ничего не вернуть. То же правило для HTML-entity типографики
+(`&nbsp;`, `&shy;`, …) — заменяй/убирай в expander'е, в AI-facing Markdown
+они попадать не должны.
 
-## MDX component imports — do NOT re-export
+## Импорт MDX-компонентов — НЕ через re-export
 
-Do **not** `export { X } from '...'` in `mdx-components.tsx` — Turbopack
-may fail to resolve it at runtime. Instead: `import` it in
-`mdx-components.tsx` for `customMdxComponents`, and in
-`markdown-content.tsx` import directly from the source file
-(`@/components/mdx/steps`, etc.).
+**Не** делай `export { X } from '...'` в `mdx-components.tsx` — Turbopack
+может не зарезолвить компонент в runtime. Вместо этого: в
+`mdx-components.tsx` — `import` для `customMdxComponents`, в
+`markdown-content.tsx` — импорт напрямую из файла-источника
+(`@/components/mdx/steps` и т.п.).
 
-## Turbopack / dev server
+## Turbopack / dev-сервер
 
-- `turbo check` catches type errors but **not** Turbopack module
-  resolution issues — always test at runtime (`bun turbo dev`) after
-  adding/registering a component.
-- After changing component registrations or adding TS/TSX files, restart
-  the dev server (`pkill -f "next dev"`, `rm -rf apps/docs/.next`, then
-  `bun turbo dev`) — Turbopack HMR often misses these.
-- **Next.js: stay on 16.0.x (16.0.10).** 16.1.x breaks
-  `next dev --turbopack` (`server-external-packages.json` renamed to
-  `.jsonc`, Turbopack still expects `.json`). Build works; only dev
-  crashes. Re-check before bumping.
-- **Next 16 middleware lives in `apps/docs/proxy.ts`** (Next renamed
-  `middleware.ts` → `proxy.ts`). Having both files present fails the build.
+- `turbo check` ловит ошибки типов, но **не** проблемы резолва модулей
+  Turbopack — всегда тестируй в runtime (`bun turbo dev`) после
+  добавления / регистрации компонента.
+- После изменения регистраций компонентов или добавления TS/TSX-файлов —
+  перезапусти dev-сервер (`pkill -f "next dev"`, `rm -rf apps/docs/.next`,
+  потом `bun turbo dev`). Turbopack HMR часто их пропускает.
+- **Next.js: оставаться на 16.0.x (16.0.10).** 16.1.x ломает
+  `next dev --turbopack` (`server-external-packages.json` переименован в
+  `.jsonc`, Turbopack всё ещё ждёт `.json`). Build работает, ломается
+  только dev. Перепроверять перед апгрейдом.
+- **Middleware Next 16 живёт в `apps/docs/proxy.ts`** (Next переименовал
+  `middleware.ts` → `proxy.ts`). Если оба файла присутствуют — build
+  падает.
 
-## Headings — no decorative symbols
+## Заголовки — без декоративных символов
 
-In MDX headings (`##`, `###`) and `<Step title="...">` do **not** use:
-em dash `—`, arrows `→ ← ⇒`, plus `+`, the latinism `vs`, and **inline
-code / backticks** (`` `guest` ``, `` `chat_ids` ``). Headings feed the
-sidebar TOC and these look like noise there; backticks in a heading are
-**not** rendered as code — the raw backticks show. Name the entity in
-words («гостевая роль», «чаты») and expand the identifier in the body
-text under the heading. Parentheses `(...)` and hyphens in compound words
-(`webhook-слот`) are fine.
+В MDX-заголовках (`##`, `###`) и в `<Step title="...">` **нельзя**
+использовать: em dash `—`, стрелки `→ ← ⇒`, плюс `+`, латинизм `vs` и
+**inline-код / backticks** (`` `guest` ``, `` `chat_ids` ``). Заголовки
+попадают в боковой TOC и там смотрятся как шум; backticks в заголовке
+**не** рендерятся как код — отображаются сырые символы. Называй сущность
+словами («гостевая роль», «чаты»), а идентификатор раскрывай в тексте
+под заголовком. Скобки `(...)` и дефис в составных словах
+(`webhook-слот`) — нормально.
 
-Rewrite as a clean phrase:
+Переписывай в чистую фразу:
 
-| Bad | Good |
-|-----|------|
+| Плохо | Хорошо |
+| ----- | ------ |
 | `### Execute Step — запуск одного узла` | `### Запуск одного узла через Execute Step` |
 | `<Step title="Деактивировать → протестировать → активировать">` | `<Step title="Временная деактивация продакшен-workflow">` |
-| `## Роль "guest" и "chat_ids" при создании` (backticks in heading) | `## Гостевая роль и чаты при создании сотрудника` |
+| `## Роль "guest" и "chat_ids" при создании` (backticks в заголовке) | `## Гостевая роль и чаты при создании сотрудника` |
 
-Check before commit:
+Проверка перед коммитом:
 `grep -En '^#{2,3}.*( — | → | \+ |`)' apps/docs/content/**/*.mdx`
 
-## Design system — minimum font size
+## Дизайн-система — минимальный размер шрифта
 
-`text-[11px]` is allowed **only** with `uppercase`/`capitalize` (small
-labels). For normal-case text the minimum is `text-[12px]`. Don't "fix"
-12px hints down to 11px — 11px normal text is too small.
+`text-[11px]` допустим **только** с `uppercase` / `capitalize` (мелкие
+ярлыки). Для обычного текста минимум — `text-[12px]`. Не «чини»
+12-пиксельные подсказки до 11 — 11px нормальным начертанием слишком
+мелко.
 
-## TypeSpec gotchas
+## TypeSpec — подводные камни
 
-- `@opExample` does **not** work with `HttpPart<T>` (multipart) — string
-  values aren't assignable to `HttpPart<string>`. Handle multipart
-  examples in the generators instead.
-- `@encodedName("multipart/form-data", ...)` does **not** produce an
-  OpenAPI `encoding` section — schema property names stay camelCase;
-  wire-name mapping must be handled separately.
-- `Schema.properties` is `Record<string, Schema> | undefined` — narrow
-  before `Object.entries()`.
-- Always recompile after editing `typespec.tsp`:
-  `npx turbo build --filter=@pachca/spec --force` — otherwise
-  `openapi.yaml` stays stale and docs won't reflect the change.
-- **`@doc` of model fields: short, plain, no markdown bold.** The params
-  table renders the field description as text — inline `` `code` ``
-  becomes a chip, but `**bold**` shows as literal `**`. Keep it to one or
-  two short sentences, self-contained, with no cross-ref like «см.
-  описание метода». Don't invent qualifiers — use the exact terms already
-  in the docs (incident: wrote «чаты компании» / «company chats» where
-  docs never call chats that). Put detailed rules / error lists /
-  edge-cases in the **operation** `@doc("""...""")` (rendered as full
-  markdown above the table; multi-paragraph is fine there). Reference
-  length: `User.skip_email_notify` (2 short sentences).
-- **`@doc` terminal period — by sentence count.** Established convention
-  (≈863 single-line `@doc`: ≈825 without a period, ≈38 with one): a
-  **single phrase / one sentence** (a field label like
-  `@doc("Тип файла")`) ends **without** a terminal period; a
-  **multi-sentence** description (two or more sentences) ends **with** a
-  terminal period on every sentence, including the last (real examples:
-  the `User.email` / `User.phone_number` docs). Same principle as
-  changelog punctuation — [updates-format §3](./updates-format.md). When
-  splitting a semicolon into two sentences the result is multi-sentence,
-  so make sure the last sentence also ends with a period.
-- **EN overlay symmetry for operation descriptions.**
-  `$.paths[...].<method>.update.description` in
-  `packages/spec/overlay.en.yaml` is a **full replacement** of the
-  description. If you add a paragraph to a RU operation `@doc` but not to
-  its overlay target, the English version silently loses the paragraph
-  (`overlay:apply` does not fail — no Cyrillic remains). When editing a RU
-  operation description, always update its EN overlay target in lockstep.
+- `@opExample` **не** работает с `HttpPart<T>` (multipart) — строковые
+  значения нельзя присвоить `HttpPart<string>`. Multipart-примеры
+  обрабатывай в генераторах.
+- `@encodedName("multipart/form-data", ...)` **не** генерирует OpenAPI-
+  секцию `encoding` — имена свойств схемы остаются camelCase; мэппинг
+  wire-имён надо делать отдельно.
+- `Schema.properties` — это `Record<string, Schema> | undefined`, перед
+  `Object.entries()` нужно сузить тип.
+- После правки `typespec.tsp` обязательно пересобирать:
+  `npx turbo build --filter=@pachca/spec --force` — иначе `openapi.yaml`
+  останется устаревшим и доки не отразят изменение.
+- **`@doc` полей моделей: коротко, без markdown bold.** Таблица
+  параметров рендерит описание поля как текст: inline `` `code` ``
+  превращается в чип, а `**bold**` показывается как литерал `**`. Одно-
+  два коротких предложения, самодостаточно, без cross-ref'ов типа «см.
+  описание метода». Не выдумывай уточнения — используй ровно те термины,
+  которые уже есть в доках. Подробные правила / списки ошибок /
+  edge-case'ы — в `@doc("""...""")` **операции** (рендерится как полный
+  markdown над таблицей; там много абзацев — ок). Эталон длины:
+  `User.skip_email_notify` (2 коротких предложения).
+- **Используй уже существующую в spec лексику — не выдумывай синонимы.**
+  Перед тем как добавить новое слово в `@doc`, `grep` его в
+  `packages/spec/typespec.tsp` и `apps/docs/content/api/**/*.mdx`. Ноль
+  попаданий — значит ты придумываешь термин. Найди слово, которым другие
+  эндпоинты уже описывают ту же сущность, и используй его. Одна и та же
+  идея, выраженная двумя разными словами в разных местах API, читается
+  как две разные идеи у того, кто открыл доки впервые.
+- **`@doc` методов — нейтральный голос, без перечисления аудитории.**
+  Описывай что метод делает, а не кто его вызывает. Пользовательские и
+  ботовые токены ходят в одни и те же эндпоинты с одинаковой семантикой
+  доступа — формулировка «доступных пользователю или боту» расщепляет
+  одну идею на два клауса без причины. Используй второе лицо («у которых
+  **вы** состоите») или безличную конструкцию («список **доступных**
+  тредов»).
+- **Без per-method исключений в `@doc` shared-моделей.** Поля общих
+  моделей (`PaginationMeta`, `Message`, `Chat`, `User`, …) рендерятся на
+  **каждом** эндпоинте, который их использует. Если в описании есть
+  «хвост» про то, как *один конкретный эндпоинт* ведёт себя иначе, этот
+  хвост вылезает в таблице параметров у всех остальных эндпоинтов как
+  шум. Особенности конкретного метода живут в (а) его собственном
+  `@doc("""...""")`, и (б) в гайде, где эта особенность уже описана. В
+  `@doc` поля shared-модели — никогда.
+- **Терминальная точка в `@doc` — по числу предложений.** Сложившаяся
+  конвенция (≈863 однострочных `@doc`: ≈825 без точки, ≈38 с ней): **одна
+  фраза / одно предложение** (label вроде `@doc("Тип файла")`) — **без**
+  терминальной точки; **многопредложное** описание (два и больше
+  предложений) — **с** точкой в каждом, включая последнее (живые примеры:
+  `User.email`, `User.phone_number`). Та же логика, что и в пунктуации
+  changelog'ов — [updates-format §3](./updates-format.md). Когда
+  разбиваешь точкой с запятой на два предложения, результат —
+  многопредложный, последнее тоже должно заканчиваться точкой.
+- **Синхронность EN overlay с описаниями операций.**
+  `$.paths[...].<method>.update.description` в
+  `packages/spec/overlay.en.yaml` — это **полная замена** описания. Если
+  добавил абзац в `@doc` русской операции, но не добавил в её overlay-
+  таргет, английская версия молча теряет абзац (`overlay:apply` не падает —
+  кириллицы не осталось). Редактируешь русское описание операции —
+  одновременно правь и её EN overlay-таргет.
 
 ---
 
-See also: [CONTRIBUTING](../CONTRIBUTING.md) ·
-[updates format](./updates-format.md) · [API audit](./api-audit.md)
+См. также: [CONTRIBUTING](../CONTRIBUTING.md) ·
+[формат обновлений](./updates-format.md) ·
+[API-аудит](./api-audit.md)

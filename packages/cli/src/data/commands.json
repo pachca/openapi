@@ -2198,6 +2198,46 @@
           }
         ],
         "flags": []
+      },
+      {
+        "command": "pachca threads list",
+        "summary": "Список тредов",
+        "method": "GET",
+        "path": "/threads",
+        "scope": "threads:read",
+        "plan": null,
+        "flags": [
+          {
+            "name": "last-message-at-after",
+            "type": "option",
+            "required": false,
+            "description": "Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не раньше чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+          },
+          {
+            "name": "last-message-at-before",
+            "type": "option",
+            "required": false,
+            "description": "Фильтрация по времени последнего сообщения в треде. Будут возвращены только те треды, время последнего сообщения в которых не позже чем указанное (в формате YYYY-MM-DDThh:mm:ss.sssZ)."
+          },
+          {
+            "name": "limit",
+            "type": "option",
+            "required": false,
+            "description": "Количество результатов на страницу"
+          },
+          {
+            "name": "cursor",
+            "type": "option",
+            "required": false,
+            "description": "Курсор для следующей страницы"
+          },
+          {
+            "name": "all",
+            "type": "boolean",
+            "required": false,
+            "description": "Загрузить все страницы автоматически"
+          }
+        ]
       }
     ]
   },

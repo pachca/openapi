@@ -130,6 +130,28 @@ workflows:
       - stepId: subscribe-to-message-thread-2
         description: Add bot to thread chat members
         operationId: ChatMemberOperations_addMembers
+  - workflowId: list-active-threads-in-a-time-window
+    summary: List active threads in a time window
+    description: >-
+      The list is narrower than `GET /threads/{id}`: returns only threads whose thread chat or
+      parent message chat you are a member of. Public chats you have not joined are excluded from
+      the list — even if `GET /threads/{id}` would return such a thread by id. For a digest over a
+      public chat you must be a member of the chat with the parent message or of the thread chat.
+    steps:
+      - stepId: list-active-threads-in-a-time-window-1
+        description: >-
+          Request the threads list filtered by last message time with the desired `--limit`
+          (`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (default
+          50). Sorted by last message time descending.)
+        operationId: ThreadOperations_listThreads
+      - stepId: list-active-threads-in-a-time-window-2
+        description: If `meta.paginate.next_page` is set — iterate pages via `--cursor`
+        operationId: ThreadOperations_listThreads
+      - stepId: list-active-threads-in-a-time-window-3
+        description: >-
+          For each thread take `chat_id` and fetch messages: `pachca messages list
+          --chat-id=<thread.chat_id>`
+        operationId: ChatMessageOperations_listChatMessages
   - workflowId: mention-user
     summary: Mention user
     description: >-

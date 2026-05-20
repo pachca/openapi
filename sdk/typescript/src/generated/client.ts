@@ -42,6 +42,8 @@ import {
   ReactionRequest,
   RemoveReactionParams,
   ListReadMembersParams,
+  ListThreadsParams,
+  ListThreadsResponse,
   Thread,
   AccessTokenInfo,
   AvatarData,
@@ -1176,6 +1178,14 @@ export class ReadMembersServiceImpl extends ReadMembersService {
 }
 
 export class ThreadsService {
+  async listThreads(params?: ListThreadsParams): Promise<ListThreadsResponse> {
+    throw new Error("Threads.listThreads is not implemented");
+  }
+
+  async listThreadsAll(params?: Omit<ListThreadsParams, 'cursor'>): Promise<Thread[]> {
+    throw new Error("Threads.listThreadsAll is not implemented");
+  }
+
   async getThread(id: number): Promise<Thread> {
     throw new Error("Threads.getThread is not implemented");
   }
@@ -1191,6 +1201,41 @@ export class ThreadsServiceImpl extends ThreadsService {
     private headers: Record<string, string>,
   ) {
     super();
+  }
+
+  async listThreads(params?: ListThreadsParams): Promise<ListThreadsResponse> {
+    const query = new URLSearchParams();
+    if (params?.lastMessageAtAfter !== undefined) query.set("last_message_at_after", params.lastMessageAtAfter);
+    if (params?.lastMessageAtBefore !== undefined) query.set("last_message_at_before", params.lastMessageAtBefore);
+    if (params?.limit !== undefined) query.set("limit", String(params.limit));
+    if (params?.cursor !== undefined) query.set("cursor", params.cursor);
+    const url = `${this.baseUrl}/threads${query.toString() ? `?${query}` : ""}`;
+    const response = await fetchWithRetry(url, {
+      headers: this.headers,
+    });
+    const body = await response.json();
+    switch (response.status) {
+      case 200:
+        return deserialize(body) as ListThreadsResponse;
+      case 401:
+        throw new OAuthError(body.error);
+      default:
+        throw new ApiError(body.errors);
+    }
+  }
+
+  async listThreadsAll(params?: Omit<ListThreadsParams, 'cursor'>): Promise<Thread[]> {
+    const items: Thread[] = [];
+    let cursor: string | undefined;
+    let hasNext = true;
+    while (hasNext) {
+      const response = await this.listThreads({ ...params, cursor } as ListThreadsParams);
+      items.push(...response.data);
+      if (response.data.length === 0) break;
+      cursor = response.meta.paginate.nextPage;
+      hasNext = response.meta.paginate.hasNext ?? true;
+    }
+    return items;
   }
 
   async getThread(id: number): Promise<Thread> {

@@ -336,6 +336,52 @@ export const WORKFLOWS: Record<string, Workflow[]> = {
       notesEn: 'POST /messages/{id}/thread is idempotent — safe to call repeatedly.',
     },
     {
+      title: 'Получить список активных тредов за период',
+      titleEn: 'List active threads in a time window',
+      inline: false,
+      steps: [
+        {
+          description:
+            'Запроси список тредов с фильтром по времени последнего сообщения и нужным `--limit`',
+          descriptionEn:
+            'Request the threads list filtered by last message time with the desired `--limit`',
+          command:
+            'pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --last-message-at-before=2026-05-20T00:00:00.000Z --limit=50',
+          apiMethod: 'GET',
+          apiPath: '/threads',
+          notes:
+            '`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (по умолчанию 50). Сортировка — по убыванию времени последнего сообщения.',
+          notesEn:
+            '`last_message_at_after`/`last_message_at_before` — ISO-8601, UTC+0. `limit` 1-50 (default 50). Sorted by last message time descending.',
+        },
+        {
+          description: 'Если в ответе `meta.paginate.next_page` — пройди по страницам через `--cursor`',
+          descriptionEn: 'If `meta.paginate.next_page` is set — iterate pages via `--cursor`',
+          command:
+            'pachca threads list --last-message-at-after=2026-05-19T00:00:00.000Z --cursor=<next_page>',
+          apiMethod: 'GET',
+          apiPath: '/threads',
+        },
+        {
+          description:
+            'Для каждого треда возьми `chat_id` и подтяни сообщения: `pachca messages list --chat-id=<thread.chat_id>`',
+          descriptionEn:
+            'For each thread take `chat_id` and fetch messages: `pachca messages list --chat-id=<thread.chat_id>`',
+          apiMethod: 'GET',
+          apiPath: '/messages',
+        },
+      ],
+      notes:
+        'Выдача уже, чем `GET /threads/{id}`: возвращаются только треды, в чате треда или в чате с родительским сообщением которых вы состоите. Публичные чаты, в которых вас нет, в список не попадают — даже если `GET /threads/{id}` по конкретному id отдаст такой тред. Для дайджеста по публичному чату нужно быть участником чата с родительским сообщением или чата треда.',
+      notesEn:
+        'The list is narrower than `GET /threads/{id}`: returns only threads whose thread chat or parent message chat you are a member of. Public chats you have not joined are excluded from the list — even if `GET /threads/{id}` would return such a thread by id. For a digest over a public chat you must be a member of the chat with the parent message or of the thread chat.',
+      related: [
+        'Подписаться на тред сообщения',
+        'Получить историю сообщений чата',
+      ],
+      relatedEn: ['Subscribe to message thread', 'Get chat message history'],
+    },
+    {
       title: 'Упомянуть пользователя',
       titleEn: 'Mention user',
       inline: false,

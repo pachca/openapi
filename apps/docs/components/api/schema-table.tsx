@@ -2,6 +2,7 @@
 
 import React, { useState, type ReactNode } from 'react';
 import { CopiedTooltip } from './copied-tooltip';
+import { EndpointLink } from './endpoint-link';
 import type { Schema } from '@/lib/openapi/types';
 
 interface SchemaTableProps {
@@ -152,20 +153,42 @@ function collectProperties(schema: Schema): PropertyInfo[] {
 }
 
 function renderInlineMarkdown(text: string): ReactNode {
-  const parts = text.split(/(`[^`]+`)/g);
+  // Split on inline code OR markdown link.
+  // Link form after resolveEndpointLinks(mdx: false) is `[text](METHOD:url)`
+  // for resolved endpoints, or `[text](url)` for plain links / unresolved.
+  const parts = text.split(/(`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
   if (parts.length === 1) return text;
-  return parts.map((part, i) =>
-    part.startsWith('`') && part.endsWith('`') ? (
-      <code
-        key={i}
-        className="text-[12px] font-mono text-text-primary bg-glass px-1 py-0.5 rounded-md border border-glass-border"
-      >
-        {part.slice(1, -1)}
-      </code>
-    ) : (
-      part
-    )
-  );
+  return parts.map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code
+          key={i}
+          className="text-[12px] font-mono text-text-primary bg-glass px-1 py-0.5 rounded-md border border-glass-border"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) {
+      const [, label, href] = link;
+      const method = href.match(/^(GET|POST|PUT|DELETE|PATCH):(.+)$/);
+      if (method) {
+        const [, m, url] = method;
+        return (
+          <EndpointLink key={i} method={m} href={url}>
+            {label}
+          </EndpointLink>
+        );
+      }
+      return (
+        <a key={i} href={href} className="underline">
+          {label}
+        </a>
+      );
+    }
+    return part;
+  });
 }
 
 function CopyableCell({ text, children }: { text: string; children: ReactNode }) {

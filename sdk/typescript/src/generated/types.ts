@@ -1340,6 +1340,13 @@ export interface ListTasksParams {
   cursor?: string;
 }
 
+export interface ListThreadsParams {
+  lastMessageAtAfter?: string;
+  lastMessageAtBefore?: string;
+  limit?: number;
+  cursor?: string;
+}
+
 export interface ListUsersParams {
   query?: string;
   limit?: number;
@@ -1407,6 +1414,11 @@ export interface SearchUsersResponse {
 
 export interface ListTasksResponse {
   data: Task[];
+  meta: PaginationMeta;
+}
+
+export interface ListThreadsResponse {
+  data: Thread[];
   meta: PaginationMeta;
 }
 

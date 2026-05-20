@@ -8,7 +8,7 @@
 npm install -g @pachca/cli
 
 # Или без установки:
-npx @pachca/cli users list
+npx -y @pachca/cli users list
 ```
 
 ## Быстрый старт

@@ -1590,6 +1590,25 @@ public sealed class ReadMembersServiceImpl : ReadMembersService
 public class ThreadsService
 {
 
+    public virtual async System.Threading.Tasks.Task<ListThreadsResponse> ListThreadsAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Threads.listThreads is not implemented");
+    }
+
+    public virtual async System.Threading.Tasks.Task<List<Pachca.Sdk.Thread>> ListThreadsAllAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Threads.listThreadsAll is not implemented");
+    }
+
     public virtual async System.Threading.Tasks.Task<Pachca.Sdk.Thread> GetThreadAsync(int id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Threads.getThread is not implemented");
@@ -1610,6 +1629,57 @@ public sealed class ThreadsServiceImpl : ThreadsService
     {
         _baseUrl = baseUrl;
         _client = client;
+    }
+
+    public override async System.Threading.Tasks.Task<ListThreadsResponse> ListThreadsAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        var queryParts = new List<string>();
+        if (lastMessageAtAfter != null)
+            queryParts.Add($"last_message_at_after={Uri.EscapeDataString(lastMessageAtAfter.Value.ToString("o"))}");
+        if (lastMessageAtBefore != null)
+            queryParts.Add($"last_message_at_before={Uri.EscapeDataString(lastMessageAtBefore.Value.ToString("o"))}");
+        if (limit != null)
+            queryParts.Add($"limit={Uri.EscapeDataString(limit.Value.ToString()!)}");
+        if (cursor != null)
+            queryParts.Add($"cursor={Uri.EscapeDataString(cursor)}");
+        var url = $"{_baseUrl}/threads" + (queryParts.Count > 0 ? "?" + string.Join("&", queryParts) : "");
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await PachcaUtils.SendWithRetryAsync(_client, request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        switch ((int)response.StatusCode)
+        {
+            case 200:
+                return PachcaUtils.Deserialize<ListThreadsResponse>(json);
+            case 401:
+                throw PachcaUtils.Deserialize<OAuthError>(json);
+            default:
+                throw PachcaUtils.Deserialize<ApiError>(json);
+        }
+    }
+
+    public override async System.Threading.Tasks.Task<List<Pachca.Sdk.Thread>> ListThreadsAllAsync(
+        DateTimeOffset? lastMessageAtAfter = null,
+        DateTimeOffset? lastMessageAtBefore = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<Pachca.Sdk.Thread>();
+        string? cursor = null;
+        var hasNext = true;
+        while (hasNext)
+        {
+            var response = await ListThreadsAsync(lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            items.AddRange(response.Data);
+            if (response.Data.Count == 0) break;
+            cursor = response.Meta.Paginate.NextPage;
+            hasNext = response.Meta.Paginate.HasNext ?? true;
+        }
+        return items;
     }
 
     public override async System.Threading.Tasks.Task<Pachca.Sdk.Thread> GetThreadAsync(int id, CancellationToken cancellationToken = default)

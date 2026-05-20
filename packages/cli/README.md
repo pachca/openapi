@@ -8,7 +8,7 @@
 npm install -g @pachca/cli
 
 # Или без установки:
-npx @pachca/cli users list
+npx -y @pachca/cli users list
 ```
 
 ## Быстрый старт
@@ -163,6 +163,7 @@ pachca guide            # список всех сценариев
 | Команда | Описание |
 |---------|---------|
 | `pachca threads add` | Новый тред |
+| `pachca threads list` | Список тредов |
 | `pachca threads get` | Информация о треде |
 
 ### profile

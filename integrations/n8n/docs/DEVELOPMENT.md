@@ -2,7 +2,7 @@
 
 ## Architecture
 
-The n8n node is **auto-generated** from the Pachca OpenAPI specification using the **VersionedNodeType** pattern (same as Slack, Gmail, HTTP Request in n8n-nodes-base):
+The n8n node is **auto-generated** from the Pachca OpenAPI specification using the **VersionedNodeType** pattern (the standard pattern used by core n8n-nodes-base nodes):
 
 ```
 TypeSpec (typespec.tsp)
@@ -128,7 +128,7 @@ pkill -f n8n; npx n8n start
 
 ## Versioning
 
-- **npm version**: SemVer (`MAJOR.MINOR.PATCH`), current: `2.0.8`
+- **npm version**: SemVer (`MAJOR.MINOR.PATCH`), current: `2.0.9`
 - **n8n node version**: VersionedNodeType with `defaultVersion: 2`
   - `typeVersion: 1` — loads PachcaV1 (frozen V1 class)
   - `typeVersion: 2` — loads PachcaV2 (generated V2 class)

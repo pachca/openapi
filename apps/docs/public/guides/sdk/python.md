@@ -111,6 +111,7 @@ await client.close()
 | `client.members.leave_chat()` | [Выход из беседы или канала](/api/members/leave) |
 | `client.members.remove_member()` | [Исключение пользователя](/api/members/remove) |
 | `client.threads.create_thread()` | [Новый тред](/api/threads/add) |
+| `client.threads.list_threads()` | [Список тредов](/api/threads/list) |
 | `client.threads.get_thread()` | [Информация о треде](/api/threads/get) |
 | `client.messages.create_message()` | [Новое сообщение](/api/messages/create) |
 | `client.messages.pin_message()` | [Закрепление сообщения](/api/messages/pin) |

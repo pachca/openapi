@@ -1508,6 +1508,13 @@ type ListTasksParams struct {
 	Cursor *string
 }
 
+type ListThreadsParams struct {
+	LastMessageAtAfter  *time.Time
+	LastMessageAtBefore *time.Time
+	Limit               *int32
+	Cursor              *string
+}
+
 type ListUsersParams struct {
 	Query  *string
 	Limit  *int32
@@ -1575,6 +1582,11 @@ type SearchUsersResponse struct {
 
 type ListTasksResponse struct {
 	Data []Task         `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}
+
+type ListThreadsResponse struct {
+	Data []Thread       `json:"data"`
 	Meta PaginationMeta `json:"meta"`
 }
 

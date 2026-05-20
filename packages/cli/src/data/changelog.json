@@ -1,5 +1,16 @@
 [
   {
+    "version": "2026.5.4",
+    "date": "20 мая 2026",
+    "changes": [
+      {
+        "type": "+",
+        "command": "threads list",
+        "description": "Новая команда — список доступных тредов с фильтрами `--last-message-at-after` / `--last-message-at-before` и курсорной пагинацией"
+      }
+    ]
+  },
+  {
     "version": "2026.5.2",
     "date": "17 мая 2026",
     "changes": [

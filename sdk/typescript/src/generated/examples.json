@@ -221,6 +221,10 @@
     "usage": "const response = client.readMembers.listReadMembers(194275, { limit: 300, cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\" })",
     "output": "unknown"
   },
+  "ThreadOperations_listThreads": {
+    "usage": "const response = client.threads.listThreads({\n  lastMessageAtAfter: \"2025-01-01T00:00:00.000Z\",\n  lastMessageAtBefore: \"2025-02-01T00:00:00.000Z\",\n  limit: 1,\n  cursor: \"eyJpZCI6MTAsImRpciI6ImFzYyJ9\"\n})",
+    "output": "ListThreadsResponse({ data: Thread[], meta: PaginationMeta })"
+  },
   "ThreadOperations_getThread": {
     "usage": "const response = client.threads.getThread(265142)",
     "output": "Thread({ id: number, chatId: number, messageId: number, messageChatId: number, updatedAt: string })"

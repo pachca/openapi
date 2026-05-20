@@ -109,6 +109,7 @@ Tokens are long-lived and do not expire. They can be reset by the admin/owner in
 
 ### Threads
 - `POST /messages/{id}/thread` — Create thread
+- `GET /threads` — List threads
 - `GET /threads/{id}` — Get thread
 
 ### Messages

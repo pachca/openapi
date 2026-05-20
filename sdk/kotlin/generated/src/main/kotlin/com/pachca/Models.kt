@@ -1540,6 +1540,12 @@ data class ListTasksResponse(
 )
 
 @Serializable
+data class ListThreadsResponse(
+    val data: List<Thread>,
+    val meta: PaginationMeta,
+)
+
+@Serializable
 data class ListUsersResponse(
     val data: List<User>,
     val meta: PaginationMeta,

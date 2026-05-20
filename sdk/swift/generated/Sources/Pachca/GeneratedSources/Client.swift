@@ -1232,6 +1232,14 @@ public final class ReadMembersServiceImpl: ReadMembersService {
 open class ThreadsService {
     public init() {}
 
+    open func listThreads(lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListThreadsResponse {
+        throw pachcaNotImplemented("Threads.listThreads")
+    }
+
+    open func listThreadsAll(lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, limit: Int? = nil) async throws -> [Thread] {
+        throw pachcaNotImplemented("Threads.listThreadsAll")
+    }
+
     open func getThread(id: Int) async throws -> Thread {
         throw pachcaNotImplemented("Threads.getThread")
     }
@@ -1251,6 +1259,42 @@ public final class ThreadsServiceImpl: ThreadsService {
         self.headers = headers
         self.session = session
         super.init()
+    }
+
+    public override func listThreads(lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, limit: Int? = nil, cursor: String? = nil) async throws -> ListThreadsResponse {
+        var components = URLComponents(string: "\(baseURL)/threads")!
+        var queryItems: [URLQueryItem] = []
+        if let lastMessageAtAfter { queryItems.append(URLQueryItem(name: "last_message_at_after", value: String(lastMessageAtAfter))) }
+        if let lastMessageAtBefore { queryItems.append(URLQueryItem(name: "last_message_at_before", value: String(lastMessageAtBefore))) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if let cursor { queryItems.append(URLQueryItem(name: "cursor", value: String(cursor))) }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        var request = URLRequest(url: components.url!)
+        headers.forEach { request.setValue($1, forHTTPHeaderField: $0) }
+        let (data, urlResponse) = try await dataWithRetry(session: session, for: request)
+        let statusCode = (urlResponse as! HTTPURLResponse).statusCode
+        switch statusCode {
+        case 200:
+            return try deserialize(ListThreadsResponse.self, from: data)
+        case 401:
+            throw try deserialize(OAuthError.self, from: data)
+        default:
+            throw try deserialize(ApiError.self, from: data)
+        }
+    }
+
+    public override func listThreadsAll(lastMessageAtAfter: String? = nil, lastMessageAtBefore: String? = nil, limit: Int? = nil) async throws -> [Thread] {
+        var items: [Thread] = []
+        var cursor: String? = nil
+        var hasNext = true
+        while hasNext {
+            let response = try await listThreads(lastMessageAtAfter: lastMessageAtAfter, lastMessageAtBefore: lastMessageAtBefore, limit: limit, cursor: cursor)
+            items.append(contentsOf: response.data)
+            if response.data.isEmpty { break }
+            cursor = response.meta.paginate.nextPage
+            hasNext = response.meta.paginate.hasNext ?? true
+        }
+        return items
     }
 
     public override func getThread(id: Int) async throws -> Thread {

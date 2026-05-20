@@ -1155,6 +1155,22 @@
           }
         },
         {
+          "name": "Список тредов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/threads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "threads"
+              ]
+            }
+          }
+        },
+        {
           "name": "Информация о треде",
           "request": {
             "method": "GET",

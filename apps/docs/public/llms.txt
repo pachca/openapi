@@ -6,7 +6,7 @@
 
 > Точечные запросы по API: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Любую страницу сайта можно получить в Markdown, добавив `.md` к её URL. Ссылки в разделах «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую.
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~329K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~333K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~12K токенов).
 
@@ -35,9 +35,9 @@
 | SDK | Типизированные клиенты для 6 языков | 61–87 |
 | Agent Skills | Скиллы для AI-агентов и установка | 88–108 |
 | Руководства | Страницы-руководства (Markdown по `.md`) | 109–160 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 161–260 |
-| Обновления | Журнал обновлений по датам | 261–308 |
-| Дополнительно | Прочие ссылки и контакты | 309–317 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 161–261 |
+| Обновления | Журнал обновлений по датам | 262–310 |
+| Дополнительно | Прочие ссылки и контакты | 311–319 |
 
 ## CLI Quick Start
 
@@ -213,6 +213,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 ## Threads
 - [Новый тред](https://dev.pachca.com/api/threads/add.md): POST /messages/{id}/thread
+- [Список тредов](https://dev.pachca.com/api/threads/list.md): GET /threads
 - [Информация о треде](https://dev.pachca.com/api/threads/get.md): GET /threads/{id}
 
 ## Messages
@@ -259,6 +260,7 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Журнал аудита событий](https://dev.pachca.com/api/security/list.md): GET /audit_events
 
 ## Обновления
+- [20 мая 2026 — Список тредов](https://dev.pachca.com/updates/2026-05-20.md)
 - [17 мая 2026 — Гостевая роль и чаты при создании сотрудника, справка по API в CLI](https://dev.pachca.com/updates/2026-05-17.md)
 - [06 мая 2026 — Курсорная пагинация и параметр skip в unfurl-вебхуке](https://dev.pachca.com/updates/2026-05-06.md)
 - [05 мая 2026 — Расширение n8n опубликовано в официальной витрине](https://dev.pachca.com/updates/2026-05-05.md)

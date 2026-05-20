@@ -39,7 +39,7 @@ export function resolveEndpointLinks(
   );
 }
 
-function processSchema(schema: Schema, allEndpoints: Endpoint[]): Schema {
+export function processSchema(schema: Schema, allEndpoints: Endpoint[]): Schema {
   const result = { ...schema };
 
   if (result.description) {

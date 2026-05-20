@@ -67,28 +67,38 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // agent that skims only the top of the file.
   content += '## Основное\n\n';
   content +=
-    '- **Авторизация:** заголовок `Authorization: Bearer <TOKEN>`. Типы токенов: admin (полный доступ), bot (сообщения от имени бота + вебхуки), user (ограниченный). Токены бессрочные.\n';
+    '- **Авторизация:** `Authorization: Bearer <TOKEN>`. Токены: admin (полный доступ), ' +
+    'bot (от бота + вебхуки), user (ограниченный). Бессрочные.\n';
   content +=
-    '- **Пагинация (курсорная):** параметры `limit` (1–50, по умолчанию 50) и `cursor`. Всегда указывайте `limit` явно, не полагайтесь на значение по умолчанию.\n';
+    '- **Пагинация (курсорная):** `limit` (1–50, дефолт 50) + `cursor`. Передавай `limit` явно.\n';
   content +=
-    '  - Списочные методы: в `meta.paginate` поля `next_page`, `prev_page`, `has_next`, `has_prev` **всегда присутствуют**, даже когда `data` пустой. Курсоры никогда не `null`.\n';
+    '  - Списочные методы: `meta.paginate` всегда содержит `next_page`, `prev_page`, ' +
+    '`has_next`, `has_prev` — даже при пустом `data`. Курсоры никогда не `null`.\n';
   content +=
-    '  - Конец данных — `has_next: false` (вперёд) или `has_prev: false` (назад), а **не** пустой `data`.\n';
+    '  - Конец — `has_next: false` (вперёд) или `has_prev: false` (назад), не пустой `data`.\n';
   content +=
-    '  - Число записей в `data` может быть меньше `limit`, в том числе на промежуточных страницах. Не полагайтесь на длину массива.\n';
+    '  - `data.length` может быть меньше `limit` даже не на последней странице — ' +
+    'не считай по длине.\n';
+  content += '  - Курсор непрозрачен: не парси, не конструируй, не сохраняй между сессиями.\n';
   content +=
-    '  - Курсор — непрозрачный токен. Не парсите, не конструируйте вручную, не сохраняйте между сессиями.\n';
-  content += `  - Методы поиска: полей \`prev_page\`, \`has_next\`, \`has_prev\` нет, polling через \`prev_page\` не работает. Конец — по совпадению числа полученных записей с \`total\` или по пустому \`data\`. Полный гайд — [${SITE_URL}/api/pagination.md](${SITE_URL}/api/pagination.md).\n`;
+    `  - Поиск: \`prev_page\`/\`has_next\`/\`has_prev\` отсутствуют, ` +
+    `\`prev_page\`-polling не работает. Конец — \`count == total\` или пустой \`data\`. ` +
+    `Полный гайд — [${SITE_URL}/api/pagination.md](${SITE_URL}/api/pagination.md).\n`;
   content +=
-    '- **Rate limit:** сообщения ~4 rps на чат (burst 30/5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — ждать `Retry-After`.\n';
+    '- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, ' +
+    'остальное ~50 rps. На `429` — жди `Retry-After`.\n';
   content +=
-    '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
+    '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), ' +
+    '`401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
   content +=
-    '- **Идемпотентность:** запросы НЕ идемпотентны — дедуплицируй на клиенте; вебхуки доставляются at-least-once, обработчики должны быть идемпотентны.\n';
+    '- **Идемпотентность:** запросы не идемпотентны — дедуплицируй на клиенте. ' +
+    'Вебхуки at-least-once — обработчики идемпотентны.\n';
   content +=
-    '- **Файлы:** 3 шага — `POST /uploads` → загрузка на `direct_url` (внешний S3, без Authorization) → `key` в массиве `files` сообщения.\n';
+    '- **Файлы:** 3 шага: `POST /uploads` → upload на `direct_url` ' +
+    '(внешний S3, без Authorization) → `key` в `files[]` сообщения.\n';
   content +=
-    '- Детали по конкретному методу — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`; полный референс — llms-full.txt или `.md`-страницы из разделов ниже.\n\n';
+    '- Детали метода — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`. ' +
+    'Полный референс — `llms-full.txt` или `.md`-страницы из разделов ниже.\n\n';
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';

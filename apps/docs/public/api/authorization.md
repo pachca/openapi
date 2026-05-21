@@ -1,5 +1,4 @@
-> Это Markdown-версия страницы. Используй её содержимое для ответов по этой теме.
-> Для общего обзора API — [llms.txt](https://dev.pachca.com/llms.txt).
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) **обязательно открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом** — это сэкономит токены и предотвратит неполный ответ.
 
 
 # Авторизация
@@ -150,8 +149,8 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 #### OAuthError
 
-- `error: string` (required) — Код ошибки
-- `error_description: string` (required) — Описание ошибки
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 
 Подробнее о кодах ошибок и структуре ответов — в руководстве [Ошибки и лимиты](/api/errors).

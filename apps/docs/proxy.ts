@@ -60,6 +60,11 @@ export function proxy(request: NextRequest) {
   );
   response.headers.set('X-Llms-Txt', '/llms.txt');
   response.headers.set('Vary', 'Accept');
+  // Default Vercel CDN caching for SSG pages is `s-maxage=31536000` (1 year),
+  // which afdocs flags as «aggressive» and which delays content updates
+  // reaching agents until the next deploy. Match agent artefacts: short CDN
+  // cache + must-revalidate against the ETag Next.js already sets.
+  response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=3600');
   return response;
 }
 

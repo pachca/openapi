@@ -37,7 +37,7 @@ function formatSchemaWithTitle(schema: Schema, title?: string): string {
     md += `### ${schemaTitle}\n\n`;
   }
 
-  md += schemaToMarkdown(schema, 0, schema.required || []);
+  md += schemaToMarkdown(schema, 0, schema.required || [], true);
   return md;
 }
 
@@ -439,7 +439,7 @@ export async function expandMdxComponents(content: string): Promise<string> {
     if (schema) {
       const title = customTitle || schema.title || schemaName;
       let schemaMarkdown = `#### ${title}\n\n`;
-      schemaMarkdown += schemaToMarkdown(schema, 0, schema.required || []);
+      schemaMarkdown += schemaToMarkdown(schema, 0, schema.required || [], true);
       result = result.replace(fullMatch, schemaMarkdown);
     } else {
       result = result.replace(fullMatch, `*Схема ${schemaName} не найдена.*\n`);

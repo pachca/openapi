@@ -1,5 +1,4 @@
-> Это Markdown-версия страницы. Используй её содержимое для ответов по этой теме.
-> Для общего обзора API — [llms.txt](https://dev.pachca.com/llms.txt).
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) **обязательно открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом** — это сэкономит токены и предотвратит неполный ответ.
 
 # Журнал аудита событий
 
@@ -44,14 +43,14 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 **Схема ответа:**
 
 - `data: array of object` (required)
-  - `id: string` (required) — Уникальный идентификатор события
-  - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
+  - `id: string` (required) — Уникальный идентификатор события. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
+  - `created_at: date-time` (required) — Дата и время создания события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
   - `event_key: string` (required) — Ключ типа события
     Значения: `user_login` — Пользователь успешно вошел в систему, `user_logout` — Пользователь вышел из системы, `user_2fa_fail` — Неудачная попытка двухфакторной аутентификации, `user_2fa_success` — Успешная двухфакторная аутентификация, `user_created` — Создана новая учетная запись пользователя, `user_deleted` — Учетная запись пользователя удалена, `user_role_changed` — Роль пользователя была изменена, `user_updated` — Данные пользователя обновлены, `tag_created` — Создан новый тег, `tag_deleted` — Тег удален, `user_added_to_tag` — Пользователь добавлен в тег, `user_removed_from_tag` — Пользователь удален из тега, `chat_created` — Создан новый чат, `chat_renamed` — Чат переименован, `chat_permission_changed` — Изменены права доступа к чату, `user_chat_join` — Пользователь присоединился к чату, `user_chat_leave` — Пользователь покинул чат, `tag_added_to_chat` — Тег добавлен в чат, `tag_removed_from_chat` — Тег удален из чата, `message_updated` — Сообщение отредактировано, `message_deleted` — Сообщение удалено, `message_created` — Сообщение создано, `reaction_created` — Реакция добавлена, `reaction_deleted` — Реакция удалена, `thread_created` — Тред создан, `access_token_created` — Создан новый токен доступа, `access_token_updated` — Токен доступа обновлен, `access_token_destroy` — Токен доступа удален, `kms_encrypt` — Данные зашифрованы, `kms_decrypt` — Данные расшифрованы, `audit_events_accessed` — Доступ к журналам аудита получен, `dlp_violation_detected` — Срабатывание правила DLP-системы, `search_users_api` — Поиск сотрудников через API, `search_chats_api` — Поиск чатов через API, `search_messages_api` — Поиск сообщений через API
-  - `entity_id: string` (required) — Идентификатор затронутой сущности
-  - `entity_type: string` (required) — Тип затронутой сущности
-  - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие
-  - `actor_type: string` (required) — Тип актора
+  - `entity_id: string` (required) — Идентификатор затронутой сущности. Пример: `"98765"`
+  - `entity_type: string` (required) — Тип затронутой сущности. Пример: `"User"`
+  - `actor_id: string` (required) — Идентификатор пользователя, выполнившего действие. Пример: `"98765"`
+  - `actor_type: string` (required) — Тип актора. Пример: `"User"`
   - `details: anyOf` (required) — Дополнительные детали события. Структура зависит от значения event_key — см. описания значений поля event_key. Для событий без деталей возвращается пустой объект
     **Возможные варианты:**
 
@@ -100,14 +99,14 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
       - `filters: Record<string, object>` (required) — Применённые фильтры. Возможные ключи зависят от типа поиска: order, sort, created_from, created_to, company_roles (users), active, chat_subtype, personal (chats), chat_ids, user_ids (messages)
         **Структура значений Record:**
         - Тип значения: `any`
-  - `ip_address: string` (required) — IP-адрес, с которого было выполнено действие
-  - `user_agent: string` (required) — User agent клиента
+  - `ip_address: string` (required) — IP-адрес, с которого было выполнено действие. Пример: `"192.168.1.100"`
+  - `user_agent: string` (required) — User agent клиента. Пример: `"Pachca/3.60.0 (co.staply.pachca; build:15; iOS 18.5.0) Alamofire/5.0.0"`
 - `meta: object` (required) — Метаданные пагинации
   - `paginate: object` (required) — Вспомогательная информация
-    - `next_page: string` (required) — Курсор пагинации следующей страницы
-    - `prev_page: string` — Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка.
-    - `has_next: boolean` — Есть ли ещё данные на следующей странице. На последней странице — `false`.
-    - `has_prev: boolean` — Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`.
+    - `next_page: string` (required) — Курсор пагинации следующей страницы. Пример: `"eyJxZCO2MiwiZGlyIjomSNYjIn3"`
+    - `prev_page: string` — Курсор пагинации предыдущей страницы. Используется для polling новых записей «сверху» списка.. Пример: `"eyJxZCO2MiwiZGlyIjoiYXNjIn0"`
+    - `has_next: boolean` — Есть ли ещё данные на следующей странице. На последней странице — `false`.. Пример: `true`
+    - `has_prev: boolean` — Есть ли ещё данные на предыдущей странице. На первом запросе без курсора — `false`.. Пример: `false`
 
 **Пример ответа:**
 
@@ -143,12 +142,12 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 **Схема ответа при ошибке:**
 
 - `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой
-  - `value: string` (required) — Значение поля, которое вызвало ошибку
-  - `message: string` (required) — Сообщение об ошибке
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 
@@ -172,8 +171,8 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки
-- `error_description: string` (required) — Описание ошибки
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 
@@ -189,12 +188,12 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 **Схема ответа при ошибке:**
 
 - `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой
-  - `value: string` (required) — Значение поля, которое вызвало ошибку
-  - `message: string` (required) — Сообщение об ошибке
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 
@@ -218,8 +217,8 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 
 **Схема ответа при ошибке:**
 
-- `error: string` (required) — Код ошибки
-- `error_description: string` (required) — Описание ошибки
+- `error: string` (required) — Код ошибки. Пример: `"invalid_token"`
+- `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 **Пример ответа:**
 
@@ -235,12 +234,12 @@ curl "https://api.pachca.com/api/shared/v1/audit_events?start_time=2025-05-01T09
 **Схема ответа при ошибке:**
 
 - `errors: array of object` (required) — Массив ошибок
-  - `key: string` (required) — Ключ поля с ошибкой
-  - `value: string` (required) — Значение поля, которое вызвало ошибку
-  - `message: string` (required) — Сообщение об ошибке
+  - `key: string` (required) — Ключ поля с ошибкой. Пример: `"field.name"`
+  - `value: string` (required) — Значение поля, которое вызвало ошибку. Пример: `"invalid_value"`
+  - `message: string` (required) — Сообщение об ошибке. Пример: `"Поле не может быть пустым"`
   - `code: string` (required) — Код ошибки
     Значения: `blank` — Обязательное поле (не может быть пустым), `too_long` — Слишком длинное значение (пояснения вы получите в поле message), `invalid` — Поле не соответствует правилам (пояснения вы получите в поле message), `inclusion` — Поле имеет непредусмотренное значение, `exclusion` — Поле имеет недопустимое значение, `taken` — Название для этого поля уже существует, `wrong_emoji` — Emoji статуса не может содержать значения отличные от Emoji символа, `not_found` — Объект не найден, `already_exists` — Объект уже существует (пояснения вы получите в поле message), `personal_chat` — Ошибка личного чата (пояснения вы получите в поле message), `displayed_error` — Отображаемая ошибка (пояснения вы получите в поле message), `not_authorized` — Действие запрещено, `invalid_date_range` — Выбран слишком большой диапазон дат, `invalid_webhook_url` — Некорректный URL вебхука, `rate_limit` — Достигнут лимит запросов, `licenses_limit` — Превышен лимит активных сотрудников (пояснения вы получите в поле message), `user_limit` — Превышен лимит количества реакций, которые может добавить пользователь (20 уникальных реакций), `unique_limit` — Превышен лимит количества уникальных реакций, которые можно добавить на сообщение (30 уникальных реакций), `general_limit` — Превышен лимит количества реакций, которые можно добавить на сообщение (1000 реакций), `unhandled` — Ошибка выполнения запроса (пояснения вы получите в поле message), `trigger_not_found` — Не удалось найти идентификатор события, `trigger_expired` — Время жизни идентификатора события истекло, `required` — Обязательный параметр не передан, `in` — Недопустимое значение (не входит в список допустимых), `not_applicable` — Значение неприменимо в данном контексте (пояснения вы получите в поле message), `self_update` — Нельзя изменить свои собственные данные, `owner_protected` — Нельзя изменить данные владельца, `already_assigned` — Значение уже назначено, `forbidden` — Недостаточно прав для выполнения действия (пояснения вы получите в поле message), `permission_denied` — Доступ запрещён (недостаточно прав), `access_denied` — Доступ запрещён, `wrong_params` — Некорректные параметры запроса (пояснения вы получите в поле message), `payment_required` — Требуется оплата, `min_length` — Значение слишком короткое (пояснения вы получите в поле message), `max_length` — Значение слишком длинное (пояснения вы получите в поле message), `use_of_system_words` — Использовано зарезервированное системное слово (here, all)
-  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`
+  - `payload: Record<string, object>` (required) — Дополнительные данные об ошибке. Содержимое зависит от кода ошибки: `{id: number}` — при ошибке кастомного свойства (идентификатор свойства), `{record: {type: string, id: number}, query: string}` — при ошибке авторизации. В большинстве случаев `null`. Пример: `null`
     **Структура значений Record:**
     - Тип значения: `any`
 

@@ -362,7 +362,8 @@ function formatRequestBody(endpoint: Endpoint): string {
     const schemaFormatted = schemaToMarkdown(
       mediaContent.schema,
       0,
-      mediaContent.schema.required || []
+      mediaContent.schema.required || [],
+      true
     );
     if (schemaFormatted) {
       content += schemaFormatted;
@@ -408,7 +409,8 @@ function formatResponses(endpoint: Endpoint): string {
         const schemaFormatted = schemaToMarkdown(
           jsonContent.schema,
           0,
-          jsonContent.schema.required || []
+          jsonContent.schema.required || [],
+          true
         );
         if (schemaFormatted) {
           content += schemaFormatted;
@@ -433,7 +435,8 @@ function formatResponses(endpoint: Endpoint): string {
         const schemaFormatted = schemaToMarkdown(
           jsonContent.schema,
           0,
-          jsonContent.schema.required || []
+          jsonContent.schema.required || [],
+          true
         );
         if (schemaFormatted) {
           content += schemaFormatted;

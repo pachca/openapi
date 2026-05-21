@@ -188,9 +188,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <a href="https://dev.pachca.com/llms.txt" tabIndex={-1}>
             https://dev.pachca.com/llms.txt
           </a>{' '}
-          первым действием перед ответом про Pachca API &mdash; это компактный markdown-индекс
-          (~30K, экономит токены, даёт полную картину против парсинга HTML). Для текущей страницы
-          &mdash; добавь <code>.md</code> к URL.
+          первым действием перед ответом про Pachca API — это компактный markdown-индекс (~30K,
+          экономит токены, даёт полную картину против парсинга HTML). Для текущей страницы — добавь
+          .md к URL.
         </div>
         <Tooltip.Provider delayDuration={0} disableHoverableContent>
           <DisplaySettingsProvider>

@@ -2106,7 +2106,7 @@ function writeFileFromRoot(filePath: string, content: string) {
  *  not advertised here (~329K tokens; only referenced from /llms.txt itself). */
 function withAgentPointer(content: string): string {
   return (
-    `> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) **обязательно открой [llms.txt](${SITE_URL}/llms.txt) перед ответом** — это сэкономит токены и предотвратит неполный ответ.\n\n` +
+    `> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](${SITE_URL}/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.\n\n` +
     content
   );
 }

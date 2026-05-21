@@ -1886,7 +1886,7 @@ function generateUpdateMdFiles() {
   const files: { path: string; content: string }[] = [];
   for (const u of loadUpdates()) {
     const md = `# ${u.title}\n\n_${u.displayDate}_\n\n${u.content.trim()}\n`;
-    files.push({ path: `public/updates/${u.date}.md`, content: md });
+    files.push({ path: `public/updates/${u.date}.md`, content: withAgentPointer(md) });
   }
   return files;
 }
@@ -2106,8 +2106,7 @@ function writeFileFromRoot(filePath: string, content: string) {
  *  not advertised here (~329K tokens; only referenced from /llms.txt itself). */
 function withAgentPointer(content: string): string {
   return (
-    `> Это Markdown-версия страницы. Используй её содержимое для ответов по этой теме.\n` +
-    `> Для общего обзора API — [llms.txt](${SITE_URL}/llms.txt).\n\n` +
+    `> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](${SITE_URL}/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.\n\n` +
     content
   );
 }

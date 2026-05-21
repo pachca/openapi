@@ -184,12 +184,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             border: 0,
           }}
         >
-          AI agent: for an overview of Pachca&rsquo;s API or features, fetch the canonical index{' '}
+          Для AI-агентов: ОБЯЗАТЕЛЬНО загрузи{' '}
           <a href="https://dev.pachca.com/llms.txt" tabIndex={-1}>
             https://dev.pachca.com/llms.txt
           </a>{' '}
-          before answering. For questions specific to this page, use the page content &mdash; append{' '}
-          <code>.md</code> to the URL for the Markdown version.
+          первым действием перед ответом про Pachca API — это компактный markdown-индекс (~30K,
+          экономит токены, даёт полную картину против парсинга HTML). Для текущей страницы — добавь
+          .md к URL.
         </div>
         <Tooltip.Provider delayDuration={0} disableHoverableContent>
           <DisplaySettingsProvider>

@@ -1,5 +1,4 @@
-> Это Markdown-версия страницы. Используй её содержимое для ответов по этой теме.
-> Для общего обзора API — [llms.txt](https://dev.pachca.com/llms.txt).
+> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](https://dev.pachca.com/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.
 
 
 # Исходящие вебхуки
@@ -66,24 +65,24 @@
 
 #### MessageWebhookPayload
 
-- `type: string` (required) — Тип объекта
+- `type: string` (required) — Тип объекта. Пример: `"message"`
   Значения: `message` — Для сообщений всегда message
-- `id: integer, int32` (required) — Идентификатор сообщения
+- `id: integer, int32` (required) — Идентификатор сообщения. Пример: `1245817`
 - `event: string` (required) — Тип события
   Значения: `new` — Создание, `update` — Обновление, `delete` — Удаление
 - `entity_type: string` (required) — Тип сущности, к которой относится сообщение
   Значения: `discussion` — Беседа или канал, `thread` — Тред, `user` — Пользователь
-- `entity_id: integer, int32` (required) — Идентификатор сущности, к которой относится сообщение
-- `content: string` (required) — Текст сообщения
-- `user_id: integer, int32` (required) — Идентификатор отправителя сообщения
-- `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `url: string` (required) — Прямая ссылка на сообщение
-- `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение
-- `parent_message_id: integer, int32` — Идентификатор сообщения, к которому написан ответ
+- `entity_id: integer, int32` (required) — Идентификатор сущности, к которой относится сообщение. Пример: `5678`
+- `content: string` (required) — Текст сообщения. Пример: `"Текст сообщения"`
+- `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
+- `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+- `url: string` (required) — Прямая ссылка на сообщение. Пример: `"https://pachca.com/chats/1245817/messages/5678"`
+- `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Пример: `9012`
+- `parent_message_id: integer, int32` — Идентификатор сообщения, к которому написан ответ. Пример: `3456`
 - `thread: object` — Объект с параметрами треда
-  - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому был создан тред
-  - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому был создан тред
-- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+  - `message_id: integer, int32` (required) — Идентификатор сообщения, к которому был создан тред. Пример: `12345`
+  - `message_chat_id: integer, int32` (required) — Идентификатор чата сообщения, к которому был создан тред. Пример: `67890`
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 
 
 ### Реакции
@@ -92,17 +91,17 @@
 
 #### ReactionWebhookPayload
 
-- `type: string` (required) — Тип объекта
+- `type: string` (required) — Тип объекта. Пример: `"reaction"`
   Значения: `reaction` — Для реакций всегда reaction
 - `event: string` (required) — Тип события
   Значения: `new` — Создание, `delete` — Удаление
-- `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Поле всегда присутствует в payload. В редких случаях (например, если сообщение было удалено к моменту отправки вебхука) может быть `null`.
-- `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится реакция
-- `code: string` (required) — Emoji символ реакции
-- `name: string` (required) — Название реакции
-- `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил или удалил реакцию
-- `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+- `chat_id: integer, int32` (required) — Идентификатор чата, в котором находится сообщение. Поле всегда присутствует в payload. В редких случаях (например, если сообщение было удалено к моменту отправки вебхука) может быть `null`.. Пример: `9012`
+- `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится реакция. Пример: `1245817`
+- `code: string` (required) — Emoji символ реакции. Пример: `"👍"`
+- `name: string` (required) — Название реакции. Пример: `"thumbsup"`
+- `user_id: integer, int32` (required) — Идентификатор пользователя, который добавил или удалил реакцию. Пример: `2345`
+- `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 
 
 ### Нажатие кнопок
@@ -111,16 +110,16 @@
 
 #### ButtonWebhookPayload
 
-- `type: string` (required) — Тип объекта
+- `type: string` (required) — Тип объекта. Пример: `"button"`
   Значения: `button` — Для кнопки всегда button
-- `event: string` (required) — Тип события
+- `event: string` (required) — Тип события. Пример: `"click"`
   Значения: `click` — Нажатие кнопки
-- `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится кнопка
-- `trigger_id: string` (required) — Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю
-- `data: string` (required) — Данные нажатой кнопки
-- `user_id: integer, int32` (required) — Идентификатор пользователя, который нажал кнопку
-- `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка
-- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+- `message_id: integer, int32` (required) — Идентификатор сообщения, к которому относится кнопка. Пример: `1245817`
+- `trigger_id: string` (required) — Уникальный идентификатор события. Время жизни — 3 секунды. Может быть использован, например, для открытия представления пользователю. Пример: `"a1b2c3d4-5e6f-7g8h-9i10-j11k12l13m14"`
+- `data: string` (required) — Данные нажатой кнопки. Пример: `"button_data"`
+- `user_id: integer, int32` (required) — Идентификатор пользователя, который нажал кнопку. Пример: `2345`
+- `chat_id: integer, int32` (required) — Идентификатор чата, в котором была нажата кнопка. Пример: `9012`
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 
 
 ### Заполнение формы
@@ -132,18 +131,18 @@
 
 #### ViewSubmitWebhookPayload
 
-- `type: string` (required) — Тип объекта
+- `type: string` (required) — Тип объекта. Пример: `"view"`
   Значения: `view` — Для формы всегда view
-- `event: string` (required) — Тип события
+- `event: string` (required) — Тип события. Пример: `"submit"`
   Значения: `submit` — Отправка формы
-- `callback_id: string` (required) — Идентификатор обратного вызова, указанный при открытии представления
-- `private_metadata: string` (required) — Приватные метаданные, указанные при открытии представления
-- `chat_id: integer, int32` (required) — Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload. Для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).
-- `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму
+- `callback_id: string` (required) — Идентификатор обратного вызова, указанный при открытии представления. Пример: `"timeoff_request_form"`
+- `private_metadata: string` (required) — Приватные метаданные, указанные при открытии представления. Пример: `"{'timeoff_id':4378}"`
+- `chat_id: integer, int32` (required) — Идентификатор чата, в котором было нажатие кнопки, открывшей форму. Значение фиксируется в момент **открытия** формы, а не отправки — если форма провисела открытой длительное время, `chat_id` всё равно ссылается на чат с кнопкой. Поле всегда присутствует в payload. Для форм, открытых до выкатки этого изменения, `chat_id` придёт как `null` — такие формы постепенно вымоются по TTL сохранённого представления (30 дней).. Пример: `9012`
+- `user_id: integer, int32` (required) — Идентификатор пользователя, который отправил форму. Пример: `1235523`
 - `data: Record<string, object>` (required) — Данные заполненных полей представления. Ключ — `action_id` поля, значение — введённые данные
   **Структура значений Record:**
   - Тип значения: `any`
-- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1755075544`
 
 
 ### Изменение участников чатов
@@ -152,15 +151,15 @@
 
 #### ChatMemberWebhookPayload
 
-- `type: string` (required) — Тип объекта
+- `type: string` (required) — Тип объекта. Пример: `"chat_member"`
   Значения: `chat_member` — Для участника чата всегда chat_member
 - `event: string` (required) — Тип события
   Значения: `add` — Добавление, `remove` — Удаление
-- `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников
-- `thread_id: integer, int32` — Идентификатор треда
-- `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие
-- `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+- `chat_id: integer, int32` (required) — Идентификатор чата, в котором изменился состав участников. Пример: `9012`
+- `thread_id: integer, int32` — Идентификатор треда. Пример: `5678`
+- `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+- `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 
 
 ### Изменение участников пространства
@@ -169,13 +168,13 @@
 
 #### CompanyMemberWebhookPayload
 
-- `type: string` (required) — Тип объекта
+- `type: string` (required) — Тип объекта. Пример: `"company_member"`
   Значения: `company_member` — Для участника пространства всегда company_member
 - `event: string` (required) — Тип события
   Значения: `invite` — Приглашение, `confirm` — Подтверждение, `update` — Обновление, `suspend` — Приостановка, `activate` — Активация, `delete` — Удаление
-- `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие
-- `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+- `user_ids: array of integer` (required) — Массив идентификаторов пользователей, с которыми произошло событие. Пример: `[2345,6789]`
+- `created_at: date-time` (required) — Дата и время события (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2025-05-15T14:30:00.000Z"`
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1747574400`
 
 
 ### Отправка ссылок
@@ -184,19 +183,19 @@
 
 #### LinkSharedWebhookPayload
 
-- `type: string` (required) — Тип объекта
+- `type: string` (required) — Тип объекта. Пример: `"message"`
   Значения: `message` — Для разворачивания ссылок всегда message
-- `event: string` (required) — Тип события
+- `event: string` (required) — Тип события. Пример: `"link_shared"`
   Значения: `link_shared` — Обнаружена ссылка на отслеживаемый домен
-- `chat_id: integer, int32` (required) — Идентификатор чата, в котором обнаружена ссылка
-- `message_id: integer, int32` (required) — Идентификатор сообщения, содержащего ссылку
+- `chat_id: integer, int32` (required) — Идентификатор чата, в котором обнаружена ссылка. Пример: `23438`
+- `message_id: integer, int32` (required) — Идентификатор сообщения, содержащего ссылку. Пример: `268092`
 - `links: array of object` (required) — Массив обнаруженных ссылок на отслеживаемые домены
-  - `url: string` (required) — URL ссылки
-  - `domain: string` (required) — Домен ссылки
-  - `skip: boolean` (required) — Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью
-- `user_id: integer, int32` (required) — Идентификатор отправителя сообщения
-- `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ
-- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX
+  - `url: string` (required) — URL ссылки. Пример: `"https://example.com/page1"`
+  - `domain: string` (required) — Домен ссылки. Пример: `"example.com"`
+  - `skip: boolean` (required) — Признак того, что автор сообщения скрыл превью для этой ссылки. Если `true` — бот не должен создавать превью. Пример: `false`
+- `user_id: integer, int32` (required) — Идентификатор отправителя сообщения. Пример: `2345`
+- `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-09-18T19:53:14.000Z"`
+- `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1726685594`
 
 
 ## Безопасность

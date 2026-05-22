@@ -14,7 +14,14 @@ import { generateRequestExample, generateExample } from '../lib/openapi/example-
 import { generateAllSkills } from './skills/generate';
 import { SKILL_TAG_MAP, ROUTER_SKILL_CONFIG } from './skills/config';
 import { WORKFLOWS } from '@pachca/spec/workflows';
-import { loadReleases, loadUpdates, formatDateRu, type ParsedRelease } from '../lib/updates-parser';
+import {
+  loadUpdates,
+  loadTimeline,
+  groupTimelineByDate,
+  type ParsedRelease,
+  type DateGroup,
+} from '../lib/updates-parser';
+import { groupBySeason, HOME_SEASON_LIMIT } from '../lib/seasons';
 import { getSdkExamples, getValidSdkSymbols } from '../lib/sdk-examples';
 
 const SITE_URL = 'https://dev.pachca.com';
@@ -1809,86 +1816,105 @@ function generateReleaseBlock(release: ParsedRelease): string {
 }
 
 /**
- * Merge releases into the updates markdown timeline by date.
- * Updates have `<!-- update:YYYY-MM-DD -->` markers — releases are inserted
- * right after the corresponding date section (or before the next earlier date).
+ * Render one date group (API updates + product releases for that date) as
+ * markdown. Heading level is `###` so it nests under a `##` season heading.
  */
-function mergeReleasesIntoUpdates(updatesMarkdown: string): string {
-  const releases = loadReleases();
-  if (releases.length === 0) return updatesMarkdown;
+function renderDateGroupMd(group: DateGroup): string {
+  let md = '';
+  const updates = group.entries.filter((e) => e.kind === 'update');
+  const releases = group.entries.filter((e) => e.kind === 'release');
 
-  // Group releases by date
-  const releasesByDate = new Map<string, ParsedRelease[]>();
-  for (const r of releases) {
-    if (!releasesByDate.has(r.date)) releasesByDate.set(r.date, []);
-    releasesByDate.get(r.date)!.push(r);
+  for (const u of updates) {
+    md += `### ${u.data.title}\n\n_${group.displayDate}_\n\n${u.data.content.trim()}\n\n`;
   }
-
-  // Find all update markers and their positions
-  const markerRegex = /<!-- update:(\d{4}-\d{2}-\d{2}) -->/g;
-  const markers: { date: string; index: number }[] = [];
-  let match;
-  while ((match = markerRegex.exec(updatesMarkdown)) !== null) {
-    markers.push({ date: match[1], index: match.index });
-  }
-
-  // Collect all dates (updates + releases), sorted descending
-  const updateDates = new Set(markers.map((m) => m.date));
-  const allDates = [...new Set([...updateDates, ...releasesByDate.keys()])].sort((a, b) =>
-    b.localeCompare(a)
-  );
-
-  // Build output by processing sections between markers
-  const parts: string[] = [];
-  // Header: everything before the first marker
-  const firstMarkerIndex = markers.length > 0 ? markers[0].index : updatesMarkdown.length;
-  parts.push(updatesMarkdown.slice(0, firstMarkerIndex));
-
-  for (let i = 0; i < allDates.length; i++) {
-    const date = allDates[i];
-    const markerIdx = markers.findIndex((m) => m.date === date);
-
-    if (markerIdx !== -1) {
-      // This date has an update section — extract it
-      const sectionStart = markers[markerIdx].index;
-      const sectionEnd =
-        markerIdx + 1 < markers.length ? markers[markerIdx + 1].index : updatesMarkdown.length;
-      let section = updatesMarkdown.slice(sectionStart, sectionEnd);
-
-      // Append releases for this date after the update section
-      const dateReleases = releasesByDate.get(date);
-      if (dateReleases) {
-        const releaseBlocks = dateReleases.map(generateReleaseBlock).join('\n');
-        section = section.trimEnd() + '\n\n' + releaseBlocks + '\n';
-        releasesByDate.delete(date);
-      }
-
-      parts.push(section);
-    } else {
-      // This date has only releases, no update — create a new section
-      const dateReleases = releasesByDate.get(date);
-      if (dateReleases) {
-        const header = `<!-- release:${date} -->\n\n## ${formatDateRu(date)}\n\n`;
-        const releaseBlocks = dateReleases.map(generateReleaseBlock).join('\n');
-        parts.push(header + releaseBlocks + '\n');
-        releasesByDate.delete(date);
-      }
+  if (releases.length > 0) {
+    if (updates.length === 0) {
+      md += `### ${group.displayDate}\n\n`;
+    }
+    for (const r of releases) {
+      md += generateReleaseBlock(r.data) + '\n';
     }
   }
-
-  return parts.join('');
+  return md;
 }
 
 // Per-date update pages (/updates/<date>) exist as real routes in the
 // sitemap; emit their .md twins so llms.txt coverage matches the sitemap
-// and content negotiation works for them.
+// and content negotiation works for them. Each twin holds exactly one date
+// (updates + releases), matching the single-entry HTML page.
 function generateUpdateMdFiles() {
   const files: { path: string; content: string }[] = [];
-  for (const u of loadUpdates()) {
-    const md = `# ${u.title}\n\n_${u.displayDate}_\n\n${u.content.trim()}\n`;
-    files.push({ path: `public/updates/${u.date}.md`, content: withAgentPointer(md) });
+  const dateGroups = groupTimelineByDate(loadTimeline());
+
+  for (const group of dateGroups) {
+    const updates = group.entries.filter((e) => e.kind === 'update');
+    const releases = group.entries.filter((e) => e.kind === 'release');
+    const title = updates.length > 0 ? updates[0].data.title : group.displayDate;
+
+    let md = `# ${title}\n\n_${group.displayDate}_\n\n`;
+    // Drop the per-update H3 (the page H1 already carries the title);
+    // emit the bodies directly, then releases.
+    for (const u of updates) {
+      md += `${u.data.content.trim()}\n\n`;
+    }
+    for (const r of releases) {
+      md += generateReleaseBlock(r.data) + '\n';
+    }
+    files.push({
+      path: `public/updates/${group.date}.md`,
+      content: withAgentPointer(md.trim() + '\n'),
+    });
   }
   return files;
+}
+
+// Per-season pages (/updates/season/<slug>): every date of one season.
+function generateSeasonMdFiles() {
+  const files: { path: string; content: string }[] = [];
+  const seasons = groupBySeason(groupTimelineByDate(loadTimeline()));
+
+  for (const sg of seasons) {
+    let md = `# ${sg.season.emoji} ${sg.season.label}\n\n`;
+    for (const group of sg.dates) {
+      md += renderDateGroupMd(group);
+    }
+    files.push({
+      path: `public/updates/season/${sg.season.slug}.md`,
+      content: withAgentPointer(md.trim() + '\n'),
+    });
+  }
+  return files;
+}
+
+/**
+ * The /updates.md twin: only the latest HOME_SEASON_LIMIT seasons (matching
+ * the HTML landing), with a tail explaining how to reach the rest.
+ */
+function generateUpdatesIndexMd(): string {
+  const seasons = groupBySeason(groupTimelineByDate(loadTimeline()));
+  const shown = seasons.slice(0, HOME_SEASON_LIMIT);
+  const older = seasons.slice(HOME_SEASON_LIMIT);
+
+  let md = `# Последние обновления\n\n`;
+  md += `История изменений API Пачки, CLI, SDK и расширения для n8n.\n\n`;
+
+  for (const sg of shown) {
+    md += `## ${sg.season.emoji} ${sg.season.label}\n\n`;
+    for (const group of sg.dates) {
+      md += renderDateGroupMd(group);
+    }
+  }
+
+  if (older.length > 0) {
+    md += `## Более ранние обновления\n\n`;
+    md += `Выше — последние ${HOME_SEASON_LIMIT} сезона. Остальные обновления доступны по сезонам:\n\n`;
+    for (const sg of older) {
+      md += `- [${sg.season.emoji} ${sg.season.label}](${SITE_URL}/updates/season/${sg.season.slug}.md)\n`;
+    }
+    md += `\nПолный архив всех обновлений в одном файле — [llms-full.txt](${SITE_URL}/llms-full.txt).\n`;
+  }
+
+  return md;
 }
 
 async function generateGuideMdFiles() {
@@ -1896,13 +1922,15 @@ async function generateGuideMdFiles() {
   const files: { path: string; content: string }[] = [];
 
   for (const guide of guidePages) {
-    let markdown = await generateStaticPageMarkdownAsync(guide.path);
-    if (!markdown) continue;
-
-    // Merge product releases into the updates timeline by date
+    // /updates is no longer a single MDX file — build its twin from the
+    // timeline: latest HOME_SEASON_LIMIT seasons + a tail pointing to the rest.
     if (guide.path === '/updates') {
-      markdown = mergeReleasesIntoUpdates(markdown);
+      files.push({ path: 'public/updates.md', content: generateUpdatesIndexMd() });
+      continue;
     }
+
+    const markdown = await generateStaticPageMarkdownAsync(guide.path);
+    if (!markdown) continue;
 
     if (guide.path === '/') {
       files.push({ path: 'public/index.md', content: markdown });
@@ -2168,15 +2196,21 @@ async function main() {
 
   const updateFiles = generateUpdateMdFiles();
   for (const file of updateFiles) {
-    // No agent pointer on per-update pages — they are dated changelog entries,
-    // not reference content; the pointer belongs on guide/endpoint pages only.
+    // Pointer is already baked in by generateUpdateMdFiles; write as-is.
     writeFile(file.path, file.content);
   }
   console.log(`✓ ${updateFiles.length} update .md files`);
 
+  const seasonFiles = generateSeasonMdFiles();
+  for (const file of seasonFiles) {
+    // Pointer already baked in by generateSeasonMdFiles.
+    writeFile(file.path, file.content);
+  }
+  console.log(`✓ ${seasonFiles.length} season .md files`);
+
   const removed = sweepOrphanMarkdown(
     ['public/api', 'public/guides', 'public/updates'],
-    [...endpointFiles, ...guideFiles, ...updateFiles].map((f) => f.path)
+    [...endpointFiles, ...guideFiles, ...updateFiles, ...seasonFiles].map((f) => f.path)
   );
   if (removed.length > 0)
     console.log(`✓ removed ${removed.length} orphan .md: ${removed.join(', ')}`);

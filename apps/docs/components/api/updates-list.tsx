@@ -1,11 +1,11 @@
 import {
-  loadTimeline,
-  groupTimelineByDate,
   isNewUpdate,
+  type DateGroup,
   type TimelineEntry,
   type ParsedRelease,
   type ReleaseProduct,
 } from '@/lib/updates-parser';
+import { groupBySeason } from '@/lib/seasons';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { toSlug } from '@/lib/utils/transliterate';
 import { MarkdownContent } from './markdown-content';
@@ -163,79 +163,128 @@ function UpdateEntry({
   );
 }
 
+/** Render a single date group (timeline node with updates + releases). */
+function DateGroupBlock({
+  group,
+  allEndpoints,
+}: {
+  group: DateGroup;
+  allEndpoints: Awaited<ReturnType<typeof parseOpenAPI>>['endpoints'];
+}) {
+  const isNew = isNewUpdate(group.date);
+  const updates = group.entries.filter(
+    (e): e is TimelineEntry & { kind: 'update' } => e.kind === 'update'
+  );
+  const releases = group.entries
+    .filter((e): e is TimelineEntry & { kind: 'release' } => e.kind === 'release')
+    .sort((a, b) => PRODUCT_ORDER[a.data.product] - PRODUCT_ORDER[b.data.product]);
+
+  const firstUpdate = updates[0];
+  const sectionId = firstUpdate ? toSlug(firstUpdate.data.title) : `releases-${group.date}`;
+
+  return (
+    <section
+      className="relative"
+      id={sectionId}
+      style={{ scrollMarginTop: 'var(--scroll-offset)' }}
+    >
+      <div
+        className={`absolute -left-[45.5px] top-0 w-3 h-3 rounded-full border-2 border-background z-10 ${
+          isNew ? 'bg-primary' : 'bg-background-border'
+        }`}
+      />
+      <div className="flex flex-col mb-3">
+        <span className="text-[13px] font-medium text-text-secondary leading-none mb-2">
+          {group.displayDate}
+        </span>
+
+        {/* API updates */}
+        {updates.map((entry, i) => (
+          <div key={`update-${i}`} className={i > 0 ? 'mt-8' : ''}>
+            <UpdateEntry entry={entry} allEndpoints={allEndpoints} sectionId={sectionId} />
+          </div>
+        ))}
+
+        {/* Product releases */}
+        {releases.length > 0 && (
+          <div className={`space-y-4 ${updates.length > 0 ? 'mt-4' : 'mt-3'}`}>
+            {releases.map((entry, i) => (
+              <ReleaseEntry key={`release-${i}`} release={entry.data} />
+            ))}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {releases.flatMap((entry) =>
+                PRODUCT_PACKAGES[entry.data.product].map((pkg) => (
+                  <PackageLink
+                    key={`${entry.data.product}-${pkg.title}`}
+                    href={pkg.href(resolveVersion(entry.data.version))}
+                    title={pkg.title}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** Timeline column wrapper with the vertical line. */
+function Timeline({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative ml-4 pl-10 space-y-16 pb-10">
+      <div className="absolute left-0 top-[5.5px] bottom-0 w-px bg-background-border/50" />
+      {children}
+    </div>
+  );
+}
+
 /**
- * Server component that renders unified timeline: API updates + product releases
+ * Render API updates + product releases for the given date groups.
+ * When `showSeasonHeaders` is set, dates are grouped under season headers
+ * (🌷 Весна 2026 …); otherwise a flat timeline is rendered.
  */
-export async function UpdatesList() {
-  const timeline = loadTimeline();
-  const groups = groupTimelineByDate(timeline);
+export async function UpdatesList({
+  dateGroups,
+  showSeasonHeaders = false,
+}: {
+  dateGroups: DateGroup[];
+  showSeasonHeaders?: boolean;
+}) {
   const api = await parseOpenAPI();
   const allEndpoints = api.endpoints;
 
+  if (!showSeasonHeaders) {
+    return (
+      <Timeline>
+        {dateGroups.map((group) => (
+          <DateGroupBlock key={group.date} group={group} allEndpoints={allEndpoints} />
+        ))}
+      </Timeline>
+    );
+  }
+
+  const seasons = groupBySeason(dateGroups);
+
   return (
-    <div className="relative ml-4 pl-10 space-y-16 pb-10">
-      {/* Вертикальная линия */}
-      <div className="absolute left-0 top-[5.5px] bottom-0 w-px bg-background-border/50" />
-
-      {groups.map((group) => {
-        const isNew = isNewUpdate(group.date);
-        const updates = group.entries.filter(
-          (e): e is TimelineEntry & { kind: 'update' } => e.kind === 'update'
-        );
-        const releases = group.entries
-          .filter((e): e is TimelineEntry & { kind: 'release' } => e.kind === 'release')
-          .sort((a, b) => PRODUCT_ORDER[a.data.product] - PRODUCT_ORDER[b.data.product]);
-
-        const firstUpdate = updates[0];
-        const sectionId = firstUpdate ? toSlug(firstUpdate.data.title) : `releases-${group.date}`;
-
-        return (
-          <section
-            key={group.date}
-            className="relative"
-            id={sectionId}
-            style={{ scrollMarginTop: 'var(--scroll-offset)' }}
-          >
-            <div
-              className={`absolute -left-[45.5px] top-0 w-3 h-3 rounded-full border-2 border-background z-10 ${
-                isNew ? 'bg-primary' : 'bg-background-border'
-              }`}
-            />
-            <div className="flex flex-col mb-3">
-              <span className="text-[13px] font-medium text-text-secondary leading-none mb-2">
-                {group.displayDate}
-              </span>
-
-              {/* API updates */}
-              {updates.map((entry, i) => (
-                <div key={`update-${i}`} className={i > 0 ? 'mt-8' : ''}>
-                  <UpdateEntry entry={entry} allEndpoints={allEndpoints} sectionId={sectionId} />
-                </div>
-              ))}
-
-              {/* Product releases */}
-              {releases.length > 0 && (
-                <div className={`space-y-4 ${updates.length > 0 ? 'mt-4' : 'mt-3'}`}>
-                  {releases.map((entry, i) => (
-                    <ReleaseEntry key={`release-${i}`} release={entry.data} />
-                  ))}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {releases.flatMap((entry) =>
-                      PRODUCT_PACKAGES[entry.data.product].map((pkg) => (
-                        <PackageLink
-                          key={`${entry.data.product}-${pkg.title}`}
-                          href={pkg.href(resolveVersion(entry.data.version))}
-                          title={pkg.title}
-                        />
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        );
-      })}
+    <div className="space-y-12">
+      {seasons.map((sg) => (
+        <section
+          key={sg.season.slug}
+          id={sg.season.slug}
+          style={{ scrollMarginTop: 'var(--scroll-offset)' }}
+        >
+          <h2 className="flex items-center gap-2 text-[22px] font-semibold! text-text-primary mt-0! mb-6!">
+            <span aria-hidden>{sg.season.emoji}</span>
+            {sg.season.label}
+          </h2>
+          <Timeline>
+            {sg.dates.map((group) => (
+              <DateGroupBlock key={group.date} group={group} allEndpoints={allEndpoints} />
+            ))}
+          </Timeline>
+        </section>
+      ))}
     </div>
   );
 }

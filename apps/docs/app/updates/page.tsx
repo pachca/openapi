@@ -38,5 +38,5 @@ export default async function UpdatesPage() {
     notFound();
   }
 
-  return <UpdatesPageContent />;
+  return <UpdatesPageContent variant="home" />;
 }

@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { parseOpenAPI } from '@/lib/openapi/parser';
 import { generateUrlFromOperation } from '@/lib/openapi/mapper';
 import { getOrderedPages } from '@/lib/ordered-pages';
-import { loadUpdates } from '@/lib/updates-parser';
+import { loadUpdates, loadTimeline, groupTimelineByDate } from '@/lib/updates-parser';
+import { groupBySeason } from '@/lib/seasons';
 
 const BASE_URL = 'https://dev.pachca.com';
 const CONTENT_DIR = join(process.cwd(), 'content');
@@ -61,6 +62,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({
       url: `${BASE_URL}/updates/${update.date}`,
       lastModified: new Date(update.date),
+    });
+  }
+
+  // Per-season pages (newest date in the season drives lastModified)
+  const seasons = groupBySeason(groupTimelineByDate(loadTimeline()));
+  for (const sg of seasons) {
+    entries.push({
+      url: `${BASE_URL}/updates/season/${sg.season.slug}`,
+      lastModified: new Date(sg.dates[0].date),
     });
   }
 

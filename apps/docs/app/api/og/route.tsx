@@ -4,6 +4,7 @@ import { generateTitle } from '@/lib/openapi/mapper';
 import { getGuideData } from '@/lib/content-loader';
 import { getSectionTitle } from '@/lib/tabs-config';
 import { loadUpdates, loadReleases, formatDateRu } from '@/lib/updates-parser';
+import { parseSeasonSlug } from '@/lib/seasons';
 import { type NextRequest } from 'next/server';
 
 // In-memory cache: URL → PNG buffer (max 50 entries)
@@ -44,7 +45,10 @@ export async function GET(request: NextRequest) {
   if (type === 'method') {
     response = await generateMethodImage(searchParams.get('path') || '');
   } else if (type === 'updates') {
-    response = await generateUpdatesImage(searchParams.get('date'));
+    const season = searchParams.get('season');
+    response = season
+      ? await generateSeasonImage(season)
+      : await generateUpdatesImage(searchParams.get('date'));
   } else if (type === 'guide') {
     response = await generateGuideImage(searchParams.get('slug') || '');
   } else {
@@ -187,6 +191,44 @@ async function generateUpdatesImage(date: string | null) {
           {title}
         </span>
       </div>
+      <span
+        style={{
+          fontSize: '82px',
+          fontWeight: 600,
+          color: OG_COLORS.textPrimary,
+          lineHeight: 1.2,
+        }}
+      >
+        Последние обновления
+      </span>
+    </div>
+  );
+}
+
+async function generateSeasonImage(slug: string) {
+  const season = parseSeasonSlug(slug);
+  if (!season) {
+    return generateGuideImage('updates');
+  }
+
+  return createOgImageResponse(
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <span
+        style={{
+          fontSize: '22px',
+          fontWeight: 600,
+          color: OG_COLORS.primary,
+          textTransform: 'uppercase',
+          letterSpacing: '0.15em',
+          alignSelf: 'flex-start',
+          backgroundColor: OG_COLORS.backgroundSecondary,
+          borderRadius: '16px',
+          padding: '16px 28px',
+          margin: '0 -10px',
+        }}
+      >
+        {season.label}
+      </span>
       <span
         style={{
           fontSize: '82px',

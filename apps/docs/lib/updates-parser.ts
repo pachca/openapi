@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { formatDateRu } from './format-date';
+
+export { formatDateRu };
 
 export interface ParsedUpdate {
   date: string; // ISO format: YYYY-MM-DD
@@ -32,30 +35,6 @@ export interface DateGroup {
   date: string;
   displayDate: string;
   entries: TimelineEntry[];
-}
-
-const MONTHS_RU: Record<string, string> = {
-  '01': 'января',
-  '02': 'февраля',
-  '03': 'марта',
-  '04': 'апреля',
-  '05': 'мая',
-  '06': 'июня',
-  '07': 'июля',
-  '08': 'августа',
-  '09': 'сентября',
-  '10': 'октября',
-  '11': 'ноября',
-  '12': 'декабря',
-};
-
-/**
- * Convert ISO date (YYYY-MM-DD) to Russian display format (DD месяца YYYY)
- */
-export function formatDateRu(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-');
-  const monthName = MONTHS_RU[month] || month;
-  return `${day} ${monthName} ${year}`;
 }
 
 /**

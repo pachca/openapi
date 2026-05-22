@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { ChevronRight, PanelLeft } from 'lucide-react';
 import type { NavigationSection } from '@/lib/openapi/types';
+import { parseSeasonSlug } from '@/lib/seasons';
+import { formatDateRu } from '@/lib/format-date';
 
 interface Breadcrumb {
   section: string;
@@ -30,6 +32,25 @@ function findBreadcrumb(navigation: NavigationSection[], pathname: string): Brea
   return null;
 }
 
+/**
+ * Updates sub-pages (/updates/<date>, /updates/season/<slug>) are not in the
+ * sidebar nav, so derive their breadcrumb from the path directly.
+ */
+function updatesBreadcrumb(pathname: string): Breadcrumb | null {
+  const seasonMatch = pathname.match(/^\/updates\/season\/(.+)$/);
+  if (seasonMatch) {
+    const season = parseSeasonSlug(seasonMatch[1]);
+    if (season) {
+      return { section: 'Последние обновления', page: `${season.emoji} ${season.label}` };
+    }
+  }
+  const dateMatch = pathname.match(/^\/updates\/(\d{4}-\d{2}-\d{2})$/);
+  if (dateMatch) {
+    return { section: 'Последние обновления', page: formatDateRu(dateMatch[1]) };
+  }
+  return null;
+}
+
 interface MobileNavBarProps {
   guideNavigation: NavigationSection[];
   apiNavigation: NavigationSection[];
@@ -39,7 +60,9 @@ export function MobileNavBar({ guideNavigation, apiNavigation }: MobileNavBarPro
   const pathname = usePathname();
 
   const breadcrumb =
-    findBreadcrumb(guideNavigation, pathname) || findBreadcrumb(apiNavigation, pathname);
+    findBreadcrumb(guideNavigation, pathname) ||
+    findBreadcrumb(apiNavigation, pathname) ||
+    updatesBreadcrumb(pathname);
 
   return (
     <div

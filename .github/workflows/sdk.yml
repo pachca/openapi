@@ -26,7 +26,8 @@ jobs:
       python_changed: ${{ steps.sdk_changes.outputs.python_changed }}
       csharp_changed: ${{ steps.sdk_changes.outputs.csharp_changed }}
       swift_changed: ${{ steps.sdk_changes.outputs.swift_changed }}
-      cli_changed: ${{ steps.cli_check.outputs.changed }}
+      cli_should_publish: ${{ steps.cli_check.outputs.should_publish }}
+      cli_version: ${{ steps.cli_check.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,21 +77,10 @@ jobs:
             echo "any_changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check for CLI changes
+      - name: Check CLI release (changelog-driven)
         if: github.event_name == 'push'
         id: cli_check
-        run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          if [ -n "$PREV_TAG" ]; then
-            CHANGED=$(git diff --name-only "$PREV_TAG" HEAD -- packages/cli/ | grep -v '^packages/cli/scripts/' | grep -q . && echo true || echo false)
-          else
-            CHANGED=$(git diff --name-only HEAD~1 HEAD -- packages/cli/ | grep -v '^packages/cli/scripts/' | grep -q . && echo true || echo false)
-          fi
-          # Also check uncommitted changes from generate
-          if git diff --name-only -- packages/cli/ | grep -v '^packages/cli/scripts/' | grep -q .; then
-            CHANGED=true
-          fi
-          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+        run: node scripts/check-release.mjs --product cli --npm @pachca/cli --dir packages/cli --changelog packages/cli/src/data/changelog.json --changelog-type json --version-rule calver >> "$GITHUB_OUTPUT"
 
       - name: Build TypeScript SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
@@ -231,7 +221,7 @@ jobs:
           fi
 
   publish-cli:
-    if: github.event_name == 'push' && needs.generate-and-build.outputs.cli_changed == 'true'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.cli_should_publish == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     concurrency:
@@ -252,46 +242,26 @@ jobs:
           node-version: 20.20.2
           registry-url: "https://registry.npmjs.org"
       - run: bun install --frozen-lockfile
-      - name: Set CLI version (CalVer YYYY.M.patch)
-        id: version
+      - name: Set CLI version (from changelog/releases.json)
         run: |
-          VERSION=$(node -e "
-            const { execSync } = require('child_process');
-            const d = new Date();
-            const base = d.getFullYear() + '.' + (d.getMonth()+1);
-            let versions = [];
-            try {
-              const raw = execSync('npm view @pachca/cli versions --json', { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
-              const parsed = JSON.parse(raw);
-              versions = Array.isArray(parsed) ? parsed : [parsed];
-            } catch {}
-            const patch = versions.filter(v => v.startsWith(base + '.')).length;
-            console.log(base + '.' + patch);
-          ")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          # Version comes from the release gate (top of changelog.json /
+          # releases.json), not an npm auto-bump. CHANGELOG.md is rendered from
+          # changelog.json by patch-manifest.js during build.
+          VERSION="${{ needs.generate-and-build.outputs.cli_version }}"
           cd packages/cli && node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='$VERSION';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
-      - name: Generate changelog
-        run: bun scripts/diff-endpoints.ts
-        working-directory: packages/cli
       - run: bun run build
         working-directory: packages/cli
-      - working-directory: packages/cli
+      - name: Publish to npm (idempotent)
+        working-directory: packages/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          OUTPUT=$(npm publish --access public --provenance 2>&1) || {
-            CODE=$?
-            if echo "$OUTPUT" | grep -q "E409\|already exists"; then
-              CURRENT=$(node -e "console.log(require('./package.json').version)")
-              PATCH=$(echo $CURRENT | cut -d. -f3)
-              BASE=$(echo $CURRENT | cut -d. -f1-2)
-              node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='${BASE}.$((PATCH+1))';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
-              npm publish --access public --provenance
-            else
-              echo "$OUTPUT"
-              exit $CODE
-            fi
-          }
+          VERSION="${{ needs.generate-and-build.outputs.cli_version }}"
+          if npm view "@pachca/cli@${VERSION}" version 2>/dev/null; then
+            echo "@pachca/cli@${VERSION} already published, skipping"
+          else
+            npm publish --access public --provenance
+          fi
 
   publish-py:
     if: github.event_name == 'push' && needs.generate-and-build.outputs.python_changed == 'true'

@@ -1,7 +1,7 @@
 import type { DateGroup } from './updates-parser';
 
 /** Seasons shown on the /updates landing (and its .md) before pagination. */
-export const HOME_SEASON_LIMIT = 4;
+export const HOME_SEASON_LIMIT = 2;
 
 export type SeasonKind = 'winter' | 'spring' | 'summer' | 'autumn';
 

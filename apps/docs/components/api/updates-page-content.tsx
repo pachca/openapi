@@ -7,7 +7,7 @@ import { UpdatesList } from '@/components/api/updates-list';
 import { getGuideData } from '@/lib/content-loader';
 import { getSectionTitle } from '@/lib/tabs-config';
 import { loadTimeline, groupTimelineByDate, formatDateRu } from '@/lib/updates-parser';
-import { groupBySeason, getSeason, HOME_SEASON_LIMIT } from '@/lib/seasons';
+import { groupBySeason, HOME_SEASON_LIMIT } from '@/lib/seasons';
 import type { NavigationItem } from '@/lib/openapi/types';
 import { notFound } from 'next/navigation';
 
@@ -75,7 +75,6 @@ export async function UpdatesPageContent(props: Variant) {
       notFound();
     }
     const group = dateGroups[idx];
-    const season = getSeason(props.date);
     const firstUpdate = group.entries.find((e) => e.kind === 'update');
     const headline = firstUpdate ? firstUpdate.data.title : formatDateRu(props.date);
 
@@ -104,13 +103,6 @@ export async function UpdatesPageContent(props: Variant) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
         <AllUpdatesLink />
-        <Link
-          href={`/updates/season/${season.slug}`}
-          className="no-underline! inline-flex items-center gap-1.5 text-[13px] font-medium text-text-secondary hover:text-primary transition-colors mb-4"
-        >
-          <span aria-hidden>{season.emoji}</span>
-          {season.label}
-        </Link>
         <UpdatesList dateGroups={[group]} />
       </StaticPageWrapper>
     );

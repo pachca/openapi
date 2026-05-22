@@ -103,7 +103,7 @@ export async function UpdatesPageContent(props: Variant) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
         <AllUpdatesLink />
-        <UpdatesList dateGroups={[group]} />
+        <UpdatesList dateGroups={[group]} anchored={false} />
       </StaticPageWrapper>
     );
   }

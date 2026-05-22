@@ -144,16 +144,18 @@ function UpdateEntry({
   entry,
   allEndpoints,
   sectionId,
+  anchored,
 }: {
   entry: TimelineEntry & { kind: 'update' };
   allEndpoints: Awaited<ReturnType<typeof parseOpenAPI>>['endpoints'];
   sectionId: string;
+  anchored: boolean;
 }) {
   const update = entry.data;
   return (
     <>
       <h3 className="group/heading relative text-[32px] font-semibold! text-text-primary leading-tight mt-0! mb-3!">
-        <HeadingLink id={sectionId} searchParam={update.date} />
+        {anchored && <HeadingLink id={sectionId} searchParam={update.date} />}
         {update.title}
       </h3>
       <div className="text-text-primary leading-relaxed space-y-2 max-w-3xl">
@@ -163,13 +165,20 @@ function UpdateEntry({
   );
 }
 
-/** Render a single date group (timeline node with updates + releases). */
+/**
+ * Render a single date group (timeline node with updates + releases).
+ * `anchored` controls whether the section gets an `id` + copy-link heading
+ * button. The single-date page passes `false` so an incoming `#slug` hash
+ * does not auto-scroll past the "Все обновления" link.
+ */
 function DateGroupBlock({
   group,
   allEndpoints,
+  anchored = true,
 }: {
   group: DateGroup;
   allEndpoints: Awaited<ReturnType<typeof parseOpenAPI>>['endpoints'];
+  anchored?: boolean;
 }) {
   const isNew = isNewUpdate(group.date);
   const updates = group.entries.filter(
@@ -185,7 +194,7 @@ function DateGroupBlock({
   return (
     <section
       className="relative"
-      id={sectionId}
+      id={anchored ? sectionId : undefined}
       style={{ scrollMarginTop: 'var(--scroll-offset)' }}
     >
       <div
@@ -201,7 +210,12 @@ function DateGroupBlock({
         {/* API updates */}
         {updates.map((entry, i) => (
           <div key={`update-${i}`} className={i > 0 ? 'mt-8' : ''}>
-            <UpdateEntry entry={entry} allEndpoints={allEndpoints} sectionId={sectionId} />
+            <UpdateEntry
+              entry={entry}
+              allEndpoints={allEndpoints}
+              sectionId={sectionId}
+              anchored={anchored}
+            />
           </div>
         ))}
 
@@ -247,9 +261,12 @@ function Timeline({ children }: { children: React.ReactNode }) {
 export async function UpdatesList({
   dateGroups,
   showSeasonHeaders = false,
+  anchored = true,
 }: {
   dateGroups: DateGroup[];
   showSeasonHeaders?: boolean;
+  /** Single-date page passes false to avoid hash auto-scroll past the CTA. */
+  anchored?: boolean;
 }) {
   const api = await parseOpenAPI();
   const allEndpoints = api.endpoints;
@@ -258,7 +275,12 @@ export async function UpdatesList({
     return (
       <Timeline>
         {dateGroups.map((group) => (
-          <DateGroupBlock key={group.date} group={group} allEndpoints={allEndpoints} />
+          <DateGroupBlock
+            key={group.date}
+            group={group}
+            allEndpoints={allEndpoints}
+            anchored={anchored}
+          />
         ))}
       </Timeline>
     );

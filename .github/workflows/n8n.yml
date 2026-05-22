@@ -116,83 +116,55 @@ jobs:
       - name: Generate n8n node
         run: bun run integrations/n8n/scripts/generate-n8n.ts
 
-      - name: Check for publishable changes
+      - name: Check n8n release (changelog-driven)
         id: changes
         run: |
-          # workflow_dispatch always publishes (manual trigger = intentional)
+          OUT=$(node scripts/check-release.mjs --product n8n --npm n8n-nodes-pachca \
+            --dir integrations/n8n --changelog integrations/n8n/CHANGELOG.md --changelog-type md)
+          VERSION=$(echo "$OUT" | grep '^version=' | cut -d= -f2)
+          SHOULD=$(echo "$OUT" | grep '^should_publish=' | cut -d= -f2)
+          # Manual dispatch forces a publish of the declared version.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Manual dispatch — forcing publish"
-            exit 0
+            echo "Manual dispatch — forcing publish of $VERSION"
+            SHOULD=true
           fi
-          # Check committed source changes (exclude tests, scripts, docs, config)
-          COMMITTED=$(git diff --name-only HEAD~1 HEAD -- integrations/n8n/ \
-            | grep -v -E '^integrations/n8n/(tests/|scripts/|docs/|e2e/|eslint|tsconfig|\.gitignore|\.npmrc|vitest)' \
-            | grep -q . && echo true || echo false)
-          # Check if generation produced different files (spec/generator changed)
-          GENERATED=$(git diff --name-only -- integrations/n8n/nodes/ integrations/n8n/credentials/ \
-            | grep -q . && echo true || echo false)
-          if [ "$COMMITTED" = "true" ] || [ "$GENERATED" = "true" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Publishable changes detected (committed=$COMMITTED, generated=$GENERATED)"
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No publishable changes, skipping publish"
-          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "should_publish=$SHOULD" >> "$GITHUB_OUTPUT"
 
-      - name: Set version (auto-increment patch)
-        if: steps.changes.outputs.changed == 'true'
-        id: version
+      - name: Set version (from releases.json)
+        if: steps.changes.outputs.should_publish == 'true'
         working-directory: integrations/n8n
         run: |
-          VERSION=$(node -e "
-            const { execSync } = require('child_process');
-            const base = require('./package.json').version.split('.').slice(0, 2).join('.');
-            let versions = [];
-            try {
-              const raw = execSync('npm view n8n-nodes-pachca versions --json', { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
-              const parsed = JSON.parse(raw);
-              versions = Array.isArray(parsed) ? parsed : [parsed];
-            } catch {}
-            const matching = versions.filter(v => v.startsWith(base + '.'));
-            const lastPatch = matching.length > 0
-              ? Math.max(...matching.map(v => parseInt(v.split('.')[2])))
-              : -1;
-            console.log(base + '.' + (lastPatch + 1));
-          ")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION="${{ steps.changes.outputs.version }}"
           node -e "const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.version='$VERSION';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
           echo "Publishing n8n-nodes-pachca@$VERSION"
 
       - name: Build n8n node
-        if: steps.changes.outputs.changed == 'true'
+        if: steps.changes.outputs.should_publish == 'true'
         working-directory: integrations/n8n
         run: |
           bun run tsc
           find nodes icons credentials \( -name '*.png' -o -name '*.svg' \) | while read f; do mkdir -p "dist/$(dirname "$f")" && cp "$f" "dist/$f"; done
 
-      - name: Publish to npm
-        if: steps.changes.outputs.changed == 'true'
+      - name: Publish to npm (idempotent)
+        if: steps.changes.outputs.should_publish == 'true'
         working-directory: integrations/n8n
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          OUTPUT=$(npm publish --access public --provenance --ignore-scripts 2>&1) || {
-            CODE=$?
-            if echo "$OUTPUT" | grep -q "E409\|already exists"; then
-              echo "Version ${{ steps.version.outputs.version }} already published, skipping"
-            else
-              echo "$OUTPUT"
-              exit $CODE
-            fi
-          }
+          VERSION="${{ steps.changes.outputs.version }}"
+          if npm view "n8n-nodes-pachca@${VERSION}" version 2>/dev/null; then
+            echo "n8n-nodes-pachca@${VERSION} already published, skipping"
+          else
+            npm publish --access public --provenance --ignore-scripts
+          fi
 
       - name: Scan community package
-        if: steps.changes.outputs.changed == 'true'
-        run: npx @n8n/scan-community-package n8n-nodes-pachca@${{ steps.version.outputs.version }}
+        if: steps.changes.outputs.should_publish == 'true'
+        run: npx @n8n/scan-community-package n8n-nodes-pachca@${{ steps.changes.outputs.version }}
 
       - name: Create GitHub Release
-        if: steps.changes.outputs.changed == 'true'
+        if: steps.changes.outputs.should_publish == 'true'
         working-directory: integrations/n8n
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -202,8 +174,8 @@ jobs:
           tar -xzf n8n-nodes-pachca-*.tgz --strip-components=1 -C n8n-nodes-pachca
           rm n8n-nodes-pachca-*.tgz
           tar -czf n8n-nodes-pachca.tgz n8n-nodes-pachca
-          gh release create "n8n-v${{ steps.version.outputs.version }}" \
+          gh release create "n8n-v${{ steps.changes.outputs.version }}" \
             n8n-nodes-pachca.tgz \
-            --title "n8n-nodes-pachca v${{ steps.version.outputs.version }}" \
+            --title "n8n-nodes-pachca v${{ steps.changes.outputs.version }}" \
             --notes "See [CHANGELOG](integrations/n8n/CHANGELOG.md) for details." \
             --latest

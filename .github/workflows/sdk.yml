@@ -18,14 +18,11 @@ jobs:
     permissions:
       contents: write
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      any_sdk_changed: ${{ steps.sdk_changes.outputs.any_changed }}
-      ts_changed: ${{ steps.sdk_changes.outputs.ts_changed }}
-      go_changed: ${{ steps.sdk_changes.outputs.go_changed }}
-      kotlin_changed: ${{ steps.sdk_changes.outputs.kotlin_changed }}
-      python_changed: ${{ steps.sdk_changes.outputs.python_changed }}
-      csharp_changed: ${{ steps.sdk_changes.outputs.csharp_changed }}
-      swift_changed: ${{ steps.sdk_changes.outputs.swift_changed }}
+      # SDK release decision + version (single source: releases.json via check-release).
+      # Per-language *_changed flags stay inside this job (compile/test gating)
+      # and are not exposed — publication is gated solely by sdk_should_publish.
+      sdk_should_publish: ${{ steps.sdk_check.outputs.should_publish }}
+      version: ${{ steps.sdk_check.outputs.version }}
       cli_should_publish: ${{ steps.cli_check.outputs.should_publish }}
       cli_version: ${{ steps.cli_check.outputs.version }}
     steps:
@@ -82,6 +79,11 @@ jobs:
         id: cli_check
         run: node scripts/check-release.mjs --product cli --npm @pachca/cli --dir packages/cli --changelog packages/cli/src/data/changelog.json --changelog-type json --version-rule calver >> "$GITHUB_OUTPUT"
 
+      - name: Check SDK release (changelog-driven)
+        if: github.event_name == 'push'
+        id: sdk_check
+        run: node scripts/check-release.mjs --product sdk --npm @pachca/sdk --dir sdk >> "$GITHUB_OUTPUT"
+
       - name: Build TypeScript SDK
         if: github.event_name != 'pull_request' || steps.sdk_changes.outputs.ts_changed == 'true'
         run: bun run build
@@ -131,49 +133,36 @@ jobs:
         run: swift build
 
       - name: Copy Swift Package.swift to root
-        if: github.event_name == 'push' && steps.sdk_changes.outputs.swift_changed == 'true'
+        if: github.event_name == 'push' && steps.sdk_check.outputs.should_publish == 'true'
         run: cp sdk/swift/Package.swift Package.swift
 
-      - name: Extract version
-        if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
-        id: version
-        run: |
-          SPEC_VERSION=$(grep -oP 'version:\s*"\K[^"]+' packages/spec/typespec.tsp)
-          if [ -z "$SPEC_VERSION" ]; then
-            echo "::error::Version not found in typespec.tsp"
-            exit 1
-          fi
-          BASE=$(echo "$SPEC_VERSION" | cut -d. -f1-2)
-          LAST_PATCH=$(git tag -l "v${BASE}.*" | sed 's/.*\.//' | sort -n | tail -1)
-          if [ -z "$LAST_PATCH" ]; then
-            PATCH=0
-          else
-            PATCH=$((LAST_PATCH + 1))
-          fi
-          VERSION="${BASE}.${PATCH}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Commit
+      # Commit any regenerated SDK files back (safety-net: keep sdk/ in the repo
+      # in sync with the spec even if a PR forgot to commit a regeneration).
+      # This is independent of releasing.
+      - name: Commit regenerated SDK
         if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git diff --staged --quiet || git commit -m "chore: regenerate SDK v${{ steps.version.outputs.version }}"
+          git diff --staged --quiet || git commit -m "chore: regenerate SDK"
 
-      - name: Tag
-        if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
-        run: git tag -f "v${{ steps.version.outputs.version }}"
-      - name: Tag Go SDK
-        if: github.event_name == 'push' && steps.sdk_changes.outputs.go_changed == 'true'
-        run: git tag -f "sdk/go/generated/v${{ steps.version.outputs.version }}"
+      # Tags drive Go/Swift publication and pin the TS/Py/C# checkout. Created
+      # only on an actual release (version declared in releases.json, not yet
+      # on npm) — never on plain regeneration.
+      - name: Tag release
+        if: github.event_name == 'push' && steps.sdk_check.outputs.should_publish == 'true'
+        run: |
+          VERSION="${{ steps.sdk_check.outputs.version }}"
+          git tag -f "v${VERSION}"
+          git tag -f "sdk/go/generated/v${VERSION}"
 
       - name: Push
-        if: github.event_name == 'push' && steps.sdk_changes.outputs.any_changed == 'true'
+        if: github.event_name == 'push' && (steps.sdk_changes.outputs.any_changed == 'true' || steps.sdk_check.outputs.should_publish == 'true')
         run: git push && git push --tags --force
 
   publish-ts:
-    if: github.event_name == 'push' && needs.generate-and-build.outputs.ts_changed == 'true'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.sdk_should_publish == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     permissions:
@@ -264,7 +253,7 @@ jobs:
           fi
 
   publish-py:
-    if: github.event_name == 'push' && needs.generate-and-build.outputs.python_changed == 'true'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.sdk_should_publish == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     steps:
@@ -289,7 +278,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
   publish-kt:
-    if: github.event_name == 'push' && needs.generate-and-build.outputs.kotlin_changed == 'true'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.sdk_should_publish == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     steps:
@@ -298,7 +287,7 @@ jobs:
           version: v${{ needs.generate-and-build.outputs.version }}
 
   publish-cs:
-    if: github.event_name == 'push' && needs.generate-and-build.outputs.csharp_changed == 'true'
+    if: github.event_name == 'push' && needs.generate-and-build.outputs.sdk_should_publish == 'true'
     needs: generate-and-build
     runs-on: ubuntu-latest
     steps:

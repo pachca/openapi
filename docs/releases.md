@@ -12,7 +12,7 @@
 | `@pachca/cli`                                | npm                | CalVer `ГГГГ.М.патч` (`2026.5.6`) | `packages/cli/src/data/changelog.json` |
 | `n8n-nodes-pachca`                           | npm                | semver                            | `integrations/n8n/CHANGELOG.md`        |
 | `@pachca/generator`                          | npm                | semver                            | — (только портал)                      |
-| `@pachca/sdk` (TS/Python/Go/Kotlin/C#/Swift) | npm/PyPI/NuGet/git | semver, из `typespec.tsp`         | — (только портал)                      |
+| `@pachca/sdk` (TS/Python/Go/Kotlin/C#/Swift) | npm/PyPI/NuGet/git | semver, из `releases.json`        | — (только портал)                      |
 
 «Портал» — `apps/docs/data/releases.json`: единый список релизов всех
 продуктов, он же лента `/updates` на сайте. Формат записей — в
@@ -29,9 +29,16 @@
 Версия в `releases.json` и в собственном changelog **обязаны совпадать** —
 это проверяется на сборке (см. ниже).
 
-Исключение — SDK: его версия берётся из `packages/spec/typespec.tsp`, а все
-6 языков публикуются одной версией вместе. В `releases.json` SDK всё равно
-присутствует (для ленты и для согласованности).
+SDK как и все: версия из `releases.json` (product `sdk`), валидируется тем же
+`check-release`. Особенность только в публикации — одна версия едет сразу во
+все 6 языков (npm/PyPI/NuGet + git-теги для Go/Swift/Kotlin), `typespec.tsp`
+остаётся источником _спеки_, но не версии SDK.
+
+> **SDK на npm обогнал портал из-за прошлых багов:** в `@pachca/sdk` опубликованы
+> лишние `2.0.0` и `3.0.0` (latest при этом `1.0.19`, PyPI/NuGet на `1.0.19`).
+> Поскольку шаг считается от npm-max, следующий релиз SDK должен быть **больше
+> 3.0.0** (`3.0.1`/`3.1.0`/`4.0.0`) — это синхронизирует все реестры, но даст
+> скачок в PyPI/NuGet. Альтернатива — почистить лишние версии в npm.
 
 ## Две проверки
 
@@ -76,10 +83,9 @@ Allowed: 1.1.5 (patch), 1.2.0 (minor), 2.0.0 (major)`.
 2. Узнай максимальную версию в npm: `npm view <pkg> version`
    (CLI `@pachca/cli`, n8n `n8n-nodes-pachca`, generator `@pachca/generator`,
    SDK `@pachca/sdk`).
-3. Вычисли следующую версию по правилу шага (см. проверку 2). Для SDK — подними
-   версию в `packages/spec/typespec.tsp`.
+3. Вычисли следующую версию по правилу шага (см. проверку 2).
 4. Добавь запись в `apps/docs/data/releases.json` (новая запись сверху, формат
-   — `docs/updates-format.md`).
+   — `docs/updates-format.md`). Для всех пакетов, включая SDK, это источник версии.
 5. Для CLI добавь ту же версию в `packages/cli/src/data/changelog.json`; для
    n8n — заголовок `## X.Y.Z (дата)` в `integrations/n8n/CHANGELOG.md`.
    Версии обязаны совпадать с `releases.json`.

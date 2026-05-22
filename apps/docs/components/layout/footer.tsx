@@ -11,17 +11,20 @@ interface FooterProps {
     next: NavigationItem | null;
   };
   noMargin?: boolean;
+  /** Override the small caption above each button (default "Назад"/"Вперед"). */
+  prevLabel?: string;
+  nextLabel?: string;
 }
 
-export function Footer({ adjacent, noMargin }: FooterProps) {
+export function Footer({ adjacent, noMargin, prevLabel, nextLabel }: FooterProps) {
   return (
     <footer className="mt-auto pb-8">
       <div className={`${noMargin ? 'mt-2' : 'mx-8 xl:mx-10'} pt-10`}>
         {adjacent && (adjacent.prev || adjacent.next) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-            {adjacent.prev ? <PrevButton item={adjacent.prev} /> : <div />}
+            {adjacent.prev ? <PrevButton item={adjacent.prev} label={prevLabel} /> : <div />}
 
-            {adjacent.next && <NextButton item={adjacent.next} />}
+            {adjacent.next && <NextButton item={adjacent.next} label={nextLabel} />}
           </div>
         )}
 
@@ -78,7 +81,7 @@ export function Footer({ adjacent, noMargin }: FooterProps) {
   );
 }
 
-function PrevButton({ item }: { item: NavigationItem }) {
+function PrevButton({ item, label }: { item: NavigationItem; label?: string }) {
   const { isLoading, handleClick } = useNavigationLoading(item.href, 200);
 
   return (
@@ -89,7 +92,7 @@ function PrevButton({ item }: { item: NavigationItem }) {
     >
       <div className="flex items-center gap-1 text-text-tertiary transition-colors duration-200">
         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <ChevronLeft size={16} />}
-        <span className="text-[13px]">Назад</span>
+        <span className="text-[13px]">{label ?? 'Назад'}</span>
       </div>
       <span className="text-[14px] font-medium text-text-primary transition-colors duration-200 truncate text-ellipsis overflow-hidden block w-full">
         {item.sectionTitle ? `${item.sectionTitle}: ${item.title}` : item.title}
@@ -98,7 +101,7 @@ function PrevButton({ item }: { item: NavigationItem }) {
   );
 }
 
-function NextButton({ item }: { item: NavigationItem }) {
+function NextButton({ item, label }: { item: NavigationItem; label?: string }) {
   const { isLoading, handleClick } = useNavigationLoading(item.href, 200);
 
   return (
@@ -108,7 +111,7 @@ function NextButton({ item }: { item: NavigationItem }) {
       className="flex flex-col items-end gap-1 p-4 rounded-xl border border-glass-border bg-glass backdrop-blur-md hover:bg-glass-hover transition-all duration-200 group text-right"
     >
       <div className="flex items-center gap-1 text-text-tertiary transition-colors duration-200">
-        <span className="text-[13px]">Вперед</span>
+        <span className="text-[13px]">{label ?? 'Вперед'}</span>
         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <ChevronRight size={16} />}
       </div>
       <span className="text-[14px] font-medium text-text-primary transition-colors duration-200 truncate text-ellipsis overflow-hidden block w-full">

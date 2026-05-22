@@ -83,5 +83,5 @@ export default async function UpdateDatePage({ params }: { params: Promise<{ dat
     notFound();
   }
 
-  return <UpdatesPageContent />;
+  return <UpdatesPageContent variant="date" date={date} />;
 }

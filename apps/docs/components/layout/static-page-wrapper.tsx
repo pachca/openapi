@@ -10,12 +10,16 @@ interface StaticPageWrapperProps {
     next: NavigationItem | null;
   };
   hideTableOfContents?: boolean;
+  prevLabel?: string;
+  nextLabel?: string;
 }
 
 export function StaticPageWrapper({
   children,
   adjacent,
   hideTableOfContents,
+  prevLabel,
+  nextLabel,
 }: StaticPageWrapperProps) {
   return (
     <div
@@ -31,7 +35,12 @@ export function StaticPageWrapper({
               >
                 {children}
               </div>
-              <Footer adjacent={adjacent} noMargin={true} />
+              <Footer
+                adjacent={adjacent}
+                noMargin={true}
+                prevLabel={prevLabel}
+                nextLabel={nextLabel}
+              />
             </div>
             {!hideTableOfContents && (
               <aside className="hidden xl:block w-64 shrink-0 sticky top-[calc(var(--mobile-header-height)+40px)] max-h-[calc(100vh-var(--mobile-header-height)-80px)] self-start">

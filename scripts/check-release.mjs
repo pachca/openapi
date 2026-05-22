@@ -56,6 +56,32 @@ function cmpVersion(a, b) {
   return 0;
 }
 
+/**
+ * Allowed next versions after `max`, by rule — for diagnostics. Null when
+ * `max` is null (first release: any well-formed version allowed).
+ */
+function allowedNext(max) {
+  if (!max) return null;
+  if (versionRule === 'calver') {
+    const [my, mm, mp] = max.split('.').map(Number);
+    return { 'patch (this month)': `${my}.${mm}.${mp + 1}`, 'new month': `${my}.${mm + 1}.0` };
+  }
+  const [M, m, p] = max.split('.').map(Number);
+  return { patch: `${M}.${m}.${p + 1}`, minor: `${M}.${m + 1}.0`, major: `${M + 1}.0.0` };
+}
+
+/** Is `version` exactly a valid next step after `max` per the library rule? */
+function validIncrement(version, max) {
+  if (!max) return true;
+  if (versionRule === 'calver') {
+    const [vy, vm, vp] = version.split('.').map(Number);
+    const [my, mm, mp] = max.split('.').map(Number);
+    if (vy === my && vm === mm) return vp === mp + 1; // same month → next patch
+    return (vy > my || (vy === my && vm > mm)) && vp === 0; // later month → patch 0
+  }
+  return Object.values(allowedNext(max)).includes(version);
+}
+
 /** Highest version currently published on npm (numeric, ignores pre-release). */
 function maxPublished() {
   try {
@@ -90,10 +116,11 @@ const version = entry.version;
 // Rule 1: version must match the library's format (CLI=CalVer, others=semver).
 const formatOk = validFormat(version);
 
-// Rule 2: version must be strictly greater than the latest published on npm
-// (monotonic growth — never republish or go backwards). Also yields onNpm.
+// Rule 2: version must be EXACTLY the valid next step after the latest
+// published on npm (per library rule) — not just greater. Forbids skips
+// (1.1.4 → 1.1.6), republishes and going backwards. Also yields onNpm.
 const published = maxPublished();
-const grows = !published || cmpVersion(version, published) > 0;
+const stepOk = validIncrement(version, published);
 const onNpm = published !== null && cmpVersion(version, published) <= 0 && (() => {
   try {
     execSync(`npm view ${npmPkg}@${version} version`, { stdio: ['pipe', 'pipe', 'pipe'] });
@@ -129,11 +156,11 @@ if (changelog) {
   }
 }
 
-const shouldPublish = formatOk && grows && !onNpm && codeChanged && inChangelog;
+const shouldPublish = formatOk && stepOk && !onNpm && codeChanged && inChangelog;
 
 console.error(
   `[check-release] ${product}: version=${version} (rule=${versionRule}) ` +
-    `formatOk=${formatOk} grows=${grows} (npm-max=${published ?? 'none'}) ` +
+    `formatOk=${formatOk} stepOk=${stepOk} (npm-max=${published ?? 'none'}) ` +
     `onNpm=${onNpm} codeChanged=${codeChanged} inChangelog=${inChangelog} → publish=${shouldPublish}`
 );
 if (!formatOk) {
@@ -141,9 +168,16 @@ if (!formatOk) {
     `[check-release] ${product}: version "${version}" violates ${versionRule} format rule`
   );
 }
-if (!grows) {
+if (!stepOk && !onNpm) {
+  const next = allowedNext(published);
+  const hint = next
+    ? Object.entries(next)
+        .map(([k, v]) => `${v} (${k})`)
+        .join(', ')
+    : '(any well-formed version)';
   console.error(
-    `[check-release] ${product}: version "${version}" is not greater than published ${published}`
+    `[check-release] ${product}: version "${version}" is not a valid next step after ` +
+      `npm ${published}. Allowed: ${hint}`
   );
 }
 console.log(`version=${version}`);

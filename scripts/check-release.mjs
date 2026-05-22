@@ -83,19 +83,35 @@ function validIncrement(version, max) {
 }
 
 /** Highest version currently published on npm (numeric, ignores pre-release). */
-function maxPublished() {
+/**
+ * The current `latest` dist-tag — the base for the next-version step. NOT the
+ * semver-max of all versions: a package may carry stray higher versions that
+ * are not `latest` (e.g. @pachca/sdk has abandoned 2.0.0/3.0.0 while latest is
+ * 1.0.19). Stepping from semver-max would force a jump onto the stray line.
+ */
+function latestPublished() {
+  try {
+    const v = execSync(`npm view ${npmPkg} version`, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+      .toString()
+      .trim();
+    return v || null;
+  } catch {
+    return null;
+  }
+}
+
+/** All published versions — used to reject re-publishing an already-taken number. */
+function allPublishedVersions() {
   try {
     const raw = execSync(`npm view ${npmPkg} versions --json`, {
       stdio: ['pipe', 'pipe', 'pipe'],
     }).toString();
     const parsed = JSON.parse(raw);
-    const list = (Array.isArray(parsed) ? parsed : [parsed]).filter((v) =>
-      v.split('.').every((p) => /^\d+$/.test(p))
-    );
-    if (list.length === 0) return null;
-    return list.sort(cmpVersion).at(-1);
+    return (Array.isArray(parsed) ? parsed : [parsed]).map(String);
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -116,19 +132,14 @@ const version = entry.version;
 // Rule 1: version must match the library's format (CLI=CalVer, others=semver).
 const formatOk = validFormat(version);
 
-// Rule 2: version must be EXACTLY the valid next step after the latest
-// published on npm (per library rule) — not just greater. Forbids skips
-// (1.1.4 → 1.1.6), republishes and going backwards. Also yields onNpm.
-const published = maxPublished();
+// Rule 2: version must be EXACTLY the valid next step after the current
+// `latest` dist-tag (per library rule) — not just greater. Forbids skips
+// (1.1.4 → 1.1.6), republishes and going backwards.
+const published = latestPublished();
 const stepOk = validIncrement(version, published);
-const onNpm = published !== null && cmpVersion(version, published) <= 0 && (() => {
-  try {
-    execSync(`npm view ${npmPkg}@${version} version`, { stdio: ['pipe', 'pipe', 'pipe'] });
-    return true;
-  } catch {
-    return false;
-  }
-})();
+// onNpm: this exact version number is already taken (can't republish), even
+// if it's a stray higher version not on `latest`.
+const onNpm = allPublishedVersions().includes(version);
 
 // Rule 3: package code changed in this push (ignore script-only churn).
 let codeChanged = false;
@@ -160,7 +171,7 @@ const shouldPublish = formatOk && stepOk && !onNpm && codeChanged && inChangelog
 
 console.error(
   `[check-release] ${product}: version=${version} (rule=${versionRule}) ` +
-    `formatOk=${formatOk} stepOk=${stepOk} (npm-max=${published ?? 'none'}) ` +
+    `formatOk=${formatOk} stepOk=${stepOk} (npm-latest=${published ?? 'none'}) ` +
     `onNpm=${onNpm} codeChanged=${codeChanged} inChangelog=${inChangelog} → publish=${shouldPublish}`
 );
 if (!formatOk) {

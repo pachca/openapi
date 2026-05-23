@@ -66,9 +66,17 @@ function sh(cmd) {
   return execSync(cmd, { encoding: 'utf8' }).trim();
 }
 
+// Only the packages that *produce* tracked generated files. Building SDK
+// targets (C#, Go, Kotlin, Python, n8n) doesn't affect any path in
+// GENERATED_PATHS, and tying our sync check to those toolchains makes the
+// gate flaky for reasons unrelated to "is the generator output in sync".
+const BUILD_FILTERS = ['@pachca/spec', '@pachca/cli', '@pachca/docs'];
+
 console.error('[check-generated-sync] regenerating artefacts via `bun turbo build`…');
 try {
-  execSync('bun turbo build', { stdio: ['ignore', 'inherit', 'inherit'] });
+  execSync(`bun turbo build ${BUILD_FILTERS.map((f) => `--filter=${f}`).join(' ')}`, {
+    stdio: ['ignore', 'inherit', 'inherit'],
+  });
 } catch {
   console.error('[check-generated-sync] turbo build failed — cannot verify sync');
   process.exit(1);

@@ -40,7 +40,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
         ],
       },
       {
@@ -50,7 +53,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'text/plain; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
           { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
@@ -59,7 +65,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'text/markdown; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
           // .md twins duplicate the HTML pages — keep them out of the index.
           { key: 'X-Robots-Tag', value: 'noindex' },
         ],
@@ -68,7 +77,10 @@ const nextConfig: NextConfig = {
         source: '/.well-known/:path(skills|agent-skills)/:rest*',
         headers: [
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
           { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
@@ -77,7 +89,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'application/yaml' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
         ],
       },
       {
@@ -85,7 +100,10 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Content-Type', value: 'application/json' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate, s-maxage=3600' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
         ],
       },
     ];

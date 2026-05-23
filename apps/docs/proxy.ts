@@ -52,6 +52,15 @@ function prefersMarkdown(accept: string): boolean {
   return mdQ > 0 && mdQ > htmlQ;
 }
 
+// Query-param fallback for clients that can't easily set Accept: the agent
+// just builds the URL. Matches Vercel docs (`?ai=1`) / Mintlify (`?show-md=1`)
+// shape. Accepted spellings: `?format=md`, `?format=markdown`. Other values
+// of `format=` are ignored (no error) so it composes with future formats.
+function requestedMarkdownByQuery(url: URL): boolean {
+  const format = url.searchParams.get('format')?.toLowerCase();
+  return format === 'md' || format === 'markdown';
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const twin = markdownTwin(pathname);
@@ -60,9 +69,11 @@ export function proxy(request: NextRequest) {
   // pattern, 2026): an agent that prefers `text/markdown` over `text/html`
   // gets the .md twin at the same URL. Browsers send `text/html` with q=1
   // (or `*/*`) → unaffected. See `prefersMarkdown` for q-value handling.
+  // Also honored: explicit `?format=md` / `?format=markdown` query param for
+  // shell/script agents that can't easily set the Accept header.
   if (request.method === 'GET' && twin) {
     const accept = request.headers.get('accept') ?? '';
-    if (prefersMarkdown(accept)) {
+    if (prefersMarkdown(accept) || requestedMarkdownByQuery(request.nextUrl)) {
       const url = request.nextUrl.clone();
       url.pathname = twin;
       const rewrite = NextResponse.rewrite(url);

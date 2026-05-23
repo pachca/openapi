@@ -61,6 +61,21 @@ function requestedMarkdownByQuery(url: URL): boolean {
   return format === 'md' || format === 'markdown';
 }
 
+// Live-fetch agent UAs — bots that fetch a page in real-time in response to a
+// user's prompt and feed it into model context. These benefit from the MD
+// twin (≈10× fewer tokens, no HTML/Tailwind/SVG noise). UAs are documented
+// in each vendor's bot directory (OpenAI, Anthropic, Perplexity, Cohere).
+//
+// Deliberately EXCLUDED — these crawl for training/index ranking and need the
+// full HTML for SEO/schema.org signals:
+//   ClaudeBot, GPTBot, OAI-SearchBot, PerplexityBot, Google-Extended,
+//   Googlebot, Bingbot, YandexBot, Amazonbot.
+const LIVE_FETCH_AGENT_UA = /\b(?:ChatGPT-User|Claude-User|Perplexity-User|cohere-ai)\b/i;
+
+function isLiveFetchAgent(ua: string | null): boolean {
+  return !!ua && LIVE_FETCH_AGENT_UA.test(ua);
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const twin = markdownTwin(pathname);
@@ -70,14 +85,20 @@ export function proxy(request: NextRequest) {
   // gets the .md twin at the same URL. Browsers send `text/html` with q=1
   // (or `*/*`) → unaffected. See `prefersMarkdown` for q-value handling.
   // Also honored: explicit `?format=md` / `?format=markdown` query param for
-  // shell/script agents that can't easily set the Accept header.
+  // shell/script agents that can't easily set the Accept header, and known
+  // live-fetch agent UAs (ChatGPT-User, Claude-User, Perplexity-User, etc.).
   if (request.method === 'GET' && twin) {
     const accept = request.headers.get('accept') ?? '';
-    if (prefersMarkdown(accept) || requestedMarkdownByQuery(request.nextUrl)) {
+    const ua = request.headers.get('user-agent');
+    if (
+      prefersMarkdown(accept) ||
+      requestedMarkdownByQuery(request.nextUrl) ||
+      isLiveFetchAgent(ua)
+    ) {
       const url = request.nextUrl.clone();
       url.pathname = twin;
       const rewrite = NextResponse.rewrite(url);
-      rewrite.headers.set('Vary', 'Accept');
+      rewrite.headers.set('Vary', 'Accept, User-Agent');
       // RFC 9110 §8.7: when the response is a representation of a different
       // resource than the request URI (here: the .md twin), Content-Location
       // names the canonical URI of that representation so agents can cache

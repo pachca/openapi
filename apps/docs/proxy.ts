@@ -52,15 +52,6 @@ function prefersMarkdown(accept: string): boolean {
   return mdQ > 0 && mdQ > htmlQ;
 }
 
-// Query-param fallback for clients that can't easily set Accept: the agent
-// just builds the URL. Matches Vercel docs (`?ai=1`) / Mintlify (`?show-md=1`)
-// shape. Accepted spellings: `?format=md`, `?format=markdown`. Other values
-// of `format=` are ignored (no error) so it composes with future formats.
-function requestedMarkdownByQuery(url: URL): boolean {
-  const format = url.searchParams.get('format')?.toLowerCase();
-  return format === 'md' || format === 'markdown';
-}
-
 // Live-fetch agent UAs — bots that fetch a page in real-time in response to a
 // user's prompt and feed it into model context. These benefit from the MD
 // twin (≈10× fewer tokens, no HTML/Tailwind/SVG noise). UAs are documented
@@ -84,17 +75,14 @@ export function proxy(request: NextRequest) {
   // pattern, 2026): an agent that prefers `text/markdown` over `text/html`
   // gets the .md twin at the same URL. Browsers send `text/html` with q=1
   // (or `*/*`) → unaffected. See `prefersMarkdown` for q-value handling.
-  // Also honored: explicit `?format=md` / `?format=markdown` query param for
-  // shell/script agents that can't easily set the Accept header, and known
-  // live-fetch agent UAs (ChatGPT-User, Claude-User, Perplexity-User, etc.).
+  // Also honored: known live-fetch agent UAs (ChatGPT-User, Claude-User,
+  // Perplexity-User, etc.) get the MD twin automatically, since the vendor
+  // documents these UAs as live-fetch (vs their indexing crawler counterparts
+  // like ClaudeBot/GPTBot, which need full HTML for SEO).
   if (request.method === 'GET' && twin) {
     const accept = request.headers.get('accept') ?? '';
     const ua = request.headers.get('user-agent');
-    if (
-      prefersMarkdown(accept) ||
-      requestedMarkdownByQuery(request.nextUrl) ||
-      isLiveFetchAgent(ua)
-    ) {
+    if (prefersMarkdown(accept) || isLiveFetchAgent(ua)) {
       const url = request.nextUrl.clone();
       url.pathname = twin;
       const rewrite = NextResponse.rewrite(url);

@@ -37,3 +37,12 @@ jobs:
 
       - name: Run checks
         run: bun turbo check
+
+      - name: Generated files in sync with their sources
+        # Runs `turbo build` (cached when possible) and asserts that no
+        # tracked or untracked generator output diverges from what's
+        # checked in. Catches drift like a bumped `changelog.json` without
+        # the matching regenerated `CHANGELOG.md`.
+        run: node scripts/check-generated-sync.mjs
+        env:
+          CI: '1'

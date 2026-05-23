@@ -4,10 +4,13 @@
  * together. Run in `turbo check` / CI.
  *
  * For each package, compared against the merge-base with origin/main:
- *   - code changed  = any file under the package dir changed, EXCEPT its own
- *     changelog files (so updating the changelog isn't counted as "code").
+ *   - code changed  = any file under the package dir changed, EXCEPT its
+ *     changelog files (so editing the changelog isn't counted as "code").
  *   - changelog written = the package's entry in apps/docs/data/releases.json
- *     changed, OR (for packages that keep one) its own changelog changed.
+ *     changed, OR a SOURCE changelog of the package changed. Generated
+ *     changelogs (e.g. CLI's `CHANGELOG.md`, which is produced from
+ *     `changelog.json` by patch-manifest.js on every build) don't count —
+ *     a change there alone is a sync-fix, not a new release declaration.
  *
  * Fails if code changed without a changelog entry, OR a changelog entry was
  * added without code changes. This forbids silent, unannounced releases:
@@ -30,8 +33,12 @@ const PACKAGES = [
     product: 'cli',
     label: 'CLI',
     dirs: ['packages/cli'],
+    // All changelog files — excluded from "code change" detection.
     ownChangelogs: ['packages/cli/CHANGELOG.md', 'packages/cli/src/data/changelog.json'],
-    // Source of the package's own declared version, to cross-check releases.json.
+    // SOURCE changelogs only — adding a version here declares a new release.
+    // `CHANGELOG.md` is generated from `changelog.json` by patch-manifest.js
+    // so a diff there alone is a sync-fix, not a new release declaration.
+    sourceChangelogs: ['packages/cli/src/data/changelog.json'],
     versionSource: { file: 'packages/cli/src/data/changelog.json', type: 'json' },
   },
   {
@@ -39,6 +46,8 @@ const PACKAGES = [
     label: 'n8n',
     dirs: ['integrations/n8n'],
     ownChangelogs: ['integrations/n8n/CHANGELOG.md'],
+    // n8n keeps its CHANGELOG.md by hand — no separate source.
+    sourceChangelogs: ['integrations/n8n/CHANGELOG.md'],
     versionSource: { file: 'integrations/n8n/CHANGELOG.md', type: 'md' },
   },
   {
@@ -46,12 +55,14 @@ const PACKAGES = [
     label: 'generator',
     dirs: ['packages/generator', 'packages/openapi-parser'],
     ownChangelogs: [],
+    sourceChangelogs: [],
   },
   {
     product: 'sdk',
     label: 'SDK',
     dirs: ['sdk'],
     ownChangelogs: [],
+    sourceChangelogs: [],
   },
 ];
 
@@ -102,10 +113,17 @@ function changedFiles(base, paths) {
   return out ? out.split('\n').filter(Boolean) : [];
 }
 
+// Compare-relevant entries for a product. Entries marked `backfill: true`
+// are excluded — they document versions that were already published before
+// (e.g., a release that happened before the changelog-sync gate existed).
+// Backfilled entries appear on the public timeline but don't represent a new
+// release declaration, so they don't count toward "the changelog changed".
 function releasesForProduct(ref, product) {
   try {
     const content = sh(`git show ${ref}:${RELEASES}`);
-    return JSON.parse(content).filter((r) => r.product === product);
+    return JSON.parse(content)
+      .filter((r) => r.product === product)
+      .filter((r) => !r.backfill);
   } catch {
     return [];
   }
@@ -126,8 +144,11 @@ for (const pkg of PACKAGES) {
   const code = all.filter((f) => !pkg.ownChangelogs.includes(f));
   const codeChanged = code.length > 0;
 
+  // Use SOURCE changelogs (not all ownChangelogs) for the "written" signal.
+  // Editing a generated changelog alone is sync-fixing, not declaring a
+  // release — see the comment on `sourceChangelogs` in the PACKAGES table.
   const ownChanged =
-    pkg.ownChangelogs.length > 0 && changedFiles(base, pkg.ownChangelogs).length > 0;
+    pkg.sourceChangelogs.length > 0 && changedFiles(base, pkg.sourceChangelogs).length > 0;
   const releasesChanged =
     JSON.stringify(releasesForProduct(base, pkg.product)) !==
     JSON.stringify(releasesForProduct('HEAD', pkg.product));

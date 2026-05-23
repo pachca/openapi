@@ -17,21 +17,61 @@ function markdownTwin(pathname: string): string | null {
   return null;
 }
 
+// Parse a single Accept header entry's q-value, defaulting to 1.0 per RFC 9110.
+function parseQ(params: string[]): number {
+  for (const p of params) {
+    const m = /^q=([0-9.]+)$/i.exec(p.trim());
+    if (m) {
+      const q = parseFloat(m[1]);
+      return Number.isFinite(q) ? Math.max(0, Math.min(1, q)) : 1;
+    }
+  }
+  return 1;
+}
+
+// Decide whether a client prefers `text/markdown` over `text/html` per
+// RFC 9110 §12.5.1. The previous `includes('text/markdown') &&
+// !includes('text/html')` heuristic was over-strict: a polite agent sending
+// `Accept: text/markdown, text/html;q=0.5` (clearly prefers MD with HTML as
+// fallback) was being routed to HTML. This handles q-values, wildcards
+// (`text/*`, `*/*` count toward the HTML side since browsers send them),
+// and an empty/missing header (treated as ambiguous → HTML).
+function prefersMarkdown(accept: string): boolean {
+  if (!accept) return false;
+  let mdQ = 0;
+  let htmlQ = 0;
+  for (const raw of accept.split(',')) {
+    const [rawType, ...params] = raw.trim().split(';');
+    const type = rawType?.trim().toLowerCase();
+    if (!type) continue;
+    const q = parseQ(params);
+    if (type === 'text/markdown') mdQ = Math.max(mdQ, q);
+    else if (type === 'text/html') htmlQ = Math.max(htmlQ, q);
+    else if (type === 'text/*' || type === '*/*') htmlQ = Math.max(htmlQ, q);
+  }
+  return mdQ > 0 && mdQ > htmlQ;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const twin = markdownTwin(pathname);
 
   // Markdown content negotiation (Cloudflare/Vercel "agent-friendly pages"
-  // pattern, 2026): an agent that explicitly asks for `text/markdown` and
-  // NOT `text/html` (i.e. not a browser/SEO crawler) gets the .md twin at
-  // the same URL. Browsers/crawlers always send text/html → unaffected.
+  // pattern, 2026): an agent that prefers `text/markdown` over `text/html`
+  // gets the .md twin at the same URL. Browsers send `text/html` with q=1
+  // (or `*/*`) → unaffected. See `prefersMarkdown` for q-value handling.
   if (request.method === 'GET' && twin) {
     const accept = request.headers.get('accept') ?? '';
-    if (accept.includes('text/markdown') && !accept.includes('text/html')) {
+    if (prefersMarkdown(accept)) {
       const url = request.nextUrl.clone();
       url.pathname = twin;
       const rewrite = NextResponse.rewrite(url);
       rewrite.headers.set('Vary', 'Accept');
+      // RFC 9110 §8.7: when the response is a representation of a different
+      // resource than the request URI (here: the .md twin), Content-Location
+      // names the canonical URI of that representation so agents can cache
+      // the result under the twin URL.
+      rewrite.headers.set('Content-Location', twin);
       // The next.config `*.md` header rule matches the request path, not
       // this rewrite's destination, so the negotiated markdown response
       // would otherwise ship without noindex. Keep the .md twin out of the

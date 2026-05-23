@@ -4,7 +4,8 @@
   "packageManager": "bun@1.3.4",
   "scripts": {
     "sdk:build": "bash scripts/build-sdks.sh",
-    "check:changelog": "node scripts/check-changelog-sync.mjs"
+    "check:changelog": "node scripts/check-changelog-sync.mjs",
+    "check:generated": "node scripts/check-generated-sync.mjs"
   },
   "workspaces": [
     "apps/*",

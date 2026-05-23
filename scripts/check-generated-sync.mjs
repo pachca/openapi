@@ -106,7 +106,7 @@ console.error(
     'Each generator output must always match the source it was produced from.',
     'Common culprits:',
     '  - bumped changelog.json without committing the regenerated CHANGELOG.md',
-    '  - added an updates.mdx entry without committing the regenerated /updates/*.md',
+    '  - added a content/updates/<date>.md entry without rebuilding (public/updates/*.md stays stale)',
     '  - edited typespec.tsp without re-running `--filter=@pachca/spec --force`',
   ].join('\n'),
 );

@@ -38,6 +38,12 @@ review generated diffs → commit. Branch from `origin/main`; open a PR
 | `apps/docs/public/llms*.txt`, `public/**/*.md`, `public/skill.md`, `public/.well-known/**`, `public/workflows.arazzo.yaml`, Postman collection | `apps/docs/scripts/generate-llms.ts` + `scripts/skills/` |
 | `packages/cli/src/commands/**` (except `auth`/`config`), `packages/cli/CHANGELOG.md` | `packages/cli/scripts/generate-cli.ts`; `src/data/changelog.json` |
 | n8n node files | `n8n-nodes-pachca` generator |
+| `AGENTS.md` (this file) | `apps/docs/scripts/skills/generate.ts` (`generateAgentsMd()`) |
+
+CI enforces this: `scripts/check-generated-sync.mjs` runs `bun turbo build`
+and fails the PR if any generated path drifts from its source.
+`scripts/check-changelog-sync.mjs` separately enforces that every code
+change to a published package ships with a release entry (and vice versa).
 
 ## Repo-specific gotchas
 
@@ -50,5 +56,6 @@ review generated diffs → commit. Branch from `origin/main`; open a PR
 
 - `CONTRIBUTING.md` — full layout, generation pipeline, build/check, workflow.
 - `docs/api-audit.md` — **canonical** API-audit & backend-sync process (run on "проверь API"): scope, what to check, version/changelog bumps, backend sync checkpoint.
-- `docs/updates-format.md` — `updates.mdx` / `releases.json` / changelog rules (breaking the parser rules breaks the updates page).
+- `docs/updates-format.md` — rules for the per-date entry files in `apps/docs/content/updates/<date>.md` and the package release entries in `apps/docs/data/releases.json` (breaking the parser rules breaks the updates page).
 - `docs/docs-conventions.md` — MDX 3-place registration, Turbopack/TypeSpec gotchas, headings & design-system rules.
+- `docs/releases.md` — **canonical** package publishing & versioning: how CLI/n8n/generator/SDK reach the registries, the `check-changelog-sync` build gate and `check-release` publish gate, version rules (CalVer/semver, exact next step), and how to cut a release.

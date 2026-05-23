@@ -113,10 +113,17 @@ function changedFiles(base, paths) {
   return out ? out.split('\n').filter(Boolean) : [];
 }
 
+// Compare-relevant entries for a product. Entries marked `backfill: true`
+// are excluded — they document versions that were already published before
+// (e.g., a release that happened before the changelog-sync gate existed).
+// Backfilled entries appear on the public timeline but don't represent a new
+// release declaration, so they don't count toward "the changelog changed".
 function releasesForProduct(ref, product) {
   try {
     const content = sh(`git show ${ref}:${RELEASES}`);
-    return JSON.parse(content).filter((r) => r.product === product);
+    return JSON.parse(content)
+      .filter((r) => r.product === product)
+      .filter((r) => !r.backfill);
   } catch {
     return [];
   }

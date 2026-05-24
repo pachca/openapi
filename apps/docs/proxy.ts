@@ -71,10 +71,10 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const twin = markdownTwin(pathname);
 
-  // Markdown content negotiation (Cloudflare/Vercel "agent-friendly pages"
-  // pattern, 2026): an agent that prefers `text/markdown` over `text/html`
-  // gets the .md twin at the same URL. Browsers send `text/html` with q=1
-  // (or `*/*`) → unaffected. See `prefersMarkdown` for q-value handling.
+  // Markdown content negotiation (2026 "agent-friendly pages" pattern): an
+  // agent that prefers `text/markdown` over `text/html` gets the .md twin
+  // at the same URL. Browsers send `text/html` with q=1 (or `*/*`) →
+  // unaffected. See `prefersMarkdown` for q-value handling.
   // Also honored: known live-fetch agent UAs (ChatGPT-User, Claude-User,
   // Perplexity-User, etc.) get the MD twin automatically, since the vendor
   // documents these UAs as live-fetch (vs their indexing crawler counterparts
@@ -107,7 +107,10 @@ export function proxy(request: NextRequest) {
   // the response headers) discovers the documentation index without
   // inspecting the body. Mirrors the Mintlify/Stripe default: the per-page
   // .md twin, the llms.txt / llms-full.txt index (rel="llms-txt" +
-  // X-Llms-Txt), and the skills index (rel="service-meta").
+  // X-Llms-Txt), the skills index (rel="service-meta") and the RFC 9727
+  // API catalog (rel="api-catalog", linkset+json — same payload as the
+  // well-known URI, advertised here so agents that only read headers also
+  // see it).
   const mdUrl = pathname === '/' ? '/index.md' : `${pathname}.md`;
   response.headers.set(
     'Link',
@@ -116,21 +119,26 @@ export function proxy(request: NextRequest) {
       '</llms.txt>; rel="llms-txt"; type="text/plain"',
       '</llms-full.txt>; rel="llms-full-txt"; type="text/plain"',
       '</.well-known/skills/index.json>; rel="service-meta"; type="application/json"',
+      '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
     ].join(', ')
   );
   response.headers.set('X-Llms-Txt', '/llms.txt');
   response.headers.set('Vary', 'Accept');
-  // Default Vercel CDN caching for SSG pages is `s-maxage=31536000` (1 year),
-  // which afdocs flags as «aggressive» and which delays content updates
-  // reaching agents until the next deploy. Match agent artefacts: short CDN
-  // cache + must-revalidate against the ETag Next.js already sets.
+  // CDN-fronted SSG pages often default to a year-long `s-maxage`, which
+  // afdocs flags as «aggressive» and which delays content updates reaching
+  // agents until the next deploy. Match agent artefacts: short CDN cache +
+  // must-revalidate against the ETag Next.js already sets.
   response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=3600');
   return response;
 }
 
 export const config = {
   matcher: [
-    // All pages except static files, the api route handlers, and .md/feeds.
-    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|api/(?:search|og)|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
+    // All pages except static files, the api route handlers, .well-known
+    // discovery files, and .md/feeds. .well-known/* is excluded so each
+    // file's Content-Type / Cache-Control from next.config wins (no
+    // middleware override of headers on RFC 9727 api-catalog,
+    // skills/agent-skills indexes etc.).
+    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|api/(?:search|og)|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
   ],
 };

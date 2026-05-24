@@ -158,7 +158,8 @@ export const API_GUIDE_PAGES: SidebarPageItem[] = [
   { title: 'Запросы и ответы', path: '/api/requests-responses' },
   { title: 'Пагинация', path: '/api/pagination' },
   { title: 'Загрузка файлов', path: '/api/file-uploads' },
-  { title: 'Ошибки и лимиты', path: '/api/errors' },
+  { title: 'Ошибки', path: '/api/errors' },
+  { title: 'Лимиты', path: '/api/limits' },
   { title: 'Модели', path: '/api/models' },
 ];
 

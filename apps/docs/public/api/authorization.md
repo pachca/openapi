@@ -153,4 +153,4 @@ Authorization: Bearer <ACCESS_TOKEN>
 - `error_description: string` (required) — Описание ошибки. Пример: `"Access token is missing"`
 
 
-Подробнее о кодах ошибок и структуре ответов — в руководстве [Ошибки и лимиты](/api/errors).
+Подробнее о кодах ошибок и структуре ответов — в руководстве [Ошибки](/api/errors).

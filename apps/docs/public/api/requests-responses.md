@@ -143,7 +143,7 @@ curl "https://api.pachca.com/api/shared/v1/users" \
 }
 ```
 
-Подробнее — в разделе [Ошибки и лимиты](/api/errors).
+Подробнее — в разделах [Ошибки](/api/errors) и [Лимиты](/api/limits).
 
 ## Соглашения
 

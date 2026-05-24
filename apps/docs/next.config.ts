@@ -85,6 +85,20 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // RFC 9727 (API Catalog) + RFC 9264 (linkset+json): single well-known
+        // URI that lists API descriptions, docs and metadata so agents can
+        // discover everything from one request.
+        source: '/.well-known/api-catalog',
+        headers: [
+          { key: 'Content-Type', value: 'application/linkset+json; charset=utf-8' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
         source: '/:path(openapi\\.yaml|workflows\\.arazzo\\.yaml)',
         headers: [
           { key: 'Content-Type', value: 'application/yaml' },

@@ -19,7 +19,7 @@
   - `data.length` может быть меньше `limit` даже не на последней странице — не считай по длине.
   - Курсор непрозрачен: не парси, не конструируй, не сохраняй между сессиями.
   - Поиск: `prev_page`/`has_next`/`has_prev` отсутствуют, `prev_page`-polling не работает. Конец — `count == total` или пустой `data`. Полный гайд — [https://dev.pachca.com/api/pagination.md](https://dev.pachca.com/api/pagination.md).
-- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, остальное ~50 rps. На `429` — жди `Retry-After`.
+- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, остальное ~50 rps, чтение `/webhooks/events` ~5 req / 2s. Входящие вебхуки — ~10 rps на webhook id (по идентификатору в пути). На `429` — жди `Retry-After`.
 - **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), `401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.
 - **Идемпотентность:** запросы не идемпотентны — дедуплицируй на клиенте. Вебхуки at-least-once — обработчики идемпотентны.
 - **Файлы:** 3 шага: `POST /uploads` → upload на `direct_url` (внешний S3, без Authorization) → `key` в `files[]` сообщения.
@@ -33,11 +33,11 @@
 | Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 13–27 |
 | CLI Quick Start | Установка, команды, точечная справка по API | 42–60 |
 | SDK | Типизированные клиенты для 6 языков | 61–87 |
-| Agent Skills | Скиллы для AI-агентов и установка | 88–108 |
-| Руководства | Страницы-руководства (Markdown по `.md`) | 109–160 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 161–261 |
-| Обновления | Журнал обновлений по датам | 262–310 |
-| Дополнительно | Прочие ссылки и контакты | 311–319 |
+| Agent Skills | Скиллы для AI-агентов и установка | 88–110 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 111–163 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 164–264 |
+| Обновления | Журнал обновлений по датам | 265–313 |
+| Дополнительно | Прочие ссылки и контакты | 314–322 |
 
 ## CLI Quick Start
 
@@ -106,6 +106,8 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 Индекс скиллов: [https://dev.pachca.com/.well-known/skills/index.json](https://dev.pachca.com/.well-known/skills/index.json)
 
+Каталог API (RFC 9727): [https://dev.pachca.com/.well-known/api-catalog](https://dev.pachca.com/.well-known/api-catalog) — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.
+
 ## Руководства
 - [Обзор](https://dev.pachca.com/.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
 - [Быстрый старт](https://dev.pachca.com/guides/quickstart.md): Первый запрос к API Пачки за 5 минут: получение персонального токена, проверка авторизации и отправка сообщения через cURL, Postman или официальный CLI
@@ -155,7 +157,8 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [Основы API: Запросы и ответы](https://dev.pachca.com/api/requests-responses.md): Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Основы API: Пагинация](https://dev.pachca.com/api/pagination.md): Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
 - [Основы API: Загрузка файлов](https://dev.pachca.com/api/file-uploads.md): Трёхшаговая загрузка файлов в API Пачки через presigned URL S3: получение подписи, отправка multipart/form-data и прикрепление к сообщению или задаче
-- [Основы API: Ошибки и лимиты](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки, структуры ApiError и OAuthError, лимиты rate limits по пользователям и ботам, обработка ответа 429 и заголовка Retry-After
+- [Основы API: Ошибки](https://dev.pachca.com/api/errors.md): Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422) и OAuthError (401/403) с описанием полей и кодов
+- [Основы API: Лимиты](https://dev.pachca.com/api/limits.md): Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
 - [Основы API: Модели](https://dev.pachca.com/api/models.md): Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
 
 ## Common

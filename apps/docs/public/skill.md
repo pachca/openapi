@@ -272,7 +272,8 @@ Detailed documentation on specific topics is available at:
 - [Основы API: Запросы и ответы](https://dev.pachca.com/api/requests-responses) — Формат запросов и ответов API Пачки: базовый URL, заголовки Authorization и Content-Type, структура JSON-тела, коллекции Postman и Bruno для тестирования
 - [Основы API: Пагинация](https://dev.pachca.com/api/pagination) — Пагинация в API Пачки по курсору: две группы методов (списочные и поиск) с разной структурой meta, поля next_page, prev_page, has_next, has_prev, обход всех записей и polling новых данных через prev_page
 - [Основы API: Загрузка файлов](https://dev.pachca.com/api/file-uploads) — Трёхшаговая загрузка файлов в API Пачки через presigned URL S3: получение подписи, отправка multipart/form-data и прикрепление к сообщению или задаче
-- [Основы API: Ошибки и лимиты](https://dev.pachca.com/api/errors) — Коды ошибок HTTP в API Пачки, структуры ApiError и OAuthError, лимиты rate limits по пользователям и ботам, обработка ответа 429 и заголовка Retry-After
+- [Основы API: Ошибки](https://dev.pachca.com/api/errors) — Коды ошибок HTTP в API Пачки и структуры тела ответа: ApiError (400/402/403/404/409/410/422) и OAuthError (401/403) с описанием полей и кодов
+- [Основы API: Лимиты](https://dev.pachca.com/api/limits) — Лимиты запросов (rate limits) в API Пачки: числа по типам операций, поведение ответа 429, заголовок Retry-After, готовые примеры экспоненциального backoff на TypeScript и Python
 - [Основы API: Модели](https://dev.pachca.com/api/models) — Справочник моделей данных Pachca API: свойства и методы, возвращающие каждый объект — сотрудники, чаты, сообщения, задачи, теги, вебхуки и другие сущности
 
 
@@ -297,3 +298,4 @@ npx skills add pachca/openapi
 | pachca-security | Pachca — журнал безопасности: отслеживание входов, действий пользователей, изменений сообщений и нарушений DLP |
 
 Skills index: `https://dev.pachca.com/.well-known/skills/index.json`
+API catalog (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — single JSON with all API descriptions (OpenAPI, Postman, Arazzo), docs (HTML, llms.txt) and metadata.

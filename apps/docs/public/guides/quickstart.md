@@ -73,7 +73,8 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 - [Авторизация](/api/authorization) — типы токенов, скоупы и разрешения
 - [Запросы и ответы](/api/requests-responses) — формат данных и инструменты тестирования
-- [Ошибки и лимиты](/api/errors) — коды ошибок и rate limits
+- [Ошибки](/api/errors) — коды ошибок и структуры `ApiError`/`OAuthError`
+- [Лимиты](/api/limits) — rate limits и повторные запросы (retry)
 - [Пагинация](/api/pagination) — обход больших списков
 - [Боты](/guides/bots) — создание ботов и автоматизаций
 - [SDK](/guides/sdk/overview) — типизированные клиентские библиотеки

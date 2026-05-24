@@ -93,7 +93,9 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
     `Полный гайд — [${SITE_URL}/api/pagination.md](${SITE_URL}/api/pagination.md).\n`;
   content +=
     '- **Rate limit:** сообщения ~4 rps на чат (burst 30 за 5s), чтение сообщений ~10 rps, ' +
-    'остальное ~50 rps. На `429` — жди `Retry-After`.\n';
+    'остальное ~50 rps, чтение `/webhooks/events` ~5 req / 2s. ' +
+    'Входящие вебхуки — ~10 rps на webhook id (по идентификатору в пути). ' +
+    'На `429` — жди `Retry-After`.\n';
   content +=
     '- **Ошибки:** `400`/`422` — валидация (`{ errors: [{ key, value, message, code }] }`), ' +
     '`401` — токен, `403` — нет прав/скоупа, `404` — не найдено, `429` — лимит.\n';
@@ -167,6 +169,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '\n';
   content += 'Установка: `npx skills add pachca/openapi`\n\n';
   content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
+  content += `Каталог API (RFC 9727): [${SITE_URL}/.well-known/api-catalog](${SITE_URL}/.well-known/api-catalog) — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.\n\n`;
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -313,8 +316,10 @@ function generateLibraryRules(): string {
 
 ## Rate Limiting
 - Messages (POST/PUT/DELETE /messages): ~4 req/sec per chat (burst: 30/sec for 5s)
-- Message read (GET /messages): ~10 req/sec
-- Other endpoints: ~50 req/sec
+- Message read (GET /messages): ~10 req/sec per token
+- Other endpoints: ~50 req/sec per token
+- Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
+- Incoming webhooks: ~10 req/sec per webhook id (counted by the identifier in the path, e.g. \`/webhooks/user123\`)
 - On \`429 Too Many Requests\`: respect \`Retry-After\` header value (seconds)
 - Recommended retry strategy: exponential backoff with jitter — base delay × 2^attempt × random(0.5–1.5)
 - SDK (@pachca/sdk, pachca-sdk) handles retry automatically: 3 retries, respects Retry-After, exponential backoff for 5xx
@@ -817,6 +822,8 @@ Rate limits by endpoint category:
 - Messages send/edit/delete: ~4 req/sec per chat (burst: 30/sec for 5s)
 - Messages read: ~10 req/sec per token
 - All other endpoints: ~50 req/sec per token
+- Webhook events read (GET /webhooks/events): ~5 req / 2 sec per token
+- Incoming webhooks: ~10 req/sec per webhook id (counted by path identifier)
 - On 429: SDK respects \`Retry-After\` header automatically
 
 `;
@@ -1451,6 +1458,7 @@ function generateModularSkillsSection(): string {
     section += `| ${config.name} | ${shortDesc} |\n`;
   }
   section += `\nSkills index: \`${SITE_URL}/.well-known/skills/index.json\`\n`;
+  section += `API catalog (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — single JSON with all API descriptions (OpenAPI, Postman, Arazzo), docs (HTML, llms.txt) and metadata.\n`;
   return section;
 }
 

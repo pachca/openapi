@@ -35,3 +35,8 @@ public/**/*.txt
 public/.well-known/
 public/pachca.postman_collection.json
 public/scenarios.json
+
+# Webmaster verification files — vendor expects byte-exact content from
+# their UI download. Don't let Prettier touch them.
+public/yandex_*.html
+public/BingSiteAuth.xml

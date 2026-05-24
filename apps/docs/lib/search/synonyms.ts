@@ -30,6 +30,9 @@ const SYNONYMS: Record<string, string[]> = {
   задачи: ['task', 'todo', 'задача'],
   статус: ['status', 'custom_properties'],
   свойства: ['custom_properties', 'properties'],
+  лимит: ['лимиты', 'rate', 'limit', '429', 'throttle', 'retry'],
+  лимиты: ['лимит', 'rate', 'limit', '429', 'throttle', 'retry'],
+  retry: ['backoff', 'повтор', '429', 'лимит'],
 };
 
 const STOP_WORDS = new Set([
@@ -226,5 +229,5 @@ export const SUGGESTED_QUERIES = [
   'entity_type',
   'участники канала',
   'вебхуки',
-  'ошибки и лимиты',
+  'лимиты запросов',
 ];

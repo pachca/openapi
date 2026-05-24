@@ -167,6 +167,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '\n';
   content += 'Установка: `npx skills add pachca/openapi`\n\n';
   content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
+  content += `Каталог API (RFC 9727): [${SITE_URL}/.well-known/api-catalog](${SITE_URL}/.well-known/api-catalog) — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.\n\n`;
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -1451,6 +1452,7 @@ function generateModularSkillsSection(): string {
     section += `| ${config.name} | ${shortDesc} |\n`;
   }
   section += `\nSkills index: \`${SITE_URL}/.well-known/skills/index.json\`\n`;
+  section += `API catalog (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — single JSON with all API descriptions (OpenAPI, Postman, Arazzo), docs (HTML, llms.txt) and metadata.\n`;
   return section;
 }
 

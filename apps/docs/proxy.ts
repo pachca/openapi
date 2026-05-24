@@ -107,7 +107,10 @@ export function proxy(request: NextRequest) {
   // the response headers) discovers the documentation index without
   // inspecting the body. Mirrors the Mintlify/Stripe default: the per-page
   // .md twin, the llms.txt / llms-full.txt index (rel="llms-txt" +
-  // X-Llms-Txt), and the skills index (rel="service-meta").
+  // X-Llms-Txt), the skills index (rel="service-meta") and the RFC 9727
+  // API catalog (rel="api-catalog", linkset+json — same payload as the
+  // well-known URI, advertised here so agents that only read headers also
+  // see it).
   const mdUrl = pathname === '/' ? '/index.md' : `${pathname}.md`;
   response.headers.set(
     'Link',
@@ -116,6 +119,7 @@ export function proxy(request: NextRequest) {
       '</llms.txt>; rel="llms-txt"; type="text/plain"',
       '</llms-full.txt>; rel="llms-full-txt"; type="text/plain"',
       '</.well-known/skills/index.json>; rel="service-meta"; type="application/json"',
+      '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
     ].join(', ')
   );
   response.headers.set('X-Llms-Txt', '/llms.txt');
@@ -130,7 +134,11 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // All pages except static files, the api route handlers, and .md/feeds.
-    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|api/(?:search|og)|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
+    // All pages except static files, the api route handlers, .well-known
+    // discovery files, and .md/feeds. .well-known/* is excluded so each
+    // file's Content-Type / Cache-Control from next.config wins (no
+    // middleware override of headers on RFC 9727 api-catalog,
+    // skills/agent-skills indexes etc.).
+    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|api/(?:search|og)|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
   ],
 };

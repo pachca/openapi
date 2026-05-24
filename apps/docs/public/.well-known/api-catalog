@@ -1,0 +1,54 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://dev.pachca.com",
+      "service-desc": [
+        {
+          "href": "https://dev.pachca.com/openapi.yaml",
+          "type": "application/yaml",
+          "title": "Pachca API — OpenAPI 3.1 specification"
+        },
+        {
+          "href": "https://dev.pachca.com/pachca.postman_collection.json",
+          "type": "application/json",
+          "title": "Pachca API — Postman collection"
+        },
+        {
+          "href": "https://dev.pachca.com/workflows.arazzo.yaml",
+          "type": "application/yaml",
+          "title": "Pachca API — Arazzo workflows"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://dev.pachca.com",
+          "type": "text/html",
+          "title": "Pachca developer documentation",
+          "hreflang": ["ru", "en"]
+        },
+        {
+          "href": "https://dev.pachca.com/llms.txt",
+          "type": "text/plain",
+          "title": "Agent-friendly guide and index"
+        },
+        {
+          "href": "https://dev.pachca.com/llms-full.txt",
+          "type": "text/plain",
+          "title": "Agent-friendly full documentation"
+        }
+      ],
+      "service-meta": [
+        {
+          "href": "https://dev.pachca.com/.well-known/skills/index.json",
+          "type": "application/json",
+          "title": "Pachca Skills discovery (agentskills.io 0.2.0)"
+        },
+        {
+          "href": "https://dev.pachca.com/.well-known/agent-skills/index.json",
+          "type": "application/json",
+          "title": "Pachca Skills discovery (agent-skills, legacy alias)"
+        }
+      ]
+    }
+  ]
+}

@@ -4,13 +4,19 @@
  * tabs-config.ts must remain client-safe (imported by 'use client' components).
  */
 
-import { GUIDE_SECTIONS, API_GUIDE_PAGES, SIDEBAR_FOOTER } from './tabs-config';
-import type { SidebarPageItem } from './tabs-config';
+import {
+  GUIDE_SECTIONS,
+  CLI_SECTIONS,
+  SDK_SECTIONS,
+  N8N_SECTIONS,
+  API_GUIDE_PAGES,
+} from './tabs-config';
+import type { SidebarPageItem, SidebarSection } from './tabs-config';
 import { getGuideData } from './content-loader';
 
 /**
  * Get all ordered guide pages (for generators/sitemap).
- * Returns pages from all guide sections + API guide pages + home.
+ * Returns pages from all guide sections + API guide pages + home + updates.
  */
 export interface OrderedPage {
   path: string;
@@ -33,30 +39,39 @@ export function getOrderedPages(): OrderedPage[] {
     });
   }
 
-  // Guide sections
-  for (const section of GUIDE_SECTIONS) {
-    for (const item of section.items) {
-      if (item.children) {
-        for (const child of item.children) {
-          addPage(pages, child, '/guides/', item.title);
+  // All sidebar sections that live under /guides
+  const guideSidebars: SidebarSection[][] = [
+    GUIDE_SECTIONS,
+    CLI_SECTIONS,
+    SDK_SECTIONS,
+    N8N_SECTIONS,
+  ];
+
+  for (const sidebar of guideSidebars) {
+    for (const section of sidebar) {
+      for (const item of section.items) {
+        // Skip pseudo-item pointing at "/" (already added above as homeData)
+        if (item.path === '/') continue;
+
+        if (item.children) {
+          for (const child of item.children) {
+            addPage(pages, child, '/guides/', item.title);
+          }
+        } else {
+          addPage(pages, item, '/guides/');
         }
-      } else {
-        addPage(pages, item, '/guides/');
       }
     }
   }
 
-  // Footer pages (updates)
-  for (const item of SIDEBAR_FOOTER) {
-    if (item.external) continue;
-    const data = getGuideData(item.path.replace('/', ''));
-    if (data) {
-      pages.push({
-        path: item.path,
-        title: data.frontmatter.title || item.title,
-        description: data.frontmatter.description || '',
-      });
-    }
+  // Updates landing page
+  const updatesData = getGuideData('updates');
+  if (updatesData) {
+    pages.push({
+      path: '/updates',
+      title: updatesData.frontmatter.title || 'Последние обновления',
+      description: updatesData.frontmatter.description || '',
+    });
   }
 
   // API guide pages

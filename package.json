@@ -23,5 +23,11 @@
     "sharp",
     "unrs-resolver",
     "vue-demi"
-  ]
+  ],
+  "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-tooltip": "^1.2.8"
+  }
 }

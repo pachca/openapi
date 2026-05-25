@@ -174,7 +174,7 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '## Руководства\n';
   for (const guide of guidePages) {
     const mdPath = guide.path === '/' ? '/.md' : `${guide.path}.md`;
-    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
     content += `- [${displayTitle}](${SITE_URL}${mdPath}): ${guide.description}\n`;
   }
   content += '\n';
@@ -1547,7 +1547,7 @@ Error response body: \`{ "errors": [{ "key": "field", "value": "description" }] 
   let guides = '## Guides\n\nDetailed documentation on specific topics is available at:\n\n';
   for (const guide of guidePages) {
     if (guide.path === '/') continue;
-    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}: ${guide.title}` : guide.title;
+    const displayTitle = guide.sectionTitle ? `${guide.sectionTitle}, ${guide.title}` : guide.title;
     guides += `- [${displayTitle}](${SITE_URL}${guide.path}) — ${guide.description}\n`;
   }
 

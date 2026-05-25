@@ -1,44 +1,59 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PanelLeftClose } from 'lucide-react';
+import { PanelLeftClose, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { SidebarNav } from './sidebar-nav';
 import type { NavigationSection } from '@/lib/openapi/types';
+import { TABS, type TabId } from '@/lib/tabs-config';
 import { useActiveTab } from './use-last-tab';
 
 interface MobileSidebarProps {
-  guideNavigation: NavigationSection[];
-  apiNavigation: NavigationSection[];
+  navigationByTab: Record<TabId, NavigationSection[]>;
 }
 
-export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarProps) {
+export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const activeTab = useActiveTab();
+  const [selectedTab, setSelectedTab] = useState<TabId>(activeTab);
 
-  const navigationByTab: Record<string, NavigationSection[]> = {
-    guide: guideNavigation,
-    api: apiNavigation,
-  };
-  const navigation = navigationByTab[activeTab] || [];
+  // Radix DropdownMenu generates random ids via useId, which differ between
+  // SSR and the first client render and trigger a hydration warning. Render
+  // a non-Radix placeholder until after mount to keep the markup stable.
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Sync selectedTab when active tab changes (e.g. user navigated outside the panel)
+  useEffect(() => {
+    setSelectedTab(activeTab);
+  }, [activeTab]);
+
+  const navigation = navigationByTab[selectedTab] || [];
 
   // Listen for toggle event from nav bar
   useEffect(() => {
     const handler = () =>
       setIsOpen((prev) => {
         const next = !prev;
-        if (next) setHasOpened(true);
+        if (next) {
+          setHasOpened(true);
+          // Reset tab switcher to the actually-active tab on each open,
+          // so a previous in-panel selection doesn't survive across closes.
+          setSelectedTab(activeTab);
+        }
         return next;
       });
     window.addEventListener('toggle-mobile-menu', handler);
     return () => window.removeEventListener('toggle-mobile-menu', handler);
-  }, []);
+  }, [activeTab]);
 
   // Close on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- closing menu on route change is intentional
     setIsOpen(false);
   }, [pathname]);
 
@@ -53,6 +68,12 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
       document.body.style.overflow = '';
     };
   }, [isOpen]);
+
+  const handleTabChange = (tabId: TabId) => {
+    setSelectedTab(tabId);
+  };
+
+  const selectedTabConfig = TABS.find((t) => t.id === selectedTab);
 
   return (
     <>
@@ -87,6 +108,61 @@ export function MobileSidebar({ guideNavigation, apiNavigation }: MobileSidebarP
             >
               <PanelLeftClose className="w-5 h-5" />
             </button>
+          </div>
+
+          {/* Tab switcher — same Radix DropdownMenu pattern used elsewhere */}
+          <div className="px-2.5 pb-3 shrink-0">
+            {!mounted ? (
+              <button
+                type="button"
+                aria-label="Раздел"
+                disabled
+                className="w-full h-9 flex items-center justify-between gap-2 px-3 rounded-md border border-glass-border bg-glass text-[14px] font-medium text-text-primary cursor-pointer hover:bg-glass-hover transition-colors outline-none focus:outline-none focus-visible:ring-0 select-none group"
+              >
+                <span className="truncate">{selectedTabConfig?.title ?? 'Раздел'}</span>
+                <ChevronDown
+                  className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors shrink-0"
+                  strokeWidth={2.5}
+                />
+              </button>
+            ) : (
+              <DropdownMenu.Root modal={false}>
+                <DropdownMenu.Trigger asChild>
+                  <button
+                    aria-label="Раздел"
+                    className="w-full h-9 flex items-center justify-between gap-2 px-3 rounded-md border border-glass-border bg-glass text-[14px] font-medium text-text-primary cursor-pointer hover:bg-glass-hover transition-colors outline-none focus:outline-none focus-visible:ring-0 select-none group"
+                  >
+                    <span className="truncate">{selectedTabConfig?.title ?? 'Раздел'}</span>
+                    <ChevronDown
+                      className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors shrink-0"
+                      strokeWidth={2.5}
+                    />
+                  </button>
+                </DropdownMenu.Trigger>
+
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="z-[80] w-[var(--radix-dropdown-menu-trigger-width)] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
+                    align="start"
+                    sideOffset={6}
+                  >
+                    {TABS.map((tab) => (
+                      <DropdownMenu.Item
+                        key={tab.id}
+                        onClick={() => handleTabChange(tab.id)}
+                        className={`flex items-center px-2.5 py-1.5 text-[14px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
+                          selectedTab === tab.id
+                            ? 'bg-primary/15 text-primary'
+                            : 'text-text-primary hover:bg-glass-hover'
+                        }`}
+                      >
+                        {tab.title}
+                      </DropdownMenu.Item>
+                    ))}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
+            )}
           </div>
 
           {/* Navigation — lazy-rendered to keep SSR output free of duplicate nav text */}

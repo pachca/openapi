@@ -4,6 +4,12 @@
   "workspaces": {
     "": {
       "name": "pachca-api",
+      "dependencies": {
+        "@radix-ui/react-accordion": "^1.2.12",
+        "@radix-ui/react-dropdown-menu": "^2.1.16",
+        "@radix-ui/react-popover": "^1.1.15",
+        "@radix-ui/react-tooltip": "^1.2.8",
+      },
       "devDependencies": {
         "@playwright/test": "^1.50.0",
         "turbo": "^2.8.1",
@@ -51,7 +57,7 @@
     },
     "integrations/n8n": {
       "name": "n8n-nodes-pachca",
-      "version": "2.0.8",
+      "version": "2.0.9",
       "devDependencies": {
         "@n8n/node-cli": "^0.23.0",
         "@pachca/openapi-parser": "workspace:*",

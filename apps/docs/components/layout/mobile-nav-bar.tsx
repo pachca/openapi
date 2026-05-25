@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { ChevronRight, PanelLeft } from 'lucide-react';
 import type { NavigationSection } from '@/lib/openapi/types';
+import type { TabId } from '@/lib/tabs-config';
 import { parseSeasonSlug } from '@/lib/seasons';
 import { formatDateRu } from '@/lib/format-date';
 
@@ -33,8 +34,8 @@ function findBreadcrumb(navigation: NavigationSection[], pathname: string): Brea
 }
 
 /**
- * Updates sub-pages (/updates/<date>, /updates/season/<slug>) are not in the
- * sidebar nav, so derive their breadcrumb from the path directly.
+ * Updates sub-pages (/updates/<date>, /updates/season/<slug>) are mostly in
+ * the sidebar nav, but fall back to deriving from the path if not found.
  */
 function updatesBreadcrumb(pathname: string): Breadcrumb | null {
   const seasonMatch = pathname.match(/^\/updates\/season\/(.+)$/);
@@ -52,21 +53,22 @@ function updatesBreadcrumb(pathname: string): Breadcrumb | null {
 }
 
 interface MobileNavBarProps {
-  guideNavigation: NavigationSection[];
-  apiNavigation: NavigationSection[];
+  navigationByTab: Record<TabId, NavigationSection[]>;
 }
 
-export function MobileNavBar({ guideNavigation, apiNavigation }: MobileNavBarProps) {
+export function MobileNavBar({ navigationByTab }: MobileNavBarProps) {
   const pathname = usePathname();
 
-  const breadcrumb =
-    findBreadcrumb(guideNavigation, pathname) ||
-    findBreadcrumb(apiNavigation, pathname) ||
-    updatesBreadcrumb(pathname);
+  let breadcrumb: Breadcrumb | null = null;
+  for (const tab of Object.keys(navigationByTab) as TabId[]) {
+    breadcrumb = findBreadcrumb(navigationByTab[tab], pathname);
+    if (breadcrumb) break;
+  }
+  if (!breadcrumb) breadcrumb = updatesBreadcrumb(pathname);
 
   return (
     <div
-      className="lg:hidden fixed left-0 right-0 bg-background/80 backdrop-blur-xl border-b border-background-border z-50"
+      className="lg:hidden fixed left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-b border-background-border z-50"
       style={{ top: 'var(--mobile-header-height)', height: 'var(--mobile-nav-height)' }}
     >
       <button

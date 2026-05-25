@@ -21,3 +21,10 @@ export function formatDateRu(isoDate: string): string {
   const monthName = MONTHS_RU[month] || month;
   return `${day} ${monthName} ${year}`;
 }
+
+/** Same as formatDateRu but without the year (DD месяца, day is zero-padded). */
+export function formatDayMonthRu(isoDate: string): string {
+  const [, month, day] = isoDate.split('-');
+  const monthName = MONTHS_RU[month] || month;
+  return `${day} ${monthName}`;
+}

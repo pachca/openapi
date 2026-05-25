@@ -2,12 +2,13 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
 import { StaticPageHeader } from '@/components/api/static-page-header';
+import { MarkdownActions } from '@/components/api/markdown-actions';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { UpdatesList } from '@/components/api/updates-list';
 import { getGuideData } from '@/lib/content-loader';
 import { getSectionTitle } from '@/lib/tabs-config';
 import { loadTimeline, groupTimelineByDate, formatDateRu } from '@/lib/updates-parser';
-import { groupBySeason, HOME_SEASON_LIMIT } from '@/lib/seasons';
+import { groupBySeason, getSeason, HOME_SEASON_LIMIT } from '@/lib/seasons';
 import type { NavigationItem } from '@/lib/openapi/types';
 import { notFound } from 'next/navigation';
 
@@ -46,15 +47,15 @@ function buildJsonLd(headline: string, description: string, url: string) {
   };
 }
 
-/** Link back to the full updates feed, shown atop date/season pages. */
-function AllUpdatesLink() {
+/** Link back up the hierarchy, shown atop date/season pages. */
+function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
-      href="/updates"
+      href={href}
       className="no-underline! inline-flex items-center gap-1.5 text-[14px] font-medium text-text-secondary hover:text-primary transition-colors mb-6"
     >
       <ArrowRight className="w-4 h-4 rotate-180" />
-      Все обновления
+      {label}
     </Link>
   );
 }
@@ -90,6 +91,7 @@ export async function UpdatesPageContent(props: Variant) {
     };
 
     const jsonLd = buildJsonLd(headline, group.displayDate, `/updates/${props.date}`);
+    const season = getSeason(props.date);
 
     return (
       <StaticPageWrapper
@@ -102,8 +104,18 @@ export async function UpdatesPageContent(props: Variant) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
-        <AllUpdatesLink />
-        <UpdatesList dateGroups={[group]} anchored={false} />
+        <BackLink
+          href={`/updates/season/${season.slug}`}
+          label={`${season.emoji} ${season.label}`}
+        />
+        <div className="text-sm font-medium text-text-tertiary mb-1">{group.displayDate}</div>
+        <h1 className="text-4xl font-extrabold text-text-primary mb-2! tracking-tight">
+          {headline}
+        </h1>
+        <div className="mb-8">
+          <MarkdownActions pageUrl={`/updates/${props.date}`} pageTitle={headline} />
+        </div>
+        <UpdatesList dateGroups={[group]} anchored={false} flat />
       </StaticPageWrapper>
     );
   }
@@ -149,11 +161,17 @@ export async function UpdatesPageContent(props: Variant) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
-        <AllUpdatesLink />
-        <h1 className="flex items-center gap-2 text-[32px] font-semibold! text-text-primary mt-0! mb-8!">
+        <BackLink href="/updates" label="Последние обновления" />
+        <h1 className="flex items-center gap-2 text-[32px] font-semibold! text-text-primary mt-0! mb-2! tracking-tight">
           <span aria-hidden>{sg.season.emoji}</span>
           {sg.season.label}
         </h1>
+        <div className="mb-8">
+          <MarkdownActions
+            pageUrl={`/updates/season/${sg.season.slug}`}
+            pageTitle={sg.season.label}
+          />
+        </div>
         <UpdatesList dateGroups={sg.dates} />
       </StaticPageWrapper>
     );

@@ -121,7 +121,7 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
               >
                 <span className="truncate">{selectedTabConfig?.title ?? 'Раздел'}</span>
                 <ChevronDown
-                  className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors shrink-0"
+                  className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors shrink-0"
                   strokeWidth={2.5}
                 />
               </button>
@@ -134,7 +134,7 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
                   >
                     <span className="truncate">{selectedTabConfig?.title ?? 'Раздел'}</span>
                     <ChevronDown
-                      className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors shrink-0"
+                      className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-colors shrink-0"
                       strokeWidth={2.5}
                     />
                   </button>

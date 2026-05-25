@@ -39,16 +39,18 @@ export function getOrderedPages(): OrderedPage[] {
     });
   }
 
-  // All sidebar sections that live under /guides
-  const guideSidebars: SidebarSection[][] = [
-    GUIDE_SECTIONS,
-    CLI_SECTIONS,
-    SDK_SECTIONS,
-    N8N_SECTIONS,
+  // All sidebar sections that live under /guides. CLI/SDK/n8n pages get a
+  // tab-level prefix ("CLI: Обзор" etc.) so titles read unambiguously in
+  // llms.txt, browser tabs, and search results.
+  const guideSidebars: { sections: SidebarSection[]; tabPrefix?: string }[] = [
+    { sections: GUIDE_SECTIONS },
+    { sections: CLI_SECTIONS, tabPrefix: 'CLI' },
+    { sections: SDK_SECTIONS, tabPrefix: 'SDK' },
+    { sections: N8N_SECTIONS, tabPrefix: 'n8n' },
   ];
 
-  for (const sidebar of guideSidebars) {
-    for (const section of sidebar) {
+  for (const { sections, tabPrefix } of guideSidebars) {
+    for (const section of sections) {
       for (const item of section.items) {
         // Skip pseudo-item pointing at "/" (already added above as homeData)
         if (item.path === '/') continue;
@@ -58,7 +60,7 @@ export function getOrderedPages(): OrderedPage[] {
             addPage(pages, child, '/guides/', item.title);
           }
         } else {
-          addPage(pages, item, '/guides/');
+          addPage(pages, item, '/guides/', tabPrefix);
         }
       }
     }

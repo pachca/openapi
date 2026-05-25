@@ -126,7 +126,7 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
                 />
               </button>
             ) : (
-              <DropdownMenu.Root>
+              <DropdownMenu.Root modal={false}>
                 <DropdownMenu.Trigger asChild>
                   <button
                     aria-label="Раздел"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PanelLeftClose, ChevronDown } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { SidebarNav } from './sidebar-nav';
 import { SearchButton } from './search-button';
 import type { NavigationSection } from '@/lib/openapi/types';
@@ -57,14 +58,15 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
     };
   }, [isOpen]);
 
-  const handleTabChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const tabId = e.target.value as TabId;
+  const handleTabChange = (tabId: TabId) => {
     setSelectedTab(tabId);
     const tabConfig = TABS.find((t) => t.id === tabId);
     if (tabConfig) {
       router.push(tabConfig.defaultHref);
     }
   };
+
+  const selectedTabConfig = TABS.find((t) => t.id === selectedTab);
 
   return (
     <>
@@ -106,23 +108,45 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
             <SearchButton />
           </div>
 
-          {/* Tab switcher (native select for portability + a11y) */}
+          {/* Tab switcher — same Radix DropdownMenu pattern used elsewhere */}
           <div className="px-2.5 pb-3 shrink-0">
-            <div className="relative">
-              <select
-                value={selectedTab}
-                onChange={handleTabChange}
-                aria-label="Раздел"
-                className="appearance-none w-full pl-3 pr-9 py-2 rounded-md border border-glass-border bg-glass text-[14px] font-medium text-text-primary cursor-pointer hover:bg-glass-hover transition-colors outline-none"
-              >
-                {TABS.map((tab) => (
-                  <option key={tab.id} value={tab.id}>
-                    {tab.title}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button
+                  aria-label="Раздел"
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-glass-border bg-glass text-[14px] font-medium text-text-primary cursor-pointer hover:bg-glass-hover transition-colors outline-none focus:outline-none focus-visible:ring-0 select-none group"
+                >
+                  <span className="truncate">{selectedTabConfig?.title ?? 'Раздел'}</span>
+                  <ChevronDown
+                    className="w-4 h-4 text-text-secondary group-hover:text-text-primary transition-colors shrink-0"
+                    strokeWidth={2.5}
+                  />
+                </button>
+              </DropdownMenu.Trigger>
+
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  className="z-[80] min-w-[var(--radix-dropdown-menu-trigger-width)] bg-glass-heavy backdrop-blur-xl border border-glass-heavy-border rounded-xl p-1.5 space-y-0.5 shadow-xl animate-dropdown"
+                  align="start"
+                  sideOffset={6}
+                  collisionPadding={16}
+                >
+                  {TABS.map((tab) => (
+                    <DropdownMenu.Item
+                      key={tab.id}
+                      onClick={() => handleTabChange(tab.id)}
+                      className={`flex items-center px-2.5 py-1.5 text-[14px] font-medium rounded-md cursor-pointer outline-none transition-colors ${
+                        selectedTab === tab.id
+                          ? 'bg-primary/15 text-primary'
+                          : 'text-text-primary hover:bg-glass-hover'
+                      }`}
+                    >
+                      {tab.title}
+                    </DropdownMenu.Item>
+                  ))}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
           </div>
 
           {/* Navigation — lazy-rendered to keep SSR output free of duplicate nav text */}

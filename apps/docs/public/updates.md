@@ -380,7 +380,7 @@ _14 марта 2026_
 - [Кнопки](/guides/buttons) — интерактивные кнопки в сообщениях
 - [Входящие вебхуки](/guides/incoming-webhooks) — отправка сообщений через URL
 - [Разворачивание ссылок](/guides/link-previews) — unfurl-боты для предпросмотра ссылок
-- [Albato](/guides/albato) и [n8n](/guides/n8n/overview) — интеграции с no-code платформами
+- [n8n](/guides/n8n/overview) — интеграция с no-code платформой
 
 Документация реструктурирована: [Быстрый старт](/guides/quickstart), [Пагинация](/api/pagination), [Загрузка файлов](/api/file-uploads), [Запросы и ответы](/api/requests-responses) вынесены в отдельные страницы, раздел форм разбит на три страницы.
 

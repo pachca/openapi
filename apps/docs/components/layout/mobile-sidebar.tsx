@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { PanelLeftClose, ChevronDown } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import * as Select from '@radix-ui/react-select';
+import { usePathname, useRouter } from 'next/navigation';
 import { SidebarNav } from './sidebar-nav';
 import { SearchButton } from './search-button';
 import type { NavigationSection } from '@/lib/openapi/types';
 import { TABS, type TabId } from '@/lib/tabs-config';
 import { useActiveTab } from './use-last-tab';
-import { useRouter } from 'next/navigation';
 
 interface MobileSidebarProps {
   navigationByTab: Record<TabId, NavigationSection[]>;
@@ -23,7 +21,7 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
   const activeTab = useActiveTab();
   const [selectedTab, setSelectedTab] = useState<TabId>(activeTab);
 
-  // Sync selectedTab when the active tab changes (e.g. user navigated to a page in another tab)
+  // Sync selectedTab when active tab changes (e.g. user navigated outside the panel)
   useEffect(() => {
     setSelectedTab(activeTab);
   }, [activeTab]);
@@ -44,7 +42,6 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
 
   // Close on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- closing menu on route change is intentional
     setIsOpen(false);
   }, [pathname]);
 
@@ -60,8 +57,8 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
     };
   }, [isOpen]);
 
-  const handleTabChange = (value: string) => {
-    const tabId = value as TabId;
+  const handleTabChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const tabId = e.target.value as TabId;
     setSelectedTab(tabId);
     const tabConfig = TABS.find((t) => t.id === tabId);
     if (tabConfig) {
@@ -109,38 +106,23 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
             <SearchButton />
           </div>
 
-          {/* Tab switcher (select) */}
+          {/* Tab switcher (native select for portability + a11y) */}
           <div className="px-2.5 pb-3 shrink-0">
-            <Select.Root value={selectedTab} onValueChange={handleTabChange}>
-              <Select.Trigger
-                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-glass-border bg-glass text-[14px] font-medium text-text-primary cursor-pointer hover:bg-glass-hover transition-colors"
+            <div className="relative">
+              <select
+                value={selectedTab}
+                onChange={handleTabChange}
                 aria-label="Раздел"
+                className="appearance-none w-full pl-3 pr-9 py-2 rounded-md border border-glass-border bg-glass text-[14px] font-medium text-text-primary cursor-pointer hover:bg-glass-hover transition-colors outline-none"
               >
-                <Select.Value />
-                <Select.Icon>
-                  <ChevronDown className="w-4 h-4 text-text-secondary" />
-                </Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Content
-                  position="popper"
-                  sideOffset={4}
-                  className="z-[80] min-w-[var(--radix-select-trigger-width)] rounded-md border border-glass-border bg-background-secondary/95 backdrop-blur-xl shadow-lg overflow-hidden"
-                >
-                  <Select.Viewport className="p-1">
-                    {TABS.map((tab) => (
-                      <Select.Item
-                        key={tab.id}
-                        value={tab.id}
-                        className="px-3 py-1.5 text-[14px] rounded-md text-text-primary cursor-pointer hover:bg-glass-hover data-[highlighted]:bg-glass-hover outline-none"
-                      >
-                        <Select.ItemText>{tab.title}</Select.ItemText>
-                      </Select.Item>
-                    ))}
-                  </Select.Viewport>
-                </Select.Content>
-              </Select.Portal>
-            </Select.Root>
+                {TABS.map((tab) => (
+                  <option key={tab.id} value={tab.id}>
+                    {tab.title}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           {/* Navigation — lazy-rendered to keep SSR output free of duplicate nav text */}

@@ -57,6 +57,9 @@
   --boxed-header-height: 40px;
   --mobile-header-height: 56px;
   --mobile-nav-height: 0px;
+  /* Desktop adds a second row under the logo with tab links */
+  --header-tabs-height: 40px;
+  --desktop-header-height: calc(var(--mobile-header-height) + var(--header-tabs-height));
   --scroll-offset: calc(var(--mobile-header-height) + var(--mobile-nav-height) + 24px);
 
   /* Font Families — sans is set by next/font on <html>, mono is set via --font-mono CSS variable from next/font (JetBrains Mono) */
@@ -65,6 +68,12 @@
 @media (max-width: 1023px) {
   :root {
     --mobile-nav-height: 41px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --scroll-offset: calc(var(--desktop-header-height) + 24px);
   }
 }
 

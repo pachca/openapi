@@ -1,10 +1,21 @@
 import { parseOpenAPI } from './openapi/parser';
 import { generateUrlFromOperation, generateTitle, groupEndpointsByTag } from './openapi/mapper';
 import type { NavigationSection, NavigationItem } from './openapi/types';
-import { GUIDE_SECTIONS, API_GUIDE_PAGES, SIDEBAR_FOOTER, type TabId } from './tabs-config';
+import {
+  GUIDE_SECTIONS,
+  CLI_SECTIONS,
+  SDK_SECTIONS,
+  N8N_SECTIONS,
+  API_GUIDE_PAGES,
+  getActiveTab,
+  type SidebarSection,
+  type TabId,
+} from './tabs-config';
 import { getGuideData } from './content-loader';
 import { sortTagsByOrder } from './guides-config';
 import { loadUpdates, isNewUpdate } from './updates-parser';
+import { groupBySeason, type SeasonGroup } from './seasons';
+import { groupTimelineByDate } from './updates-parser';
 import { TAG_TRANSLATIONS } from './tag-translations';
 
 export { TAG_TRANSLATIONS };
@@ -12,47 +23,37 @@ export { TAG_TRANSLATIONS };
 const METHOD_ORDER: Record<string, number> = { POST: 0, GET: 1, PUT: 2, PATCH: 3, DELETE: 4 };
 
 /**
- * Footer section shared across all sidebar tabs (updates + status).
- */
-function generateFooterSection(): NavigationSection {
-  const hasNewUpdates = loadUpdates().some((u) => isNewUpdate(u.date));
-  const items: NavigationItem[] = SIDEBAR_FOOTER.map((page) => {
-    const item: NavigationItem = { title: page.title, href: page.path };
-    if (page.external) item.external = true;
-    if (page.path === '/updates' && hasNewUpdates) item.badge = 'new';
-    return item;
-  });
-  return { title: '', items };
-}
-
-/**
  * Generate navigation for a specific tab.
  */
 export async function generateNavigation(tab?: TabId): Promise<NavigationSection[]> {
-  if (tab === 'guide') {
-    return generateGuideNavigation();
-  }
-  if (tab === 'api') {
-    return generateApiNavigation();
-  }
+  if (tab === 'guides') return generateGuidesNavigation();
+  if (tab === 'cli') return generateSectionNavigation(CLI_SECTIONS);
+  if (tab === 'sdk') return generateSectionNavigation(SDK_SECTIONS);
+  if (tab === 'n8n') return generateSectionNavigation(N8N_SECTIONS);
+  if (tab === 'updates') return generateUpdatesNavigation();
+  if (tab === 'api') return generateApiNavigation();
 
   // Default: return combined navigation for backward compatibility
   return generateFullNavigation();
 }
 
 /**
- * Developer Guide tab sidebar.
- * Sections are always-visible headers. Items can be direct links or groups with children.
+ * Map a SidebarSection list (from tabs-config) to NavigationSection list,
+ * pulling fresh titles from MDX frontmatter when available.
  */
-function generateGuideNavigation(): NavigationSection[] {
-  const sections: NavigationSection[] = [];
-
-  for (const section of GUIDE_SECTIONS) {
+function generateSectionNavigation(sections: SidebarSection[]): NavigationSection[] {
+  return sections.map((section) => {
     const items: NavigationItem[] = [];
 
     for (const page of section.items) {
+      // "/" → home page, no MDX under /guides/ prefix
+      if (page.path === '/') {
+        const data = getGuideData('home');
+        items.push({ title: data?.frontmatter.title || page.title, href: page.path });
+        continue;
+      }
+
       if (page.children) {
-        // Group with children — collapsible in sidebar
         const children: NavigationItem[] = page.children.map((child) => {
           const data = getGuideData(child.path.replace('/guides/', ''));
           return {
@@ -60,25 +61,58 @@ function generateGuideNavigation(): NavigationSection[] {
             href: child.path,
           };
         });
-        items.push({
-          title: page.title,
-          href: page.path,
-          children,
-        });
+        items.push({ title: page.title, href: page.path, children });
       } else {
         const data = getGuideData(page.path.replace('/guides/', ''));
-        items.push({
-          title: data?.frontmatter.title || page.title,
-          href: page.path,
-        });
+        items.push({ title: data?.frontmatter.title || page.title, href: page.path });
       }
     }
 
-    sections.push({ title: section.title, items });
+    return { title: section.title, items };
+  });
+}
+
+/**
+ * Developer Guides tab sidebar (no CLI/SDK/n8n — those are own tabs).
+ */
+function generateGuidesNavigation(): NavigationSection[] {
+  return generateSectionNavigation(GUIDE_SECTIONS);
+}
+
+/**
+ * Updates tab sidebar — landing + seasons accordion.
+ * Each season is a collapsible group with date children.
+ */
+function generateUpdatesNavigation(): NavigationSection[] {
+  const updates = loadUpdates();
+  const hasNewUpdates = updates.some((u) => isNewUpdate(u.date));
+
+  const dateGroups = groupTimelineByDate(
+    updates.map((u) => ({ kind: 'update' as const, data: u }))
+  );
+  const seasonGroups: SeasonGroup[] = groupBySeason(dateGroups);
+
+  const items: NavigationItem[] = [];
+
+  const landingItem: NavigationItem = {
+    title: 'Последние обновления',
+    href: '/updates',
+  };
+  if (hasNewUpdates) landingItem.badge = 'new';
+  items.push(landingItem);
+
+  for (const sg of seasonGroups) {
+    items.push({
+      title: `${sg.season.emoji} ${sg.season.label}`,
+      href: `/updates/season/${sg.season.slug}`,
+      children: sg.dates.map((dg) => ({
+        title: dg.displayDate,
+        href: `/updates/${dg.date}`,
+      })),
+    });
   }
 
-  sections.push(generateFooterSection());
-  return sections;
+  return [{ title: 'Обновления', items }];
 }
 
 /**
@@ -135,7 +169,6 @@ async function generateApiNavigation(): Promise<NavigationSection[]> {
     items: methodGroups,
   });
 
-  sections.push(generateFooterSection());
   return sections;
 }
 
@@ -143,9 +176,13 @@ async function generateApiNavigation(): Promise<NavigationSection[]> {
  * Full navigation (for backward compatibility, search, sitemap, etc.)
  */
 async function generateFullNavigation(): Promise<NavigationSection[]> {
-  const guideNav = generateGuideNavigation();
+  const guideNav = generateGuidesNavigation();
+  const cliNav = generateSectionNavigation(CLI_SECTIONS);
+  const sdkNav = generateSectionNavigation(SDK_SECTIONS);
+  const n8nNav = generateSectionNavigation(N8N_SECTIONS);
+  const updatesNav = generateUpdatesNavigation();
   const apiNav = await generateApiNavigation();
-  return [...guideNav, ...apiNav];
+  return [...guideNav, ...cliNav, ...sdkNav, ...n8nNav, ...updatesNav, ...apiNav];
 }
 
 /**
@@ -169,13 +206,10 @@ function flattenItems(sections: NavigationSection[]): NavigationItem[] {
 
 /**
  * Get previous/next items for page navigation.
+ * Resolves tab via getActiveTab so nested prefixes (/guides/cli) work correctly.
  */
 export async function getAdjacentItems(currentHref: string) {
-  // Determine tab from URL
-  let tab: TabId | undefined;
-  if (currentHref.startsWith('/guides')) tab = 'guide';
-  else if (currentHref.startsWith('/api')) tab = 'api';
-
+  const tab = getActiveTab(currentHref) ?? undefined;
   const sections = await generateNavigation(tab);
   const allItems = flattenItems(sections);
   const currentIndex = allItems.findIndex((item) => item.href === currentHref);

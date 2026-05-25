@@ -24,7 +24,10 @@ export function Header({ hasNewUpdates }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-b border-background-border z-50 flex flex-col">
       {/* Top row: logo, centered search (desktop), right-side buttons */}
-      <div className="flex items-center px-3" style={{ height: 'var(--mobile-header-height)' }}>
+      <div
+        className="flex items-center lg:px-5 px-3"
+        style={{ height: 'var(--mobile-header-height)' }}
+      >
         <LogoLink />
 
         {/* Centered search on desktop */}
@@ -41,7 +44,7 @@ export function Header({ hasNewUpdates }: HeaderProps) {
 
       {/* Bottom row: tabs under the logo (desktop only) */}
       <nav
-        className="hidden lg:flex items-center gap-1 px-3 border-t border-background-border/60"
+        className="hidden lg:flex items-center gap-1 px-5"
         style={{ height: 'var(--header-tabs-height)' }}
       >
         {TABS.map((tab) => {
@@ -51,20 +54,22 @@ export function Header({ hasNewUpdates }: HeaderProps) {
             <Link
               key={tab.id}
               href={tab.defaultHref}
-              className={`relative flex items-center h-full px-3 text-[14px] font-medium whitespace-nowrap transition-colors duration-200 ${
+              className={`flex items-center h-full mr-4 text-[14px] font-medium whitespace-nowrap transition-colors duration-200 ${
                 isActive ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
-              <span>{tab.title}</span>
-              {showBadge && (
-                <span
-                  className="ml-1.5 w-1.5 h-1.5 rounded-full bg-primary"
-                  aria-label="новые обновления"
-                />
-              )}
-              {isActive && (
-                <span className="absolute left-0 right-0 bottom-0 h-[2px] bg-primary rounded-full" />
-              )}
+              <span className="relative inline-flex items-center h-full">
+                {tab.title}
+                {showBadge && (
+                  <span
+                    className="ml-1.5 w-1.5 h-1.5 rounded-full bg-primary"
+                    aria-label="новые обновления"
+                  />
+                )}
+                {isActive && (
+                  <span className="absolute left-0 right-0 -bottom-px h-px bg-primary" />
+                )}
+              </span>
             </Link>
           );
         })}

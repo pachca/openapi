@@ -13,6 +13,15 @@ interface SidebarNavProps {
 }
 
 /**
+ * Stable accordion key — URL is always unique across the sidebar, so two
+ * groups that share the same display title (e.g. "По дням" inside each
+ * year section) don't collide on the Radix Accordion value.
+ */
+function groupKey(item: NavigationItem): string {
+  return item.href || item.title;
+}
+
+/**
  * Check if a group or any of its children match the current pathname.
  */
 function isGroupActive(item: NavigationItem, pathname: string): boolean {
@@ -29,7 +38,7 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
 
   // Initialize open groups based on current path
   const [openGroups, setOpenGroups] = useState<string[]>(() => {
-    return allGroups.filter((g) => isGroupActive(g, pathname)).map((g) => g.title);
+    return allGroups.filter((g) => isGroupActive(g, pathname)).map(groupKey);
   });
 
   const handleItemClick = () => {
@@ -46,9 +55,8 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
 
     const activeGroup = allGroups.find((g) => isGroupActive(g, pathname));
     if (activeGroup) {
-      setOpenGroups((prev) =>
-        prev.includes(activeGroup.title) ? prev : [...prev, activeGroup.title]
-      );
+      const key = groupKey(activeGroup);
+      setOpenGroups((prev) => (prev.includes(key) ? prev : [...prev, key]));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
@@ -67,23 +75,39 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
 
       // Wait for accordion animation to finish
       setTimeout(() => {
-        // Find the accordion item that just opened
-        const openItems = container.querySelectorAll('[data-state=open]');
-        const accordionItem = Array.from(openItems)
-          .find((el) => el.closest('.overflow-hidden')?.textContent?.includes(newlyOpened))
-          ?.closest('.overflow-hidden');
+        const accordionItem = container.querySelector<HTMLElement>(
+          `[data-group-key="${CSS.escape(newlyOpened)}"]`
+        );
         if (!accordionItem) return;
 
         const containerRect = container.getBoundingClientRect();
         const itemRect = accordionItem.getBoundingClientRect();
+        const groupHeight = itemRect.height;
+        const visibleHeight = containerRect.height;
 
-        // Only scroll if the bottom of the group overflows the visible area
-        if (itemRect.bottom > containerRect.bottom) {
-          const overflow = itemRect.bottom - containerRect.bottom;
-          container.scrollTo({
-            top: container.scrollTop + overflow + 32,
-            behavior: 'smooth',
-          });
+        // Priority: the group's trigger (top of the item) must stay visible.
+        // — If the group fits entirely in the viewport and its bottom
+        //   overflows, scroll just enough to show the whole group.
+        // — Otherwise (large group) keep the trigger pinned to the top of
+        //   the viewport and let the user scroll the rest by hand.
+        // — If the top is already above the viewport, scroll up to reveal it.
+        const padding = 8;
+        let targetScrollTop: number | null = null;
+
+        if (itemRect.top < containerRect.top) {
+          // Top of the group is above the viewport — reveal it.
+          targetScrollTop = container.scrollTop + (itemRect.top - containerRect.top) - padding;
+        } else if (groupHeight <= visibleHeight && itemRect.bottom > containerRect.bottom) {
+          // Whole group fits but its bottom overflows — pull the bottom up.
+          targetScrollTop =
+            container.scrollTop + (itemRect.bottom - containerRect.bottom) + padding;
+        } else if (groupHeight > visibleHeight && itemRect.top > containerRect.top) {
+          // Group is taller than the viewport — pin its top to the viewport top.
+          targetScrollTop = container.scrollTop + (itemRect.top - containerRect.top) - padding;
+        }
+
+        if (targetScrollTop !== null) {
+          container.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
         }
       }, 220);
     },
@@ -116,7 +140,7 @@ export function SidebarNav({ navigation, onNavigate }: SidebarNavProps) {
                   <SidebarGroup
                     item={item}
                     pathname={pathname}
-                    isOpen={openGroups.includes(item.title)}
+                    isOpen={openGroups.includes(groupKey(item))}
                     onItemClick={handleItemClick}
                   />
                 </li>
@@ -146,9 +170,10 @@ function SidebarGroup({
   onItemClick: () => void;
 }) {
   const activeChild = item.children?.find((c) => c.href === pathname);
+  const key = groupKey(item);
 
   return (
-    <Accordion.Item value={item.title} className="overflow-hidden">
+    <Accordion.Item value={key} data-group-key={key} className="overflow-hidden">
       <Accordion.Header>
         <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
           <span className="min-w-0 flex items-center gap-1">

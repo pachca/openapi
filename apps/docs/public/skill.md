@@ -249,7 +249,7 @@ Detailed documentation on specific topics is available at:
 - [Сценарии](https://dev.pachca.com/guides/cli/workflows) — Готовые пошаговые сценарии Pachca CLI через pachca guide: поиск рецептов по задаче, последовательности команд с комментариями.
 - [Файлы](https://dev.pachca.com/guides/cli/files) — Загрузка файлов через Pachca CLI: pachca upload автоматически получает подпись и загружает на S3 одной командой.
 - [Прямые запросы](https://dev.pachca.com/guides/cli/api-requests) — Команда pachca api: прямые HTTP-запросы к любому методу (поля -f/-F, инлайн JSON, stdin) и встроенный справочник по API (ls, --describe, --spec, --docs) прямо в терминале, без сайта документации.
-- [Справочник команд](https://dev.pachca.com/guides/cli/commands) — Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику.
+- [Команды](https://dev.pachca.com/guides/cli/commands) — Справочник всех команд Pachca CLI: каждый метод API как команда, паттерн pachca [секция] [действие] [--флаги]. Параметры каждой команды — по клику.
 - [Обзор](https://dev.pachca.com/guides/sdk/overview) — Типизированные SDK для Pachca API на TypeScript, Python, Go, Kotlin, Swift и C#: автодополнение, retry и пагинация. Или свой клиент через OpenAPI-генератор
 - [TypeScript](https://dev.pachca.com/guides/sdk/typescript) — Типизированный клиент для Pachca API на TypeScript: Node.js 18+ или любое окружение с fetch. Автодополнение, автопагинация и retry. npm-пакет @pachca/sdk
 - [Python](https://dev.pachca.com/guides/sdk/python) — Асинхронный типизированный клиент для Pachca API на Python: httpx, type hints, dataclass-модели, автопагинация и retry. PyPI-пакет, требуется Python 3.10+

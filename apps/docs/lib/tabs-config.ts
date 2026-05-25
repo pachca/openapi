@@ -138,27 +138,38 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
 /** CLI tab sidebar — все страницы под /guides/cli */
 export const CLI_SECTIONS: SidebarSection[] = [
   {
-    title: 'CLI',
+    title: 'Основы CLI',
     items: [
       { title: 'Обзор', path: '/guides/cli/overview' },
       { title: 'Установка', path: '/guides/cli/installation' },
       { title: 'Авторизация', path: '/guides/cli/authentication' },
+    ],
+  },
+  {
+    title: 'Руководства',
+    items: [
       { title: 'Вывод', path: '/guides/cli/output' },
       { title: 'Флаги и скрипты', path: '/guides/cli/scripting' },
       { title: 'Сценарии', path: '/guides/cli/workflows' },
       { title: 'Файлы', path: '/guides/cli/files' },
       { title: 'Прямые запросы', path: '/guides/cli/api-requests' },
-      { title: 'Справочник команд', path: '/guides/cli/commands' },
     ],
+  },
+  {
+    title: 'Справочники',
+    items: [{ title: 'Команды', path: '/guides/cli/commands' }],
   },
 ];
 
 /** SDK tab sidebar — все страницы под /guides/sdk */
 export const SDK_SECTIONS: SidebarSection[] = [
   {
-    title: 'SDK',
+    title: 'Основы SDK',
+    items: [{ title: 'Обзор', path: '/guides/sdk/overview' }],
+  },
+  {
+    title: 'Языки',
     items: [
-      { title: 'Обзор', path: '/guides/sdk/overview' },
       { title: 'TypeScript', path: '/guides/sdk/typescript' },
       { title: 'Python', path: '/guides/sdk/python' },
       { title: 'Go', path: '/guides/sdk/go' },
@@ -172,15 +183,25 @@ export const SDK_SECTIONS: SidebarSection[] = [
 /** n8n tab sidebar — все страницы под /guides/n8n */
 export const N8N_SECTIONS: SidebarSection[] = [
   {
-    title: 'n8n',
+    title: 'Основы n8n',
     items: [
       { title: 'Обзор', path: '/guides/n8n/overview' },
       { title: 'Начало работы', path: '/guides/n8n/setup' },
+    ],
+  },
+  {
+    title: 'Руководства',
+    items: [
       { title: 'Ресурсы и операции', path: '/guides/n8n/resources' },
       { title: 'Триггер', path: '/guides/n8n/trigger' },
       { title: 'Тестирование', path: '/guides/n8n/testing' },
       { title: 'Примеры workflow', path: '/guides/n8n/workflows' },
       { title: 'Продвинутые функции', path: '/guides/n8n/advanced' },
+    ],
+  },
+  {
+    title: 'Справочники',
+    items: [
       { title: 'Устранение ошибок', path: '/guides/n8n/troubleshooting' },
       { title: 'Миграция с v1', path: '/guides/n8n/migration' },
     ],

@@ -13,9 +13,10 @@ import {
 } from './tabs-config';
 import { getGuideData } from './content-loader';
 import { sortTagsByOrder } from './guides-config';
-import { loadUpdates, isNewUpdate } from './updates-parser';
+import { loadUpdates } from './updates-parser';
 import { groupBySeason, type SeasonGroup } from './seasons';
 import { groupTimelineByDate } from './updates-parser';
+import { formatDayMonthRu } from './format-date';
 import { TAG_TRANSLATIONS } from './tag-translations';
 
 export { TAG_TRANSLATIONS };
@@ -80,39 +81,66 @@ function generateGuidesNavigation(): NavigationSection[] {
 }
 
 /**
- * Updates tab sidebar — landing + seasons accordion.
+ * Updates tab sidebar — "Обзор" + per-year section per season groups.
  * Each season is a collapsible group with date children.
  */
 function generateUpdatesNavigation(): NavigationSection[] {
   const updates = loadUpdates();
-  const hasNewUpdates = updates.some((u) => isNewUpdate(u.date));
 
   const dateGroups = groupTimelineByDate(
     updates.map((u) => ({ kind: 'update' as const, data: u }))
   );
   const seasonGroups: SeasonGroup[] = groupBySeason(dateGroups);
 
-  const items: NavigationItem[] = [];
+  const sections: NavigationSection[] = [];
 
-  const landingItem: NavigationItem = {
-    title: 'Последние обновления',
-    href: '/updates',
-  };
-  if (hasNewUpdates) landingItem.badge = 'new';
-  items.push(landingItem);
+  // "Обзор" — landing (badge "new" lives on the header tab, not duplicated here)
+  sections.push({
+    title: 'Обзор',
+    items: [{ title: 'Последние обновления', href: '/updates' }],
+  });
 
+  // Group seasons by year. Winter is bucketed under its end year
+  // (Jan–Feb fall there and make up the bulk of the season).
+  const byYear = new Map<string, SeasonGroup[]>();
   for (const sg of seasonGroups) {
-    items.push({
+    const startYear = Number(sg.season.sortKey.slice(0, 4));
+    const year = String(sg.season.kind === 'winter' ? startYear + 1 : startYear);
+    const bucket = byYear.get(year) ?? [];
+    bucket.push(sg);
+    byYear.set(year, bucket);
+  }
+  const years = Array.from(byYear.keys()).sort((a, b) => b.localeCompare(a));
+
+  for (const year of years) {
+    const yearSeasons = byYear.get(year) ?? [];
+    const items: NavigationItem[] = yearSeasons.map((sg) => ({
       title: `${sg.season.emoji} ${sg.season.label}`,
       href: `/updates/season/${sg.season.slug}`,
-      children: sg.dates.map((dg) => ({
-        title: dg.displayDate,
-        href: `/updates/${dg.date}`,
-      })),
-    });
+    }));
+
+    const dateChildren: NavigationItem[] = yearSeasons.flatMap((sg) =>
+      sg.dates.map((dg) => {
+        const firstUpdate = dg.entries.find((e) => e.kind === 'update');
+        const dateLabel = formatDayMonthRu(dg.date);
+        return {
+          title: firstUpdate ? `${dateLabel} – ${firstUpdate.data.title}` : dateLabel,
+          href: `/updates/${dg.date}`,
+        };
+      })
+    );
+    if (dateChildren.length > 0) {
+      items.push({
+        title: `Все обновления ${year}`,
+        href: dateChildren[0].href,
+        children: dateChildren,
+      });
+    }
+
+    sections.push({ title: year, items });
   }
 
-  return [{ title: 'Обновления', items }];
+  return sections;
 }
 
 /**

@@ -168,17 +168,20 @@ function UpdateEntry({
 /**
  * Render a single date group (timeline node with updates + releases).
  * `anchored` controls whether the section gets an `id` + copy-link heading
- * button. The single-date page passes `false` so an incoming `#slug` hash
- * does not auto-scroll past the "Все обновления" link.
+ * button.
+ * `flat=true` strips the timeline marker, date subtitle and the inner h3
+ * (the single-date page renders its own h1 and MarkdownActions instead).
  */
 function DateGroupBlock({
   group,
   allEndpoints,
   anchored = true,
+  flat = false,
 }: {
   group: DateGroup;
   allEndpoints: Awaited<ReturnType<typeof parseOpenAPI>>['endpoints'];
   anchored?: boolean;
+  flat?: boolean;
 }) {
   const isNew = isNewUpdate(group.date);
   const updates = group.entries.filter(
@@ -197,25 +200,35 @@ function DateGroupBlock({
       id={anchored ? sectionId : undefined}
       style={{ scrollMarginTop: 'var(--scroll-offset)' }}
     >
-      <div
-        className={`absolute -left-[45.5px] top-0 w-3 h-3 rounded-full border-2 border-background z-10 ${
-          isNew ? 'bg-primary' : 'bg-background-border'
-        }`}
-      />
+      {!flat && (
+        <div
+          className={`absolute -left-[45.5px] top-0 w-3 h-3 rounded-full border-2 border-background z-10 ${
+            isNew ? 'bg-primary' : 'bg-background-border'
+          }`}
+        />
+      )}
       <div className="flex flex-col mb-3">
-        <span className="text-[13px] font-medium text-text-secondary leading-none mb-2">
-          {group.displayDate}
-        </span>
+        {!flat && (
+          <span className="text-[13px] font-medium text-text-secondary leading-none mb-2">
+            {group.displayDate}
+          </span>
+        )}
 
         {/* API updates */}
         {updates.map((entry, i) => (
           <div key={`update-${i}`} className={i > 0 ? 'mt-8' : ''}>
-            <UpdateEntry
-              entry={entry}
-              allEndpoints={allEndpoints}
-              sectionId={sectionId}
-              anchored={anchored}
-            />
+            {flat ? (
+              <div className="text-text-primary leading-relaxed space-y-2 max-w-3xl">
+                <MarkdownContent content={entry.data.content} allEndpoints={allEndpoints} />
+              </div>
+            ) : (
+              <UpdateEntry
+                entry={entry}
+                allEndpoints={allEndpoints}
+                sectionId={sectionId}
+                anchored={anchored}
+              />
+            )}
           </div>
         ))}
 
@@ -257,19 +270,40 @@ function Timeline({ children }: { children: React.ReactNode }) {
  * Render API updates + product releases for the given date groups.
  * When `showSeasonHeaders` is set, dates are grouped under season headers
  * (🌷 Весна 2026 …); otherwise a flat timeline is rendered.
+ * `flat=true` drops the timeline column entirely (used by the single-date
+ * page where the h1 is already supplied by the page wrapper).
  */
 export async function UpdatesList({
   dateGroups,
   showSeasonHeaders = false,
   anchored = true,
+  flat = false,
 }: {
   dateGroups: DateGroup[];
   showSeasonHeaders?: boolean;
   /** Single-date page passes false to avoid hash auto-scroll past the CTA. */
   anchored?: boolean;
+  /** Drop the timeline marker + date subtitle + inner h3. */
+  flat?: boolean;
 }) {
   const api = await parseOpenAPI();
   const allEndpoints = api.endpoints;
+
+  if (flat) {
+    return (
+      <div className="space-y-12">
+        {dateGroups.map((group) => (
+          <DateGroupBlock
+            key={group.date}
+            group={group}
+            allEndpoints={allEndpoints}
+            anchored={anchored}
+            flat
+          />
+        ))}
+      </div>
+    );
+  }
 
   if (!showSeasonHeaders) {
     return (

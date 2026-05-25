@@ -69,6 +69,12 @@ function isLiveFetchAgent(ua: string | null): boolean {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Albato guide moved to the public help center. Preserve SEO weight with a 301.
+  if (pathname === '/guides/albato' || pathname === '/guides/albato.md') {
+    return NextResponse.redirect('https://pachca.com/help-center/integrations/albato', 301);
+  }
+
   const twin = markdownTwin(pathname);
 
   // Markdown content negotiation (2026 "agent-friendly pages" pattern): an

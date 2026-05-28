@@ -103,6 +103,7 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
           { title: 'Markdown и документы', path: '/guides/ai-agents/markdown' },
         ],
       },
+      { title: 'Треды', path: '/guides/threads' },
       { title: 'Сценарии', path: '/guides/workflows' },
     ],
   },

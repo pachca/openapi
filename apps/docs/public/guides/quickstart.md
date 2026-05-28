@@ -5,7 +5,7 @@
 
 Это руководство поможет вам выполнить первый запрос к API Пачки — от получения токена до создания чата.
 
-> Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#nastroyka-dostupa)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Также можно использовать [CLI](/guides/cli/overview) — все методы доступны как команды.
+> Для работы с API нужен аккаунт Пачки с доступом к API (настраивается [владельцем пространства](/api/authorization#kto-mozhet-sozdavat-tokeny)) и любой HTTP-клиент — терминал с cURL, [Postman или Bruno](/api/requests-responses#postman-bruno). Также можно использовать [CLI](/guides/cli/overview) — все методы доступны как команды.
 
 
 ## Первые запросы
@@ -76,5 +76,5 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 - [Ошибки](/api/errors) — коды ошибок и структуры `ApiError`/`OAuthError`
 - [Лимиты](/api/limits) — rate limits и повторные запросы (retry)
 - [Пагинация](/api/pagination) — обход больших списков
-- [Боты](/guides/bots) — создание ботов и автоматизаций
+- [Боты](/guides/bots/overview) — создание ботов и автоматизаций
 - [SDK](/guides/sdk/overview) — типизированные клиентские библиотеки

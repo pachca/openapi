@@ -391,7 +391,7 @@ function generateLibraryRules(): string {
   - \`npx -y @pachca/cli api <METHOD> <path> --spec\` — OpenAPI fragment (request/response schemas)
   - \`npx -y @pachca/cli api <METHOD> <path> --docs\` — full Markdown reference for that one endpoint
 - Arbitrary request to any endpoint: \`npx -y @pachca/cli api <METHOD> <path> -f field=value\` (or \`-F\` typed, \`--input body.json\`, \`--data '{...}'\`)
-- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook.md\`)
+- Any documentation page is also available as Markdown — append \`.md\` to its URL (e.g. \`${SITE_URL}/guides/webhook/overview.md\`)
 
 `;
 }

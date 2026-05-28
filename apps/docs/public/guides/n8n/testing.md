@@ -46,7 +46,7 @@
 *Ответ API в Output*
 
 
-> **Внимание:** Перед тестом отправки сообщения убедитесь, что бот [добавлен в целевой чат](/guides/bots#dostupy-bota-k-chatam-i-soobscheniyam) и у токена есть нужный [скоуп](/api/authorization#skoupy). Иначе вы получите 403 Forbidden — симптомы и решения в разделе [Устранение ошибок](/guides/n8n/troubleshooting#nedostatochno-prav-403-forbidden).
+> **Внимание:** Перед тестом отправки сообщения убедитесь, что бот [добавлен в целевой чат](/guides/bots/access) и у токена есть нужный [скоуп](/api/authorization#skoupy). Иначе вы получите 403 Forbidden — симптомы и решения в разделе [Устранение ошибок](/guides/n8n/troubleshooting#nedostatochno-prav-403-forbidden).
 
 
 ### Мокирование входных данных через Pin Data

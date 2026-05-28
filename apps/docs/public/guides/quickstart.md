@@ -71,10 +71,20 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 
 ## Следующие шаги
 
+### Основы
+
 - [Авторизация](/api/authorization) — типы токенов, скоупы и разрешения
 - [Запросы и ответы](/api/requests-responses) — формат данных и инструменты тестирования
 - [Ошибки](/api/errors) — коды ошибок и структуры `ApiError`/`OAuthError`
 - [Лимиты](/api/limits) — rate limits и повторные запросы (retry)
 - [Пагинация](/api/pagination) — обход больших списков
-- [Боты](/guides/bots/overview) — создание ботов и автоматизаций
-- [SDK](/guides/sdk/overview) — типизированные клиентские библиотеки
+- [Загрузка файлов](/api/file-uploads) — прямая загрузка в S3 одной командой
+
+### Выберите путь работы с API
+
+- [Боты](/guides/bots/overview) — Интеграции с вебхуками, кнопками и формами
+- [CLI](/guides/cli/overview) — Скрипты и одноразовые задачи из терминала
+- [n8n](/guides/n8n/overview) — No-code workflow с готовыми нодами
+
+
+Если нужен типизированный клиент — [SDK](/guides/sdk/overview) для TypeScript, Python, Go, Kotlin, Swift и C#.

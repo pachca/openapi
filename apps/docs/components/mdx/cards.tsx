@@ -57,6 +57,9 @@ import {
   Database,
   BotMessageSquare,
   FileDiff,
+  Gauge,
+  ListOrdered,
+  Upload,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -107,6 +110,9 @@ const iconMap: Record<string, LucideIcon> = {
   Database,
   BotMessageSquare,
   FileDiff,
+  Gauge,
+  ListOrdered,
+  Upload,
 };
 
 /** Icon mapping for guide pages by path */
@@ -127,6 +133,9 @@ const GUIDE_ICONS: Record<string, string> = {
   '/api/authorization': 'KeyRound',
   '/api/requests-responses': 'ArrowLeftRight',
   '/api/errors': 'AlertTriangle',
+  '/api/limits': 'Gauge',
+  '/api/pagination': 'ListOrdered',
+  '/api/file-uploads': 'Upload',
   '/updates': 'FileText',
 };
 

@@ -109,7 +109,16 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
   {
     title: 'Боты и автоматизации',
     items: [
-      { title: 'Боты', path: '/guides/bots' },
+      {
+        title: 'Боты',
+        path: '/guides/bots/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/bots/overview' },
+          { title: 'Создание и настройка', path: '/guides/bots/setup' },
+          { title: 'Доступы к чатам и сообщениям', path: '/guides/bots/access' },
+          { title: 'Готовые примеры', path: '/guides/bots/examples' },
+        ],
+      },
       { title: 'Входящие вебхуки', path: '/guides/incoming-webhooks' },
       { title: 'Исходящие вебхуки', path: '/guides/webhook' },
       { title: 'Кнопки в сообщениях', path: '/guides/buttons' },

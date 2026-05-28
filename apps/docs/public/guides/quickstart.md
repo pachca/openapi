@@ -76,5 +76,5 @@ curl "https://api.pachca.com/api/shared/v1/chats" \
 - [Ошибки](/api/errors) — коды ошибок и структуры `ApiError`/`OAuthError`
 - [Лимиты](/api/limits) — rate limits и повторные запросы (retry)
 - [Пагинация](/api/pagination) — обход больших списков
-- [Боты](/guides/bots) — создание ботов и автоматизаций
+- [Боты](/guides/bots/overview) — создание ботов и автоматизаций
 - [SDK](/guides/sdk/overview) — типизированные клиентские библиотеки

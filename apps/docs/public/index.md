@@ -55,17 +55,6 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 ```
 
 
-## Основы API
-
-Базовые концепции для работы с API: формат запросов, обработка ошибок, лимиты, пагинация и загрузка файлов.
-
-- [Запросы и ответы](/api/requests-responses) — Базовый URL, заголовки, формат данных
-- [Ошибки](/api/errors) — HTTP-коды и структуры ApiError и OAuthError
-- [Лимиты](/api/limits) — Rate limits и повторные запросы
-- [Пагинация](/api/pagination) — Обход больших списков по курсору
-- [Загрузка файлов](/api/file-uploads) — Прямая загрузка в S3 одной командой
-
-
 ## Боты и автоматизации
 
 Создавайте ботов, обрабатывайте команды, добавляйте кнопки и формы в сообщения, получайте события через вебхуки.
@@ -76,6 +65,17 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 - [Входящие вебхуки](/guides/incoming-webhooks) — Сообщения по URL без кода
 - [Исходящие вебхуки](/guides/webhook/overview) — События в реальном времени
 - [Разворачивание ссылок](/guides/link-previews) — Превью ссылок в сообщениях
+
+
+## Основы API
+
+Базовые концепции для работы с API: формат запросов, обработка ошибок, лимиты, пагинация и загрузка файлов.
+
+- [Запросы и ответы](/api/requests-responses) — Базовый URL, заголовки, формат данных
+- [Ошибки](/api/errors) — HTTP-коды и структуры ответов
+- [Лимиты](/api/limits) — Rate limits и повторные запросы
+- [Пагинация](/api/pagination) — Обход больших списков по курсору
+- [Загрузка файлов](/api/file-uploads) — Прямая загрузка в S3 одной командой
 
 
 ## Данные и безопасность
@@ -92,7 +92,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 Спецификации, коллекции и файлы для интеграции.
 
 - [OpenAPI-спецификация](/openapi.yaml) — Описание всех методов в YAML
-- [Коллекция Postman](/pachca.postman_collection.json) — Все методы с примерами для Postman и Bruno
+- [Коллекция Postman](/pachca.postman_collection.json) — Все методы с примерами
 - [Arazzo-сценарии](/workflows.arazzo.yaml) — Многошаговые сценарии API для агентов
 - [llms.txt](/llms.txt) — Краткое описание API для LLM
 - [llms-full.txt](/llms-full.txt) — Полное описание API для LLM

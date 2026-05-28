@@ -98,7 +98,7 @@ Pachca Trigger поддерживает два режима настройки: 
     <ImageCard src="/images/n8n/trigger-webhook-urls.avif" alt="Test URL и Production URL в панели узла n8n" caption="Test URL и Production URL в верхней части панели узла" maxWidth={960} />
   </Step>
   <Step title="Вставьте URL в настройки бота в Пачке">
-    Откройте настройки вашего бота в Пачке, перейдите на вкладку **Исходящий Webhook** и вставьте скопированный Production URL в поле **Webhook URL**. Подробнее — в разделе [Исходящие вебхуки](/guides/webhook#nastroiki).
+    Откройте настройки вашего бота в Пачке, перейдите на вкладку **Исходящий Webhook** и вставьте скопированный Production URL в поле **Webhook URL**. Подробнее — в разделе [Настройка и типы событий](/guides/webhook/events#obschie-nastroiki).
   </Step>
   <Step title="Вернитесь в n8n и активируйте">
     Нажмите **Activate** в n8n. С этого момента бот отправляет события в ваш workflow.
@@ -180,7 +180,7 @@ Pachca Trigger поддерживает два режима настройки: 
 
 Для защиты от поддельных запросов добавьте **Signing Secret** бота в [Credentials](/guides/n8n/setup#sozdanie-credentials). Trigger автоматически проверяет HMAC-SHA256 подпись каждого входящего запроса через заголовок `pachca-signature` и отклоняет невалидные.
 
-Подробнее о механизме подписи — в разделе [Исходящие вебхуки](/guides/webhook#bezopasnost).
+Подробнее о механизме подписи — в разделе [Безопасность и обработчик](/guides/webhook/handler#bezopasnost).
 
 <Info>Рекомендуется всегда использовать Signing Secret в продакшене для защиты от несанкционированных запросов.</Info>
 

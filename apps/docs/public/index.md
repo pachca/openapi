@@ -63,7 +63,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
 - [Кнопки](/guides/buttons) — Ссылки и действия в сообщениях
 - [Формы](/guides/forms/overview) — Модальные окна с полями ввода
 - [Входящие вебхуки](/guides/incoming-webhooks) — Сообщения по URL без кода
-- [Исходящие вебхуки](/guides/webhook) — События в реальном времени
+- [Исходящие вебхуки](/guides/webhook/overview) — События в реальном времени
 - [Разворачивание ссылок](/guides/link-previews) — Превью ссылок в сообщениях
 
 

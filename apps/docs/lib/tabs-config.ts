@@ -120,7 +120,16 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         ],
       },
       { title: 'Входящие вебхуки', path: '/guides/incoming-webhooks' },
-      { title: 'Исходящие вебхуки', path: '/guides/webhook' },
+      {
+        title: 'Исходящие вебхуки',
+        path: '/guides/webhook/overview',
+        children: [
+          { title: 'Обзор', path: '/guides/webhook/overview' },
+          { title: 'Настройка и типы событий', path: '/guides/webhook/events' },
+          { title: 'Безопасность и обработчик', path: '/guides/webhook/handler' },
+          { title: 'Поллинг', path: '/guides/webhook/polling' },
+        ],
+      },
       { title: 'Кнопки в сообщениях', path: '/guides/buttons' },
       {
         title: 'Формы',

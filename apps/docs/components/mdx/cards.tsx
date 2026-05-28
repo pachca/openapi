@@ -119,6 +119,7 @@ const GUIDE_ICONS: Record<string, string> = {
   '/guides/cli/overview': 'Terminal',
   '/guides/workflows': 'Route',
   '/guides/webhook': 'Webhook',
+  '/guides/webhook/overview': 'Webhook',
   '/guides/export': 'Download',
   '/guides/forms/overview': 'LayoutList',
   '/guides/dlp': 'ShieldCheck',

@@ -21,6 +21,8 @@ const redirects: Redirect[] = [
   { source: '/guides/ai-agents.md', destination: '/guides/ai-agents/overview.md' },
   { source: '/guides/bots', destination: '/guides/bots/overview' },
   { source: '/guides/bots.md', destination: '/guides/bots/overview.md' },
+  { source: '/guides/webhook', destination: '/guides/webhook/overview' },
+  { source: '/guides/webhook.md', destination: '/guides/webhook/overview.md' },
 
   // ===== SDK → Guides =====
   { source: '/api/sdk', destination: '/guides/sdk/overview' },

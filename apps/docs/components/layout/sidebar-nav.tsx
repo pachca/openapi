@@ -173,20 +173,35 @@ function SidebarGroup({
   const key = groupKey(item);
 
   return (
-    <Accordion.Item value={key} data-group-key={key} className="overflow-hidden">
-      <Accordion.Header>
-        <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
-          <span className="min-w-0 flex items-center gap-1">
-            <span className="truncate">{item.title}</span>
-          </span>
-          <ChevronDown
-            className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]:rotate-0 shrink-0"
-            strokeWidth={2.5}
-          />
-        </Accordion.Trigger>
-      </Accordion.Header>
+    <>
+      <Accordion.Item value={key} data-group-key={key} className="overflow-hidden">
+        <Accordion.Header>
+          <Accordion.Trigger className="flex gap-1.5 w-full items-center justify-between px-2.5 py-1.5 text-[14px] leading-[1.4] rounded-md text-text-secondary hover:bg-glass-hover transition-colors duration-200 font-medium tracking-tight group cursor-pointer outline-none">
+            <span className="min-w-0 flex items-center gap-1">
+              <span className="truncate">{item.title}</span>
+            </span>
+            <ChevronDown
+              className="w-3.5 h-3.5 text-text-secondary group-hover:text-text-primary transition-all duration-200 -rotate-90 group-data-[state=open]:rotate-0 shrink-0"
+              strokeWidth={2.5}
+            />
+          </Accordion.Trigger>
+        </Accordion.Header>
 
-      {/* Show active child when group is collapsed */}
+        <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
+          <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
+            <ul className="list-none space-y-0.5">
+              {item.children!.map((child, cIdx) => (
+                <SidebarItem key={cIdx} item={child} onItemClick={onItemClick} />
+              ))}
+            </ul>
+          </div>
+        </Accordion.Content>
+      </Accordion.Item>
+
+      {/* Active child shortcut — рендерится СНАРУЖИ Accordion.Item, потому что
+          условный блок внутри Item меняет позицию Content в дереве и триггерит
+          расхождение `useId` в Radix → hydration mismatch на aria-controls.
+          См. radix-ui/primitives#3700, vercel/next.js#84029. */}
       {!isOpen && activeChild && (
         <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
           <ul className="list-none space-y-0.5">
@@ -194,16 +209,6 @@ function SidebarGroup({
           </ul>
         </div>
       )}
-
-      <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-        <div className="ml-3 pl-4 border-l border-glass-divider mt-1 space-y-0.5">
-          <ul className="list-none space-y-0.5">
-            {item.children!.map((child, cIdx) => (
-              <SidebarItem key={cIdx} item={child} onItemClick={onItemClick} />
-            ))}
-          </ul>
-        </div>
-      </Accordion.Content>
-    </Accordion.Item>
+    </>
   );
 }

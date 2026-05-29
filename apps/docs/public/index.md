@@ -21,6 +21,7 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
   -H "Content-Type: application/json" \
   -d '{
   "message": {
+    "entity_type": "discussion",
     "entity_id": 334,
     "content": "Вчера мы продали 756 футболок (что на 10% больше, чем в прошлое воскресенье)",
     "files": [
@@ -47,8 +48,10 @@ curl "https://api.pachca.com/api/shared/v1/messages" \
     ],
     "parent_message_id": 194270,
     "display_avatar_url": "https://example.com/avatar.png",
-    "display_name": "Бот Поддержки"
-  }
+    "display_name": "Бот Поддержки",
+    "skip_invite_mentions": false
+  },
+  "link_preview": false
 }'
 ```
 

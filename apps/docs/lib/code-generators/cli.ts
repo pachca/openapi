@@ -123,15 +123,9 @@ function valueToFlag(
     }
   } else if (typeof value === 'object') {
     parts.push(`--${flag}='${JSON.stringify(value)}'`);
-  } else if (typeof value === 'number' || typeof value === 'bigint') {
-    parts.push(`--${flag}=${value}`);
   } else {
     const strValue = String(value);
-    // Квотируем только если в значении есть пробел или shell-метасимвол.
-    // Простые URL, идентификаторы, enum-значения и slug-и остаются без кавычек
-    // (по соглашению gh / Vercel / Heroku / AWS). Реальные URL с `?...&...`
-    // пользователь сам должен взять в кавычки при копировании.
-    if (/[\s&|;()<>*?$`\\'"#]/.test(strValue)) {
+    if (strValue.includes(' ')) {
       parts.push(`--${flag}="${strValue}"`);
     } else {
       parts.push(`--${flag}=${strValue}`);
@@ -196,9 +190,9 @@ function extractUnwrappedBodyFields(
         if (s.readOnly) continue;
         if (options?.requiredOnly && !innerRequired.includes(name)) continue;
         const example = generateExample(s, 0, options);
-        if (example === undefined) continue;
-        if (isRedundantDefault(s, innerRequired.includes(name), example)) continue;
-        fields.push({ name, example, schemaType: s.type, format: s.format });
+        if (example !== undefined) {
+          fields.push({ name, example, schemaType: s.type, format: s.format });
+        }
       }
     }
 
@@ -210,9 +204,9 @@ function extractUnwrappedBodyFields(
       if (s.readOnly) continue;
       if (options?.requiredOnly && !topRequired.includes(key)) continue;
       const example = generateExample(s, 0, options);
-      if (example === undefined) continue;
-      if (isRedundantDefault(s, topRequired.includes(key), example)) continue;
-      fields.push({ name: key, example, schemaType: s.type, format: s.format });
+      if (example !== undefined) {
+        fields.push({ name: key, example, schemaType: s.type, format: s.format });
+      }
     }
 
     return fields;
@@ -226,14 +220,9 @@ function extractUnwrappedBodyFields(
     if (s.readOnly) continue;
     if (options?.requiredOnly && !topRequired.includes(name)) continue;
     const example = generateExample(s, 0, options);
-    if (example === undefined) continue;
-    if (isRedundantDefault(s, topRequired.includes(name), example)) continue;
-    fields.push({ name, example, schemaType: s.type, format: s.format });
+    if (example !== undefined) {
+      fields.push({ name, example, schemaType: s.type, format: s.format });
+    }
   }
   return fields;
-}
-
-/** Шум: опциональное поле, у которого пример равен дефолту схемы. Тождественно «не передавать поле». */
-function isRedundantDefault(schema: Schema, isRequired: boolean, example: unknown): boolean {
-  return !isRequired && schema.default !== undefined && example === schema.default;
 }

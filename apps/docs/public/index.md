@@ -8,6 +8,7 @@ REST API Пачки позволяет автоматизировать рабо
 - [Быстрый старт](/guides/quickstart)
 - [Авторизация](/api/authorization)
 - [Модели API](/api/models)
+- [AI агенты](/guides/ai-agents/overview)
 - [CLI](/guides/cli/overview)
 - [SDK](/guides/sdk/overview)
 - [n8n](/guides/n8n/overview)

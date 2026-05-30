@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: 'Пачка',
       locale: 'ru_RU',
       description: ogDescription,
-      images: [`/api/og?type=method&path=${path}`],
+      images: [`/internal/og?type=method&path=${path}`],
     },
   };
 }
@@ -88,7 +88,7 @@ export default async function ApiMethodPage({ params }: { params: Promise<{ slug
         description: endpoint.description || endpoint.summary,
         url: `https://dev.pachca.com${path}`,
         inLanguage: 'ru',
-        image: `https://dev.pachca.com/api/og?type=method&path=${path}`,
+        image: `https://dev.pachca.com/internal/og?type=method&path=${path}`,
         dateModified: new Date().toISOString(),
         isPartOf: {
           '@type': 'WebSite',

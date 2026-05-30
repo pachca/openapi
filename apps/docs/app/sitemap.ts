@@ -74,12 +74,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // API endpoint pages
+  // API endpoint pages — all of them. The docs site's own search route now
+  // lives at /internal/search (not /api/search), so /api/ is a clean docs
+  // namespace and there's no internal route to special-case here.
   for (const endpoint of api.endpoints) {
-    const url = generateUrlFromOperation(endpoint);
-    if (url.startsWith('/api/search')) continue;
     entries.push({
-      url: `${BASE_URL}${url}`,
+      url: `${BASE_URL}${generateUrlFromOperation(endpoint)}`,
       lastModified: specMtime,
     });
   }

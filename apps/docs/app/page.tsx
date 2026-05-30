@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'Пачка',
       locale: 'ru_RU',
       description,
-      images: ['/api/og'],
+      images: ['/internal/og'],
     },
   };
 }
@@ -51,7 +51,7 @@ export default async function HomePage() {
         description: data.frontmatter.description,
         url: 'https://dev.pachca.com',
         inLanguage: 'ru',
-        image: 'https://dev.pachca.com/api/og',
+        image: 'https://dev.pachca.com/internal/og',
         dateModified: new Date().toISOString(),
         isPartOf: {
           '@type': 'WebSite',

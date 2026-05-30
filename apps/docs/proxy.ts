@@ -144,15 +144,15 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // All pages except static files, the api route handlers, .well-known
-    // discovery files, and .md/feeds. .well-known/* is excluded so each
-    // file's Content-Type / Cache-Control from next.config wins (no
-    // middleware override of headers on RFC 9727 api-catalog,
-    // skills/agent-skills indexes etc.).
-    // `api/(?:search|og)$` is anchored so ONLY the route handlers themselves
-    // are skipped — the search method doc pages (/api/search/<method>) still
-    // go through middleware and get the agent cache header (else they fall
-    // back to the CDN's year-long SSG cache; afdocs cache-header-hygiene).
-    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|api/(?:search|og)$|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
+    // All pages except static files, the docs site's own route handlers
+    // (under /internal/: search + OG image), .well-known discovery files, and
+    // .md/feeds. .well-known/* is excluded so each file's Content-Type /
+    // Cache-Control from next.config wins (no middleware override of headers on
+    // RFC 9727 api-catalog, skills/agent-skills indexes etc.).
+    // `/internal/*` are the site's own machinery (NOT Pachca API docs), so they
+    // stay out of /api/ — that keeps /api/ a clean documentation namespace and
+    // removes the prefix-collision that used to drop /api/search/<method> doc
+    // pages from middleware, the sitemap, and robots.
+    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|internal/|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
   ],
 };

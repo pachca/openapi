@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import React from 'react';
 
-const FONT_DIR = join(process.cwd(), 'app/api/og/fonts');
+const FONT_DIR = join(process.cwd(), 'app/internal/og/fonts');
 
 // Dark theme colors — warm stone palette (OKLCH → hex for satori)
 export const OG_COLORS = {

@@ -42,7 +42,7 @@ export async function generateMetadata({
       ? `${tabPrefix}, ${pageTitle}`
       : pageTitle;
   const description: string | undefined = data.frontmatter.description || firstParagraph;
-  const ogImage = `/api/og?type=guide&slug=${slugPath}`;
+  const ogImage = `/internal/og?type=guide&slug=${slugPath}`;
 
   return {
     title: { absolute: `${baseTitle} | Руководство разработчика` },
@@ -73,7 +73,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   }
 
   const pageUrl = `/guides/${slugPath}`;
-  const ogImage = `/api/og?type=guide&slug=${slugPath}`;
+  const ogImage = `/internal/og?type=guide&slug=${slugPath}`;
   const adjacent = await getAdjacentItems(pageUrl);
   const relatedItems = await resolveRelatedItems(data.frontmatter.related, pageUrl);
 

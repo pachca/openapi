@@ -149,6 +149,10 @@ export const config = {
     // file's Content-Type / Cache-Control from next.config wins (no
     // middleware override of headers on RFC 9727 api-catalog,
     // skills/agent-skills indexes etc.).
-    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|api/(?:search|og)|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
+    // `api/(?:search|og)$` is anchored so ONLY the route handlers themselves
+    // are skipped — the search method doc pages (/api/search/<method>) still
+    // go through middleware and get the agent cache header (else they fall
+    // back to the CDN's year-long SSG cache; afdocs cache-header-hygiene).
+    '/((?!_next/|favicon|apple-touch-icon|llms|feed\\.xml|sitemap\\.xml|robots\\.txt|openapi\\.yaml|\\.well-known/|api/(?:search|og)$|.*\\.(?:ico|svg|png|jpg|webp|md|yaml|json)).*)',
   ],
 };

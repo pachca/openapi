@@ -5,6 +5,10 @@ type Redirect = {
 };
 
 const redirects: Redirect[] = [
+  // ===== Корни разделов → стартовые страницы (иначе 404) =====
+  { source: '/api', destination: '/api/authorization', permanent: false },
+  { source: '/guides', destination: '/guides/quickstart', permanent: false },
+
   // ===== Guides → Standalone (temporary to avoid browser 308 cache issues) =====
   { source: '/guides/updates', destination: '/updates', permanent: false },
   { source: '/guides/updates.md', destination: '/updates.md', permanent: false },

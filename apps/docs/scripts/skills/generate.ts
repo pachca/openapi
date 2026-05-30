@@ -207,6 +207,11 @@ export function generateAllSkills(api: ParsedAPI) {
     path: 'apps/docs/public/.well-known/skills/index.json',
     content: rfcIndex,
   });
+  // A2A Agent Card — same skills re-projected into the Agent2Agent schema.
+  results.push({
+    path: 'apps/docs/public/.well-known/agent-card.json',
+    content: generateAgentCardJson(skillDigests),
+  });
   results.push({ path: 'AGENTS.md', content: generateAgentsMd() });
 
   return results;
@@ -708,6 +713,45 @@ function generateIndexJson(digests: Map<string, string>): string {
   };
 
   return JSON.stringify(index, null, 2) + '\n';
+}
+
+/** "pachca-group-tags" → "Pachca Group Tags" — readable A2A skill name. */
+function humanizeSkillName(slug: string): string {
+  return slug
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+/**
+ * A2A (Agent2Agent) Agent Card, schema v0.2.0, served at
+ * /.well-known/agent-card.json. Re-projects the same skill set as the
+ * agentskills.io discovery index into the A2A shape so A2A-aware orchestrators
+ * can discover the docs as an agent. Does NOT require an MCP server.
+ */
+function generateAgentCardJson(digests: Map<string, string>): string {
+  const SITE = 'https://dev.pachca.com';
+  const configs = [...SKILL_TAG_MAP, ROUTER_SKILL_CONFIG].filter((c) => digests.has(c.name));
+
+  const card = {
+    schemaVersion: '0.2.0',
+    name: 'Pachca API Documentation',
+    description:
+      'Документация и agent-ready навыки для REST API мессенджера Пачка: сообщения, чаты, сотрудники, треды, задачи, боты, вебхуки.',
+    url: SITE,
+    version: '1.0.0',
+    documentationUrl: `${SITE}/llms.txt`,
+    capabilities: { streaming: false },
+    skills: configs.map((c) => ({
+      id: c.name,
+      name: humanizeSkillName(c.name),
+      description: c.description.slice(0, 1024),
+      tags: c.tags ?? [],
+      url: `${SITE}/.well-known/skills/${c.name}/SKILL.md`,
+    })),
+  };
+
+  return JSON.stringify(card, null, 2) + '\n';
 }
 
 /**

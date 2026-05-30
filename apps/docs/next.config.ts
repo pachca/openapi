@@ -61,10 +61,17 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/:path(skill\\.md|:rest*\\.md)',
+        // Any `.md` at any depth (root `skill.md`/`index.md` and nested page
+        // twins like `/api/authorization.md`). The previous `:rest*\.md`
+        // pattern only matched root-level files, so nested twins shipped
+        // without CORS / x-content-source.
+        source: '/(.*)\\.md',
         headers: [
           { key: 'Content-Type', value: 'text/markdown; charset=utf-8' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
+          // Mark the markdown representation so agents can distinguish it from
+          // an HTML-to-markdown conversion (mirrors Neon's x-content-source).
+          { key: 'X-Content-Source', value: 'markdown' },
           {
             key: 'Cache-Control',
             value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
@@ -76,6 +83,19 @@ const nextConfig: NextConfig = {
       {
         source: '/.well-known/:path(skills|agent-skills)/:rest*',
         headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+          },
+          { key: 'X-Robots-Tag', value: 'noindex' },
+        ],
+      },
+      {
+        // A2A Agent Card (Agent2Agent discovery).
+        source: '/.well-known/agent-card.json',
+        headers: [
+          { key: 'Content-Type', value: 'application/json' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
           {
             key: 'Cache-Control',

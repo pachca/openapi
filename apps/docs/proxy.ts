@@ -100,9 +100,12 @@ export function proxy(request: NextRequest) {
       rewrite.headers.set('Content-Location', twin);
       // The next.config `*.md` header rule matches the request path, not
       // this rewrite's destination, so the negotiated markdown response
-      // would otherwise ship without noindex. Keep the .md twin out of the
-      // search index here too (matches the Mintlify default).
+      // would otherwise ship without these. Mirror the .md twin headers:
+      // keep it out of the index, allow cross-origin reads (browser agents),
+      // and mark it as a real markdown representation.
       rewrite.headers.set('X-Robots-Tag', 'noindex');
+      rewrite.headers.set('Access-Control-Allow-Origin', '*');
+      rewrite.headers.set('X-Content-Source', 'markdown');
       return rewrite;
     }
   }
@@ -126,6 +129,7 @@ export function proxy(request: NextRequest) {
       '</llms-full.txt>; rel="llms-full-txt"; type="text/plain"',
       '</.well-known/skills/index.json>; rel="service-meta"; type="application/json"',
       '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
+      '</.well-known/agent-card.json>; rel="agent-card"; type="application/json"',
     ].join(', ')
   );
   response.headers.set('X-Llms-Txt', '/llms.txt');

@@ -128,3 +128,10 @@ Server: nginx/1.14.2
 Date: Wed, 22 Apr 2025 12:32:29 GMT
 Content-Type: text/plain; charset=utf-8
 ```
+
+
+## Связанные разделы
+
+- [Формы и модальные окна](/guides/forms/overview)
+- [Блоки представления](/guides/forms/blocks)
+- [Исходящие вебхуки: Безопасность и обработчик](/guides/webhook/handler)

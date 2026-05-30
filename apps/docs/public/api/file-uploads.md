@@ -207,3 +207,9 @@ await client.messages.create_message(MessageCreateRequest(
 | `403 Forbidden` при загрузке | Истекла подпись | Параметры загрузки действительны ограниченное время. Запросите новые через [Получение подписи](POST /uploads) |
 | `400 Bad Request` | Неправильный Content-Type | Убедитесь, что запрос отправляется как `multipart/form-data`, а не `application/json` |
 | Файл не отображается | Неверный `key` | Проверьте, что `${filename}` в ключе заменён на реальное имя файла |
+
+
+## Связанные разделы
+
+- [Авторизация](/api/authorization)
+- [Заголовки запроса](/api/requests-responses#zagolovki)

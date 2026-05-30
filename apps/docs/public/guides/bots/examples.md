@@ -23,3 +23,10 @@
 
 > Подробнее — в статье [Unfurl-бот](https://pachca.com/blog/unfurl-bot) и на [GitHub](https://github.com/pachca/public-integrations/tree/main/Unfurling-bot)
 
+
+
+## Связанные разделы
+
+- [Кнопки в сообщениях](/guides/buttons)
+- [Формы и модальные окна](/guides/forms/overview)
+- [Разворачивание ссылок](/guides/link-previews)

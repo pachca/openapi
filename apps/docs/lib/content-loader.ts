@@ -4,11 +4,26 @@ import matter from 'gray-matter';
 
 const CONTENT_DIR = path.join(process.cwd(), 'content');
 
+/**
+ * A "related page" entry in frontmatter. Either a bare path (title resolved
+ * automatically from navigation) or an object with an explicit title — used
+ * for anchor links (`/guides/x#section`) or pages outside the sidebar.
+ */
+export type RelatedLink = string | { path: string; title?: string };
+
+/** A related link after title resolution, ready to render/serialize. */
+export interface RelatedItem {
+  title: string;
+  href: string;
+}
+
 export interface GuideFrontmatter {
   title: string;
   description?: string;
   hideTableOfContents?: boolean;
   useUpdatesComponent?: boolean;
+  /** Curated "Связанные разделы" links shown above the prev/next pager. */
+  related?: RelatedLink[];
 }
 
 export interface GuideData {
@@ -68,6 +83,7 @@ export function getGuideData(guidePath: string): GuideData | null {
             description: data.description,
             hideTableOfContents: data.hideTableOfContents,
             useUpdatesComponent: data.useUpdatesComponent,
+            related: data.related,
           },
         };
       }

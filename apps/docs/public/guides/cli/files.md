@@ -23,3 +23,10 @@ pachca messages create --entity-id 123 --content "Фото" --files "[{\"key\":\
 
 > Для низкоуровневого контроля доступна команда `pachca common direct-url` — она отправляет multipart-запрос на указанный URL с параметрами подписи.
 
+
+
+## Связанные разделы
+
+- [Загрузка файлов](/api/file-uploads)
+- [Команды](/guides/cli/commands)
+- [Прямые запросы](/guides/cli/api-requests)

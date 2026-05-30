@@ -123,3 +123,10 @@ pachca commands --available
 ```
 
 Не знаете точный эндпоинт — посмотрите список и справку прямо в CLI: `pachca api ls`, затем `pachca api <МЕТОД> <путь> --describe`. Подробнее — в разделе [Прямые запросы](/guides/cli/api-requests).
+
+
+## Связанные разделы
+
+- [Прямые запросы](/guides/cli/api-requests)
+- [Вывод](/guides/cli/output)
+- [Флаги и скрипты](/guides/cli/scripting)

@@ -262,3 +262,10 @@ sequenceDiagram
 - **401 Unauthorized** — неверный или просроченный токен. Решение: [401 Unauthorized](/guides/n8n/troubleshooting#nevernyi-token-401-unauthorized)
 
 Полный список типовых ошибок — в разделе [Устранение ошибок](/guides/n8n/troubleshooting).
+
+
+## Связанные разделы
+
+- [Триггер](/guides/n8n/trigger)
+- [Примеры workflow](/guides/n8n/workflows)
+- [Устранение ошибок](/guides/n8n/troubleshooting)

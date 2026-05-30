@@ -2,8 +2,9 @@ import type { Endpoint, Schema, Response } from './openapi/types';
 import { generateRequestExample, generateResponseExample } from './openapi/example-generator';
 import { generateCurl } from './code-generators/curl';
 import { generateTitle, getDescriptionWithoutTitle } from './openapi/mapper';
-import { getGuideContent } from './content-loader';
+import { getGuideData } from './content-loader';
 import { expandMdxComponents } from './mdx-expander';
+import { resolveRelatedItems } from './navigation';
 
 /**
  * Resolve property schema - unwrap allOf and get the actual schema
@@ -525,11 +526,22 @@ export async function generateStaticPageMarkdownAsync(pagePath: string): Promise
   }
 
   // Load markdown/mdx file for this path
-  const fileContent = getGuideContent(contentPath);
-  if (fileContent) {
-    // Expand MDX components to their markdown representation
-    return await expandMdxComponents(fileContent);
+  const data = getGuideData(contentPath);
+  if (!data) return null;
+
+  // Expand MDX components to their markdown representation
+  let markdown = await expandMdxComponents(data.content);
+
+  // Mirror the on-page "Связанные разделы" block so the .md / llms-full.txt
+  // twins carry the same cross-links (internal links stay relative, like the
+  // rest of the generated markdown).
+  const related = await resolveRelatedItems(data.frontmatter.related, pagePath);
+  if (related.length > 0) {
+    markdown += `\n\n## Связанные разделы\n\n`;
+    for (const item of related) {
+      markdown += `- [${item.title}](${item.href})\n`;
+    }
   }
 
-  return null;
+  return markdown;
 }

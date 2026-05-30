@@ -381,3 +381,10 @@ let response = try await client.tasks.createTask(body: body)
 ```
 
 
+
+
+## Связанные разделы
+
+- [SDK](/guides/sdk/overview)
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)

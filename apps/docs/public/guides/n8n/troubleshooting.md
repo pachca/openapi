@@ -181,3 +181,10 @@
 
 > Общие практики тестирования и отладки — Retry On Fail, Error Trigger workflow, Execute Step, проверка Credentials — собраны в разделе [Тестирование](/guides/n8n/testing).
 
+
+
+## Связанные разделы
+
+- [Начало работы](/guides/n8n/setup)
+- [Ошибки](/api/errors)
+- [Лимиты](/api/limits)

@@ -67,7 +67,7 @@ export async function generateMetadata({
       siteName: 'Пачка',
       locale: 'ru_RU',
       description,
-      images: [`/api/og?type=updates&date=${date}`],
+      images: [`/internal/og?type=updates&date=${date}`],
     },
   };
 }

@@ -19,7 +19,7 @@ const rules: Rule[] = [
   // Allowed: enables Gemini / Google AI grounding & citation of these
   // docs; does NOT affect Google Search ranking.
   { userAgent: 'Google-Extended', allow: ['/'] },
-  { userAgent: '*', allow: ['/'], disallow: ['/api/search', '/api/og'] },
+  { userAgent: '*', allow: ['/'], disallow: ['/internal/search', '/internal/og'] },
 ];
 
 // Cloudflare Content Signals Policy (2026): a machine-readable statement of

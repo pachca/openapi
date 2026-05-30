@@ -93,7 +93,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const response = await fetch(`/internal/search?q=${encodeURIComponent(q)}`);
       const data = await response.json();
       setResults(data.results || []);
     } catch (error) {

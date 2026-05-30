@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'Пачка',
       locale: 'ru_RU',
       description,
-      images: ['/api/og?type=updates'],
+      images: ['/internal/og?type=updates'],
     },
   };
 }

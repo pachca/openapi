@@ -29,7 +29,7 @@ export async function generateMetadata({
   const firstParagraph = extractFirstParagraph(data.content);
   const pageTitle = data.frontmatter.title;
   const description: string | undefined = data.frontmatter.description || firstParagraph;
-  const ogImage = `/api/og?type=guide&slug=api/${slug}`;
+  const ogImage = `/internal/og?type=guide&slug=api/${slug}`;
 
   return {
     title: { absolute: `${pageTitle} | Документация API` },
@@ -65,7 +65,7 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
   }
 
   const pageUrl = `/api/${slug}`;
-  const ogImage = `/api/og?type=guide&slug=api/${slug}`;
+  const ogImage = `/internal/og?type=guide&slug=api/${slug}`;
   const adjacent = await getAdjacentItems(pageUrl);
   const relatedItems = await resolveRelatedItems(data.frontmatter.related, pageUrl);
 

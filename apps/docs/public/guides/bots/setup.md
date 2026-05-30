@@ -92,3 +92,11 @@
 ### API
 
 Вкладка с `access_token` и `user_id` бота для работы с [REST API](/guides/quickstart). Токен не имеет срока жизни, но при необходимости его можно перевыпустить кнопкой «Обновить Access token». Подробнее — в разделе [Авторизация](/api/authorization).
+
+
+## Связанные разделы
+
+- [Доступы к чатам и сообщениям](/guides/bots/access)
+- [Готовые примеры реализации](/guides/bots/examples)
+- [Входящие вебхуки](/guides/incoming-webhooks)
+- [Исходящие вебхуки](/guides/webhook/overview)

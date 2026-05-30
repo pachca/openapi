@@ -1,5 +1,5 @@
 import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
-import { getAdjacentItems } from '@/lib/navigation';
+import { getAdjacentItems, resolveRelatedItems } from '@/lib/navigation';
 import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { getGuideData, getAllApiGuideSlugs, extractFirstParagraph } from '@/lib/content-loader';
@@ -61,6 +61,7 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
   const pageUrl = `/api/${slug}`;
   const ogImage = `/api/og?type=guide&slug=api/${slug}`;
   const adjacent = await getAdjacentItems(pageUrl);
+  const relatedItems = await resolveRelatedItems(data.frontmatter.related, pageUrl);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -101,6 +102,7 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
   return (
     <StaticPageWrapper
       adjacent={adjacent}
+      relatedItems={relatedItems}
       hideTableOfContents={data.frontmatter.hideTableOfContents}
     >
       <script

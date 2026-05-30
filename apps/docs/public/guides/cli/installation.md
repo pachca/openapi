@@ -81,3 +81,10 @@ pachca changelog
 ```
 
 Отключить автоматическую проверку можно переменной `PACHCA_SKIP_NEW_VERSION_CHECK`.
+
+
+## Связанные разделы
+
+- [Авторизация](/guides/cli/authentication)
+- [Вывод](/guides/cli/output)
+- [Команды](/guides/cli/commands)

@@ -216,3 +216,10 @@ Workflow — визуальный редактор, в котором выстр
 Больше примеров — в разделе [Примеры workflow](/guides/n8n/workflows).
 
 
+
+
+## Связанные разделы
+
+- [Ресурсы и операции](/guides/n8n/resources)
+- [Триггер](/guides/n8n/trigger)
+- [Устранение ошибок](/guides/n8n/troubleshooting)

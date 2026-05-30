@@ -74,3 +74,10 @@ curl "https://api.pachca.com/api/shared/v1/profile" \
 | **Cleanup** | — | `await client.close()` | — | `client.close()` | — | `client.Dispose()` |
 | **Требования** | Node.js 18+ | Python 3.10+ | Go 1.24+ | Kotlin 2.2+, Java 11+ | Swift 5.9+, macOS 13+, iOS 16+ | .NET 8+ |
 
+
+
+## Связанные разделы
+
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)
+- [CLI](/guides/cli/overview)

@@ -57,3 +57,11 @@ sequenceDiagram
         Note over User: Исправление<br/>и повторная отправка
     end
 ```
+
+
+## Связанные разделы
+
+- [Блоки представления](/guides/forms/blocks)
+- [Обработка форм](/guides/forms/handling)
+- [Кнопки в сообщениях](/guides/buttons)
+- [Исходящие вебхуки](/guides/webhook/overview)

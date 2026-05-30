@@ -1,6 +1,8 @@
 import { Footer } from '@/components/layout/footer';
 import { ReactNode } from 'react';
 import type { NavigationItem } from '@/lib/openapi/types';
+import type { RelatedItem } from '@/lib/content-loader';
+import { RelatedTopics } from './related-topics';
 import { TableOfContents } from './table-of-contents';
 
 interface StaticPageWrapperProps {
@@ -9,6 +11,7 @@ interface StaticPageWrapperProps {
     prev: NavigationItem | null;
     next: NavigationItem | null;
   };
+  relatedItems?: RelatedItem[];
   hideTableOfContents?: boolean;
   prevLabel?: string;
   nextLabel?: string;
@@ -17,6 +20,7 @@ interface StaticPageWrapperProps {
 export function StaticPageWrapper({
   children,
   adjacent,
+  relatedItems,
   hideTableOfContents,
   prevLabel,
   nextLabel,
@@ -35,6 +39,7 @@ export function StaticPageWrapper({
               >
                 {children}
               </div>
+              {relatedItems && relatedItems.length > 0 && <RelatedTopics items={relatedItems} />}
               <Footer
                 adjacent={adjacent}
                 noMargin={true}

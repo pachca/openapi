@@ -92,3 +92,10 @@ pachca users list --all
 - **Методы поиска** (`pachca search list-users`, `pachca search list-chats`, `pachca search list-messages`) — `meta` с полями `total` и `paginate.next_page` (без `prev_page`/`has_next`/`has_prev`). Признак конца — пустой `data` или совпадение числа полученных записей с `total`.
 
 Подробнее — в разделе [Пагинация](/api/pagination).
+
+
+## Связанные разделы
+
+- [Флаги и скрипты](/guides/cli/scripting)
+- [Команды](/guides/cli/commands)
+- [Прямые запросы](/guides/cli/api-requests)

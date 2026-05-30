@@ -11,7 +11,7 @@ import {
   type SidebarSection,
   type TabId,
 } from './tabs-config';
-import { getGuideData } from './content-loader';
+import { getGuideData, type RelatedLink, type RelatedItem } from './content-loader';
 import { sortTagsByOrder } from './guides-config';
 import { loadUpdates } from './updates-parser';
 import { groupBySeason, type SeasonGroup } from './seasons';
@@ -235,15 +235,99 @@ function flattenItems(sections: NavigationSection[]): NavigationItem[] {
 /**
  * Get previous/next items for page navigation.
  * Resolves tab via getActiveTab so nested prefixes (/guides/cli) work correctly.
+ *
+ * When the adjacent page sits in the same section as the current page, its
+ * `sectionTitle` is dropped so the pager shows just the page title ("Обзор")
+ * instead of a redundant "Боты: Обзор" — you already know you're in that
+ * section. Cross-section neighbours keep the prefix for context.
  */
 export async function getAdjacentItems(currentHref: string) {
   const tab = getActiveTab(currentHref) ?? undefined;
   const sections = await generateNavigation(tab);
   const allItems = flattenItems(sections);
   const currentIndex = allItems.findIndex((item) => item.href === currentHref);
+  const currentSection = currentIndex >= 0 ? allItems[currentIndex].sectionTitle : undefined;
+
+  const dropSameSection = (item: NavigationItem | null) =>
+    item && item.sectionTitle && item.sectionTitle === currentSection
+      ? { ...item, sectionTitle: undefined }
+      : item;
 
   return {
-    prev: currentIndex > 0 ? allItems[currentIndex - 1] : null,
-    next: currentIndex < allItems.length - 1 ? allItems[currentIndex + 1] : null,
+    prev: dropSameSection(currentIndex > 0 ? allItems[currentIndex - 1] : null),
+    next: dropSameSection(currentIndex < allItems.length - 1 ? allItems[currentIndex + 1] : null),
   };
+}
+
+/**
+ * Resolve a page's `related:` frontmatter into render-ready items.
+ *
+ * Bare-path entries get their title from the navigation (single source of
+ * truth — never goes stale). When the linked page is a child of a *different*
+ * collapsible group than the current page, the title is shown composite
+ * ("Группа: Страница", like the prev/next pager) so generic labels such as
+ * "Создание и настройка" or "Обзор" aren't ambiguous out of context. The
+ * prefix is the parent group ("Боты", "AI агенты", "Исходящие вебхуки"…) —
+ * NOT the top-level sidebar bucket ("Инструменты", "Боты и автоматизации"),
+ * which is just an organisational heading, not a page parent. Standalone pages
+ * (Треды, Пагинация…) already have self-explanatory titles, so they stay plain.
+ *
+ * Object entries with an explicit `title` are used verbatim (no prefix — the
+ * author already chose the label), which covers anchor links
+ * (`/guides/x#section`) and pages outside the sidebar. Anchors are stripped
+ * only for the lookup; the href keeps them. Entries that can't be resolved are
+ * dropped so we never render a link with a missing label.
+ */
+export async function resolveRelatedItems(
+  related: RelatedLink[] | undefined,
+  currentHref?: string
+): Promise<RelatedItem[]> {
+  if (!related || related.length === 0) return [];
+
+  const sections = await generateFullNavigation();
+  // Map each href to its title and its parent GROUP title — only set when the
+  // page is a child of a collapsible group, never for top-level bucket items.
+  const navByHref = new Map<string, { title: string; groupTitle?: string }>();
+  for (const section of sections) {
+    for (const item of section.items) {
+      if (item.children) {
+        for (const child of item.children) {
+          if (!navByHref.has(child.href)) {
+            navByHref.set(child.href, { title: child.title, groupTitle: item.title });
+          }
+        }
+      } else if (!navByHref.has(item.href)) {
+        navByHref.set(item.href, { title: item.title });
+      }
+    }
+  }
+
+  const currentGroup = currentHref ? navByHref.get(currentHref)?.groupTitle : undefined;
+
+  const result: RelatedItem[] = [];
+  for (const entry of related) {
+    const href = typeof entry === 'string' ? entry : entry.path;
+    const explicitTitle = typeof entry === 'string' ? undefined : entry.title;
+    const base = href.split('#')[0];
+
+    if (explicitTitle) {
+      result.push({ title: explicitTitle, href });
+      continue;
+    }
+
+    const nav = navByHref.get(base);
+    if (!nav) {
+      console.warn(`[related] could not resolve title for "${href}" — skipping`);
+      continue;
+    }
+
+    // Prefix with the parent group when the link points into a different group,
+    // so a bare "Обзор"/"Создание и настройка" reads unambiguously.
+    const title =
+      nav.groupTitle && nav.groupTitle !== currentGroup
+        ? `${nav.groupTitle}: ${nav.title}`
+        : nav.title;
+    result.push({ title, href });
+  }
+  return result;
 }

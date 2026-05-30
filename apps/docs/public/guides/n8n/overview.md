@@ -64,3 +64,10 @@
 
 > Все существующие workflow на v1 продолжают работать без изменений. Подробнее — в разделе [Миграция с v1](/guides/n8n/migration).
 
+
+
+## Связанные разделы
+
+- [Начало работы](/guides/n8n/setup)
+- [Примеры workflow](/guides/n8n/workflows)
+- [Устранение ошибок](/guides/n8n/troubleshooting)

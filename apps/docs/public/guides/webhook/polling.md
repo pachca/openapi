@@ -32,3 +32,10 @@ async function pollEvents() {
 // Запускать каждые 5 секунд
 setInterval(pollEvents, 5000)
 ```
+
+
+## Связанные разделы
+
+- [Настройка и типы событий](/guides/webhook/events)
+- [Безопасность и обработчик](/guides/webhook/handler)
+- [Пагинация](/api/pagination)

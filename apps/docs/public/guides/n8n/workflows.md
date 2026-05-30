@@ -204,3 +204,10 @@
 
 > Для использования AI Agent необходимо настроить LLM-провайдер (OpenAI, Anthropic и др.) в n8n. Подробнее — в разделе [Продвинутые функции](/guides/n8n/advanced#ai-agent).
 
+
+
+## Связанные разделы
+
+- [Ресурсы и операции](/guides/n8n/resources)
+- [Продвинутые функции](/guides/n8n/advanced)
+- [Триггер](/guides/n8n/trigger)

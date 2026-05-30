@@ -166,3 +166,11 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 
 Подробнее о кодах ошибок и структуре ответов — в руководстве [Ошибки](/api/errors).
+
+
+## Связанные разделы
+
+- [Запросы и ответы](/api/requests-responses)
+- [Ошибки](/api/errors)
+- [Лимиты](/api/limits)
+- [Загрузка файлов](/api/file-uploads)

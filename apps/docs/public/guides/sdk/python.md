@@ -395,3 +395,10 @@ response = await client.tasks.create_task(request=request)
 ```
 
 
+
+
+## Связанные разделы
+
+- [SDK](/guides/sdk/overview)
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)

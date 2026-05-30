@@ -477,3 +477,10 @@
 
 > Есть предложения по новым сценариям? [Напишите нам](https://github.com/pachca/openapi/issues/new?template=workflow-suggestion.yml) и мы добавим их.
 
+
+
+## Связанные разделы
+
+- [Быстрый старт](/guides/quickstart)
+- [AI-агенты](/guides/ai-agents/overview)
+- [CLI](/guides/cli/overview)

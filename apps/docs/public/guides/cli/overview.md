@@ -92,3 +92,10 @@ pachca api ls  # список всех эндпоинтов
 - [Прямые запросы](/guides/cli/api-requests) — Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале
 - [Справочник команд](/guides/cli/commands) — Все команды, параметры каждой — по клику
 
+
+
+## Связанные разделы
+
+- [Команды](/guides/cli/commands)
+- [Прямые запросы](/guides/cli/api-requests)
+- [SDK](/guides/sdk/overview)

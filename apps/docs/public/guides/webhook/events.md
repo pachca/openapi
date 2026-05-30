@@ -163,3 +163,10 @@
 - `created_at: date-time` (required) — Дата и время создания сообщения (ISO-8601, UTC+0) в формате YYYY-MM-DDThh:mm:ss.sssZ. Пример: `"2024-09-18T19:53:14.000Z"`
 - `webhook_timestamp: integer, int32` (required) — Дата и время отправки вебхука (UTC+0) в формате UNIX. Пример: `1726685594`
 
+
+
+## Связанные разделы
+
+- [Безопасность и обработчик](/guides/webhook/handler)
+- [Поллинг](/guides/webhook/polling)
+- [Кнопки в сообщениях](/guides/buttons)

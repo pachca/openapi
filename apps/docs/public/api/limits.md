@@ -107,3 +107,9 @@ users = await with_retry(lambda: client.users.list_users())
 
 > Максимум **3 повтора** на каждый запрос. Jitter (случайный множитель 0.5–1.5) предотвращает «thundering herd» при массовых 429.
 
+
+
+## Связанные разделы
+
+- [Ошибки](/api/errors)
+- [Запросы и ответы](/api/requests-responses)

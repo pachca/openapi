@@ -442,3 +442,10 @@ var response = await client.Tasks.CreateTaskAsync(request);
 ```
 
 
+
+
+## Связанные разделы
+
+- [SDK](/guides/sdk/overview)
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)

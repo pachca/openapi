@@ -124,3 +124,10 @@ npx skills add pachca/openapi
 - [Agent Skills](https://agentskills.io) — Спецификация формата скиллов
 - [Agent Skills Discovery RFC](https://github.com/cloudflare/agent-skills-discovery-rfc) — Протокол обнаружения скиллов
 
+
+
+## Связанные разделы
+
+- [Взаимодействие с агентом](/guides/ai-agents/interaction)
+- [Markdown и документы](/guides/ai-agents/markdown)
+- [Треды](/guides/threads)

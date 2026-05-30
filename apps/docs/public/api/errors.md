@@ -62,3 +62,10 @@
 
 > Про ответ `429 Too Many Requests`, заголовок `Retry-After` и готовые примеры экспоненциального backoff — на отдельной странице [Лимиты](/api/limits).
 
+
+
+## Связанные разделы
+
+- [Лимиты](/api/limits)
+- [Запросы и ответы](/api/requests-responses)
+- [Авторизация](/api/authorization)

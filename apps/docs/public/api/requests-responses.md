@@ -180,3 +180,11 @@ https://dev.pachca.com/pachca.postman_collection.json
 
 - [Скачать коллекцию](/pachca.postman_collection.json) — Файл в формате Postman Collection v2.1, совместим с Postman и Bruno.
 
+
+
+## Связанные разделы
+
+- [Авторизация](/api/authorization)
+- [Пагинация](/api/pagination)
+- [Ошибки](/api/errors)
+- [Лимиты](/api/limits)

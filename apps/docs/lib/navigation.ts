@@ -241,6 +241,26 @@ function flattenItems(sections: NavigationSection[]): NavigationItem[] {
  * instead of a redundant "Боты: Обзор" — you already know you're in that
  * section. Cross-section neighbours keep the prefix for context.
  */
+/**
+ * For an `/api/{segment}` group root (a tag slug, not a specific method),
+ * return the href of the group's first method, or null if the segment isn't a
+ * known group. Sorting mirrors the sidebar (METHOD_ORDER), so the redirect
+ * target matches the first item shown under that group — keeping `/api/bots`
+ * etc. from 404ing when hit directly.
+ */
+export async function getApiGroupFirstHref(segment: string): Promise<string | null> {
+  const api = await parseOpenAPI();
+  const prefix = `/api/${segment}/`;
+  const matches = api.endpoints
+    .map((endpoint) => ({ endpoint, href: generateUrlFromOperation(endpoint) }))
+    .filter((item) => item.href.startsWith(prefix));
+  if (matches.length === 0) return null;
+  matches.sort(
+    (a, b) => (METHOD_ORDER[a.endpoint.method] ?? 99) - (METHOD_ORDER[b.endpoint.method] ?? 99)
+  );
+  return matches[0].href;
+}
+
 export async function getAdjacentItems(currentHref: string) {
   const tab = getActiveTab(currentHref) ?? undefined;
   const sections = await generateNavigation(tab);

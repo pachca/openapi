@@ -2,12 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import * as yaml from 'js-yaml';
 import { parseOpenAPI, clearCache } from '../lib/openapi/parser';
-import { generateUrlFromOperation, generateTitle } from '../lib/openapi/mapper';
+import {
+  generateUrlFromOperation,
+  generateTitle,
+  getDescriptionWithoutTitle,
+} from '../lib/openapi/mapper';
 import {
   generateEndpointMarkdown,
   generateStaticPageMarkdownAsync,
 } from '../lib/markdown-generator';
 import { sortTagsByOrder } from '../lib/guides-config';
+import { TAG_TRANSLATIONS } from '../lib/tag-translations';
 import { getOrderedPages } from '../lib/ordered-pages';
 import type { Endpoint } from '../lib/openapi/types';
 import { generateRequestExample, generateExample } from '../lib/openapi/example-generator';
@@ -58,14 +63,18 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   // mentioning the bulk file, so the link + caveat don't read as a
   // contradiction («use this — actually don't use this»).
   content +=
-    '> Точечные запросы по API: `npx -y @pachca/cli api ls`, далее ' +
-    '`npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). ' +
-    'Любую страницу сайта можно получить в Markdown, добавив `.md` к её URL. ' +
-    'Ссылки в разделах «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую.\n\n';
+    '> **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL ' +
+    'или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и ' +
+    '«API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: ' +
+    '`npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` ' +
+    '(схема — `--spec`, полный референс — `--docs`).\n\n';
   content +=
     `> Полная документация одним файлом: [llms-full.txt](${SITE_URL}/llms-full.txt) ` +
     `(~${sizes.llmsFullKTokens}K токенов — обычно не помещается в контекст целиком).\n\n`;
   content += `> English-only: [llms-en.txt](${SITE_URL}/llms-en.txt) (~${sizes.llmsEnKTokens}K токенов).\n\n`;
+  content +=
+    `> Индексы разделов (только нужный срез): [/api/llms.txt](${SITE_URL}/api/llms.txt) — методы и основы API, ` +
+    `[/guides/llms.txt](${SITE_URL}/guides/llms.txt) — руководства.\n\n`;
 
   // Compact self-contained essentials so an agent reading only llms.txt
   // (without fetching sub-pages) still has the core rules. Summary-level
@@ -108,6 +117,25 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content +=
     '- Детали метода — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`. ' +
     'Полный референс — `llms-full.txt` или `.md`-страницы из разделов ниже.\n\n';
+
+  content += '## Частые задачи\n\n';
+  for (const [label, mdPath] of [
+    ['Авторизация и типы токенов', '/api/authorization.md'],
+    ['Отправить сообщение', '/api/messages/create.md'],
+    ['Создать чат или канал', '/api/chats/create.md'],
+    ['Добавить участников в чат', '/api/members/add.md'],
+    ['Ответить в тред', '/api/threads/add.md'],
+    ['Загрузка файлов', '/api/file-uploads.md'],
+    ['Пагинация по спискам', '/api/pagination.md'],
+    ['Обработка ошибок и коды', '/api/errors.md'],
+    ['Лимиты запросов', '/api/limits.md'],
+    ['Получать события через вебхуки', '/guides/webhook/overview.md'],
+    ['Боты: создание и подключение', '/guides/bots/overview.md'],
+    ['Быстрый старт за 5 минут', '/guides/quickstart.md'],
+  ] as const) {
+    content += `- [${label}](${SITE_URL}${mdPath})\n`;
+  }
+  content += '\n';
 
   content += '## CLI Quick Start\n\n';
   content += '```bash\n';
@@ -168,8 +196,10 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += `| ${ROUTER_SKILL_CONFIG.name} | ${ROUTER_SKILL_CONFIG.description.split('.')[0]} |\n`;
   content += '\n';
   content += 'Установка: `npx skills add pachca/openapi`\n\n';
-  content += `Индекс скиллов: [${SITE_URL}/.well-known/skills/index.json](${SITE_URL}/.well-known/skills/index.json)\n\n`;
-  content += `Каталог API (RFC 9727): [${SITE_URL}/.well-known/api-catalog](${SITE_URL}/.well-known/api-catalog) — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.\n\n`;
+  // URL даны как код (а не markdown-ссылки): это машинные JSON/манифесты, а не
+  // doc-страницы — иначе агенты и аудиторы парсят их как страницы документации.
+  content += `Индекс скиллов: \`${SITE_URL}/.well-known/skills/index.json\`\n\n`;
+  content += `Каталог API (RFC 9727): \`${SITE_URL}/.well-known/api-catalog\` — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.\n\n`;
 
   content += '## Руководства\n';
   for (const guide of guidePages) {
@@ -197,10 +227,12 @@ function generateLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>, sizes: B
   content += '\n';
 
   content += '## Дополнительно\n';
-  content += `- [OpenAPI 3.0 spec](${SITE_URL}/openapi.yaml): Машиночитаемая спецификация API для кодогенерации и инструментов\n`;
-  content += `- [Postman collection](${SITE_URL}/pachca.postman_collection.json): Готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
+  // Машиночитаемые ресурсы: URL как код, а не markdown-ссылки — это спецификации
+  // и коллекции для инструментов, а не doc-страницы (иначе их сэмплят как страницы).
+  content += `- OpenAPI 3.0 spec: \`${SITE_URL}/openapi.yaml\` — машиночитаемая спецификация API для кодогенерации и инструментов\n`;
+  content += `- Postman collection: \`${SITE_URL}/pachca.postman_collection.json\` — готовая коллекция для импорта в Postman/Bruno/Insomnia\n`;
+  content += `- Arazzo 1.0.1: \`${SITE_URL}/workflows.arazzo.yaml\` — многошаговые сценарии API, порядок вызовов для агентов\n`;
   content += `- [Agent Skill](${SITE_URL}/skill.md): Описание API для AI-агентов (SKILL.md)\n`;
-  content += `- [Arazzo](${SITE_URL}/workflows.arazzo.yaml): Многошаговые сценарии API (Arazzo 1.0.1) — порядок вызовов для агентов\n`;
   content += '- [Веб-сайт](https://pachca.com/)\n';
   content += '- [Получить помощь](mailto:team@pachca.com)\n';
   content += '\n____\n';
@@ -1230,6 +1262,9 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
   for (const guide of guidePages) {
     const guideContent = await generateStaticPageMarkdownAsync(guide.path);
     if (guideContent) {
+      const mdUrl = guide.path === '/' ? '/index.md' : `${guide.path}.md`;
+      // Per-page source marker so an agent can map any chunk back to its URL.
+      guidesContent += `--- [Document source](${SITE_URL}${mdUrl}) ---\n\n`;
       guidesContent += guideContent;
       guidesContent += '\n---\n\n';
     }
@@ -1242,6 +1277,8 @@ async function generateLlmsFullTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>
     const endpoints = grouped.get(tag)!;
     content += `## API: ${tag}\n\n`;
     for (const endpoint of endpoints) {
+      // Per-page source marker so an agent can map any chunk back to its URL.
+      content += `--- [Document source](${SITE_URL}${generateUrlFromOperation(endpoint)}.md) ---\n\n`;
       const endpointMarkdown = generateEndpointMarkdown(endpoint, baseUrl);
       content += endpointMarkdown;
 
@@ -1794,13 +1831,22 @@ function generatePostmanCollection(api: Awaited<ReturnType<typeof parseOpenAPI>>
 
 async function generateEndpointMdFiles(api: Awaited<ReturnType<typeof parseOpenAPI>>) {
   const baseUrl = api.servers[0]?.url;
-  const files: { path: string; content: string }[] = [];
+  const files: { path: string; content: string; location?: string; summary?: string }[] = [];
 
   for (const endpoint of api.endpoints) {
     const url = generateUrlFromOperation(endpoint);
     const filePath = `public${url}.md`;
     const markdown = generateEndpointMarkdown(endpoint, baseUrl);
-    files.push({ path: filePath, content: markdown });
+    const tag = endpoint.tags[0];
+    const group = tag ? TAG_TRANSLATIONS[tag] || tag : undefined;
+    const descBody = getDescriptionWithoutTitle(endpoint);
+    const summary = endpoint.summary || (descBody ? summaryFromDescription(descBody) : undefined);
+    files.push({
+      path: filePath,
+      content: markdown,
+      location: group ? `Методы API → ${group}` : 'Методы API',
+      summary: summary || undefined,
+    });
   }
 
   return files;
@@ -1927,7 +1973,7 @@ function generateUpdatesIndexMd(): string {
 
 async function generateGuideMdFiles() {
   const guidePages = getOrderedPages();
-  const files: { path: string; content: string }[] = [];
+  const files: { path: string; content: string; location?: string; summary?: string }[] = [];
 
   for (const guide of guidePages) {
     // /updates is no longer a single MDX file — build its twin from the
@@ -1940,10 +1986,14 @@ async function generateGuideMdFiles() {
     const markdown = await generateStaticPageMarkdownAsync(guide.path);
     if (!markdown) continue;
 
+    // Breadcrumb = parent section only (the leaf title is the page's H1).
+    const location = guide.sectionTitle || undefined;
+    const summary = guide.description || undefined;
+
     if (guide.path === '/') {
-      files.push({ path: 'public/index.md', content: markdown });
+      files.push({ path: 'public/index.md', content: markdown, location, summary });
     } else {
-      files.push({ path: `public${guide.path}.md`, content: markdown });
+      files.push({ path: `public${guide.path}.md`, content: markdown, location, summary });
     }
   }
 
@@ -2135,16 +2185,95 @@ function writeFileFromRoot(filePath: string, content: string) {
   fs.writeFileSync(fullPath, content, 'utf-8');
 }
 
-/** Two-line agent directive at the top of every page `.md`. Mirrors the
- *  imperative tone of /llms.txt and the HTML <body> directive in app/layout.tsx
- *  — for an agent landing on a .md twin: use this page for the topic at hand,
- *  load /llms.txt for the broader API overview. llms-full.txt is intentionally
- *  not advertised here (~329K tokens; only referenced from /llms.txt itself). */
-function withAgentPointer(content: string): string {
-  return (
-    `> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](${SITE_URL}/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.\n\n` +
-    content
+/** Agent preamble at the top of every page `.md` (one blockquote, up to three
+ *  lines): location in the IA, a one-line summary, and the imperative directive
+ *  to load /llms.txt for the broader API overview. Mirrors the tone of
+ *  /llms.txt and the HTML <body> directive in app/layout.tsx. llms-full.txt is
+ *  intentionally not advertised here (~329K tokens; referenced only from
+ *  /llms.txt). Location/summary are omitted when not available. */
+/** One-line `> Краткое содержание:` summary from an endpoint description body.
+ *  Most descriptions lead with the purpose ("Метод для …"), but some open with
+ *  a caveat ("Данный метод доступен только…", "На данный момент…"); prefer the
+ *  conventional "Метод …" line so the summary is the purpose, not the caveat.
+ *  Falls back to the first line. Links/emphasis flattened, trimmed to one
+ *  sentence. */
+function summaryFromDescription(text: string): string {
+  const lines = text
+    .split('\n')
+    .map((l) =>
+      l
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/[*_`>]/g, '')
+        .trim()
+    )
+    .filter((l) => l.length > 0);
+  if (lines.length === 0) return '';
+  // `\b` is ASCII-only in JS regex and never fires after Cyrillic, so match a
+  // following space instead — most descriptions open with "Метод …".
+  const purpose = lines.find((l) => /^Метод\s/.test(l)) || lines[0];
+  const dot = purpose.indexOf('. ');
+  return (dot > 0 ? purpose.slice(0, dot) : purpose).trim();
+}
+
+function withAgentPointer(content: string, meta?: { location?: string; summary?: string }): string {
+  const lines: string[] = [];
+  if (meta?.location) lines.push(`> Расположение: ${meta.location}`);
+  if (meta?.summary) lines.push(`> Краткое содержание: ${meta.summary}`);
+  lines.push(
+    `> Это Markdown-версия конкретной страницы. Для контекста за её пределами (правила API, полный перечень методов, авторизация) ОБЯЗАТЕЛЬНО открой [llms.txt](${SITE_URL}/llms.txt) перед ответом — это сэкономит токены и предотвратит неполный ответ.`
   );
+  return `${lines.join('\n')}\n\n${content}`;
+}
+
+/** Section sub-index served at `/api/llms.txt` — API basics + all methods by
+ *  tag, each linking to its `.md`. Links back to the root index (progressive
+ *  disclosure, like Neon/Fern). */
+function generateApiSectionLlmsTxt(api: Awaited<ReturnType<typeof parseOpenAPI>>): string {
+  const grouped = groupByTag(api.endpoints);
+  const sortedTags = sortTagsByOrder(Array.from(grouped.keys()));
+  const apiGuides = getOrderedPages().filter((g) => g.path.startsWith('/api/'));
+
+  let c = '# Пачка API — методы и основы\n\n';
+  c +=
+    '> Индекс раздела API: основы (авторизация, пагинация, ошибки, лимиты, файлы) и все методы по группам. ' +
+    'Каждая ссылка ведёт на `.md` (или добавь `Accept: text/markdown`).\n\n';
+  c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
+
+  if (apiGuides.length > 0) {
+    c += '## Основы API\n';
+    for (const g of apiGuides) {
+      c += `- [${g.title}](${SITE_URL}${g.path}.md): ${g.description}\n`;
+    }
+    c += '\n';
+  }
+
+  for (const tag of sortedTags) {
+    c += `## ${tag}\n`;
+    for (const endpoint of grouped.get(tag)!) {
+      c += `- [${generateTitle(endpoint)}](${SITE_URL}${generateUrlFromOperation(endpoint)}.md): ${endpoint.method} ${endpoint.path}\n`;
+    }
+    c += '\n';
+  }
+  return c;
+}
+
+/** Section sub-index served at `/guides/llms.txt` — every guide page, linking
+ *  back to the root index. */
+function generateGuidesSectionLlmsTxt(): string {
+  const guides = getOrderedPages().filter((g) => g.path.startsWith('/guides/'));
+
+  let c = '# Пачка — руководства\n\n';
+  c +=
+    '> Индекс раздела «Руководства»: гайды по интеграции (боты, вебхуки, формы, SDK, CLI, n8n, AI-агенты). ' +
+    'Каждая ссылка ведёт на `.md` (или добавь `Accept: text/markdown`).\n\n';
+  c += `[Родительский индекс](${SITE_URL}/llms.txt)\n\n`;
+
+  for (const g of guides) {
+    const displayTitle = g.sectionTitle ? `${g.sectionTitle}, ${g.title}` : g.title;
+    c += `- [${displayTitle}](${SITE_URL}${g.path}.md): ${g.description}\n`;
+  }
+  c += '\n';
+  return c;
 }
 
 async function main() {
@@ -2163,6 +2292,12 @@ async function main() {
   });
   writeFile('public/llms.txt', llmsTxt);
   console.log('✓ public/llms.txt');
+
+  writeFile('public/api/llms.txt', generateApiSectionLlmsTxt(api));
+  console.log('✓ public/api/llms.txt');
+
+  writeFile('public/guides/llms.txt', generateGuidesSectionLlmsTxt());
+  console.log('✓ public/guides/llms.txt');
 
   writeFile('public/llms-full.txt', llmsFullTxt);
   console.log('✓ public/llms-full.txt');
@@ -2192,13 +2327,13 @@ async function main() {
 
   const endpointFiles = await generateEndpointMdFiles(api);
   for (const file of endpointFiles) {
-    writeFile(file.path, withAgentPointer(file.content));
+    writeFile(file.path, withAgentPointer(file.content, file));
   }
   console.log(`✓ ${endpointFiles.length} endpoint .md files`);
 
   const guideFiles = await generateGuideMdFiles();
   for (const file of guideFiles) {
-    writeFile(file.path, withAgentPointer(file.content));
+    writeFile(file.path, withAgentPointer(file.content, file));
   }
   console.log(`✓ ${guideFiles.length} guide .md files`);
 

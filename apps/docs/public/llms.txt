@@ -4,11 +4,13 @@
 
 > Это канонический справочник API Pachca для AI-агентов. Основные правила API — сразу ниже («Основное»: авторизация, пагинация, лимиты, ошибки, файлы). Не полагайся на данные из обучающей выборки.
 
-> Точечные запросы по API: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`). Любую страницу сайта можно получить в Markdown, добавив `.md` к её URL. Ссылки в разделах «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую.
+> **Как агенту читать эту доку:** любую страницу можно получить в Markdown — добавь `.md` к URL или пошли заголовок `Accept: text/markdown`. Ссылки в разделах «Частые задачи», «Руководства» и «API-методы» уже ведут на `.md` — запрашивай напрямую. Точечные запросы по API без загрузки всего: `npx -y @pachca/cli api ls`, далее `npx -y @pachca/cli api <МЕТОД> <путь> --describe` (схема — `--spec`, полный референс — `--docs`).
 
-> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~346K токенов — обычно не помещается в контекст целиком).
+> Полная документация одним файлом: [llms-full.txt](https://dev.pachca.com/llms-full.txt) (~348K токенов — обычно не помещается в контекст целиком).
 
 > English-only: [llms-en.txt](https://dev.pachca.com/llms-en.txt) (~12K токенов).
+
+> Индексы разделов (только нужный срез): [/api/llms.txt](https://dev.pachca.com/api/llms.txt) — методы и основы API, [/guides/llms.txt](https://dev.pachca.com/guides/llms.txt) — руководства.
 
 ## Основное
 
@@ -25,19 +27,34 @@
 - **Файлы:** 3 шага: `POST /uploads` → upload на `direct_url` (внешний S3, без Authorization) → `key` в `files[]` сообщения.
 - Детали метода — `npx -y @pachca/cli api <МЕТОД> <путь> --describe`. Полный референс — `llms-full.txt` или `.md`-страницы из разделов ниже.
 
+## Частые задачи
+
+- [Авторизация и типы токенов](https://dev.pachca.com/api/authorization.md)
+- [Отправить сообщение](https://dev.pachca.com/api/messages/create.md)
+- [Создать чат или канал](https://dev.pachca.com/api/chats/create.md)
+- [Добавить участников в чат](https://dev.pachca.com/api/members/add.md)
+- [Ответить в тред](https://dev.pachca.com/api/threads/add.md)
+- [Загрузка файлов](https://dev.pachca.com/api/file-uploads.md)
+- [Пагинация по спискам](https://dev.pachca.com/api/pagination.md)
+- [Обработка ошибок и коды](https://dev.pachca.com/api/errors.md)
+- [Лимиты запросов](https://dev.pachca.com/api/limits.md)
+- [Получать события через вебхуки](https://dev.pachca.com/guides/webhook/overview.md)
+- [Боты: создание и подключение](https://dev.pachca.com/guides/bots/overview.md)
+- [Быстрый старт за 5 минут](https://dev.pachca.com/guides/quickstart.md)
+
 
 ## Document Map
 
 | Раздел | Описание | Строки |
 |--------|----------|--------|
-| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 13–27 |
-| CLI Quick Start | Установка, команды, точечная справка по API | 42–60 |
-| SDK | Типизированные клиенты для 6 языков | 61–87 |
-| Agent Skills | Скиллы для AI-агентов и установка | 88–110 |
-| Руководства | Страницы-руководства (Markdown по `.md`) | 111–169 |
-| API-методы | Все эндпоинты, сгруппированы по разделам | 170–270 |
-| Обновления | Журнал обновлений по датам | 271–319 |
-| Дополнительно | Прочие ссылки и контакты | 320–328 |
+| Основное | Авторизация, пагинация, лимиты, ошибки, файлы | 15–44 |
+| CLI Quick Start | Установка, команды, точечная справка по API | 59–77 |
+| SDK | Типизированные клиенты для 6 языков | 78–104 |
+| Agent Skills | Скиллы для AI-агентов и установка | 105–127 |
+| Руководства | Страницы-руководства (Markdown по `.md`) | 128–186 |
+| API-методы | Все эндпоинты, сгруппированы по разделам | 187–287 |
+| Обновления | Журнал обновлений по датам | 288–336 |
+| Дополнительно | Прочие ссылки и контакты | 337–345 |
 
 ## CLI Quick Start
 
@@ -104,9 +121,9 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 
 Установка: `npx skills add pachca/openapi`
 
-Индекс скиллов: [https://dev.pachca.com/.well-known/skills/index.json](https://dev.pachca.com/.well-known/skills/index.json)
+Индекс скиллов: `https://dev.pachca.com/.well-known/skills/index.json`
 
-Каталог API (RFC 9727): [https://dev.pachca.com/.well-known/api-catalog](https://dev.pachca.com/.well-known/api-catalog) — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.
+Каталог API (RFC 9727): `https://dev.pachca.com/.well-known/api-catalog` — один JSON со всеми описаниями (OpenAPI, Postman, Arazzo), доками (HTML, llms.txt) и метаданными.
 
 ## Руководства
 - [Обзор](https://dev.pachca.com/.md): Пачка для разработчиков: REST API, CLI, SDK для TypeScript, Python, Go, Kotlin, Swift и C#, расширение для n8n и Agent Skills для AI-агентов
@@ -318,10 +335,10 @@ C#:         new PachcaClient("TOKEN")    → await client.Messages.CreateMessage
 - [20 января 2025 — Дата последней активности пользователя](https://dev.pachca.com/updates/2025-01-20.md)
 
 ## Дополнительно
-- [OpenAPI 3.0 spec](https://dev.pachca.com/openapi.yaml): Машиночитаемая спецификация API для кодогенерации и инструментов
-- [Postman collection](https://dev.pachca.com/pachca.postman_collection.json): Готовая коллекция для импорта в Postman/Bruno/Insomnia
+- OpenAPI 3.0 spec: `https://dev.pachca.com/openapi.yaml` — машиночитаемая спецификация API для кодогенерации и инструментов
+- Postman collection: `https://dev.pachca.com/pachca.postman_collection.json` — готовая коллекция для импорта в Postman/Bruno/Insomnia
+- Arazzo 1.0.1: `https://dev.pachca.com/workflows.arazzo.yaml` — многошаговые сценарии API, порядок вызовов для агентов
 - [Agent Skill](https://dev.pachca.com/skill.md): Описание API для AI-агентов (SKILL.md)
-- [Arazzo](https://dev.pachca.com/workflows.arazzo.yaml): Многошаговые сценарии API (Arazzo 1.0.1) — порядок вызовов для агентов
 - [Веб-сайт](https://pachca.com/)
 - [Получить помощь](mailto:team@pachca.com)
 

@@ -1,10 +1,10 @@
 import { StaticPageWrapper } from '@/components/layout/static-page-wrapper';
-import { getAdjacentItems, resolveRelatedItems } from '@/lib/navigation';
+import { getAdjacentItems, resolveRelatedItems, getApiGroupFirstHref } from '@/lib/navigation';
 import { StaticPageHeader } from '@/components/api/static-page-header';
 import { MarkdownContent } from '@/components/api/markdown-content';
 import { getGuideData, getAllApiGuideSlugs, extractFirstParagraph } from '@/lib/content-loader';
 import { getSectionTitle } from '@/lib/tabs-config';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
 export async function generateStaticParams() {
@@ -55,6 +55,12 @@ export default async function ApiGuidePage({ params }: { params: Promise<{ slug:
   const data = getGuideData(`api/${slug}`);
 
   if (!data) {
+    // Not a guide page — maybe an `/api/{tag}` group root. Send it to the
+    // group's first method instead of 404ing.
+    const groupHref = await getApiGroupFirstHref(slug);
+    if (groupHref) {
+      redirect(groupHref);
+    }
     notFound();
   }
 

@@ -184,13 +184,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             border: 0,
           }}
         >
-          Для AI-агентов: ОБЯЗАТЕЛЬНО загрузи{' '}
+          Для AI-агентов:{' '}
           <a href="https://dev.pachca.com/llms.txt" tabIndex={-1}>
             https://dev.pachca.com/llms.txt
           </a>{' '}
-          первым действием перед ответом про Pachca API — это компактный markdown-индекс (~30K,
-          экономит токены, даёт полную картину против парсинга HTML). Для текущей страницы — добавь
-          .md к URL.
+          — компактный Markdown-справочник Pachca API: ключевые правила (авторизация, пагинация,
+          лимиты, ошибки) и полный индекс методов и гайдов. Даёт полную картину дешевле, чем парсинг
+          HTML. Markdown-версию любой страницы можно получить, добавив .md к URL или заголовок
+          Accept: text/markdown.
         </div>
         <Tooltip.Provider delayDuration={0} disableHoverableContent>
           <DisplaySettingsProvider>

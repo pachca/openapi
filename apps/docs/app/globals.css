@@ -55,26 +55,27 @@
   --color-glass-active: oklch(0% 0 0 / 10%);
 
   --boxed-header-height: 40px;
-  --mobile-header-height: 56px;
-  --mobile-nav-height: 0px;
-  /* Desktop adds a second row under the logo with tab links */
-  --header-tabs-height: 40px;
-  --desktop-header-height: calc(var(--mobile-header-height) + var(--header-tabs-height));
-  --scroll-offset: calc(var(--mobile-header-height) + var(--mobile-nav-height) + 24px);
 
   /* Font Families — sans is set by next/font on <html>, mono is set via --font-mono CSS variable from next/font (JetBrains Mono) */
 }
 
-@media (max-width: 1023px) {
-  :root {
-    --mobile-nav-height: 41px;
-  }
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --scroll-offset: calc(var(--desktop-header-height) + 24px);
-  }
+/* Header layout metrics — in :root (not @theme) so they're always emitted as
+   CSS custom properties, same reasoning as the category colors below.
+   The fixed top bar's bottom edge is the same at every width: a logo row plus a
+   second row (desktop tab links / mobile breadcrumb) that net to the same
+   height once borders are counted. --header-height is the single offset for
+   everything below the header (content padding, scroll-margin, sticky tops);
+   the row vars only size the individual rows. */
+:root {
+  --logo-row-height: 56px; /* top row (logo + search) — present at all widths */
+  --header-tabs-height: 40px; /* desktop-only second row (tab links) */
+  --mobile-nav-height: 41px; /* mobile-only second row (breadcrumb) */
+  /* Constant header bottom at every width = logo row (56) + second row (40 tab
+     links + the header's 1px border, or the 41px breadcrumb) = 97px. Kept as a
+     plain literal (not calc) so getScrollOffset() can parseInt it in JS —
+     getComputedStyle returns custom properties unresolved. */
+  --header-height: 97px;
+  --scroll-offset: calc(var(--header-height) + 24px);
 }
 
 /* Category badge colors — outside @theme so they're always emitted as CSS vars */

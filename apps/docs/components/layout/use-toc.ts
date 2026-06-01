@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { getScrollOffset } from '@/lib/utils/scroll-offset';
 
 interface TocItem {
   id: string;
@@ -37,7 +38,7 @@ export function useToc() {
     if (items.length > 0) setActiveIds(new Set([items[0].id]));
 
     const updateActive = () => {
-      const viewportTop = 80;
+      const viewportTop = getScrollOffset();
       const viewportBottom = window.innerHeight * 0.8;
 
       const visibleIds: string[] = [];

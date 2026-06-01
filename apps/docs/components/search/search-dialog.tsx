@@ -177,10 +177,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="flex items-center gap-3 px-4"
-          style={{ height: 'var(--mobile-header-height)' }}
-        >
+        <div className="flex items-center gap-3 px-4" style={{ height: 'var(--logo-row-height)' }}>
           <Search className="w-5 h-5 text-text-tertiary" />
           <input
             type="text"

@@ -2,9 +2,11 @@
 title: Обзор
 description: "Официальный CLI для Pachca API: все методы API как команды терминала с автодополнением, типизированными флагами и интерактивными подсказками. Node.js 20+"
 related:
+  - /guides/cli/authentication
+  - /guides/cli/output
+  - /guides/cli/scripting
+  - /guides/cli/files
   - /guides/cli/commands
-  - /guides/cli/api-requests
-  - { path: /guides/sdk/overview, title: SDK }
 ---
 
 # CLI
@@ -84,15 +86,3 @@ pachca api ls  # список всех эндпоинтов
 ```
 
 Подробнее — [Прямые запросы](/guides/cli/api-requests).
-
-## Разделы
-
-<CardGroup columns={2}>
-  <Card title="Авторизация" href="/guides/cli/authentication">Профили, приоритет источников токена, headless-режим для CI и агентов</Card>
-  <Card title="Вывод" href="/guides/cli/output">Форматы (table, json, yaml, csv), колонки, пайпы, пагинация</Card>
-  <Card title="Флаги и скрипты" href="/guides/cli/scripting">Глобальные флаги, exit codes, таксономия ошибок, переменные окружения</Card>
-  <Card title="Сценарии" href="/guides/cli/workflows">Готовые пошаговые рецепты под типовые задачи</Card>
-  <Card title="Файлы" href="/guides/cli/files">Загрузка файла на S3 одной командой</Card>
-  <Card title="Прямые запросы" href="/guides/cli/api-requests">Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале</Card>
-  <Card title="Справочник команд" href="/guides/cli/commands">Все команды, параметры каждой — по клику</Card>
-</CardGroup>

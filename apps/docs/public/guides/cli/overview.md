@@ -84,20 +84,10 @@ pachca api ls  # список всех эндпоинтов
 
 Подробнее — [Прямые запросы](/guides/cli/api-requests).
 
-## Разделы
-
-- [Авторизация](/guides/cli/authentication) — Профили, приоритет источников токена, headless-режим для CI и агентов
-- [Вывод](/guides/cli/output) — Форматы (table, json, yaml, csv), колонки, пайпы, пагинация
-- [Флаги и скрипты](/guides/cli/scripting) — Глобальные флаги, exit codes, таксономия ошибок, переменные окружения
-- [Сценарии](/guides/cli/workflows) — Готовые пошаговые рецепты под типовые задачи
-- [Файлы](/guides/cli/files) — Загрузка файла на S3 одной командой
-- [Прямые запросы](/guides/cli/api-requests) — Прямой HTTP-запрос к любому методу и встроенный справочник по API в терминале
-- [Справочник команд](/guides/cli/commands) — Все команды, параметры каждой — по клику
-
-
-
 ## Связанные разделы
 
+- [Авторизация](/guides/cli/authentication)
+- [Вывод](/guides/cli/output)
+- [Флаги и скрипты](/guides/cli/scripting)
+- [Файлы](/guides/cli/files)
 - [Команды](/guides/cli/commands)
-- [Прямые запросы](/guides/cli/api-requests)
-- [SDK](/guides/sdk/overview)

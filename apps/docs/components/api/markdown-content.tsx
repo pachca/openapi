@@ -190,7 +190,7 @@ const components = {
     </th>
   ),
   td: ({ children }: { children: React.ReactNode }) => (
-    <td className="py-5 pl-0! text-text-primary w-[20%]">{children}</td>
+    <td className="py-5 pl-0! text-text-primary w-[20%] leading-relaxed align-top">{children}</td>
   ),
 
   // Other

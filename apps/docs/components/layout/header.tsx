@@ -24,10 +24,7 @@ export function Header({ hasNewUpdates }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-b border-background-border z-50 flex flex-col">
       {/* Top row: logo, centered search (desktop), right-side buttons */}
-      <div
-        className="flex items-center lg:px-5 px-3"
-        style={{ height: 'var(--mobile-header-height)' }}
-      >
+      <div className="flex items-center lg:px-5 px-3" style={{ height: 'var(--logo-row-height)' }}>
         <LogoLink />
 
         {/* Centered search on desktop */}

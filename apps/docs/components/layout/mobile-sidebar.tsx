@@ -99,7 +99,7 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
           {/* Close button */}
           <div
             className="flex items-center px-3 shrink-0"
-            style={{ height: 'var(--mobile-header-height)' }}
+            style={{ height: 'var(--logo-row-height)' }}
           >
             <button
               onClick={() => setIsOpen(false)}

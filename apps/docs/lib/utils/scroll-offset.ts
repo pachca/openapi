@@ -1,10 +1,7 @@
 export function getScrollOffset(): number {
+  // Mirrors the CSS --scroll-offset (header bottom + 24px). The header bottom
+  // is constant at every width, so no breakpoint branch is needed.
   const style = getComputedStyle(document.documentElement);
-  const header = parseInt(style.getPropertyValue('--mobile-header-height') || '56', 10);
-  const mobileNav = parseInt(style.getPropertyValue('--mobile-nav-height') || '0', 10);
-  const tabs = parseInt(style.getPropertyValue('--header-tabs-height') || '0', 10);
-  // Mirror the CSS breakpoint in globals.css: desktop swaps the mobile
-  // bottom nav for a second header row with tab links.
-  const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-  return header + (isDesktop ? tabs : mobileNav) + 24;
+  const header = parseInt(style.getPropertyValue('--header-height') || '97', 10);
+  return header + 24;
 }

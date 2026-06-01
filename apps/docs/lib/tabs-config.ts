@@ -104,7 +104,6 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
         ],
       },
       { title: 'Треды', path: '/guides/threads' },
-      { title: 'Сценарии', path: '/guides/workflows' },
     ],
   },
   {
@@ -154,7 +153,10 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
   },
   {
     title: 'Справочники',
-    items: [{ title: 'Форматирование текста', path: '/guides/markdown' }],
+    items: [
+      { title: 'Форматирование текста', path: '/guides/markdown' },
+      { title: 'Сценарии', path: '/guides/workflows' },
+    ],
   },
 ];
 

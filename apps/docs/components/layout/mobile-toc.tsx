@@ -69,10 +69,7 @@ export function MobileTableOfContents() {
   if (toc.length === 0 || !hasToc) return null;
 
   return (
-    <div
-      className="xl:hidden fixed right-4 z-30"
-      style={{ top: 'calc(var(--mobile-header-height) + var(--mobile-nav-height) + 16px)' }}
-    >
+    <div className="xl:hidden fixed right-4 z-30 [top:calc(var(--header-height)_+_16px)]">
       <DropdownMenu.Root open={open} onOpenChange={setOpen} modal={false}>
         <DropdownMenu.Trigger asChild>
           <button

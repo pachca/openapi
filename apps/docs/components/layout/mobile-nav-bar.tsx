@@ -69,7 +69,7 @@ export function MobileNavBar({ navigationByTab }: MobileNavBarProps) {
   return (
     <div
       className="lg:hidden fixed left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-b border-background-border z-50"
-      style={{ top: 'var(--mobile-header-height)', height: 'var(--mobile-nav-height)' }}
+      style={{ top: 'var(--logo-row-height)', height: 'var(--mobile-nav-height)' }}
     >
       <button
         onClick={() => window.dispatchEvent(new CustomEvent('toggle-mobile-menu'))}

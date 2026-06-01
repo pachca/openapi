@@ -73,7 +73,7 @@ export function ApiMethodTemplate({
 
         {/* Right Column: Code Examples (Sticky) */}
         <div className="relative bg-background border-t border-background-border/50 xl:border-t-0 xl:col-span-3">
-          <div className="xl:sticky xl:top-[var(--desktop-header-height)] p-8 xl:py-10 xl:pr-10 xl:pl-0 h-fit xl:max-h-[calc(100vh-var(--desktop-header-height))] xl:overflow-y-auto custom-scrollbar">
+          <div className="xl:sticky xl:top-[var(--header-height)] p-8 xl:py-10 xl:pr-10 xl:pl-0 h-fit xl:max-h-[calc(100vh-var(--header-height))] xl:overflow-y-auto custom-scrollbar">
             <CodeExamples endpoint={endpoint} baseUrl={baseUrl} sdkExamples={sdkExamples} />
           </div>
         </div>

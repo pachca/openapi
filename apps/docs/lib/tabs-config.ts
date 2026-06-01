@@ -152,6 +152,10 @@ export const GUIDE_SECTIONS: SidebarSection[] = [
       { title: 'Журнал аудита', path: '/guides/audit-events' },
     ],
   },
+  {
+    title: 'Справочники',
+    items: [{ title: 'Форматирование текста', path: '/guides/markdown' }],
+  },
 ];
 
 /** CLI tab sidebar — все страницы под /guides/cli */

@@ -813,6 +813,7 @@ change to a published package ships with a release entry (and vice versa).
 - A new MDX component must be registered in **three** places: \`apps/docs/components/mdx/mdx-components.tsx\`, \`apps/docs/components/api/markdown-content.tsx\`, and a handler in \`apps/docs/lib/mdx-expander.ts\` (else raw tags leak into generated \`.md\`/\`llms-full.txt\`).
 - Next.js middleware lives in \`apps/docs/proxy.ts\` (Next 16 renamed \`middleware.ts\` → \`proxy.ts\`; both present fails the build).
 - After changing \`typespec.tsp\`, always \`npx turbo build --filter=@pachca/spec --force\` — otherwise \`openapi.yaml\` stays stale.
+- Snapshot regeneration for \`packages/generator\` is a bulk snapshot rewrite. Use \`cd packages/generator && npm run regen-snapshots\` (backed by top-level \`scripts/regen-generator-snapshots.ts\`) instead of ad-hoc \`bun -e\` one-offs or the old \`bin/\` / \`tests/\` helpers.
 - Restart the docs dev server after changing component registrations or new TS/TSX files (Turbopack HMR misses them).
 
 ## Deep-dive docs (read before the relevant task)

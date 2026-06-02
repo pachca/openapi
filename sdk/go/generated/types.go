@@ -512,6 +512,25 @@ type ChatCreateRequestChat struct {
 	Public      *bool   `json:"public,omitempty"`
 }
 
+func (m ChatCreateRequestChat) MarshalJSON() ([]byte, error) {
+	type Alias ChatCreateRequestChat
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.MemberIDs != nil {
+		raw["member_ids"] = m.MemberIDs
+	}
+	if m.GroupTagIDs != nil {
+		raw["group_tag_ids"] = m.GroupTagIDs
+	}
+	return json.Marshal(raw)
+}
+
 type ChatCreateRequest struct {
 	Chat ChatCreateRequestChat `json:"chat"`
 }
@@ -562,6 +581,22 @@ type ExportRequest struct {
 	WebhookURL    string  `json:"webhook_url"`
 	ChatIDs       []int32 `json:"chat_ids,omitempty"`
 	SkipChatsFile *bool   `json:"skip_chats_file,omitempty"`
+}
+
+func (m ExportRequest) MarshalJSON() ([]byte, error) {
+	type Alias ExportRequest
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.ChatIDs != nil {
+		raw["chat_ids"] = m.ChatIDs
+	}
+	return json.Marshal(raw)
 }
 
 type File struct {
@@ -685,6 +720,25 @@ type MessageCreateRequestMessage struct {
 	SkipInviteMentions *bool                      `json:"skip_invite_mentions,omitempty"`
 }
 
+func (m MessageCreateRequestMessage) MarshalJSON() ([]byte, error) {
+	type Alias MessageCreateRequestMessage
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Files != nil {
+		raw["files"] = m.Files
+	}
+	if m.Buttons != nil {
+		raw["buttons"] = m.Buttons
+	}
+	return json.Marshal(raw)
+}
+
 type MessageCreateRequest struct {
 	Message     MessageCreateRequestMessage `json:"message"`
 	LinkPreview *bool                       `json:"link_preview,omitempty"`
@@ -705,6 +759,25 @@ type MessageUpdateRequestMessage struct {
 	Buttons          [][]Button                 `json:"buttons,omitempty"`
 	DisplayAvatarURL *string                    `json:"display_avatar_url,omitempty"`
 	DisplayName      *string                    `json:"display_name,omitempty"`
+}
+
+func (m MessageUpdateRequestMessage) MarshalJSON() ([]byte, error) {
+	type Alias MessageUpdateRequestMessage
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Files != nil {
+		raw["files"] = m.Files
+	}
+	if m.Buttons != nil {
+		raw["buttons"] = m.Buttons
+	}
+	return json.Marshal(raw)
 }
 
 type MessageUpdateRequest struct {
@@ -841,6 +914,25 @@ type TaskCreateRequestTask struct {
 	CustomProperties []TaskCreateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 
+func (m TaskCreateRequestTask) MarshalJSON() ([]byte, error) {
+	type Alias TaskCreateRequestTask
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.PerformerIDs != nil {
+		raw["performer_ids"] = m.PerformerIDs
+	}
+	if m.CustomProperties != nil {
+		raw["custom_properties"] = m.CustomProperties
+	}
+	return json.Marshal(raw)
+}
+
 type TaskCreateRequest struct {
 	Task TaskCreateRequestTask `json:"task"`
 }
@@ -860,6 +952,25 @@ type TaskUpdateRequestTask struct {
 	AllDay           *bool                             `json:"all_day,omitempty"`
 	DoneAt           *time.Time                        `json:"done_at,omitempty"`
 	CustomProperties []TaskUpdateRequestCustomProperty `json:"custom_properties,omitempty"`
+}
+
+func (m TaskUpdateRequestTask) MarshalJSON() ([]byte, error) {
+	type Alias TaskUpdateRequestTask
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.PerformerIDs != nil {
+		raw["performer_ids"] = m.PerformerIDs
+	}
+	if m.CustomProperties != nil {
+		raw["custom_properties"] = m.CustomProperties
+	}
+	return json.Marshal(raw)
 }
 
 type TaskUpdateRequest struct {
@@ -934,6 +1045,28 @@ type UserCreateRequestUser struct {
 	CustomProperties []UserCreateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 
+func (m UserCreateRequestUser) MarshalJSON() ([]byte, error) {
+	type Alias UserCreateRequestUser
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.ListTags != nil {
+		raw["list_tags"] = m.ListTags
+	}
+	if m.ChatIDs != nil {
+		raw["chat_ids"] = m.ChatIDs
+	}
+	if m.CustomProperties != nil {
+		raw["custom_properties"] = m.CustomProperties
+	}
+	return json.Marshal(raw)
+}
+
 type UserCreateRequest struct {
 	User            UserCreateRequestUser `json:"user"`
 	SkipEmailNotify *bool                 `json:"skip_email_notify,omitempty"`
@@ -970,6 +1103,25 @@ type UserUpdateRequestUser struct {
 	CustomProperties []UserUpdateRequestCustomProperty `json:"custom_properties,omitempty"`
 }
 
+func (m UserUpdateRequestUser) MarshalJSON() ([]byte, error) {
+	type Alias UserUpdateRequestUser
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.ListTags != nil {
+		raw["list_tags"] = m.ListTags
+	}
+	if m.CustomProperties != nil {
+		raw["custom_properties"] = m.CustomProperties
+	}
+	return json.Marshal(raw)
+}
+
 type UserUpdateRequest struct {
 	User UserUpdateRequestUser `json:"user"`
 }
@@ -989,6 +1141,22 @@ type ViewBlockCheckbox struct {
 	Options  []ViewBlockCheckboxOption `json:"options,omitempty"`
 	Required *bool                     `json:"required,omitempty"`
 	Hint     *string                   `json:"hint,omitempty"`
+}
+
+func (m ViewBlockCheckbox) MarshalJSON() ([]byte, error) {
+	type Alias ViewBlockCheckbox
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Options != nil {
+		raw["options"] = m.Options
+	}
+	return json.Marshal(raw)
 }
 
 type ViewBlockCheckboxOption struct {
@@ -1019,6 +1187,22 @@ type ViewBlockFileInput struct {
 	MaxFiles  *int32   `json:"max_files,omitempty"`
 	Required  *bool    `json:"required,omitempty"`
 	Hint      *string  `json:"hint,omitempty"`
+}
+
+func (m ViewBlockFileInput) MarshalJSON() ([]byte, error) {
+	type Alias ViewBlockFileInput
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Filetypes != nil {
+		raw["filetypes"] = m.Filetypes
+	}
+	return json.Marshal(raw)
 }
 
 type ViewBlockHeader struct {
@@ -1058,6 +1242,22 @@ type ViewBlockRadio struct {
 	Hint     *string                     `json:"hint,omitempty"`
 }
 
+func (m ViewBlockRadio) MarshalJSON() ([]byte, error) {
+	type Alias ViewBlockRadio
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Options != nil {
+		raw["options"] = m.Options
+	}
+	return json.Marshal(raw)
+}
+
 type ViewBlockSelect struct {
 	Type     string                      `json:"type"` // always "select"
 	Name     string                      `json:"name"`
@@ -1065,6 +1265,22 @@ type ViewBlockSelect struct {
 	Options  []ViewBlockSelectableOption `json:"options,omitempty"`
 	Required *bool                       `json:"required,omitempty"`
 	Hint     *string                     `json:"hint,omitempty"`
+}
+
+func (m ViewBlockSelect) MarshalJSON() ([]byte, error) {
+	type Alias ViewBlockSelect
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Options != nil {
+		raw["options"] = m.Options
+	}
+	return json.Marshal(raw)
 }
 
 type ViewBlockSelectableOption struct {

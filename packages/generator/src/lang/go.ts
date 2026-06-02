@@ -154,6 +154,31 @@ function emitModel(lines: string[], m: IRModel, allModels: IRModel[]): void {
   for (const line of goAligned(rows)) lines.push(line);
   lines.push('}');
 
+  const optionalContainers = m.fields.filter(
+    (f) => isOptionalField(f) && (f.type.kind === 'array' || f.type.kind === 'record') && !f.nullable,
+  );
+  if (optionalContainers.length > 0) {
+    lines.push('');
+    lines.push(`func (m ${m.name}) MarshalJSON() ([]byte, error) {`);
+    lines.push(`\ttype Alias ${m.name}`);
+    lines.push('\tdata, err := json.Marshal(Alias(m))');
+    lines.push('\tif err != nil {');
+    lines.push('\t\treturn nil, err');
+    lines.push('\t}');
+    lines.push('\tvar raw map[string]any');
+    lines.push('\tif err := json.Unmarshal(data, &raw); err != nil {');
+    lines.push('\t\treturn nil, err');
+    lines.push('\t}');
+    for (const field of optionalContainers) {
+      const goName = goExportName(field.name);
+      lines.push(`\tif m.${goName} != nil {`);
+      lines.push(`\t\traw[${JSON.stringify(field.name)}] = m.${goName}`);
+      lines.push('\t}');
+    }
+    lines.push('\treturn json.Marshal(raw)');
+    lines.push('}');
+  }
+
   if (m.name === 'ApiError') {
     // Find the items model for the errors array to determine which field to use
     const errorsField = m.fields.find((f) => f.name === 'errors');
@@ -285,9 +310,12 @@ function generateTypes(ir: IR): string {
   const needFmtStrings = ir.models.some((m) => m.name === 'ApiError');
   const needIO = ir.models.some((m) => m.fields.some((f) => f.type.kind === 'binary'));
   const hasUnions = ir.unions.length > 0;
+  const hasOptionalContainers = ir.models.some((m) => m.fields.some(
+    (f) => isOptionalField(f) && (f.type.kind === 'array' || f.type.kind === 'record') && !f.nullable,
+  ));
 
   const imports: string[] = [];
-  if (hasUnions) imports.push('"encoding/json"');
+  if (hasUnions || hasOptionalContainers) imports.push('"encoding/json"');
   if (needFmtStrings || hasUnions) imports.push('"fmt"');
   if (needIO) imports.push('"io"');
   if (needFmtStrings) imports.push('"strings"');

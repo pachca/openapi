@@ -6,6 +6,7 @@ import { Search, SquareTerminal, Loader2, BookText, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { SearchResult } from '@/lib/search/indexer';
 import { SUGGESTED_QUERIES } from '@/lib/search/synonyms';
+import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
 
 function generateParamId(path: string): string {
   return `param-${path
@@ -33,8 +34,6 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   }, [onClose]);
 
   const handleResultClick = (result: SearchResult) => {
-    requestClose();
-
     if (result.matchedByField && result.matchedValue?.path) {
       const paramId = generateParamId(result.matchedValue.path);
       const url = `${result.url}#${paramId}`;
@@ -48,6 +47,11 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
     } else {
       router.push(result.url);
     }
+
+    // Закрываем синхронно, без exit-анимации: мы всё равно уходим на другую
+    // страницу. Отложенный unmount (requestClose) на Safari/WebKit гонится с
+    // re-render навигации, и диалог остаётся висеть поверх новой страницы.
+    onClose();
   };
 
   const removeTagsFromDescription = (text: string) => {
@@ -84,6 +88,10 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [requestClose]);
+
+  // Блокируем скролл основной страницы, пока открыта модалка (диалог монтируется
+  // только когда открыт, поэтому без флага).
+  useBodyScrollLock();
 
   const performSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -167,7 +175,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
   const dialogContent = (
     <div
       className={`fixed inset-0 bg-[oklch(0%_0_0/0.2)] backdrop-blur-sm z-[9999] flex items-start justify-center pt-[60px] pb-[60px] px-4 transition-opacity duration-200 ease-out ${
-        visible ? 'opacity-100' : 'opacity-0'
+        visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       onClick={requestClose}
     >

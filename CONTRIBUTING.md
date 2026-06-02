@@ -38,6 +38,7 @@ Targeted regeneration:
 | OpenAPI only (after editing `typespec.tsp`) | `npx turbo build --filter=@pachca/spec --force` |
 | llms / skills / postman / per-page md | `cd apps/docs && bun run generate-llms` |
 | CLI commands | `cd packages/cli && bun run generate-cli` |
+| Generator test snapshots | `cd packages/generator && npm run regen-snapshots` |
 | Everything (before commit) | `npx turbo build` |
 
 If the generator step fails with `Cannot find module @pachca/openapi-parser`:
@@ -64,6 +65,10 @@ Edit **only** the source; never hand-edit generated output:
 After a build, review the diff of regenerated files; a stale version
 sitting in a generated file means regeneration didn't run — debug it,
 don't hand-patch.
+
+For `packages/generator` snapshot fixtures, use `npm run regen-snapshots`
+(backed by top-level `scripts/regen-generator-snapshots.ts`) instead of
+ad-hoc `bun -e` commands or the old `bin/` / `tests/` helpers.
 
 ## Workflow
 

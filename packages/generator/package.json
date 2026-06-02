@@ -22,7 +22,8 @@
   "scripts": {
     "build": "bun build src/index.ts bin/generator.ts --outdir dist --target node --format esm --splitting --packages=bundle",
     "test": "vitest run",
-    "update-snapshots": "bun tests/update-snapshots.ts",
+    "regen-snapshots": "bun ../../scripts/regen-generator-snapshots.ts",
+    "update-snapshots": "bun ../../scripts/regen-generator-snapshots.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 package pachca
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -22,6 +23,22 @@ type ApiErrorItem struct {
 
 type ApiError struct {
 	Errors []ApiErrorItem `json:"errors,omitempty"`
+}
+
+func (m ApiError) MarshalJSON() ([]byte, error) {
+	type Alias ApiError
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Errors != nil {
+		raw["errors"] = m.Errors
+	}
+	return json.Marshal(raw)
 }
 
 func (e *ApiError) Error() string {

@@ -1,6 +1,7 @@
 package pachca
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -29,6 +30,22 @@ type User struct {
 	Birthday         *string          `json:"birthday"`
 	CustomProperties []CustomProperty `json:"custom_properties,omitempty"`
 	Status           *UserStatus      `json:"status,omitempty"`
+}
+
+func (m User) MarshalJSON() ([]byte, error) {
+	type Alias User
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.CustomProperties != nil {
+		raw["custom_properties"] = m.CustomProperties
+	}
+	return json.Marshal(raw)
 }
 
 type UserStatus struct {
@@ -87,6 +104,25 @@ type MessageCreateRequestMessage struct {
 	Buttons  [][]MessageCreateRequestButton `json:"buttons,omitempty"`
 }
 
+func (m MessageCreateRequestMessage) MarshalJSON() ([]byte, error) {
+	type Alias MessageCreateRequestMessage
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Files != nil {
+		raw["files"] = m.Files
+	}
+	if m.Buttons != nil {
+		raw["buttons"] = m.Buttons
+	}
+	return json.Marshal(raw)
+}
+
 type MessageCreateRequest struct {
 	Message MessageCreateRequestMessage `json:"message"`
 }
@@ -98,6 +134,22 @@ type ApiErrorItem struct {
 
 type ApiError struct {
 	Errors []ApiErrorItem `json:"errors,omitempty"`
+}
+
+func (m ApiError) MarshalJSON() ([]byte, error) {
+	type Alias ApiError
+	data, err := json.Marshal(Alias(m))
+	if err != nil {
+		return nil, err
+	}
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+	if m.Errors != nil {
+		raw["errors"] = m.Errors
+	}
+	return json.Marshal(raw)
 }
 
 func (e *ApiError) Error() string {

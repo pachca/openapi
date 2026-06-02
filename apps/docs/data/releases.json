@@ -1,5 +1,27 @@
 [
   {
+    "product": "sdk",
+    "version": "1.0.20",
+    "date": "2026-06-02",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Go SDK: явные пустые массивы и объекты в optional request-полях теперь сериализуются как `[]` / `{}` и не теряются из-за `omitempty`"
+      }
+    ]
+  },
+  {
+    "product": "generator",
+    "version": "1.1.5",
+    "date": "2026-06-02",
+    "changes": [
+      {
+        "type": "~",
+        "description": "Go generator: для optional non-null array/map полей генерируется `MarshalJSON`, чтобы сохранять явные пустые контейнеры в JSON"
+      }
+    ]
+  },
+  {
     "product": "cli",
     "version": "2026.5.6",
     "date": "2026-05-21",

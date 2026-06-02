@@ -8,6 +8,7 @@ import { SidebarNav } from './sidebar-nav';
 import type { NavigationSection } from '@/lib/openapi/types';
 import { TABS, type TabId } from '@/lib/tabs-config';
 import { useActiveTab } from './use-last-tab';
+import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
 
 interface MobileSidebarProps {
   navigationByTab: Record<TabId, NavigationSection[]>;
@@ -57,17 +58,8 @@ export function MobileSidebar({ navigationByTab }: MobileSidebarProps) {
     setIsOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  // Lock body scroll when open (shared with the search modal)
+  useBodyScrollLock(isOpen);
 
   const handleTabChange = (tabId: TabId) => {
     setSelectedTab(tabId);

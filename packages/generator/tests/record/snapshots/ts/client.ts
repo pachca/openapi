@@ -1,5 +1,5 @@
 import { LinkPreviewsRequest, OAuthError, ApiError } from "./types.js";
-import { serialize, fetchWithRetry } from "./utils.js";
+import { serializeType, fetchWithRetry } from "./utils.js";
 
 export class LinkPreviewsService {
   async createLinkPreviews(id: number, request: LinkPreviewsRequest): Promise<void> {
@@ -19,7 +19,7 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
     });
     switch (response.status) {
       case 201:

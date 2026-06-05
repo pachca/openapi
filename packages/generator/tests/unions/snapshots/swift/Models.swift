@@ -25,11 +25,13 @@ public struct ViewBlockPlainText: Codable {
 
 public struct ViewBlockImage: Codable {
     public let type: String
+    public let event: String
     public let url: String
     public let alt: String?
 
-    public init(type: String, url: String, alt: String? = nil) {
+    public init(type: String, event: String, url: String, alt: String? = nil) {
         self.type = type
+        self.event = event
         self.url = url
         self.alt = alt
     }

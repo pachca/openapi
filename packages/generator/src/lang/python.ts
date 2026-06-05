@@ -997,7 +997,9 @@ function generateUtils(ir: IR): string {
         lines.push('            return _deserialize_instance(MessageWebhookPayload, data)');
         for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
           const model = ir.models.find((m) => m.name === ref);
-          const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+          const typeField = model?.fields.find(
+            (f) => f.name === u.discriminatorField && f.type.kind === 'literal',
+          ) ?? model?.fields.find((f) => f.type.kind === 'literal');
           const disc = typeField?.type.literalValue;
           if (disc) {
             lines.push(`        case (${JSON.stringify(disc)}, _):`);

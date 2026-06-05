@@ -1,5 +1,5 @@
 import { FileUploadRequest, OAuthError, UploadParams } from "./types.js";
-import { deserialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, fetchWithRetry } from "./utils.js";
 
 export class CommonService {
   async uploadFile(directUrl: string, request: FileUploadRequest): Promise<void> {
@@ -52,7 +52,7 @@ export class CommonServiceImpl extends CommonService {
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as UploadParams;
+        return deserializeType("UploadParams", body.data) as UploadParams;
       case 401:
         throw new OAuthError(body.error);
       default:

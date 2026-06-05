@@ -20,6 +20,7 @@ public abstract class ViewBlockUnion
 
 public class ViewBlockHeader : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "header";
     [JsonPropertyName("text")]
     public string Text { get; set; } = default!;
@@ -27,6 +28,7 @@ public class ViewBlockHeader : ViewBlockUnion
 
 public class ViewBlockPlainText : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "plain_text";
     [JsonPropertyName("text")]
     public string Text { get; set; } = default!;
@@ -34,7 +36,10 @@ public class ViewBlockPlainText : ViewBlockUnion
 
 public class ViewBlockImage : ViewBlockUnion
 {
+    [JsonPropertyName("type")]
     public override string Type => "image";
+    [JsonPropertyName("event")]
+    public string @Event => "image_shared";
     [JsonPropertyName("url")]
     public string Url { get; set; } = default!;
     [JsonPropertyName("alt")]

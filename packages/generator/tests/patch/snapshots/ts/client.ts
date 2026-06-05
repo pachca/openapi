@@ -1,5 +1,5 @@
 import { ItemPatchRequest, Item, ApiError } from "./types.js";
-import { deserialize, serialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
 export class ItemsService {
   async patchItem(id: number, request: ItemPatchRequest): Promise<Item> {
@@ -19,12 +19,12 @@ export class ItemsServiceImpl extends ItemsService {
     const response = await fetchWithRetry(`${this.baseUrl}/items/${id}`, {
       method: "PATCH",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ItemPatchRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Item;
+        return deserializeType("Item", body.data) as Item;
       default:
         throw new ApiError(body.errors);
     }

@@ -91,7 +91,6 @@ def _deserialize_dataclass(cls: Type[T], data: dict) -> T:
         kwargs[k] = _deserialize_instance(hints[f.name], v)
     return cls(**kwargs)
 
-
 def _webhook_payload_union_deserialize(data: dict) -> WebhookPayloadUnion:
     match (data.get("type"), data.get("event")):
         case ("message", "link_shared"):
@@ -110,7 +109,6 @@ def _webhook_payload_union_deserialize(data: dict) -> WebhookPayloadUnion:
             return _deserialize_instance(CompanyMemberWebhookPayload, data)
         case _:
             raise ValueError(f"Unknown WebhookPayloadUnion discriminator: {data.get('type')}")
-
 
 _CUSTOM_UNION_DESERIALIZERS: dict[object, CustomUnionDeserializer] = {
     WebhookPayloadUnion: _webhook_payload_union_deserialize,

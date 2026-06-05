@@ -89,6 +89,7 @@ public abstract class NotificationUnion
 
 public class MessageNotification : NotificationUnion
 {
+    [JsonPropertyName("kind")]
     public override string Kind => "message";
     [JsonPropertyName("text")]
     public string Text { get; set; } = default!;
@@ -96,6 +97,7 @@ public class MessageNotification : NotificationUnion
 
 public class ReactionNotification : NotificationUnion
 {
+    [JsonPropertyName("kind")]
     public override string Kind => "message";
     [JsonPropertyName("emoji")]
     public string Emoji { get; set; } = default!;

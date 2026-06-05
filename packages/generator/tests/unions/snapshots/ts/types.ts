@@ -10,6 +10,7 @@ export interface ViewBlockPlainText {
 
 export interface ViewBlockImage {
   type: "image";
+  event: "image_shared";
   url: string;
   alt?: string;
 }

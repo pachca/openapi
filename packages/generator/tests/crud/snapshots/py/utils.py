@@ -4,18 +4,18 @@ import dataclasses
 import keyword
 from dataclasses import asdict, fields
 from datetime import datetime
-from typing import Type, TypeVar, get_args, get_origin, get_type_hints
+from typing import Callable, Type, TypeVar, get_args, get_origin, get_type_hints
 
 import httpx
 
 T = TypeVar("T")
 
 
-def _is_dataclass_type(tp: type) -> bool:
+def _is_dataclass_type(tp: object) -> bool:
     return isinstance(tp, type) and dataclasses.is_dataclass(tp)
 
 
-def _resolve_type(tp: type) -> type | None:
+def _resolve_type(tp: object) -> type | None:
     """Extract a concrete dataclass type from Optional[X] or X | None."""
     origin = get_origin(tp)
     if origin is list:
@@ -29,7 +29,7 @@ def _resolve_type(tp: type) -> type | None:
     return None
 
 
-def _resolve_list_item_type(tp: type) -> type | None:
+def _resolve_list_item_type(tp: object) -> object | None:
     """Extract the item type from list[X]."""
     origin = get_origin(tp)
     if origin is list:
@@ -39,8 +39,34 @@ def _resolve_list_item_type(tp: type) -> type | None:
     return None
 
 
-def deserialize(cls: Type[T], data: dict) -> T:
-    """Create a dataclass instance from a dict, recursively deserializing nested dataclasses."""
+CustomUnionDeserializer = Callable[[dict], object]
+
+
+def _deserialize_instance(tp: object, value: object) -> object:
+    custom = _CUSTOM_UNION_DESERIALIZERS.get(tp)
+    if custom is not None and isinstance(value, dict):
+        return custom(value)
+    if isinstance(value, dict):
+        nested = _resolve_type(tp)
+        if nested is not None:
+            return _deserialize_dataclass(nested, value)
+    if isinstance(value, list):
+        item_tp = _resolve_list_item_type(tp)
+        if item_tp is not None:
+            return [_deserialize_instance(item_tp, item) for item in value]
+    if isinstance(value, str):
+        raw_tp = tp
+        if get_origin(tp) is not None:
+            for arg in get_args(tp):
+                if arg is not type(None):
+                    raw_tp = arg
+                    break
+        if raw_tp is datetime:
+            return datetime.fromisoformat(value)
+    return value
+
+
+def _deserialize_dataclass(cls: Type[T], data: dict) -> T:
     field_map = {f.name: f for f in fields(cls)}
     hints = get_type_hints(cls)
     norm = {k.replace("-", "_").lower(): v for k, v in data.items()}
@@ -51,26 +77,16 @@ def deserialize(cls: Type[T], data: dict) -> T:
             if k not in field_map:
                 continue
         f = field_map[k]
-        if isinstance(v, dict):
-            nested = _resolve_type(hints[f.name])
-            if nested is not None:
-                v = deserialize(nested, v)
-        elif isinstance(v, list) and v:
-            item_tp = _resolve_list_item_type(hints[f.name])
-            if item_tp is not None and _is_dataclass_type(item_tp):
-                v = [deserialize(item_tp, i) if isinstance(i, dict) else i for i in v]
-        elif isinstance(v, str):
-            hint = hints.get(f.name)
-            raw_hint = hint
-            if get_origin(hint) is not None:
-                for a in get_args(hint):
-                    if a is not type(None):
-                        raw_hint = a
-                        break
-            if raw_hint is datetime:
-                v = datetime.fromisoformat(v)
-        kwargs[k] = v
+        kwargs[k] = _deserialize_instance(hints[f.name], v)
     return cls(**kwargs)
+
+_CUSTOM_UNION_DESERIALIZERS: dict[object, CustomUnionDeserializer] = {
+}
+
+
+def deserialize(cls: Type[T], data: dict) -> T:
+    """Create a typed instance from a dict, recursively deserializing nested values."""
+    return _deserialize_instance(cls, data)
 
 
 def _strip_nones(val: object) -> object:

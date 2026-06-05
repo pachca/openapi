@@ -199,7 +199,9 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
     for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
       const c = ref.charAt(0).toLowerCase() + ref.slice(1);
       const model = models.find((m) => m.name === ref);
-      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const typeField = model?.fields.find(
+        (f) => f.name === discField && f.type.kind === 'literal',
+      ) ?? model?.fields.find((f) => f.type.kind === 'literal');
       const disc = typeField?.type.literalValue ?? c;
       lines.push(`        case (${JSON.stringify(disc)}, _):`);
       lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
@@ -210,7 +212,9 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
     for (const ref of u.memberRefs) {
       const c = ref.charAt(0).toLowerCase() + ref.slice(1);
       const model = models.find((m) => m.name === ref);
-      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const typeField = model?.fields.find(
+        (f) => f.name === discField && f.type.kind === 'literal',
+      ) ?? model?.fields.find((f) => f.type.kind === 'literal');
       const disc = typeField?.type.literalValue ?? c;
       if (seenDiscs.has(String(disc))) continue;
       seenDiscs.add(String(disc));

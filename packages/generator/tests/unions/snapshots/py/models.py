@@ -18,6 +18,7 @@ class ViewBlockPlainText:
 @dataclass
 class ViewBlockImage:
     type: str  # literal "image"
+    event: str  # literal "image_shared"
     url: str
     alt: str | None = None
 

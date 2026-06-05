@@ -10,6 +10,32 @@ function camelToSnake(str: string): string {
     .toLowerCase();
 }
 
+function deserializeArray(obj: unknown, mapItem: (item: unknown) => unknown): unknown {
+  return Array.isArray(obj) ? obj.map(mapItem) : deserialize(obj);
+}
+
+function serializeArray(obj: unknown, mapItem: (item: unknown) => unknown): unknown {
+  return Array.isArray(obj) ? obj.map(mapItem) : serialize(obj);
+}
+
+function deserializeRecordWith(obj: unknown, mapValue: (value: unknown) => unknown): unknown {
+  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, mapValue(v)]));
+  }
+  return deserialize(obj);
+}
+
+function serializeRecordWith(obj: unknown, mapValue: (value: unknown) => unknown): unknown {
+  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, mapValue(v)]),
+    );
+  }
+  return serialize(obj);
+}
+
 export function deserialize(obj: unknown): unknown {
   if (Array.isArray(obj)) return obj.map(deserialize);
   if (obj !== null && typeof obj === "object") {
@@ -30,6 +56,17 @@ export function serialize(obj: unknown): unknown {
     );
   }
   return obj;
+}
+
+const TYPE_DESERIALIZERS: Record<string, (obj: unknown) => unknown> = {
+};
+
+export function deserializeType(type: string, obj: unknown): unknown {
+  return (TYPE_DESERIALIZERS[type] ?? deserialize)(obj);
+}
+
+export function serializeType(_type: string, obj: unknown): unknown {
+  return serialize(obj);
 }
 
 const MAX_RETRIES = 3;

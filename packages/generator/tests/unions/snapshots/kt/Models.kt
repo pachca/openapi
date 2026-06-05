@@ -28,4 +28,6 @@ data class ViewBlockImage(
     override val type: String = "image",
     val url: String,
     val alt: String? = null,
-) : ViewBlockUnion
+) : ViewBlockUnion {
+    val event: String = "image_shared"
+}

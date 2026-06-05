@@ -1563,7 +1563,7 @@ type WebhookPayloadUnion struct {
 
 func (u *WebhookPayloadUnion) UnmarshalJSON(data []byte) error {
 	var disc struct {
-		Type  string `json:"type"`
+		Type string `json:"type"`
 		Event string `json:"event"`
 	}
 	if err := json.Unmarshal(data, &disc); err != nil {

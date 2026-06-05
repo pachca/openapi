@@ -4,7 +4,7 @@ import {
   ChatCreateRequest,
   Chat,
 } from "./types.js";
-import { deserialize, serialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
 export class MembersService {
   async addMembers(id: number, memberIds: number[]): Promise<void> {
@@ -59,12 +59,12 @@ export class ChatsServiceImpl extends ChatsService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ChatCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Chat;
+        return deserializeType("Chat", body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:

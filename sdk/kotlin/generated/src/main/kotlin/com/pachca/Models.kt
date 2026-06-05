@@ -829,7 +829,9 @@ data class ButtonWebhookPayload(
     @SerialName("user_id") val userId: Int,
     @SerialName("chat_id") val chatId: Int,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
-) : WebhookPayloadUnion
+) : WebhookPayloadUnion {
+    val event: String = "click"
+}
 
 @Serializable
 @SerialName("view")
@@ -841,7 +843,9 @@ data class ViewSubmitWebhookPayload(
     @SerialName("user_id") val userId: Int,
     val data: Map<String, String>,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
-) : WebhookPayloadUnion
+) : WebhookPayloadUnion {
+    val event: String = "submit"
+}
 
 @Serializable
 @SerialName("chat_member")
@@ -875,7 +879,9 @@ data class LinkSharedWebhookPayload(
     @SerialName("user_id") val userId: Int,
     @Serializable(with = OffsetDateTimeSerializer::class) @SerialName("created_at") val createdAt: OffsetDateTime,
     @SerialName("webhook_timestamp") val webhookTimestamp: Int,
-) : WebhookPayloadUnion
+) : WebhookPayloadUnion {
+    val event: String = "link_shared"
+}
 
 @Serializable
 data class AccessTokenInfo(

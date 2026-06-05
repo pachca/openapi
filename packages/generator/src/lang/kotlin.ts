@@ -302,32 +302,50 @@ function emitUnion(
   }
 
   for (const memberModel of memberModels) {
-    const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+    const litField = memberModel.fields.find(
+      (f) => f.name === discriminatorField && f.type.kind === 'literal',
+    ) ?? memberModel.fields.find((f) => f.type.kind === 'literal');
     const litValue = litField?.type.literalValue ?? '';
-    const otherFields = memberModel.fields.filter(
-      (f) => f.type.kind !== 'literal',
-    );
 
     lines.push('');
     lines.push('@Serializable');
     lines.push(`@SerialName("${litValue}")`);
     lines.push(`data class ${memberModel.name}(`);
-    lines.push(
-      `    override val ${snakeToCamel(discriminatorField)}: String = "${litValue}",`,
-    );
-    for (const f of otherFields) {
+    if (!memberModel.fields.some((f) => f.name === discriminatorField)) {
+      lines.push(
+        `    override val ${snakeToCamel(discriminatorField)}: String = "${litValue}",`,
+      );
+    }
+    const bodyLiteralFields: IRField[] = [];
+    for (const f of memberModel.fields) {
+      if (f.name !== discriminatorField && f.type.kind === 'literal') {
+        bodyLiteralFields.push(f);
+        continue;
+      }
       const sdkName = fieldSdkName(f);
       const typeName = ktType(f.type);
       const isOpt = !f.required;
       const fullType = isOpt ? `${typeName}?` : typeName;
-      const default_ = isOpt ? ' = null' : '';
+      const literalDefault = f.type.kind === 'literal' ? ` = "${f.type.literalValue ?? ''}"` : '';
+      const default_ = isOpt ? ' = null' : literalDefault;
       const isDateTime = f.type.kind === 'primitive' && f.type.primitive === 'string' && f.type.format === 'date-time';
       const dtAnnotation = isDateTime ? '@Serializable(with = OffsetDateTimeSerializer::class) ' : '';
       const serialName =
         needsSerialName(f) ? `${dtAnnotation}@SerialName("${f.name}") ` : dtAnnotation;
-      lines.push(`    ${serialName}val ${sdkName}: ${fullType}${default_},`);
+      const overrideModifier = f.name === discriminatorField ? 'override ' : '';
+      lines.push(`    ${serialName}${overrideModifier}val ${sdkName}: ${fullType}${default_},`);
     }
-    lines.push(`) : ${u.name}`);
+    if (bodyLiteralFields.length === 0) {
+      lines.push(`) : ${u.name}`);
+    } else {
+      lines.push(`) : ${u.name} {`);
+      for (const f of bodyLiteralFields) {
+        const sdkName = fieldSdkName(f);
+        const serialName = needsSerialName(f) ? `@SerialName("${f.name}") ` : '';
+        lines.push(`    ${serialName}val ${sdkName}: String = "${f.type.literalValue ?? ''}"`);
+      }
+      lines.push('}');
+    }
   }
 }
 

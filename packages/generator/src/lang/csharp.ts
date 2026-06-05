@@ -294,7 +294,9 @@ function emitUnion(
   } else {
     lines.push(`[JsonPolymorphic(TypeDiscriminatorPropertyName = "${discriminatorField}")]`);
     for (const memberModel of memberModels) {
-      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litField = memberModel.fields.find(
+        (f) => f.name === discriminatorField && f.type.kind === 'literal',
+      ) ?? memberModel.fields.find((f) => f.type.kind === 'literal');
       const litValue = litField?.type.literalValue ?? '';
       lines.push(`[JsonDerivedType(typeof(${memberModel.name}), "${litValue}")]`);
     }
@@ -321,7 +323,9 @@ function emitUnion(
     lines.push('            "message" when eventValue == "link_shared" => JsonSerializer.Deserialize<LinkSharedWebhookPayload>(raw, options)!,');
     lines.push('            "message" => JsonSerializer.Deserialize<MessageWebhookPayload>(raw, options)!,');
     for (const memberModel of memberModels.filter((m) => m.name !== 'MessageWebhookPayload' && m.name !== 'LinkSharedWebhookPayload')) {
-      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litField = memberModel.fields.find(
+        (f) => f.name === discriminatorField && f.type.kind === 'literal',
+      ) ?? memberModel.fields.find((f) => f.type.kind === 'literal');
       const litValue = litField?.type.literalValue ?? '';
       lines.push(`            ${JSON.stringify(litValue)} => JsonSerializer.Deserialize<${memberModel.name}>(raw, options)!,`);
     }
@@ -337,26 +341,27 @@ function emitUnion(
   }
 
   for (const memberModel of memberModels) {
-    const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
-    const litValue = litField?.type.literalValue ?? '';
-    const otherFields = memberModel.fields.filter(
-      (f) => f.type.kind !== 'literal',
-    );
-
     lines.push('');
     lines.push(`public class ${memberModel.name} : ${u.name}`);
     lines.push('{');
-    lines.push(`    public override string ${snakeToPascal(discriminatorField)} => "${litValue}";`);
-    for (const f of otherFields) {
+    if (!memberModel.fields.some((f) => f.name === discriminatorField)) {
+      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`    public override string ${snakeToPascal(discriminatorField)} => "${litValue}";`);
+    }
+    for (const f of memberModel.fields) {
       const sdkName = fieldSdkName(f);
       const typeName = csType(f.type);
       const isOpt = !f.required || f.nullable;
       const nullSuffix = isOpt ? '?' : '';
+      const overrideModifier = f.name === discriminatorField ? 'override ' : '';
       lines.push(`    [JsonPropertyName("${f.name}")]`);
-      if (isOpt) {
-        lines.push(`    public ${typeName}${nullSuffix} ${sdkName} { get; set; }`);
+      if (f.type.kind === 'literal') {
+        lines.push(`    public ${overrideModifier}${typeName} ${sdkName} => ${JSON.stringify(f.type.literalValue ?? '')};`);
+      } else if (isOpt) {
+        lines.push(`    public ${overrideModifier}${typeName}${nullSuffix} ${sdkName} { get; set; }`);
       } else {
-        lines.push(`    public ${typeName} ${sdkName} { get; set; } = default!;`);
+        lines.push(`    public ${overrideModifier}${typeName} ${sdkName} { get; set; } = default!;`);
       }
     }
     lines.push('}');

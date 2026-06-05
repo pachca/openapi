@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace Pachca.Sdk;
 
@@ -144,6 +145,74 @@ public class BotsService
         CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("Bots.getWebhookEventsAll is not implemented");
+    }
+
+    public virtual async IAsyncEnumerable<WebhookEvent> PollWebhookEventsAsync(
+        int? limit = 50,
+        TimeSpan? interval = null,
+        DateTimeOffset? createdAfter = null,
+        int maxSeenDeliveryIds = 5000,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        if (maxSeenDeliveryIds <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxSeenDeliveryIds), "maxSeenDeliveryIds must be greater than 0");
+
+        var pollInterval = interval ?? TimeSpan.FromSeconds(5);
+        var effectiveCreatedAfter = createdAfter ?? DateTimeOffset.UtcNow;
+        var seenIdOrder = new Queue<string>();
+        var seenIds = new HashSet<string>();
+
+        bool Remember(string id)
+        {
+            if (!seenIds.Add(id)) return false;
+            seenIdOrder.Enqueue(id);
+            while (seenIdOrder.Count > maxSeenDeliveryIds)
+                seenIds.Remove(seenIdOrder.Dequeue());
+            return true;
+        }
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            string? cursor = null;
+            var hasNext = true;
+            while (hasNext && !cancellationToken.IsCancellationRequested)
+            {
+                var response = await GetWebhookEventsAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var pageHasRecentEvents = false;
+                for (var i = response.Data.Count - 1; i >= 0; i--)
+                {
+                    var webhookEvent = response.Data[i];
+                    var matchesCreatedAfter = webhookEvent.CreatedAt >= effectiveCreatedAfter;
+                    if (matchesCreatedAfter)
+                        pageHasRecentEvents = true;
+                    if (matchesCreatedAfter && Remember(webhookEvent.Id))
+                        yield return webhookEvent;
+                }
+                hasNext = (response.Meta.Paginate.HasNext ?? response.Data.Count > 0) && pageHasRecentEvents;
+                cursor = response.Meta.Paginate.NextPage;
+            }
+            await System.Threading.Tasks.Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public virtual async IAsyncEnumerable<TPayload> PollWebhookPayloadsAsync<TPayload>(
+        int? limit = 50,
+        TimeSpan? interval = null,
+        DateTimeOffset? createdAfter = null,
+        int maxSeenDeliveryIds = 5000,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        where TPayload : WebhookPayloadUnion
+    {
+        await foreach (var webhookEvent in PollWebhookEventsAsync(
+            limit: limit,
+            interval: interval,
+            createdAfter: createdAfter,
+            maxSeenDeliveryIds: maxSeenDeliveryIds,
+            cancellationToken: cancellationToken))
+        {
+            if (webhookEvent.Payload is TPayload payload)
+                yield return payload;
+        }
     }
 
     public virtual async System.Threading.Tasks.Task<BotResponse> UpdateBotAsync(

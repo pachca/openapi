@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import asyncio
+from collections import deque
+from datetime import datetime, timezone
+from typing import AsyncIterator, TypeVar
+
 import httpx
 
 from .models import (
@@ -12,6 +17,7 @@ from .models import (
     GetWebhookEventsParams,
     GetWebhookEventsResponse,
     WebhookEvent,
+    WebhookPayloadUnion,
     BotUpdateRequest,
     BotResponse,
     ListChatsParams,
@@ -80,6 +86,8 @@ from .models import (
     OpenViewRequest,
 )
 from .utils import deserialize, serialize, RetryTransport
+
+TPayload = TypeVar("TPayload", bound=WebhookPayloadUnion)
 
 class SecurityService:
     async def get_audit_events(
@@ -168,6 +176,67 @@ class BotsService:
         params: GetWebhookEventsParams | None = None,
     ) -> list[WebhookEvent]:
         raise NotImplementedError("Bots.getWebhookEventsAll is not implemented")
+
+    async def poll_webhook_events(
+        self,
+        *,
+        limit: int | None = 50,
+        interval_seconds: float = 5.0,
+        created_after: datetime | None = None,
+        max_seen_delivery_ids: int = 5_000,
+    ) -> AsyncIterator[WebhookEvent]:
+        if max_seen_delivery_ids <= 0:
+            raise ValueError("max_seen_delivery_ids must be greater than 0")
+
+        effective_created_after = created_after or datetime.now(timezone.utc)
+        seen_id_order: deque[str] = deque()
+        seen_ids: set[str] = set()
+
+        def remember(id: str) -> bool:
+            if id in seen_ids:
+                return False
+            seen_ids.add(id)
+            seen_id_order.append(id)
+            while len(seen_id_order) > max_seen_delivery_ids:
+                seen_ids.remove(seen_id_order.popleft())
+            return True
+
+        while True:
+            cursor: str | None = None
+            has_next = True
+            while has_next:
+                response = await self.get_webhook_events(
+                    GetWebhookEventsParams(limit=limit, cursor=cursor),
+                )
+                page_has_recent_events = False
+                for event in reversed(response.data):
+                    matches_created_after = event.created_at >= effective_created_after
+                    if matches_created_after:
+                        page_has_recent_events = True
+                    if matches_created_after and remember(event.id):
+                        yield event
+                reported_has_next = getattr(response.meta.paginate, "has_next", None)
+                has_next = (bool(response.data) if reported_has_next is None else reported_has_next) and page_has_recent_events
+                cursor = response.meta.paginate.next_page
+            await asyncio.sleep(interval_seconds)
+
+    async def poll_webhook_payloads(
+        self,
+        *,
+        payload_type: type[TPayload] | tuple[type[TPayload], ...] | None = None,
+        limit: int | None = 50,
+        interval_seconds: float = 5.0,
+        created_after: datetime | None = None,
+        max_seen_delivery_ids: int = 5_000,
+    ) -> AsyncIterator[WebhookPayloadUnion | TPayload]:
+        async for event in self.poll_webhook_events(
+            limit=limit,
+            interval_seconds=interval_seconds,
+            created_after=created_after,
+            max_seen_delivery_ids=max_seen_delivery_ids,
+        ):
+            if payload_type is None or isinstance(event.payload, payload_type):
+                yield event.payload
 
     async def update_bot(
         self,

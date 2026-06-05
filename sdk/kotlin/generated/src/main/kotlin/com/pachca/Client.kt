@@ -11,9 +11,17 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.serialization.json.Json
 import java.io.Closeable
 import java.time.OffsetDateTime
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 interface SecurityService {
     suspend fun getAuditEvents(
@@ -180,6 +188,57 @@ class BotsServiceImpl internal constructor(
         }
     }
 }
+
+fun BotsService.pollWebhookEvents(
+    limit: Int? = 50,
+    interval: Duration = 5.seconds,
+    createdAfter: OffsetDateTime? = null,
+    maxSeenDeliveryIds: Int = 5_000,
+): Flow<WebhookEvent> = flow {
+    require(maxSeenDeliveryIds > 0) { "maxSeenDeliveryIds must be greater than 0" }
+
+    val effectiveCreatedAfter = createdAfter ?: OffsetDateTime.now()
+    val seenIdOrder = ArrayDeque<String>()
+    val seenIds = mutableSetOf<String>()
+
+    fun remember(id: String): Boolean {
+        if (!seenIds.add(id)) return false
+        seenIdOrder.addLast(id)
+        while (seenIdOrder.size > maxSeenDeliveryIds) {
+            seenIds.remove(seenIdOrder.removeFirst())
+        }
+        return true
+    }
+
+    while (currentCoroutineContext().isActive) {
+        var cursor: String? = null
+        do {
+            val response = getWebhookEvents(limit = limit, cursor = cursor)
+            var pageHasRecentEvents = false
+            for (event in response.data.asReversed()) {
+                val matchesCreatedAfter = !event.createdAt.isBefore(effectiveCreatedAfter)
+                if (matchesCreatedAfter) pageHasRecentEvents = true
+                if (matchesCreatedAfter && remember(event.id)) emit(event)
+            }
+            val hasNext = (response.meta.paginate.hasNext ?: response.data.isNotEmpty()) && pageHasRecentEvents
+            cursor = response.meta.paginate.nextPage
+        } while (currentCoroutineContext().isActive && hasNext)
+        delay(interval)
+    }
+}
+
+inline fun <reified T : WebhookPayloadUnion> BotsService.pollWebhookPayloads(
+    limit: Int? = 50,
+    interval: Duration = 5.seconds,
+    createdAfter: OffsetDateTime? = null,
+    maxSeenDeliveryIds: Int = 5_000,
+): Flow<T> = pollWebhookEvents(
+    limit = limit,
+    interval = interval,
+    createdAfter = createdAfter,
+    maxSeenDeliveryIds = maxSeenDeliveryIds,
+)
+    .mapNotNull { it.payload as? T }
 
 interface ChatsService {
     suspend fun listChats(
@@ -1917,7 +1976,7 @@ class PachcaClient private constructor(
         private fun createClient(token: String): HttpClient = HttpClient {
             expectSuccess = false
             followRedirects = false
-            install(ContentNegotiation) { json(Json { explicitNulls = false }) }
+            install(ContentNegotiation) { json(Json { explicitNulls = false; ignoreUnknownKeys = true }) }
             install(HttpRequestRetry) {
                 maxRetries = 3
                 retryIf { _, response ->

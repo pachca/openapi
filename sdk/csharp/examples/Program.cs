@@ -9,6 +9,7 @@ return example switch
     "stub" => await StubExample.RunAsync(),
     "httpclient" => await HttpClientExample.RunAsync(),
     "webhook-history" => await WebhookHistoryExample.RunAsync(),
+    "polling" => await PollingExample.RunAsync(args.Skip(1).ToArray()),
     _ => PrintUsage()
 };
 
@@ -22,6 +23,10 @@ static int PrintUsage()
     Console.WriteLine("  stub            - Stub client with dependency injection");
     Console.WriteLine("  httpclient      - Pre-configured HttpClient");
     Console.WriteLine("  webhook-history - Fetch recent webhook deliveries");
+    Console.WriteLine("  polling         - Continuously process new webhook deliveries");
+    Console.WriteLine();
+    Console.WriteLine("Polling options:");
+    Console.WriteLine("  --payloads      - Poll payloads instead of full webhook events");
     Console.WriteLine();
     Console.WriteLine("Environment variables:");
     Console.WriteLine("  PACHCA_TOKEN     - API token (required)");

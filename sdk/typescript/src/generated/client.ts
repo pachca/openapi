@@ -66,7 +66,7 @@ import {
   UserUpdateRequest,
   OpenViewRequest,
 } from "./types.js";
-import { deserialize, serialize, fetchWithRetry } from "./utils.js";
+import { deserialize, deserializeType, serializeType, fetchWithRetry } from "./utils.js";
 
 export class SecurityService {
   async getAuditEvents(params?: GetAuditEventsParams): Promise<GetAuditEventsResponse> {
@@ -164,7 +164,7 @@ export class BotsServiceImpl extends BotsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as GetWebhookEventsResponse;
+        return { ...(deserialize(body) as GetWebhookEventsResponse), data: Array.isArray(body.data) ? body.data.map((item: unknown) => deserializeType("WebhookEvent", item) as WebhookEvent) : [] } as GetWebhookEventsResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -190,12 +190,12 @@ export class BotsServiceImpl extends BotsService {
     const response = await fetchWithRetry(`${this.baseUrl}/bots/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("BotUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as BotResponse;
+        return deserializeType("BotResponse", body.data) as BotResponse;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -303,7 +303,7 @@ export class ChatsServiceImpl extends ChatsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Chat;
+        return deserializeType("Chat", body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -315,12 +315,12 @@ export class ChatsServiceImpl extends ChatsService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ChatCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Chat;
+        return deserializeType("Chat", body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -332,12 +332,12 @@ export class ChatsServiceImpl extends ChatsService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ChatUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Chat;
+        return deserializeType("Chat", body.data) as Chat;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -447,7 +447,7 @@ export class CommonServiceImpl extends CommonService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/exports`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ExportRequest", request)),
     });
     switch (response.status) {
       case 204:
@@ -490,7 +490,7 @@ export class CommonServiceImpl extends CommonService {
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body) as UploadParams;
+        return deserializeType("UploadParams", body) as UploadParams;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -595,7 +595,7 @@ export class MembersServiceImpl extends MembersService {
     const response = await fetchWithRetry(`${this.baseUrl}/chats/${id}/members`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("AddMembersRequest", request)),
     });
     switch (response.status) {
       case 204:
@@ -754,7 +754,7 @@ export class GroupTagsServiceImpl extends GroupTagsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as GroupTag;
+        return deserializeType("GroupTag", body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -799,12 +799,12 @@ export class GroupTagsServiceImpl extends GroupTagsService {
     const response = await fetchWithRetry(`${this.baseUrl}/group_tags`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("GroupTagRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as GroupTag;
+        return deserializeType("GroupTag", body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -816,12 +816,12 @@ export class GroupTagsServiceImpl extends GroupTagsService {
     const response = await fetchWithRetry(`${this.baseUrl}/group_tags/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("GroupTagRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as GroupTag;
+        return deserializeType("GroupTag", body.data) as GroupTag;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -929,7 +929,7 @@ export class MessagesServiceImpl extends MessagesService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Message;
+        return deserializeType("Message", body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -941,12 +941,12 @@ export class MessagesServiceImpl extends MessagesService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("MessageCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Message;
+        return deserializeType("Message", body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -973,12 +973,12 @@ export class MessagesServiceImpl extends MessagesService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("MessageUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Message;
+        return deserializeType("Message", body.data) as Message;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1035,7 +1035,7 @@ export class LinkPreviewsServiceImpl extends LinkPreviewsService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/link_previews`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("LinkPreviewsRequest", request)),
     });
     switch (response.status) {
       case 204:
@@ -1111,12 +1111,12 @@ export class ReactionsServiceImpl extends ReactionsService {
     const response = await fetchWithRetry(`${this.baseUrl}/messages/${id}/reactions`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("ReactionRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body) as Reaction;
+        return deserializeType("Reaction", body) as Reaction;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1245,7 +1245,7 @@ export class ThreadsServiceImpl extends ThreadsService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Thread;
+        return deserializeType("Thread", body.data) as Thread;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1261,7 +1261,7 @@ export class ThreadsServiceImpl extends ThreadsService {
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Thread;
+        return deserializeType("Thread", body.data) as Thread;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1315,7 +1315,7 @@ export class ProfileServiceImpl extends ProfileService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as AccessTokenInfo;
+        return deserializeType("AccessTokenInfo", body.data) as AccessTokenInfo;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1330,7 +1330,7 @@ export class ProfileServiceImpl extends ProfileService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1345,7 +1345,7 @@ export class ProfileServiceImpl extends ProfileService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as unknown;
+        return deserializeType("unknown", body) as unknown;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1364,7 +1364,7 @@ export class ProfileServiceImpl extends ProfileService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as AvatarData;
+        return deserializeType("AvatarData", body.data) as AvatarData;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1376,12 +1376,12 @@ export class ProfileServiceImpl extends ProfileService {
     const response = await fetchWithRetry(`${this.baseUrl}/profile/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("StatusUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as UserStatus;
+        return deserializeType("UserStatus", body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1648,7 +1648,7 @@ export class TasksServiceImpl extends TasksService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1660,12 +1660,12 @@ export class TasksServiceImpl extends TasksService {
     const response = await fetchWithRetry(`${this.baseUrl}/tasks`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("TaskCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1677,12 +1677,12 @@ export class TasksServiceImpl extends TasksService {
     const response = await fetchWithRetry(`${this.baseUrl}/tasks/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("TaskUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as Task;
+        return deserializeType("Task", body.data) as Task;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1801,7 +1801,7 @@ export class UsersServiceImpl extends UsersService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1816,7 +1816,7 @@ export class UsersServiceImpl extends UsersService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body) as unknown;
+        return deserializeType("unknown", body) as unknown;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1828,12 +1828,12 @@ export class UsersServiceImpl extends UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("UserCreateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 201:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1845,12 +1845,12 @@ export class UsersServiceImpl extends UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${id}`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("UserUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as User;
+        return deserializeType("User", body.data) as User;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1869,7 +1869,7 @@ export class UsersServiceImpl extends UsersService {
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as AvatarData;
+        return deserializeType("AvatarData", body.data) as AvatarData;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1881,12 +1881,12 @@ export class UsersServiceImpl extends UsersService {
     const response = await fetchWithRetry(`${this.baseUrl}/users/${userId}/status`, {
       method: "PUT",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("StatusUpdateRequest", request)),
     });
     const body = await response.json();
     switch (response.status) {
       case 200:
-        return deserialize(body.data) as UserStatus;
+        return deserializeType("UserStatus", body.data) as UserStatus;
       case 401:
         throw new OAuthError(body.error);
       default:
@@ -1958,7 +1958,7 @@ export class ViewsServiceImpl extends ViewsService {
     const response = await fetchWithRetry(`${this.baseUrl}/views/open`, {
       method: "POST",
       headers: { ...this.headers, "Content-Type": "application/json" },
-      body: JSON.stringify(serialize(request)),
+      body: JSON.stringify(serializeType("OpenViewRequest", request)),
     });
     switch (response.status) {
       case 201:

@@ -446,7 +446,8 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
   if (needsDeserialize || needsSerialize || hasServices) {
     const utils = [
       needsDeserialize ? 'deserialize' : null,
-      needsSerialize ? 'serialize' : null,
+      needsDeserialize ? 'deserializeType' : null,
+      needsSerialize ? 'serializeType' : null,
       hasServices ? 'fetchWithRetry' : null,
     ]
       .filter((x): x is string => !!x)
@@ -692,7 +693,7 @@ function emitOperation(lines: string[], op: IROperation, ir: IR): void {
       const sdk = snakeToCamel(f.name);
       lines.push(`      body: JSON.stringify({ ${f.name}: ${sdk} }),`);
     } else {
-      lines.push('      body: JSON.stringify(serialize(request)),');
+      lines.push(`      body: JSON.stringify(serializeType(${JSON.stringify(rb.schemaRef)}, request)),`);
     }
   }
   lines.push('    });');
@@ -757,6 +758,13 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('  }');
 }
 
+function responseNeedsTypedDataItems(op: IROperation, ir: IR): boolean {
+  if (!op.successResponse.dataRef) return false;
+  const customUnionNames = new Set(ir.unions.filter((u) => u.unionDeserializer).map((u) => u.name));
+  const model = ir.models.find((m) => m.name === op.successResponse.dataRef);
+  return !!model && hasDirectCustomUnionField(model, customUnionNames);
+}
+
 function emitResponseSwitch(
   lines: string[],
   op: IROperation,
@@ -777,13 +785,17 @@ function emitResponseSwitch(
     lines.push('        return;');
   } else if (op.successResponse.isList) {
     lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return deserialize(body) as ${responseTypeName(op, ir)};`);
+    if (responseNeedsTypedDataItems(op, ir) && op.successResponse.dataRef) {
+      lines.push(`        return { ...(deserialize(body) as ${responseTypeName(op, ir)}), data: Array.isArray(body.data) ? body.data.map((item: unknown) => deserializeType(${JSON.stringify(op.successResponse.dataRef)}, item) as ${op.successResponse.dataRef}) : [] } as ${responseTypeName(op, ir)};`);
+    } else {
+      lines.push(`        return deserialize(body) as ${responseTypeName(op, ir)};`);
+    }
   } else if (op.successResponse.isUnwrap && op.successResponse.dataRef) {
     lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return deserialize(body.data) as ${op.successResponse.dataRef};`);
+    lines.push(`        return deserializeType(${JSON.stringify(op.successResponse.dataRef)}, body.data) as ${op.successResponse.dataRef};`);
   } else {
     lines.push(`      case ${op.successResponse.statusCode}:`);
-    lines.push(`        return deserialize(body) as ${responseTypeName(op, ir)};`);
+    lines.push(`        return deserializeType(${JSON.stringify(responseTypeName(op, ir))}, body) as ${responseTypeName(op, ir)};`);
   }
 
   if (op.hasOAuthError) {
@@ -820,8 +832,94 @@ function collectRecordKeys(ir: IR): Set<string> {
   return keys;
 }
 
+function hasDirectCustomUnionField(model: IRModel, customUnionNames: Set<string>): boolean {
+  return model.fields.some((field) =>
+    (field.type.kind === 'union' || field.type.kind === 'model')
+    && !!field.type.ref
+    && customUnionNames.has(field.type.ref),
+  );
+}
+
+function renderTransformExpr(
+  ft: IRFieldType,
+  mode: 'deserialize' | 'serialize',
+  valueName: string,
+  customUnionNames: Set<string>,
+): string {
+  const typeFn = mode === 'deserialize' ? 'deserializeType' : 'serializeType';
+  const valueFn = mode === 'deserialize' ? 'deserialize' : 'serialize';
+  const arrayFn = mode === 'deserialize' ? 'deserializeArray' : 'serializeArray';
+  const recordFn = mode === 'deserialize' ? 'deserializeRecordWith' : 'serializeRecordWith';
+
+  switch (ft.kind) {
+    case 'model':
+    case 'union':
+      if (ft.ref && customUnionNames.has(ft.ref)) return `${valueFn}(${valueName})`;
+      return ft.ref ? `${typeFn}(${JSON.stringify(ft.ref)}, ${valueName})` : `${valueFn}(${valueName})`;
+    case 'array':
+      return `${arrayFn}(${valueName}, (item) => ${renderTransformExpr(ft.items!, mode, 'item', customUnionNames)})`;
+    case 'record':
+      return `${recordFn}(${valueName}, (entryValue) => ${renderTransformExpr(ft.valueType!, mode, 'entryValue', customUnionNames)})`;
+    default:
+      return `${valueFn}(${valueName})`;
+  }
+}
+
+function emitObjectTransform(
+  lines: string[],
+  name: string,
+  fields: IRField[],
+  mode: 'deserialize' | 'serialize',
+  hasRecords: boolean,
+  customUnionNames: Set<string>,
+): void {
+  const fnName = `${mode}${name}`;
+  const fallback = mode === 'deserialize'
+    ? hasRecords
+      ? '[ck, RECORD_KEYS.has(ck) ? deserializeRecordWith(v, deserialize) : deserialize(v)]'
+      : '[ck, deserialize(v)]'
+    : hasRecords
+      ? '[camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecordWith(v, serialize) : serialize(v)]'
+      : '[camelToSnake(k), serialize(v)]';
+
+  lines.push(`function ${fnName}(obj: unknown): unknown {`);
+  lines.push(`  if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return ${mode}(obj);`);
+  lines.push('  return Object.fromEntries(');
+  lines.push('    Object.entries(obj)');
+  if (mode === 'serialize') lines.push('      .filter(([, v]) => v !== undefined)');
+  lines.push('      .map(([k, v]) => {');
+  if (mode === 'deserialize') {
+    lines.push('        const ck = snakeToCamel(k);');
+    lines.push('        switch (ck) {');
+    for (const field of fields) {
+      const sdkName = fieldSdkName(field);
+      lines.push(`          case ${JSON.stringify(sdkName)}:`);
+      lines.push(`            return [ck, ${renderTransformExpr(field.type, mode, 'v', customUnionNames)}];`);
+    }
+  } else {
+    lines.push('        switch (k) {');
+    for (const field of fields) {
+      const sdkName = fieldSdkName(field);
+      lines.push(`          case ${JSON.stringify(sdkName)}:`);
+      lines.push(`            return [camelToSnake(k), ${renderTransformExpr(field.type, mode, 'v', customUnionNames)}];`);
+    }
+  }
+  lines.push('          default:');
+  lines.push(`            return ${fallback};`);
+  lines.push('        }');
+  lines.push('      }),');
+  lines.push('  );');
+  lines.push('}');
+  lines.push('');
+}
+
+function emitCustomUnionTransforms(_lines: string[], _ir: IR): void {}
+
 function generateUtils(ir: IR): string {
   const recordKeys = collectRecordKeys(ir);
+  const customUnionNames = new Set(ir.unions.filter((u) => u.unionDeserializer).map((u) => u.name));
+  const targetModels = ir.models.filter((m) => hasDirectCustomUnionField(m, customUnionNames));
+
   const lines: string[] = [
     'function snakeToCamel(str: string): string {',
     '  const camel = str.replace(/[-_]([a-zA-Z])/g, (_, c) => c.toUpperCase());',
@@ -841,39 +939,41 @@ function generateUtils(ir: IR): string {
     const keyList = [...recordKeys].map((k) => JSON.stringify(k)).join(', ');
     lines.push(`const RECORD_KEYS = new Set([${keyList}]);`);
     lines.push('');
-    lines.push('function deserializeRecord(obj: unknown): unknown {');
-    lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
-    lines.push('    return Object.fromEntries(');
-    lines.push('      Object.entries(obj).map(([k, v]) => [k, deserialize(v)]),');
-    lines.push('    );');
-    lines.push('  }');
-    lines.push('  return deserialize(obj);');
-    lines.push('}');
-    lines.push('');
-    lines.push('function serializeRecord(obj: unknown): unknown {');
-    lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
-    lines.push('    return Object.fromEntries(');
-    lines.push('      Object.entries(obj)');
-    lines.push('        .filter(([, v]) => v !== undefined)');
-    lines.push('        .map(([k, v]) => [k, serialize(v)]),');
-    lines.push('    );');
-    lines.push('  }');
-    lines.push('  return serialize(obj);');
-    lines.push('}');
-    lines.push('');
   }
-  const deserializeValue = hasRecords
-    ? '([k, v]) => {\n        const ck = snakeToCamel(k);\n        return [ck, RECORD_KEYS.has(ck) ? deserializeRecord(v) : deserialize(v)];\n      }'
-    : '([k, v]) => [snakeToCamel(k), deserialize(v)]';
-  const serializeValue = hasRecords
-    ? '([k, v]) => {\n          return [camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecord(v) : serialize(v)];\n        }'
-    : '([k, v]) => [camelToSnake(k), serialize(v)]';
+  lines.push('function deserializeArray(obj: unknown, mapItem: (item: unknown) => unknown): unknown {');
+  lines.push('  return Array.isArray(obj) ? obj.map(mapItem) : deserialize(obj);');
+  lines.push('}');
+  lines.push('');
+  lines.push('function serializeArray(obj: unknown, mapItem: (item: unknown) => unknown): unknown {');
+  lines.push('  return Array.isArray(obj) ? obj.map(mapItem) : serialize(obj);');
+  lines.push('}');
+  lines.push('');
+  lines.push('function deserializeRecordWith(obj: unknown, mapValue: (value: unknown) => unknown): unknown {');
+  lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
+  lines.push('    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, mapValue(v)]));');
+  lines.push('  }');
+  lines.push('  return deserialize(obj);');
+  lines.push('}');
+  lines.push('');
+  lines.push('function serializeRecordWith(obj: unknown, mapValue: (value: unknown) => unknown): unknown {');
+  lines.push('  if (obj !== null && typeof obj === "object" && !Array.isArray(obj)) {');
+  lines.push('    return Object.fromEntries(');
+  lines.push('      Object.entries(obj)');
+  lines.push('        .filter(([, v]) => v !== undefined)');
+  lines.push('        .map(([k, v]) => [k, mapValue(v)]),');
+  lines.push('    );');
+  lines.push('  }');
+  lines.push('  return serialize(obj);');
+  lines.push('}');
+  lines.push('');
   lines.push(
     'export function deserialize(obj: unknown): unknown {',
     '  if (Array.isArray(obj)) return obj.map(deserialize);',
     '  if (obj !== null && typeof obj === "object") {',
     '    return Object.fromEntries(',
-    `      Object.entries(obj).map(${deserializeValue}),`,
+    hasRecords
+      ? '      Object.entries(obj).map(([k, v]) => {\n        const ck = snakeToCamel(k);\n        return [ck, RECORD_KEYS.has(ck) ? deserializeRecordWith(v, deserialize) : deserialize(v)];\n      }),' 
+      : '      Object.entries(obj).map(([k, v]) => [snakeToCamel(k), deserialize(v)]),',
     '    );',
     '  }',
     '  return obj;',
@@ -885,12 +985,34 @@ function generateUtils(ir: IR): string {
     '    return Object.fromEntries(',
     '      Object.entries(obj)',
     '        .filter(([, v]) => v !== undefined)',
-    `        .map(${serializeValue}),`,
+    hasRecords
+      ? '        .map(([k, v]) => [camelToSnake(k), RECORD_KEYS.has(k) ? serializeRecordWith(v, serialize) : serialize(v)]),' 
+      : '        .map(([k, v]) => [camelToSnake(k), serialize(v)]),',
     '    );',
     '  }',
     '  return obj;',
     '}',
+    '',
   );
+
+  for (const model of targetModels) {
+    emitObjectTransform(lines, model.name, model.fields, 'deserialize', hasRecords, customUnionNames);
+  }
+
+  emitCustomUnionTransforms(lines, ir);
+
+  lines.push('const TYPE_DESERIALIZERS: Record<string, (obj: unknown) => unknown> = {');
+  for (const model of targetModels) lines.push(`  ${JSON.stringify(model.name)}: deserialize${model.name},`);
+  lines.push('};');
+  lines.push('');
+  lines.push('export function deserializeType(type: string, obj: unknown): unknown {');
+  lines.push('  return (TYPE_DESERIALIZERS[type] ?? deserialize)(obj);');
+  lines.push('}');
+  lines.push('');
+  lines.push('export function serializeType(_type: string, obj: unknown): unknown {');
+  lines.push('  return serialize(obj);');
+  lines.push('}');
+
   return [...lines,
     '',
     'const MAX_RETRIES = 3;',

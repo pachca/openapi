@@ -495,11 +495,24 @@ function generateClient(ir: IR): string {
   lines.push('import io.ktor.client.statement.*');
   lines.push('import io.ktor.http.*');
   lines.push('import io.ktor.serialization.kotlinx.json.*');
+  const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
+  const needPolling = ir.services.some(hasWebhookPolling);
+  if (needPolling) {
+    lines.push('import kotlinx.coroutines.currentCoroutineContext');
+    lines.push('import kotlinx.coroutines.delay');
+    lines.push('import kotlinx.coroutines.flow.Flow');
+    lines.push('import kotlinx.coroutines.isActive');
+    lines.push('import kotlinx.coroutines.flow.flow');
+    lines.push('import kotlinx.coroutines.flow.mapNotNull');
+  }
   lines.push('import kotlinx.serialization.json.Json');
   lines.push('import java.io.Closeable');
-  const clientNeedDateTime = ir.params.some((p) => p.params.some((q) => q.type.kind === 'primitive' && q.type.primitive === 'string' && q.type.format === 'date-time'));
   if (clientNeedDateTime) {
     lines.push('import java.time.OffsetDateTime');
+  }
+  if (needPolling) {
+    lines.push('import kotlin.time.Duration');
+    lines.push('import kotlin.time.Duration.Companion.seconds');
   }
 
   // Services
@@ -514,6 +527,10 @@ function generateClient(ir: IR): string {
 
   lines.push('');
   return lines.join('\n');
+}
+
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
 }
 
 function emitService(
@@ -551,6 +568,63 @@ function emitService(
   }
 
   lines.push('}');
+  if (hasWebhookPolling(svc)) {
+    lines.push('');
+    emitWebhookPollingExtensions(lines);
+  }
+}
+
+function emitWebhookPollingExtensions(lines: string[]): void {
+  lines.push('fun BotsService.pollWebhookEvents(');
+  lines.push('    limit: Int? = 50,');
+  lines.push('    interval: Duration = 5.seconds,');
+  lines.push('    createdAfter: OffsetDateTime? = null,');
+  lines.push('    maxSeenDeliveryIds: Int = 5_000,');
+  lines.push('): Flow<WebhookEvent> = flow {');
+  lines.push('    require(maxSeenDeliveryIds > 0) { "maxSeenDeliveryIds must be greater than 0" }');
+  lines.push('');
+  lines.push('    val effectiveCreatedAfter = createdAfter ?: OffsetDateTime.now()');
+  lines.push('    val seenIdOrder = ArrayDeque<String>()');
+  lines.push('    val seenIds = mutableSetOf<String>()');
+  lines.push('');
+  lines.push('    fun remember(id: String): Boolean {');
+  lines.push('        if (!seenIds.add(id)) return false');
+  lines.push('        seenIdOrder.addLast(id)');
+  lines.push('        while (seenIdOrder.size > maxSeenDeliveryIds) {');
+  lines.push('            seenIds.remove(seenIdOrder.removeFirst())');
+  lines.push('        }');
+  lines.push('        return true');
+  lines.push('    }');
+  lines.push('');
+  lines.push('    while (currentCoroutineContext().isActive) {');
+  lines.push('        var cursor: String? = null');
+  lines.push('        do {');
+  lines.push('            val response = getWebhookEvents(limit = limit, cursor = cursor)');
+  lines.push('            var pageHasRecentEvents = false');
+  lines.push('            for (event in response.data.asReversed()) {');
+  lines.push('                val matchesCreatedAfter = !event.createdAt.isBefore(effectiveCreatedAfter)');
+  lines.push('                if (matchesCreatedAfter) pageHasRecentEvents = true');
+  lines.push('                if (matchesCreatedAfter && remember(event.id)) emit(event)');
+  lines.push('            }');
+  lines.push('            val hasNext = (response.meta.paginate.hasNext ?: response.data.isNotEmpty()) && pageHasRecentEvents');
+  lines.push('            cursor = response.meta.paginate.nextPage');
+  lines.push('        } while (currentCoroutineContext().isActive && hasNext)');
+  lines.push('        delay(interval)');
+  lines.push('    }');
+  lines.push('}');
+  lines.push('');
+  lines.push('inline fun <reified T : WebhookPayloadUnion> BotsService.pollWebhookPayloads(');
+  lines.push('    limit: Int? = 50,');
+  lines.push('    interval: Duration = 5.seconds,');
+  lines.push('    createdAfter: OffsetDateTime? = null,');
+  lines.push('    maxSeenDeliveryIds: Int = 5_000,');
+  lines.push('): Flow<T> = pollWebhookEvents(');
+  lines.push('    limit = limit,');
+  lines.push('    interval = interval,');
+  lines.push('    createdAfter = createdAfter,');
+  lines.push('    maxSeenDeliveryIds = maxSeenDeliveryIds,');
+  lines.push(')');
+  lines.push('    .mapNotNull { it.payload as? T }');
 }
 
 function emitInterfaceOperation(lines: string[], op: IROperation, ir: IR): void {
@@ -1066,7 +1140,10 @@ function emitPachcaClient(
   if (hasRedirect) {
     lines.push('            followRedirects = false');
   }
-  lines.push('            install(ContentNegotiation) { json(Json { explicitNulls = false }) }');
+  const jsonConfig = ir.services.some(hasWebhookPolling)
+    ? 'Json { explicitNulls = false; ignoreUnknownKeys = true }'
+    : 'Json { explicitNulls = false }';
+  lines.push(`            install(ContentNegotiation) { json(${jsonConfig}) }`);
   lines.push('            install(HttpRequestRetry) {');
   lines.push('                maxRetries = 3');
   lines.push('                retryIf { _, response ->');

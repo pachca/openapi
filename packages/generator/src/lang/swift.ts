@@ -537,6 +537,10 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, fnPrefix
   lines.push('    }');
 }
 
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
+}
+
 function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
   const args: string[] = [];
   if (op.externalUrl) args.push(`${op.externalUrl}: String`);
@@ -571,6 +575,92 @@ function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
   lines.push('    }');
 }
 
+function emitWebhookPollingMethods(lines: string[], prefix: string): void {
+  lines.push(`    ${prefix} pollWebhookEvents(`);
+  lines.push('        limit: Int? = 50,');
+  lines.push('        interval: TimeInterval = 5,');
+  lines.push('        createdAfter: Date? = nil,');
+  lines.push('        maxSeenDeliveryIds: Int = 5_000');
+  lines.push('    ) -> AsyncThrowingStream<WebhookEvent, Error> {');
+  lines.push('        AsyncThrowingStream { continuation in');
+  lines.push('            let task = Swift.Task {');
+  lines.push('                do {');
+  lines.push('                    guard maxSeenDeliveryIds > 0 else {');
+  lines.push('                        throw NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: "maxSeenDeliveryIds must be greater than 0"])');
+  lines.push('                    }');
+  lines.push('');
+  lines.push('                    let effectiveCreatedAfter = createdAfter ?? Date()');
+  lines.push('                    var seenIdOrder: [String] = []');
+  lines.push('                    var seenIds = Set<String>()');
+  lines.push('');
+  lines.push('                    func remember(_ id: String) -> Bool {');
+  lines.push('                        guard seenIds.insert(id).inserted else { return false }');
+  lines.push('                        seenIdOrder.append(id)');
+  lines.push('                        while seenIdOrder.count > maxSeenDeliveryIds {');
+  lines.push('                            seenIds.remove(seenIdOrder.removeFirst())');
+  lines.push('                        }');
+  lines.push('                        return true');
+  lines.push('                    }');
+  lines.push('');
+  lines.push('                    while !Swift.Task.isCancelled {');
+  lines.push('                        var cursor: String? = nil');
+  lines.push('                        var hasNext = true');
+  lines.push('                        while hasNext && !Swift.Task.isCancelled {');
+  lines.push('                            let response = try await getWebhookEvents(limit: limit, cursor: cursor)');
+  lines.push('                            var pageHasRecentEvents = false');
+  lines.push('                            for event in response.data.reversed() {');
+  lines.push('                                let matchesCreatedAfter = pachcaParseWebhookDate(event.createdAt).map { $0 >= effectiveCreatedAfter } == true');
+  lines.push('                                if matchesCreatedAfter {');
+  lines.push('                                    pageHasRecentEvents = true');
+  lines.push('                                }');
+  lines.push('                                if matchesCreatedAfter && remember(event.id) {');
+  lines.push('                                    continuation.yield(event)');
+  lines.push('                                }');
+  lines.push('                            }');
+  lines.push('                            hasNext = (response.meta.paginate.hasNext ?? !response.data.isEmpty) && pageHasRecentEvents');
+  lines.push('                            cursor = response.meta.paginate.nextPage');
+  lines.push('                        }');
+  lines.push('                        try await Swift.Task.sleep(nanoseconds: UInt64(max(interval, 0) * 1_000_000_000))');
+  lines.push('                    }');
+  lines.push('                    continuation.finish()');
+  lines.push('                } catch {');
+  lines.push('                    continuation.finish(throwing: error)');
+  lines.push('                }');
+  lines.push('            }');
+  lines.push('            continuation.onTermination = { _ in task.cancel() }');
+  lines.push('        }');
+  lines.push('    }');
+  lines.push('');
+  lines.push(`    ${prefix} pollWebhookPayloads(`);
+  lines.push('        limit: Int? = 50,');
+  lines.push('        interval: TimeInterval = 5,');
+  lines.push('        createdAfter: Date? = nil,');
+  lines.push('        maxSeenDeliveryIds: Int = 5_000,');
+  lines.push('        includePayload: @escaping (WebhookPayloadUnion) -> Bool = { _ in true }');
+  lines.push('    ) -> AsyncThrowingStream<WebhookPayloadUnion, Error> {');
+  lines.push('        AsyncThrowingStream { continuation in');
+  lines.push('            let task = Swift.Task {');
+  lines.push('                do {');
+  lines.push('                    for try await event in pollWebhookEvents(');
+  lines.push('                        limit: limit,');
+  lines.push('                        interval: interval,');
+  lines.push('                        createdAfter: createdAfter,');
+  lines.push('                        maxSeenDeliveryIds: maxSeenDeliveryIds');
+  lines.push('                    ) {');
+  lines.push('                        if includePayload(event.payload) {');
+  lines.push('                            continuation.yield(event.payload)');
+  lines.push('                        }');
+  lines.push('                    }');
+  lines.push('                    continuation.finish()');
+  lines.push('                } catch {');
+  lines.push('                    continuation.finish(throwing: error)');
+  lines.push('                }');
+  lines.push('            }');
+  lines.push('            continuation.onTermination = { _ in task.cancel() }');
+  lines.push('        }');
+  lines.push('    }');
+}
+
 function generateClient(ir: IR): string {
   const lines: string[] = [];
   lines.push(...FOUNDATION_IMPORTS);
@@ -579,6 +669,15 @@ function generateClient(ir: IR): string {
   if (hasServices) {
     lines.push('private func pachcaNotImplemented(_ method: String) -> Error {');
     lines.push('    NSError(domain: "PachcaClient", code: 1, userInfo: [NSLocalizedDescriptionKey: method + " is not implemented"])');
+    lines.push('}');
+    lines.push('');
+  }
+  if (ir.services.some(hasWebhookPolling)) {
+    lines.push('private func pachcaParseWebhookDate(_ value: String) -> Date? {');
+    lines.push('    let fractionalFormatter = ISO8601DateFormatter()');
+    lines.push('    fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]');
+    lines.push('    if let date = fractionalFormatter.date(from: value) { return date }');
+    lines.push('    return ISO8601DateFormatter().date(from: value)');
     lines.push('}');
     lines.push('');
   }
@@ -593,6 +692,10 @@ function generateClient(ir: IR): string {
       if (s.operations[i].isPaginated && s.operations[i].successResponse.dataRef) {
         lines.push('');
         emitThrowingPaginationMethod(lines, s.operations[i]);
+      }
+      if (s.operations[i].methodName === 'getWebhookEvents' && s.operations[i].successResponse.dataRef === 'WebhookEvent') {
+        lines.push('');
+        emitWebhookPollingMethods(lines, 'open func');
       }
       if (i < s.operations.length - 1) lines.push('');
     }

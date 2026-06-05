@@ -411,6 +411,9 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
             addImport(op.successResponse.dataRef);
           }
         }
+        if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+          addImport('WebhookPayloadUnion');
+        }
         if (op.hasOAuthError || ir.models.some((m) => m.name === 'OAuthError')) {
           addImport('OAuthError');
         }
@@ -453,6 +456,11 @@ function generateClient(ir: IR): { content: string; needsUtils: boolean } {
       .filter((x): x is string => !!x)
       .join(', ');
     lines.push(`import { ${utils} } from "./utils.js";`);
+  }
+
+  if (ir.services.some(hasWebhookPolling)) {
+    lines.push('');
+    emitWebhookPollingPrelude(lines);
   }
 
   if (hasServices) lines.push('');
@@ -524,6 +532,10 @@ function emitService(lines: string[], svc: IRService, ir: IR): void {
       lines.push('');
       emitThrowingPaginationMethod(lines, svc.operations[i], ir);
     }
+    if (svc.operations[i].methodName === 'getWebhookEvents' && svc.operations[i].successResponse.dataRef === 'WebhookEvent') {
+      lines.push('');
+      emitWebhookPollingMethods(lines);
+    }
     if (i < svc.operations.length - 1) lines.push('');
   }
   lines.push('}');
@@ -570,6 +582,91 @@ function emitThrowingPaginationMethod(lines: string[], op: IROperation, ir: IR):
   }
   lines.push(`  async ${op.methodName}All(${args.join(', ')}): Promise<${itemType}[]> {`);
   lines.push(`    throw new Error(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)});`);
+  lines.push('  }');
+}
+
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
+}
+
+function emitWebhookPollingPrelude(lines: string[]): void {
+  lines.push('export interface PollWebhookEventsParams {');
+  lines.push('  limit?: number;');
+  lines.push('  intervalMs?: number;');
+  lines.push('  createdAfter?: Date | string | null;');
+  lines.push('  maxSeenDeliveryIds?: number;');
+  lines.push('}');
+  lines.push('');
+  lines.push('export interface PollWebhookPayloadsParams<TPayload extends WebhookPayloadUnion = WebhookPayloadUnion> extends PollWebhookEventsParams {');
+  lines.push('  filter?: (payload: WebhookPayloadUnion, event: WebhookEvent) => payload is TPayload;');
+  lines.push('}');
+  lines.push('');
+  lines.push('const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));');
+  lines.push('');
+  lines.push('function createdAtMatches(event: WebhookEvent, createdAfter: Date | string | null | undefined): boolean {');
+  lines.push('  if (createdAfter == null) return true;');
+  lines.push('  return new Date(event.createdAt).getTime() >= new Date(createdAfter).getTime();');
+  lines.push('}');
+}
+
+function emitThrowingWebhookPollingMethods(lines: string[], svc: IRService): void {
+  lines.push('  async *pollWebhookEvents(params?: PollWebhookEventsParams): AsyncGenerator<WebhookEvent> {');
+  lines.push(`    throw new Error(${JSON.stringify(`${svc.tag}.pollWebhookEvents is not implemented`)});`);
+  lines.push('  }');
+  lines.push('');
+  lines.push('  async *pollWebhookPayloads<TPayload extends WebhookPayloadUnion = WebhookPayloadUnion>(');
+  lines.push('    params?: PollWebhookPayloadsParams<TPayload>,');
+  lines.push('  ): AsyncGenerator<TPayload> {');
+  lines.push(`    throw new Error(${JSON.stringify(`${svc.tag}.pollWebhookPayloads is not implemented`)});`);
+  lines.push('  }');
+}
+
+function emitWebhookPollingMethods(lines: string[]): void {
+  lines.push('  async *pollWebhookEvents(params?: PollWebhookEventsParams): AsyncGenerator<WebhookEvent> {');
+  lines.push('    const limit = params?.limit ?? 50;');
+  lines.push('    const intervalMs = params?.intervalMs ?? 5_000;');
+  lines.push('    const createdAfter = params?.createdAfter ?? new Date();');
+  lines.push('    const maxSeenDeliveryIds = params?.maxSeenDeliveryIds ?? 5_000;');
+  lines.push('    if (maxSeenDeliveryIds <= 0) throw new Error("maxSeenDeliveryIds must be greater than 0");');
+  lines.push('');
+  lines.push('    const seenIdOrder: string[] = [];');
+  lines.push('    const seenIds = new Set<string>();');
+  lines.push('    const remember = (id: string): boolean => {');
+  lines.push('      if (seenIds.has(id)) return false;');
+  lines.push('      seenIds.add(id);');
+  lines.push('      seenIdOrder.push(id);');
+  lines.push('      while (seenIdOrder.length > maxSeenDeliveryIds) {');
+  lines.push('        const oldest = seenIdOrder.shift();');
+  lines.push('        if (oldest !== undefined) seenIds.delete(oldest);');
+  lines.push('      }');
+  lines.push('      return true;');
+  lines.push('    };');
+  lines.push('');
+  lines.push('    while (true) {');
+  lines.push('      let cursor: string | undefined;');
+  lines.push('      let hasNext = true;');
+  lines.push('      while (hasNext) {');
+  lines.push('        const response = await this.getWebhookEvents({ limit, cursor });');
+  lines.push('        let pageHasRecentEvents = false;');
+  lines.push('        for (const event of [...response.data].reverse()) {');
+  lines.push('          const matchesCreatedAfter = createdAtMatches(event, createdAfter);');
+  lines.push('          if (matchesCreatedAfter) pageHasRecentEvents = true;');
+  lines.push('          if (matchesCreatedAfter && remember(event.id)) yield event;');
+  lines.push('        }');
+  lines.push('        hasNext = (response.meta.paginate.hasNext ?? response.data.length > 0) && pageHasRecentEvents;');
+  lines.push('        cursor = response.meta.paginate.nextPage;');
+  lines.push('      }');
+  lines.push('      await sleep(intervalMs);');
+  lines.push('    }');
+  lines.push('  }');
+  lines.push('');
+  lines.push('  async *pollWebhookPayloads<TPayload extends WebhookPayloadUnion = WebhookPayloadUnion>(');
+  lines.push('    params?: PollWebhookPayloadsParams<TPayload>,');
+  lines.push('  ): AsyncGenerator<TPayload> {');
+  lines.push('    for await (const event of this.pollWebhookEvents(params)) {');
+  lines.push('      const payload = event.payload;');
+  lines.push('      if (params?.filter == null || params.filter(payload, event)) yield payload as TPayload;');
+  lines.push('    }');
   lines.push('  }');
 }
 

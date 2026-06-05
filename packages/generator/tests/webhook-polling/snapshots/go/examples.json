@@ -1,0 +1,15 @@
+{
+  "Client_Init": {
+    "usage": "client := pachca.NewPachcaClient(\"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "params := &GetWebhookEventsParams{\n\tLimit: Ptr(int32(123)),\n\tCursor: Ptr(\"example\"),\n}\nresponse, err := client.Bots.GetWebhookEvents(ctx, params)",
+    "output": "GetWebhookEventsResponse{Data: []WebhookEvent, Meta: PaginationMeta}",
+    "imports": [
+      "GetWebhookEventsParams"
+    ]
+  }
+}

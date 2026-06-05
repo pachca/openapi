@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "let client = PachcaClient(token: \"YOUR_TOKEN\")",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "let response = try await client.bots.getWebhookEvents(limit: 123, cursor: \"example\")",
+    "output": "GetWebhookEventsResponse(data: [WebhookEvent], meta: PaginationMeta)"
+  }
+}

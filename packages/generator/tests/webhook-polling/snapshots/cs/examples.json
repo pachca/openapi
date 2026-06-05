@@ -1,0 +1,12 @@
+{
+  "Client_Init": {
+    "usage": "using var client = new PachcaClient(\"YOUR_TOKEN\");",
+    "imports": [
+      "PachcaClient"
+    ]
+  },
+  "BotOperations_getWebhookEvents": {
+    "usage": "var response = await client.Bots.GetWebhookEventsAsync(123, \"example\");",
+    "output": "GetWebhookEventsResponse(Data: List<WebhookEvent>, Meta: PaginationMeta)"
+  }
+}

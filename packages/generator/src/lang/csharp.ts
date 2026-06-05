@@ -603,6 +603,9 @@ function generateClient(ir: IR): string {
   lines.push('using System.Text;');
   lines.push('using System.Text.Json;');
   lines.push('using System.Threading;');
+  if (ir.services.some(hasWebhookPolling)) {
+    lines.push('using System.Runtime.CompilerServices;');
+  }
   // Note: System.Threading.Tasks is NOT imported to avoid conflict with Pachca.Sdk.Task model
   // Async methods use fully qualified System.Threading.Tasks.Task<T> instead
   lines.push('');
@@ -622,6 +625,10 @@ function generateClient(ir: IR): string {
   return lines.join('\n');
 }
 
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
+}
+
 function emitService(
   lines: string[],
   svc: IRService,
@@ -639,6 +646,10 @@ function emitService(
     if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
       lines.push('');
       emitThrowingPaginationMethod(lines, svc.operations[i], ir);
+    }
+    if (svc.operations[i].methodName === 'getWebhookEvents' && svc.operations[i].successResponse.dataRef === 'WebhookEvent') {
+      lines.push('');
+      emitWebhookPollingMethods(lines, 'public virtual');
     }
   }
   lines.push('}');
@@ -664,6 +675,79 @@ function emitService(
   }
 
   lines.push('}');
+}
+
+function emitWebhookPollingMethods(lines: string[], modifier: string): void {
+  const indent = '    ';
+  lines.push(`${indent}${modifier} async IAsyncEnumerable<WebhookEvent> PollWebhookEventsAsync(`);
+  lines.push(`${indent}    int? limit = 50,`);
+  lines.push(`${indent}    TimeSpan? interval = null,`);
+  lines.push(`${indent}    DateTimeOffset? createdAfter = null,`);
+  lines.push(`${indent}    int maxSeenDeliveryIds = 5000,`);
+  lines.push(`${indent}    [EnumeratorCancellation] CancellationToken cancellationToken = default)`);
+  lines.push(`${indent}{`);
+  lines.push(`${indent}    if (maxSeenDeliveryIds <= 0)`);
+  lines.push(`${indent}        throw new ArgumentOutOfRangeException(nameof(maxSeenDeliveryIds), "maxSeenDeliveryIds must be greater than 0");`);
+  lines.push('');
+  lines.push(`${indent}    var pollInterval = interval ?? TimeSpan.FromSeconds(5);`);
+  lines.push(`${indent}    var effectiveCreatedAfter = createdAfter ?? DateTimeOffset.UtcNow;`);
+  lines.push(`${indent}    var seenIdOrder = new Queue<string>();`);
+  lines.push(`${indent}    var seenIds = new HashSet<string>();`);
+  lines.push('');
+  lines.push(`${indent}    bool Remember(string id)`);
+  lines.push(`${indent}    {`);
+  lines.push(`${indent}        if (!seenIds.Add(id)) return false;`);
+  lines.push(`${indent}        seenIdOrder.Enqueue(id);`);
+  lines.push(`${indent}        while (seenIdOrder.Count > maxSeenDeliveryIds)`);
+  lines.push(`${indent}            seenIds.Remove(seenIdOrder.Dequeue());`);
+  lines.push(`${indent}        return true;`);
+  lines.push(`${indent}    }`);
+  lines.push('');
+  lines.push(`${indent}    while (!cancellationToken.IsCancellationRequested)`);
+  lines.push(`${indent}    {`);
+  lines.push(`${indent}        string? cursor = null;`);
+  lines.push(`${indent}        var hasNext = true;`);
+  lines.push(`${indent}        while (hasNext && !cancellationToken.IsCancellationRequested)`);
+  lines.push(`${indent}        {`);
+  lines.push(`${indent}            var response = await GetWebhookEventsAsync(limit: limit, cursor: cursor, cancellationToken: cancellationToken).ConfigureAwait(false);`);
+  lines.push(`${indent}            var pageHasRecentEvents = false;`);
+  lines.push(`${indent}            for (var i = response.Data.Count - 1; i >= 0; i--)`);
+  lines.push(`${indent}            {`);
+  lines.push(`${indent}                var webhookEvent = response.Data[i];`);
+  lines.push(`${indent}                var matchesCreatedAfter = webhookEvent.CreatedAt >= effectiveCreatedAfter;`);
+  lines.push(`${indent}                if (matchesCreatedAfter)`);
+  lines.push(`${indent}                    pageHasRecentEvents = true;`);
+  lines.push(`${indent}                if (matchesCreatedAfter && Remember(webhookEvent.Id))`);
+  lines.push(`${indent}                    yield return webhookEvent;`);
+  lines.push(`${indent}            }`);
+  lines.push(`${indent}            hasNext = (response.Meta.Paginate.HasNext ?? response.Data.Count > 0) && pageHasRecentEvents;`);
+  lines.push(`${indent}            cursor = response.Meta.Paginate.NextPage;`);
+  lines.push(`${indent}        }`);
+  lines.push(`${indent}        await System.Threading.Tasks.Task.Delay(pollInterval, cancellationToken).ConfigureAwait(false);`);
+  lines.push(`${indent}    }`);
+  lines.push(`${indent}}`);
+  lines.push('');
+  lines.push(`${indent}${modifier} async IAsyncEnumerable<TPayload> PollWebhookPayloadsAsync<TPayload>(`);
+  lines.push(`${indent}    int? limit = 50,`);
+  lines.push(`${indent}    TimeSpan? interval = null,`);
+  lines.push(`${indent}    DateTimeOffset? createdAfter = null,`);
+  lines.push(`${indent}    int maxSeenDeliveryIds = 5000,`);
+  lines.push(`${indent}    [EnumeratorCancellation] CancellationToken cancellationToken = default)`);
+  if (!modifier.includes('override')) {
+    lines.push(`${indent}    where TPayload : WebhookPayloadUnion`);
+  }
+  lines.push(`${indent}{`);
+  lines.push(`${indent}    await foreach (var webhookEvent in PollWebhookEventsAsync(`);
+  lines.push(`${indent}        limit: limit,`);
+  lines.push(`${indent}        interval: interval,`);
+  lines.push(`${indent}        createdAfter: createdAfter,`);
+  lines.push(`${indent}        maxSeenDeliveryIds: maxSeenDeliveryIds,`);
+  lines.push(`${indent}        cancellationToken: cancellationToken))`);
+  lines.push(`${indent}    {`);
+  lines.push(`${indent}        if (webhookEvent.Payload is TPayload payload)`);
+  lines.push(`${indent}            yield return payload;`);
+  lines.push(`${indent}    }`);
+  lines.push(`${indent}}`);
 }
 
 function emitPaginationMethod(lines: string[], op: IROperation, ir: IR, modifier = 'public override'): void {

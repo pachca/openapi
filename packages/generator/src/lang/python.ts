@@ -382,6 +382,9 @@ function collectClientImports(ir: IR): string[] {
           add(op.successResponse.dataRef);
         }
       }
+      if (op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent') {
+        add('WebhookPayloadUnion');
+      }
       if (op.hasOAuthError || ir.models.some((m) => m.name === 'OAuthError')) {
         add('OAuthError');
       }
@@ -701,6 +704,10 @@ function emitPaginationMethod(lines: string[], op: IROperation, ir: IR): void {
   lines.push('        return items');
 }
 
+function hasWebhookPolling(svc: IRService): boolean {
+  return svc.operations.some((op) => op.methodName === 'getWebhookEvents' && op.successResponse.dataRef === 'WebhookEvent');
+}
+
 function emitThrowingOperation(lines: string[], op: IROperation, ir: IR): void {
   const args: string[] = [];
   if (op.externalUrl) args.push(`${camelToSnake(op.externalUrl)}: str`);
@@ -754,15 +761,106 @@ function emitThrowingPaginationMethod(lines: string[], op: IROperation): void {
   lines.push(`        raise NotImplementedError(${JSON.stringify(`${op.tag}.${op.methodName}All is not implemented`)})`);
 }
 
+function emitThrowingWebhookPollingMethods(lines: string[], svc: IRService): void {
+  lines.push('    async def poll_webhook_events(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookEvent]:');
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${svc.tag}.pollWebhookEvents is not implemented`)})`);
+  lines.push('');
+  lines.push('    async def poll_webhook_payloads(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookPayloadUnion]:');
+  lines.push(`        raise NotImplementedError(${JSON.stringify(`${svc.tag}.pollWebhookPayloads is not implemented`)})`);
+}
+
+function emitWebhookPollingMethods(lines: string[]): void {
+  lines.push('    async def poll_webhook_events(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookEvent]:');
+  lines.push('        if max_seen_delivery_ids <= 0:');
+  lines.push('            raise ValueError("max_seen_delivery_ids must be greater than 0")');
+  lines.push('');
+  lines.push('        effective_created_after = created_after or datetime.now(timezone.utc)');
+  lines.push('        seen_id_order: deque[str] = deque()');
+  lines.push('        seen_ids: set[str] = set()');
+  lines.push('');
+  lines.push('        def remember(id: str) -> bool:');
+  lines.push('            if id in seen_ids:');
+  lines.push('                return False');
+  lines.push('            seen_ids.add(id)');
+  lines.push('            seen_id_order.append(id)');
+  lines.push('            while len(seen_id_order) > max_seen_delivery_ids:');
+  lines.push('                seen_ids.remove(seen_id_order.popleft())');
+  lines.push('            return True');
+  lines.push('');
+  lines.push('        while True:');
+  lines.push('            cursor: str | None = None');
+  lines.push('            has_next = True');
+  lines.push('            while has_next:');
+  lines.push('                response = await self.get_webhook_events(');
+  lines.push('                    GetWebhookEventsParams(limit=limit, cursor=cursor),');
+  lines.push('                )');
+  lines.push('                page_has_recent_events = False');
+  lines.push('                for event in reversed(response.data):');
+  lines.push('                    matches_created_after = event.created_at >= effective_created_after');
+  lines.push('                    if matches_created_after:');
+  lines.push('                        page_has_recent_events = True');
+  lines.push('                    if matches_created_after and remember(event.id):');
+  lines.push('                        yield event');
+  lines.push('                reported_has_next = getattr(response.meta.paginate, "has_next", None)');
+  lines.push('                has_next = (bool(response.data) if reported_has_next is None else reported_has_next) and page_has_recent_events');
+  lines.push('                cursor = response.meta.paginate.next_page');
+  lines.push('            await asyncio.sleep(interval_seconds)');
+  lines.push('');
+  lines.push('    async def poll_webhook_payloads(');
+  lines.push('        self,');
+  lines.push('        *,');
+  lines.push('        payload_type: type[TPayload] | tuple[type[TPayload], ...] | None = None,');
+  lines.push('        limit: int | None = 50,');
+  lines.push('        interval_seconds: float = 5.0,');
+  lines.push('        created_after: datetime | None = None,');
+  lines.push('        max_seen_delivery_ids: int = 5_000,');
+  lines.push('    ) -> AsyncIterator[WebhookPayloadUnion | TPayload]:');
+  lines.push('        async for event in self.poll_webhook_events(');
+  lines.push('            limit=limit,');
+  lines.push('            interval_seconds=interval_seconds,');
+  lines.push('            created_after=created_after,');
+  lines.push('            max_seen_delivery_ids=max_seen_delivery_ids,');
+  lines.push('        ):');
+  lines.push('            if payload_type is None or isinstance(event.payload, payload_type):');
+  lines.push('                yield event.payload');
+}
+
 function generateClient(ir: IR): { content: string; needUtils: boolean } {
   const lines: string[] = [];
   const needToDict = needsAsdict(ir);
   const imports = collectClientImports(ir);
   const needUtils = ir.services.length > 0;
+  const needPolling = ir.services.some(hasWebhookPolling);
 
   if (ir.services.length > 0) {
     lines.push('from __future__ import annotations');
     lines.push('');
+    if (needPolling) lines.push('import asyncio');
+    if (needPolling) lines.push('from collections import deque');
+    if (needPolling) lines.push('from datetime import datetime, timezone');
+    if (needPolling) lines.push('from typing import AsyncIterator, TypeVar');
+    if (needPolling) lines.push('');
     lines.push('import httpx');
     lines.push('');
   }
@@ -781,6 +879,11 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
     if (needUtils) lines.push(`from .utils import ${utilImports.join(', ')}`);
   }
 
+  if (needPolling) {
+    lines.push('');
+    lines.push('TPayload = TypeVar("TPayload", bound=WebhookPayloadUnion)');
+  }
+
   if (ir.services.length === 0) {
     while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
     lines.push('');
@@ -797,6 +900,10 @@ function generateClient(ir: IR): { content: string; needUtils: boolean } {
       if (svc.operations[i].isPaginated && svc.operations[i].successResponse.dataRef) {
         lines.push('');
         emitThrowingPaginationMethod(lines, svc.operations[i]);
+      }
+      if (svc.operations[i].methodName === 'getWebhookEvents' && svc.operations[i].successResponse.dataRef === 'WebhookEvent') {
+        lines.push('');
+        emitWebhookPollingMethods(lines);
       }
       if (i < svc.operations.length - 1) lines.push('');
     }

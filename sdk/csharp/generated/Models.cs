@@ -1726,18 +1726,39 @@ public class ViewBlockFileInput : ViewBlockUnion
     public string? Hint { get; set; }
 }
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(MessageWebhookPayload), "message")]
-[JsonDerivedType(typeof(ReactionWebhookPayload), "reaction")]
-[JsonDerivedType(typeof(ButtonWebhookPayload), "button")]
-[JsonDerivedType(typeof(ViewSubmitWebhookPayload), "view")]
-[JsonDerivedType(typeof(ChatMemberWebhookPayload), "chat_member")]
-[JsonDerivedType(typeof(CompanyMemberWebhookPayload), "company_member")]
-[JsonDerivedType(typeof(LinkSharedWebhookPayload), "message")]
+[JsonConverter(typeof(WebhookPayloadUnionConverter))]
 public abstract class WebhookPayloadUnion
 {
     [JsonPropertyName("type")]
     public abstract string Type { get; }
+}
+
+internal sealed class WebhookPayloadUnionConverter : JsonConverter<WebhookPayloadUnion>
+{
+    public override WebhookPayloadUnion Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+        var type = root.GetProperty("type").GetString();
+        var eventValue = root.TryGetProperty("event", out var eventProperty) ? eventProperty.GetString() : null;
+        var raw = root.GetRawText();
+        return type switch
+        {
+            "message" when eventValue == "link_shared" => JsonSerializer.Deserialize<LinkSharedWebhookPayload>(raw, options)!,
+            "message" => JsonSerializer.Deserialize<MessageWebhookPayload>(raw, options)!,
+            "reaction" => JsonSerializer.Deserialize<ReactionWebhookPayload>(raw, options)!,
+            "button" => JsonSerializer.Deserialize<ButtonWebhookPayload>(raw, options)!,
+            "view" => JsonSerializer.Deserialize<ViewSubmitWebhookPayload>(raw, options)!,
+            "chat_member" => JsonSerializer.Deserialize<ChatMemberWebhookPayload>(raw, options)!,
+            "company_member" => JsonSerializer.Deserialize<CompanyMemberWebhookPayload>(raw, options)!,
+            _ => throw new JsonException($"Unknown WebhookPayloadUnion type: {type}")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, WebhookPayloadUnion value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+    }
 }
 
 public class MessageWebhookPayload : WebhookPayloadUnion

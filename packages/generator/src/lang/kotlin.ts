@@ -132,6 +132,7 @@ function generateModels(ir: IR): string {
   // Determine imports
   let needSerialName = false;
   let needTransient = false;
+  const needWebhookPayloadUnionSerializer = ir.unions.some((u) => u.unionDeserializer === 'webhook-payload');
 
   if (ir.enums.length > 0) needSerialName = true;
   if (ir.unions.length > 0) needSerialName = true;
@@ -158,14 +159,21 @@ function generateModels(ir: IR): string {
   const imports: string[] = [];
   if (needDateTime) imports.push('import java.time.OffsetDateTime');
   if (needDateTime) imports.push('import java.time.format.DateTimeFormatter');
-  if (needDateTime) imports.push('import kotlinx.serialization.KSerializer');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.KSerializer');
   if (needSerialName) imports.push('import kotlinx.serialization.SerialName');
   imports.push('import kotlinx.serialization.Serializable');
   if (needTransient) imports.push('import kotlinx.serialization.Transient');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveKind');
   if (needDateTime) imports.push('import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor');
-  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Decoder');
-  if (needDateTime) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.descriptors.buildClassSerialDescriptor');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Decoder');
+  if (needDateTime || needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.encoding.Encoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonDecoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.JsonEncoder');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.contentOrNull');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.decodeFromJsonElement');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonObject');
+  if (needWebhookPayloadUnionSerializer) imports.push('import kotlinx.serialization.json.jsonPrimitive');
   lines.push(imports.join('\n'));
 
   if (needDateTime) {
@@ -245,11 +253,53 @@ function emitUnion(
     .filter(Boolean) as IRModel[];
 
   const discriminatorField = u.discriminatorField;
+  const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';
 
-  lines.push('@Serializable');
+  if (useWebhookPayloadDeserializer) {
+    lines.push('@Serializable(with = WebhookPayloadUnionSerializer::class)');
+  } else {
+    lines.push('@Serializable');
+  }
   lines.push(`sealed interface ${u.name} {`);
   lines.push(`    val ${snakeToCamel(discriminatorField)}: String`);
   lines.push('}');
+
+  if (useWebhookPayloadDeserializer) {
+    lines.push('');
+    lines.push('object WebhookPayloadUnionSerializer : KSerializer<WebhookPayloadUnion> {');
+    lines.push('    override val descriptor = buildClassSerialDescriptor("WebhookPayloadUnion")');
+    lines.push('');
+    lines.push('    override fun serialize(encoder: Encoder, value: WebhookPayloadUnion) {');
+    lines.push('        val jsonEncoder = encoder as? JsonEncoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push('        when (value) {');
+    lines.push('            is MessageWebhookPayload -> jsonEncoder.encodeSerializableValue(MessageWebhookPayload.serializer(), value)');
+    lines.push('            is ReactionWebhookPayload -> jsonEncoder.encodeSerializableValue(ReactionWebhookPayload.serializer(), value)');
+    lines.push('            is ButtonWebhookPayload -> jsonEncoder.encodeSerializableValue(ButtonWebhookPayload.serializer(), value)');
+    lines.push('            is ViewSubmitWebhookPayload -> jsonEncoder.encodeSerializableValue(ViewSubmitWebhookPayload.serializer(), value)');
+    lines.push('            is ChatMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(ChatMemberWebhookPayload.serializer(), value)');
+    lines.push('            is CompanyMemberWebhookPayload -> jsonEncoder.encodeSerializableValue(CompanyMemberWebhookPayload.serializer(), value)');
+    lines.push('            is LinkSharedWebhookPayload -> jsonEncoder.encodeSerializableValue(LinkSharedWebhookPayload.serializer(), value)');
+    lines.push('        }');
+    lines.push('    }');
+    lines.push('');
+    lines.push('    override fun deserialize(decoder: Decoder): WebhookPayloadUnion {');
+    lines.push('        val jsonDecoder = decoder as? JsonDecoder ?: error("WebhookPayloadUnionSerializer only supports JSON")');
+    lines.push('        val element = jsonDecoder.decodeJsonElement()');
+    lines.push('        val type = element.jsonObject["type"]?.jsonPrimitive?.contentOrNull');
+    lines.push('        val event = element.jsonObject["event"]?.jsonPrimitive?.contentOrNull');
+    lines.push('        return when {');
+    lines.push('            type == "message" && event == "link_shared" -> jsonDecoder.json.decodeFromJsonElement(LinkSharedWebhookPayload.serializer(), element)');
+    lines.push('            type == "message" -> jsonDecoder.json.decodeFromJsonElement(MessageWebhookPayload.serializer(), element)');
+    lines.push('            type == "reaction" -> jsonDecoder.json.decodeFromJsonElement(ReactionWebhookPayload.serializer(), element)');
+    lines.push('            type == "button" -> jsonDecoder.json.decodeFromJsonElement(ButtonWebhookPayload.serializer(), element)');
+    lines.push('            type == "view" -> jsonDecoder.json.decodeFromJsonElement(ViewSubmitWebhookPayload.serializer(), element)');
+    lines.push('            type == "chat_member" -> jsonDecoder.json.decodeFromJsonElement(ChatMemberWebhookPayload.serializer(), element)');
+    lines.push('            type == "company_member" -> jsonDecoder.json.decodeFromJsonElement(CompanyMemberWebhookPayload.serializer(), element)');
+    lines.push('            else -> error("Unknown WebhookPayloadUnion type: $type")');
+    lines.push('        }');
+    lines.push('    }');
+    lines.push('}');
+  }
 
   for (const memberModel of memberModels) {
     const litField = memberModel.fields.find((f) => f.type.kind === 'literal');

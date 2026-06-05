@@ -8559,6 +8559,7 @@ components:
         - $ref: '#/components/schemas/CompanyMemberWebhookPayload'
         - $ref: '#/components/schemas/LinkSharedWebhookPayload'
       description: Объединение всех типов payload вебхуков
+      x-union-deserializer: webhook-payload
   securitySchemes:
     BearerAuth:
       type: http

@@ -8,6 +8,7 @@ return example switch
     "upload" => await UploadExample.RunAsync(),
     "stub" => await StubExample.RunAsync(),
     "httpclient" => await HttpClientExample.RunAsync(),
+    "webhook-history" => await WebhookHistoryExample.RunAsync(),
     _ => PrintUsage()
 };
 
@@ -16,14 +17,15 @@ static int PrintUsage()
     Console.WriteLine("Usage: dotnet run -- <example>");
     Console.WriteLine();
     Console.WriteLine("Examples:");
-    Console.WriteLine("  main    - Echo bot (create, read, react, thread, pin, update, unpin)");
-    Console.WriteLine("  upload  - File upload (requires PACHCA_FILE_PATH)");
-    Console.WriteLine("  stub    - Stub client with dependency injection");
-    Console.WriteLine("  httpclient - Pre-configured HttpClient");
+    Console.WriteLine("  main            - Echo bot (create, read, react, thread, pin, update, unpin)");
+    Console.WriteLine("  upload          - File upload (requires PACHCA_FILE_PATH)");
+    Console.WriteLine("  stub            - Stub client with dependency injection");
+    Console.WriteLine("  httpclient      - Pre-configured HttpClient");
+    Console.WriteLine("  webhook-history - Fetch recent webhook deliveries");
     Console.WriteLine();
     Console.WriteLine("Environment variables:");
-    Console.WriteLine("  PACHCA_TOKEN    - API token (required)");
-    Console.WriteLine("  PACHCA_CHAT_ID  - Chat ID (required)");
+    Console.WriteLine("  PACHCA_TOKEN     - API token (required)");
+    Console.WriteLine("  PACHCA_CHAT_ID   - Chat ID (required for main/httpclient)");
     Console.WriteLine("  PACHCA_FILE_PATH - File path (upload only)");
     return 1;
 }

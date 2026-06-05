@@ -119,6 +119,7 @@ export interface Schema {
   oneOf?: Schema[];
   anyOf?: Schema[];
   additionalProperties?: boolean | Schema;
+  'x-union-deserializer'?: string;
 }
 
 export interface Example {

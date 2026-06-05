@@ -181,22 +181,42 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   } else {
     lines.push(`        case ${discSwiftName} = ${JSON.stringify(discField)}`);
   }
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('        case event');
+  }
   lines.push('    }');
   lines.push('');
   lines.push('    public init(from decoder: Decoder) throws {');
   lines.push('        let container = try decoder.container(keyedBy: CodingKeys.self)');
   lines.push(`        let type = try container.decode(String.self, forKey: .${discSwiftName})`);
-  lines.push('        switch type {');
-  const seenDiscs = new Set<string>();
-  for (const ref of u.memberRefs) {
-    const c = ref.charAt(0).toLowerCase() + ref.slice(1);
-    const model = models.find((m) => m.name === ref);
-    const typeField = model?.fields.find((f) => f.type.kind === 'literal');
-    const disc = typeField?.type.literalValue ?? c;
-    if (seenDiscs.has(String(disc))) continue;
-    seenDiscs.add(String(disc));
-    lines.push(`        case ${JSON.stringify(disc)}:`);
-    lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('        let event = try? container.decode(String.self, forKey: .event)');
+    lines.push('        switch (type, event) {');
+    lines.push('        case ("message", "link_shared"):');
+    lines.push('            self = .linkSharedWebhookPayload(try LinkSharedWebhookPayload(from: decoder))');
+    lines.push('        case ("message", _):');
+    lines.push('            self = .messageWebhookPayload(try MessageWebhookPayload(from: decoder))');
+    for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
+      const c = ref.charAt(0).toLowerCase() + ref.slice(1);
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? c;
+      lines.push(`        case (${JSON.stringify(disc)}, _):`);
+      lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
+    }
+  } else {
+    lines.push('        switch type {');
+    const seenDiscs = new Set<string>();
+    for (const ref of u.memberRefs) {
+      const c = ref.charAt(0).toLowerCase() + ref.slice(1);
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? c;
+      if (seenDiscs.has(String(disc))) continue;
+      seenDiscs.add(String(disc));
+      lines.push(`        case ${JSON.stringify(disc)}:`);
+      lines.push(`            self = .${c}(try ${ref}(from: decoder))`);
+    }
   }
   lines.push('        default:');
   lines.push('            throw DecodingError.dataCorrupted(');

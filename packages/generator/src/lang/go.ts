@@ -238,21 +238,42 @@ function emitUnion(lines: string[], u: IRUnion, models: IRModel[]): void {
   lines.push(`func (u *${u.name}) UnmarshalJSON(data []byte) error {`);
   lines.push('\tvar disc struct {');
   lines.push(`\t\t${discGoName} string \`json:"${discField}"\``);
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('\t\tEvent string `json:"event"`');
+  }
   lines.push('\t}');
   lines.push('\tif err := json.Unmarshal(data, &disc); err != nil {');
   lines.push('\t\treturn err');
   lines.push('\t}');
-  lines.push(`\tswitch disc.${discGoName} {`);
-  const seenDiscs = new Set<string>();
-  for (const ref of u.memberRefs) {
-    const model = models.find((m) => m.name === ref);
-    const typeField = model?.fields.find((f) => f.type.kind === 'literal');
-    const disc = typeField?.type.literalValue ?? ref;
-    if (seenDiscs.has(String(disc))) continue;
-    seenDiscs.add(String(disc));
-    lines.push(`\tcase ${JSON.stringify(disc)}:`);
-    lines.push(`\t\tu.${ref} = &${ref}{}`);
-    lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+  if (u.unionDeserializer === 'webhook-payload') {
+    lines.push('\tswitch {');
+    lines.push('\tcase disc.Type == "message" && disc.Event == "link_shared":');
+    lines.push('\t\tu.LinkSharedWebhookPayload = &LinkSharedWebhookPayload{}');
+    lines.push('\t\treturn json.Unmarshal(data, u.LinkSharedWebhookPayload)');
+    lines.push('\tcase disc.Type == "message":');
+    lines.push('\t\tu.MessageWebhookPayload = &MessageWebhookPayload{}');
+    lines.push('\t\treturn json.Unmarshal(data, u.MessageWebhookPayload)');
+    for (const ref of u.memberRefs.filter((ref) => ref !== 'MessageWebhookPayload' && ref !== 'LinkSharedWebhookPayload')) {
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? ref;
+      lines.push(`\tcase disc.${discGoName} == ${JSON.stringify(disc)}:`);
+      lines.push(`\t\tu.${ref} = &${ref}{}`);
+      lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+    }
+  } else {
+    lines.push(`\tswitch disc.${discGoName} {`);
+    const seenDiscs = new Set<string>();
+    for (const ref of u.memberRefs) {
+      const model = models.find((m) => m.name === ref);
+      const typeField = model?.fields.find((f) => f.type.kind === 'literal');
+      const disc = typeField?.type.literalValue ?? ref;
+      if (seenDiscs.has(String(disc))) continue;
+      seenDiscs.add(String(disc));
+      lines.push(`\tcase ${JSON.stringify(disc)}:`);
+      lines.push(`\t\tu.${ref} = &${ref}{}`);
+      lines.push(`\t\treturn json.Unmarshal(data, u.${ref})`);
+    }
   }
   lines.push('\tdefault:');
   lines.push(`\t\treturn fmt.Errorf("unknown ${u.name} ${discField}: %s", disc.${discGoName})`);

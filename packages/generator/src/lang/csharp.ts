@@ -287,18 +287,54 @@ function emitUnion(
     .filter(Boolean) as IRModel[];
 
   const discriminatorField = u.discriminatorField;
+  const useWebhookPayloadDeserializer = u.unionDeserializer === 'webhook-payload';
 
-  lines.push(`[JsonPolymorphic(TypeDiscriminatorPropertyName = "${discriminatorField}")]`);
-  for (const memberModel of memberModels) {
-    const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
-    const litValue = litField?.type.literalValue ?? '';
-    lines.push(`[JsonDerivedType(typeof(${memberModel.name}), "${litValue}")]`);
+  if (useWebhookPayloadDeserializer) {
+    lines.push(`[JsonConverter(typeof(${u.name}Converter))]`);
+  } else {
+    lines.push(`[JsonPolymorphic(TypeDiscriminatorPropertyName = "${discriminatorField}")]`);
+    for (const memberModel of memberModels) {
+      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`[JsonDerivedType(typeof(${memberModel.name}), "${litValue}")]`);
+    }
   }
   lines.push(`public abstract class ${u.name}`);
   lines.push('{');
   lines.push(`    [JsonPropertyName("${discriminatorField}")]`);
   lines.push(`    public abstract string ${snakeToPascal(discriminatorField)} { get; }`);
   lines.push('}');
+
+  if (useWebhookPayloadDeserializer) {
+    lines.push('');
+    lines.push(`internal sealed class ${u.name}Converter : JsonConverter<${u.name}>`);
+    lines.push('{');
+    lines.push(`    public override ${u.name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)`);
+    lines.push('    {');
+    lines.push('        using var document = JsonDocument.ParseValue(ref reader);');
+    lines.push('        var root = document.RootElement;');
+    lines.push(`        var type = root.GetProperty(${JSON.stringify(discriminatorField)}).GetString();`);
+    lines.push('        var eventValue = root.TryGetProperty("event", out var eventProperty) ? eventProperty.GetString() : null;');
+    lines.push('        var raw = root.GetRawText();');
+    lines.push('        return type switch');
+    lines.push('        {');
+    lines.push('            "message" when eventValue == "link_shared" => JsonSerializer.Deserialize<LinkSharedWebhookPayload>(raw, options)!,');
+    lines.push('            "message" => JsonSerializer.Deserialize<MessageWebhookPayload>(raw, options)!,');
+    for (const memberModel of memberModels.filter((m) => m.name !== 'MessageWebhookPayload' && m.name !== 'LinkSharedWebhookPayload')) {
+      const litField = memberModel.fields.find((f) => f.type.kind === 'literal');
+      const litValue = litField?.type.literalValue ?? '';
+      lines.push(`            ${JSON.stringify(litValue)} => JsonSerializer.Deserialize<${memberModel.name}>(raw, options)!,`);
+    }
+    lines.push(`            _ => throw new JsonException($"Unknown ${u.name} ${discriminatorField}: {type}")`);
+    lines.push('        };');
+    lines.push('    }');
+    lines.push('');
+    lines.push(`    public override void Write(Utf8JsonWriter writer, ${u.name} value, JsonSerializerOptions options)`);
+    lines.push('    {');
+    lines.push('        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);');
+    lines.push('    }');
+    lines.push('}');
+  }
 
   for (const memberModel of memberModels) {
     const litField = memberModel.fields.find((f) => f.type.kind === 'literal');

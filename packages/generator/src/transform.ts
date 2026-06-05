@@ -343,7 +343,12 @@ function transformUnion(name: string, schema: Schema, schemas: Record<string, Sc
     .filter((s) => s.$ref)
     .map((s) => refName(s.$ref!));
   const discriminatorField = detectDiscriminatorField(schema, memberRefs, schemas);
-  return { name, memberRefs, discriminatorField };
+  return {
+    name,
+    memberRefs,
+    discriminatorField,
+    unionDeserializer: schema['x-union-deserializer'],
+  };
 }
 
 // ----- Operations → IR -----

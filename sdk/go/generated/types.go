@@ -1563,28 +1563,32 @@ type WebhookPayloadUnion struct {
 
 func (u *WebhookPayloadUnion) UnmarshalJSON(data []byte) error {
 	var disc struct {
-		Type string `json:"type"`
+		Type  string `json:"type"`
+		Event string `json:"event"`
 	}
 	if err := json.Unmarshal(data, &disc); err != nil {
 		return err
 	}
-	switch disc.Type {
-	case "message":
+	switch {
+	case disc.Type == "message" && disc.Event == "link_shared":
+		u.LinkSharedWebhookPayload = &LinkSharedWebhookPayload{}
+		return json.Unmarshal(data, u.LinkSharedWebhookPayload)
+	case disc.Type == "message":
 		u.MessageWebhookPayload = &MessageWebhookPayload{}
 		return json.Unmarshal(data, u.MessageWebhookPayload)
-	case "reaction":
+	case disc.Type == "reaction":
 		u.ReactionWebhookPayload = &ReactionWebhookPayload{}
 		return json.Unmarshal(data, u.ReactionWebhookPayload)
-	case "button":
+	case disc.Type == "button":
 		u.ButtonWebhookPayload = &ButtonWebhookPayload{}
 		return json.Unmarshal(data, u.ButtonWebhookPayload)
-	case "view":
+	case disc.Type == "view":
 		u.ViewSubmitWebhookPayload = &ViewSubmitWebhookPayload{}
 		return json.Unmarshal(data, u.ViewSubmitWebhookPayload)
-	case "chat_member":
+	case disc.Type == "chat_member":
 		u.ChatMemberWebhookPayload = &ChatMemberWebhookPayload{}
 		return json.Unmarshal(data, u.ChatMemberWebhookPayload)
-	case "company_member":
+	case disc.Type == "company_member":
 		u.CompanyMemberWebhookPayload = &CompanyMemberWebhookPayload{}
 		return json.Unmarshal(data, u.CompanyMemberWebhookPayload)
 	default:
